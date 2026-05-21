@@ -179,14 +179,13 @@ namespace RunTests
 
             // High-level test category flags (previously handled by build.ps1/build.sh)
             string? testFramework = null;
-            var testCompilerOnly = false;
+            string? testSet = null;
             var environmentVariables = new Dictionary<string, string>();
 
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", s => dotnetFilePath = s },
                 { "testConfiguration=", "Configuration to test: Debug or Release", s => configuration = s },
-                { "runtime=", "The runtime to test: both, core or framework", (TestRuntime t) => testRuntime = t},
                 { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", s => includeFilter.Add(s) },
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", s => excludeFilter.Add(s) },
                 { "arch=", "Architecture to test on: x86, x64 or arm64", s => architecture = s },
@@ -203,8 +202,8 @@ namespace RunTests
                 { "artifactspath=", "Path to the artifacts directory", s => artifactsPath = s },
                 { "procdumppath=", "Path to procdump", s => procDumpFilePath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
-                { "testFramework:", "Test framework to run: core or desktop", s => testFramework = s },
-                { "testCompilerOnly", "Only run compiler test assemblies", o => testCompilerOnly = o is object },
+                { "testFramework:", "Test framework to run: core, desktop, or both", s => testFramework = s },
+                { "testSet:", "Test set to run: compiler", s => testSet = s },
                 { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
                     if (o is object)
                         environmentVariables["ROSLYN_TEST_CI"] = "true";
@@ -238,14 +237,23 @@ namespace RunTests
             // in build.ps1's TestUsingRunTests function.
             var testDesktop = string.Equals(testFramework, "desktop", StringComparison.OrdinalIgnoreCase);
             var testCoreClr = string.Equals(testFramework, "core", StringComparison.OrdinalIgnoreCase);
+            var testBoth = string.Equals(testFramework, "both", StringComparison.OrdinalIgnoreCase);
 
-            if (testFramework is not null && !testDesktop && !testCoreClr)
+            if (testFramework is not null && !testDesktop && !testCoreClr && !testBoth)
             {
-                ConsoleUtil.WriteLine($"Invalid --testFramework value '{testFramework}'. Must be 'core' or 'desktop'.");
+                ConsoleUtil.WriteLine($"Invalid --testFramework value '{testFramework}'. Must be 'core', 'desktop', or 'both'.");
                 return null;
             }
 
-            if (testDesktop || testCoreClr)
+            var testCompilerOnly = string.Equals(testSet, "compiler", StringComparison.OrdinalIgnoreCase);
+
+            if (testSet is not null && !testCompilerOnly)
+            {
+                ConsoleUtil.WriteLine($"Invalid --testSet value '{testSet}'. Must be 'compiler'.");
+                return null;
+            }
+
+            if (testDesktop || testCoreClr || testBoth)
             {
                 if (testDesktop && environmentVariables.ContainsKey("DOTNET_RuntimeAsync"))
                 {
@@ -253,7 +261,7 @@ namespace RunTests
                     return null;
                 }
 
-                testRuntime = testDesktop ? TestRuntime.Framework : TestRuntime.Core;
+                testRuntime = testBoth ? TestRuntime.Both : testDesktop ? TestRuntime.Framework : TestRuntime.Core;
                 timeout ??= 90;
 
                 if (testCompilerOnly)

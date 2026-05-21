@@ -316,7 +316,7 @@ stages:
       jobName: Test_Windows_CoreClr_IOperation_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: --testFramework:core --testCompilerOnly --env:ROSLYN_TEST_IOPERATION=true
+      testArguments: --testFramework:core --testSet:compiler --env:ROSLYN_TEST_IOPERATION=true
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -327,7 +327,7 @@ stages:
       jobName: Test_Windows_CoreClr_RuntimeAsync_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: --testFramework:core --testCompilerOnly --env:DOTNET_RuntimeAsync=1
+      testArguments: --testFramework:core --testSet:compiler --env:DOTNET_RuntimeAsync=1
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -340,7 +340,7 @@ stages:
       jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: --testFramework:core --testCompilerOnly --env:ROSLYN_TEST_USEDASSEMBLIES=true
+      testArguments: --testFramework:core --testSet:compiler --env:ROSLYN_TEST_USEDASSEMBLIES=true
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
