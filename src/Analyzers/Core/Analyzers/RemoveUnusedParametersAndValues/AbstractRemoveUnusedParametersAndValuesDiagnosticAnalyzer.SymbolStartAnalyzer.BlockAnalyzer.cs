@@ -231,11 +231,10 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
 
             private static IOperation GetInnermostWhenNotNull(IConditionalAccessOperation operation)
             {
-                var current = operation.WhenNotNull;
-                while (current is IConditionalAccessOperation nested)
-                    current = nested.WhenNotNull;
+                while (operation is { WhenNotNull: IConditionalAccessOperation inner })
+                    operation = inner;
 
-                return current;
+                return operation;
             }
 
             private void AnalyzeDelegateCreationOrAnonymousFunction(OperationAnalysisContext operationAnalysisContext)
