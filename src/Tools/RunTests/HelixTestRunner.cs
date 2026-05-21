@@ -151,7 +151,7 @@ internal sealed partial class HelixTestRunner
                 {
                     var details = await helixApi.GetJobDetailsAsync(helixJobId, cancellationToken);
                     var workItems = details.WorkItems;
-                    if (workItems.Unscheduled != 0 && workItems.Waiting != 0)
+                    if (workItems.Unscheduled == 0 && workItems.Waiting == 0)
                     {
                         Console.WriteLine($"All work items are running");
                         return;
