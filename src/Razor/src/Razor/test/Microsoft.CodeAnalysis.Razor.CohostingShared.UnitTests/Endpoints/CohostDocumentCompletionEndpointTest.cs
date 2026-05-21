@@ -1857,7 +1857,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         }
 
         using var _ = HashSetPool<string>.GetPooledObject(out var labelSet);
-        labelSet.AddRange(result.Items.SelectAsArray((item) => item.Label));
+        labelSet.UnionWith(result.Items.SelectAsArray(static item => item.Label));
 
 #if !VSCODE
         Assert.DoesNotContain(InvalidLabel, labelSet);
