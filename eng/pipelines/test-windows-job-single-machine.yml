@@ -47,11 +47,10 @@ jobs:
       inputs:
         filename: rehydrate-all.cmd
 
-    - task: PowerShell@2
+    - task: CmdLine@2
       displayName: Run Unit Tests
       inputs:
-        filePath: eng/build.ps1
-        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+        script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --configuration ${{ parameters.configuration }} --collectdumps ${{ parameters.testArguments }}
 
     - template: publish-logs.yml
       parameters:

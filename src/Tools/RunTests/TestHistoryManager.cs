@@ -27,21 +27,16 @@ internal class TestHistoryManager
     /// Looks up the last passing test run for the current build and stage to estimate execution times for each
     /// tests. The dictionary is indexed by test full name.
     /// </summary>
-    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
+    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
-        var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
+        var accessToken = GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
 
-        // ADO project that the build pipeline is located in.
-        var projectUri = options.ProjectUri ?? GetEnvironmentVariable("SYSTEM_COLLECTIONURI");
+        var projectUri = GetEnvironmentVariable("SYSTEM_COLLECTIONURI");
 
-        // Id of the pipeline to get test history from.
-        var pipelineDefinitionIdStr = options.PipelineDefinitionId ?? GetEnvironmentVariable("SYSTEM_DEFINITIONID");
+        var pipelineDefinitionIdStr = GetEnvironmentVariable("SYSTEM_DEFINITIONID");
 
-        // The phase name is used to filter the tests on the last passing build to only those that apply to the currently running phase.
-        //   Note here that 'phaseName' corresponds to the 'jobName' defined in our pipeline yaml file and the job name env var is not correct.
-        //   See https://developercommunity.visualstudio.com/t/systemjobname-seems-to-be-incorrectly-assigned-and/1209736
-        var phaseName = options.PhaseName ?? GetEnvironmentVariable("SYSTEM_PHASENAME");
+        var phaseName = GetEnvironmentVariable("SYSTEM_PHASENAME");
 
         // We use the target branch of the current build to lookup the last successful build for the same branch.
         // For PR builds, SYSTEM_PULLREQUEST_TARGETBRANCH gives us the target (e.g. "main").

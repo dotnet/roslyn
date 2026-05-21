@@ -43,14 +43,13 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
-    - task: PowerShell@2
+    - task: CmdLine@2
       displayName: Run Unit Tests
       inputs:
-        filePath: eng/build.ps1
-        ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps        
+        ${{ if ne(parameters.helixApiAccessToken, '') }}:
+          script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} --collectdumps ${{ parameters.testArguments }}
         ${{ else }}:
-          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
+          script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --collectdumps ${{ parameters.testArguments }}
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 

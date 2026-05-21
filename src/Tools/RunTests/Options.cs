@@ -108,15 +108,36 @@ namespace RunTests
 
         public string Architecture { get; set; }
 
-        public string? AccessToken { get; set; }
+        /// <summary>
+        /// Environment variables to set in test execution processes.
+        /// Populated from --env:KEY=VALUE command line arguments.
+        /// </summary>
+        public Dictionary<string, string> EnvironmentVariables { get; set; } = new();
 
-        public string? ProjectUri { get; set; }
-
-        public string? PipelineDefinitionId { get; set; }
-
-        public string? PhaseName { get; set; }
-
-        public string? TargetBranchName { get; set; }
+        /// <summary>
+        /// The list of compiler test assembly include patterns used when --testCompilerOnly is specified.
+        /// </summary>
+        internal static readonly string[] CompilerTestAssemblyPatterns = new[]
+        {
+            @"^Microsoft\.CodeAnalysis\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$",
+            @"^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$",
+            @"^Microsoft\.Build\.Tasks\.CodeAnalysis\.UnitTests$",
+        };
 
         public Options(
             string dotnetFilePath,
@@ -155,11 +176,13 @@ namespace RunTests
             var collectDumps = false;
             string? procDumpFilePath = null;
             string? artifactsPath = null;
-            string? accessToken = null;
-            string? projectUri = null;
-            string? pipelineDefinitionId = null;
-            string? phaseName = null;
-            string? targetBranchName = null;
+
+            // High-level test category flags (previously handled by build.ps1/build.sh)
+            var testDesktop = false;
+            var testCoreClr = false;
+            var testCompilerOnly = false;
+            var environmentVariables = new Dictionary<string, string>();
+
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", s => dotnetFilePath = s },
@@ -181,11 +204,24 @@ namespace RunTests
                 { "artifactspath=", "Path to the artifacts directory", s => artifactsPath = s },
                 { "procdumppath=", "Path to procdump", s => procDumpFilePath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
-                { "accessToken=", "Pipeline access token with permissions to view test history", s => accessToken = s },
-                { "projectUri=", "ADO project containing the pipeline", s => projectUri = s },
-                { "pipelineDefinitionId=", "Pipeline definition id", s => pipelineDefinitionId = s },
-                { "phaseName=", "Pipeline phase name associated with this test run", s => phaseName = s },
-                { "targetBranchName=", "Target branch of this pipeline run", s => targetBranchName = s },
+                { "testDesktop", "Run desktop (net472) unit tests", o => testDesktop = o is object },
+                { "testCoreClr", "Run CoreCLR unit tests", o => testCoreClr = o is object },
+                { "testCompilerOnly", "Only run compiler test assemblies", o => testCompilerOnly = o is object },
+                { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
+                    if (o is object)
+                        environmentVariables["ROSLYN_TEST_CI"] = "true";
+                }},
+                { "env:", "Set an environment variable in test processes (format: --env:KEY=VALUE or --env:KEY for KEY=true)", s => {
+                    var eqIndex = s.IndexOf('=');
+                    if (eqIndex >= 0)
+                    {
+                        environmentVariables[s[..eqIndex]] = s[(eqIndex + 1)..];
+                    }
+                    else
+                    {
+                        environmentVariables[s] = "true";
+                    }
+                }},
             };
 
             List<string> assemblyList;
@@ -198,6 +234,41 @@ namespace RunTests
                 ConsoleUtil.WriteLine($"Error parsing command line arguments: {e.Message}");
                 optionSet.WriteOptionDescriptions(Console.Out);
                 return null;
+            }
+
+            // Apply high-level test category flags. These replicate the logic previously
+            // in build.ps1's TestUsingRunTests function.
+            if (testDesktop || testCoreClr)
+            {
+                if (testDesktop && environmentVariables.ContainsKey("DOTNET_RuntimeAsync"))
+                {
+                    ConsoleUtil.WriteLine("Cannot run desktop tests with runtime async validation enabled.");
+                    return null;
+                }
+
+                testRuntime = testDesktop ? TestRuntime.Framework : TestRuntime.Core;
+                timeout ??= 90;
+
+                if (testCompilerOnly)
+                {
+                    foreach (var pattern in CompilerTestAssemblyPatterns)
+                    {
+                        includeFilter.Add(pattern);
+                    }
+                }
+                else
+                {
+                    if (includeFilter.Count == 0)
+                    {
+                        includeFilter.Add(@"\.UnitTests");
+                    }
+                }
+
+                // Desktop x64 excludes InteractiveHost tests
+                if (testDesktop && architecture != "x86")
+                {
+                    excludeFilter.Add(@"\.InteractiveHost");
+                }
             }
 
             if (includeFilter.Count == 0)
@@ -223,6 +294,12 @@ namespace RunTests
             {
                 ConsoleUtil.WriteLine($"Did not find 'dotnet' at {dotnetFilePath}");
                 return null;
+            }
+
+            // Auto-discover procdump on Windows when collectDumps is set but no path specified
+            if (collectDumps && procDumpFilePath is null && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                procDumpFilePath = TryFindProcDump(artifactsPath);
             }
 
             if (procDumpFilePath is { } && !collectDumps)
@@ -251,11 +328,7 @@ namespace RunTests
                 IncludeHtml = includeHtml,
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
-                AccessToken = accessToken,
-                ProjectUri = projectUri,
-                PipelineDefinitionId = pipelineDefinitionId,
-                PhaseName = phaseName,
-                TargetBranchName = targetBranchName,
+                EnvironmentVariables = environmentVariables,
             };
 
             static string? TryGetArtifactsPath()
@@ -280,6 +353,29 @@ namespace RunTests
                 }
 
                 return dir == null ? null : Path.Combine(dir, programName);
+            }
+
+            static string? TryFindProcDump(string artifactsPath)
+            {
+                // Check well-known locations for procdump
+                var sysInternalsPath = @"C:\SysInternals\procdump.exe";
+                if (File.Exists(sysInternalsPath))
+                {
+                    return @"C:\SysInternals";
+                }
+
+                // Check the tools directory relative to artifacts
+                var repoRoot = Path.GetDirectoryName(artifactsPath);
+                if (repoRoot is not null)
+                {
+                    var toolsPath = Path.Combine(repoRoot, ".tools", "ProcDump", "procdump.exe");
+                    if (File.Exists(toolsPath))
+                    {
+                        return Path.GetDirectoryName(toolsPath);
+                    }
+                }
+
+                return null;
             }
         }
     }

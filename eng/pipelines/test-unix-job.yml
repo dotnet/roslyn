@@ -35,7 +35,7 @@ jobs:
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
-    
+
     - task: ShellScript@2
       displayName: Rehydrate RunTests
       inputs:
@@ -43,14 +43,13 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
-    - task: ShellScript@2
+    - task: CmdLine@2
+      displayName: Run Unit Tests
       inputs:
-        scriptPath: ./eng/build.sh        
-        ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}        
+        ${{ if ne(parameters.helixApiAccessToken, '') }}:
+          script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}
         ${{ else }}:
-          args: --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
-      displayName: Test
+          script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --configuration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 

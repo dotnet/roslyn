@@ -318,7 +318,7 @@ internal sealed partial class HelixTestRunner
         var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
 
         // Retrieve test runtimes from azure devops historical data.
-        var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
+        var testHistory = await TestHistoryManager.GetTestHistoryAsync(cancellationToken);
         var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), testHistory);
         var helixProjectFileContent = GetHelixProjectFileContent(
             helixWorkItems,
@@ -327,7 +327,8 @@ internal sealed partial class HelixTestRunner
             platform,
             options.HelixQueueName,
             options.ArtifactsDirectory,
-            payloadsDir);
+            payloadsDir,
+            options.EnvironmentVariables);
 
         var helixFilePath = Path.Combine(options.ArtifactsDirectory, "helix.proj");
         File.WriteAllText(helixFilePath, helixProjectFileContent);
@@ -416,7 +417,8 @@ internal sealed partial class HelixTestRunner
         string platform,
         string helixQueueName,
         string artifactsDir,
-        string payloadsDir)
+        string payloadsDir,
+        Dictionary<string, string> environmentVariables)
     {
         // Setup the environment variables that are required for the helix project.
         //
@@ -461,7 +463,7 @@ internal sealed partial class HelixTestRunner
 
         foreach (var helixWorkItem in helixWorkItems)
         {
-            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS);
+            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS, environmentVariables);
         }
 
         builder.AppendLine("""
@@ -487,7 +489,8 @@ internal sealed partial class HelixTestRunner
             string platform,
             string artifactsDir,
             string payloadsDir,
-            TestOS testOS)
+            TestOS testOS,
+            Dictionary<string, string> environmentVariables)
         {
             var isUnix = testOS != TestOS.Windows;
 
@@ -523,7 +526,7 @@ internal sealed partial class HelixTestRunner
                 path: Path.Combine(workItemPayloadDir, "global.json"),
                 pathToTarget: Path.Combine(artifactsDir, "..", "global.json"));
 
-            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS);
+            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS, environmentVariables);
             File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);
 
             var (postCommandFileName, postCommandContent) = GetHelixPostCommandContent(testOS);
@@ -544,7 +547,8 @@ internal sealed partial class HelixTestRunner
         static (string FileName, string Content) GetHelixCommandContent(
             IEnumerable<string> assemblyRelativeFilePaths,
             string vstestRspFileName,
-            TestOS testOS)
+            TestOS testOS,
+            Dictionary<string, string> environmentVariables)
         {
             var isUnix = testOS != TestOS.Windows;
             var isMac = testOS == TestOS.Mac;
@@ -556,19 +560,9 @@ internal sealed partial class HelixTestRunner
             command.AppendLine(isUnix ? $"ls -l" : $"dir");
             command.AppendLine("dotnet --info");
 
-            string[] knownEnvironmentVariables =
-            [
-                "ROSLYN_TEST_IOPERATION",
-                "ROSLYN_TEST_USEDASSEMBLIES",
-                "DOTNET_RuntimeAsync"
-            ];
-
-            foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
+            foreach (var (key, value) in environmentVariables)
             {
-                if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string { Length: > 0 } value)
-                {
-                    command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}={value}");
-                }
+                command.AppendLine($"{setEnvironmentVariable} {key}={value}");
             }
 
             // OSX produces extremely large dump files that commonly exceed the limits of Helix 

@@ -48,10 +48,9 @@ jobs:
       inputs:
         scriptPath: ./rehydrate-all.sh
 
-    - task: ShellScript@2
+    - task: CmdLine@2
       inputs:
-        scriptPath: ./eng/build.sh
-        args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+        script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
 
     - template: publish-logs.yml
