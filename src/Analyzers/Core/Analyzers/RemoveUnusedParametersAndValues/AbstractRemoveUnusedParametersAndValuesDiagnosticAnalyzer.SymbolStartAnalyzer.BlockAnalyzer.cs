@@ -202,7 +202,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 }
 
                 //  5. Bail out for null-conditional assignments (e.g. `a?.b = c`, possibly nested),
-                //     where the innermost WhenNotNull of the IConditionalAccessOperation is an assignment.
+                //     The analyzer is expected to behave the same way as it does with assignments(4).
                 if (value is IConditionalAccessOperation conditionalAccess &&
                     GetInnermostWhenNotNull(conditionalAccess) is IAssignmentOperation)
                 {
