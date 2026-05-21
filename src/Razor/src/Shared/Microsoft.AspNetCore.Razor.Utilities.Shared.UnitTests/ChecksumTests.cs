@@ -3,14 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using RazorChecksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test;
+namespace Microsoft.AspNetCore.Razor.Utilities.Shared.Test;
 
-public class ChecksumTests(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
+public class ChecksumTests
 {
     public static IEnumerable<object[]> Checksums
     {
@@ -119,10 +117,10 @@ public class ChecksumTests(ITestOutputHelper testOutput) : ToolingTestBase(testO
         }
     }
 
-    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909377")]
+    [Fact]
     public void TestLargeString()
     {
-        object? largeString = RazorTestResources.GetResourceText("FormattingTest.razor");
+        var largeString = new string('a', 100_000);
 
         var builder = new RazorChecksum.Builder();
         builder.Append(largeString);

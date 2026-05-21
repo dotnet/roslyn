@@ -98,10 +98,10 @@ public static class TestTagMatchingRuleDescriptorBuilderExtensions
 
     public static TagMatchingRuleDescriptorBuilder RequiredAttribute(
         this TagMatchingRuleDescriptorBuilder builder,
-        string name = null,
-        RequiredAttributeNameComparison? nameComparison = default,
-        string value = null,
-        RequiredAttributeValueComparison? valueComparison = default,
+        string? name,
+        RequiredAttributeNameComparison? nameComparison,
+        string? value,
+        RequiredAttributeValueComparison? valueComparison,
         Action<RequiredAttributeDescriptorBuilder>? configure = null)
     {
         builder.Attribute(attribute =>
