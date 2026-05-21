@@ -93,6 +93,18 @@ internal sealed class HelixApi : IDisposable
             ?? throw new InvalidOperationException($"Failed to deserialize response from {url}");
     }
 
+    /// <summary>
+    /// Gets the URL for a work item details page.
+    /// </summary>
+    public static string GetWorkItemUrl(string job, string workItemName)
+        => $"{HelixBaseUrl}/api/jobs/{Uri.EscapeDataString(job)}/workitems/{Uri.EscapeDataString(workItemName)}?api-version={ApiVersion}";
+
+    /// <summary>
+    /// Gets the URL for a work item's console output.
+    /// </summary>
+    public static string GetWorkItemConsoleUrl(string job, string workItemName)
+        => $"{HelixBaseUrl}/api/jobs/{Uri.EscapeDataString(job)}/workitems/{Uri.EscapeDataString(workItemName)}/console?api-version={ApiVersion}";
+
     public void Dispose() => _httpClient.Dispose();
 
     private static readonly JsonSerializerOptions JsonOptions = new()

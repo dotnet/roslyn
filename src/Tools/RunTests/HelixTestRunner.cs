@@ -253,6 +253,8 @@ internal sealed partial class HelixTestRunner
                 {
                     var escapedWorkItemName = System.Security.SecurityElement.Escape(workItemName);
                     var escapedJobId = System.Security.SecurityElement.Escape(helixJobId);
+                    var workItemUrl = System.Security.SecurityElement.Escape(HelixApi.GetWorkItemUrl(helixJobId, workItemName));
+                    var consoleUrl = System.Security.SecurityElement.Escape(HelixApi.GetWorkItemConsoleUrl(helixJobId, workItemName));
                     var xml = $"""
                         <?xml version="1.0" encoding="utf-8"?>
                         <assemblies>
@@ -261,10 +263,10 @@ internal sealed partial class HelixTestRunner
                               <test name="{escapedWorkItemName}" type="RunTests.TimeoutDetection" method="{escapedWorkItemName}" time="0" result="Fail">
                                 <failure exception-type="WorkItemTimeoutException">
                                   <message>Helix work item '{escapedWorkItemName}' in job '{escapedJobId}' exceeded the maximum execution time of {JobExecutionTimeout}.
-                        Work Item: https://helix.dot.net/api/jobs/{helixJobId}/workitems/{workItemName}
-                        Console: https://helix.dot.net/api/jobs/{helixJobId}/workitems/{workItemName}/console</message>
+                        Work Item: {workItemUrl}
+                        Console: {consoleUrl}</message>
                                   <stack-trace>The work item was still in the Running state when the timeout was detected.
-                        See https://helix.dot.net/api/jobs/{helixJobId}/workitems/{workItemName} for more details.</stack-trace>
+                        See {workItemUrl} for more details.</stack-trace>
                                 </failure>
                               </test>
                             </collection>
