@@ -137,8 +137,6 @@ namespace RunTests
                 return ExitFailure;
             }
 
-            ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
-
             var result = await testRunner.RunAllAsync(assemblyFilePaths, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
@@ -210,6 +208,8 @@ namespace RunTests
         /// </summary>
         private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
         {
+            var procDumpFilePath = options.CollectDumps ? FindProcDump(options.ArtifactsDirectory) : null;
+
             async Task DumpProcess(Process targetProcess, string procDumpExeFilePath, string dumpFilePath)
             {
                 var name = targetProcess.ProcessName;
@@ -259,7 +259,7 @@ namespace RunTests
                 ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.ErrorLines));
             }
 
-            if (options.CollectDumps && !string.IsNullOrEmpty(options.ProcDumpFilePath))
+            if (options.CollectDumps && !string.IsNullOrEmpty(procDumpFilePath))
             {
                 ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
 
@@ -268,12 +268,32 @@ namespace RunTests
                 {
                     var dumpDir = options.LogFilesDirectory;
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, options.ProcDumpFilePath, dumpFilePath);
+                    await DumpProcess(proc, procDumpFilePath, dumpFilePath);
                     counter++;
                 }
             }
 
             WriteLogFile(options);
+        }
+
+        private static string FindProcDump(string artifactsDirectory)
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return null;
+
+            var sysInternalsPath = @"C:\SysInternals\procdump.exe";
+            if (File.Exists(sysInternalsPath))
+                return @"C:\SysInternals";
+
+            var repoRoot = Path.GetDirectoryName(artifactsDirectory);
+            if (repoRoot is not null)
+            {
+                var toolsPath = Path.Combine(repoRoot, ".tools", "ProcDump", "procdump.exe");
+                if (File.Exists(toolsPath))
+                    return Path.GetDirectoryName(toolsPath);
+            }
+
+            return null;
         }
 
         private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)

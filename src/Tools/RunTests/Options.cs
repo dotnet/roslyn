@@ -66,11 +66,6 @@ namespace RunTests
         public bool CollectDumps { get; set; }
 
         /// <summary>
-        /// The path to procdump.exe
-        /// </summary>
-        public string? ProcDumpFilePath { get; set; }
-
-        /// <summary>
         /// Whether to run test partitions as Helix work items.
         /// </summary>
         public bool UseHelix { get; set; }
@@ -168,7 +163,6 @@ namespace RunTests
             string? logFileDirectory = null;
             var display = Display.None;
             var collectDumps = false;
-            string? procDumpFilePath = null;
             string? artifactsPath = null;
 
             // High-level test category flags (previously handled by build.ps1/build.sh)
@@ -193,8 +187,7 @@ namespace RunTests
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
                 { "display=", "Display", (Display d) => display = d },
                 { "artifactspath=", "Path to the artifacts directory", s => artifactsPath = s },
-                { "procdumppath=", "Path to procdump", s => procDumpFilePath = s },
-                { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
+                { "collectdumps", "Whether or not to gather dumps on timeouts and crashes (process executor only)", o => collectDumps = o is object },
                 { "testFramework:", "Test framework to run: core, desktop, or both", s => testFramework = s },
                 { "testSet:", "Test set to run: compiler", s => testSet = s },
                 { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
@@ -304,15 +297,19 @@ namespace RunTests
                 return null;
             }
 
-            // Auto-discover procdump on Windows when collectDumps is set but no path specified
-            if (collectDumps && procDumpFilePath is null && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (helix)
             {
-                procDumpFilePath = TryFindProcDump(artifactsPath);
-            }
+                if (collectDumps)
+                {
+                    ConsoleUtil.WriteLine("--collectdumps is not supported with --helix. Dump collection is only available for process-based test execution.");
+                    return null;
+                }
 
-            if (procDumpFilePath is { } && !collectDumps)
-            {
-                ConsoleUtil.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
+                if (timeout is not null)
+                {
+                    ConsoleUtil.WriteLine("--timeout is not supported with --helix. Timeout is managed by the helix infrastructure.");
+                    return null;
+                }
             }
 
             return new Options(
@@ -327,7 +324,6 @@ namespace RunTests
                 IncludeFilter = includeFilter,
                 ExcludeFilter = excludeFilter,
                 Display = display,
-                ProcDumpFilePath = procDumpFilePath,
                 CollectDumps = collectDumps,
                 UseHelix = helix,
                 HelixQueueName = helixQueueName,
@@ -360,29 +356,6 @@ namespace RunTests
                 }
 
                 return dir == null ? null : Path.Combine(dir, programName);
-            }
-
-            static string? TryFindProcDump(string artifactsPath)
-            {
-                // Check well-known locations for procdump
-                var sysInternalsPath = @"C:\SysInternals\procdump.exe";
-                if (File.Exists(sysInternalsPath))
-                {
-                    return @"C:\SysInternals";
-                }
-
-                // Check the tools directory relative to artifacts
-                var repoRoot = Path.GetDirectoryName(artifactsPath);
-                if (repoRoot is not null)
-                {
-                    var toolsPath = Path.Combine(repoRoot, ".tools", "ProcDump", "procdump.exe");
-                    if (File.Exists(toolsPath))
-                    {
-                        return Path.GetDirectoryName(toolsPath);
-                    }
-                }
-
-                return null;
             }
         }
     }
