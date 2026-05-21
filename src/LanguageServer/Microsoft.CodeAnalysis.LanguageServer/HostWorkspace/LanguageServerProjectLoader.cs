@@ -577,6 +577,7 @@ internal abstract class LanguageServerProjectLoader
         private readonly int _totalProjects;
         private readonly AsyncBatchingWorkQueue<VoidResult> _progressQueue;
         private int _projectsProcessed;
+        private int _lastReportedPercentage = -1;
 
         public ProjectLoadProgressTracker(IProgress<LSP.WorkDoneProgress> reporter, int totalProjects, IAsynchronousOperationListener? listener = null)
         {
@@ -599,10 +600,14 @@ internal abstract class LanguageServerProjectLoader
             var percentage = (int)((long)_projectsProcessed * 100 / _totalProjects);
             percentage = Math.Min(percentage, 99);
 
-            _reporter.Report(new LSP.WorkDoneProgressReport
+            if (percentage > _lastReportedPercentage)
             {
-                Percentage = percentage,
-            });
+                _lastReportedPercentage = percentage;
+                _reporter.Report(new LSP.WorkDoneProgressReport
+                {
+                    Percentage = percentage,
+                });
+            }
 
             return ValueTask.CompletedTask;
         }
