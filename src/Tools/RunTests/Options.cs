@@ -188,7 +188,7 @@ namespace RunTests
                 { "testConfiguration=", "Configuration to test: Debug or Release", s => configuration = s },
                 { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", s => includeFilter.Add(s) },
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", s => excludeFilter.Add(s) },
-                { "arch=", "Architecture to test on: x86, x64 or arm64", s => architecture = s },
+                { "testPlatform=", "Architecture to test on: x86, x64 or arm64", s => architecture = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },

@@ -214,7 +214,7 @@ stages:
         jobName: Test_Windows_Desktop_Debug_32
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
-        testArguments: --testFramework:desktop --arch x86
+        testArguments: --testFramework:desktop --testPlatform x86
         helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
@@ -225,7 +225,7 @@ stages:
       jobName: Test_Windows_Desktop_Debug_64
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: --testFramework:desktop --arch x64
+      testArguments: --testFramework:desktop --testPlatform x64
       helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -242,7 +242,7 @@ stages:
       jobName: Test_Windows_Desktop_Release_32
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      testArguments: --testFramework:desktop --arch x86
+      testArguments: --testFramework:desktop --testPlatform x86
       helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -254,7 +254,7 @@ stages:
         jobName: Test_Windows_Desktop_Release_64
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
-        testArguments: --testFramework:desktop --arch x64
+        testArguments: --testFramework:desktop --testPlatform x64
         helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
@@ -266,7 +266,7 @@ stages:
         jobName: Test_Windows_Desktop_Spanish_Release_64
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
-        testArguments: --testFramework:desktop --arch x64
+        testArguments: --testFramework:desktop --testPlatform x64
         helixQueueName: $(HelixWindowsSpanishQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
