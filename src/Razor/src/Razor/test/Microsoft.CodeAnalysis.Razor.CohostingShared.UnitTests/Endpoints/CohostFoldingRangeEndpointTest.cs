@@ -374,7 +374,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
         var document = CreateProjectAndRazorDocument(source, fileKind, miscellaneousFile: miscellaneousFile, documentFilePath: razorFilePath);
         var inputText = await document.GetTextAsync(DisposalToken);
 
-        var htmlSpans = Microsoft.CodeAnalysis.ImmutableArrayExtensions.NullToEmpty(spans.GetValueOrDefault("html"));
+        var htmlSpans = spans.GetValueOrDefault("html").NullToEmpty();
         var htmlRanges = htmlSpans
             .Select(span =>
                 {

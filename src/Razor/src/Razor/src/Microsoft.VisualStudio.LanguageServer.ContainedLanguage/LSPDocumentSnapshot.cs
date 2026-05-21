@@ -69,13 +69,7 @@ public abstract class LSPDocumentSnapshot
             }
         }
 
-        if (actualVirtualDocuments.Count == 0)
-        {
-            virtualDocuments = ImmutableArray<TVirtualDocument>.Empty;
-            return false;
-        }
-
         virtualDocuments = actualVirtualDocuments.ToImmutableAndClear();
-        return true;
+        return virtualDocuments.Length > 0;
     }
 }

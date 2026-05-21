@@ -12,7 +12,7 @@ internal static class ITextBufferExtensions
 {
     public static bool TryGetTextDocument(this ITextBuffer textBuffer, [NotNullWhen(true)] out TextDocument? textDocument)
     {
-        textDocument = Microsoft.CodeAnalysis.Text.TextExtensions.GetOpenTextDocumentInCurrentContextWithChanges(textBuffer.CurrentSnapshot.AsText());
+        textDocument = textBuffer.CurrentSnapshot.AsText().GetOpenTextDocumentInCurrentContextWithChanges();
         return textDocument is not null;
     }
 }

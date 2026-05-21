@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Windows;
@@ -59,6 +60,7 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         InitializeRunningDocumentTable();
     }
 
+    [MemberNotNull(nameof(_joinableTaskFactory), nameof(_documentManager), nameof(_fileUriProvider), nameof(_languageServerFeatureOptions), nameof(_lspRequestInvoker), nameof(_remoteServiceInvoker))]
     private void EnsureInitialized()
     {
         if (_joinableTaskFactory is not null &&
@@ -120,7 +122,7 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
 
         EnsureInitialized();
 
-        if (_fileUriProvider!.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
+        if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
         {
             ShowGeneratedCode(_activeWpfTextView.TextBuffer, hostDocumentUri, GeneratedDocumentKind.Formatting);
         }
@@ -135,7 +137,7 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
 
         EnsureInitialized();
 
-        if (_fileUriProvider!.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
+        if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
         {
             ShowGeneratedCode(_activeWpfTextView.TextBuffer, hostDocumentUri, GeneratedDocumentKind.CSharp);
         }
@@ -145,8 +147,8 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
     {
         EnsureInitialized();
 
-        if (_fileUriProvider!.TryGet(hostDocumentBuffer, out var hostDocumentUri) &&
-            _documentManager!.TryGetDocument(hostDocumentUri, out var hostDocument) &&
+        if (_fileUriProvider.TryGet(hostDocumentBuffer, out var hostDocumentUri) &&
+            _documentManager.TryGetDocument(hostDocumentUri, out var hostDocument) &&
             hostDocument.TryGetAllVirtualDocuments<T>(out var virtualDocuments))
         {
             foreach (var doc in virtualDocuments)
@@ -187,9 +189,9 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
 
         var request = DocumentContentsRequest.Create(hostDocumentUri, kind);
 
-        var response = _joinableTaskFactory!.Run(async () =>
+        var response = _joinableTaskFactory.Run(async () =>
         {
-            var lspResponse = await _lspRequestInvoker!.ReinvokeRequestOnServerAsync<DocumentContentsRequest, string>(
+            var lspResponse = await _lspRequestInvoker.ReinvokeRequestOnServerAsync<DocumentContentsRequest, string>(
                 textBuffer,
                 "razor/generatedDocumentContents",
                 RazorLSPConstants.RoslynLanguageServerName,
@@ -225,11 +227,11 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
             _ => TagHelpersKind.All
         };
 
-        var tagHelpers = _joinableTaskFactory!.Run(async () =>
+        var tagHelpers = _joinableTaskFactory.Run(async () =>
         {
             var workspace = VSServiceHelpers.GetRequiredMefService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
-            var tagHelpersJson = await SyntaxVisualizerHelper.GetTagHelperDescriptorsAsync(_remoteServiceInvoker!, hostDocumentUri, tagHelpersKind, solution, CancellationToken.None).ConfigureAwait(false);
+            var tagHelpersJson = await SyntaxVisualizerHelper.GetTagHelperDescriptorsAsync(_remoteServiceInvoker, hostDocumentUri, tagHelpersKind, solution, CancellationToken.None).ConfigureAwait(false);
 
             if (tagHelpersJson is null)
             {
@@ -249,7 +251,7 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         EnsureInitialized();
 
         if (_activeWpfTextView is not null &&
-            _fileUriProvider!.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
+            _fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
         {
             ShowSerializedTagHelpers(hostDocumentUri, displayKind);
         }
@@ -455,13 +457,13 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         EnsureInitialized();
 
         if (_activeWpfTextView is not null &&
-            _fileUriProvider!.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
+            _fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
         {
-            var rootNode = _joinableTaskFactory!.Run(async () =>
+            var rootNode = _joinableTaskFactory.Run(async () =>
             {
                 var workspace = VSServiceHelpers.GetRequiredMefService<VisualStudioWorkspace>();
                 var solution = workspace.CurrentSolution;
-                return await SyntaxVisualizerHelper.GetSyntaxRootAsync(_remoteServiceInvoker!, hostDocumentUri, solution, CancellationToken.None);
+                return await SyntaxVisualizerHelper.GetSyntaxRootAsync(_remoteServiceInvoker, hostDocumentUri, solution, CancellationToken.None);
             });
 
             if (rootNode is not null)
