@@ -408,7 +408,7 @@ extends:
 
     - stage: insert
       dependsOn:
-      - publish_using_darc
+      - build
       displayName: Insert to VS
 
       jobs:
