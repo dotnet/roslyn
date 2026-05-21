@@ -8792,25 +8792,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             source,
             targetFramework: TargetFramework.Net100,
             options: TestOptions.UnsafeReleaseDll)
-            .VerifyDiagnostics();
+            .VerifyEmitDiagnostics();
 
         CreateCompilation(
             source,
             targetFramework: TargetFramework.Net100,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-                // (7,13): error CS9362: 'Buffer._element0' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                //         _ = buffer[index];
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "buffer[index]").WithArguments("Buffer._element0").WithLocation(7, 13),
-                // (8,13): error CS9362: 'Buffer._element0' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                //         _ = buffer[..];
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "buffer[..]").WithArguments("Buffer._element0").WithLocation(8, 13),
-                // (9,26): error CS9362: 'Buffer._element0' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                //         Span<int> span = buffer;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "buffer").WithArguments("Buffer._element0").WithLocation(9, 26),
-                // (10,42): error CS9362: 'Buffer._element0' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
-                //         ReadOnlySpan<int> readOnlySpan = buffer;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "buffer").WithArguments("Buffer._element0").WithLocation(10, 42));
+            .VerifyEmitDiagnostics();
     }
 
     [Fact]

@@ -9819,7 +9819,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureInlineArrays, diagnostics);
                 diagnostics.ReportUseSite(elementField, node);
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, elementField, node);
 
                 TypeSymbol resultType;
 
