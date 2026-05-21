@@ -71,11 +71,6 @@ namespace RunTests
         public string? ProcDumpFilePath { get; set; }
 
         /// <summary>
-        /// Disable partitioning and parallelization across test assemblies.
-        /// </summary>
-        public bool Sequential { get; set; }
-
-        /// <summary>
         /// Whether to run test partitions as Helix work items.
         /// </summary>
         public bool UseHelix { get; set; }
@@ -164,7 +159,6 @@ namespace RunTests
             var configuration = "Debug";
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
-            var sequential = false;
             var helix = false;
             var helixQueueName = "Windows.10.Amd64.Open";
             string? helixApiAccessToken = null;
@@ -190,7 +184,6 @@ namespace RunTests
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", s => excludeFilter.Add(s) },
                 { "testPlatform=", "Architecture to test on: x86, x64 or arm64", s => architecture = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
-                { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
@@ -336,7 +329,6 @@ namespace RunTests
                 Display = display,
                 ProcDumpFilePath = procDumpFilePath,
                 CollectDumps = collectDumps,
-                Sequential = sequential,
                 UseHelix = helix,
                 HelixQueueName = helixQueueName,
                 HelixApiAccessToken = helixApiAccessToken,
