@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -66,7 +66,12 @@ internal static class CpsUtilities
 
         // If the path does not contain "analyzerdependency\" immediately after the first slash, it
         // is the newer form of the analyzer tree item's file path (VS16.7+) which requires no processing.
-        if (remaining.IndexOf(AnalyzerDependencySegment, backslashIndex + 1, AnalyzerDependencySegment.Length, StringComparison.OrdinalIgnoreCase) != backslashIndex + 1)
+        // The length guard avoids ArgumentOutOfRangeException from the bounded IndexOf overload when
+        // the remaining string is too short to contain the segment at this offset (e.g. a malformed
+        // canonical name ending with a trailing backslash).
+        var segmentStart = backslashIndex + 1;
+        if (remaining.Length < segmentStart + AnalyzerDependencySegment.Length ||
+            remaining.IndexOf(AnalyzerDependencySegment, segmentStart, AnalyzerDependencySegment.Length, StringComparison.OrdinalIgnoreCase) != segmentStart)
         {
             return analyzerNodeCanonicalName;
         }
@@ -83,7 +88,7 @@ internal static class CpsUtilities
         // the project directory (e.g. an analyzer at "{projectDir}\netstandard2.0\analyzerdependency\Foo.dll").
         // Fall back to the newer-form interpretation in that case.
         var candidate = remaining[(backslashIndex + 1)..];
-        if (!Path.IsPathRooted(candidate))
+        if (!PathUtilities.IsAbsolute(candidate))
         {
             return analyzerNodeCanonicalName;
         }

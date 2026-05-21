@@ -82,6 +82,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Dim analyzerFileFullPath = CpsUtilities.ExtractAnalyzerFilePath(projectDirectoryFullPath, analyzerCanonicalName)
             Assert.Null(analyzerFileFullPath)
         End Sub
+
+        <Fact>
+        Public Sub ExtractAnalyzerFilePath_MalformedCanonicalName_TrailingBackslashOnly_DoesNotThrow()
+            ' Canonical name where the only backslash is at the end. Without a length guard, the
+            ' bounded IndexOf overload used to detect the legacy "analyzerdependency\" segment would
+            ' throw ArgumentOutOfRangeException because startIndex + count exceeds the string length.
+            ' The method should treat this as the newer form and return the input unchanged rather
+            ' than throwing.
+            Dim projectDirectoryFullPath = "C:\users\me\Solution\Project"
+            Dim analyzerCanonicalName = "a\"
+
+            Dim analyzerFileFullPath = CpsUtilities.ExtractAnalyzerFilePath(projectDirectoryFullPath, analyzerCanonicalName)
+            Assert.Equal(expected:="a\", actual:=analyzerFileFullPath)
+        End Sub
     End Class
 
 End Namespace
