@@ -10309,7 +10309,7 @@ public static class Repro
     .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
         01 00 00 00 00
     )
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
+    .custom instance void System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
         01 00 00 00
     )
     .pack 0
@@ -10325,6 +10325,21 @@ public static class Repro
     .property instance object Value()
     {
         .get instance object S1::get_Value()
+    }
+}
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.UnionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
     }
 }
 ";
