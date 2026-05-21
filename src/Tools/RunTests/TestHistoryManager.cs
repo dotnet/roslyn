@@ -49,6 +49,15 @@ internal class TestHistoryManager
         // (e.g. "refs/heads/features/unions") while BUILD_SOURCEBRANCHNAME only gives the last
         // segment (e.g. "unions"), which breaks history lookup for nested branch names.
         var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCH");
+
+        // HACK: Override the branch to simulate a features/ branch for testing.
+        // This forces history lookup to use features/unions even when running on a dev branch.
+        // REMOVE THIS COMMIT BEFORE MERGING.
+        if (targetBranch != null && !targetBranch.Contains("features/"))
+        {
+            ConsoleUtil.WriteLine($"[TEST HACK] Overriding branch from '{targetBranch}' to 'refs/heads/features/unions' to test fix");
+            targetBranch = "refs/heads/features/unions";
+        }
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
             ConsoleUtil.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
