@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Checks whether a cached result exists for the given DLL name and hash key.
         /// On a hit, all cached output files are copied to the paths specified by
-        /// <paramref name="outputFiles"/> and stamped with <paramref name="restoredOutputTimestampUtc"/>.
+        /// <paramref name="outputFiles"/> and stamped with <paramref name="outputTimestampUtc"/>.
         /// Returns <see langword="false"/> if no cached entry exists or if any required file copy fails.
         /// </summary>
         internal bool TryRestoreCachedResult(
@@ -146,11 +146,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string hashKey,
             CompilationOutputFiles outputFiles,
             ICompilerServerLogger logger,
-            DateTime? restoredOutputTimestampUtc = null)
+            DateTime outputTimestampUtc)
         {
             var entryDir = GetCacheEntryDirectory(dllName, hashKey);
             var cachedAssemblyPath = Path.Combine(entryDir, AssemblyFileName);
-            var outputTimestampUtc = restoredOutputTimestampUtc ?? DateTime.UtcNow;
             Debug.Assert(outputTimestampUtc.Kind == DateTimeKind.Utc);
 
             try
@@ -182,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 logger.Log($"Cache hit: {dllName} [{hashKey}]");
                 TouchLastUsed(entryDir, logger);
-                copyRestoredOutput(cachedAssemblyPath, outputFiles.AssemblyPath, outputTimestampUtc);
+                copyAndUpdateTimestamp(cachedAssemblyPath, outputFiles.AssemblyPath, outputTimestampUtc);
                 copyIfNeeded(entryDir, PdbFileName, outputFiles.PdbPath, outputTimestampUtc);
                 copyIfNeeded(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath, outputTimestampUtc);
                 copyIfNeeded(entryDir, XmlDocFileName, outputFiles.XmlDocPath, outputTimestampUtc);
@@ -213,10 +212,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return;
                 }
 
-                copyRestoredOutput(Path.Combine(entryDir, cachedFileName), targetPath, outputTimestampUtc);
+                copyAndUpdateTimestamp(Path.Combine(entryDir, cachedFileName), targetPath, outputTimestampUtc);
             }
 
-            static void copyRestoredOutput(string sourcePath, string targetPath, DateTime outputTimestampUtc)
+            static void copyAndUpdateTimestamp(string sourcePath, string targetPath, DateTime outputTimestampUtc)
             {
                 File.Copy(sourcePath, targetPath, overwrite: true);
                 File.SetLastWriteTimeUtc(targetPath, outputTimestampUtc);
