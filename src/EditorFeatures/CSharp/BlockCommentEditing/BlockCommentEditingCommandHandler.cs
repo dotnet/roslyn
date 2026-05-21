@@ -139,17 +139,17 @@ internal sealed class BlockCommentEditingCommandHandler : ICommandHandler<Return
 
         string GetCommentIndentation()
         {
-            var sb = PooledStringBuilder.GetInstance();
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
 
             var commentStart = blockComment.FullSpan.Start;
             var commentLine = textSnapshot.GetLineFromPosition(commentStart);
             for (var i = commentLine.Start.Position; i < commentStart; i++)
             {
                 var ch = textSnapshot[i];
-                sb.Builder.Append(ch == '\t' ? ch : ' ');
+                sb.Append(ch == '\t' ? ch : ' ');
             }
 
-            return sb.ToStringAndFree();
+            return sb.ToString();
         }
 
         string? GetExteriorText()
