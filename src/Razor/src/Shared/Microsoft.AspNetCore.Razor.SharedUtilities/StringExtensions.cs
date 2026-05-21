@@ -55,7 +55,7 @@ internal static class StringExtensions
     ///  The index at which to begin this slice.
     /// </param>
     /// <remarks>
-    ///  This uses Razor's <see cref="System.Index"/> type, which is type-forwarded on .NET.
+    ///  This uses Razor's <see cref="Index"/> type, which is type-forwarded on .NET.
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     ///  <paramref name="startIndex"/> is less than 0 or greater than <paramref name="text"/>.Length.
@@ -90,7 +90,7 @@ internal static class StringExtensions
     ///  The range that has start and end indexes to use for slicing the string.
     /// </param>
     /// <remarks>
-    ///  This uses Razor's <see cref="System.Range"/> type, which is type-forwarded on .NET.
+    ///  This uses Razor's <see cref="Range"/> type, which is type-forwarded on .NET.
     /// </remarks>
     /// <exception cref="ArgumentNullException">
     ///  <paramref name="range"/>'s start or end index is not within the bounds of the string.
@@ -233,7 +233,7 @@ internal static class StringExtensions
     ///  The index at which to begin this slice.
     /// </param>
     /// <remarks>
-    ///  This uses Razor's <see cref="System.Index"/> type, which is type-forwarded on .NET.
+    ///  This uses Razor's <see cref="Index"/> type, which is type-forwarded on .NET.
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     ///  <paramref name="startIndex"/> is less than 0 or greater than <paramref name="text"/>.Length.
@@ -268,7 +268,7 @@ internal static class StringExtensions
     ///  The range that has start and end indexes to use for slicing the string.
     /// </param>
     /// <remarks>
-    ///  This uses Razor's <see cref="System.Range"/> type, which is type-forwarded on .NET.
+    ///  This uses Razor's <see cref="Range"/> type, which is type-forwarded on .NET.
     /// </remarks>
     /// <exception cref="ArgumentNullException">
     ///  <paramref name="range"/>'s start or end index is not within the bounds of the string.
