@@ -10,14 +10,6 @@ using Mono.Options;
 
 namespace RunTests
 {
-    internal enum Display
-    {
-        None,
-        All,
-        Succeeded,
-        Failed,
-    }
-
     internal enum TestRuntime
     {
         Both,
@@ -31,11 +23,6 @@ namespace RunTests
         /// Use HTML output files.
         /// </summary>
         public bool IncludeHtml { get; set; }
-
-        /// <summary>
-        /// Display the results files.
-        /// </summary>
-        public Display Display { get; set; }
 
         /// <summary>
         /// Filter string to pass to xunit.
@@ -161,7 +148,6 @@ namespace RunTests
             int? timeout = null;
             string? resultFileDirectory = null;
             string? logFileDirectory = null;
-            var display = Display.None;
             var collectDumps = false;
             string? artifactsPath = null;
 
@@ -185,7 +171,7 @@ namespace RunTests
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", s => resultFileDirectory = s },
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
-                { "display=", "Display", (Display d) => display = d },
+
                 { "artifactspath=", "Path to the artifacts directory", s => artifactsPath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes (process executor only)", o => collectDumps = o is object },
                 { "testFramework:", "Test framework to run: core, desktop, or both", s => testFramework = s },
@@ -323,7 +309,7 @@ namespace RunTests
                 TestRuntime = testRuntime,
                 IncludeFilter = includeFilter,
                 ExcludeFilter = excludeFilter,
-                Display = display,
+
                 CollectDumps = collectDumps,
                 UseHelix = helix,
                 HelixQueueName = helixQueueName,

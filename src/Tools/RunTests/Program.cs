@@ -144,7 +144,6 @@ namespace RunTests
 
             LogProcessResultDetails(result.ProcessResults);
             WriteLogFile(options);
-            DisplayResults(options.Display, result.TestResults);
 
             if (!result.Succeeded)
             {
@@ -409,34 +408,6 @@ namespace RunTests
                 }
 
                 return true;
-            }
-        }
-
-        private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
-        {
-            foreach (var cur in testResults)
-            {
-                var open = false;
-                switch (display)
-                {
-                    case Display.All:
-                        open = true;
-                        break;
-                    case Display.None:
-                        open = false;
-                        break;
-                    case Display.Succeeded:
-                        open = cur.Succeeded;
-                        break;
-                    case Display.Failed:
-                        open = !cur.Succeeded;
-                        break;
-                }
-
-                if (open)
-                {
-                    ProcessRunner.OpenFile(cur.ResultsDisplayFilePath);
-                }
             }
         }
 
