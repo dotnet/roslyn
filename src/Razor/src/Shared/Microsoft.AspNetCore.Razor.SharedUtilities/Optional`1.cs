@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor;
 
-public readonly struct Optional<T>(T value)
+internal readonly struct Optional<T>(T value)
 {
     public bool HasValue { get; } = true;
 
