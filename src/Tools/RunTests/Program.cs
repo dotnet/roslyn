@@ -119,7 +119,9 @@ namespace RunTests
 
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
-            var assemblyFilePaths = GetAssemblyFilePaths(options);
+            var assemblyFilePaths = options.AssemblyListFilePath is { } assemblyListFilePath
+                ? GetAssemblyFilePaths(assemblyListFilePath)
+                : GetAssemblyFilePaths(options);
             if (options.UseHelix)
             {
                 return await HelixTestRunner.RunAsync(
@@ -391,6 +393,40 @@ namespace RunTests
 
                 return true;
             }
+        }
+
+        private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(string assemblyListFilePath)
+        {
+            var builder = ImmutableArray.CreateBuilder<AssemblyInfo>();
+            foreach (var line in File.ReadLines(assemblyListFilePath))
+            {
+                var path = line.Trim();
+                if (path.Length == 0)
+                {
+                    continue;
+                }
+
+                path = path.Trim('"');
+                if (!Path.IsPathRooted(path))
+                {
+                    path = Path.GetFullPath(path, Directory.GetCurrentDirectory());
+                }
+
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException($"Assembly listed in {assemblyListFilePath} does not exist", path);
+                }
+
+                builder.Add(new AssemblyInfo(path));
+            }
+
+            if (builder.Count == 0)
+            {
+                throw new InvalidOperationException($"Did not find any test assemblies in {assemblyListFilePath}");
+            }
+
+            builder.Sort();
+            return builder.ToImmutable();
         }
 
         private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)

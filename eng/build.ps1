@@ -69,6 +69,7 @@ param (
   [switch]$testRuntimeAsync,
   [switch]$sequential,
   [switch]$helix,
+  [switch]$useRunTestsOnHelix,
   [string]$helixQueueName = "",
   [string]$helixApiAccessToken = "",
 
@@ -104,6 +105,7 @@ function Print-Usage() {
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
   Write-Host "  -testRuntimeAsync         Run tests with runtime async validation enabled (see DOTNET_RuntimeAsync in codebase)"
+  Write-Host "  -useRunTestsOnHelix       Run Helix work items with RunTests instead of invoking vstest directly"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -479,6 +481,10 @@ function TestUsingRunTests() {
 
   if ($helix) {
     $args += " --helix"
+  }
+
+  if ($useRunTestsOnHelix) {
+    $args += " --useRunTestsOnHelix"
   }
 
   if ($helixQueueName) {

@@ -76,6 +76,44 @@ namespace RunTests
             return workItems;
         }
 
+        public static ImmutableArray<HelixWorkItem> ScheduleAssemblies(
+            IEnumerable<string> assemblyFilePaths,
+            ImmutableDictionary<string, TimeSpan> testHistory)
+        {
+            var orderedTypeInfos = assemblyFilePaths.ToImmutableSortedDictionary(x => x, GetTypeInfoList);
+            ConsoleUtil.WriteLine($"Scheduling {orderedTypeInfos.Count} assemblies");
+            foreach (var kvp in orderedTypeInfos)
+            {
+                var typeCount = kvp.Value.Length;
+                var testCount = kvp.Value.Sum(t => t.Tests.Length);
+                ConsoleUtil.WriteLine($"\tAssembly: {Path.GetFileName(kvp.Key)}, Test Type Count: {typeCount}, Test Count: {testCount}");
+            }
+
+            ImmutableArray<HelixWorkItem> workItems;
+            if (testHistory.IsEmpty)
+            {
+                ConsoleUtil.Warning($"Could not look up test history - partitioning assemblies based on test count instead");
+                workItems = BuildAssemblyWorkItems(
+                    orderedTypeInfos,
+                    getWeightFunc: static types => types.Sum(type => type.Tests.Length),
+                    limit: s_maxMethodCount,
+                    useWeightForEstimatedExecutionTime: false);
+            }
+            else
+            {
+                LogLongTests(testHistory);
+                orderedTypeInfos = UpdateTestsWithExecutionTimes(orderedTypeInfos, testHistory);
+                workItems = BuildAssemblyWorkItems(
+                    orderedTypeInfos,
+                    getWeightFunc: static types => types.Sum(type => type.Tests.Sum(test => test.ExecutionTime.TotalSeconds)),
+                    limit: s_maxExecutionTime.TotalSeconds,
+                    useWeightForEstimatedExecutionTime: true);
+            }
+
+            LogWorkItems(workItems);
+            return workItems;
+        }
+
         private static void LogLongTests(ImmutableDictionary<string, TimeSpan> testHistory)
         {
             var longTests = testHistory
@@ -232,6 +270,59 @@ namespace RunTests
                     assemblyFilePaths,
                     testMethodNames,
                     TimeSpan.FromSeconds(executionTime));
+                workItems.Add(workItem);
+            }
+        }
+
+        private static ImmutableArray<HelixWorkItem> BuildAssemblyWorkItems(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> typeInfos,
+            Func<ImmutableArray<TypeInfo>, double> getWeightFunc,
+            double limit,
+            bool useWeightForEstimatedExecutionTime)
+        {
+            var workItems = new List<HelixWorkItem>();
+            var currentWeight = 0.0;
+            var currentAssemblyFilePaths = new List<string>();
+
+            foreach (var (assemblyFilePath, types) in typeInfos)
+            {
+                var weight = getWeightFunc(types);
+                if (weight > limit)
+                {
+                    MaybeAddCurrentWorkItem();
+                    AddWorkItem([assemblyFilePath], weight);
+                    continue;
+                }
+
+                if (currentAssemblyFilePaths.Count > 0 && currentWeight + weight > limit)
+                {
+                    MaybeAddCurrentWorkItem();
+                }
+
+                currentAssemblyFilePaths.Add(assemblyFilePath);
+                currentWeight += weight;
+            }
+
+            MaybeAddCurrentWorkItem();
+            return workItems.ToImmutableArray();
+
+            void MaybeAddCurrentWorkItem()
+            {
+                if (currentAssemblyFilePaths.Count > 0)
+                {
+                    AddWorkItem(currentAssemblyFilePaths, currentWeight);
+                    currentAssemblyFilePaths.Clear();
+                    currentWeight = 0.0;
+                }
+            }
+
+            void AddWorkItem(IEnumerable<string> assemblyFilePaths, double weight)
+            {
+                var workItem = new HelixWorkItem(
+                    workItems.Count,
+                    assemblyFilePaths.Order().ToImmutableArray(),
+                    ImmutableArray<string>.Empty,
+                    useWeightForEstimatedExecutionTime ? TimeSpan.FromSeconds(weight) : TimeSpan.Zero);
                 workItems.Add(workItem);
             }
         }

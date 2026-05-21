@@ -30,6 +30,7 @@ usage()
   echo "  --testCompilerOnly         Run only the compiler unit tests"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
   echo "  --testRuntimeAsync         Run unit tests with runtime async validation enabled"
+  echo "  --useRunTestsOnHelix       Run Helix work items with RunTests instead of invoking vstest directly"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
@@ -76,6 +77,7 @@ verbosity='minimal'
 binary_log=false
 ci=false
 helix=false
+use_runtests_on_helix=false
 helix_queue_name=""
 helix_api_access_token=""
 bootstrap=false
@@ -156,6 +158,9 @@ while [[ $# > 0 ]]; do
       ;;
     --helix)
       helix=true
+      ;;
+    --useruntestsonhelix)
+      use_runtests_on_helix=true
       ;;
     --helixqueuename)
       helix_queue_name=$2
@@ -410,6 +415,10 @@ if [[ "$test_core_clr" == true ]]; then
 
   if [[ "$helix" == true ]]; then
     runtests_args="$runtests_args --helix"
+  fi
+
+  if [[ "$use_runtests_on_helix" == true ]]; then
+    runtests_args="$runtests_args --useRunTestsOnHelix"
   fi
 
   if [[ "$ci" != true ]]; then

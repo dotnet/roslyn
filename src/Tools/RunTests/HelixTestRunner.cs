@@ -67,15 +67,19 @@ internal sealed class HelixTestRunner
 
         // Retrieve test runtimes from azure devops historical data.
         var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
-        var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), testHistory);
+        var helixWorkItems = options.UseRunTestsOnHelix
+            ? AssemblyScheduler.ScheduleAssemblies(assemblies.Select(x => x.AssemblyPath), testHistory)
+            : AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), testHistory);
         var helixProjectFileContent = GetHelixProjectFileContent(
             helixWorkItems,
             testOS,
             dotnetSdkVersion,
             platform,
+            options.Configuration,
             options.HelixQueueName,
             options.ArtifactsDirectory,
-            payloadsDir);
+            payloadsDir,
+            options.UseRunTestsOnHelix);
 
         var helixFilePath = Path.Combine(options.ArtifactsDirectory, "helix.proj");
         File.WriteAllText(helixFilePath, helixProjectFileContent);
@@ -123,9 +127,11 @@ internal sealed class HelixTestRunner
         TestOS testOS,
         string dotnetSdkVersion,
         string platform,
+        string configuration,
         string helixQueueName,
         string artifactsDir,
-        string payloadsDir)
+        string payloadsDir,
+        bool useRunTestsOnHelix)
     {
         // Setup the environment variables that are required for the helix project.
         //
@@ -170,7 +176,7 @@ internal sealed class HelixTestRunner
 
         foreach (var helixWorkItem in helixWorkItems)
         {
-            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS);
+            AppendHelixWorkItemProject(builder, helixWorkItem, platform, configuration, artifactsDir, payloadsDir, testOS, useRunTestsOnHelix);
         }
 
         builder.AppendLine("""
@@ -184,9 +190,11 @@ internal sealed class HelixTestRunner
             StringBuilder builder,
             HelixWorkItem helixWorkItem,
             string platform,
+            string configuration,
             string artifactsDir,
             string payloadsDir,
-            TestOS testOS)
+            TestOS testOS,
+            bool useRunTestsOnHelix)
         {
             var isUnix = testOS != TestOS.Windows;
 
@@ -210,10 +218,27 @@ internal sealed class HelixTestRunner
                 Directory.CreateSymbolicLink(targetDir, sourceDir);
             }
 
-            var rspFileName = $"vstest.rsp";
-            File.WriteAllText(
-                Path.Combine(workItemPayloadDir, rspFileName),
-                GetRspFileContent(assemblyRelativeFilePaths, helixWorkItem.TestMethodNames, platform));
+            string rspFileName;
+            if (useRunTestsOnHelix)
+            {
+                rspFileName = "runtests-assemblies.rsp";
+                File.WriteAllText(
+                    Path.Combine(workItemPayloadDir, rspFileName),
+                    GetAssemblyListFileContent(assemblyRelativeFilePaths));
+
+                var runTestsRelativeDirectory = Path.Combine("RunTests", configuration, "net10.0");
+                var runTestsTargetDir = Path.Combine(workItemPayloadDir, runTestsRelativeDirectory);
+                var runTestsSourceDir = Path.Combine(binDir, runTestsRelativeDirectory);
+                _ = Directory.CreateDirectory(Path.GetDirectoryName(runTestsTargetDir)!);
+                Directory.CreateSymbolicLink(runTestsTargetDir, runTestsSourceDir);
+            }
+            else
+            {
+                rspFileName = "vstest.rsp";
+                File.WriteAllText(
+                    Path.Combine(workItemPayloadDir, rspFileName),
+                    GetRspFileContent(assemblyRelativeFilePaths, helixWorkItem.TestMethodNames, platform));
+            }
 
             Directory.CreateSymbolicLink(
                 path: Path.Combine(workItemPayloadDir, "eng"),
@@ -222,7 +247,13 @@ internal sealed class HelixTestRunner
                 path: Path.Combine(workItemPayloadDir, "global.json"),
                 pathToTarget: Path.Combine(artifactsDir, "..", "global.json"));
 
-            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS);
+            var (commandFileName, commandContent) = GetHelixCommandContent(
+                assemblyRelativeFilePaths,
+                rspFileName,
+                testOS,
+                useRunTestsOnHelix,
+                configuration,
+                platform);
             File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);
 
             var (postCommandFileName, postCommandContent) = GetHelixPostCommandContent(testOS);
@@ -243,7 +274,10 @@ internal sealed class HelixTestRunner
         static (string FileName, string Content) GetHelixCommandContent(
             IEnumerable<string> assemblyRelativeFilePaths,
             string vstestRspFileName,
-            TestOS testOS)
+            TestOS testOS,
+            bool useRunTestsOnHelix,
+            string configuration,
+            string platform)
         {
             var isUnix = testOS != TestOS.Windows;
             var isMac = testOS == TestOS.Mac;
@@ -304,6 +338,23 @@ internal sealed class HelixTestRunner
 
                 command.AppendLine(isUnix ? $"./{directoryName}/rehydrate.sh" : $@"call {directoryName}\rehydrate.cmd");
                 command.AppendLine(isUnix ? $"ls -l {directoryName}" : $"dir {directoryName}");
+            }
+
+            if (useRunTestsOnHelix)
+            {
+                var runTestsRelativeDirectory = Path.Combine("RunTests", configuration, "net10.0");
+                if (isUnix)
+                {
+                    command.AppendLine($"chmod +x \"{runTestsRelativeDirectory}/rehydrate.sh\"");
+                }
+
+                command.AppendLine(isUnix ? $"\"./{runTestsRelativeDirectory}/rehydrate.sh\"" : $@"call ""{runTestsRelativeDirectory}\rehydrate.cmd""");
+                command.AppendLine(isUnix ? $"ls -l {runTestsRelativeDirectory}" : $"dir {runTestsRelativeDirectory}");
+
+                var dotnetPath = isUnix ? @"${DOTNET_ROOT}/dotnet" : @"%DOTNET_ROOT%\dotnet.exe";
+                var runTestsDllPath = Path.Combine(runTestsRelativeDirectory, "RunTests.dll");
+                command.AppendLine($"dotnet exec \"{runTestsDllPath}\" --helixWorkItem --assemblyList \"{vstestRspFileName}\" --dotnet \"{dotnetPath}\" --configuration {configuration} --arch {platform} --out . --logs . --artifactspath .");
+                return (isUnix ? "command.sh" : "command.cmd", command.ToString());
             }
 
             // Build the command to run the rsp file. dotnet test does not pass rsp files correctly the vs test 
@@ -461,6 +512,17 @@ internal sealed class HelixTestRunner
 
                 any = true;
             }
+        }
+
+        return builder.ToString();
+    }
+
+    private static string GetAssemblyListFileContent(List<string> assemblyRelativeFilePaths)
+    {
+        var builder = new StringBuilder();
+        foreach (var filePath in assemblyRelativeFilePaths)
+        {
+            builder.AppendLine($"\"{filePath}\"");
         }
 
         return builder.ToString();
