@@ -19,7 +19,7 @@ internal partial class DictionaryBuilderPool<TKey, TValue>
             _keyComparer = keyComparer;
         }
 
-        public static Policy Create(Optional<IEqualityComparer<TKey>?> keyComparer = default)
+        public static Policy Create(Opt<IEqualityComparer<TKey>?> keyComparer = default)
         {
             if (!keyComparer.HasValue || keyComparer.Value == Default._keyComparer)
             {

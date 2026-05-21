@@ -18,7 +18,7 @@ internal partial class ListPool<T>
             _maximumObjectSize = maximumObjectSize;
         }
 
-        public static Policy Create(Optional<int> maximumObjectSize = default)
+        public static Policy Create(Opt<int> maximumObjectSize = default)
         {
             if (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize)
             {

@@ -9,7 +9,7 @@ internal abstract class CustomObjectPool<T> : DefaultObjectPool<T>
     protected const int DefaultPoolSize = DefaultPool.DefaultPoolSize;
     protected const int DefaultMaximumObjectSize = DefaultPool.DefaultMaximumObjectSize;
 
-    protected CustomObjectPool(PooledObjectPolicy policy, Optional<int> poolSize)
+    protected CustomObjectPool(PooledObjectPolicy policy, Opt<int> poolSize)
         : base(policy, poolSize.HasValue ? poolSize.Value : DefaultPoolSize)
     {
     }

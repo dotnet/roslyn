@@ -111,73 +111,73 @@ public sealed partial class RazorParserOptions
             : new(LanguageVersion, FileKind, Directives, value, _flags);
 
     public RazorParserOptions WithFlags(
-        bool? parseLeadingDirectives = default,
-        bool? useRoslynTokenizer = default,
-        bool? enableSpanEditHandlers = default,
-        bool? allowMinimizedBooleanTagHelperAttributes = default,
-        bool? allowHtmlCommentsInTagHelpers = default,
-        bool? allowComponentFileKind = default,
-        bool? allowRazorInAllCodeBlocks = default,
-        bool? allowUsingVariableDeclarations = default,
-        bool? allowConditionalDataDashAttributes = default,
-        bool? allowCSharpInMarkupAttributeArea = default,
-        bool? allowNullableForgivenessOperator = default)
+        Optional<bool> parseLeadingDirectives = default,
+        Optional<bool> useRoslynTokenizer = default,
+        Optional<bool> enableSpanEditHandlers = default,
+        Optional<bool> allowMinimizedBooleanTagHelperAttributes = default,
+        Optional<bool> allowHtmlCommentsInTagHelpers = default,
+        Optional<bool> allowComponentFileKind = default,
+        Optional<bool> allowRazorInAllCodeBlocks = default,
+        Optional<bool> allowUsingVariableDeclarations = default,
+        Optional<bool> allowConditionalDataDashAttributes = default,
+        Optional<bool> allowCSharpInMarkupAttributeArea = default,
+        Optional<bool> allowNullableForgivenessOperator = default)
     {
         var flags = _flags;
 
-        if (parseLeadingDirectives is bool parseLeadingDirectivesValue)
+        if (parseLeadingDirectives.HasValue)
         {
-            flags.UpdateFlag(Flags.ParseLeadingDirectives, parseLeadingDirectivesValue);
+            flags.UpdateFlag(Flags.ParseLeadingDirectives, parseLeadingDirectives.Value);
         }
 
-        if (useRoslynTokenizer is bool useRoslynTokenizerValue)
+        if (useRoslynTokenizer.HasValue)
         {
-            flags.UpdateFlag(Flags.UseRoslynTokenizer, useRoslynTokenizerValue);
+            flags.UpdateFlag(Flags.UseRoslynTokenizer, useRoslynTokenizer.Value);
         }
 
-        if (enableSpanEditHandlers is bool enableSpanEditHandlersValue)
+        if (enableSpanEditHandlers.HasValue)
         {
-            flags.UpdateFlag(Flags.EnableSpanEditHandlers, enableSpanEditHandlersValue);
+            flags.UpdateFlag(Flags.EnableSpanEditHandlers, enableSpanEditHandlers.Value);
         }
 
-        if (allowMinimizedBooleanTagHelperAttributes is bool allowMinimizedBooleanTagHelperAttributesValue)
+        if (allowMinimizedBooleanTagHelperAttributes.HasValue)
         {
-            flags.UpdateFlag(Flags.AllowMinimizedBooleanTagHelperAttributes, allowMinimizedBooleanTagHelperAttributesValue);
+            flags.UpdateFlag(Flags.AllowMinimizedBooleanTagHelperAttributes, allowMinimizedBooleanTagHelperAttributes.Value);
         }
 
-        if (allowHtmlCommentsInTagHelpers is bool allowHtmlCommentsInTagHelpersValue)
+        if (allowHtmlCommentsInTagHelpers.HasValue)
         {
-            flags.UpdateFlag(Flags.AllowHtmlCommentsInTagHelpers, allowHtmlCommentsInTagHelpersValue);
+            flags.UpdateFlag(Flags.AllowHtmlCommentsInTagHelpers, allowHtmlCommentsInTagHelpers.Value);
         }
 
-        if (allowComponentFileKind is bool allowComponentFileKindValue)
+        if (allowComponentFileKind.HasValue)
         {
-            flags.UpdateFlag(Flags.AllowComponentFileKind, allowComponentFileKindValue);
+            flags.UpdateFlag(Flags.AllowComponentFileKind, allowComponentFileKind.Value);
         }
 
-        if (allowRazorInAllCodeBlocks is bool allowRazorInAllCodeBlocksValue)
+        if (allowRazorInAllCodeBlocks.HasValue)
         {
-            flags.UpdateFlag(Flags.AllowRazorInAllCodeBlocks, allowRazorInAllCodeBlocksValue);
+            flags.UpdateFlag(Flags.AllowRazorInAllCodeBlocks, allowRazorInAllCodeBlocks.Value);
         }
 
-        if (allowUsingVariableDeclarations is bool allowUsingVariableDeclarationsValue)
+        if (allowUsingVariableDeclarations.HasValue)
         {
-            flags.UpdateFlag(Flags.AllowUsingVariableDeclarations, allowUsingVariableDeclarationsValue);
+            flags.UpdateFlag(Flags.AllowUsingVariableDeclarations, allowUsingVariableDeclarations.Value);
         }
 
-        if (allowConditionalDataDashAttributes is bool allowConditionalDataDashAttributesValue)
+        if (allowConditionalDataDashAttributes.HasValue)
         {
-            flags.UpdateFlag(Flags.AllowConditionalDataDashAttributes, allowConditionalDataDashAttributesValue);
+            flags.UpdateFlag(Flags.AllowConditionalDataDashAttributes, allowConditionalDataDashAttributes.Value);
         }
 
-        if (allowCSharpInMarkupAttributeArea is bool allowCSharpInMarkupAttributeAreaValue)
+        if (allowCSharpInMarkupAttributeArea.HasValue)
         {
-            flags.UpdateFlag(Flags.AllowCSharpInMarkupAttributeArea, allowCSharpInMarkupAttributeAreaValue);
+            flags.UpdateFlag(Flags.AllowCSharpInMarkupAttributeArea, allowCSharpInMarkupAttributeArea.Value);
         }
 
-        if (allowNullableForgivenessOperator is bool allowNullableForgivenessOperatorValue)
+        if (allowNullableForgivenessOperator.HasValue)
         {
-            flags.UpdateFlag(Flags.AllowNullableForgivenessOperator, allowNullableForgivenessOperatorValue);
+            flags.UpdateFlag(Flags.AllowNullableForgivenessOperator, allowNullableForgivenessOperator.Value);
         }
 
         return flags == _flags

@@ -17,17 +17,17 @@ internal sealed partial class ListPool<T> : CustomObjectPool<List<T>>
 {
     public static readonly ListPool<T> Default = Create();
 
-    private ListPool(PooledObjectPolicy policy, Optional<int> poolSize)
+    private ListPool(PooledObjectPolicy policy, Opt<int> poolSize)
         : base(policy, poolSize)
     {
     }
 
     public static ListPool<T> Create(
-        Optional<int> maximumObjectSize = default,
-        Optional<int> poolSize = default)
+        Opt<int> maximumObjectSize = default,
+        Opt<int> poolSize = default)
         => new(Policy.Create(maximumObjectSize), poolSize);
 
-    public static ListPool<T> Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
+    public static ListPool<T> Create(PooledObjectPolicy policy, Opt<int> poolSize = default)
         => new(policy, poolSize);
 
     public static PooledObject<List<T>> GetPooledObject()

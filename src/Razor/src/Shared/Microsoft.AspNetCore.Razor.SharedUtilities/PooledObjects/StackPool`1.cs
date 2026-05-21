@@ -17,17 +17,17 @@ internal sealed partial class StackPool<T> : CustomObjectPool<Stack<T>>
 {
     public static readonly StackPool<T> Default = Create();
 
-    private StackPool(PooledObjectPolicy policy, Optional<int> poolSize)
+    private StackPool(PooledObjectPolicy policy, Opt<int> poolSize)
         : base(policy, poolSize)
     {
     }
 
     public static StackPool<T> Create(
-        Optional<int> maximumObjectSize = default,
-        Optional<int> poolSize = default)
+        Opt<int> maximumObjectSize = default,
+        Opt<int> poolSize = default)
         => new(Policy.Create(maximumObjectSize), poolSize);
 
-    public static StackPool<T> Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
+    public static StackPool<T> Create(PooledObjectPolicy policy, Opt<int> poolSize = default)
         => new(policy, poolSize);
 
     public static PooledObject<Stack<T>> GetPooledObject()

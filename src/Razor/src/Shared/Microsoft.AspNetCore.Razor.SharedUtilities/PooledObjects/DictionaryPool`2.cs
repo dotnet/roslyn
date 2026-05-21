@@ -18,18 +18,18 @@ internal sealed partial class DictionaryPool<TKey, TValue> : CustomObjectPool<Di
 {
     public static readonly DictionaryPool<TKey, TValue> Default = Create();
 
-    private DictionaryPool(PooledObjectPolicy policy, Optional<int> poolSize)
+    private DictionaryPool(PooledObjectPolicy policy, Opt<int> poolSize)
         : base(policy, poolSize)
     {
     }
 
     public static DictionaryPool<TKey, TValue> Create(
-        Optional<IEqualityComparer<TKey>?> comparer = default,
-        Optional<int> maximumObjectSize = default,
-        Optional<int> poolSize = default)
+        Opt<IEqualityComparer<TKey>?> comparer = default,
+        Opt<int> maximumObjectSize = default,
+        Opt<int> poolSize = default)
         => new(Policy.Create(comparer, maximumObjectSize), poolSize);
 
-    public static DictionaryPool<TKey, TValue> Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
+    public static DictionaryPool<TKey, TValue> Create(PooledObjectPolicy policy, Opt<int> poolSize = default)
         => new(policy, poolSize);
 
     public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject()

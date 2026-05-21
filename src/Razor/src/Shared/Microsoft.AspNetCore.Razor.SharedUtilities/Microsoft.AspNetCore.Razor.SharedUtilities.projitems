@@ -34,7 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MemoryBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MemoryBuilder`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NullableExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Optional`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Opt`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PathUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageSupport\CallerArgumentExpressionAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilderPool`1.cs" />
@@ -52,6 +52,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ListPool`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ListPool`1.Policy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ObjectPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledHashSet`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledList`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledList`1.Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledArrayBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledArrayBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledArrayBuilder`1.cs" />
@@ -59,10 +62,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionaryBuilder`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledObject`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\QueuePool`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\QueuePool`1.Policy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\SpecializedPools.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\SpecializedPools.ReferenceEqualityHashSet`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\SpecializedPools.StringDictionary`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\SpecializedPools.StringHashSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StackPool`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StackPool`1.Policy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StopwatchPool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StopwatchPool.Policy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\StringBuilderPool.cs" />

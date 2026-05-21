@@ -24,8 +24,8 @@ internal partial class HashSetPool<T>
         }
 
         public static Policy Create(
-            Optional<IEqualityComparer<T>?> comparer = default,
-            Optional<int> maximumObjectSize = default)
+            Opt<IEqualityComparer<T>?> comparer = default,
+            Opt<int> maximumObjectSize = default)
         {
             if ((!comparer.HasValue || comparer.Value is null || comparer.Value == Default.Comparer) &&
                 (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize))

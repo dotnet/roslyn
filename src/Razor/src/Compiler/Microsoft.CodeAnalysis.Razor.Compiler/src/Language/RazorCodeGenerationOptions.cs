@@ -195,79 +195,79 @@ public sealed partial class RazorCodeGenerationOptions
             : new(IndentSize, NewLine, RootNamespace, CssScope, SuppressUniqueIds, value, _flags);
 
     public RazorCodeGenerationOptions WithFlags(
-        bool? indentWithTabs = default,
-        bool? suppressChecksum = default,
-        bool? suppressMetadataAttributes = default,
-        bool? suppressMetadataSourceChecksumAttributes = default,
-        bool? suppressPrimaryMethodBody = default,
-        bool? suppressNullabilityEnforcement = default,
-        bool? omitMinimizedComponentAttributeValues = default,
-        bool? supportLocalizedComponentNames = default,
-        bool? useEnhancedLinePragma = default,
-        bool? suppressAddComponentParameter = default,
-        bool? remapLinePragmaPathsOnWindows = default,
-        bool? writeHtmlUtf8StringLiterals = default)
+        Optional<bool> indentWithTabs = default,
+        Optional<bool> suppressChecksum = default,
+        Optional<bool> suppressMetadataAttributes = default,
+        Optional<bool> suppressMetadataSourceChecksumAttributes = default,
+        Optional<bool> suppressPrimaryMethodBody = default,
+        Optional<bool> suppressNullabilityEnforcement = default,
+        Optional<bool> omitMinimizedComponentAttributeValues = default,
+        Optional<bool> supportLocalizedComponentNames = default,
+        Optional<bool> useEnhancedLinePragma = default,
+        Optional<bool> suppressAddComponentParameter = default,
+        Optional<bool> remapLinePragmaPathsOnWindows = default,
+        Optional<bool> writeHtmlUtf8StringLiterals = default)
     {
         var flags = _flags;
 
-        if (indentWithTabs is bool indentWithTabsValue)
+        if (indentWithTabs.HasValue)
         {
-            flags.UpdateFlag(Flags.IndentWithTabs, indentWithTabsValue);
+            flags.UpdateFlag(Flags.IndentWithTabs, indentWithTabs.Value);
         }
 
-        if (suppressChecksum is bool suppressChecksumValue)
+        if (suppressChecksum.HasValue)
         {
-            flags.UpdateFlag(Flags.SuppressChecksum, suppressChecksumValue);
+            flags.UpdateFlag(Flags.SuppressChecksum, suppressChecksum.Value);
         }
 
-        if (suppressMetadataAttributes is bool suppressMetadataAttributesValue)
+        if (suppressMetadataAttributes.HasValue)
         {
-            flags.UpdateFlag(Flags.SuppressMetadataAttributes, suppressMetadataAttributesValue);
+            flags.UpdateFlag(Flags.SuppressMetadataAttributes, suppressMetadataAttributes.Value);
         }
 
-        if (suppressMetadataSourceChecksumAttributes is bool suppressMetadataSourceChecksumAttributesValue)
+        if (suppressMetadataSourceChecksumAttributes.HasValue)
         {
-            flags.UpdateFlag(Flags.SuppressMetadataSourceChecksumAttributes, suppressMetadataSourceChecksumAttributesValue);
+            flags.UpdateFlag(Flags.SuppressMetadataSourceChecksumAttributes, suppressMetadataSourceChecksumAttributes.Value);
         }
 
-        if (suppressPrimaryMethodBody is bool suppressPrimaryMethodBodyValue)
+        if (suppressPrimaryMethodBody.HasValue)
         {
-            flags.UpdateFlag(Flags.SuppressPrimaryMethodBody, suppressPrimaryMethodBodyValue);
+            flags.UpdateFlag(Flags.SuppressPrimaryMethodBody, suppressPrimaryMethodBody.Value);
         }
 
-        if (suppressNullabilityEnforcement is bool suppressNullabilityEnforcementValue)
+        if (suppressNullabilityEnforcement.HasValue)
         {
-            flags.UpdateFlag(Flags.SuppressNullabilityEnforcement, suppressNullabilityEnforcementValue);
+            flags.UpdateFlag(Flags.SuppressNullabilityEnforcement, suppressNullabilityEnforcement.Value);
         }
 
-        if (omitMinimizedComponentAttributeValues is bool omitMinimizedComponentAttributeValuesValue)
+        if (omitMinimizedComponentAttributeValues.HasValue)
         {
-            flags.UpdateFlag(Flags.OmitMinimizedComponentAttributeValues, omitMinimizedComponentAttributeValuesValue);
+            flags.UpdateFlag(Flags.OmitMinimizedComponentAttributeValues, omitMinimizedComponentAttributeValues.Value);
         }
 
-        if (supportLocalizedComponentNames is bool supportLocalizedComponentNamesValue)
+        if (supportLocalizedComponentNames.HasValue)
         {
-            flags.UpdateFlag(Flags.SupportLocalizedComponentNames, supportLocalizedComponentNamesValue);
+            flags.UpdateFlag(Flags.SupportLocalizedComponentNames, supportLocalizedComponentNames.Value);
         }
 
-        if (useEnhancedLinePragma is bool useEnhancedLinePragmaValue)
+        if (useEnhancedLinePragma.HasValue)
         {
-            flags.UpdateFlag(Flags.UseEnhancedLinePragma, useEnhancedLinePragmaValue);
+            flags.UpdateFlag(Flags.UseEnhancedLinePragma, useEnhancedLinePragma.Value);
         }
 
-        if (suppressAddComponentParameter is bool suppressAddComponentParameterValue)
+        if (suppressAddComponentParameter.HasValue)
         {
-            flags.UpdateFlag(Flags.SuppressAddComponentParameter, suppressAddComponentParameterValue);
+            flags.UpdateFlag(Flags.SuppressAddComponentParameter, suppressAddComponentParameter.Value);
         }
 
-        if (remapLinePragmaPathsOnWindows is bool remapLinePragmaPathsOnWindowsValue)
+        if (remapLinePragmaPathsOnWindows.HasValue)
         {
-            flags.UpdateFlag(Flags.RemapLinePragmaPathsOnWindows, remapLinePragmaPathsOnWindowsValue);
+            flags.UpdateFlag(Flags.RemapLinePragmaPathsOnWindows, remapLinePragmaPathsOnWindows.Value);
         }
 
-        if (writeHtmlUtf8StringLiterals is bool writeHtmlUtf8StringLiteralsValue)
+        if (writeHtmlUtf8StringLiterals.HasValue)
         {
-            flags.UpdateFlag(Flags.WriteHtmlUtf8StringLiterals, writeHtmlUtf8StringLiteralsValue);
+            flags.UpdateFlag(Flags.WriteHtmlUtf8StringLiterals, writeHtmlUtf8StringLiterals.Value);
         }
 
         return flags == _flags

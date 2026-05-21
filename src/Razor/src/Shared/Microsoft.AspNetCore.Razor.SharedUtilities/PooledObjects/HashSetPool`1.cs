@@ -19,7 +19,7 @@ internal sealed partial class HashSetPool<T> : CustomObjectPool<HashSet<T>>
 
     private readonly Policy _policy;
 
-    private HashSetPool(Policy policy, Optional<int> poolSize)
+    private HashSetPool(Policy policy, Opt<int> poolSize)
         : base(policy, poolSize)
     {
         _policy = policy;
@@ -28,9 +28,9 @@ internal sealed partial class HashSetPool<T> : CustomObjectPool<HashSet<T>>
     public IEqualityComparer<T> Comparer => _policy.Comparer;
 
     public static HashSetPool<T> Create(
-        Optional<IEqualityComparer<T>?> comparer = default,
-        Optional<int> maximumObjectSize = default,
-        Optional<int> poolSize = default)
+        Opt<IEqualityComparer<T>?> comparer = default,
+        Opt<int> maximumObjectSize = default,
+        Opt<int> poolSize = default)
         => new(Policy.Create(comparer, maximumObjectSize), poolSize);
 
     public static PooledObject<HashSet<T>> GetPooledObject()

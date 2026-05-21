@@ -24,8 +24,8 @@ internal partial class DictionaryPool<TKey, TValue>
         }
 
         public static Policy Create(
-            Optional<IEqualityComparer<TKey>?> comparer = default,
-            Optional<int> maximumObjectSize = default)
+            Opt<IEqualityComparer<TKey>?> comparer = default,
+            Opt<int> maximumObjectSize = default)
         {
             if ((!comparer.HasValue || comparer.Value == Default._comparer) &&
                 (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize))

@@ -17,17 +17,17 @@ internal sealed partial class StringBuilderPool : CustomObjectPool<StringBuilder
 {
     public static readonly StringBuilderPool Default = Create();
 
-    private StringBuilderPool(PooledObjectPolicy policy, Optional<int> poolSize)
+    private StringBuilderPool(PooledObjectPolicy policy, Opt<int> poolSize)
         : base(policy, poolSize)
     {
     }
 
     public static StringBuilderPool Create(
-        Optional<int> maximumObjectSize = default,
-        Optional<int> poolSize = default)
+        Opt<int> maximumObjectSize = default,
+        Opt<int> poolSize = default)
         => new(Policy.Create(maximumObjectSize), poolSize);
 
-    public static StringBuilderPool Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
+    public static StringBuilderPool Create(PooledObjectPolicy policy, Opt<int> poolSize = default)
         => new(policy, poolSize);
 
     public static PooledObject<StringBuilder> GetPooledObject()

@@ -98,17 +98,17 @@ public static class TestTagMatchingRuleDescriptorBuilderExtensions
 
     public static TagMatchingRuleDescriptorBuilder RequiredAttribute(
         this TagMatchingRuleDescriptorBuilder builder,
-        string? name,
-        RequiredAttributeNameComparison? nameComparison,
-        string? value,
-        RequiredAttributeValueComparison? valueComparison,
+        Optional<string> name = default,
+        Optional<RequiredAttributeNameComparison> nameComparison = default,
+        Optional<string?> value = default,
+        Optional<RequiredAttributeValueComparison> valueComparison = default,
         Action<RequiredAttributeDescriptorBuilder>? configure = null)
     {
         builder.Attribute(attribute =>
         {
-            if (name != null)
+            if (name.HasValue)
             {
-                attribute.Name = name;
+                attribute.Name = name.Value;
             }
 
             if (nameComparison.HasValue)
@@ -116,9 +116,9 @@ public static class TestTagMatchingRuleDescriptorBuilderExtensions
                 attribute.NameComparison = nameComparison.Value;
             }
 
-            if (value != null)
+            if (value.HasValue)
             {
-                attribute.Value = value;
+                attribute.Value = value.Value;
             }
 
             if (valueComparison.HasValue)

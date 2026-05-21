@@ -27,8 +27,8 @@ internal partial class ArrayBuilderPool<T>
         }
 
         public static Policy Create(
-            Optional<int> initialCapacity = default,
-            Optional<int> maximumObjectSize = default)
+            Opt<int> initialCapacity = default,
+            Opt<int> maximumObjectSize = default)
         {
             if ((!initialCapacity.HasValue || initialCapacity.Value == Default._initialCapacity) &&
                 (!maximumObjectSize.HasValue || maximumObjectSize.Value == Default._maximumObjectSize))

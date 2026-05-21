@@ -17,15 +17,15 @@ internal sealed partial class StopwatchPool : CustomObjectPool<Stopwatch>
 {
     public static readonly StopwatchPool Default = Create();
 
-    private StopwatchPool(PooledObjectPolicy policy, Optional<int> poolSize)
+    private StopwatchPool(PooledObjectPolicy policy, Opt<int> poolSize)
         : base(policy, poolSize)
     {
     }
 
-    public static StopwatchPool Create(Optional<int> poolSize = default)
+    public static StopwatchPool Create(Opt<int> poolSize = default)
         => new(Policy.Default, poolSize);
 
-    public static StopwatchPool Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
+    public static StopwatchPool Create(PooledObjectPolicy policy, Opt<int> poolSize = default)
         => new(policy, poolSize);
 
     public static PooledObject<Stopwatch> GetPooledObject()

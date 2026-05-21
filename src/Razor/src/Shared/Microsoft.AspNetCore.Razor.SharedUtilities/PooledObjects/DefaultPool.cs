@@ -10,19 +10,19 @@ internal static class DefaultPool
     public const int DefaultPoolSize = 20;
     public const int DefaultMaximumObjectSize = 512;
 
-    public static ObjectPool<T> Create<T>(IPooledObjectPolicy<T> policy, Optional<int> poolSize = default)
+    public static ObjectPool<T> Create<T>(IPooledObjectPolicy<T> policy, Opt<int> poolSize = default)
         where T : class
         => new DefaultObjectPool<T>(policy, poolSize.HasValue ? poolSize.Value : DefaultPoolSize);
 
-    public static ObjectPool<T> Create<T>(Optional<int> poolSize = default)
+    public static ObjectPool<T> Create<T>(Opt<int> poolSize = default)
         where T : class, IPoolableObject, new()
         => Create(new PoolableObjectPolicy<T>(static () => new()), poolSize);
 
-    public static ObjectPool<T> Create<T>(Func<T> factory, Optional<int> poolSize = default)
+    public static ObjectPool<T> Create<T>(Func<T> factory, Opt<int> poolSize = default)
         where T : class, IPoolableObject
         => Create(new PoolableObjectPolicy<T>(factory), poolSize);
 
-    public static ObjectPool<T> Create<T, TArg>(TArg arg, Func<TArg, T> factory, Optional<int> poolSize = default)
+    public static ObjectPool<T> Create<T, TArg>(TArg arg, Func<TArg, T> factory, Opt<int> poolSize = default)
         where T : class, IPoolableObject
         => Create(new PoolableObjectPolicy<T, TArg>(arg, factory), poolSize);
 

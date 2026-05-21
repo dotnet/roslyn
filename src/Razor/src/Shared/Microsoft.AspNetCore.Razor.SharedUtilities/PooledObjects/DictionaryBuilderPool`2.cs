@@ -19,17 +19,17 @@ internal sealed partial class DictionaryBuilderPool<TKey, TValue> : CustomObject
 {
     public static readonly DictionaryBuilderPool<TKey, TValue> Default = Create();
 
-    private DictionaryBuilderPool(PooledObjectPolicy policy, Optional<int> poolSize)
+    private DictionaryBuilderPool(PooledObjectPolicy policy, Opt<int> poolSize)
         : base(policy, poolSize)
     {
     }
 
     public static DictionaryBuilderPool<TKey, TValue> Create(
-        Optional<IEqualityComparer<TKey>?> keyComparer = default,
-        Optional<int> poolSize = default)
+        Opt<IEqualityComparer<TKey>?> keyComparer = default,
+        Opt<int> poolSize = default)
         => new(Policy.Create(keyComparer), poolSize);
 
-    public static DictionaryBuilderPool<TKey, TValue> Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
+    public static DictionaryBuilderPool<TKey, TValue> Create(PooledObjectPolicy policy, Opt<int> poolSize = default)
         => new(policy, poolSize);
 
     public static PooledObject<ImmutableDictionary<TKey, TValue>.Builder> GetPooledObject()
