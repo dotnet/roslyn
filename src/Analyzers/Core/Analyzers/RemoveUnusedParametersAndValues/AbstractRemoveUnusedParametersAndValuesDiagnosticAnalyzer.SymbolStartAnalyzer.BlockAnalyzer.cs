@@ -201,7 +201,15 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                     return;
                 }
 
-                //  5. Bail out if there is language specific syntax to indicate an explicit discard.
+                //  5. Bail out for null-conditional assignments (e.g. `a?.b = c`, possibly nested),
+                //     where the innermost WhenNotNull of the IConditionalAccessOperation is an assignment.
+                if (value is IConditionalAccessOperation conditionalAccess &&
+                    GetInnermostWhenNotNull(conditionalAccess) is IAssignmentOperation)
+                {
+                    return;
+                }
+
+                //  6. Bail out if there is language specific syntax to indicate an explicit discard.
                 //     For example, VB call statement is used to explicitly ignore the value returned by
                 //     an invocation by prefixing the invocation with keyword "Call".
                 //     Similarly, we do not want to flag an expression of a C# expression body.
@@ -219,6 +227,15 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                                                          additionalLocations: null,
                                                          properties);
                 context.ReportDiagnostic(diagnostic);
+            }
+
+            private static IOperation GetInnermostWhenNotNull(IConditionalAccessOperation operation)
+            {
+                var current = operation.WhenNotNull;
+                while (current is IConditionalAccessOperation nested)
+                    current = nested.WhenNotNull;
+
+                return current;
             }
 
             private void AnalyzeDelegateCreationOrAnonymousFunction(OperationAnalysisContext operationAnalysisContext)

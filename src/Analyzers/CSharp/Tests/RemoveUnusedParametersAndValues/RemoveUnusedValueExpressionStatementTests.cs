@@ -285,6 +285,63 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
             }
             """);
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80766")]
+    [InlineData("=")]
+    [InlineData("+=")]
+    [InlineData("??=")]
+    public Task ExpressionStatement_NullConditionalAssignmentExpression(string op)
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
+            $$"""
+            class C
+            {
+                void M(C c)
+                {
+                    [|c?.Value {{op}} 0|];
+                }
+
+                public int? Value { get; set; }
+            }
+            """,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80766")]
+    [InlineData("=")]
+    [InlineData("+=")]
+    [InlineData("??=")]
+    public Task ExpressionStatement_NestedNullConditionalAssignmentExpression(string op)
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
+            $$"""
+            class C
+            {
+                void M(C c)
+                {
+                    [|c?.Inner?.Value {{op}} 0|];
+                }
+
+                public C? Inner { get; set; }
+                public int? Value { get; set; }
+            }
+            """,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80766"), WorkItem("https://github.com/dotnet/roslyn/issues/80499")]
+    [InlineData("=")]
+    [InlineData("+=")]
+    [InlineData("??=")]
+    public Task ExpressionStatement_NullConditionalIndexAssignmentExpression(string op)
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
+            $$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M(Dictionary<int, int?> d)
+                {
+                    [|d?[0] {{op}} 0|];
+                }
+            }
+            """,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
+
     [Theory]
     [InlineData("x++")]
     [InlineData("x--")]
