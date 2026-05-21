@@ -2074,6 +2074,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, ctor.GetFirstLocation());
                     }
                 }
+
+                if (GetMemberProviderInterfaceForDefinition() is not null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MemberProviderInUnionDeclaration, location);
+                }
             }
 
             return;

@@ -8328,4 +8328,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ClosedExplicitlyAbstract" xml:space="preserve">
     <value>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</value>
   </data>
+  <data name="ERR_MemberProviderInUnionDeclaration" xml:space="preserve">
+    <value>A 'union' declaration cannot use union member provider interface.</value>
+  </data>
 </root>

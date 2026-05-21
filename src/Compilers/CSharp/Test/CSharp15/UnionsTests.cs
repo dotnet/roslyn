@@ -41137,6 +41137,41 @@ class C2
         }
 
         [Fact]
+        public void UnionDeclaration_38_MemberProvider()
+        {
+            var src = @"
+union S1(int, bool) : S1.IUnionMembers
+{
+    public interface IUnionMembers  
+    {
+        public static S1 Create(string x) => throw null;
+        public object Value { get; }
+    }
+}
+
+union S2(int, bool)
+{
+    public interface IUnionMembers  
+    {
+        public static S1 Create(string x) => throw null;
+        public object Value { get; }
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS9387: A 'union' declaration cannot use union member provider interface.
+                // union S1(int, bool) : S1.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MemberProviderInUnionDeclaration, "S1").WithLocation(2, 7)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.String"]);
+            Assert.True(comp.GetTypeByMetadataName("S2").IsUnionType);
+            VerifyCaseTypes(comp, "S2", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Fact]
         public void ValueProperty_01()
         {
             var src = @"
