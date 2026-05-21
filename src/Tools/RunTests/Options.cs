@@ -178,8 +178,7 @@ namespace RunTests
             string? artifactsPath = null;
 
             // High-level test category flags (previously handled by build.ps1/build.sh)
-            var testDesktop = false;
-            var testCoreClr = false;
+            string? testFramework = null;
             var testCompilerOnly = false;
             var environmentVariables = new Dictionary<string, string>();
 
@@ -204,8 +203,7 @@ namespace RunTests
                 { "artifactspath=", "Path to the artifacts directory", s => artifactsPath = s },
                 { "procdumppath=", "Path to procdump", s => procDumpFilePath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
-                { "testDesktop", "Run desktop (net472) unit tests", o => testDesktop = o is object },
-                { "testCoreClr", "Run CoreCLR unit tests", o => testCoreClr = o is object },
+                { "testFramework:", "Test framework to run: core or desktop", s => testFramework = s },
                 { "testCompilerOnly", "Only run compiler test assemblies", o => testCompilerOnly = o is object },
                 { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
                     if (o is object)
@@ -238,6 +236,15 @@ namespace RunTests
 
             // Apply high-level test category flags. These replicate the logic previously
             // in build.ps1's TestUsingRunTests function.
+            var testDesktop = string.Equals(testFramework, "desktop", StringComparison.OrdinalIgnoreCase);
+            var testCoreClr = string.Equals(testFramework, "core", StringComparison.OrdinalIgnoreCase);
+
+            if (testFramework is not null && !testDesktop && !testCoreClr)
+            {
+                ConsoleUtil.WriteLine($"Invalid --testFramework value '{testFramework}'. Must be 'core' or 'desktop'.");
+                return null;
+            }
+
             if (testDesktop || testCoreClr)
             {
                 if (testDesktop && environmentVariables.ContainsKey("DOTNET_RuntimeAsync"))

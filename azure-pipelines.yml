@@ -214,7 +214,7 @@ stages:
         jobName: Test_Windows_Desktop_Debug_32
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
-        testArguments: --testDesktop --arch x86
+        testArguments: --testFramework:desktop --arch x86
         helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
@@ -225,7 +225,7 @@ stages:
       jobName: Test_Windows_Desktop_Debug_64
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: --testDesktop --arch x64
+      testArguments: --testFramework:desktop --arch x64
       helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -242,7 +242,7 @@ stages:
       jobName: Test_Windows_Desktop_Release_32
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      testArguments: --testDesktop --arch x86
+      testArguments: --testFramework:desktop --arch x86
       helixQueueName: $(HelixWindowsVsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -254,7 +254,7 @@ stages:
         jobName: Test_Windows_Desktop_Release_64
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
-        testArguments: --testDesktop --arch x64
+        testArguments: --testFramework:desktop --arch x64
         helixQueueName: $(HelixWindowsVsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
@@ -266,7 +266,7 @@ stages:
         jobName: Test_Windows_Desktop_Spanish_Release_64
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
-        testArguments: --testDesktop --arch x64
+        testArguments: --testFramework:desktop --arch x64
         helixQueueName: $(HelixWindowsSpanishQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
@@ -283,7 +283,7 @@ stages:
       jobName: Test_Windows_CoreClr_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: --testCoreClr
+      testArguments: --testFramework:core
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -295,7 +295,7 @@ stages:
         jobName: Test_Windows_CoreClr_Debug_Spanish
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
-        testArguments: --testCoreClr
+        testArguments: --testFramework:core
         helixQueueName: $(HelixWindowsSpanishQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
@@ -308,7 +308,7 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         poolParameters: ${{ parameters.vs2026PreviewPool }}
-        testArguments: --testCoreClr
+        testArguments: --testFramework:core
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -316,7 +316,7 @@ stages:
       jobName: Test_Windows_CoreClr_IOperation_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: --testCoreClr --testCompilerOnly --env:ROSLYN_TEST_IOPERATION=true
+      testArguments: --testFramework:core --testCompilerOnly --env:ROSLYN_TEST_IOPERATION=true
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -327,7 +327,7 @@ stages:
       jobName: Test_Windows_CoreClr_RuntimeAsync_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: --testCoreClr --testCompilerOnly --env:DOTNET_RuntimeAsync=1
+      testArguments: --testFramework:core --testCompilerOnly --env:DOTNET_RuntimeAsync=1
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -340,7 +340,7 @@ stages:
       jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: --testCoreClr --testCompilerOnly --env:ROSLYN_TEST_USEDASSEMBLIES=true
+      testArguments: --testFramework:core --testCompilerOnly --env:ROSLYN_TEST_USEDASSEMBLIES=true
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -357,7 +357,7 @@ stages:
       jobName: Test_Windows_CoreClr_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      testArguments: --testCoreClr
+      testArguments: --testFramework:core
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -374,7 +374,7 @@ stages:
       jobName: Test_Linux_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      testArguments: --testCoreClr
+      testArguments: --testFramework:core
       poolParameters: ${{ parameters.ubuntuPool }}
 
   - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -383,7 +383,7 @@ stages:
       jobName: Test_Linux_Debug_Spanish_Single_Machine
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      testArguments: --testCoreClr
+      testArguments: --testFramework:core
       poolParameters: ${{ parameters.ubuntuPool }}
       locale: es_ES.UTF-8
 
@@ -401,7 +401,7 @@ stages:
         jobName: Test_macOS_Debug
         testArtifactName: Transport_Artifacts_macOS_Debug
         configuration: Debug
-        testArguments: --testCoreClr
+        testArguments: --testFramework:core
         helixQueueName: $(HelixMacOsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.ubuntuPool }}
