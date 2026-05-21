@@ -51,7 +51,7 @@ internal class TestHistoryManager
         var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCH");
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
-            ConsoleUtil.Warn($"Missing required options to lookup test history, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
+            ConsoleUtil.Warning($"Missing required options to lookup test history, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
