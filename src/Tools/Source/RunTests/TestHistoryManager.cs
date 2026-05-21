@@ -69,14 +69,14 @@ internal class TestHistoryManager
         {
             // If this is a new branch or has no successful builds, fall back to main history
             // to avoid the expensive method-count fallback that creates hundreds of work items.
-            ConsoleUtil.WriteLine($"Unable to get the last successful build for branch {adoBranch}, falling back to refs/heads/main");
+            ConsoleUtil.Warning($"Unable to get the last successful build for branch {adoBranch}, falling back to refs/heads/main");
             lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(pipelineDefinitionId, "refs/heads/main", buildClient, cancellationToken);
         }
 
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
-            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
+            ConsoleUtil.Warning($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -85,7 +85,7 @@ internal class TestHistoryManager
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
-            ConsoleUtil.WriteLine($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
+            ConsoleUtil.Warning($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
