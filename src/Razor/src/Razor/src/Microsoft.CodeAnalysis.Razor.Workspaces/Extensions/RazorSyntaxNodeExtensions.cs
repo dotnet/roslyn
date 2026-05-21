@@ -336,7 +336,7 @@ internal static class RazorSyntaxNodeExtensions
                 }
             }
 
-            return markupTextLiteral.WithLiteralTokens(literalTokensWithoutLines.ToList());
+            return markupTextLiteral.WithLiteralTokens(new SyntaxTokenList(literalTokensWithoutLines.ToArray()));
         }
 
         return node;
