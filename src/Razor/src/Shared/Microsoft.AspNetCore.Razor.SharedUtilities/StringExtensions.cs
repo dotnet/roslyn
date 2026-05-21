@@ -54,9 +54,6 @@ internal static class StringExtensions
     /// <param name="startIndex">
     ///  The index at which to begin this slice.
     /// </param>
-    /// <remarks>
-    ///  This uses Razor's <see cref="Index"/> type, which is type-forwarded on .NET.
-    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     ///  <paramref name="startIndex"/> is less than 0 or greater than <paramref name="text"/>.Length.
     /// </exception>
@@ -89,9 +86,6 @@ internal static class StringExtensions
     /// <param name="range">
     ///  The range that has start and end indexes to use for slicing the string.
     /// </param>
-    /// <remarks>
-    ///  This uses Razor's <see cref="Range"/> type, which is type-forwarded on .NET.
-    /// </remarks>
     /// <exception cref="ArgumentNullException">
     ///  <paramref name="range"/>'s start or end index is not within the bounds of the string.
     /// </exception>
@@ -232,9 +226,6 @@ internal static class StringExtensions
     /// <param name="startIndex">
     ///  The index at which to begin this slice.
     /// </param>
-    /// <remarks>
-    ///  This uses Razor's <see cref="Index"/> type, which is type-forwarded on .NET.
-    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">
     ///  <paramref name="startIndex"/> is less than 0 or greater than <paramref name="text"/>.Length.
     /// </exception>
@@ -267,9 +258,6 @@ internal static class StringExtensions
     /// <param name="range">
     ///  The range that has start and end indexes to use for slicing the string.
     /// </param>
-    /// <remarks>
-    ///  This uses Razor's <see cref="Range"/> type, which is type-forwarded on .NET.
-    /// </remarks>
     /// <exception cref="ArgumentNullException">
     ///  <paramref name="range"/>'s start or end index is not within the bounds of the string.
     /// </exception>
