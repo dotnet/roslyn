@@ -566,10 +566,8 @@ internal abstract class LanguageServerProjectLoader
     }
 
     /// <summary>
-    /// Tracks progress toward processing a fixed number of items and reports percentage updates
-    /// via <see cref="LSP.WorkDoneProgress"/>. Uses an <see cref="AsyncBatchingWorkQueue"/> to
-    /// coalesce notifications from parallel callers into batched percentage reports.
-    /// Disposing sends the final 100% notification.
+    /// Reports percentage progress via <see cref="LSP.WorkDoneProgress"/> as items are processed,
+    /// coalescing updates from parallel callers. Disposing sends the final 100% notification.
     /// </summary>
     internal sealed class WorkDoneProgressTracker : IAsyncDisposable
     {
