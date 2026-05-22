@@ -568,8 +568,7 @@ internal abstract class LanguageServerProjectLoader
     /// <summary>
     /// Helper for tracking and reporting project load percentage progress.
     /// Uses an <see cref="AsyncBatchingWorkQueue"/> to coalesce notifications from parallel project loads
-    /// into batched percentage reports. Caps at 99% so the caller can report 100% after the full
-    /// operation (including restore) completes.
+    /// into batched percentage reports. Disposing sends the final 100% notification.
     /// </summary>
     internal sealed class ProjectLoadProgressTracker : IAsyncDisposable
     {
