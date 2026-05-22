@@ -13535,7 +13535,7 @@ class Program
 }
 """;
 
-            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseExe);
             comp4.VerifyEmitDiagnostics(
                 // (5,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Params.Test();
@@ -13547,6 +13547,11 @@ class Program
                 //         Params.Test(2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Params.Test(2, 3)").WithLocation(7, 9)
                 );
+
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
 
             string source5 = """
 class Program
@@ -13636,7 +13641,7 @@ class Program
 }
 """;
 
-            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseExe);
             comp4.VerifyEmitDiagnostics(
                 // (6,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Params.Test(1);
@@ -13648,6 +13653,11 @@ class Program
                 //         Params.Test(2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "3").WithLocation(7, 24)
                 );
+
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
+            comp4 = CreateCompilation(source4, references: [comp1Ref, comp3.ToMetadataReference()], parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            comp4.VerifyEmitDiagnostics();
 
             string source5 = """
 class Program

@@ -1,0 +1,4 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(3,1): Warning RZ10012: Found markup element with unexpected name 'Col'. If this is intended to be a component, add a @using directive for its namespace.
+x:\dir\subdir\Test\TestComponent.cshtml(3,15): Error RZ9983: Unexpected closing tag 'Col'. The element 'Col' is a void element, and should be used without a closing tag.
+x:\dir\subdir\Test\TestComponent.cshtml(5,5): Warning RZ10012: Found markup element with unexpected name 'Col'. If this is intended to be a component, add a @using directive for its namespace.
+x:\dir\subdir\Test\TestComponent.cshtml(6,32): Warning RZ10012: Found markup element with unexpected name 'Col'. If this is intended to be a component, add a @using directive for its namespace.

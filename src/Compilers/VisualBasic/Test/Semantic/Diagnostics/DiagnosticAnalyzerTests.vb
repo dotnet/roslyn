@@ -479,13 +479,13 @@ End Class
 
                     ' This assert will fire if you are adding a new compiler diagnostic (non-error severity),
                     ' but did not add a title resource string for the diagnostic.
-                    Assert.True(False, message)
+                    Assert.Fail(message)
                 End If
 
                 Dim category = descriptor.Category
                 If String.IsNullOrEmpty(title) Then
                     Dim message = String.Format("'{0}' must have a non-null non-empty 'Category'", descriptor.Id)
-                    Assert.True(False, message)
+                    Assert.Fail(message)
                 End If
             Next
         End Sub

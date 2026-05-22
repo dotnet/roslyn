@@ -1275,7 +1275,7 @@ public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     public SyntaxToken AwaitKeyword => new SyntaxToken(this, ((InternalSyntax.AwaitExpressionSyntax)this.Green).awaitKeyword, Position, 0);
 
     /// <summary>Optional SyntaxToken representing the "?" of a null-conditional "await?" expression.</summary>
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83237")]
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83839")]
     public SyntaxToken QuestionToken
     {
         get
@@ -1295,7 +1295,7 @@ public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAwaitExpression(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAwaitExpression(this);
 
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83237")]
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83839")]
     public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, SyntaxToken questionToken, ExpressionSyntax expression)
     {
         if (awaitKeyword != this.AwaitKeyword || questionToken != this.QuestionToken || expression != this.Expression)
@@ -1309,7 +1309,7 @@ public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     }
 
     public AwaitExpressionSyntax WithAwaitKeyword(SyntaxToken awaitKeyword) => Update(awaitKeyword, this.QuestionToken, this.Expression);
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83237")]
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83839")]
     public AwaitExpressionSyntax WithQuestionToken(SyntaxToken questionToken) => Update(this.AwaitKeyword, questionToken, this.Expression);
     public AwaitExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(this.AwaitKeyword, this.QuestionToken, expression);
 }

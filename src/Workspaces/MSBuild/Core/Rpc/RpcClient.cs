@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,9 +73,9 @@ internal sealed class RpcClient
                     Contract.ThrowIfFalse(_outstandingRequests.TryRemove(response.Id, out var completionSourceAndExpectedType), $"We got a response for request ID {response.Id} but that was already completed.");
                     var (completionSource, expectedType) = completionSourceAndExpectedType;
 
-                    if (response.Exception != null)
+                    if (response.ExceptionMessage != null)
                     {
-                        completionSource.SetException(new RemoteInvocationException(response.Exception));
+                        completionSource.SetException(new RemoteInvocationException(response.ExceptionMessage, response.ExceptionStackTrace));
                     }
                     else
                     {
@@ -154,7 +155,7 @@ internal sealed class RpcClient
             Id = requestId,
             TargetObject = targetObject,
             Method = methodName,
-            Parameters = parameters.SelectAsArray(static p => JsonSerializer.SerializeToElement(p, JsonSettings.SingleLineSerializerOptions))
+            Parameters = [.. parameters.Select(static p => JsonSerializer.SerializeToElement(p, JsonSettings.SingleLineSerializerOptions))]
         };
 
         var requestJson = JsonSerializer.Serialize(request, JsonSettings.SingleLineSerializerOptions) + Environment.NewLine;

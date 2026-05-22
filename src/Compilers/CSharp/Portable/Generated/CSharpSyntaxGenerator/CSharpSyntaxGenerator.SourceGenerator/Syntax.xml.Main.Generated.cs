@@ -2615,7 +2615,7 @@ public static partial class SyntaxFactory
         };
 
     /// <summary>Creates a new AwaitExpressionSyntax instance.</summary>
-    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83237")]
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83839")]
     public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, SyntaxToken questionToken, ExpressionSyntax expression)
     {
         if (awaitKeyword.Kind() != SyntaxKind.AwaitKeyword) throw new ArgumentException(nameof(awaitKeyword));

@@ -89,21 +89,29 @@ This is the decision tree for determining how to classify a C# file:
    - **No** → Classify as **Classify as Miscellaneous File With Standard References**
    - **Yes** → Continue to next check
 
-5. **Does the file have `#:` or `#!` directives?**
+5. **Does the file have `#!` directives?**
    - **Yes** → Classify as **File-Based App**. Restore if needed and show semantic errors.
    - **No** → Continue to next check
 
-6. **Is `enableFileBasedProgramsWhenAmbiguous` enabled?** (default: `false` in release, `true` in prerelease)
+6. **Does the file have `#:` directives?**
+   - **No** → Go to (8)
+   - **Yes** → Continue to next check
+
+7. **Does the file have top-level statements?**
+   - **Yes** → Classify as **File-Based App**. Restore if needed and show semantic errors.
+   - **No** → Classify as **Miscellaneous File With Standard References**
+
+8. **Is `enableFileBasedProgramsWhenAmbiguous` enabled?** (default: `false` in release, `true` in prerelease)
    - **No** → Classify as **Miscellaneous File With Standard References**
    - **Yes** → Continue to heuristic detection
 
 **Heuristic Detection (when `enableFileBasedProgramsWhenAmbiguous: true`):**
 
-7. **Are top-level statements present?**
+9. **Does the file have top-level statements?**
    - **No** → Classify as **Miscellaneous File With Standard References**
    - **Yes** → Continue to next check
 
-8. **Is the file included in a `.csproj` cone?**
+10. **Is the file included in a `.csproj` cone?**
    - "Cone" means that a containing directory, at some level of nesting, has a `.csproj` file in it.
    - Note that this specific check is only performed at the time the file is opened. We think that the typical case is that the user will load a new project they are creating. Loading the project will cause the file to start being treated as project-based app per (1). If the user does not load the new project, then stale diagnostics may remain present until the file is closed and re-opened.
    - **Yes** → Classify as **Miscellaneous File With Standard References** (wait for project to load)

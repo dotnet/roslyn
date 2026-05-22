@@ -3308,6 +3308,54 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             }
             """);
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/83537")]
+    public void TestFixedStatementWithoutInnerStatement()
+        => Test("""
+            public class Bar
+            {
+                public unsafe void Bar2(string s)
+                {
+                    fixed (char* ch = s)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public unsafe void Bar2(string s)
+                {
+                    fix$$ed (ch$$ar* ch = s$$)$$
+                }
+            }
+            """);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/83537")]
+    public void TestFixedStatementWithInnerStatement()
+        => Test("""
+            public class Bar
+            {
+                public unsafe void Bar2(string s)
+                {
+                    fixed (char* ch = s)
+                    {
+                        $$
+                    }
+                    var c = 10;
+                }
+            }
+            """, """
+            public class Bar
+            {
+                public unsafe void Bar2(string s)
+                {
+                    fix$$ed (ch$$ar* ch = s$$)$$
+                    var c = 10;
+                }
+            }
+            """);
+
     protected override string Language => LanguageNames.CSharp;
 
     protected override Action CreateNextHandler(EditorTestWorkspace workspace)
