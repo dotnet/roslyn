@@ -1,0 +1,31 @@
+﻿RazorDocument - [0..34)::34 - [<Weather Value="@@currentCount" />]
+    MarkupBlock - [0..34)::34
+        MarkupElement - [0..34)::34
+            MarkupStartTag - [0..34)::34 - [<Weather Value="@@currentCount" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Weather];
+                MarkupAttributeBlock - [8..31)::23 - [ Value="@@currentCount"]
+                    MarkupTextLiteral - [8..9)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [9..14)::5 - [Value] - Gen<Markup>
+                        Text;[Value];
+                    Equals;[=];
+                    MarkupTextLiteral - [15..16)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [16..30)::14
+                        MarkupBlock - [16..18)::2
+                            MarkupTextLiteral - [16..17)::1 - [@] - Gen<LitAttr:@(16:0,16)>
+                                Transition;[@];
+                            MarkupEphemeralTextLiteral - [17..18)::1 - [@] - Gen<None>
+                                Transition;[@];
+                        MarkupLiteralAttributeValue - [18..30)::12 - [currentCount]
+                            MarkupTextLiteral - [18..30)::12 - [currentCount] - Gen<Markup>
+                                Text;[currentCount];
+                    MarkupTextLiteral - [30..31)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [31..32)::1
+                    MarkupTextLiteral - [31..32)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

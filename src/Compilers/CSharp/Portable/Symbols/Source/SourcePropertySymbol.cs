@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementation.GetFirstLocation());
             }
 
-            if (IsDeclaredUnsafe != implementation.IsDeclaredUnsafe && this.CompilationAllowsUnsafe()) // Don't cascade.
+            if (HasUnsafeModifier != implementation.HasUnsafeModifier && this.CompilationAllowsUnsafe()) // Don't cascade.
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
             }
@@ -829,18 +829,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
 
-        /// <summary>
-        /// Whether the property has the <see langword="unsafe"/> keyword in its signature.
-        /// </summary>
-        private bool IsDeclaredUnsafe => (_modifiers & DeclarationModifiers.Unsafe) != 0;
-
         internal override CallerUnsafeMode CallerUnsafeMode
         {
             get
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return HasRequiresUnsafeAttribute || IsExtern
+                    return HasUnsafeModifier || IsExtern
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }

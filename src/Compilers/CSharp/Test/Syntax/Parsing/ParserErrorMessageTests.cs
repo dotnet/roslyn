@@ -1104,7 +1104,7 @@ interface IB<T>
         where U : T*
         where V : T[];
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (2,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     where U : T*
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(2, 15),
@@ -1126,6 +1126,24 @@ interface IB<T>
                 // (9,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         where U : T*
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*").WithLocation(9, 19));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     where U : T*
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(2, 15),
+                // (3,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     where V : T[]
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "T[]").WithLocation(3, 15),
+                // (9,19): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         where U : T*
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(9, 19),
+                // (10,19): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         where V : T[];
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "T[]").WithLocation(10, 19),
+            };
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -4046,7 +4064,7 @@ class Program
 }
 ";
             // note: ErrorCode.ManagedAddr not given for Test1* because the base type after binding is considered to be System.Object
-            CreateCompilation(test).GetDeclarationDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular14).GetDeclarationDiagnostics().Verify(
                 // (6,15): error CS1521: Invalid base type
                 // class Test3 : Test1*    // CS1521
                 Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*").WithLocation(6, 15),
@@ -4062,6 +4080,24 @@ class Program
                 // (3,15): error CS0527: Type 'Test1[]' in interface list is not an interface
                 // class Test2 : Test1[]   // CS1521
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1[]").WithArguments("Test1[]").WithLocation(3, 15));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (6,15): error CS1521: Invalid base type
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*").WithLocation(6, 15),
+                // (6,15): error CS0527: Type 'Test1*' in interface list is not an interface
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1*").WithArguments("Test1*").WithLocation(6, 15),
+                // (3,15): error CS1521: Invalid base type
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1[]").WithLocation(3, 15),
+                // (3,15): error CS0527: Type 'Test1[]' in interface list is not an interface
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1[]").WithArguments("Test1[]").WithLocation(3, 15),
+            };
+            CreateCompilation(test).GetDeclarationDiagnostics().Verify(expectedPreviewDiagnostics);
+            CreateCompilation(test, parseOptions: TestOptions.RegularNext).GetDeclarationDiagnostics().Verify(expectedPreviewDiagnostics);
         }
 
         [WorkItem(906299, "DevDiv/Personal")]

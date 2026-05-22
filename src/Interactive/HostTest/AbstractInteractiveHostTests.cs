@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             if (remoteService == null)
             {
-                Assert.True(false, @$"
+                Assert.Fail(@$"
 Remote service unavailable
 STDERR: {_synchronizedErrorOutput}
 STDOUT: {_synchronizedOutput}
