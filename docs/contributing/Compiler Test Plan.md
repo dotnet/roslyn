@@ -63,6 +63,7 @@ See also [types](#types) and [members](#members) lists below.
   - class with or without primary constructor
   - record class/struct with or without positional members
   - struct with or without primary constructor
+  - union
   - interface
   - type parameter
 - file-local types
@@ -366,6 +367,7 @@ __makeref( x )
 - Constant
 - Type parameter
 - User defined
+- Union
 - Anonymous function
 - Method group
 - Pointer to void pointer
@@ -387,6 +389,7 @@ __makeref( x )
 - Interface
 - Delegate
 - Struct
+- Union
 - Enum
 - Nullable
 - Pointer
@@ -396,6 +399,7 @@ __makeref( x )
 
 - Class
 - Struct
+- Union
 - Interface
 - Enum
 - Delegate
@@ -424,6 +428,7 @@ __makeref( x )
 - `not` Pattern
 - Relational Pattern
 - Type Pattern
+- Union matching rules
 
 ## Metadata table numbers / token prefixes
 

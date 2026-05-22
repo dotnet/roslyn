@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // Check for binary files
                 if (throwIfBinaryDetected && IsBinary(chunk))
                 {
+                    chunks.Free();
                     throw new InvalidDataException();
                 }
 
