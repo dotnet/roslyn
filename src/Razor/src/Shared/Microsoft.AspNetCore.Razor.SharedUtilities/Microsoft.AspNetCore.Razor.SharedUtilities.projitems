@@ -27,6 +27,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)EnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EnumExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HashSetExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableArrayExtensions_Unsafe.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InterlockedOperations.cs" />

@@ -345,7 +345,7 @@ internal partial class RazorEditService
                 {
                     firstBlockOfUsingsBuilder.Add(razorDirective);
                 }
-                else if (firstBlockOfUsingsBuilder.Last().IsNextTo(razorDirective, codeDocument.Source.Text))
+                else if (firstBlockOfUsingsBuilder[^1].IsNextTo(razorDirective, codeDocument.Source.Text))
                 {
                     firstBlockOfUsingsBuilder.Add(razorDirective);
                 }

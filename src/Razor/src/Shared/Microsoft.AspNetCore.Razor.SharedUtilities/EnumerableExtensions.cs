@@ -208,11 +208,11 @@ internal static class EnumerableExtensions
 
             // HashSet<T> has special enumerator and doesn't implement IReadOnlyList<T>
             case HashSet<T> set:
-                set.CopyTo(destination);
+                HashSetExtensions.CopyTo(set, destination);
                 break;
 
             case IReadOnlyList<T> list:
-                list.CopyTo(destination);
+                ReadOnlyListExtensions.CopyTo(list, destination);
                 break;
 
             default:

@@ -669,10 +669,9 @@ internal static class FormattingUtilities
         {
             // The formatter re-wrapped content at a different point, consuming lines from both sides.
             // Update the formatting change to cover the full range of consumed original and formatted lines.
-            _ = formattingChanges.Pop();
-            formattingChanges.Add(new TextChange(
+            formattingChanges[^1] = new TextChange(
                 TextSpan.FromBounds(originalStart, originalLine.End),
-                formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End))));
+                formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End)));
         }
     }
 

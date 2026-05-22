@@ -139,7 +139,7 @@ internal static class UsingDirectiveHelper
         }
 
         // If we haven't actually found a place to insert the using directive, do so at the end
-        var endIndex = existingUsingDirectives.Last().Node.Span.End;
+        var endIndex = existingUsingDirectives[^1].Node.Span.End;
         var lineIndex = GetLineIndexOrEnd(codeDocument, endIndex - 1) + 1;
         return LspFactory.CreateTextEdit(line: lineIndex, character: 0, newText);
     }
