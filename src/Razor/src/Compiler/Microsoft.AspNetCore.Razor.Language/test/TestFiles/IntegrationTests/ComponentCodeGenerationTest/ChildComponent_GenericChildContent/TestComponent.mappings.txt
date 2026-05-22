@@ -1,0 +1,25 @@
+﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (703:19,49 [11] )
+|MyComponent|
+
+Source Location: (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (799:22,0 [6] )
+|string|
+
+Source Location: (26:0,26 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Item|
+Generated Location: (1048:31,0 [4] )
+|Item|
+
+Source Location: (34:0,34 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|"hi"|
+Generated Location: (1293:39,0 [4] )
+|"hi"|
+
+Source Location: (51:1,8 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|context.ToLower()|
+Generated Location: (1677:49,25 [17] )
+|context.ToLower()|
+
