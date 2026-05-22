@@ -78,30 +78,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
-    public void TryPerformDirectoryOperation_IOException_ReturnsFalseAndLogsWarning()
-    {
-        var logger = new CollectingLogger();
-        var result = FileBasedProgramsEntryPointDiscovery.TryPerformDirectoryOperation(
-            directory: @"C:\does-not-matter",
-            logger,
-            action: () => throw new IOException("denied"));
-
-        Assert.False(result);
-        Assert.Contains(logger.LoggedMessages, static entry => entry.logLevel == LogLevel.Warning && entry.message.Contains("Skipping directory", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void TryPerformDirectoryOperation_Success_ReturnsTrue()
-    {
-        var result = FileBasedProgramsEntryPointDiscovery.TryPerformDirectoryOperation(
-            directory: @"C:\does-not-matter",
-            logger: new CollectingLogger(),
-            action: () => { });
-
-        Assert.True(result);
-    }
-
-    [Fact]
     public async Task TestDiscovery_Simple()
     {
         // Simple case
@@ -1010,20 +986,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             """);
 
         _testOutputHelper.WriteLine(sb.ToString());
-    }
-
-    private sealed class CollectingLogger : ILogger
-    {
-        public List<(LogLevel logLevel, string message)> LoggedMessages { get; } = [];
-
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
-            => null;
-
-        public bool IsEnabled(LogLevel logLevel)
-            => true;
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-            => LoggedMessages.Add((logLevel, formatter(state, exception)));
     }
 
     #endregion

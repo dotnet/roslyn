@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
@@ -94,7 +92,7 @@ internal sealed class AutoLoadProjectsInitializer(
             _logger.LogTrace("Searching for projects to load in workspace folder: {FolderUri}", folder.DocumentUri);
             if (TryGetFolderPath(folder, _logger, out var folderPath))
             {
-                projectFiles.AddRange(GetProjectFilesToAutoLoad(folderPath, _logger));
+                projectFiles.AddRange(Directory.EnumerateFiles(folderPath, "*.csproj", s_recursiveEnumerationOptions));
             }
         }
 
@@ -152,21 +150,6 @@ internal sealed class AutoLoadProjectsInitializer(
         }
 
         return true;
-    }
-
-    internal static ImmutableArray<string> GetProjectFilesToAutoLoad(string folderPath, ILogger logger, Func<string, IEnumerable<string>>? enumerateFiles = null)
-    {
-        enumerateFiles ??= static folderPath => Directory.EnumerateFiles(folderPath, "*.csproj", s_recursiveEnumerationOptions);
-
-        try
-        {
-            return [.. enumerateFiles(folderPath)];
-        }
-        catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
-        {
-            logger.LogWarning("Skipping project discovery in workspace folder '{FolderPath}' due to I/O exception: {ExceptionMessage}", folderPath, ex.Message);
-            return [];
-        }
     }
 
     internal static (bool isLoadingDisabled, string? solutionPath) TryGetVSCodeSolutionSettings(WorkspaceFolder[] workspaceFolders, ILogger logger)
