@@ -11,6 +11,9 @@ internal sealed class SyntaxKindSet
     public static readonly ISet<SyntaxKind> AllTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.AbstractKeyword,
+#if !OLDER_ROSLYN
+        SyntaxKind.ClosedKeyword,
+#endif
         SyntaxKind.FileKeyword,
         SyntaxKind.InternalKeyword,
         SyntaxKind.NewKeyword,

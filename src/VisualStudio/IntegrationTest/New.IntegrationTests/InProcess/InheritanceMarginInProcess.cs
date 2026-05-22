@@ -134,7 +134,7 @@ internal sealed partial class InheritanceMarginInProcess
 
         if (glyphsOnLine.Count != 1)
         {
-            Assert.False(true, $"{glyphsOnLine.Count} glyphs are found at line: {lineNumber}.");
+            Assert.Fail($"{glyphsOnLine.Count} glyphs are found at line: {lineNumber}.");
         }
 
         return glyphsOnLine[0];
