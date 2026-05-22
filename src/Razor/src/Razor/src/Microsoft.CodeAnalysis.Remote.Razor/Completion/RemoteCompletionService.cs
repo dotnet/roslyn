@@ -70,6 +70,11 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return null;
         }
 
+        if (ShouldSuppressCompletion(completionContext, sourceText, index))
+        {
+            return null;
+        }
+
         var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var positionInfo = GetPositionInfo(codeDocument, index);
@@ -96,6 +101,27 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             && !DelegatedCompletionHelper.IsInDirectiveAttributeParameterContext(codeDocument, index);
 
         return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions, isStartTagContext);
+    }
+
+    /// <summary>
+    /// Determines whether completion should be suppressed for the current trigger context.
+    /// For example, '@' typed after '$' in Emmet numbering modifiers (e.g., ul>li.item$@-*5)
+    /// should not trigger Razor completion.
+    /// </summary>
+    private static bool ShouldSuppressCompletion(VSInternalCompletionContext completionContext, SourceText sourceText, int index)
+    {
+        // Suppress when '@' is typed as part of an Emmet abbreviation.
+        // In Emmet syntax, '@' only appears after '$' for numbering modifiers.
+        // '$@' has no valid Razor meaning in HTML content, so suppressing here is safe.
+        if (completionContext.TriggerKind == CompletionTriggerKind.TriggerCharacter
+            && completionContext.TriggerCharacter == "@"
+            && index > 1
+            && sourceText[index - 2] == '$')
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public ValueTask<CompletionResponse> GetCompletionAsync(
