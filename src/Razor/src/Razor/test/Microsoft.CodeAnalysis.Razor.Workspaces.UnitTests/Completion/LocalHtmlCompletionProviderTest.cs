@@ -29,7 +29,7 @@ public class LocalHtmlCompletionProviderTest
         SnippetsSupported: true,
         AutoInsertAttributeQuotes: true,
         CommitElementsWithSpace: true,
-        UseVsCodeCompletionCommitCharacters: false);
+        IsVsCode: false);
 
     #region Element Completion
 

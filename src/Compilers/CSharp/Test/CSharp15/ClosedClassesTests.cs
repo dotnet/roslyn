@@ -1864,19 +1864,134 @@ public sealed class ClosedClassesTests : CSharpTestBase
     public void Exhaustiveness_ClosedClassCustomUnion_02()
     {
         // Test a class which is both closed and a union, and has no union case types.
-        var source1 = """
-            #nullable enable
-            using System.Runtime.CompilerServices;
 
-            [Union]
-            public closed class MyUnion
-            {
-                public object? Value { get; }
-            }
+        // #nullable enable
+        // using System.Runtime.CompilerServices;
+        //   
+        // [Union]
+        // public closed class MyUnion
+        // {
+        //     public object? Value { get; }
+        // }
+        //   
+        // public sealed class D1 : MyUnion;
+        // public sealed class D2 : MyUnion;
+        var ilSource = """
+.class public auto ansi abstract beforefieldinit MyUnion
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+        01 00 02 00 00
+    )
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 00 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.ClosedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
+        01 00 00 00
+    )
 
-            public sealed class D1 : MyUnion;
-            public sealed class D2 : MyUnion;
-            """;
+    .field private initonly object '<Value>k__BackingField'
+
+    .method public hidebysig specialname 
+        instance object get_Value () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: ldfld object MyUnion::'<Value>k__BackingField'
+        IL_0006: ret
+    }
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+            01 00 0d 43 6c 6f 73 65 64 43 6c 61 73 73 65 73
+            00 00
+        )
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+
+    .property instance object Value()
+    {
+        .get instance object MyUnion::get_Value()
+    }
+}
+
+.class public auto ansi sealed beforefieldinit D1
+    extends MyUnion
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void MyUnion::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit D2
+    extends MyUnion
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void MyUnion::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ClosedAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 04 00 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.UnionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+""";
 
         var source2 = """
             class Program
@@ -1918,7 +2033,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilationWithIL(source2, ilSource, targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'MyUnion'.
             //             MyUnion => 1

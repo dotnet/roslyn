@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorSourceGeneratedDocumentExcerptServiceWrapper(
-    [Import(AllowDefault = true)] IRazorSourceGeneratedDocumentExcerptService? implementation) : ISourceGeneratedDocumentExcerptService
+    [Import(AllowDefault = true)] Lazy<IRazorSourceGeneratedDocumentExcerptService>? implementation) : ISourceGeneratedDocumentExcerptService
 {
-    private readonly IRazorSourceGeneratedDocumentExcerptService? _implementation = implementation;
+    private readonly Lazy<IRazorSourceGeneratedDocumentExcerptService>? _implementation = implementation;
 
     public bool CanExcerpt(SourceGeneratedDocument document)
     {
@@ -43,7 +43,7 @@ internal sealed class RazorSourceGeneratedDocumentExcerptServiceWrapper(
         };
 
         var options = new RazorClassificationOptionsWrapper(classificationOptions);
-        var result = await _implementation.TryExcerptAsync(document, span, razorMode, options, cancellationToken).ConfigureAwait(false);
+        var result = await _implementation.Value.TryExcerptAsync(document, span, razorMode, options, cancellationToken).ConfigureAwait(false);
 
         if (result is null)
             return null;
