@@ -207,7 +207,11 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 var self = this;
                 if (index == 0 && count == self.Count)
-                    return self.ToImmutable();
+                {
+                    var immutable = self.ToImmutable();
+                    this = self;
+                    return immutable;
+                }
 
                 return new ImmutableSegmentedList<T>(self.ReadOnlyList.GetRange(index, count));
             }
@@ -282,11 +286,14 @@ namespace Microsoft.CodeAnalysis.Collections
                         return false;
 
                     self.RemoveAt(index);
+                    this = self;
                     return true;
                 }
                 else
                 {
-                    return self._mutableList.Remove(item);
+                    bool removed = self._mutableList.Remove(item);
+                    this = self;
+                    return removed;
                 }
             }
 

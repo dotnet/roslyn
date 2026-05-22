@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Collections
 #pragma warning restore IDE0251 // Make member 'readonly'
             {
                 var self = this;
-                foreach (var pair in self)
+                foreach (var pair in self.ReadOnlyDictionary)
                 {
                     if (self.KeyComparer.Equals(pair.Key, equalKey))
                     {
