@@ -13793,6 +13793,7 @@ public class C
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "PDB error exception path leaks pooled objects")]
         public void PdbReadingErrors_PassThruExceptions()
         {
             var source0 = MarkedSource(@"
