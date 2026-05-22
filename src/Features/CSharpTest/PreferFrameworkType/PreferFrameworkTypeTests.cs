@@ -220,7 +220,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             {
                 IntPtr _myfield;
             }
-            """, new(options: FrameworkTypeInDeclaration));
+            """.NormalizeLineEndings(), new(options: FrameworkTypeInDeclaration));
 
     [Fact]
     public Task TestNint_WithNumericIntPtr_CSharp8()

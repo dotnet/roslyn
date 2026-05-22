@@ -1,0 +1,20 @@
+﻿RazorDocument - [0..12)::12 - [<input <p />]
+    MarkupBlock - [0..12)::12
+        MarkupElement - [0..7)::7
+            MarkupStartTag - [0..7)::7 - [<input ] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupMiscAttributeContent - [6..7)::1
+                    MarkupTextLiteral - [6..7)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                CloseAngle;[<Missing>];
+        MarkupTagHelperElement - [7..12)::5 - p[SelfClosing] - ptaghelper
+            MarkupTagHelperStartTag - [7..12)::5 - [<p />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupMiscAttributeContent - [9..10)::1
+                    MarkupTextLiteral - [9..10)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

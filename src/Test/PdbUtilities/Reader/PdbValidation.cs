@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool originalIsPortable)
         {
             var pdbStreamConverted = new MemoryStream();
-            var converter = new PdbConverter(diagnostic => Assert.True(false, diagnostic.ToString()));
+            var converter = new PdbConverter(diagnostic => Assert.Fail(diagnostic.ToString()));
 
             peStreamOriginal.Position = 0;
             pdbStreamOriginal.Position = 0;
