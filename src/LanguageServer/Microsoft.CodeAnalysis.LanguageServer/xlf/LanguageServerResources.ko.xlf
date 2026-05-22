@@ -82,10 +82,25 @@
         <target state="translated">{0} 테스트를 {1}에서 찾았습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Loaded_0">
+        <source>Loaded {0}</source>
+        <target state="translated">{0}을(를) 로드함</target>
+        <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Loaded_0_projects">
+        <source>Loaded {0} project(s)</source>
+        <target state="translated">프로젝트 {0}개가 로드되었습니다.</target>
+        <note>The placeholder is the number of projects</note>
+      </trans-unit>
       <trans-unit id="Loading_0">
         <source>Loading {0}...</source>
         <target state="translated">{0} 로드 중...</target>
         <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Loading_0_projects">
+        <source>Loading {0} project(s)...</source>
+        <target state="translated">{0} 프로젝트를 로드하는 중...</target>
+        <note>The placeholder is the number of projects</note>
       </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>

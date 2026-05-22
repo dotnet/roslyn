@@ -1,0 +1,18 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [53] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (19:0,19 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Item - Item - AttributeStructure.DoubleQuotes
+                        HtmlContent - (19:0,19 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (19:0,19 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hello
+                    ComponentAttribute -  - MyEvent -  - AttributeStructure.DoubleQuotes
+                        HtmlContent - (35:0,35 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (35:0,35 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Html - MyEventHandler
+            CSharpCode - (64:2,7 [39] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (64:2,7 [39] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public void MyEventHandler() {}\n

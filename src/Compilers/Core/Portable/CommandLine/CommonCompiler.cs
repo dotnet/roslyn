@@ -331,6 +331,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             analyzerConfigSet = AnalyzerConfigSet.Create(configs, out var setDiagnostics);
+            configs.Free();
             diagnostics.AddRange(setDiagnostics);
             return true;
         }
@@ -898,119 +899,122 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
-            var touchedFilesLogger = (Arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
-
             var diagnostics = DiagnosticBag.GetInstance();
+            var result = compileAndReport();
+            diagnostics.Free();
+            return result;
 
-            AnalyzerConfigSet? analyzerConfigSet = null;
-            ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
-            AnalyzerConfigOptionsResult globalConfigOptions = default;
-
-            if (Arguments.AnalyzerConfigPaths.Length > 0)
+            int compileAndReport()
             {
-                if (!TryGetAnalyzerConfigSet(Arguments.AnalyzerConfigPaths, diagnostics, out analyzerConfigSet))
+                var touchedFilesLogger = (Arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
+
+                AnalyzerConfigSet? analyzerConfigSet = null;
+                ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
+                AnalyzerConfigOptionsResult globalConfigOptions = default;
+
+                if (Arguments.AnalyzerConfigPaths.Length > 0)
                 {
-                    var hadErrors = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation: null);
-                    Debug.Assert(hadErrors);
+                    if (!TryGetAnalyzerConfigSet(Arguments.AnalyzerConfigPaths, diagnostics, out analyzerConfigSet))
+                    {
+                        var hadErrors = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation: null);
+                        Debug.Assert(hadErrors);
+                        return Failed;
+                    }
+
+                    globalConfigOptions = analyzerConfigSet.GlobalConfigOptions;
+                    sourceFileAnalyzerConfigOptions = Arguments.SourceFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
+
+                    foreach (var sourceFileAnalyzerConfigOption in sourceFileAnalyzerConfigOptions)
+                    {
+                        diagnostics.AddRange(sourceFileAnalyzerConfigOption.Diagnostics);
+                    }
+                }
+
+                Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
+                if (compilation == null)
+                {
                     return Failed;
                 }
 
-                globalConfigOptions = analyzerConfigSet.GlobalConfigOptions;
-                sourceFileAnalyzerConfigOptions = Arguments.SourceFiles.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.Path));
-
-                foreach (var sourceFileAnalyzerConfigOption in sourceFileAnalyzerConfigOptions)
+                var diagnosticInfos = new List<DiagnosticInfo>();
+                ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, compilation.Options, Arguments.SkipAnalyzers, out var analyzers, out var generators);
+                var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
+                if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger, compilation))
                 {
-                    diagnostics.AddRange(sourceFileAnalyzerConfigOption.Diagnostics);
+                    return Failed;
                 }
-            }
 
-            Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
-            if (compilation == null)
-            {
-                return Failed;
-            }
-
-            var diagnosticInfos = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, compilation.Options, Arguments.SkipAnalyzers, out var analyzers, out var generators);
-            var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
-            if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger, compilation))
-            {
-                return Failed;
-            }
-
-            ImmutableArray<EmbeddedText?> embeddedTexts = AcquireEmbeddedTexts(compilation, diagnostics);
-            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation))
-            {
-                return Failed;
-            }
-
-            var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
-
-            var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, cancellationToken, out var cacheState);
-            if (cachedExitCode.HasValue)
-            {
-                consoleOutput.WriteLine("Compilation result restored from cache.");
-                diagnostics.Free();
-                return cachedExitCode.Value;
-            }
-
-            CompileAndEmit(
-                touchedFilesLogger,
-                ref compilation,
-                analyzers,
-                generators,
-                additionalTexts,
-                analyzerConfigSet,
-                sourceFileAnalyzerConfigOptions,
-                embeddedTexts,
-                diagnostics,
-                errorLogger,
-                cancellationToken,
-                out CancellationTokenSource? analyzerCts,
-                out var analyzerDriver,
-                out var driverTimingInfo);
-
-            // At this point analyzers are already complete in which case this is a no-op.  Or they are
-            // still running because the compilation failed before all of the compilation events were
-            // raised.  In the latter case the driver, and all its associated state, will be waiting around
-            // for events that are never coming.  Cancel now and let the clean up process begin.
-            if (analyzerCts != null)
-            {
-                analyzerCts.Cancel();
-            }
-
-            var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
-                ? Failed
-                : Succeeded;
-
-            // The act of reporting errors can cause more errors to appear in
-            // additional files due to forcing all additional files to fetch text
-            foreach (var additionalFile in additionalTextFiles)
-            {
-                if (ReportDiagnostics(additionalFile.Diagnostics, consoleOutput, errorLogger, compilation))
+                ImmutableArray<EmbeddedText?> embeddedTexts = AcquireEmbeddedTexts(compilation, diagnostics);
+                if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation))
                 {
-                    exitCode = Failed;
+                    return Failed;
                 }
+
+                var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
+
+                var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, cancellationToken, out var cacheState);
+                if (cachedExitCode.HasValue)
+                {
+                    consoleOutput.WriteLine("Compilation result restored from cache.");
+                    return cachedExitCode.Value;
+                }
+
+                CompileAndEmit(
+                    touchedFilesLogger,
+                    ref compilation,
+                    analyzers,
+                    generators,
+                    additionalTexts,
+                    analyzerConfigSet,
+                    sourceFileAnalyzerConfigOptions,
+                    embeddedTexts,
+                    diagnostics,
+                    errorLogger,
+                    cancellationToken,
+                    out CancellationTokenSource? analyzerCts,
+                    out var analyzerDriver,
+                    out var driverTimingInfo);
+
+                // At this point analyzers are already complete in which case this is a no-op.  Or they are
+                // still running because the compilation failed before all of the compilation events were
+                // raised.  In the latter case the driver, and all its associated state, will be waiting around
+                // for events that are never coming.  Cancel now and let the clean up process begin.
+                if (analyzerCts != null)
+                {
+                    analyzerCts.Cancel();
+                }
+
+                var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
+                    ? Failed
+                    : Succeeded;
+
+                // The act of reporting errors can cause more errors to appear in
+                // additional files due to forcing all additional files to fetch text
+                foreach (var additionalFile in additionalTextFiles)
+                {
+                    if (ReportDiagnostics(additionalFile.Diagnostics, consoleOutput, errorLogger, compilation))
+                    {
+                        exitCode = Failed;
+                    }
+                }
+
+                if (Arguments.ReportAnalyzer)
+                {
+                    ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
+                }
+
+                if (Arguments.ReportInternalsVisibleToAttributes)
+                {
+                    ReportIVTInfos(consoleOutput, errorLogger, compilation, diagnostics.ToReadOnly());
+                }
+
+                if (exitCode == Succeeded)
+                {
+                    OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cacheState, cancellationToken);
+                }
+
+                return exitCode;
             }
-
-            if (Arguments.ReportAnalyzer)
-            {
-                ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
-            }
-
-            if (Arguments.ReportInternalsVisibleToAttributes)
-            {
-                ReportIVTInfos(consoleOutput, errorLogger, compilation, diagnostics.ToReadOnly());
-            }
-
-            diagnostics.Free();
-
-            if (exitCode == Succeeded)
-            {
-                OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cacheState, cancellationToken);
-            }
-
-            return exitCode;
         }
 
         private static CompilerAnalyzerConfigOptionsProvider UpdateAnalyzerConfigOptionsProvider(
@@ -1226,6 +1230,13 @@ namespace Microsoft.CodeAnalysis
             // But before we do so, we need to run diagnostic suppressors (if any) on all suppressable warnings/errors (if any).
             if (HasUnsuppressableErrors(diagnostics))
             {
+                if (analyzerDriver != null)
+                {
+                    // Analyzer cleanup is cancellation-driven on early exit, but that cleanup does not currently
+                    // guarantee all pooled analyzer state is freed before leak tracking runs.
+                    PoolTracker.ForgiveLeaks();
+                }
+
                 if (analyzerDriver == null || !analyzerDriver.HasDiagnosticSuppressors || !HasSuppressableWarningsOrErrors(diagnostics))
                 {
                     return;
