@@ -27,7 +27,7 @@ internal sealed class RazorAnalyzerAssemblyRedirector : IRazorAnalyzerAssemblyRe
         ImmutableArray<(string name, string path)> compilerAssemblyTypes = [
             GetRedirectEntry(typeof(CodeAnalysis.Razor.CompilerFeatures)), // Microsoft.CodeAnalysis.Razor.Compiler
             GetRedirectEntry(typeof(CodeAnalysis.Razor.CompilerFeatures), "Microsoft.NET.Sdk.Razor.SourceGenerators"),
-            GetRedirectEntry(typeof(AspNetCore.Razor.ArgHelper)), // Microsoft.AspNetCore.Razor.Utilities.Shared
+            GetRedirectEntry(typeof(AspNetCore.Razor.Optional<int>)), // Microsoft.AspNetCore.Razor.Utilities.Shared
 
             // The following dependencies will be provided by the Compiler ALC so its not strictly required to redirect them, but we do so for completeness. 
             GetRedirectEntry(typeof(ImmutableArray)), // System.Collections.Immutable
