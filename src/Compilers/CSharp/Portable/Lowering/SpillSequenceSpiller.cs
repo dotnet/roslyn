@@ -728,6 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(builder.Value is null);
                 locals = locals.AddRange(builder.GetLocals());
                 exceptionFilterPrologueOpt = new BoundStatementList(node.Syntax, builder.GetStatements());
+                builder.Free();
             }
 
             BoundBlock body = (BoundBlock)this.Visit(node.Body);

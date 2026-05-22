@@ -121,7 +121,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         var source = InAsyncMethod("await? t;", $"{type} t");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (7,14): error CS9379: 'await?' cannot be applied to an operand of non-nullable value type '<type>'.
+            // (7,14): error CS9387: 'await?' cannot be applied to an operand of non-nullable value type '<type>'.
             //         await? t;
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments(displayName).WithLocation(7, 14));
     }
@@ -156,7 +156,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (21,14): error CS9379: 'await?' cannot be applied to an operand of non-nullable value type 'MyAwaitable'.
+            // (21,14): error CS9387: 'await?' cannot be applied to an operand of non-nullable value type 'MyAwaitable'.
             //         await? t;
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("MyAwaitable").WithLocation(21, 14));
     }
@@ -176,7 +176,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (6,14): error CS9379: 'await?' cannot be applied to an operand of non-nullable value type 'T'.
+            // (6,14): error CS9387: 'await?' cannot be applied to an operand of non-nullable value type 'T'.
             //         await? t;
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("T").WithLocation(6, 14));
     }
@@ -196,7 +196,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (6,14): error CS9379: 'await?' cannot be applied to an operand of non-nullable value type 'T'.
+            // (6,14): error CS9387: 'await?' cannot be applied to an operand of non-nullable value type 'T'.
             //         await? t;
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("T").WithLocation(6, 14));
     }
@@ -709,7 +709,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         var source = InAsyncMethod("await? t.ConfigureAwait(false);", "Task t");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (7,14): error CS9379: 'await?' cannot be applied to an operand of non-nullable value type 'ConfiguredTaskAwaitable'.
+            // (7,14): error CS9387: 'await?' cannot be applied to an operand of non-nullable value type 'ConfiguredTaskAwaitable'.
             //         await? t.ConfigureAwait(false);
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("System.Runtime.CompilerServices.ConfiguredTaskAwaitable").WithLocation(7, 14));
     }
@@ -938,7 +938,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     {
         // `where T : notnull` does NOT imply `T` is a reference type — it could be a struct.
         // Per the operand-nullability rule, only a *known* non-nullable value type is
-        // rejected with CS9379; a type parameter that isn't known to be a value type passes,
+        // rejected with CS9387; a type parameter that isn't known to be a value type passes,
         // and the missing-GetAwaiter diagnostic is what surfaces.
         var source = """
             using System.Threading.Tasks;
@@ -1204,9 +1204,8 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     [Fact]
     public void ResultType_Pointer_InSafeAsyncMethod_PointerUsageIsUnsafe()
     {
-        // Outside an unsafe block, the await itself is allowed, but invoking the pointer-
-        // returning GetResult() (and naming `int*` as a type) requires unsafe context. The
-        // binder reports the standard "pointer needs unsafe" diagnostic against the await.
+        // Under preview unsafe rules, naming `int*` as a result type no longer requires an
+        // unsafe context; the await on a pointer-returning awaitable binds cleanly.
         var source = PointerAwaitableSource + """
 
             public class C
@@ -1218,10 +1217,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             }
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source, options: TestOptions.UnsafeReleaseDll);
-        comp.VerifyDiagnostics(
-            // (20,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //         var v = await? t;
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "await? t").WithLocation(20, 17));
+        comp.VerifyDiagnostics();
         Assert.Equal("int*", TypeOfLocalSymbol(comp, "v"));
     }
 
@@ -1252,6 +1248,8 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     [Fact]
     public void ResultType_FunctionPointer_InSafeAsyncMethod_PointerUsageIsUnsafe()
     {
+        // Under preview unsafe rules, naming a function-pointer type as a result no longer
+        // requires an unsafe context; the await binds cleanly.
         var source = FunctionPointerAwaitableSource + """
 
             public class C
@@ -1263,10 +1261,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             }
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source, options: TestOptions.UnsafeReleaseDll);
-        comp.VerifyDiagnostics(
-            // (20,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //         var v = await? t;
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "await? t").WithLocation(20, 17));
+        comp.VerifyDiagnostics();
         Assert.Equal("delegate*<int>", TypeOfLocalSymbol(comp, "v"));
     }
 

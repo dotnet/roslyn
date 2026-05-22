@@ -184,9 +184,9 @@ internal static partial class ProtocolConversions
         }
     }
 
-    public static string GetDocumentFilePathFromUri(Uri uri)
+    public static bool IsSourceGeneratedScheme(string scheme)
     {
-        return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
+        return scheme == SourceGeneratedDocumentUri.Scheme;
     }
 
     /// <summary>
@@ -218,13 +218,24 @@ internal static partial class ProtocolConversions
     /// Converts an absolute local file path or an absolute URL string to <see cref="DocumentUri"/>.
     /// For use with callers (generally LSP) that require <see cref="DocumentUri"/>
     /// </summary>
-    /// <exception cref="UriFormatException">
-    /// The <paramref name="absolutePath"/> can't be represented as <see cref="Uri"/>.
-    /// For example, UNC paths with invalid characters in server name.
-    /// </exception>
+    /// <remarks>
+    /// Unlike <see cref="CreateAbsoluteUri"/>, this method gracefully handles paths that
+    /// <see cref="Uri"/> cannot parse (e.g., UNC paths with <c>$</c> in the server name).
+    /// In such cases, it falls back to manually constructing the URI string, which
+    /// <see cref="DocumentUri"/> stores without requiring <see cref="Uri"/> parsing.
+    /// </remarks>
     public static DocumentUri CreateAbsoluteDocumentUri(string absolutePath)
     {
-        return new(CreateAbsoluteUri(absolutePath));
+        try
+        {
+            return new(CreateAbsoluteUri(absolutePath));
+        }
+        catch (UriFormatException)
+        {
+            // System.Uri can't handle certain valid paths (e.g. UNC paths with $ in server name).
+            // Fall back to constructing the URI string manually.
+            return new(GetAbsoluteUriString(absolutePath));
+        }
     }
 
     internal static DocumentUri CreateRelativePatternBaseUri(string path)
@@ -240,7 +251,7 @@ internal static partial class ProtocolConversions
 
         Debug.Assert(!path.Split(System.IO.Path.DirectorySeparatorChar).Any(p => p == "." || p == ".."));
 
-        return new(CreateAbsoluteUri(path));
+        return CreateAbsoluteDocumentUri(path);
     }
 
     // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
@@ -315,6 +326,10 @@ internal static partial class ProtocolConversions
     {
         var linePositionSpan = RangeToLinePositionSpan(range);
 
+        linePositionSpan = new LinePositionSpan(
+            ClampPositionToLineEnd(linePositionSpan.Start, text),
+            ClampPositionToLineEnd(linePositionSpan.End, text));
+
         // Handle the specific case where the end position is exactly one line beyond the document bounds
         // and the end character is 0 (start of the non-existent next line).
         // This can happen when deleting the last line, where LSP clients are allowed (by the spec) to
@@ -352,6 +367,18 @@ internal static partial class ProtocolConversions
 
         static string PositionToString(LSP.Position position)
             => $"{{ Line={position.Line}, Character={position.Character} }}";
+
+        static LinePosition ClampPositionToLineEnd(LinePosition position, SourceText text)
+        {
+            if (position.Line < 0 || position.Line >= text.Lines.Count)
+                return position;
+
+            var line = text.Lines[position.Line];
+            var lineLength = line.End - line.Start;
+            return position.Character > lineLength
+                ? new LinePosition(position.Line, lineLength)
+                : position;
+        }
     }
 
     public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText oldText)

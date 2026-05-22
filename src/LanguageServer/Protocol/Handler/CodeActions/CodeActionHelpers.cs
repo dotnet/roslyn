@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.ExtractClass;
-using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Suggestions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -94,12 +94,10 @@ internal static class CodeActionHelpers
     }
 
     private static bool IsCodeActionNotSupportedByLSP(SuggestedAction suggestedAction)
-        // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-        // Exceptions are made for ExtractClass and ExtractInterface because we have OptionsServices which
-        // provide reasonable defaults without user interaction.
-        => (suggestedAction.CodeAction is CodeActionWithOptions
-            && suggestedAction.CodeAction is not ExtractInterfaceCodeAction
-            && suggestedAction.CodeAction is not ExtractClassWithDialogCodeAction)
+        // Filter out CodeActionsWithOptions that do not report having an OptionsService
+        // that can provide options. 
+        => (suggestedAction.CodeAction is CodeActionWithOptions codeAction
+            && !codeAction.IsOptionServiceAvailable())
         // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
         // https://github.com/dotnet/roslyn/issues/48698
         || suggestedAction.CodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
@@ -435,12 +433,19 @@ internal static class CodeActionHelpers
         for (var i = 0; i < codeActionPath.Length; i++)
         {
             var title = codeActionPath[i];
-            var matchingActions = currentActions.Where(action => action.Title == title);
+            var matchingActions = currentActions.Where(action => action.Title == title).ToArray();
+
+            // If the project changed between the original request and resolve, we may not have the action to resolve anymore.
+            if (matchingActions.Length == 0)
+                throw new LocalRpcException($"Code action '{string.Join("|", codeActionPath)}' is no longer available.")
+                {
+                    ErrorCode = LspErrorCodes.ContentModified
+                };
 
             // If we only have one matching action then just need to retrieve it from the list.
-            if (matchingActions.Count() == 1)
+            if (matchingActions.Length == 1)
             {
-                matchingAction = matchingActions.First();
+                matchingAction = matchingActions[0];
             }
             else
             {

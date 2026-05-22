@@ -527,7 +527,7 @@
         <summary>SyntaxToken representing the kind "await" keyword.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="QuestionToken" Type="SyntaxToken" Optional="true" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/83237">
+    <Field Name="QuestionToken" Type="SyntaxToken" Optional="true" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/83839">
       <Kind Name="QuestionToken"/>
       <PropertyComment>
         <summary>Optional SyntaxToken representing the "?" of a null-conditional "await?" expression.</summary>

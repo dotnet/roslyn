@@ -1,0 +1,40 @@
+{
+  "profiles": {
+    "Razor (managed)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "CPS_DiagnosticRuntime": "1",
+        "CPS_MetricsCollection": "1",
+        "ServiceHubTraceLevel": "All"
+      }
+    },
+    "Razor w/ ServiceHub (managed)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "CPS_DiagnosticRuntime": "1",
+        "CPS_MetricsCollection": "1",
+        "ServiceHubTraceLevel": "All",
+        "SERVICEHUBDEBUGHOSTONSTARTUP": "ServiceHub.RoslynCodeAnalysisService.exe"
+      }
+    },
+    "Razor (managed + native)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "CPS_DiagnosticRuntime": "1",
+        "CPS_MetricsCollection": "1",
+        "ServiceHubTraceLevel": "All"
+      },
+      "nativeDebugging": true
+    },
+    "Razor w/ ServiceHub (managed + native)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "CPS_DiagnosticRuntime": "1",
+        "CPS_MetricsCollection": "1",
+        "ServiceHubTraceLevel": "All",
+        "SERVICEHUBDEBUGHOSTONSTARTUP": "ServiceHub.RoslynCodeAnalysisService.exe"
+      },
+      "nativeDebugging": true
+    }
+  }
+}

@@ -1,0 +1,69 @@
+﻿RazorDocument - [0..80)::80 - [@{ LF    var obj = new { Prop = (object)1 };LF}LF<person age="(int)@obj.Prop" />]
+    MarkupBlock - [0..80)::80
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..47)::47
+            CSharpStatement - [0..47)::47
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..47)::46
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..46)::44
+                        CSharpStatementLiteral - [2..46)::44 - [ LF    var obj = new { Prop = (object)1 };LF] - Gen<Stmt>
+                            Whitespace;[ ];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[obj];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Keyword;[new];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                            Whitespace;[ ];
+                            Identifier;[Prop];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            LeftParenthesis;[(];
+                            Keyword;[object];
+                            RightParenthesis;[)];
+                            NumericLiteral;[1];
+                            Whitespace;[ ];
+                            RightBrace;[}];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [46..47)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [47..49)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [49..80)::31 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [49..80)::31 - [<person age="(int)@obj.Prop" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [56..77)::21 - age - DoubleQuotes - Bound - [ age="(int)@obj.Prop"]
+                    MarkupTextLiteral - [56..57)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [57..60)::3 - [age] - Gen<Markup>
+                        Text;[age];
+                    Equals;[=];
+                    MarkupTextLiteral - [61..62)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [62..76)::14
+                        CSharpExpressionLiteral - [62..76)::14 - [(int)@obj.Prop] - Gen<None>
+                            Text;[(int)];
+                            Transition;[@];
+                            Identifier;[obj];
+                            Dot;[.];
+                            Identifier;[Prop];
+                    MarkupTextLiteral - [76..77)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [77..78)::1
+                    MarkupTextLiteral - [77..78)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];
