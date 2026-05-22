@@ -60,27 +60,17 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 
         var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
 
-        var progressTracker = progressReporter != null && projects.Length > 0
+        await using var progressTracker = progressReporter != null && projects.Length > 0
             ? new ProjectLoadProgressTracker(progressReporter, projects.Length)
             : null;
 
-        try
+        foreach (var (path, guid) in projects)
         {
-            foreach (var (path, guid) in projects)
-            {
-                await BeginLoadingProjectAsync(path, guid, progressTracker);
-            }
-
-            await WaitForProjectsToFinishLoadingAsync();
-            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+            await BeginLoadingProjectAsync(path, guid, progressTracker);
         }
-        finally
-        {
-            if (progressTracker != null)
-                await progressTracker.WaitUntilCurrentBatchCompletesAsync();
 
-            progressReporter?.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
-        }
+        await WaitForProjectsToFinishLoadingAsync();
+        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
     }
 
     public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths, IProgress<LSP.WorkDoneProgress>? progressReporter = null)
@@ -88,27 +78,17 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         if (!projectFilePaths.Any())
             return;
 
-        var progressTracker = progressReporter != null && projectFilePaths.Length > 0
+        await using var progressTracker = progressReporter != null && projectFilePaths.Length > 0
             ? new ProjectLoadProgressTracker(progressReporter, projectFilePaths.Length)
             : null;
 
-        try
+        foreach (var path in projectFilePaths)
         {
-            foreach (var path in projectFilePaths)
-            {
-                await BeginLoadingProjectAsync(path, projectGuid: null, progressTracker);
-            }
-
-            await WaitForProjectsToFinishLoadingAsync();
-            await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+            await BeginLoadingProjectAsync(path, projectGuid: null, progressTracker);
         }
-        finally
-        {
-            if (progressTracker != null)
-                await progressTracker.WaitUntilCurrentBatchCompletesAsync();
 
-            progressReporter?.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
-        }
+        await WaitForProjectsToFinishLoadingAsync();
+        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(

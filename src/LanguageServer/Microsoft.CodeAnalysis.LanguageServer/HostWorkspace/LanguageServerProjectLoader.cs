@@ -568,14 +568,14 @@ internal abstract class LanguageServerProjectLoader
     /// <summary>
     /// Helper for tracking and reporting project load percentage progress.
     /// Uses an <see cref="AsyncBatchingWorkQueue"/> to coalesce notifications from parallel project loads
-    /// into batched percentage reports. Caps at 99% — the caller is responsible for reporting 100%
-    /// after the full operation completes.
+    /// into batched percentage reports. Caps at 99% so the caller can report 100% after the full
+    /// operation (including restore) completes.
     /// </summary>
-    internal sealed class ProjectLoadProgressTracker
+    internal sealed class ProjectLoadProgressTracker : IAsyncDisposable
     {
         private readonly IProgress<LSP.WorkDoneProgress> _reporter;
         private readonly int _totalProjects;
-        private readonly AsyncBatchingWorkQueue<VoidResult> _progressQueue;
+        private readonly AsyncBatchingWorkQueue _progressQueue;
         private int _projectsProcessed;
         private int _lastReportedPercentage = -1;
 
@@ -583,21 +583,23 @@ internal abstract class LanguageServerProjectLoader
         {
             _reporter = reporter;
             _totalProjects = totalProjects;
-            _progressQueue = new AsyncBatchingWorkQueue<VoidResult>(
+            _progressQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.Zero,
                 ReportProgressAsync,
-                equalityComparer: null,
                 listener ?? AsynchronousOperationListenerProvider.NullListener,
                 CancellationToken.None);
         }
 
         public void OnProjectProcessed()
-            => _progressQueue.AddWork(default(VoidResult));
-
-        private ValueTask ReportProgressAsync(ImmutableSegmentedList<VoidResult> batch, CancellationToken cancellationToken)
         {
-            _projectsProcessed += batch.Count;
-            var percentage = (int)((long)_projectsProcessed * 100 / _totalProjects);
+            Interlocked.Increment(ref _projectsProcessed);
+            _progressQueue.AddWork();
+        }
+
+        private ValueTask ReportProgressAsync(CancellationToken cancellationToken)
+        {
+            var processed = Volatile.Read(ref _projectsProcessed);
+            var percentage = processed * 100 / _totalProjects;
             percentage = Math.Min(percentage, 99);
 
             if (percentage > _lastReportedPercentage)
@@ -612,7 +614,10 @@ internal abstract class LanguageServerProjectLoader
             return ValueTask.CompletedTask;
         }
 
-        internal Task WaitUntilCurrentBatchCompletesAsync()
-            => _progressQueue.WaitUntilCurrentBatchCompletesAsync();
+        public async ValueTask DisposeAsync()
+        {
+            await _progressQueue.WaitUntilCurrentBatchCompletesAsync();
+            _reporter.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
+        }
     }
 }
