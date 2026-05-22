@@ -89,7 +89,7 @@ public abstract class AbstractSnippetProviderTests
         {
             if (!int.TryParse(placeholderLocationPair.Key, out var locationIndex))
             {
-                Assert.True(false, "Expected placeholder locations contains span with invalid annotation");
+                Assert.Fail("Expected placeholder locations contains span with invalid annotation");
                 return;
             }
 
@@ -100,7 +100,7 @@ public abstract class AbstractSnippetProviderTests
         {
             if (placeholderLocationsArray[i].IsDefault)
             {
-                Assert.True(false, $"Placeholder location for index {i} was not specified");
+                Assert.Fail($"Placeholder location for index {i} was not specified");
             }
         }
 

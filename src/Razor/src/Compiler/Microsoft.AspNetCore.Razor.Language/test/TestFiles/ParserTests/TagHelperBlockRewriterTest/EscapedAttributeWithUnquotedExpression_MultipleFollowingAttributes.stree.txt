@@ -1,0 +1,110 @@
+﻿RazorDocument - [0..132)::132 - [@{LF    var code = 20;LF}LF<span @@click="handler(@code)" is-confirm-redirect="true" control-id="myid" data-value="test">Text</span>]
+    MarkupBlock - [0..132)::132
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..25)::25
+            CSharpStatement - [0..25)::25
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..25)::24
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..24)::22
+                        CSharpStatementLiteral - [2..24)::22 - [LF    var code = 20;LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[code];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[20];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [24..25)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [25..27)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [27..132)::105 - span[StartTagAndEndTag] - ControlIdTagHelper
+            MarkupTagHelperStartTag - [27..121)::94 - [<span @@click="handler(@code)" is-confirm-redirect="true" control-id="myid" data-value="test">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[span];
+                MarkupTextLiteral - [32..33)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupEphemeralTextLiteral - [33..34)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupTagHelperAttribute - [34..57)::23 - @click - DoubleQuotes - Unbound - [@click="handler(@code)"]
+                    MarkupTextLiteral - [34..40)::6 - [@click] - Gen<Markup>
+                        Transition;[@];
+                        Text;[click];
+                    Equals;[=];
+                    MarkupTextLiteral - [41..42)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [42..56)::14
+                        MarkupLiteralAttributeValue - [42..50)::8 - [handler(]
+                            MarkupTextLiteral - [42..50)::8 - [handler(] - Gen<Markup>
+                                Text;[handler(];
+                        MarkupDynamicAttributeValue - [50..55)::5 - [@code]
+                            GenericBlock - [50..55)::5
+                                CSharpCodeBlock - [50..55)::5
+                                    CSharpImplicitExpression - [50..55)::5
+                                        CSharpTransition - [50..51)::1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [51..55)::4
+                                            CSharpCodeBlock - [51..55)::4
+                                                CSharpExpressionLiteral - [51..55)::4 - [code] - Gen<Expr>
+                                                    Identifier;[code];
+                        MarkupLiteralAttributeValue - [55..56)::1 - [)]
+                            MarkupTextLiteral - [55..56)::1 - [)] - Gen<Markup>
+                                Text;[)];
+                    MarkupTextLiteral - [56..57)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [57..84)::27 - is-confirm-redirect - DoubleQuotes - Bound - [ is-confirm-redirect="true"]
+                    MarkupTextLiteral - [57..58)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [58..77)::19 - [is-confirm-redirect] - Gen<Markup>
+                        Text;[is-confirm-redirect];
+                    Equals;[=];
+                    MarkupTextLiteral - [78..79)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [79..83)::4
+                        MarkupTextLiteral - [79..83)::4 - [true] - Gen<Markup>
+                            Text;[true];
+                    MarkupTextLiteral - [83..84)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [84..102)::18 - control-id - DoubleQuotes - Bound - [ control-id="myid"]
+                    MarkupTextLiteral - [84..85)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [85..95)::10 - [control-id] - Gen<Markup>
+                        Text;[control-id];
+                    Equals;[=];
+                    MarkupTextLiteral - [96..97)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [97..101)::4
+                        MarkupTextLiteral - [97..101)::4 - [myid] - Gen<Markup>
+                            Text;[myid];
+                    MarkupTextLiteral - [101..102)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [102..120)::18 - data-value - DoubleQuotes - Unbound - [ data-value="test"]
+                    MarkupTextLiteral - [102..103)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [103..113)::10 - [data-value] - Gen<Markup>
+                        Text;[data-value];
+                    Equals;[=];
+                    MarkupTextLiteral - [114..115)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [115..119)::4
+                        MarkupTextLiteral - [115..119)::4 - [test] - Gen<Markup>
+                            Text;[test];
+                    MarkupTextLiteral - [119..120)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [121..125)::4 - [Text] - Gen<Markup>
+                Text;[Text];
+            MarkupTagHelperEndTag - [125..132)::7 - [</span>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[span];
+                CloseAngle;[>];
+    EndOfFile;[];

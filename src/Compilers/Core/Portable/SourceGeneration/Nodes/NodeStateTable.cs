@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (_states.Count == 0)
                 {
-                    _states.Free();
+                    Free();
                     return NodeStateTable<T>.Empty;
                 }
 
@@ -553,6 +553,12 @@ namespace Microsoft.CodeAnalysis
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
                     hasTrackedSteps: TrackIncrementalSteps,
                     isCached: finalStates.All(static s => s.IsCached) && _previous.GetTotalEntryItemCount() == finalStates.Sum(static s => s.Count));
+            }
+
+            public void Free()
+            {
+                _states.Free();
+                _steps?.Free();
             }
 
             private (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement)
@@ -649,7 +655,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(itemBuilder.Count < this.Count);
-                return new TableEntry(OneOrMany.Create(itemBuilder.ToImmutableArray()), s_allCachedEntries, anyRemoved: false);
+                return new TableEntry(OneOrMany.Create(itemBuilder.ToImmutableAndFree()), s_allCachedEntries, anyRemoved: false);
             }
 
             public TableEntry AsRemovedDueToInputRemoval() => new(_items, s_allRemovedDueToInputRemoval, anyRemoved: true);

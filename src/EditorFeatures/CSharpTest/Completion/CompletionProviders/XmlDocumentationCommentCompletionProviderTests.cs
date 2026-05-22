@@ -6,11 +6,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1177,4 +1181,47 @@ public sealed class XmlDocumentationCommentCompletionProviderTests : AbstractCSh
             """, """
             typeparamref name="T"
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11569")]
+    public async Task TestDocCommentTag_WithAdditionalTypedCharacters_DoesNotLeaveResidualText()
+    {
+        // Simulate the scenario where item.Span is stale: completion triggers after "<" in a doc comment,
+        // user types "su" before committing "summary". GetChangeAsync receives the current document
+        // (with "su") but item.Span.End still points to the position right after "<".
+        var code = """
+            class C
+            {
+                /// <$$
+                void M(int x) { }
+            }
+            """;
+
+        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            new CSharpParseOptions(LanguageVersion.Default),
+            [code],
+            composition: GetComposition());
+
+        var testDocument = workspace.Documents.Single();
+        var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
+        var position = testDocument.CursorPosition!.Value;
+
+        var service = GetCompletionService(document.Project);
+        var completionList = await GetCompletionListAsync(service, document, position, Microsoft.CodeAnalysis.Completion.CompletionTrigger.Invoke);
+        var summaryItem = completionList.ItemsList.First(i => i.DisplayText == "summary");
+
+        // Simulate the user typing "su" after the "<"
+        var text = await document.GetTextAsync();
+        var newText = text.WithChanges(new TextChange(new TextSpan(position, 0), "su"));
+        var modifiedDocument = document.WithText(newText);
+
+        var change = await service.GetChangeAsync(modifiedDocument, summaryItem, commitCharacter: null, CancellationToken.None);
+
+        var finalText = newText.WithChanges(change.TextChange);
+        var finalCode = finalText.ToString();
+
+        // Should produce clean "summary" tag without residual "su"
+        Assert.Contains("/// <summary", finalCode);
+        Assert.DoesNotContain("summarysu", finalCode);
+    }
 }

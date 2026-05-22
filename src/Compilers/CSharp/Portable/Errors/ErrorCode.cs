@@ -2470,8 +2470,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CallerUnsafeOverridingSafe = 9364,
         ERR_CallerUnsafeImplicitlyImplementingSafe = 9365,
         ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
-        ERR_RequiresUnsafeAttributeUnsupportedMemberTarget = 9367,
-        WRN_RequiresUnsafeAttributeLegacyRules = 9368,
 
         ERR_ExpressionTreeContainsUnionConversion = 9369,
         ERR_UnionDeclarationNeedsCaseTypes = 9370,
@@ -2486,11 +2484,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PPShebangNotOnFirstLine = 9378,
 
-        // Note: 9379 is reserved for the labeled-break-and-continue feature
-        // (`ERR_NoBreakOrContId`). When that feature merges, our two codes below
-        // stay at 9380/9381 and no renumber is needed.
-        ERR_NoChainedRelationalComparison = 9380,
-        ERR_ExpressionTreeContainsChainedRelationalComparison = 9381,
+        ERR_RequiresUnsafeAttributeInSource = 9379,
+
+        ERR_ClosedTypeNameDisallowed = 9380,
+        ERR_ClosedSealedStatic = 9381,
+        ERR_ClosedBaseTypeBaseFromOtherAssembly = 9382,
+        ERR_UnderspecifiedClosedSubtype = 9383,
+        ERR_ClosedExplicitlyAbstract = 9384,
+
+        ERR_MissingUnionCaseTypes = 9385,
+        ERR_MissingUnionValueProperty = 9386,
+
+        ERR_NoChainedRelationalComparison = 9387,
+        ERR_ExpressionTreeContainsChainedRelationalComparison = 9388,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
