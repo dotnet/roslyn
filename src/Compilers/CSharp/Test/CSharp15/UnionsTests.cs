@@ -9429,28 +9429,28 @@ class Program
                 [
                     ..expected,
                     // (6,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: System.IComparable };
+                    //         _ = u is { S1.Value: System.IComparable };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(6, 23),
                     // (7,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: bool };
+                    //         _ = u is { S1.Value: bool };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(7, 23),
                     // (8,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: string };
+                    //         _ = u is { S1.Value: string };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(8, 23),
                     // (9,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: object };
+                    //         _ = u is { S1.Value: object };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(9, 23),
                     // (100,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: long };
+                    //         _ = u is { S1.Value: long };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 23),
                     // (102,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: true };
+                    //         _ = u is { S1.Value: true };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(102, 23),
                     // (200,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: 1 };
+                    //         _ = u is { S1.Value: 1 };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 23),
                     // (201,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: "a" };
+                    //         _ = u is { S1.Value: "a" };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(201, 23)
                 ]);
         }
@@ -9526,28 +9526,28 @@ class Program
                 [
                     ..expected,
                     // (6,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: System.IComparable };
+                    //         _ = u is { S1.Value: System.IComparable };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(6, 23),
                     // (7,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: bool };
+                    //         _ = u is { S1.Value: bool };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(7, 23),
                     // (8,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: string };
+                    //         _ = u is { S1.Value: string };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(8, 23),
                     // (9,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: object };
+                    //         _ = u is { S1.Value: object };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(9, 23),
                     // (100,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: long };
+                    //         _ = u is { S1.Value: long };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 23),
                     // (102,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: true };
+                    //         _ = u is { S1.Value: true };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(102, 23),
                     // (200,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: 1 };
+                    //         _ = u is { S1.Value: 1 };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 23),
                     // (201,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = u is S1 { Value: "a" };
+                    //         _ = u is { S1.Value: "a" };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(201, 23)
                 ]);
         }
