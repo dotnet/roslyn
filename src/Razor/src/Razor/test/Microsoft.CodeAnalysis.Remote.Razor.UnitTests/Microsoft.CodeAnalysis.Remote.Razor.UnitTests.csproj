@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <IsShipping>false</IsShipping>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <TargetFrameworks>$(StandardTestTfms)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
+  </ItemGroup>
+
+</Project>
