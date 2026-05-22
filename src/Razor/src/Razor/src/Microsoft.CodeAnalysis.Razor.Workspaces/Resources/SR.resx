@@ -172,32 +172,11 @@
   <data name="TagHelper_Element_Glyph" xml:space="preserve">
     <value>Razor TagHelper Element Glyph</value>
   </data>
-  <data name="Create_Component_FromTag_Title" xml:space="preserve">
-    <value>Create component from tag</value>
-  </data>
-  <data name="ExtractTo_CodeBehind_Title" xml:space="preserve">
-    <value>Extract block to code behind</value>
-  </data>
-  <data name="ExtractTo_Component_Title" xml:space="preserve">
-    <value>Extract element to new component</value>
-  </data>
-  <data name="Generate_Async_Event_Handler_Title" xml:space="preserve">
-    <value>Generate Async Event Handler '{0}'</value>
-  </data>
-  <data name="Generate_Event_Handler_Title" xml:space="preserve">
-    <value>Generate Event Handler '{0}'</value>
-  </data>
   <data name="ReTrigger_Completions_Title" xml:space="preserve">
     <value>"Re-trigger completions..."</value>
   </data>
   <data name="Blazor_directive_attributes" xml:space="preserve">
     <value>Blazor directive attributes</value>
-  </data>
-  <data name="Promote_using_directive_to" xml:space="preserve">
-    <value>Promote using directive to {0}</value>
-  </data>
-  <data name="Wrap_attributes" xml:space="preserve">
-    <value>Wrap attributes</value>
   </data>
   <data name="Unsupported_argument_kind" xml:space="preserve">
     <value>Unsupported argument kind: '{0}'.</value>
@@ -211,23 +190,11 @@
   <data name="Unsupported_razor_project_info_version_encountered" xml:space="preserve">
     <value>Unsupported razor project info version encounted.</value>
   </data>
-  <data name="Simplify_Tag_To_SelfClosing_Title" xml:space="preserve">
-    <value>Simplify tag to self-closing</value>
-  </data>
-  <data name="Simplify_Fully_Qualified_Component_Title" xml:space="preserve">
-    <value>Simplify fully qualified component</value>
-  </data>
   <data name="IncompatibleProject_NotAnAdditionalFile" xml:space="preserve">
     <value>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has Razor documents but this file is not an AdditionalFile, so the editing experience will be limited. No more messages will be logged for this project.</value>
   </data>
   <data name="IncompatibleProject_NoAdditionalFiles" xml:space="preserve">
     <value>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has no Razor documents that are AdditionalFiles, so the editing experience will be limited. Is it using the Razor SDK? No more messages will be logged for this project.</value>
-  </data>
-  <data name="Sort_And_Consolidate_Usings_Title" xml:space="preserve">
-    <value>Sort and consolidate usings</value>
-  </data>
-  <data name="ExtractTo_Css_Title" xml:space="preserve">
-    <value>Extract to {0}.css</value>
   </data>
   <data name="ComponentCompletionWithRequiredAttributesLabel" xml:space="preserve">
     <value>{0} (and req'd attributes...)</value>
@@ -235,9 +202,6 @@
   </data>
   <data name="KeywordDescription" xml:space="preserve">
     <value>{0} Keyword</value>
-  </data>
-  <data name="Remove_unnecessary_directives" xml:space="preserve">
-    <value>Remove unnecessary directives</value>
   </data>
   <data name="Formatting_Error" xml:space="preserve">
     <value>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</value>

@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override RefKind RefKind => RefKind.None;
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)

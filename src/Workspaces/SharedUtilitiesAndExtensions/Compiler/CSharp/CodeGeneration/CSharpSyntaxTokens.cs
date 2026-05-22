@@ -21,6 +21,9 @@ internal static class CSharpSyntaxTokens
     public static readonly SyntaxToken CheckedKeyword = Token(SyntaxKind.CheckedKeyword);
     public static readonly SyntaxToken CloseBraceToken = Token(SyntaxKind.CloseBraceToken);
     public static readonly SyntaxToken CloseBracketToken = Token(SyntaxKind.CloseBracketToken);
+#if !OLDER_ROSLYN
+    public static readonly SyntaxToken ClosedKeyword = Token(SyntaxKind.ClosedKeyword);
+#endif
     public static readonly SyntaxToken CloseParenToken = Token(SyntaxKind.CloseParenToken);
     public static readonly SyntaxToken ColonToken = Token(SyntaxKind.ColonToken);
     public static readonly SyntaxToken CommaToken = Token(SyntaxKind.CommaToken);

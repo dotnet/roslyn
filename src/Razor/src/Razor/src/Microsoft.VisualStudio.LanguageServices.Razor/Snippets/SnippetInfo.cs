@@ -25,6 +25,9 @@ internal record SnippetInfo
         Path = path;
         Language = language;
 
+        // Sort snippets after elements with the same label, matching C# behavior.
+        SortText = Shortcut + " ";
+
         _parsedXmlSnippet = new(() => XmlSnippetParser.GetParsedXmlSnippet(this));
         CompletionData = new(Path);
     }
@@ -33,6 +36,7 @@ internal record SnippetInfo
     public string Title { get; }
     public string Description { get; }
     public string Path { get; }
+    public string SortText { get; }
     public SnippetLanguage Language { get; }
     public SnippetCompletionData CompletionData { get; }
 

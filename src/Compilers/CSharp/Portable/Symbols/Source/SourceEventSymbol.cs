@@ -350,11 +350,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.NullableAttribute
-                | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.TupleElementNamesAttribute
-                | ReservedAttributes.ExtensionMarkerAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(
+                in arguments,
+                permitted: ReservedAttributes.DynamicAttribute
+                    | ReservedAttributes.IsReadOnlyAttribute
+                    | ReservedAttributes.IsUnmanagedAttribute
+                    | ReservedAttributes.IsByRefLikeAttribute
+                    | ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute
+                    | ReservedAttributes.RequiresLocationAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))
