@@ -121,7 +121,7 @@ internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemP
             }
 
             // VSCode doesn't use commit characters for attribute completions
-            var commitCharacters = context.Options.UseVsCodeCompletionCommitCharacters
+            var commitCharacters = context.Options.IsVsCode
                 ? ImmutableArray<RazorCommitCharacter>.Empty
                 : AttributeCommitCharacters;
 

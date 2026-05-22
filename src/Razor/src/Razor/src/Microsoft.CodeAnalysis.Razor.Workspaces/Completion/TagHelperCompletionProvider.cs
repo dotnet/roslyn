@@ -153,7 +153,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             }
 
             var attributeContext = ResolveAttributeContext(boundAttributes, isIndexer, options.SnippetsSupported);
-            var attributeCommitCharacters = options.UseVsCodeCompletionCommitCharacters ? [] : ResolveAttributeCommitCharacters(attributeContext);
+            var attributeCommitCharacters = options.IsVsCode ? [] : ResolveAttributeCommitCharacters(attributeContext);
             var isSnippet = false;
             var insertText = filterText;
 

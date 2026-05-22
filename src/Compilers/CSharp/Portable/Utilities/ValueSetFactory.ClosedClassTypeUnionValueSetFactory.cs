@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,38 +22,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _closedClass = closedClass;
             }
 
-            internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
+            internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, HashSet<TypeSymbol> setBuilder)
             {
                 if (possibleClosedClass is not NamedTypeSymbol namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
                 {
-                    AddCaseInfo(builder, possibleClosedClass, originalClosedBase: null);
+                    AddCaseInfo(builder, setBuilder, possibleClosedClass, originalClosedBase: null);
                     return;
                 }
 
-                ExpandClosedSubtypesCore(subtypes, originalBase: namedType, builder);
+                ExpandClosedSubtypesCore(subtypes, originalBase: namedType, builder, setBuilder);
             }
 
-            private static void ExpandClosedSubtypesCore(ImmutableArray<NamedTypeSymbol> subtypes, NamedTypeSymbol originalBase, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder)
+            private static void ExpandClosedSubtypesCore(ImmutableArray<NamedTypeSymbol> subtypes, NamedTypeSymbol originalBase, ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, HashSet<TypeSymbol> setBuilder)
             {
                 Debug.Assert(!subtypes.IsDefaultOrEmpty);
                 foreach (var subtype in subtypes)
                 {
                     if (!subtype.TryGetClosedSubtypes(out var innerSubtypes) || innerSubtypes.IsEmpty)
                     {
-                        AddCaseInfo(builder, subtype, originalBase);
+                        AddCaseInfo(builder, setBuilder, subtype, originalBase);
                     }
                     else
                     {
-                        ExpandClosedSubtypesCore(innerSubtypes, originalBase, builder);
+                        ExpandClosedSubtypesCore(innerSubtypes, originalBase, builder, setBuilder);
                     }
                 }
             }
 
-            private static void AddCaseInfo(ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, TypeSymbol caseType, NamedTypeSymbol? originalClosedBase)
+            private static void AddCaseInfo(ArrayBuilder<TypeUnionValueSet.CaseInfo> builder, HashSet<TypeSymbol> setBuilder, TypeSymbol caseType, NamedTypeSymbol? originalClosedBase)
             {
                 // https://github.com/dotnet/roslyn/issues/83617: There may be a need to report diagnostics when "runtime-equivalent" yet distinct caseTypes flow in.
                 // For example, when the caseTypes have nullability differences.
-                if (!builder.Any(static (existing, caseType) => existing.CaseType.Equals(caseType, TypeCompareKind.AllIgnoreOptions), caseType))
+                if (setBuilder.Add(caseType))
                 {
                     builder.Add(new TypeUnionValueSet.CaseInfo(caseType, originalClosedBase));
                 }
@@ -61,7 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ImmutableArray<TypeUnionValueSet.CaseInfo> ClosedSubtypes()
             {
                 var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
-                ExpandClosedSubtypes(_closedClass, builder);
+                var setBuilder = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
+                ExpandClosedSubtypes(_closedClass, builder, setBuilder);
+                setBuilder.Free();
                 return builder.ToImmutableAndFree();
             }
 

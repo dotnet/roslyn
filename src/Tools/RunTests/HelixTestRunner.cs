@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -33,8 +34,11 @@ public sealed class HelixWorkItem(
     public override string ToString() => DisplayName;
 }
 
-internal sealed class HelixTestRunner
+internal sealed partial class HelixTestRunner
 {
+    [GeneratedRegex(@"Waiting for completion of job ([0-9a-fA-F-]+) on ")]
+    private static partial Regex HelixJobIdRegex();
+
     internal enum TestOS
     {
         Windows,
@@ -97,14 +101,39 @@ internal sealed class HelixTestRunner
         CopyPayloadFilesToLogs(logsDir, payloadsDir);
         File.Copy(helixFilePath, Path.Combine(logsDir, "helix.proj"));
 
+        string? helixJobId = null;
+
         var process = ProcessRunner.CreateProcess(
             executable: options.DotnetFilePath,
             arguments: arguments,
             captureOutput: true,
-            onOutputDataReceived: (e) => { Debug.Assert(e.Data is not null); ConsoleUtil.WriteLine(e.Data); },
+            onOutputDataReceived: (e) =>
+            {
+                Debug.Assert(e.Data is not null);
+                ConsoleUtil.WriteLine(e.Data);
+
+                if (helixJobId is null)
+                {
+                    var match = HelixJobIdRegex().Match(e.Data);
+                    if (match.Success)
+                    {
+                        helixJobId = match.Groups[1].Value;
+                    }
+                }
+            },
             cancellationToken: cancellationToken);
-        var processResult = await process.Result.ConfigureAwait(false);
-        return processResult.ExitCode;
+
+        try
+        {
+            var processResult = await process.Result.ConfigureAwait(false);
+            return processResult.ExitCode;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            var jobDescription = helixJobId ?? "unknown helix job";
+            ConsoleUtil.Error($"(NETCORE_ENGINEERING_TELEMETRY=Test) Helix job timed out: {jobDescription}");
+            throw;
+        }
 
         void Verify([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression("condition")] string? message = null)
         {
@@ -338,24 +367,34 @@ internal sealed class HelixTestRunner
         {
             var isUnix = testOS != TestOS.Windows;
 
-            // We want to collect any dumps during the post command step here; these commands are ran after the
-            // return value of the main command is captured; a Helix Job is considered to fail if the main command returns a
-            // non-zero error code, and we don't want the cleanup steps to interfere with that. PostCommands exist
-            // precisely to address this problem.
+            // We want to collect diagnostic artifacts during the post command step here; these commands
+            // are ran after the return value of the main command is captured. A Helix Job is considered
+            // to fail if the main command returns a non-zero error code, and we don't want the cleanup
+            // steps to interfere with that. PostCommands exist precisely to address this problem.
             //
-            // This is still necessary even with us setting DOTNET_DbgMiniDumpName because the system can create 
-            // non .NET Core dump files that aren't controlled by that value.
+            // The artifacts collected are:
+            //  - *.dmp: crash dump files. This is still necessary even with us setting
+            //    DOTNET_DbgMiniDumpName because the system can create non .NET Core dump files that
+            //    aren't controlled by that value.
+            //  - Sequence_*.xml: xunit sequence files that track the order of tests executed and which
+            //    ones were active when the test host crashed.
             string command;
 
             if (isUnix)
             {
                 // Write out this command into a separate file; unfortunately the use of single quotes and ; that is required
                 // for the command to work causes too much escaping issues in MSBuild.
-                command = "find . -name '*.dmp' -exec cp {} $HELIX_DUMP_FOLDER \\;";
+                command = """
+                    find . -name '*.dmp' -exec cp {} $HELIX_DUMP_FOLDER \;
+                    find . -name 'Sequence_*.xml' -exec cp {} $HELIX_DUMP_FOLDER \;
+                    """;
             }
             else
             {
-                command = "for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%";
+                command = """
+                    for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%
+                    for /r %%f in (Sequence_*.xml) do copy %%f %HELIX_DUMP_FOLDER%
+                    """;
             }
 
             return (isUnix ? "post-command.sh" : "post-command.cmd", command);

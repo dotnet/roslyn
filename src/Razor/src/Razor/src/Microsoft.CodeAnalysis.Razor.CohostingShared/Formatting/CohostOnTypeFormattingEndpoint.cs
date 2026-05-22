@@ -46,7 +46,7 @@ internal sealed class CohostOnTypeFormattingEndpoint(
 
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
-        if (clientCapabilities.TextDocument?.Formatting?.DynamicRegistration is true)
+        if (clientCapabilities.TextDocument?.OnTypeFormatting?.DynamicRegistration is true)
         {
             return [new Registration()
             {

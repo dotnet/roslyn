@@ -3164,7 +3164,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
         <source>static members in interfaces</source>
-        <target state="new">static members in interfaces</target>
+        <target state="translated">statyczne składowe w interfejsach</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
