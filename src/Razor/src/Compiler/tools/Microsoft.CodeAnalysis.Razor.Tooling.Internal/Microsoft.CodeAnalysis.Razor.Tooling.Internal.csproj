@@ -15,7 +15,6 @@
 
     <Content Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.dll" PackagePath="lib\$(TargetFramework)" />
     <Content Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" PackagePath="lib\$(TargetFramework)" />
-    <Content Include="$(OutDir)Microsoft.Extensions.ObjectPool.dll" PackagePath="lib\$(TargetFramework)" />
   </ItemGroup>
 
 </Project>

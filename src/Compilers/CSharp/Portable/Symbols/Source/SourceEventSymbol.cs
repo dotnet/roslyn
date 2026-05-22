@@ -350,11 +350,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.NullableAttribute
-                | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.TupleElementNamesAttribute
-                | ReservedAttributes.ExtensionMarkerAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(
+                in arguments,
+                permitted: ReservedAttributes.DynamicAttribute
+                    | ReservedAttributes.IsReadOnlyAttribute
+                    | ReservedAttributes.IsUnmanagedAttribute
+                    | ReservedAttributes.IsByRefLikeAttribute
+                    | ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute
+                    | ReservedAttributes.RequiresLocationAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))
@@ -461,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
         }
 
-        private bool IsUnsafe
+        private bool HasUnsafeModifier
         {
             get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
         }
@@ -472,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return IsUnsafe || IsExtern
+                    return HasUnsafeModifier || IsExtern
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }
@@ -925,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberStaticDifference, implementation.GetFirstLocation());
             }
 
-            if (IsUnsafe != implementation.IsUnsafe && this.CompilationAllowsUnsafe())
+            if (HasUnsafeModifier != implementation.HasUnsafeModifier && this.CompilationAllowsUnsafe())
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
             }

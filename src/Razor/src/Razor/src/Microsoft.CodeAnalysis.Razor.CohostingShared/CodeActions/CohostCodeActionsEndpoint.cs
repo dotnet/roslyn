@@ -10,11 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -48,7 +47,7 @@ internal sealed class CohostCodeActionsEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.CodeAction?.DynamicRegistration == true)
         {
@@ -62,15 +61,15 @@ internal sealed class CohostCodeActionsEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSCodeActionParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSCodeActionParams request)
+        => request.TextDocument;
 
     protected override async Task<SumType<Command, CodeAction>[]?> HandleRequestAsync(VSCodeActionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var correlationId = Guid.NewGuid();
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.CodeActionRazorTelemetryThreshold, correlationId);
 
-        CodeActionsService.AdjustRequestRangeIfNecessary(request);
+        AdjustRequestRangeIfNecessary(request);
 
         var requestInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, CodeActionRequestInfo>(
             razorDocument.Project.Solution,
@@ -103,7 +102,7 @@ internal sealed class CohostCodeActionsEndpoint(
 
     private async Task<RazorVSInternalCodeAction[]> GetCSharpCodeActionsAsync(TextDocument razorDocument, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
     {
-        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(request.TextDocument.DocumentUri.GetRequiredParsedUri(), cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(request.TextDocument.DocumentUri.GetRequiredSystemUri(), cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
         {
             return [];
@@ -137,6 +136,29 @@ internal sealed class CohostCodeActionsEndpoint(
         return result;
     }
 #endif
+
+    private static void AdjustRequestRangeIfNecessary(VSCodeActionParams request)
+    {
+        // VS Provides `CodeActionParams.Context.SelectionRange` in addition to
+        // `CodeActionParams.Range`. The `SelectionRange` is relative to where the
+        // code action was invoked (ex. line 14, char 3) whereas the `Range` is
+        // always at the start of the line (ex. line 14, char 0). We want to utilize
+        // the relative positioning to ensure we provide code actions for the appropriate
+        // context.
+        //
+        // We only do this if the Range contains the SelectionRange, or in other words if
+        // the SelectionRange serves to better focus the Range. It is possible for the selection
+        // to be on one line, and the code action request to be for an entirely different line
+        // if the user is invoking from the lightbulb button directly, for example on hovering
+        // over a diagnostic. In those cases, using SelectionRange would be wrong.
+        //
+        // Note: VS Code doesn't provide a `SelectionRange`.
+        if (request.Context.SelectionRange is { } selectionRange &&
+            request.Range.Contains(selectionRange))
+        {
+            request.Range = selectionRange;
+        }
+    }
 
     internal TestAccessor GetTestAccessor() => new(this);
 

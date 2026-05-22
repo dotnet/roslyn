@@ -7,8 +7,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -53,7 +53,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
         {
@@ -70,11 +70,11 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
     {
         if (RazorCompletionResolveData.Unwrap(request) is { } data)
         {
-            return data.TextDocument.ToRazorTextDocumentIdentifier();
+            return data.TextDocument;
         }
 
         return null;
@@ -119,6 +119,16 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
                 if (_snippetCompletionItemProvider is not null &&
                     _snippetCompletionItemProvider.TryResolveInsertString(completionItem, out var insertString))
                 {
+                    // In start-tag context, the '<' is already in the document and outside the
+                    // replacement span. Strip it from element-style snippets to avoid duplication
+                    // (e.g., "<table>...</table>" → "table>...</table>").
+                    // The char.IsLetter check intentionally excludes non-element prefixes like
+                    // "<!", "</", "<?" which should not have their '<' stripped.
+                    if (snippetContext.IsStartTagContext && insertString.Length > 1 && insertString[0] == '<' && char.IsLetter(insertString[1]))
+                    {
+                        insertString = insertString[1..];
+                    }
+
                     completionItem.InsertText = insertString;
                 }
 
@@ -160,7 +170,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
 
     internal readonly struct TestAccessor(CohostDocumentCompletionResolveEndpoint instance)
     {
-        public RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
+        public TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
             => instance.GetRazorTextDocumentIdentifier(request);
 
         public Task<VSInternalCompletionItem?> HandleRequestAsync(

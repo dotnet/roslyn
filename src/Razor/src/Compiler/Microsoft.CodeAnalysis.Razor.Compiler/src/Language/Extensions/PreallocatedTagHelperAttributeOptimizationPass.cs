@@ -17,12 +17,6 @@ internal sealed class PreallocatedTagHelperAttributeOptimizationPass : Intermedi
         DocumentIntermediateNode documentNode,
         CancellationToken cancellationToken)
     {
-        // There's no value in executing this pass at design time, it just prevents some allocations.
-        if (documentNode.Options.DesignTime)
-        {
-            return;
-        }
-
         var walker = new PreallocatedTagHelperWalker();
         walker.VisitDocument(documentNode);
     }

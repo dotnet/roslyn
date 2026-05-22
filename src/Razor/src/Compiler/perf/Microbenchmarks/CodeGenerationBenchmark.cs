@@ -33,18 +33,6 @@ public class CodeGenerationBenchmark
 
     public RazorProjectItem MSN { get; }
 
-    [Benchmark(Description = "Razor Design Time Code Generation of MSN.com")]
-    public void CodeGeneration_DesignTime_LargeStaticFile()
-    {
-        var codeDocument = ProjectEngine.ProcessDesignTime(MSN);
-        var generated = codeDocument.GetRequiredCSharpDocument();
-
-        if (generated.Diagnostics.Length > 0)
-        {
-            throw new Exception("Error!" + Environment.NewLine + string.Join(Environment.NewLine, generated.Diagnostics));
-        }
-    }
-
     [Benchmark(Description = "Razor Runtime Code Generation of MSN.com")]
     public void CodeGeneration_Runtime_LargeStaticFile()
     {

@@ -94,8 +94,6 @@ public abstract class IntegrationTestBase
     /// </summary>
     protected virtual RazorConfiguration Configuration { get; } = RazorConfiguration.Default;
 
-    protected virtual bool DesignTime { get; } = false;
-
     protected bool SkipVerifyingCSharpDiagnostics { get; set; }
 
     protected bool NullableEnable { get; set; }
@@ -183,9 +181,7 @@ public abstract class IntegrationTestBase
     {
         var fileName = GetTestFileName(testName);
 
-        var suffixIndex = fileName.LastIndexOf("_", StringComparison.Ordinal);
-        var normalizedFileName = suffixIndex == -1 ? fileName : fileName[..suffixIndex];
-        var sourceFileName = Path.ChangeExtension(normalizedFileName, FileExtension);
+        var sourceFileName = Path.ChangeExtension(fileName, FileExtension);
         var testFile = TestFile.Create(sourceFileName, GetType().GetTypeInfo().Assembly);
         if (!testFile.Exists())
         {
@@ -221,32 +217,32 @@ public abstract class IntegrationTestBase
         return projectItem;
     }
 
-    protected CompiledCSharpCode CompileToCSharp(string text, string path = "test.cshtml", bool? designTime = null, string? cssScope = null, [CallerMemberName] string testName = "")
+    protected CompiledCSharpCode CompileToCSharp(string text, string path = "test.cshtml", string? cssScope = null, [CallerMemberName] string testName = "")
     {
         var projectItem = CreateProjectItemFromText(text, path, GetTestFileName(testName), cssScope);
-        return CompileToCSharp(projectItem, designTime);
+        return CompileToCSharp(projectItem);
     }
 
-    protected CompiledCSharpCode CompileToCSharp(RazorProjectItem projectItem, bool? designTime = null)
+    protected CompiledCSharpCode CompileToCSharp(RazorProjectItem projectItem)
     {
         var compilation = CreateCompilation();
         var references = compilation.References.Concat(new[] { compilation.ToMetadataReference(), }).ToArray();
 
         var projectEngine = CreateProjectEngine(Configuration, references, ConfigureProjectEngine);
-        var codeDocument = (designTime ?? DesignTime) ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
+        var codeDocument = projectEngine.Process(projectItem);
 
         return new CompiledCSharpCode(CSharpCompilation.Create(compilation.AssemblyName + ".Views", references: references, options: compilation.Options), codeDocument);
     }
 
-    protected CompiledAssembly CompileToAssembly(string text, string path = "test.cshtml", bool? designTime = null, bool throwOnFailure = true)
+    protected CompiledAssembly CompileToAssembly(string text, string path = "test.cshtml", bool throwOnFailure = true)
     {
-        var compiled = CompileToCSharp(text, path, designTime);
+        var compiled = CompileToCSharp(text, path);
         return CompileToAssembly(compiled, throwOnFailure);
     }
 
-    protected CompiledAssembly CompileToAssembly(RazorProjectItem projectItem, bool? designTime = null, bool throwOnFailure = true)
+    protected CompiledAssembly CompileToAssembly(RazorProjectItem projectItem, bool throwOnFailure = true)
     {
-        var compiled = CompileToCSharp(projectItem, designTime);
+        var compiled = CompileToCSharp(projectItem);
         return CompileToAssembly(compiled, throwOnFailure: throwOnFailure);
     }
 

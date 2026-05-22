@@ -11,7 +11,6 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
@@ -154,22 +153,21 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         var csharpDocument = codeDocument.GetCSharpDocument();
         Assert.NotNull(csharpDocument);
         var linePragmas = csharpDocument.LinePragmas;
-        if (DesignTime)
+        var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree() ?? codeDocument.GetRequiredSyntaxTree();
+        var sourceContent = syntaxTree.Source.Text.ToString();
+        var classifiedSpans = syntaxTree.GetClassifiedSpans();
+        foreach (var classifiedSpan in classifiedSpans)
         {
-            var sourceMappings = csharpDocument.SourceMappingsSortedByOriginal;
-            foreach (var sourceMapping in sourceMappings)
+            var content = sourceContent.Substring(classifiedSpan.Span.AbsoluteIndex, classifiedSpan.Span.Length);
+            if (!string.IsNullOrWhiteSpace(content) &&
+                classifiedSpan.BlockKind != BlockKindInternal.Directive &&
+                classifiedSpan.SpanKind == SpanKindInternal.Code)
             {
-                var content = codeDocument.Source.Text.GetSubText(new TextSpan(sourceMapping.OriginalSpan.AbsoluteIndex, sourceMapping.OriginalSpan.Length)).ToString();
-                if (string.IsNullOrWhiteSpace(content))
-                {
-                    continue;
-                }
-
                 var foundMatchingPragma = false;
                 foreach (var linePragma in linePragmas)
                 {
-                    if (sourceMapping.OriginalSpan.LineIndex >= linePragma.StartLineIndex &&
-                        sourceMapping.OriginalSpan.LineIndex <= linePragma.EndLineIndex)
+                    if (classifiedSpan.Span.LineIndex >= linePragma.StartLineIndex &&
+                        classifiedSpan.Span.LineIndex <= linePragma.EndLineIndex)
                     {
                         // Found a match.
                         foundMatchingPragma = true;
@@ -177,40 +175,12 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
                     }
                 }
 
-                Assert.True(foundMatchingPragma, $"No line pragma found for code at line {sourceMapping.OriginalSpan.LineIndex + 1}.");
+                Assert.True(foundMatchingPragma, $"No line pragma found for code '{content}' at line {classifiedSpan.Span.LineIndex + 1}.");
             }
         }
-        else
-        {
-            var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree() ?? codeDocument.GetRequiredSyntaxTree();
-            var sourceContent = syntaxTree.Source.Text.ToString();
-            var classifiedSpans = syntaxTree.GetClassifiedSpans();
-            foreach (var classifiedSpan in classifiedSpans)
-            {
-                var content = sourceContent.Substring(classifiedSpan.Span.AbsoluteIndex, classifiedSpan.Span.Length);
-                if (!string.IsNullOrWhiteSpace(content) &&
-                    classifiedSpan.BlockKind != BlockKindInternal.Directive &&
-                    classifiedSpan.SpanKind == SpanKindInternal.Code)
-                {
-                    var foundMatchingPragma = false;
-                    foreach (var linePragma in linePragmas)
-                    {
-                        if (classifiedSpan.Span.LineIndex >= linePragma.StartLineIndex &&
-                            classifiedSpan.Span.LineIndex <= linePragma.EndLineIndex)
-                        {
-                            // Found a match.
-                            foundMatchingPragma = true;
-                            break;
-                        }
-                    }
 
-                    Assert.True(foundMatchingPragma, $"No line pragma found for code '{content}' at line {classifiedSpan.Span.LineIndex + 1}.");
-                }
-            }
-
-            // check that the pragmas in the main document are enhanced
-            Assert.All(linePragmas.Where(p => p.FilePath == codeDocument.Source.FilePath), p => Assert.True(p.IsEnhanced));
-        }
+        // check that the pragmas in the main document are enhanced
+        Assert.All(linePragmas.Where(p => p.FilePath == codeDocument.Source.FilePath), p => Assert.True(p.IsEnhanced));
     }
 
     protected void AssertSequencePointsMatchBaseline(CompileToAssemblyResult result, RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")

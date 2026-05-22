@@ -815,9 +815,9 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             kind == SyntaxKind.LessThan ||
             (kind == SyntaxKind.Transition && NextIs(SyntaxKind.LessThan));
 
-        if (Context.DesignTimeMode || !isMarkup)
+        if (!isMarkup)
         {
-            // CODE owns whitespace, MARKUP owns it ONLY in DesignTimeMode.
+            // CODE owns whitespace; markup owns it (since DesignTimeMode no longer exists).
             if (lastWhitespace != null)
             {
                 Accept(lastWhitespace);
@@ -827,7 +827,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         {
             var nextToken = Lookahead(1);
 
-            // MARKUP owns whitespace EXCEPT in DesignTimeMode.
+            // MARKUP owns whitespace.
             PutCurrentBack();
 
             // Put back the whitespace unless it precedes a '<text>' tag.
@@ -854,11 +854,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
             // Markup block
             builder.Add(OutputTokensAsStatementLiteral());
-            if (Context.DesignTimeMode && CurrentToken != null &&
-                (CurrentToken.Kind == SyntaxKind.LessThan || CurrentToken.Kind == SyntaxKind.Transition))
-            {
-                PutCurrentBack();
-            }
             OtherParserBlock(builder);
         }
         else
@@ -2645,11 +2640,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             var directiveBody = SyntaxFactory.RazorDirectiveBody(keywordTokens, null);
             builder.Add(SyntaxFactory.RazorUsingDirective(transition, directiveBody));
 
-            if (!Context.DesignTimeMode)
-            {
-                CaptureWhitespaceToEndOfLine();
-                builder.Add(OutputAsMetaCode(Output(), Context.CurrentAcceptedCharacters));
-            }
+            CaptureWhitespaceToEndOfLine();
+            builder.Add(OutputAsMetaCode(Output(), Context.CurrentAcceptedCharacters));
         }
     }
 
@@ -2772,7 +2764,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         // Read whitespace, but not newlines
         // If we're not inserting a marker span, we don't need to capture whitespace
         if (!Context.WhiteSpaceIsSignificantToAncestorBlock &&
-            !Context.DesignTimeMode &&
             !IsNested)
         {
             using var whitespace = new PooledArrayBuilder<SyntaxToken>();

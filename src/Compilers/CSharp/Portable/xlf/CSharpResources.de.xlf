@@ -527,6 +527,26 @@
         <target state="translated">Der Schnittstellenmember "{1}" wird von "{0}" nicht implementiert. "{1}" kann von "{2}" nicht implementiert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
+        <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
+        <target state="translated">„{0}“: Ein geschlossener Typ „{1}“ aus einer anderen Assembly kann nicht als Basistyp verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedExplicitlyAbstract">
+        <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
+        <target state="translated">„{0}“: Ein geschlossener Typ kann nicht als abstrakt gekennzeichnet werden, da er immer implizit abstrakt ist.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedSealedStatic">
+        <source>'{0}': a closed type cannot be sealed or static</source>
+        <target state="translated">„{0}“: Ein geschlossener Typ kann nicht versiegelt oder statisch sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'closed'.</source>
+        <target state="translated">Typen und Aliase können nicht als „geschlossen“ bezeichnet werden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
         <source>'with(...)' element arguments cannot be dynamic</source>
         <target state="translated">Die Argumente des with(...)-Elements dürfen nicht dynamisch sein.</target>
@@ -1499,7 +1519,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
-        <target state="new">Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</target>
+        <target state="translated">Verwenden Sie „RequiresUnsafeAttribute“ nicht in der Quelle. Verwenden Sie stattdessen den Modifizierer „unsafe“.</target>
         <note>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
@@ -2687,6 +2707,11 @@
         <target state="translated">Das Feld "{0}" muss vollständig zugewiesen werden, bevor das Steuerelement an den Aufrufer zurückgegeben wird. Aktualisieren Sie ggf. auf die Sprachversion "{1}", um das Feld automatisch als Standard zu verwenden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedClosedSubtype">
+        <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
+        <target state="translated">„{0}“: Auf den Typparameter „{1}“ muss im Basistyp „{2}“ verwiesen werden, da der Basistyp geschlossen ist.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="translated">Der Typparameter „{0}“ wird weder vom Erweiterungsparameter noch von einem Parameter dieses Mitglieds referenziert.</target>
@@ -2734,12 +2759,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
         <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="new">An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <target state="translated">Für den als „unsafe“ oder „extern“ markierten Konstruktor „{0}“ ist ein unsicherer Kontext erforderlich, um die „new()“-Einschränkung des Typparameters „{1}“ in „{2}“ zu erfüllen</target>
         <note>'unsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</target>
+        <target state="translated">„{0}“ muss in einem unsicheren Kontext verwendet werden, da er als „unsafe“ oder „extern“ gekennzeichnet ist</target>
         <note>'unsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
@@ -2905,6 +2930,11 @@
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">Überprüfte benutzerdefinierte Operatoren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureClosedClasses">
+        <source>closed classes</source>
+        <target state="translated">geschlossene Klassen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
@@ -3120,6 +3150,11 @@
       <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
         <source>simple lambda parameter modifiers</source>
         <target state="translated">Einfache Lambdaparametermodifizierer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
+        <source>static members in interfaces</source>
+        <target state="translated">Statische Member in Schnittstellen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">

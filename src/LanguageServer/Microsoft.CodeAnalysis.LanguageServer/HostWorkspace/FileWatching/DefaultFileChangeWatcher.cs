@@ -47,7 +47,7 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         => new FileChangeContext(this, watchedDirectories);
 
-    private IDisposable AcquireDirectoryWatch(WatchedDirectory watchedDirectory, FileChangeContext fileChangeContext)
+    private IDisposable AcquireDirectoryWatch(WatchedDirectory watchedDirectory, FileChangeContext fileChangeContext, bool includeSubdirectories)
     {
         var watchedDirectoryPath = watchedDirectory.Path.AsSpan();
 
@@ -74,12 +74,13 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
                 if (pathComponent.Length == 0)
                     continue;
 
-                if (node.Watcher is not null)
+                // If this is already watching all subdirectories, we can just reuse this
+                if (node.Watcher is { IncludeSubdirectories: true })
                 {
                     if (!parentAlreadyHadFileWatch)
                     {
                         // We already have a watcher on this node, so we can just reuse it, but need to ensure filters are good enough to include us
-                        ExpandFiltersToCover(node.Watcher.Filters, watchedDirectory.ExtensionFilters.SelectAsArray(static extension => '*' + extension));
+                        ExpandWatcherToCover(node.Watcher, watchedDirectory.ExtensionFilters.SelectAsArray(static extension => '*' + extension), includeSubdirectories);
                         node.ActiveContexts = node.ActiveContexts.Add(fileChangeContext);
                     }
 
@@ -102,7 +103,7 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
                 if (node.Watcher is not null)
                 {
                     // We already have a watcher on this node, so we can just reuse it, but need to ensure filters are good enough to include us
-                    ExpandFiltersToCover(node.Watcher.Filters, watchedDirectory.ExtensionFilters.SelectAsArray(static extension => '*' + extension));
+                    ExpandWatcherToCover(node.Watcher, watchedDirectory.ExtensionFilters.SelectAsArray(static extension => '*' + extension), includeSubdirectories);
                     node.ActiveContexts = node.ActiveContexts.Add(fileChangeContext);
                 }
                 else
@@ -114,25 +115,43 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
                     {
                         if (Directory.Exists(parentNodeForWatch.Path))
                         {
-                            parentNodeForWatch.CreateNewFileWatcher(watchedDirectory.ExtensionFilters.SelectAsArray(static extension => '*' + extension));
-                            _currentWatcherCount++;
+                            if (parentNodeForWatch.Watcher is null)
+                            {
+                                parentNodeForWatch.CreateNewFileWatcher(watchedDirectory.ExtensionFilters.SelectAsArray(static extension => '*' + extension), includeSubdirectories);
+                                _currentWatcherCount++;
+                            }
+                            else
+                            {
+                                // We know that node != parentNodeForWatch -- it can't be the first time through the loop since we handled that case
+                                // earlier.
+                                Contract.ThrowIfTrue(node == parentNodeForWatch);
+                                Contract.ThrowIfFalse(includeSubdirectories);
 
-                            // It's possible this is a watch higher up than a directory we've previously watched, so consolidate any further children
+                                ExpandWatcherToCover(parentNodeForWatch.Watcher, watchedDirectory.ExtensionFilters.SelectAsArray(static extension => '*' + extension), includeSubdirectories);
+                            }
+
                             var allActiveContextsBuilder = parentNodeForWatch.ActiveContexts.ToBuilder();
                             allActiveContextsBuilder.Capacity = parentNodeForWatch.ActiveContextsRecursiveCount - parentNodeForWatch.ActiveContexts.Length + 1;
                             allActiveContextsBuilder.Add(fileChangeContext);
 
-                            IList<string>? filters = parentNodeForWatch.Watcher.Filters;
+                            if (includeSubdirectories)
+                            {
+                                // It's possible this is a watch higher up than a directory we've previously watched, so consolidate any further children
+                                IList<string>? filters = parentNodeForWatch.Watcher.Filters;
 
-                            RemoveWatchersFromChildrenForConsolidation_NoLock(parentNodeForWatch, ref filters, allActiveContextsBuilder);
+                                RemoveWatchersFromChildrenForConsolidation_NoLock(parentNodeForWatch, ref filters, allActiveContextsBuilder);
 
-                            Contract.ThrowIfFalse(filters == parentNodeForWatch.Watcher.Filters, "We should have been updating the existing list of filters.");
+                                Contract.ThrowIfFalse(filters == parentNodeForWatch.Watcher.Filters, "We should have been updating the existing list of filters.");
+                            }
 
                             parentNodeForWatch.ActiveContexts = allActiveContextsBuilder.ToImmutable();
+
                             break;
                         }
                         else
                         {
+                            // At this point, any parent directory watch has to be recursive
+                            includeSubdirectories = true;
                             parentNodeForWatch = parentNodeForWatch.Parent;
                         }
                     }
@@ -233,13 +252,24 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
                 IList<string>? filters = null;
                 var activeContexts = ImmutableArray.CreateBuilder<FileChangeContext>(initialCapacity: nodeToConsolidate.ActiveContextsRecursiveCount);
 
+                activeContexts.AddRange(nodeToConsolidate.ActiveContexts);
+
                 RemoveWatchersFromChildrenForConsolidation_NoLock(nodeToConsolidate, ref filters, activeContexts);
 
                 Contract.ThrowIfNull(filters, "We knew we had at least one watcher to consolidate, so we should have consolidated it's filters.");
                 Contract.ThrowIfTrue(activeContexts.Count == 0, "We had at least one watcher to consolidate, and that should have had at least one context listening.");
-                nodeToConsolidate.CreateNewFileWatcher(filters.ToImmutableArray());
+
+                if (nodeToConsolidate.Watcher is not null)
+                {
+                    ExpandWatcherToCover(nodeToConsolidate.Watcher, filters, includeSubdirectories: true);
+                }
+                else
+                {
+                    nodeToConsolidate.CreateNewFileWatcher(filters.ToImmutableArray(), includeSubdirectories: true);
+                    _currentWatcherCount++;
+                }
+
                 nodeToConsolidate.ActiveContexts = activeContexts.ToImmutable();
-                _currentWatcherCount++;
                 break;
             }
         }
@@ -283,7 +313,8 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
                 child.DisposeWatcher();
                 _currentWatcherCount--;
             }
-            else if (child.ActiveWatchersRecursiveCount > 0)
+
+            if (child.ActiveWatchersRecursiveCount > 0)
             {
                 RemoveWatchersFromChildrenForConsolidation_NoLock(child, ref filters, activeContexts);
             }
@@ -326,7 +357,7 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
         public int ActiveWatchersRecursiveCount { get; private set; }
 
         [MemberNotNull(nameof(Watcher))]
-        public void CreateNewFileWatcher(ImmutableArray<string> filters)
+        public void CreateNewFileWatcher(ImmutableArray<string> filters, bool includeSubdirectories)
         {
             Contract.ThrowIfTrue(Watcher is not null);
             Contract.ThrowIfFalse(ActiveContexts.IsEmpty);
@@ -339,7 +370,7 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
             Watcher.Renamed += OnFileSystemWatcherEvent;
             Watcher.Deleted += OnFileSystemWatcherEvent;
 
-            Watcher.IncludeSubdirectories = true;
+            Watcher.IncludeSubdirectories = includeSubdirectories;
             Watcher.EnableRaisingEvents = true;
 
             UpdateActiveWatchersRecursiveCountIncludingAllParents(delta: 1);
@@ -401,6 +432,14 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
         }
     }
 
+    private static void ExpandWatcherToCover(FileSystemWatcher watcher, IEnumerable<string> newFilters, bool includeSubdirectories)
+    {
+        ExpandFiltersToCover(watcher.Filters, newFilters);
+
+        if (includeSubdirectories && !watcher.IncludeSubdirectories)
+            watcher.IncludeSubdirectories = true;
+    }
+
     /// <summary>
     /// Merges the list of filters in <paramref name="newFilters"/> into <paramref name="watcherFilters"/>. The convention is an empty list
     /// means everything, so if either list is empty, the result is an empty list. Otherwise, we merge the two lists and remove duplicates.
@@ -426,9 +465,9 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
 
     internal static class TestAccessor
     {
-        public static IEnumerable<(string path, ImmutableArray<string> filters)> GetWatchedDirectories(DefaultFileChangeWatcher watcher)
+        public static IEnumerable<(string path, ImmutableArray<string> filters, bool includeSubdirectories)> GetWatchedDirectories(DefaultFileChangeWatcher watcher)
         {
-            var paths = new List<(string path, ImmutableArray<string> filters)>(capacity: watcher._currentWatcherCount);
+            var paths = new List<(string path, ImmutableArray<string> filters, bool includeSubdirectories)>(capacity: watcher._currentWatcherCount);
 
             int currentWatcherCountPerRoots = 0;
 
@@ -446,7 +485,7 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
             void AddWatchedDirectoryPaths(DirectoryNode node)
             {
                 if (node.Watcher is not null)
-                    paths.Add((node.Path, node.Watcher.Filters.ToImmutableArray()));
+                    paths.Add((node.Path, node.Watcher.Filters.ToImmutableArray(), node.Watcher.IncludeSubdirectories));
 
                 foreach (var child in node.Children.Values)
                     AddWatchedDirectoryPaths(child);

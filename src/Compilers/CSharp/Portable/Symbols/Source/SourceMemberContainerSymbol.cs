@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize by moving some fields into "uncommon" class field?
         private ExtensionGroupingInfo? _lazyExtensionGroupingInfo;
 
+        private ImmutableArray<NamedTypeSymbol> _lazyClosedSubtypeCandidates;
+
         #region Construction
 
         internal SourceMemberContainerTypeSymbol(
@@ -327,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Class:
                     case TypeKind.Submission:
                         allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
-                            | DeclarationModifiers.Unsafe;
+                            | DeclarationModifiers.Unsafe | DeclarationModifiers.Closed;
 
                         if (!this.IsRecord)
                         {
@@ -370,13 +372,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!modifierErrors &&
+                (mods & DeclarationModifiers.Closed) != 0)
+            {
+                if ((mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) != 0)
+                    diagnostics.Add(ErrorCode.ERR_ClosedSealedStatic, GetFirstLocation(), this);
+
+                if ((mods & DeclarationModifiers.Abstract) != 0)
+                    diagnostics.Add(ErrorCode.ERR_ClosedExplicitlyAbstract, GetFirstLocation(), this);
+            }
+
+            if (!modifierErrors &&
                 (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) == (DeclarationModifiers.Sealed | DeclarationModifiers.Static))
             {
                 diagnostics.Add(ErrorCode.ERR_SealedStaticClass, GetFirstLocation(), this);
             }
 
             if (!modifierErrors &&
-                typeKind == TypeKind.Delegate &&
                 (mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
                 this.ContainingModule.UseUpdatedMemorySafetyRules)
             {
@@ -387,6 +398,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Interface:
                     mods |= DeclarationModifiers.Abstract;
+                    break;
+                case TypeKind.Class:
+                    if ((mods & DeclarationModifiers.Closed) != 0)
+                        mods |= DeclarationModifiers.Abstract;
+
                     break;
                 case TypeKind.Struct:
                 case TypeKind.Enum:
@@ -516,6 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (reportIfContextual(SyntaxKind.RecordKeyword, MessageID.IDS_FeatureRecords, ErrorCode.WRN_RecordNamedDisallowed)
                 || reportIfContextual(SyntaxKind.RequiredKeyword, MessageID.IDS_FeatureRequiredMembers, ErrorCode.ERR_RequiredNameDisallowed)
                 || reportIfContextual(SyntaxKind.FileKeyword, MessageID.IDS_FeatureFileTypes, ErrorCode.ERR_FileTypeNameDisallowed)
+                || reportIfContextual(SyntaxKind.ClosedKeyword, MessageID.IDS_FeatureClosedClasses, ErrorCode.ERR_ClosedTypeNameDisallowed)
                 || reportIfContextual(SyntaxKind.ScopedKeyword, MessageID.IDS_FeatureRefFields, ErrorCode.ERR_ScopedTypeNameDisallowed)
                 || reportIfContextual(SyntaxKind.ExtensionKeyword, MessageID.IDS_FeatureExtensions, ErrorCode.ERR_ExtensionTypeNameDisallowed))
             {
@@ -883,7 +900,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
-        internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
+        internal sealed override bool IsClosed => HasFlag(DeclarationModifiers.Closed);
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions
+        {
+            get
+            {
+                if (!IsClosed)
+                {
+                    return [];
+                }
+
+                if (_lazyClosedSubtypeCandidates.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyClosedSubtypeCandidates, findClosedSubtypes());
+                }
+
+                return _lazyClosedSubtypeCandidates;
+
+                ImmutableArray<NamedTypeSymbol> findClosedSubtypes()
+                {
+                    var stack = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+                    stack.Add(DeclaringCompilation.SourceModule.GlobalNamespace);
+
+                    var subtypes = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                    while (!stack.IsEmpty)
+                    {
+                        var namespaceOrType = stack.Pop();
+                        if (namespaceOrType is NamedTypeSymbol namedType)
+                        {
+                            if (namedType.BaseTypeNoUseSiteDiagnostics is { } baseType
+                                && baseType.OriginalDefinition.Equals(this, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                subtypes.Add(namedType);
+                            }
+
+                            var nestedTypes = namedType.GetTypeMembers();
+                            for (var i = nestedTypes.Length - 1; i >= 0; i--)
+                            {
+                                stack.Add(nestedTypes[i]);
+                            }
+                        }
+                        else
+                        {
+                            var members = namespaceOrType.GetMembers();
+                            for (var i = members.Length - 1; i >= 0; i--)
+                            {
+                                if (members[i] is NamespaceOrTypeSymbol childNamespaceOrType)
+                                {
+                                    stack.Add(childNamespaceOrType);
+                                }
+                            }
+                        }
+                    }
+
+                    stack.Free();
+                    return subtypes.ToImmutableAndFree();
+                }
+            }
+        }
+
+        internal bool HasUnsafeModifier => HasFlag(DeclarationModifiers.Unsafe);
+
+        internal bool IntroducesUnsafeContext => HasUnsafeModifier && !ContainingModule.UseUpdatedMemorySafetyRules;
 
         /// <summary>
         /// If this type is file-local, the syntax tree in which the type is declared. Otherwise, null.
@@ -1747,7 +1826,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (member is NamedTypeSymbol type)
             {
-                RoslynDebug.AssertOrFailFast(forDiagnostics);
                 RoslynDebug.AssertOrFailFast(Volatile.Read(ref _lazyTypeMembers)?.Values.Any(types => types.Contains(t => t == (object)type)) == true);
                 return;
             }
@@ -1898,6 +1976,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
+            if (this.IsClosed)
+            {
+                // Ensure necessary attributes are present
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor, diagnostics, GetFirstLocation());
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
+            }
+
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = GetInterfacesToEmit();
 
@@ -1984,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var ctor in InstanceConstructors)
                 {
-                    if (ctor.ParameterCount == 1 && ctor is not SynthesizedUnionCtor)
+                    if (ctor.DeclaredAccessibility == Accessibility.Public && ctor.ParameterCount == 1 && ctor is not SynthesizedUnionCtor)
                     {
                         diagnostics.Add(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, ctor.GetFirstLocation());
                     }
@@ -3648,6 +3733,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var nonTypeMembersBuilder = ArrayBuilder<Symbol>.GetInstance(nonTypeMembersWithPartialImplementations.Length);
             nonTypeMembersBuilder.AddRange(nonTypeMembersWithPartialImplementations);
             MergePartialMembers(partialMembersToMerge, nonTypeMembersBuilder, diagnostics);
+
+            foreach (var value in partialMembersToMerge.Values)
+            {
+                if (value is ArrayBuilder<Symbol> arrayBuilder)
+                {
+                    arrayBuilder.Free();
+                }
+            }
+
             partialMembersToMerge.Free();
 
             if (ImmutableInterlocked.InterlockedInitialize(ref nonTypeMembers, nonTypeMembersBuilder.ToImmutableAndFree()))
@@ -4866,10 +4960,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                         }
 
-                        // https://github.com/dotnet/roslyn/issues/82636: Complain for anything but a type syntax in the parameter syntax
+                        TypeSyntax? typeSyntax = parameterSyntax.Type;
+                        Debug.Assert(typeSyntax != null);
+                        typesBuilder.Add(typeSyntax);
 
-                        Debug.Assert(parameterSyntax.Type != null);
-                        typesBuilder.Add(parameterSyntax.Type);
+                        SyntaxToken syntaxToken = parameterSyntax.GetFirstToken();
+                        if (syntaxToken != typeSyntax.GetFirstToken())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, syntaxToken.GetLocation(), syntaxToken.Text);
+                        }
+
+                        syntaxToken = parameterSyntax.GetLastToken();
+                        if (syntaxToken != typeSyntax.GetLastToken())
+                        {
+                            var nextToken = typeSyntax.GetLastToken().GetNextToken();
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, nextToken.GetLocation(), nextToken.Text);
+                        }
                     }
 
                     int memberOffset = members.Count + typesBuilder.Count; // In order to keep the same relative order between constructors during emit we assign offset in decreasing order
@@ -5638,6 +5744,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyMembersAndInitializers != null)
                 {
                     // membersAndInitializers is already computed. no point to continue.
+                    staticInitializers?.Free();
+                    instanceInitializers?.Free();
                     return;
                 }
 

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -29,53 +28,23 @@ internal class RazorCompletionListProvider(
     };
 
     // virtual for tests
-    public virtual (RazorVSInternalCompletionList? CompletionList, bool NeedsHtmlDependentPhase) GetCompletionList(
-        RazorCodeDocument codeDocument,
-        int absoluteIndex,
-        VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
-        RazorCompletionOptions completionOptions)
+    public virtual RazorVSInternalCompletionList? GetCompletionList(
+        RazorCompletionContext razorCompletionContext,
+        VSInternalClientCapabilities clientCapabilities)
     {
-        var razorCompletionContext = CreateCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions);
-
         var result = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
-        _logger.LogTrace($"Resolved {result.Items.Length} completion items.");
+        _logger.LogTrace($"Resolved {result.Length} completion items.");
 
-        if (result.Items.Length == 0)
-        {
-            return (null, result.NeedsHtmlDependentCompletionItems);
-        }
-
-        var completionList = CreateAndCacheCompletionList(codeDocument, result.Items, clientCapabilities);
-        return (completionList, result.NeedsHtmlDependentCompletionItems);
-    }
-
-    // virtual for tests
-    public virtual RazorVSInternalCompletionList? GetHtmlDependentCompletionList(
-        RazorCodeDocument codeDocument,
-        int absoluteIndex,
-        VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
-        RazorCompletionOptions completionOptions,
-        HashSet<string> htmlLabels)
-    {
-        var baseContext = CreateCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions);
-        var razorCompletionContext = new RazorHtmlDependentCompletionContext(baseContext, htmlLabels);
-
-        var razorCompletionItems = _completionFactsService.GetHtmlDependentCompletionItems(razorCompletionContext);
-
-        _logger.LogTrace($"Resolved {razorCompletionItems.Length} HTML-dependent completion items.");
-
-        if (razorCompletionItems.Length == 0)
+        if (result.Length == 0)
         {
             return null;
         }
 
-        return CreateAndCacheCompletionList(codeDocument, razorCompletionItems, clientCapabilities);
+        return CreateAndCacheCompletionList(razorCompletionContext.CodeDocument, result, clientCapabilities);
     }
 
-    private static RazorCompletionContext CreateCompletionContext(
+    internal static RazorCompletionContext CreateCompletionContext(
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
@@ -142,7 +111,7 @@ internal class RazorCompletionListProvider(
             IsIncomplete = false,
         };
 
-        var completionCapability = clientCapabilities.TextDocument?.Completion as VSInternalCompletionSetting;
+        var completionCapability = clientCapabilities.TextDocument?.Completion;
 
         return CompletionListOptimizer.Optimize(completionList, completionCapability);
     }
@@ -191,39 +160,10 @@ internal class RazorCompletionListProvider(
                     return true;
                 }
             case RazorCompletionItemKind.DirectiveAttribute:
-                {
-                    var directiveAttributeCompletionItem = new VSInternalCompletionItem()
-                    {
-                        Label = razorCompletionItem.DisplayText,
-                        InsertText = razorCompletionItem.InsertText,
-                        FilterText = razorCompletionItem.InsertText,
-                        SortText = razorCompletionItem.SortText,
-                        InsertTextFormat = insertTextFormat,
-                        Kind = tagHelperCompletionItemKind,
-                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
-                    };
-
-                    directiveAttributeCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
-
-                    completionItem = directiveAttributeCompletionItem;
-                    return true;
-                }
             case RazorCompletionItemKind.DirectiveAttributeParameter:
                 {
-                    var parameterCompletionItem = new VSInternalCompletionItem()
-                    {
-                        Label = razorCompletionItem.DisplayText,
-                        InsertText = razorCompletionItem.InsertText,
-                        FilterText = razorCompletionItem.InsertText,
-                        SortText = razorCompletionItem.SortText,
-                        InsertTextFormat = insertTextFormat,
-                        Kind = tagHelperCompletionItemKind,
-                        AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
-                    };
-
-                    parameterCompletionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
-
-                    completionItem = parameterCompletionItem;
+                    completionItem = CreateDirectiveAttributeCompletionItem(
+                        razorCompletionItem, clientCapabilities, insertTextFormat, tagHelperCompletionItemKind);
                     return true;
                 }
             case RazorCompletionItemKind.DirectiveAttributeParameterEventValue:
@@ -336,5 +276,48 @@ internal class RazorCompletionListProvider(
 
         completionItem = null;
         return false;
+    }
+
+    /// <summary>
+    /// Creates a completion item for directive attribute and directive attribute parameter kinds.
+    /// When a <see cref="RazorCompletionItem.ReplacementRange"/> is set, uses an explicit TextEdit
+    /// to define the replaced range. This prevents duplication when the InsertText contains a ':'
+    /// (e.g., "bind-Value:after") because the editor's word-boundary heuristic would stop at ':'
+    /// and only replace part of the existing text.
+    /// </summary>
+    private static VSInternalCompletionItem CreateDirectiveAttributeCompletionItem(
+        RazorCompletionItem razorCompletionItem,
+        VSInternalClientCapabilities clientCapabilities,
+        InsertTextFormat insertTextFormat,
+        CompletionItemKind kind)
+    {
+        var completionItem = new VSInternalCompletionItem()
+        {
+            Label = razorCompletionItem.DisplayText,
+            InsertText = razorCompletionItem.InsertText,
+            FilterText = razorCompletionItem.DisplayText,
+            SortText = razorCompletionItem.SortText,
+            InsertTextFormat = insertTextFormat,
+            Kind = kind,
+            AdditionalTextEdits = razorCompletionItem.AdditionalTextEdits,
+        };
+
+        if (razorCompletionItem.ReplacementRange is { } replacementRange)
+        {
+            // The replacement range includes '@', and InsertText also includes '@'.
+            // For simple items (non-snippet, non-indexer), InsertText == DisplayText == Label,
+            // so we use it directly — zero allocations, and the optimizer can omit TextEditText
+            // when NewText equals Label.
+            completionItem.TextEdit = new TextEdit()
+            {
+                Range = replacementRange.ToRange(),
+                NewText = razorCompletionItem.InsertText,
+            };
+            completionItem.InsertText = null;
+        }
+
+        completionItem.UseCommitCharactersFrom(razorCompletionItem, clientCapabilities);
+
+        return completionItem;
     }
 }

@@ -1,139 +1,72 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
-using System.Linq;
-using AliasedVSCommitCharacters = Roslyn.LanguageServer.Protocol.SumType<string[], Roslyn.LanguageServer.Protocol.VSInternalCommitCharacter[]>;
+using System;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal static class CompletionListOptimizer
+internal static partial class CompletionListOptimizer
 {
-    public static RazorVSInternalCompletionList Optimize(RazorVSInternalCompletionList completionList, VSInternalCompletionSetting? completionCapability)
+    public static RazorVSInternalCompletionList Optimize(RazorVSInternalCompletionList completionList, CompletionSetting? completionCapability)
     {
-        if (completionCapability is not null)
-        {
-            completionList = OptimizeCommitCharacters(completionList, completionCapability);
-        }
+        completionList = PromoteCommitCharacters(completionList, completionCapability);
+        completionList = PromoteEditRangeToListDefaults(completionList, completionCapability);
 
         return completionList;
     }
 
-    private static RazorVSInternalCompletionList OptimizeCommitCharacters(RazorVSInternalCompletionList completionList, VSInternalCompletionSetting completionCapability)
+    private static RazorVSInternalCompletionList PromoteEditRangeToListDefaults(RazorVSInternalCompletionList completionList, CompletionSetting? completionCapability)
     {
-        var completionListCapability = completionCapability.CompletionList;
-        if (completionListCapability?.CommitCharacters != true)
+        // Check if client supports editRange in ItemDefaults
+        var itemDefaults = completionCapability?.CompletionListSetting?.ItemDefaults;
+        if (itemDefaults is null || Array.IndexOf(itemDefaults, "editRange") < 0)
         {
             return completionList;
         }
 
-        // The commit characters capability is a VS capability with how we utilize it, therefore we want to promote onto the VS list.
-        completionList = PromoteVSCommonCommitCharactersOntoList(completionList);
-        return completionList;
-    }
+        var items = completionList.Items;
 
-    private static RazorVSInternalCompletionList PromoteVSCommonCommitCharactersOntoList(RazorVSInternalCompletionList completionList)
-    {
-        (AliasedVSCommitCharacters VsCommitCharacters, List<VSInternalCompletionItem> AssociatedCompletionItems)? mostUsedCommitCharacterToItems = null;
-        var commitCharacterMap = new Dictionary<AliasedVSCommitCharacters, List<VSInternalCompletionItem>>(AliasedVSCommitCharactersComparer.Instance);
-        foreach (var completionItem in completionList.Items)
+        // Find the common TextEdit range across all items.
+        // If any item lacks a TextEdit or has a different range, bail out.
+        LspRange? commonRange = null;
+        foreach (var item in items)
         {
-            if (completionItem is not VSInternalCompletionItem vsCompletionItem)
+            if (item.TextEdit?.Value is not TextEdit textEdit)
             {
-                continue;
+                return completionList;
             }
 
-            var vsCommitCharactersHolder = vsCompletionItem.VsCommitCharacters;
-            if (vsCommitCharactersHolder is null)
+            if (commonRange is null)
             {
-                continue;
+                commonRange = textEdit.Range;
             }
-
-            var commitCharacters = vsCommitCharactersHolder.Value;
-            if (!commitCharacterMap.TryGetValue(commitCharacters, out var associatedCompletionItems))
+            else if (!commonRange.Equals(textEdit.Range))
             {
-                associatedCompletionItems = new List<VSInternalCompletionItem>();
-                commitCharacterMap[commitCharacters] = associatedCompletionItems;
-            }
-
-            associatedCompletionItems.Add(vsCompletionItem);
-
-            if (mostUsedCommitCharacterToItems is null ||
-                associatedCompletionItems.Count > mostUsedCommitCharacterToItems.Value.AssociatedCompletionItems.Count)
-            {
-                mostUsedCommitCharacterToItems = (commitCharacters, associatedCompletionItems);
+                return completionList;
             }
         }
 
-        if (mostUsedCommitCharacterToItems is null)
+        if (commonRange is null)
         {
             return completionList;
         }
 
-        // Promote the most used commit characters onto the list and remove duplicates from child items.
-        foreach (var completionItem in mostUsedCommitCharacterToItems.Value.AssociatedCompletionItems)
+        // Promote the common range to ItemDefaults.EditRange and replace per-item TextEdits with TextEditText
+        completionList.ItemDefaults ??= new CompletionListItemDefaults();
+        completionList.ItemDefaults.EditRange = commonRange;
+
+        foreach (var item in items)
         {
-            // Clear out the commit characters for all associated items
-            completionItem.CommitCharacters = null;
-            completionItem.VsCommitCharacters = null;
+            var textEdit = (TextEdit)item.TextEdit!.Value;
+            item.TextEdit = null;
+
+            // If TextEditText would equal Label, omit it — the client falls back to Label.
+            if (textEdit.NewText != item.Label)
+            {
+                item.TextEditText = textEdit.NewText;
+            }
         }
 
-        completionList.CommitCharacters = mostUsedCommitCharacterToItems.Value.VsCommitCharacters;
         return completionList;
-    }
-
-    private class AliasedVSCommitCharactersComparer : IEqualityComparer<AliasedVSCommitCharacters>
-    {
-        public static readonly AliasedVSCommitCharactersComparer Instance = new();
-
-        private AliasedVSCommitCharactersComparer()
-        {
-        }
-
-        public bool Equals(AliasedVSCommitCharacters a, AliasedVSCommitCharacters b)
-        {
-            if (a.TryGetFirst(out var aFirstValue) && b.TryGetFirst(out var bFirstValue))
-            {
-                return Enumerable.SequenceEqual(aFirstValue, bFirstValue);
-            }
-            else if (a.TryGetSecond(out var aSecondValue) && b.TryGetSecond(out var bSecondValue))
-            {
-                if (aSecondValue.Length != bSecondValue.Length)
-                {
-                    return false;
-                }
-
-                for (var i = 0; i < aSecondValue.Length; i++)
-                {
-                    var aCommitCharacter = aSecondValue[i];
-                    var bCommitCharacter = bSecondValue[i];
-
-                    if (aCommitCharacter.Character != bCommitCharacter.Character ||
-                        aCommitCharacter.Insert != bCommitCharacter.Insert)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            // Mismatch in commit character types
-            return false;
-        }
-
-        public int GetHashCode(AliasedVSCommitCharacters obj)
-        {
-            if (obj.TryGetFirst(out var stringVal))
-            {
-                return stringVal.Length;
-            }
-            else if (obj.TryGetSecond(out var commitCharVal))
-            {
-                return commitCharVal.Length;
-            }
-
-            return 0;
-        }
     }
 }

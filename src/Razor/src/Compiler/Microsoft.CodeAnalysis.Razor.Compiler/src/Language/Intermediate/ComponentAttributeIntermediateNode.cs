@@ -19,6 +19,12 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
     /// </summary>
     public bool IsSynthesized { get; set; }
 
+    /// <summary>
+    /// Marks this node as a synthetic helper that exists only so the C# compiler sees a reference to
+    /// the bind property. The runtime emits ``_ = TheProperty;`` for it. Despite the name, this
+    /// emission happens at runtime (not design-time) and is needed for IDE features (Find All
+    /// References, Rename, etc.) when consuming the source-generator output.
+    /// </summary>
     public bool IsDesignTimePropertyAccessHelper { get; set; }
 
     /// <summary>

@@ -17,21 +17,16 @@
     Condition=" '$(CI)' != 'true' AND '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), AspNetCoreSettings.props))' != '' " />
 
   <PropertyGroup Label="Razor Versioning">
-    <MajorVersion>10</MajorVersion>
-    <MinorVersion>4</MinorVersion>
-    <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
-    <DotNetFinalVersionKind></DotNetFinalVersionKind>
-    <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
-    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Label="Razor Tooling Versioning">
-    <VsixVersionPrefix>18.8.1</VsixVersionPrefix>
-    <AddinMajorVersion>18.8</AddinMajorVersion>
-    <AddinVersion>$(AddinMajorVersion)</AddinVersion>
-    <AddinVersion Condition="'$(OfficialBuildId)' != ''">$(AddinVersion).$(OfficialBuildId)</AddinVersion>
-    <AddinVersion Condition="'$(OfficialBuildId)' == ''">$(AddinVersion).42424242.42</AddinVersion>
+    <MajorVersion>$(RazorMajorVersion)</MajorVersion>
+    <MinorVersion>$(RazorMinorVersion)</MinorVersion>
+    <PatchVersion>$(RazorPatchVersion)</PatchVersion>
+    <PreReleaseVersionLabel>$(RazorPreReleaseVersionLabel)</PreReleaseVersionLabel>
+    <DotNetFinalVersionKind>$(RazorDotNetFinalVersionKind)</DotNetFinalVersionKind>
+    <VersionPrefix>$(RazorVersionPrefix)</VersionPrefix>
+    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(RazorAssemblyVersion)</AssemblyVersion>
+    <VsixVersionPrefix>$(RazorVsixVersionPrefix)</VsixVersionPrefix>
+    <AddinMajorVersion>$(RazorAddinMajorVersion)</AddinMajorVersion>
+    <AddinVersion>$(RazorAddinVersion)</AddinVersion>
   </PropertyGroup>
 
   <PropertyGroup Label="Build Settings">

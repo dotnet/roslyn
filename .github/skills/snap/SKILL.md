@@ -77,18 +77,19 @@ Identify the three named branches (`main`, `release/insiders`, `release/stable`)
 **Step B — Read versions and configs** from all three branches:
 - Fetch `eng/Versions.props` from each branch to get the current version.
   - For roslyn: VS version = `Major + 13`.`Minor` (e.g., Roslyn 5.6 → VS 18.6).
-- Fetch `src/Razor/Directory.Build.props` from each branch to get the current version. Razor has **two independent versions** in this file:
-  - **Razor VSIX/Addin version**: use `<VsixVersionPrefix>` directly (e.g., `18.8.1`). Tracks the Visual Studio version like the rest of the snap cascade.
-  - **Razor SDK version**: read `<MajorVersion>` and `<MinorVersion>` (e.g., `10.4`). Tracks the **.NET SDK band** Razor ships into, **not** the VS version. The mapping is `.NET <Major>.0.<Band>xx SDK` <-> Razor `<Major>.<Band>` (e.g., `.NET 10.0.4xx SDK` <-> Razor `10.4`, `.NET 11.0.1xx SDK` <-> Razor `11.1`).
+- Razor versions are also in `eng/Versions.props` (same file as Roslyn's version), using `Razor`-prefixed property names. Razor has **two independent versions**:
+  - **Razor VSIX/Addin version**: use `<RazorVsixVersionPrefix>` directly (e.g., `18.8.1`). Tracks the Visual Studio version like the rest of the snap cascade. `<RazorAddinMajorVersion>` tracks the major.minor (e.g., `18.8`).
+  - **Razor SDK version**: read `<RazorMajorVersion>` and `<RazorMinorVersion>` (e.g., `10.4`). Tracks the **.NET SDK band** Razor ships into, **not** the VS version. The mapping is `.NET <Major>.0.<Band>xx SDK` <-> Razor `<Major>.<Band>` (e.g., `.NET 10.0.4xx SDK` <-> Razor `10.4`, `.NET 11.0.1xx SDK` <-> Razor `11.1`).
+  - Note: `src/Razor/Directory.Build.props` maps these `Razor`-prefixed properties to the standard MSBuild properties (`MajorVersion`, `MinorVersion`, etc.) for Razor projects. During a snap, only edit `eng/Versions.props` — the Razor props file should not need changes.
 - Fetch `eng/config/PublishData.json` from each branch to get insertion config (`vsBranch`, `insertionCreateDraftPR`, `insertionTitlePrefix`).
   - The JSON key is `branchInfo` (roslyn).
 
 **Step B.1 -- Detect Razor SDK version drift** for each branch (roslyn only):
 - For each branch, find the SDK default-channels assigned to it from Step A (e.g., `.NET 10.0.4xx SDK`).
-- Among those, locate the channel whose major matches the branch's current Razor `MajorVersion`. If multiple channels of the same major are temporarily assigned (e.g., both `.NET 10.0.4xx SDK` and `.NET 10.0.5xx SDK`), pick the **lowest** band -- Razor is versioned to the lowest SDK band it ships into, since higher bands roll forward and can consume the same package.
+- Among those, locate the channel whose major matches the branch's current Razor `RazorMajorVersion`. If multiple channels of the same major are temporarily assigned (e.g., both `.NET 10.0.4xx SDK` and `.NET 10.0.5xx SDK`), pick the **lowest** band -- Razor is versioned to the lowest SDK band it ships into, since higher bands roll forward and can consume the same package.
 - Apply the mapping `.NET <Major>.0.<Band>xx SDK` -> expected Razor `<Major>.<Band>`.
 - If no matching SDK channel exists for that branch (common on `main` immediately after a previous snap, before the next SDK band channel has been created), record the branch as "no matching SDK channel -- Razor SDK version bump deferred".
-- If the expected version differs from the branch's current `MajorVersion.MinorVersion`, flag it as a drift to fix (during snap, see Phase 2 step 5b; during follow-up, see Phase 3 step 3.8).
+- If the expected version differs from the branch's current `RazorMajorVersion.RazorMinorVersion`, flag it as a drift to fix (during snap, see Phase 2 step 5b; during follow-up, see Phase 3 step 3.8).
 
 **Step C — Infer the snap cascade** from the discovered state:
 - The snap version is whatever `main` currently targets (e.g., 18.6).
@@ -105,7 +106,7 @@ Snap for VS 18.6 on dotnet/roslyn:
   Old 18.4:          retired
   * .NET 10.0.4xx SDK channel may not exist yet -- follow up when created (Razor SDK bump deferred until then)
 ```
-If Step B.1 detected any Razor SDK version drift on the branches as they exist **today** (e.g., `main` already flows to `.NET 10.0.4xx SDK` but Razor `Directory.Build.props` still says `10.0`), call it out explicitly -- it likely means a previous snap missed the bump and should be fixed in the same snap PR. Confirm with the user before proceeding.
+If Step B.1 detected any Razor SDK version drift on the branches as they exist **today** (e.g., `main` already flows to `.NET 10.0.4xx SDK` but `eng/Versions.props` still says `RazorMajorVersion=10, RazorMinorVersion=0`), call it out explicitly -- it likely means a previous snap missed the bump and should be fixed in the same snap PR. Confirm with the user before proceeding.
 
 #### 1.3 Draft pre-snap announcement email
 
@@ -192,12 +193,12 @@ After gathering, present **all** planned actions in a numbered list for the user
 
 4. **Update `Versions.props` on `main`**: Bump the minor version (e.g., 5.6.0 → 5.7.0) and reset `PreReleaseVersionLabel` to `1`.
 
-5. **Update `src/Razor/Directory.Build.props`** (roslyn only) -- Razor has two independent versions in this file:
+5. **Update Razor versions in `eng/Versions.props`** (roslyn only) -- Razor has two independent versions, both stored as `Razor`-prefixed properties in `eng/Versions.props`:
 
-   **5a. Razor VSIX/Addin version**: bump `<VsixVersionPrefix>` and `<AddinMajorVersion>` minor to track the new VS version (e.g., `18.7.1` -> `18.8.1`, `18.7` -> `18.8`). Always done as part of the snap.
+   **5a. Razor VSIX/Addin version**: bump `<RazorVsixVersionPrefix>` and `<RazorAddinMajorVersion>` minor to track the new VS version (e.g., `18.7.1` -> `18.8.1`, `18.7` -> `18.8`). Always done as part of the snap.
 
-   **5b. Razor SDK version**: only update if the branch's SDK default-channel doesn't match the current `<MajorVersion>.<MinorVersion>`. Use the discovery from Phase 1 / Step B.1:
-     - If `main` flows to `.NET <Major>.0.<Band>xx SDK` and `<Major>.<Band>` differs from the current Razor `<MajorVersion>.<MinorVersion>` in `src/Razor/Directory.Build.props`, set `<MajorVersion>` and `<MinorVersion>` to match (e.g., `.NET 10.0.4xx SDK` -> `<MajorVersion>10</MajorVersion>`, `<MinorVersion>4</MinorVersion>`). Leave `<PatchVersion>` as `0`.
+   **5b. Razor SDK version**: only update if the branch's SDK default-channel doesn't match the current `<RazorMajorVersion>.<RazorMinorVersion>`. Use the discovery from Phase 1 / Step B.1:
+     - If `main` flows to `.NET <Major>.0.<Band>xx SDK` and `<Major>.<Band>` differs from the current `<RazorMajorVersion>.<RazorMinorVersion>` in `eng/Versions.props`, set `<RazorMajorVersion>` and `<RazorMinorVersion>` to match (e.g., `.NET 10.0.4xx SDK` -> `<RazorMajorVersion>10</RazorMajorVersion>`, `<RazorMinorVersion>4</RazorMinorVersion>`). Leave `<RazorPatchVersion>` as `0`.
      - If no SDK channel matching Razor's current major exists on `main` yet (the next SDK band channel hasn't been created), **skip 5b** and add it to the post-VS-snap follow-up (step 3.8). Do **not** predict the next band -- only update when darc confirms the channel.
 
 6. **Update SARIF files** (roslyn only): Replace old version string with new version in all `.sarif` files under `src/RoslynAnalyzers/` (search recursively).
@@ -385,15 +386,15 @@ gh pr create --repo {owner}/{repo} \
 
 Find them with `git ls-files 'src/RoslynAnalyzers/**/*.sarif'` or search via the GitHub API. Replace `"version": "{oldVersion}"` with `"version": "{newVersion}"` (e.g., `"5.6.0"` → `"5.7.0"`).
 
-**Razor `Directory.Build.props`** (`src/Razor/Directory.Build.props`): Two independent sets of edits, both inside `<PropertyGroup>` blocks at the top of the file. Read the current file, perform both replacements in memory, then PUT the new content back via the GitHub API.
+**Razor versions in `eng/Versions.props`**: Two independent sets of edits in the Razor PropertyGroups. Read the current file, perform both replacements in memory, then PUT the new content back via the GitHub API.
 
 - **5a. VSIX/Addin version** -- bump the VS version (always done):
-  - `<VsixVersionPrefix>{oldMajor.Minor}.1</VsixVersionPrefix>` -> `<VsixVersionPrefix>{newMajor.Minor}.1</VsixVersionPrefix>` (e.g., `18.7.1` -> `18.8.1`)
-  - `<AddinMajorVersion>{oldMajor.Minor}</AddinMajorVersion>` -> `<AddinMajorVersion>{newMajor.Minor}</AddinMajorVersion>` (e.g., `18.7` -> `18.8`)
-- **5b. SDK MajorVersion/MinorVersion** -- only if the matching SDK channel exists on `main` and differs from the current value (see Phase 1 / Step B.1):
-  - `<MajorVersion>{old}</MajorVersion>` -> `<MajorVersion>{newSdkMajor}</MajorVersion>` (only changes when crossing .NET majors, e.g., 10 -> 11)
-  - `<MinorVersion>{old}</MinorVersion>` -> `<MinorVersion>{newSdkBand}</MinorVersion>` (e.g., `0` -> `4` when `main` flows to `.NET 10.0.4xx SDK`)
-  - Leave `<PatchVersion>0</PatchVersion>` and `<PreReleaseVersionLabel>` untouched.
+  - `<RazorVsixVersionPrefix>{oldMajor.Minor}.1</RazorVsixVersionPrefix>` -> `<RazorVsixVersionPrefix>{newMajor.Minor}.1</RazorVsixVersionPrefix>` (e.g., `18.7.1` -> `18.8.1`)
+  - `<RazorAddinMajorVersion>{oldMajor.Minor}</RazorAddinMajorVersion>` -> `<RazorAddinMajorVersion>{newMajor.Minor}</RazorAddinMajorVersion>` (e.g., `18.7` -> `18.8`)
+- **5b. SDK RazorMajorVersion/RazorMinorVersion** -- only if the matching SDK channel exists on `main` and differs from the current value (see Phase 1 / Step B.1):
+  - `<RazorMajorVersion>{old}</RazorMajorVersion>` -> `<RazorMajorVersion>{newSdkMajor}</RazorMajorVersion>` (only changes when crossing .NET majors, e.g., 10 -> 11)
+  - `<RazorMinorVersion>{old}</RazorMinorVersion>` -> `<RazorMinorVersion>{newSdkBand}</RazorMinorVersion>` (e.g., `0` -> `4` when `main` flows to `.NET 10.0.4xx SDK`)
+  - Leave `<RazorPatchVersion>0</RazorPatchVersion>` and `<RazorPreReleaseVersionLabel>` untouched.
   - If no matching SDK channel exists on `main` yet (the next SDK band hasn't been created), **omit 5b from this PR** and add it to the post-VS-snap follow-up (Step 3.8).
 
 #### 3.5 Update darc default channels
@@ -514,9 +515,9 @@ In the PR body/description, include a brief note such as `Auto-generated by snap
 
 Also handle any pending SDK channel follow-ups (e.g., adding `main` to a newly created `.NET 10.0.Nxx SDK` channel).
 
-**Deferred Razor SDK version bump** (roslyn only): If the Razor SDK version bump (Phase 2 step 5b) was deferred during the initial snap because no matching `.NET <Razor.MajorVersion>.0.<Band>xx SDK` channel existed on `main` at the time, re-check now:
+**Deferred Razor SDK version bump** (roslyn only): If the Razor SDK version bump (Phase 2 step 5b) was deferred during the initial snap because no matching `.NET <Razor.RazorMajorVersion>.0.<Band>xx SDK` channel existed on `main` at the time, re-check now:
 - Re-query darc default-channels for `main` (`darc get-default-channels --source-repo https://github.com/{owner}/{repo} --branch main`).
-- If a `.NET <Major>.0.<Band>xx SDK` channel matching Razor's current `<MajorVersion>` is now present on `main` and `<Band>` differs from Razor's current `<MinorVersion>` in `src/Razor/Directory.Build.props`, include the `<MajorVersion>`/`<MinorVersion>` edit in this same post-VS-snap follow-up PR (using the same edit pattern as Step 3.4 / 5b).
+- If a `.NET <Major>.0.<Band>xx SDK` channel matching the current `<RazorMajorVersion>` is now present on `main` and `<Band>` differs from the current `<RazorMinorVersion>` in `eng/Versions.props`, include the `<RazorMajorVersion>`/`<RazorMinorVersion>` edit in this same post-VS-snap follow-up PR (using the same edit pattern as Step 3.4 / 5b).
 - If still no matching SDK channel exists on `main`, leave Razor unchanged -- the bump waits for the next opportunity (i.e., when the channel is added).
 
 This step happens ~1 week after the initial snap — remind the user about it when finishing the snap, and pick it up when the user resumes this session.
@@ -531,8 +532,8 @@ After completing the snap, review whether any steps needed to be done differentl
 |---------|---------|---------|
 | Roslyn version | `Major.Minor.Patch` | `5.6.0` |
 | VS version (from roslyn) | `(Major+13).(Minor)` | `18.6` |
-| VS version (from razor VsixVersionPrefix) | Same as VsixVersionPrefix major.minor | `18.6` |
-| Razor SDK version | `<MajorVersion>.<MinorVersion>` from `src/Razor/Directory.Build.props` | `10.4` |
+| VS version (from razor RazorVsixVersionPrefix) | Same as RazorVsixVersionPrefix major.minor | `18.6` |
+| Razor SDK version | `<RazorMajorVersion>.<RazorMinorVersion>` from `eng/Versions.props` | `10.4` |
 | Razor SDK <-> .NET SDK channel | `Razor X.Y` <-> `.NET X.0.Yxx SDK` | `Razor 10.4` <-> `.NET 10.0.4xx SDK` |
 | Named branches | `main` → `release/insiders` → `release/stable` | cascade order |
 | VS insertion (main) | `main` | always `main` |

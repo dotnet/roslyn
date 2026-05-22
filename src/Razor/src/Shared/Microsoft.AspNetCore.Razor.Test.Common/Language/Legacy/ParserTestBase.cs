@@ -192,20 +192,18 @@ public abstract class ParserTestBase : IParserTest
 
     internal RazorSyntaxTree ParseDocument(
         string document,
-        bool designTime = false,
         ImmutableArray<DirectiveDescriptor> directives = default,
         RazorFileKind? fileKind = null,
         CSharpParseOptions csharpParseOptions = null,
         Action<RazorParserOptions.Builder> configureParserOptions = null)
     {
-        return ParseDocument(RazorLanguageVersion.Latest, document, directives, designTime, fileKind, csharpParseOptions, configureParserOptions);
+        return ParseDocument(RazorLanguageVersion.Latest, document, directives, fileKind, csharpParseOptions, configureParserOptions);
     }
 
     internal virtual RazorSyntaxTree ParseDocument(
         RazorLanguageVersion version,
         string document,
         ImmutableArray<DirectiveDescriptor> directives,
-        bool designTime = false,
         RazorFileKind? fileKind = null,
         CSharpParseOptions csharpParseOptions = null,
         Action<RazorParserOptions.Builder> configureParserOptions = null)
@@ -213,7 +211,7 @@ public abstract class ParserTestBase : IParserTest
         directives = directives.NullToEmpty();
 
         var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
-        var parseOptions = CreateParserOptions(version, fileKind, designTime, directives, csharpParseOptions, configureParserOptions);
+        var parseOptions = CreateParserOptions(version, fileKind, directives, csharpParseOptions, configureParserOptions);
         var codeDocument = RazorCodeDocument.Create(source, parseOptions);
 
         using var context = new ParserContext(source, parseOptions);
@@ -238,48 +236,36 @@ public abstract class ParserTestBase : IParserTest
 
     internal virtual void ParseDocumentTest(string document)
     {
-        ParseDocumentTest(document, directives: default, designTime: false);
+        ParseDocumentTest(document, directives: default);
     }
 
     internal virtual void ParseDocumentTest(string document, RazorFileKind fileKind)
     {
-        ParseDocumentTest(document, directives: default, designTime: false, fileKind);
-    }
-
-    internal virtual void ParseDocumentTest(string document, ImmutableArray<DirectiveDescriptor> directives)
-    {
-        ParseDocumentTest(document, directives, designTime: false);
-    }
-
-    internal virtual void ParseDocumentTest(string document, bool designTime)
-    {
-        ParseDocumentTest(document, directives: default, designTime);
+        ParseDocumentTest(document, directives: default, fileKind);
     }
 
     internal void ParseDocumentTest(string document, CSharpParseOptions options)
     {
-        ParseDocumentTest(document, directives: default, designTime: false, csharpParseOptions: options);
+        ParseDocumentTest(document, directives: default, csharpParseOptions: options);
     }
 
     internal virtual void ParseDocumentTest(
         string document,
         ImmutableArray<DirectiveDescriptor> directives,
-        bool designTime,
         RazorFileKind? fileKind = null,
         CSharpParseOptions csharpParseOptions = null)
     {
-        ParseDocumentTest(RazorLanguageVersion.Latest, document, directives, designTime, fileKind, csharpParseOptions);
+        ParseDocumentTest(RazorLanguageVersion.Latest, document, directives, fileKind, csharpParseOptions);
     }
 
     internal virtual void ParseDocumentTest(
         RazorLanguageVersion version,
         string document,
         ImmutableArray<DirectiveDescriptor> directives,
-        bool designTime,
         RazorFileKind? fileKind = null,
         CSharpParseOptions csharpParseOptions = null)
     {
-        var result = ParseDocument(version, document, directives, designTime, fileKind: fileKind, csharpParseOptions: csharpParseOptions);
+        var result = ParseDocument(version, document, directives, fileKind: fileKind, csharpParseOptions: csharpParseOptions);
 
         BaselineTest(result);
     }
@@ -287,14 +273,12 @@ public abstract class ParserTestBase : IParserTest
     private RazorParserOptions CreateParserOptions(
         RazorLanguageVersion version,
         RazorFileKind? fileKind,
-        bool designTime,
         ImmutableArray<DirectiveDescriptor> directives,
         CSharpParseOptions csharpParseOptions,
         Action<RazorParserOptions.Builder> configureParserOptions = null)
     {
         var builder = new RazorParserOptions.Builder(version, fileKind ?? RazorFileKind.Legacy)
         {
-            DesignTime = designTime,
             Directives = directives,
             EnableSpanEditHandlers = _validateSpanEditHandlers,
             UseRoslynTokenizer = !_useLegacyTokenizer

@@ -8,8 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -39,7 +39,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Definition?.DynamicRegistration == true)
         {
@@ -53,8 +53,8 @@ internal sealed class CohostGoToDefinitionEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentPositionParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentPositionParams request)
+        => request.TextDocument;
 
     protected override async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -98,11 +98,11 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
         if (result.TryGetFirst(out var singleLocation))
         {
-            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri.GetRequiredParsedUri()), singleLocation.Range.ToLinePositionSpan());
+            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri.GetRequiredSystemUri()), singleLocation.Range.ToLinePositionSpan());
         }
         else if (result.TryGetSecond(out var multipleLocations))
         {
-            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri.GetRequiredParsedUri()), l.Range.ToLinePositionSpan()));
+            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri.GetRequiredSystemUri()), l.Range.ToLinePositionSpan()));
         }
         else if (result.TryGetThird(out var documentLinks))
         {
@@ -112,7 +112,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
             {
                 if (documentLink.DocumentTarget is DocumentUri target)
                 {
-                    builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target.GetRequiredParsedUri()), documentLink.Range.ToLinePositionSpan()));
+                    builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target.GetRequiredSystemUri()), documentLink.Range.ToLinePositionSpan()));
                 }
             }
 

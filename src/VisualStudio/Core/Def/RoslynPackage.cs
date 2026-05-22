@@ -89,7 +89,7 @@ internal sealed class RoslynPackage : AbstractPackage
                 (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProject(s, e),
                 (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProjectStatus(s, e));
 
-            _menuCommandService.AddCommand(VSConstants.VSStd2K, VisualStudioDiagnosticAnalyzerService.RunCodeAnalysisForSelectedProjectCommandId,
+            _menuCommandService.AddCommand(VSConstants.VSStd2K, VisualStudioDiagnosticAnalyzerService.ECMD_RUNFXCOPSEL,
                 (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProject(s, e),
                 (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProjectStatus(s, e));
             _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RunCodeAnalysisForProject,

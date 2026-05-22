@@ -2486,6 +2486,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_RequiresUnsafeAttributeInSource = 9379,
 
+        ERR_ClosedTypeNameDisallowed = 9380,
+        ERR_ClosedSealedStatic = 9381,
+        ERR_ClosedBaseTypeBaseFromOtherAssembly = 9382,
+        ERR_UnderspecifiedClosedSubtype = 9383,
+        ERR_ClosedExplicitlyAbstract = 9384,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

@@ -7,6 +7,9 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 [DataContract]
+#if NETFRAMEWORK
+[System.Serializable] // We need to this to be able to serialize across the AppDomain boundary
+#endif
 internal sealed record PackageReferenceItem(
     [property: DataMember(Order = 0)] string Name,
     [property: DataMember(Order = 1)] string VersionRange

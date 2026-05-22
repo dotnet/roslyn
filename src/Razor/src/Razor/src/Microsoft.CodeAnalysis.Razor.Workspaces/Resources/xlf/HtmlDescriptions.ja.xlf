@@ -1,0 +1,652 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ja" original="../HtmlDescriptions.resx">
+    <body>
+      <trans-unit id="HtmlAttribute_async">
+        <source>The script will be executed asynchronously, as soon as it is available.</source>
+        <target state="translated">スクリプトは使用可能になるとすぐに非同期で実行されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_defer">
+        <source>The script is executed when the page has finished parsing.</source>
+        <target state="translated">ページが解析を終了すると、スクリプトが実行されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_draggable">
+        <source>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</source>
+        <target state="translated">ドラッグ可能な属性を持つ要素は、非表示型の操作を目的として、要素に命名するタイトル属性も持つ必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_integrity">
+        <source>The integrity attribute represents integrity metadata for an element.</source>
+        <target state="translated">integrity 属性は要素の整合性メタデータを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_open">
+        <source>When specified, it indicates that the dialog element is active and that the user can interact with it.</source>
+        <target state="translated">指定されている場合、ダイアログ要素がアクティブであり、ユーザーによる操作が可能なことを示します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_sizes">
+        <source>Image sizes between breakpoints.</source>
+        <target state="translated">ブレークポイント間のイメージ サイズ。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_srcset">
+        <source>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</source>
+        <target state="translated">さまざまな状況 (高解像度ディスプレイや小型モニターなど) で使用する画像。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_a">
+        <source>If the a element has an href attribute, then it represents a hyperlink (a hypertext anchor) labeled by its contents.</source>
+        <target state="translated">a 要素に href 属性がある場合は、そのコンテンツによってラベル付けされるハイパーリンク (ハイパーテキスト アンカー) を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_abbr">
+        <source>The abbr element represents an abbreviation or acronym, optionally with its expansion. The title attribute may be used to provide an expansion of the abbreviation. The attribute, if specified, must contain an expansion of the abbreviation, and nothing else.</source>
+        <target state="translated">abbr 要素は略称または頭字語を表し、必要に応じてその完全表記を含めることができます。title 属性は、略称の完全表記を指定するために使用されます。この属性を指定した場合、略称の完全表記のみを含めることができ、それ以外のものを含めることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_address">
+        <source>The address element represents the contact information for its nearest article or body element ancestor. If that is the body element, then the contact information applies to the document as a whole.</source>
+        <target state="translated">address 要素は、最も近い article または body 要素の親要素に関する連絡先情報を表します。body 要素の場合、連絡先情報はドキュメント全体に適用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_area">
+        <source>The area element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map.</source>
+        <target state="translated">area 要素は、イメージ マップ上のいくつかのテキストと対応する領域を持つハイパーリンクか、イメージ マップ上のデッド領域を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_article">
+        <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</source>
+        <target state="translated">article 要素は、ドキュメント、ページ、アプリケーション、またはサイト内の、完全であるか自己完結した (原則として、シンジケートのように単独で配布や再利用が可能な) 構成を表します。これは、フォーラム記事、雑誌や新聞の記事、ブログ投稿、ユーザーが送信したコメント、インタラクティブなウィジェットやガジェット、その他、コンテンツの独立した項目である場合があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_aside">
+        <source>The aside element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content. Such sections are often represented as sidebars in printed typography.</source>
+        <target state="translated">aside 要素は、この要素の周囲のコンテンツと間接的に関係があるコンテンツにより構成されるページのセクションを表します。これは、そのコンテンツから分離されたものと見なすことができます。このようなセクションは、多くの場合、印刷された文字体裁でサイドバーとして表されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_audio">
+        <source>An audio element represents a sound or audio stream.</source>
+        <target state="translated">audio 要素はサウンドやオーディオのストリームを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_b">
+        <source>The b element represents a span of text to which attention is being drawn for utilitarian purposes without conveying any extra importance and with no implication of an alternate voice or mood, such as key words in a document abstract, product names in a review, actionable words in interactive text-driven software, or an article lede.</source>
+        <target state="translated">b 要素は、特別な重要性を持たず代替の話し方や気分などの意味はなく、実用的に注目されるべきテキストの範囲を表します。たとえば、ドキュメントの概要にあるキーワード、レビューの製品名、対話型のテキスト駆動ソフトウェアにおける実行可能な単語、記事のリードなどです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_base">
+        <source>The base element allows authors to specify the document base URL for the purposes of resolving relative URLs, and the name of the default browsing context for the purposes of following hyperlinks. The element does not represent any content beyond this information.</source>
+        <target state="translated">base 要素を使用すると、作成者は相対 URL の解決を目的としてドキュメントのベース URL を指定でき、また、ハイパーリンク先に移動することを目的とした既定のブラウジング コンテキストの名前を指定できます。この要素は、この情報以上のコンテンツを表しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_bdi">
+        <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</source>
+        <target state="translated">bdi 要素は、双方向テキストの書式設定のために、その周囲のものからは分離されるテキストの範囲を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_bdo">
+        <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</source>
+        <target state="translated">bdo 要素は、その子に対する明示的なテキスト方向の書式設定制御を表します。これにより、作成者は明示的に方向を指定することで、Unicode 双方向アルゴリズムをオーバーライドできるようになります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_blockquote">
+        <source>The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a footer or cite element, and optionally with in-line changes such as annotations and abbreviations.</source>
+        <target state="translated">blockquote 要素は、別のソースから引用されるコンテンツを表します。オプションで、footer または cite 要素内に記述する引用や、注釈、省略形などのインライン変更を含みます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_body">
+        <source>The body element represents the content of the document.</source>
+        <target state="translated">body 要素は、ドキュメントのコンテンツを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_br">
+        <source>The br element represents a line break.</source>
+        <target state="translated">br 要素は改行を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_button">
+        <source>The button element represents a button labeled by its contents.</source>
+        <target state="translated">button 要素はそのコンテンツによってラベル付けされるボタンを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_canvas">
+        <source>The canvas element provides scripts with a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, art, or other visual images on the fly.</source>
+        <target state="translated">canvas 要素は、グラフ、ゲーム グラフィックス、アート、その他の画像イメージをオンザフライでレンダリングするのに使用可能な、解像度依存のビットマップ キャンバスをスクリプトに提供します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_caption">
+        <source>The caption element represents the title of the table that is its parent, if it has a parent and that is a table element.</source>
+        <target state="translated">caption 要素は、テーブルが親を持ちそれが table 要素である場合、親であるテーブルのタイトルを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_cite">
+        <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</source>
+        <target state="translated">cite 要素は創造的な作品への参照を表します。これには、作品のタイトル、作成者 (個人、人々または組織) の名前または URL 参照が含まれます。これは引用メタデータを追加するために使用される規則に従って省略された形式にできます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_code">
+        <source>The code element represents a fragment of computer code. This could be an XML element name, a file name, a computer program, or any other string that a computer would recognize.</source>
+        <target state="translated">code 要素は、断片的なコンピューター コード表します。これは、コンピューターが認識できる XML 要素名、ファイル名、コンピューター プログラムまたはその他の文字列にすることができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_col">
+        <source>If a col element has a parent and that is a colgroup element that itself has a parent that is a table element, then the col element represents one or more columns in the column group represented by that colgroup.</source>
+        <target state="translated">col 要素の親が colgroup 要素であり、さらにそれ自体の親が table 要素である場合、col 要素はその colgroup で表される列グループ内の 1 つ以上の列を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_colgroup">
+        <source>The colgroup element represents a group of one or more columns in the table that is its parent, if it has a parent and that is a table element.</source>
+        <target state="translated">colgroup 要素は、それが table 要素である親を持っている場合に、親であるテーブル内の 1 つ以上の列のグループを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_command">
+        <source>The command element represents a command that the user can invoke.</source>
+        <target state="translated">command 要素は、ユーザーが呼び出せるコマンドを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_content">
+        <source>The content element represents an insertion point in the shadow tree.</source>
+        <target state="translated">content 要素は shadow ツリーの挿入ポイントを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_datalist">
+        <source>The datalist element represents a set of option elements that represent predefined options for other controls. In the rendering, the datalist element represents nothing and it, along with its children, should be hidden.</source>
+        <target state="translated">datalist 要素は、他のコントロール用の定義済みオプションを表す一連の option 要素を表します。レンダリングでは、datalist 要素は何も表すことはなく、その子と共に非表示になります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dd">
+        <source>The dd element represents the description, definition, or value, part of a term-description group in a description list (dl element).</source>
+        <target state="translated">dd 要素は、記述リスト (dl 要素) 内の用語の説明グループに含まれている、説明、定義、値などを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_del">
+        <source>The del element represents a removal from the document.</source>
+        <target state="translated">del 要素はドキュメントからの削除を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_details">
+        <source>The details element represents a disclosure widget from which the user can obtain additional information or controls.</source>
+        <target state="translated">details 要素は、ユーザーが追加の情報やコントロールを取得できる開示ウィジェットを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dfn">
+        <source>The dfn element represents the defining instance of a term. The paragraph, description list group, or section that is the nearest ancestor of the dfn element must also contain the definition(s) for the term given by the dfn element.</source>
+        <target state="translated">dfn 要素は用語の定義インスタンスを表します。dfn 要素の最も近い親要素である段落、記述リスト グループ、またはセクションには、dfn 要素により指定された用語の定義も含める必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dialog">
+        <source>The dialog element represents a part of an application that a user interacts with to perform a task, for example a dialog box, inspector, or window.</source>
+        <target state="translated">dialog 要素は、ダイアログ ボックス、インスペクター、ウィンドウなどのタスクを実行するためにユーザーが操作する、アプリケーションの部分を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_div">
+        <source>The div element has no special meaning at all. It represents its children. It can be used with the class, lang, and title attributes to mark up semantics common to a group of consecutive elements.</source>
+        <target state="translated">div 要素には、特別な意味はありません。これはその子を表します。これを class、lang および title 属性と共に使用すると、連続する要素のグループに共通のセマンティクスをマークアップできます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dl">
+        <source>The dl element represents an association list consisting of zero or more name-value groups (a description list). A name-value group consists of one or more names (dt elements) followed by one or more values (dd elements), ignoring any nodes other than dt and dd elements. Within a single dl element, there should not be more than one dt element for each name.</source>
+        <target state="translated">dl 要素は、ゼロ個以上の name-value グループで構成される関連付けリスト (記述リスト) を表します。name-value グループは 1 つ以上の名前 (dt 要素) と、それに続く 1 つ以上の値 (dd 要素) で構成され、dt 要素と dd 要素以外のノードを無視します。単一の dl 要素内では、各名前について dt 要素を複数使用することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dt">
+        <source>The dt element represents the term, or name, part of a term-description group in a description list (dl element).</source>
+        <target state="translated">dt 要素は、記述リスト (dl 要素) 内の用語の説明グループに含まれる、用語 (あるいは名前) を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_em">
+        <source>The em element represents stress emphasis of its contents.</source>
+        <target state="translated">em 要素はそのコンテンツにストレスをかけた強調を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_embed">
+        <source>The embed element provides an integration point for an external (typically non-HTML) application or interactive content.</source>
+        <target state="translated">embed 要素は、外部の (通常は非 HTML) アプリケーションや対話型コンテンツの、統合ポイントを指定します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_fieldset">
+        <source>The fieldset element represents a set of form controls optionally grouped under a common name.</source>
+        <target state="translated">fieldset 要素は、共通名の下で任意にグループ化された一連のフォーム コントロールを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_figure">
+        <source>The figure element represents some flow content, optionally with a caption, that is self-contained (like a complete sentence) and is typically referenced as a single unit from the main flow of the document.</source>
+        <target state="translated">figure 要素はフロー コンテンツを表します。オプションでキャプションを使用でき、これは (完全な文章のように) 自己完結するものであり、通常はドキュメントのメイン フロー内で単一のユニットとして参照されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_footer">
+        <source>The footer element represents a footer for its nearest ancestor sectioning content or sectioning root element. A footer typically contains information about its section such as who wrote it, links to related documents, copyright data, and the like.</source>
+        <target state="translated">footer 要素は、その最も近い親要素のセクショニング コンテンツかセクショニング ルート要素のフッターを表します。通常、フッターにはセクションの作成者、関連ドキュメントへのリンク、著作権情報、その他など、セクションに関する情報が含まれます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_form">
+        <source>The form element represents a collection of form-associated elements, some of which can represent editable values that can be submitted to a server for processing.</source>
+        <target state="translated">form 要素は、フォーム関連要素のコレクションを表します。これらのいくつかは、処理のためにサーバーに送信できる編集可能な値を表すことができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h1">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h2">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h3">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h4">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h5">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h6">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_head">
+        <source>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</source>
+        <target state="translated">head 要素はドキュメントのメタデータ コレクションを表します。head 要素は html 要素の中で最初の要素である必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_header">
+        <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</source>
+        <target state="translated">header 要素は、それに最も近い親要素のセクショニング コンテンツ、またはセクショニング ルート要素の導入コンテンツを表します。通常、ヘッダーには概要やナビゲーション補助のグループが含まれます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_hr">
+        <source>The hr element represents a paragraph-level thematic break, e.g. a scene change in a story, or a transition to another topic within a section of a reference book.</source>
+        <target state="translated">hr 要素は、段落レベルのテーマの区切り (ストーリーの場面が変わるときや、参考書のセクション内で別のトピックに移るときなど) を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_html">
+        <source>The html element represents the root of an HTML document.</source>
+        <target state="translated">html 要素は HTML ドキュメントのルートを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_i">
+        <source>The i element represents a span of text in an alternate voice or mood, or otherwise offset from the normal prose in a manner indicating a different quality of text, such as a taxonomic designation, a technical term, an idiomatic phrase from another language, transliteration, a thought, or a ship name in Western texts.</source>
+        <target state="translated">i 要素は、声や気分などが切り替わるテキストの範囲を表します。あるいは、テキストの質が異なること意味するノーマルの話し方からの様式的なずれを表し、例としては、分類的な意味、技術用語、他言語の慣用句、翻字、思考、欧文でのシップ ネームなどがあります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_iframe">
+        <source>The iframe element represents a nested browsing context.</source>
+        <target state="translated">iframe 要素は、入れ子になったブラウジング コンテキストを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_img">
+        <source>An img element represents an image.</source>
+        <target state="translated">img 要素は画像を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_input">
+        <source>The input element represents a typed data field, usually with a form control to allow the user to edit the data.</source>
+        <target state="translated">input 要素は、通常、ユーザーがデータを編集できるようにするフォーム コントロールを使用して入力される、データ フィールドを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ins">
+        <source>The ins element represents an addition to the document.</source>
+        <target state="translated">ins 要素はドキュメントへの追記を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_kbd">
+        <source>The kbd element represents user input (typically keyboard input, although it may also be used to represent other input, such as voice commands).</source>
+        <target state="translated">kbd 要素はユーザー入力を表します (通常はキーボード入力ですが、音声コマンドなどの他の入力を表すために使用することもできます)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_label">
+        <source>The label element represents a caption in a user interface. The caption can be associated with a specific form control, known as the label element's labeled control, either using the for attribute, or by putting the form control inside the label element itself.</source>
+        <target state="translated">label 要素はユーザー インターフェイス内のキャプションを表します。キャプションは、for 属性を使用するか label 要素自体の内部にフォーム コントロールを指定することで、(label 要素のラベル付きコントロールでもある) 特定のフォーム コントロールに関連付けることができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_legend">
+        <source>The legend element represents a caption for the rest of the contents of the legend element's parent fieldset element, if any.</source>
+        <target state="translated">legend 要素は、その要素の親となる fieldset 要素の残りのコンテンツが存在するのであれば、そのキャプションを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_li">
+        <source>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
+        <target state="translated">li 要素はリスト項目を表します。この要素は、親要素が ol または ul である場合、それらの要素での定義に従い、親要素のリストの項目となります。それ以外の場合リスト アイテムは、別の li 要素に対し、定義済みのリスト関連のリレーションシップは持ちません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_link">
+        <source>The link element allows authors to link their document to other resources.</source>
+        <target state="translated">link 要素は、作成者が他のリソースにドキュメントをリンクできるようにします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_main">
+        <source>The main element represents the main content of the body of a document or application. The main content area consists of content that is directly related to or expands upon the central topic of a document or central functionality of an application.</source>
+        <target state="translated">main 要素は、ドキュメントやアプリケーションの本体のメイン コンテンツを表します。メイン コンテンツの領域は、ドキュメントの中心的なトピックやアプリケーションの中心的な機能に直接関係するか、それらから発展されるコンテンツで構成されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_map">
+        <source>The map element, in conjunction with an img element and any area element descendants, defines an image map. The element represents its children.</source>
+        <target state="translated">map 要素は、img 要素と area 要素の子孫と組み合わせて、イメージ マップを定義します。この要素はその子を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_mark">
+        <source>The mark element represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context. When used in a quotation or other block of text referred to from the prose, it indicates a highlight that was not originally present but which has been added to bring the reader's attention to a part of the text that might not have been considered important by the original author when the block was originally written, but which is now under previously unexpected scrutiny. When used in the main prose of a document, it indicates a part of the document that has been highlighted due to its likely relevance to the user's current activity.</source>
+        <target state="translated">mark 要素は、1 つのドキュメント内で (別のコンテキストにおける関連性に起因して) 参照目的でマーキングまたは強調表示される、一連のテキストを表します。引用で使用されるか、通常の文章から参照される他のテキストのブロックで使用される場合、ブロックが最初に記述されたときに元の作成者が重要であると見なさなかったために当初は存在していなかったものの、テキストの一部に読者の注意を引くために追加され、現在では前に予期できなかったほど注視されている部分を強調表示します。ドキュメントの主体文章で使用される場合、ユーザーの現在のアクティビティに関連する可能性が高いために強調表示された、部分的なドキュメントを示します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_math">
+        <source>The math element from the MathML namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</source>
+        <target state="translated">この仕様内の MathML 名前空間の math 要素は、埋め込みコンテンツ、表現コンテンツ、およびフロー コンテンツのカテゴリに分類され、コンテンツ モデルの目的に使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_menu">
+        <source>The menu element represents a list of commands.</source>
+        <target state="translated">menu 要素はコマンドのリストを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_menuitem">
+        <source>The menuitem element represents a command that the user can invoke from a popup menu (either a context menu or the menu of a menu button).</source>
+        <target state="translated">menuitem 要素はユーザーがポップアップ メニュー (コンテキスト メニューまたはメニュー ボタンのメニューのいずれか) から呼び出せるコマンドを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_meta">
+        <source>The meta element represents various kinds of metadata that cannot be expressed using the title, base, link, style, and script elements.</source>
+        <target state="translated">meta 要素は、title、base、link、style、script 要素を使用しても表現できない、さまざまな種類のメタデータを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_meter">
+        <source>The meter element represents a scalar measurement within a known range, or a fractional value; for example disk usage, the relevance of a query result, or the fraction of a voting population to have selected a particular candidate.</source>
+        <target state="translated">meter 要素は、既知の範囲内のスカラー測定値や、小数値を表します。たとえば、ディスク使用量、クエリ結果の関連性、特定の候補者を選定するための投票人数の割合などです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_nav">
+        <source>The nav element represents a section of a page that links to other pages or to parts within the page: a section with navigation links.</source>
+        <target state="translated">nav 要素は、他のページやページ内の部分にリンクするページのセクション (ナビゲーション リンクを含むセクション) を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-form">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript ライブラリが使用する要素です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-include">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript ライブラリが使用する要素です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-pluralize">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript ライブラリが使用する要素です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-switch">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript ライブラリが使用する要素です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-view">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript ライブラリが使用する要素です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_noscript">
+        <source>The noscript element represents nothing if scripting is enabled, and represents its children if scripting is disabled. It is used to present different markup to user agents that support scripting and those that don't support scripting, by affecting how the document is parsed.</source>
+        <target state="translated">noscript 要素は、スクリプトが有効である場合は何も表さず、スクリプトが無効である場合には、その子を表します。これは、ドキュメントの解析方法を制御することにより、スクリプトをサポートするユーザー エージェントとスクリプトをサポートしないエージェントに対し、異なるマークアップを指定するために使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_object">
+        <source>The object element can represent an external resource, which, depending on the type of the resource, will either be treated as an image, as a nested browsing context, or as an external resource to be processed by a plugin.</source>
+        <target state="translated">object 要素は外部リソースを表すことができます。これは、リソースのタイプに応じて、画像、入れ子になったブラウジング コンテキスト、プラグインによって処理される外部リソースのいずれかとして扱われます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ol">
+        <source>The ol element represents a list of items, where the items have been intentionally ordered, such that changing the order would change the meaning of the document.</source>
+        <target state="translated">ol 要素は、意図的に順序付けされており、その順序を変更するとドキュメントの意味が変わるような項目のリストを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_optgroup">
+        <source>The optgroup element represents a group of option elements with a common label.</source>
+        <target state="translated">optgroup 要素は共通のラベルの付いた option 要素のグループを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_option">
+        <source>The option element represents an option in a select element or as part of a list of suggestions in a datalist element.</source>
+        <target state="translated">option 要素は、select 要素内のオプションを表すか、datalist 要素では提案リストの一部を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_output">
+        <source>The output element represents the result of a calculation or user action.</source>
+        <target state="translated">output 要素は計算またはユーザー操作の結果を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_p">
+        <source>The p element represents a paragraph.</source>
+        <target state="translated">p 要素は段落を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_param">
+        <source>The param element defines parameters for plugins invoked by object elements. It does not represent anything on its own.</source>
+        <target state="translated">param 要素は、object 要素によって呼び出されるプラグイン用のパラメーターを定義します。これ自体は何も表しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_picture">
+        <source>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
+        <target state="translated">picture 要素は内包する img 要素に複数のソースを指定するコンテナーです。これにより作成者は、画面のピクセルの密度、ビューポートのサイズ、イメージの形式などの要因に基づいて、使用するイメージ リソースについてユーザー エージェントを宣言で制御したり、そのヒントを与えたりできます。これはその子を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_polymer-element">
+        <source>A polymer-element is used to create new HTML elements using the Polymer JavaScript library.</source>
+        <target state="translated">polymer 要素は、Polymer JavaScript ライブラリを使用して新しい HTML 要素を作成するのに使用します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_pre">
+        <source>The pre element represents a block of preformatted text, in which structure is represented by typographic conventions rather than by elements.</source>
+        <target state="translated">pre 要素は、構造が要素ではなく表記規則で表される、整形済みテキストのブロックを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_progress">
+        <source>The progress element represents the completion progress of a task. The progress is either indeterminate, indicating that progress is being made but that it is not clear how much more work remains to be done before the task is complete (e.g. because the task is waiting for a remote host to respond), or the progress is a number in the range zero to a maximum, giving the fraction of work that has so far been completed.</source>
+        <target state="translated">progress 要素はタスクが完了するまでの進行状況を表します。進行状況が確定できない場合は、進行中ではあるものの、タスクが完了するまでにどれだけの作業が残っているかがはっきりしない (たとえば、タスクがリモート ホストの応答を待機中である) ことを表します。また、進行状況がゼロから最大値の範囲の数値である場合には、これまでに完了した作業の割合を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_q">
+        <source>The q element represents some phrasing content quoted from another source.</source>
+        <target state="translated">q 要素は、別のソースから引用される語句のコンテンツを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rp">
+        <source>The rp element is used to provide fallback text to be shown by user agents that don't support ruby annotations. One widespread convention is to provide parentheses around the ruby text component of a ruby annotation.</source>
+        <target state="translated">rp 要素は、フリガナ注釈をサポートしていないユーザー エージェントによって表示されるフォールバック テキストを提供するために使用します。広く使われている慣例の 1 つとして、フリガナ注釈のルビ テキスト コンポーネントの前後にかっこを加えることが挙げられます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rt">
+        <source>The rt element marks the ruby text component of a ruby annotation. When it is the child of a ruby element or of an rtc element that is itself the child of a ruby element, it doesn't represent anything itself, but its ancestor ruby element uses it as part of determining what it represents.</source>
+        <target state="translated">rt 要素は、フリガナ注釈のルビ テキスト コンポーネントをマークアップします。この要素が ruby 要素、または、ruby 要素の子となる rtc 要素の子の場合、この要素自体では何も表しませんが、親要素の ruby 要素が使用することで何を表しているのかが決定されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rtc">
+        <source>The rtc element marks a ruby text container for ruby text components in a ruby annotation. When it is the child of a ruby element it doesn't represent anything itself, but its parent ruby element uses it as part of determining what it represents.</source>
+        <target state="translated">rtc 要素は、フリガナ注釈のフリガナ テキスト コンポーネント用にフリガナ テキスト コンテナーをマークアップします。この要素が ruby 要素の子の場合は、それ自体で何も表しませんが、親の ruby 要素が使用することで何を表しているのかが決定されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ruby">
+        <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</source>
+        <target state="translated">ruby 要素は、表現コンテンツの 1 つ以上の範囲を、フリガナ注釈と共にマークアップできるようにします。フリガナ注釈とはベース テキストに沿って表示される短いテキストのことで、主に東アジアの文字体裁で発音のガイドとして使われたり、他の注釈を加えるために使われたりします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_s">
+        <source>The s element represents contents that are no longer accurate or no longer relevant.</source>
+        <target state="translated">s 要素は正確でなくなったか、関連性がなくなったコンテンツを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_samp">
+        <source>The samp element represents (sample) output from a program or computing system.</source>
+        <target state="translated">samp 要素はプログラムやコンピューティング システムからの (サンプル) 出力を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_script">
+        <source>The script element allows authors to include dynamic script and data blocks in their documents. The element does not represent content for the user.</source>
+        <target state="translated">script 要素により、作成者はドキュメントに動的スクリプトやデータ ブロックを含めることができます。この要素はユーザーに対するコンテンツは表しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_section">
+        <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</source>
+        <target state="translated">section 要素は、ドキュメントやアプリケーションの一般的なセクションを表します。このコンテキストでは、セクションはコンテンツのテーマをグループ化します。各セクションのテーマは、通常、section 要素の子として見出し (h1 から h6 要素) を含めることで識別する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_select">
+        <source>The select element represents a control for selecting amongst a set of options.</source>
+        <target state="translated">select 要素は一連のオプションの中から選択するためのコントロールを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_shadow">
+        <source>The shadow element represents an shadow insertion point in a shadow tree.</source>
+        <target state="translated">shadow 要素は shadow ツリーのシャドウ挿入ポイントを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_small">
+        <source>The small element represents side comments such as small print.</source>
+        <target state="translated">small 要素は小さい字の印刷などの付帯コメントを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_source">
+        <source>The source element allows authors to specify multiple alternative media resources for media elements. It does not represent anything on its own.</source>
+        <target state="translated">source 要素は、作成者がメディア要素に対して複数の代替メディア リソースを指定できるようにします。これ自体は何も表しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_span">
+        <source>The span element doesn't mean anything on its own, but can be useful when used together with the global attributes, e.g. class, lang, or dir. It represents its children.</source>
+        <target state="translated">span 要素は、それ自体に意味はありませんが、グローバル属性 (class、lang、dir など) と共に使用すると便利です。これはその子を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_strong">
+        <source>The strong element represents strong importance, seriousness, or urgency for its contents.</source>
+        <target state="translated">strong 要素は、そのコンテンツの強い重要性、重大度、あるいは緊急度を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_style">
+        <source>The style element allows authors to embed style information in their documents. The style element is one of several inputs to the styling processing model. The element does not represent content for the user.</source>
+        <target state="translated">style 要素は、作成者がドキュメントにスタイル情報を埋め込めるようにします。style 要素はスタイリング処理モデルへの入力の 1 つです。この要素はユーザーに対するコンテンツは表しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_sub">
+        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
+        <target state="translated">sup 要素は上付き文字を表し、sub 要素は下付き文字を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_summary">
+        <source>The summary element represents a summary, caption, or legend for the rest of the contents of the summary element's parent details element, if any.</source>
+        <target state="translated">summary 要素は、その親となる details 要素の残りのコンテンツ (存在する場合) の要約、キャプション、または凡例を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_sup">
+        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
+        <target state="translated">sup 要素は上付き文字を表し、sub 要素は下付き文字を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_svg">
+        <source>The svg element from the SVG namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</source>
+        <target state="translated">SVG 名前空間の svg 要素は、この仕様のコンテンツ モデルについて、埋め込みコンテンツ、表現コンテンツ、およびフロー コンテンツのカテゴリに分類されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_table">
+        <source>The table element represents data with more than one dimension, in the form of a table.</source>
+        <target state="translated">table 要素は、テーブルの形式で、複数の次元を持つデータを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tbody">
+        <source>The tbody element represents a block of rows that consist of a body of data for the parent table element, if the tbody element has a parent and it is a table.</source>
+        <target state="translated">tbody 要素は、テーブルである親を持っている場合に、親の table 要素に対するデータ本体で構成される行のブロックを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_td">
+        <source>The td element represents a data cell in a table.</source>
+        <target state="translated">td 要素はテーブル内のデータ セルを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_template">
+        <source>The template element is used to declare fragments of HTML that can be cloned and inserted in the document by script.</source>
+        <target state="translated">template 要素は、スクリプトによるドキュメントへのクローン作成と挿入が可能な HTML の断片を宣言するために使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_textarea">
+        <source>The textarea element represents a multiline plain text edit control for the element's raw value. The contents of the control represent the control's default value.</source>
+        <target state="translated">textarea 要素は、要素の raw 値に対する複数行のプレーン テキスト編集コントロールを表します。コントロールのコンテンツはコントロールの既定値を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tfoot">
+        <source>The tfoot element represents the block of rows that consist of the column summaries (footers) for the parent table element, if the tfoot element has a parent and it is a table.</source>
+        <target state="translated">tfoot 要素は、テーブルである親を持っている場合に、親の table 要素に対する列の概要 (フッター) で構成される行のブロックを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_th">
+        <source>The th element represents a header cell in a table.</source>
+        <target state="translated">th 要素はテーブル内のヘッダー セルを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_thead">
+        <source>The thead element represents the block of rows that consist of the column labels (headers) for the parent table element, if the thead element has a parent and it is a table.</source>
+        <target state="translated">thead 要素は、テーブルである親を持っている場合に、親の table 要素に対する列ラベル (ヘッダー) で構成される行のブロックを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_time">
+        <source>The time element represents its contents, along with a machine-readable form of those contents in the datetime attribute. The kind of content is limited to various kinds of dates, times, time-zone offsets, and durations, as described below.</source>
+        <target state="translated">time 要素は、datetime 属性内のコンピューターが読み取り可能なコンテンツの形式と共に、当該のコンテンツを表します。コンテンツの種類は、後述する日付、時間、タイムゾーン オフセット、および期間などのいくつかに限られます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_title">
+        <source>The title element represents the document's title or name. Authors should use titles that identify their documents even when they are used out of context, for example in a user's history or bookmarks, or in search results. The document's title is often different from its first heading, since the first heading does not have to stand alone when taken out of context.</source>
+        <target state="translated">title 要素はドキュメントのタイトルまたは名前を表します。作成者は、ドキュメントがコンテキストの外で (たとえば、ユーザーの履歴、ブックマーク、検索結果などで) 使用される場合でも、そのドキュメントを識別できるタイトルを使用する必要があります。コンテキストから切り離されている場合、最初の見出しは独立している必要がないため、ドキュメントのタイトルは多くの場合、その最初の見出しとは異なります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tr">
+        <source>The tr element represents a row of cells in a table.</source>
+        <target state="translated">tr 要素はテーブル内のセルの行を表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_track">
+        <source>The track element allows authors to specify explicit external timed text tracks for media elements. It does not represent anything on its own.</source>
+        <target state="translated">track 要素は、作成者がメディア要素に対して明示的な外部の同期テキスト トラックを指定できるようにします。これ自体は何も表しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_u">
+        <source>The u element represents a span of text with an unarticulated, though explicitly rendered, non-textual annotation, such as labeling the text as being a proper name in Chinese text (a Chinese proper name mark), or labeling the text as being misspelt.</source>
+        <target state="translated">u 要素は、明示的にレンダリングされているものの、伝わりにくい、または本来と異なる注釈を伴うテキストの範囲を表します。たとえば、中国語のテキストで固有名詞であることを示すラベル (中国語固有名詞マーク) をテキストに付ける場合や、スペルミスを示すラベルをテキストに付ける場合などです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ul">
+        <source>The ul element represents a list of items, where the order of the items is not important — that is, where changing the order would not materially change the meaning of the document.</source>
+        <target state="translated">ul 要素は、項目の順序が重要ではない — (つまり、順序を変更しても実質的にドキュメントの意味が変わらない) 項目のリストを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_var">
+        <source>The var element represents a variable. This could be an actual variable in a mathematical expression or programming context, an identifier representing a constant, a symbol identifying a physical quantity, a function parameter, or just be a term used as a placeholder in prose.</source>
+        <target state="translated">var 要素は変数を表します。これは、数式表現やプログラミング コンテキストの実際の変数、定数を表す識別子、物理量を表す記号、関数パラメーターなどや、単にプレースホルダーとして文章で使用される用語にできます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_video">
+        <source>A video element is used for playing videos or movies, and audio files with captions.</source>
+        <target state="translated">video 要素は、ビデオやムービー、およびキャプションを含むオーディオ ファイルを再生するために使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_wbr">
+        <source>The wbr element represents a line break opportunity.</source>
+        <target state="translated">wbr 要素は改行のタイミングを表します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_x-ms-webview">
+        <source>Displays HTML content in an app.</source>
+        <target state="translated">アプリ内の HTML コンテンツを表示します。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

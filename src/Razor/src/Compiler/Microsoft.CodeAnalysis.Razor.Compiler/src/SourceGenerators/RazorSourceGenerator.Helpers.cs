@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -132,6 +133,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     builder.UseRoslynTokenizer = razorSourceGeneratorOptions.UseRoslynTokenizer;
                     builder.CSharpParseOptions = razorSourceGeneratorOptions.CSharpParseOptions;
                 });
+
+                b.Features.Add(new DefaultUtf8WriteLiteralFeature());
 
                 CompilerFeatures.Register(b);
                 RazorExtensions.Register(b);

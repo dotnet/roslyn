@@ -118,19 +118,6 @@ public class HtmlToCodeSwitchTest() : ParserTestBase(layer: TestProject.Layer.Co
             [SectionDirective.Directive]);
     }
 
-    [Fact]
-    public void CSharpCodeParserDoesNotAcceptLeadingOrTrailingWhitespaceInDesignMode()
-    {
-        ParseDocumentTest("""
-            @{   <ul>
-                @foreach(var p in Products) {
-                    <li>Product: @p.Name</li>
-                }
-                </ul>}
-            """,
-            designTime: true);
-    }
-
     // Tests for "@@" escape sequence:
     [Fact]
     public void TreatsTwoAtSignsAsEscapeSequence()
