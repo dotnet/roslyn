@@ -281,4 +281,3 @@ stages:
             -ArtifactsPublishingAdditionalParameters '${{ parameters.artifactsPublishingAdditionalParameters }}'
             -SymbolPublishingAdditionalParameters '${{ parameters.symbolPublishingAdditionalParameters }}'
           workingDirectory: $(Build.SourcesDirectory)/eng/common/post-build/
-
