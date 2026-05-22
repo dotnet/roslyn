@@ -1230,6 +1230,8 @@ namespace Microsoft.CodeAnalysis
             // But before we do so, we need to run diagnostic suppressors (if any) on all suppressable warnings/errors (if any).
             if (HasUnsuppressableErrors(diagnostics))
             {
+                PoolTracker.ForgiveLeaks();
+
                 if (analyzerDriver == null || !analyzerDriver.HasDiagnosticSuppressors || !HasSuppressableWarningsOrErrors(diagnostics))
                 {
                     return;
