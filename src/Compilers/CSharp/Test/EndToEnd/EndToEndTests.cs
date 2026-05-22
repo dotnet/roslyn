@@ -4,25 +4,24 @@
 
 #nullable disable
 
-using Roslyn.Test.Utilities;
 using System;
-using System.Text;
-using Xunit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Threading.Tasks;
-using System.Threading;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Test.Utilities.TestGenerators;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 
             if (exception is object)
             {
-                Assert.False(true, exception.ToString());
+                Assert.Fail(exception.ToString());
             }
         }
 
@@ -1028,6 +1027,82 @@ or E._{i}
 
                 Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
             });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/83087")]
+        public void ManyUnreferencedSuppressMessageAttributes()
+        {
+            // Stress test for SuppressMessageAttributeState: a large number of
+            // assembly-level SuppressMessageAttributes should not cause excessive work
+            // when only one of the suppressed diagnostic IDs is ever queried.
+            // Only one suppression targets a real type and a real diagnostic ID;
+            // the rest reference IDs that are never produced by any analyzer and
+            // targets that don't resolve to any symbol in the compilation.
+            const int unreferencedSuppressionCount = 50_000;
+            const string realSuppression = $"""[assembly: SuppressMessage("Test", "{ReportOnTypeAnalyzer.DiagnosticId}", Scope = "type", Target = "~T:Targeted")]""";
+
+            var attributesBuilder = new StringBuilder(capacity: 40 + realSuppression.Length + 2 + unreferencedSuppressionCount * 107);
+            attributesBuilder.AppendLine("using System.Diagnostics.CodeAnalysis;");
+            attributesBuilder.AppendLine();
+
+            // The one real suppression we expect to be honored.
+            attributesBuilder.AppendLine(realSuppression);
+            for (int i = 0; i < unreferencedSuppressionCount; i++)
+            {
+                // Use a unique fake diagnostic ID per suppression so that querying
+                // any single ID resolves at most one target. The targets reference
+                // types that don't exist so resolution would fail if it were ever
+                // attempted.
+                attributesBuilder.AppendLine(
+                    $$"""[assembly: SuppressMessage("Test", "FAKE{{i:D5}}", Scope = "type", Target = "~T:DoesNotExist{{i:D5}}")]""");
+            }
+
+            var attributesSource = attributesBuilder.ToString();
+            var typesSource = """
+                public class Targeted { }
+                public class NotTargeted { }
+                """;
+
+            RunInThread(() =>
+            {
+                var compilation = CreateCompilation(
+                    [attributesSource, typesSource],
+                    options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                compilation.VerifyDiagnostics();
+
+                var analyzers = new DiagnosticAnalyzer[] { new ReportOnTypeAnalyzer() };
+                var analyzerDiagnostics = compilation.GetAnalyzerDiagnostics(analyzers);
+
+                // Only the diagnostic on 'NotTargeted' should remain; the one on 'Targeted'
+                // is suppressed by the SuppressMessageAttribute and filtered out.
+                analyzerDiagnostics.Verify(
+                    Diagnostic("MY00001", "NotTargeted").WithArguments("NotTargeted").WithLocation(2, 14)
+                );
+            }, timeout: TimeSpan.FromMinutes(2));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private sealed class ReportOnTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MY00001";
+
+            private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
+                DiagnosticId, "Title", "Type {0}", "Test",
+                DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+                context.EnableConcurrentExecution();
+                context.RegisterSymbolAction(c =>
+                {
+                    var symbol = c.Symbol;
+                    c.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, symbol.Locations[0], symbol.Name));
+                }, SymbolKind.NamedType);
+            }
         }
     }
 }

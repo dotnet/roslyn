@@ -1,0 +1,36 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Web
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupElement - (44:1,0 [78] x:\dir\subdir\Test\TestComponent.cshtml) - div
+                    HtmlAttribute -  - method=" - "
+                        HtmlAttributeValue - (57:1,13 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (57:1,13 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                    HtmlAttribute - (74:1,30 [9] x:\dir\subdir\Test\TestComponent.cshtml) - onsubmit=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
+                            IntermediateToken - (74:1,30 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                            IntermediateToken -  - CSharp - )
+                    HtmlAttribute - (96:1,52 [18] x:\dir\subdir\Test\TestComponent.cshtml) - @formname=" - "
+                        HtmlAttributeValue - (96:1,52 [18] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (96:1,52 [18] x:\dir\subdir\Test\TestComponent.cshtml) - Html - named-form-handler
+                HtmlContent - (122:1,78 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (122:1,78 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                MarkupElement - (124:2,0 [83] x:\dir\subdir\Test\TestComponent.cshtml) - div
+                    HtmlAttribute -  - method=" - "
+                        HtmlAttributeValue - (137:2,13 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (137:2,13 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                    HtmlAttribute - (154:2,30 [9] x:\dir\subdir\Test\TestComponent.cshtml) - onsubmit=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
+                            IntermediateToken - (154:2,30 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                            IntermediateToken -  - CSharp - )
+                    HtmlAttribute - (176:2,52 [23] x:\dir\subdir\Test\TestComponent.cshtml) - @formname=" - "
+                        CSharpExpressionAttributeValue - (178:2,54 [20] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (178:2,54 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "named-form-handler"

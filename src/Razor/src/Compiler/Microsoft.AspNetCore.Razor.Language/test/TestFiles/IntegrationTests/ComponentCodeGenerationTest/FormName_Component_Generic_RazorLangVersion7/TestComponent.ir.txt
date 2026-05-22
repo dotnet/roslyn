@@ -1,0 +1,46 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Web
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - T
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (58:2,0 [98] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentAttribute -  - method -  - AttributeStructure.DoubleQuotes
+                        HtmlContent - (81:2,23 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (81:2,23 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                    ComponentAttribute - (98:2,40 [9] x:\dir\subdir\Test\TestComponent.cshtml) - onsubmit - onsubmit - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
+                            IntermediateToken - (98:2,40 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                            IntermediateToken -  - CSharp - )
+                    ComponentAttribute -  - @formname -  - AttributeStructure.DoubleQuotes
+                        HtmlContent - (120:2,62 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (120:2,62 [18] x:\dir\subdir\Test\TestComponent.cshtml) - Html - named-form-handler
+                    ComponentAttribute - (151:2,93 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Parameter - Parameter - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (151:2,93 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 1
+                HtmlContent - (156:2,98 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (156:2,98 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (158:3,0 [103] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentAttribute -  - method -  - AttributeStructure.DoubleQuotes
+                        HtmlContent - (181:3,23 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (181:3,23 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                    ComponentAttribute - (198:3,40 [9] x:\dir\subdir\Test\TestComponent.cshtml) - onsubmit - onsubmit - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
+                            IntermediateToken - (198:3,40 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                            IntermediateToken -  - CSharp - )
+                    ComponentAttribute -  - @formname -  - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (220:3,62 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (222:3,64 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "named-form-handler"
+                    ComponentAttribute - (256:3,98 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Parameter - Parameter - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (256:3,98 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 2
+            CSharpCode - (270:4,7 [52] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (270:4,7 [52] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public T Parameter { get; set; }\n
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_1

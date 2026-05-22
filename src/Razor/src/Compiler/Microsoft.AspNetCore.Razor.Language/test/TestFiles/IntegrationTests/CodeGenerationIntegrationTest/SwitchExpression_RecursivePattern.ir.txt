@@ -1,0 +1,31 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_SwitchExpression_RecursivePattern - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                CSharpCode - (1:0,1 [61] SwitchExpression_RecursivePattern.cshtml)
+                    LazyIntermediateToken - (1:0,1 [61] SwitchExpression_RecursivePattern.cshtml) - CSharp - switch (DateTimeOffset.UtcNow)\n{\n    case { Year: 2022 }:\n
+                HtmlContent - (62:3,0 [99] SwitchExpression_RecursivePattern.cshtml)
+                    LazyIntermediateToken - (62:3,0 [8] SwitchExpression_RecursivePattern.cshtml) - Html -         
+                    LazyIntermediateToken - (70:3,8 [7] SwitchExpression_RecursivePattern.cshtml) - Html - <strong
+                    LazyIntermediateToken - (77:3,15 [1] SwitchExpression_RecursivePattern.cshtml) - Html - >
+                    LazyIntermediateToken - (78:3,16 [72] SwitchExpression_RecursivePattern.cshtml) - Html - Property expressions are supported by the razor syntax in the year 2022.
+                    LazyIntermediateToken - (150:3,88 [9] SwitchExpression_RecursivePattern.cshtml) - Html - </strong>
+                    LazyIntermediateToken - (159:3,97 [2] SwitchExpression_RecursivePattern.cshtml) - Html - \n
+                CSharpCode - (161:4,0 [180] SwitchExpression_RecursivePattern.cshtml)
+                    LazyIntermediateToken - (161:4,0 [180] SwitchExpression_RecursivePattern.cshtml) - CSharp -         break;\n    case [{ Test: true }]:\n        break;\n    case ({ Test: { Nested.Pattern: global::Qualifier } }):\n        break;\n    case global::Test:\n        break;\n}\n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

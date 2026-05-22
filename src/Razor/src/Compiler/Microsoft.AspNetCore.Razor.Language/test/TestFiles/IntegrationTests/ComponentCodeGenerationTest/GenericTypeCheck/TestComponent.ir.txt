@@ -1,0 +1,14 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [29] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentAttribute - (21:0,21 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Data - Data - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (21:0,21 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - null
+            CSharpCode - (40:2,7 [172] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (40:2,7 [172] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private class System\n    {\n        private class String\n        {\n        }\n    }\n\n    [Parameter]\n    public List<global::System.String> Data { get; set; }\n

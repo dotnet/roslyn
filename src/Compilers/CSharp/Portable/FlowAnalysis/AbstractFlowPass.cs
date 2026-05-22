@@ -3096,7 +3096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!conversion.IsUserDefined) // https://github.com/dotnet/roslyn/issues/82636: Follow up
+            if (!conversion.IsUserDefined && !conversion.IsUnion)
             {
                 return true;
             }
