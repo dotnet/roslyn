@@ -815,6 +815,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (!Unescape(sb.Builder, str, ref i))
                     {
+                        sb.Free();
                         value = null;
                         return false;
                     }

@@ -102,6 +102,7 @@ event_field_declaration
 modifier
   : 'abstract'
   | 'async'
+  | 'closed'
   | 'const'
   | 'extern'
   | 'file'

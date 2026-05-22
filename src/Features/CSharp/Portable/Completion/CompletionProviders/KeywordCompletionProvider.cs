@@ -42,6 +42,7 @@ internal sealed class KeywordCompletionProvider() : AbstractKeywordCompletionPro
         new CheckedKeywordRecommender(),
         new ChecksumKeywordRecommender(),
         new ClassKeywordRecommender(),
+        new ClosedKeywordRecommender(),
         new ConstKeywordRecommender(),
         new ContinueKeywordRecommender(),
         new DecimalKeywordRecommender(),

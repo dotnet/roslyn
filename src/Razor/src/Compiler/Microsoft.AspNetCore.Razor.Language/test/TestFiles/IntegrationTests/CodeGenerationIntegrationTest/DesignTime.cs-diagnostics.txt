@@ -1,0 +1,12 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml(8,3): error CS0103: The name 'Foo' does not exist in the current context
+// Write(Foo(Bar.Baz)
+Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(8, 3),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml(8,7): error CS0103: The name 'Bar' does not exist in the current context
+// Write(Foo(Bar.Baz)
+Diagnostic(ErrorCode.ERR_NameNotInContext, "Bar").WithArguments("Bar").WithLocation(8, 7),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml(9,2): error CS0103: The name 'Foo' does not exist in the current context
+// Write(Foo(
+Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(9, 2),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/DesignTime.cshtml(14,6): error CS0103: The name 'bar' does not exist in the current context
+// Write(bar
+Diagnostic(ErrorCode.ERR_NameNotInContext, "bar").WithArguments("bar").WithLocation(14, 6)

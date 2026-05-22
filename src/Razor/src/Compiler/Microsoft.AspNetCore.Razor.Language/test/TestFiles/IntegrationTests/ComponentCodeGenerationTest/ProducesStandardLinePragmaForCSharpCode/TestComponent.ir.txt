@@ -1,0 +1,23 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupBlock -  - <h1>Conditional statement</h1>
+                CSharpCode - (33:1,1 [33] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (33:1,1 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - for (var i = 0; i < 10; i++)\n{\n
+                MarkupElement - (70:3,4 [9] x:\dir\subdir\Test\TestComponent.cshtml) - p
+                    CSharpExpression - (74:3,8 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (74:3,8 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - i
+                CSharpCode - (81:4,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (81:4,0 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - }\n
+                MarkupBlock -  - <h1>Statements inside code block</h1>
+                CSharpCode - (127:7,2 [56] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (127:7,2 [56] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - System.Console.WriteLine(1);System.Console.WriteLine(2);
+                MarkupBlock -  - <h1>Full-on code block</h1>
+            CSharpCode - (224:10,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (224:10,7 [65] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public int IncrementAmount { get; set; }\n

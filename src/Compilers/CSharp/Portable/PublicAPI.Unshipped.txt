@@ -47,3 +47,5 @@
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitTargetTypedMemberAccessExpression(Microsoft.CodeAnalysis.CSharp.Syntax.TargetTypedMemberAccessExpressionSyntax! node) -> TResult?
 [RSEXPERIMENTAL006]override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitTargetTypedQualifiedName(Microsoft.CodeAnalysis.CSharp.Syntax.TargetTypedQualifiedNameSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 [RSEXPERIMENTAL006]override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitTargetTypedMemberAccessExpression(Microsoft.CodeAnalysis.CSharp.Syntax.TargetTypedMemberAccessExpressionSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClosedKeyword = 8453 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

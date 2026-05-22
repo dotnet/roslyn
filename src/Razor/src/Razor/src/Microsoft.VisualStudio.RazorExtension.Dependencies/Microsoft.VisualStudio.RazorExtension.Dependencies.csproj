@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!--
+      This project deploys extra dependencies that may not be included in the host VS.
+      Used by integration tests and local development to deploy assemblies that the
+      main Razor VSIX does not carry.
+
+      In general this project should not be deployed (F5'd) by itself as it only includes
+      extra dependencies + codebases that may not be present in the target VS install.
+    -->
+
+    <TargetFramework>$(NetFxVS)</TargetFramework>
+
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+
+    <IsShipping>false</IsShipping>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable>false</IsPackable>
+
+    <!-- Don't automatically include dependencies -->
+    <IncludePackageReferencesInVSIXContainer>false</IncludePackageReferencesInVSIXContainer>
+
+    <CreateVsixContainer Condition="'$(BuildDependencyVsix)' == 'true'">true</CreateVsixContainer>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <DeployExtension Condition="'$(BuildDependencyVsix)' == 'true' OR '$(BuildDependencyVsix)' == ''">true</DeployExtension>
+    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvailableItemName Include="VSIXSourceItem" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- To include the ProvideCodeBase attribute type. -->
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
+    <!-- Manually upgrade to address CG alert. When the VS packages
+         pull in the right version, this can be removed. -->
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
+  </ItemGroup>
+
+  <!-- Reference the LSP protocol dlls so that we can include them in the code base and output them with the VSIX. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
+  </ItemGroup>
+</Project>

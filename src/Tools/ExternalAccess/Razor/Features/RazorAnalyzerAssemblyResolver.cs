@@ -23,11 +23,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     {
         public const string RazorCompilerAssemblyName = "Microsoft.CodeAnalysis.Razor.Compiler";
         public const string RazorUtilsAssemblyName = "Microsoft.AspNetCore.Razor.Utilities.Shared";
-        public const string ObjectPoolAssemblyName = "Microsoft.Extensions.ObjectPool";
-
         internal const string ServiceHubCoreFolderName = "ServiceHubCore";
 
-        internal static readonly ImmutableArray<string> RazorAssemblyNames = [RazorCompilerAssemblyName, RazorUtilsAssemblyName, ObjectPoolAssemblyName];
+        internal static readonly ImmutableArray<string> RazorAssemblyNames = [RazorCompilerAssemblyName, RazorUtilsAssemblyName];
 
         public Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory) =>
             ResolveCore(loader.CompilerLoadContext, assemblyName, directory);
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         /// </summary>
         internal static Assembly? ResolveCore(AssemblyLoadContext compilerLoadContext, AssemblyName assemblyName, string directory)
         {
-            if (assemblyName.Name is not (RazorCompilerAssemblyName or RazorUtilsAssemblyName or ObjectPoolAssemblyName))
+            if (assemblyName.Name is not (RazorCompilerAssemblyName or RazorUtilsAssemblyName))
             {
                 return null;
             }
@@ -53,7 +51,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             // load the complete closure of razor assemblies if we're asked to load any of them. Subsequent requests for the others will just return the ones loaded here
             LoadAssemblyByFileName(compilerLoadContext, RazorCompilerAssemblyName, directory);
             LoadAssemblyByFileName(compilerLoadContext, RazorUtilsAssemblyName, directory);
-            LoadAssemblyByFileName(compilerLoadContext, ObjectPoolAssemblyName, directory);
 
             // return the actual assembly that we were asked to load.
             return LoadAssembly(compilerLoadContext, assemblyName, directory);
