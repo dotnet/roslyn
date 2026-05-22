@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Roslyn.LanguageServer.Protocol;
 
@@ -52,6 +53,20 @@ public sealed class AutoLoadProjectsInitializerTests : IDisposable
         Assert.Equal(Path.Combine(secondFolder.DocumentUri.GetDocumentFilePathFromUri(), "eng", "App.slnx"), solutionPath);
     }
 
+    [Fact]
+    public void GetProjectFilesToAutoLoad_IOException_ReturnsEmptyAndLogsWarning()
+    {
+        var logger = new CollectingLogger();
+
+        var projectFiles = AutoLoadProjectsInitializer.GetProjectFilesToAutoLoad(
+            @"C:\does-not-matter",
+            logger,
+            enumerateFiles: _ => throw new IOException("denied"));
+
+        Assert.Empty(projectFiles);
+        Assert.Contains(logger.LoggedMessages, static entry => entry.logLevel == LogLevel.Warning && entry.message.Contains("Skipping project discovery", StringComparison.Ordinal));
+    }
+
     private string WriteSettingsFile(string settingsJson)
     {
         var folder = _tempRoot.CreateDirectory();
@@ -79,5 +94,19 @@ public sealed class AutoLoadProjectsInitializerTests : IDisposable
         var solutionPath = Path.Combine(folderPath, relativePath);
         Directory.CreateDirectory(Path.GetDirectoryName(solutionPath)!);
         File.WriteAllText(solutionPath, string.Empty);
+    }
+
+    private sealed class CollectingLogger : ILogger
+    {
+        public List<(LogLevel logLevel, string message)> LoggedMessages { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+            => null;
+
+        public bool IsEnabled(LogLevel logLevel)
+            => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            => LoggedMessages.Add((logLevel, formatter(state, exception)));
     }
 }

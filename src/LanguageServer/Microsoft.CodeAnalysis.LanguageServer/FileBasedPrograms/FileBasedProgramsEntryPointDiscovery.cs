@@ -240,7 +240,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         public DateTimeOffset CreatedOrModifiedTimeUtc { get; } = createdOrModifiedTimeUtc;
     }
 
-    private class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory)
+    private class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory, new EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = true })
     {
         private CsFileKind GetKind(ref FileSystemEntry entry)
         {
@@ -292,8 +292,16 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 // On NTFS, the directory timestamps we observe when enumerating can be stale when files are added/deleted from a directory.
                 // If we find the timestamps were old enough (i.e. we entered this block),
                 // we still need to `new DirectoryInfo()` again and force the timestamps to update if needed.
-                var directoryInfo = new DirectoryInfo(directory);
-                var newCreatedOrModifiedTimeUtc = Max(directoryInfo.CreationTimeUtc, directoryInfo.LastWriteTimeUtc);
+                DateTimeOffset newCreatedOrModifiedTimeUtc = DateTimeOffset.MinValue;
+                if (!TryPerformDirectoryOperation(directory, logger, () =>
+                {
+                    var directoryInfo = new DirectoryInfo(directory);
+                    newCreatedOrModifiedTimeUtc = Max(directoryInfo.CreationTimeUtc, directoryInfo.LastWriteTimeUtc);
+                }))
+                {
+                    return;
+                }
+
                 if (newCreatedOrModifiedTimeUtc < cache.LastWalkTimeUtc && cache.DirectoriesContainingCsproj.BinarySearch(directory, s_pathComparer) >= 0)
                 {
                     // Our info about this directory is up to date, and we know it contains a csproj, so bail out before enumerating its files.
@@ -305,18 +313,24 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             }
 
             using var currentDirectoryItems = TemporaryArray<CsFileInfo>.Empty;
-            using var enumerator = new DirectoryEnumerator(directory);
-            while (enumerator.MoveNext())
+            if (!TryPerformDirectoryOperation(directory, logger, () =>
             {
-                var fileInfo = enumerator.Current;
-                if (fileInfo.Kind == CsFileKind.Csproj)
+                using var enumerator = new DirectoryEnumerator(directory);
+                while (enumerator.MoveNext())
                 {
-                    // Found a csproj. Return without visiting any of the files.
-                    directoriesContainingCsprojBuilder.Add(directory);
-                    return;
-                }
+                    var fileInfo = enumerator.Current;
+                    if (fileInfo.Kind == CsFileKind.Csproj)
+                    {
+                        // Found a csproj. Return without visiting any of the files.
+                        directoriesContainingCsprojBuilder.Add(directory);
+                        return;
+                    }
 
-                currentDirectoryItems.Add(fileInfo);
+                    currentDirectoryItems.Add(fileInfo);
+                }
+            }))
+            {
+                return;
             }
 
             // Did not find a csproj. Continue searching this subtree for entry points.
@@ -358,6 +372,20 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     /// <summary>Get the later of two DateTimeOffsets.</summary>
     private static DateTimeOffset Max(DateTimeOffset lhs, DateTimeOffset rhs)
         => lhs < rhs ? rhs : lhs;
+
+    internal static bool TryPerformDirectoryOperation(string directory, ILogger logger, Action action)
+    {
+        try
+        {
+            action();
+            return true;
+        }
+        catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
+        {
+            logger.LogWarning("Skipping directory '{Directory}' during file-based app discovery due to I/O exception: {ExceptionMessage}", directory, ex.Message);
+            return false;
+        }
+    }
 
     internal sealed record Cache(string WorkspacePath, DateTimeOffset LastWalkTimeUtc, ImmutableArray<string> FileBasedAppFullPaths, ImmutableArray<string> DirectoriesContainingCsproj);
 
