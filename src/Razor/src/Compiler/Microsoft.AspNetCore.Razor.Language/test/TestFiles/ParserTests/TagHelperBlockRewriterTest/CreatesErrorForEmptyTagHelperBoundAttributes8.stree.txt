@@ -1,0 +1,33 @@
+﻿RazorDocument - [0..25)::25 - [<myth bound= name='  ' />]
+    MarkupBlock - [0..25)::25
+        MarkupTagHelperElement - [0..25)::25 - myth[SelfClosing] - mythTagHelper
+            MarkupTagHelperStartTag - [0..25)::25 - [<myth bound= name='  ' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[myth];
+                MarkupTagHelperAttribute - [5..12)::7 - bound - DoubleQuotes - Bound - [ bound=]
+                    MarkupTextLiteral - [5..6)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..11)::5 - [bound] - Gen<Markup>
+                        Text;[bound];
+                    Equals;[=];
+                    MarkupTagHelperAttributeValue - [12..12)::0
+                        CSharpExpressionLiteral - [12..12)::0 - [] - Gen<None>
+                MarkupTagHelperAttribute - [12..22)::10 - name - SingleQuotes - Bound - [ name='  ']
+                    MarkupTextLiteral - [12..13)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [13..17)::4 - [name] - Gen<Markup>
+                        Text;[name];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [19..21)::2
+                        MarkupTextLiteral - [19..21)::2 - [  ]
+                            Whitespace;[  ];
+                    MarkupTextLiteral - [21..22)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [22..23)::1
+                    MarkupTextLiteral - [22..23)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

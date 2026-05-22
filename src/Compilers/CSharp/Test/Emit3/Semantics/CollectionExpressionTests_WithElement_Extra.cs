@@ -8169,6 +8169,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77784")]
     public void ParamsCycle_MultipleConstructors()
     {
         string sourceA = """
@@ -8192,10 +8193,39 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 c = [with(1)];
                 """;
         var comp = CreateCompilation([sourceA, sourceB]);
-        comp.VerifyEmitDiagnostics(
-            // (5,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection()'.
-            // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection()").WithLocation(5, 6));
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77784")]
+    public void ParamsCycle_MultipleConstructors_ClassContext()
+    {
+        string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public MyCollection() { _list = new(); }
+                    public MyCollection(params MyCollection<T> other) { _list = new(other); }
+                    public void Add(T t) { _list.Add(t); }
+                }
+
+                class C
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c = [with(1)];
+                        foreach (var item in c)
+                            Console.Write(item);
+                    }
+                }
+                """;
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "1").VerifyDiagnostics();
     }
 
     [Fact]
@@ -8271,9 +8301,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (3,6): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int>.MyCollection(int, params MyCollection<int>)'
             // c = [with()];
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("x", "MyCollection<int>.MyCollection(int, params MyCollection<int>)").WithLocation(3, 6),
-            // (4,6): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(T, params MyCollection<T>)'.
+            // (4,6): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int>.MyCollection(int, params MyCollection<int>)'
             // c = [with(1)];
-            Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "with(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(T, params MyCollection<T>)").WithLocation(4, 6),
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with(1)").WithArguments("y", "MyCollection<int>.MyCollection(int, params MyCollection<int>)").WithLocation(4, 6),
             // (8,30): error CS9228: Non-array params collection type must have an applicable constructor that can be called with no arguments.
             //     public MyCollection(T x, params MyCollection<T> y)
             Diagnostic(ErrorCode.ERR_ParamsCollectionMissingConstructor, "params MyCollection<T> y").WithLocation(8, 30));
