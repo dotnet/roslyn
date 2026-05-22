@@ -31,6 +31,10 @@
       <Namespace>$(ProjectName).Resources</Namespace>
     </EmbeddedResource>
 
+    <EmbeddedResource Update="Resources\HtmlDescriptions.resx">
+      <LogicalName>Microsoft.CodeAnalysis.Razor.Workspaces.Resources.HtmlDescriptions.resources</LogicalName>
+    </EmbeddedResource>
+
     <Using Include="$(ProjectName).Resources" />
   </ItemGroup>
 

@@ -8,8 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [CohostEndpoint(LanguageServerConstants.RazorWrapWithTagEndpoint)]
-[ExportCohostStatelessLspService(typeof(CohostWrapWithTagEndpoint))]
+[ExportRazorStatelessLspService(typeof(CohostWrapWithTagEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostWrapWithTagEndpoint(
@@ -44,8 +44,8 @@ internal sealed class CohostWrapWithTagEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalWrapWithTagParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalWrapWithTagParams request)
+        => request.TextDocument;
 
     protected override async Task<VSInternalWrapWithTagResponse?> HandleRequestAsync(VSInternalWrapWithTagParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -79,7 +79,7 @@ internal sealed class CohostWrapWithTagEndpoint(
             // and we already have that in a virtual buffer, because it's what the above request was made against.
             // So we can write a little bit of code to grab that, and avoid the extra OOP call.
 
-            if (!_documentManager.TryGetDocument(razorDocument.CreateUri(), out var snapshot))
+            if (!_documentManager.TryGetDocument(razorDocument.CreateSystemUri(), out var snapshot))
             {
                 _logger.LogError($"Couldn't find document in LSPDocumentManager for {razorDocument.FilePath}");
                 return null;

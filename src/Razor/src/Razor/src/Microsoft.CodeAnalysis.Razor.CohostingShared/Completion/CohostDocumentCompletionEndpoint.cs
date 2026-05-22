@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using CompletionResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.Completion.CompletionResult>;
-using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.RazorVSInternalCompletionList?>;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -46,6 +45,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
     ILoggerFactory loggerFactory)
     : AbstractCohostDocumentEndpoint<RazorVSInternalCompletionParams, RazorVSInternalCompletionList?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
+    private static readonly HashSetPool<string> s_elementNameSetPool =
+        HashSetPool<string>.Create(comparer: StringComparer.OrdinalIgnoreCase);
+
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
@@ -60,7 +62,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
         {
@@ -79,8 +81,8 @@ internal sealed class CohostDocumentCompletionEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(RazorVSInternalCompletionParams request)
-        => request.TextDocument?.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(RazorVSInternalCompletionParams request)
+        => request.TextDocument;
 
     protected override async Task<RazorVSInternalCompletionList?> HandleRequestAsync(RazorVSInternalCompletionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -132,11 +134,11 @@ internal sealed class CohostDocumentCompletionEndpoint(
             SnippetsSupported: true, // always true in non-legacy Razor, always false in legacy Razor
             AutoInsertAttributeQuotes: clientSettings.AdvancedSettings.AutoInsertAttributeQuotes,
             CommitElementsWithSpace: clientSettings.AdvancedSettings.CommitElementsWithSpace,
-            UseVsCodeCompletionCommitCharacters: !_clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions);
+            IsVsCode: !_clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions);
 
         _logger.LogDebug($"Calling OOP to get completion items at {request.Position} invoked by typing '{request.Context?.TriggerCharacter}'");
 
-        var razorCompletionTask = _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, CompletionResponse>(
+        var razorCompletionResponse = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, CompletionResponse>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)
                 => service.GetCompletionAsync(
@@ -147,35 +149,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
                         razorCompletionOptions,
                         correlationId,
                         cancellationToken),
-            cancellationToken).AsTask();
-
-        RazorVSInternalCompletionList? htmlCompletionList = null;
-        if (completionPositionInfo.ShouldIncludeHtmlCompletions &&
-            documentPositionInfo.LanguageKind == RazorLanguageKind.Html &&
-            _triggerAndCommitCharacters.IsValidHtmlTrigger(completionContext))
-        {
-            // Fire HTML request concurrently with the OOP request already in flight.
-            // Phase 1 OOP call excludes providers that need HTML labels (e.g., tag helper
-            // element completions). After HTML completes, a lightweight phase 2 OOP call
-            // runs only those providers with the HTML labels available.
-            var htmlTask = GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken);
-
-            await Task.WhenAll(htmlTask, razorCompletionTask).ConfigureAwait(false);
-
-            htmlCompletionList = await htmlTask.ConfigureAwait(false);
-
-            if (htmlCompletionList is null)
-            {
-                // HTML server failed to respond (e.g., not yet initialized on first document open).
-                // Return an incomplete empty list so the client retries, rather than continuing to
-                // merge with Razor results and showing partial Razor-only items that could cause
-                // the user to accidentally commit a wrong item.
-                _logger.LogDebug($"HTML completion failed for {razorDocument.FilePath}, returning incomplete list");
-                return new RazorVSInternalCompletionList() { IsIncomplete = true, Items = [] };
-            }
-        }
-
-        var razorCompletionResponse = await razorCompletionTask.ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false);
 
         if (razorCompletionResponse.StopHandling)
         {
@@ -184,17 +158,31 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
         var razorCompletionResult = razorCompletionResponse.Result;
 
-        // If HTML completed successfully and the initial Razor call indicated that some providers
-        // were skipped because they need HTML labels, run those providers now.
-        RazorVSInternalCompletionList? razorHtmlDependentCompletionList = null;
-        if (htmlCompletionList is not null && razorCompletionResult.NeedsHtmlDependentPhase)
+        RazorVSInternalCompletionList? htmlCompletionList = null;
+        if (completionPositionInfo.ShouldIncludeHtmlCompletions &&
+            documentPositionInfo.LanguageKind == RazorLanguageKind.Html &&
+            _triggerAndCommitCharacters.IsValidHtmlTrigger(completionContext))
         {
-            razorHtmlDependentCompletionList = await GetHtmlDependentCompletionsAsync(
-                htmlCompletionList, razorDocument, completionPositionInfo,
-                completionContext, razorCompletionOptions, cancellationToken).ConfigureAwait(false);
+            // Prefer local HTML completions from OOP (schema-based, no html LSP round-trip).
+            htmlCompletionList = razorCompletionResult.HtmlCompletionList;
+
+            if (htmlCompletionList is null)
+            {
+                // Local provider couldn't handle this context (e.g., script/style blocks, css class intellisense, src attributes).
+                // Fall back to the external HTML completion provider.
+                htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
+
+                if (htmlCompletionList is null)
+                {
+                    // HTML server failed to respond (e.g., not yet initialized on first document open).
+                    // Return an incomplete empty list so the client retries.
+                    _logger.LogDebug($"HTML completion failed for {razorDocument.FilePath}, returning incomplete list");
+                    return new RazorVSInternalCompletionList() { IsIncomplete = true, Items = [] };
+                }
+            }
         }
 
-        var combinedCompletionList = MergeCompletionLists(htmlCompletionList, razorCompletionResult.CompletionList, razorHtmlDependentCompletionList);
+        var combinedCompletionList = CompletionListMerger.Merge(razorCompletionResult.CompletionList, htmlCompletionList);
 
         if (completionPositionInfo.ShouldIncludeDelegationSnippets &&
             _snippetCompletionItemProvider is not null)
@@ -202,8 +190,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
             combinedCompletionList = AddSnippets(
                 combinedCompletionList,
                 documentPositionInfo.LanguageKind,
-                completionContext.InvokeKind,
-                completionContext.TriggerCharacter);
+                completionContext.TriggerCharacter,
+                completionPositionInfo.IsStartTagContext,
+                razorCompletionOptions);
         }
 
         if (combinedCompletionList is null)
@@ -211,68 +200,22 @@ internal sealed class CohostDocumentCompletionEndpoint(
             return null;
         }
 
+        // Optimize the final list before returning to the editor. After merging Razor, C#, HTML,
+        // and snippet items, some items may have per-item VsCommitCharacters or TextEdits that can
+        // be promoted to list-level defaults — reducing the JSON response payload to the editor.
+        var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
+        combinedCompletionList = CompletionListOptimizer.Optimize(combinedCompletionList, completionCapability);
+
         RazorCompletionResolveData.Wrap(combinedCompletionList, originalTextDocumentIdentifier, _clientCapabilitiesService.ClientCapabilities);
 
         return combinedCompletionList;
     }
 
     /// <summary>
-    /// Merges up to three completion lists: HTML, Razor (C# + Razor items), and Razor HTML-dependent
-    /// (tag helper element completions).
+    /// Fetches HTML completions from the external HTML language server via LSP.
+    /// Used as a fallback when the local HTML completion provider cannot handle the context
+    /// (e.g., script/style content, CSS class intellisense).
     /// </summary>
-    /// <remarks>
-    /// Both Razor lists are merged first, then merged once against HTML. This ensures Razor
-    /// commit characters take precedence at the list level, matching the pre-parallel behavior
-    /// where the Razor list was always the first argument to <see cref="CompletionListMerger.Merge"/>.
-    /// </remarks>
-    private static RazorVSInternalCompletionList? MergeCompletionLists(
-        RazorVSInternalCompletionList? htmlCompletionList,
-        RazorVSInternalCompletionList? razorCompletionList,
-        RazorVSInternalCompletionList? razorHtmlDependentCompletionList)
-    {
-        var combinedRazorList = CompletionListMerger.Merge(razorCompletionList, razorHtmlDependentCompletionList);
-        return CompletionListMerger.Merge(combinedRazorList, htmlCompletionList);
-    }
-
-    /// <summary>
-    /// Phase 2: runs only the HTML-dependent completion providers (e.g., tag helper element
-    /// completions) with the HTML labels available for deduplication.
-    /// </summary>
-    private async Task<RazorVSInternalCompletionList?> GetHtmlDependentCompletionsAsync(
-        RazorVSInternalCompletionList htmlCompletionList,
-        TextDocument razorDocument,
-        CompletionPositionInfo completionPositionInfo,
-        VSInternalCompletionContext completionContext,
-        RazorCompletionOptions razorCompletionOptions,
-        CancellationToken cancellationToken)
-    {
-        var htmlLabels = new string[htmlCompletionList.Items.Length];
-        for (var i = 0; i < htmlCompletionList.Items.Length; i++)
-        {
-            htmlLabels[i] = htmlCompletionList.Items[i].Label;
-        }
-
-        var htmlDependentResponse = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, Response>(
-            razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken)
-                => service.GetHtmlDependentCompletionsAsync(
-                        solutionInfo,
-                        razorDocument.Id,
-                        completionPositionInfo,
-                        completionContext,
-                        razorCompletionOptions,
-                        htmlLabels,
-                        cancellationToken),
-            cancellationToken).ConfigureAwait(false);
-
-        if (htmlDependentResponse is { StopHandling: false, Result: { } htmlDependentCompletionList })
-        {
-            return htmlDependentCompletionList;
-        }
-
-        return null;
-    }
-
     private async Task<RazorVSInternalCompletionList?> GetHtmlCompletionListAsync(
         RazorVSInternalCompletionParams completionParams,
         TextDocument razorDocument,
@@ -306,15 +249,32 @@ internal sealed class CohostDocumentCompletionEndpoint(
     private RazorVSInternalCompletionList? AddSnippets(
         RazorVSInternalCompletionList? completionList,
         RazorLanguageKind languageKind,
-        VSInternalCompletionInvokeKind invokeKind,
-        string? triggerCharacter)
+        string? triggerCharacter,
+        bool isStartTagContext,
+        RazorCompletionOptions options)
     {
+        // Build a set of valid element names from the existing completion list so
+        // snippets can be filtered to only those valid in the current context.
+        using var _ = s_elementNameSetPool.GetPooledObject(out var validElementNames);
+        if (completionList?.Items is { Length: > 0 } existingItems)
+        {
+            foreach (var item in existingItems)
+            {
+                if (item.Kind is CompletionItemKind.Element)
+                {
+                    validElementNames.Add(item.Label);
+                }
+            }
+        }
+
         using var builder = new PooledArrayBuilder<VSInternalCompletionItem>();
         _snippetCompletionItemProvider.AssumeNotNull().AddSnippetCompletions(
             ref builder.AsRef(),
             languageKind,
-            invokeKind,
-            triggerCharacter);
+            triggerCharacter,
+            validElementNames,
+            options,
+            isStartTagContext);
 
         // If there were no snippets, just return the original list
         if (builder.Count == 0)
@@ -326,7 +286,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
         // we'll still be able to pull it out again when the client sends us back an item. The SetResultId method associates
         // the resolution context with each item.
         var snippetCompletionList = new RazorVSInternalCompletionList { IsIncomplete = true, Items = builder.ToArray() };
-        var resolutionContext = new SnippetCompletionResolutionContext();
+        var resolutionContext = new SnippetCompletionResolutionContext(isStartTagContext);
         var resultId = _completionListCache.Add(snippetCompletionList, resolutionContext);
         snippetCompletionList.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
 

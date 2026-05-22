@@ -137,6 +137,9 @@ internal sealed class CSharpAccessibilityFacts : IAccessibilityFacts
                 SyntaxKind.VolatileKeyword => Modifiers.Volatile,
                 SyntaxKind.ExternKeyword => Modifiers.Extern,
                 SyntaxKind.FileKeyword => Modifiers.File,
+#if !OLDER_ROSLYN
+                SyntaxKind.ClosedKeyword => Modifiers.Closed,
+#endif
                 SyntaxKind.RequiredKeyword => Modifiers.Required,
                 SyntaxKind.FixedKeyword => Modifiers.Fixed,
                 _ => Modifiers.None,

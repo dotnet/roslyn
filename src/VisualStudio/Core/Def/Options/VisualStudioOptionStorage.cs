@@ -373,7 +373,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent")},
         {"dotnet_collapse_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameUI")},
         {"dotnet_preview_inline_rename_changes", new RoamingProfileStorage("TextEditor.Specific.PreviewRename")},
-        {"dotnet_collapse_suggestions_in_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameSuggestionsUI")},
+        {"dotnet_collapse_suggestions_in_inline_rename_ui_v2", new RoamingProfileStorage("TextEditor.CollapseRenameSuggestionsUI2")},
         {"dotnet_rename_get_suggestions_automatically", new FeatureFlagStorage(@"Editor.AutoSmartRenameSuggestions")},
         // Option is deprecated, don't use the same RoamingProfileStorage key
         {"dotnet_rename_file", new RoamingProfileStorage("TextEditor.Specific.RenameFile")},
