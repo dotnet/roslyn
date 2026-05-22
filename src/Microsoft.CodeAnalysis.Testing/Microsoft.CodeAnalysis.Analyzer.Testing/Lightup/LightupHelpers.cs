@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Testing.Lightup
             }
 
             var property = type.GetTypeInfo().GetDeclaredProperty(propertyName);
-            if (property == null)
+            if (property is null or { GetMethod: null })
             {
                 return CreateFallbackAccessor<T, TResult>(defaultValue);
             }

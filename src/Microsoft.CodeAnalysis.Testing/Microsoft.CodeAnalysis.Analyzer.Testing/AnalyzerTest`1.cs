@@ -1311,6 +1311,7 @@ namespace Microsoft.CodeAnalysis.Testing
                                              let parameterTypes = method.GetParameters().Select(parameter => parameter.ParameterType).ToArray()
                                              where parameterTypes.SequenceEqual(new[] { iincrementalGeneratorType })
                                              select method).SingleOrDefault();
+                    verifier.True(asGeneratorMethod is not null, "Failed to locate AsSourceGenerator method");
                     convertedSourceGeneratorsArray.SetValue(asGeneratorMethod.Invoke(null, new[] { sourceGenerators[i] }), i);
                 }
             }
@@ -1320,6 +1321,7 @@ namespace Microsoft.CodeAnalysis.Testing
                                      let parameterTypes = method.GetParameters().Select(static parameter => parameter.ParameterType).ToArray()
                                      where parameterTypes.Length == 1 && parameterTypes[0].GetGenericTypeDefinition() == typeof(IEnumerable<>)
                                      select method).SingleOrDefault();
+            verifier.True(createRangeMethod is not null, "Failed to locate ImmutableArray.CreateRange method");
             var convertedSourceGenerators = createRangeMethod.MakeGenericMethod(isourceGeneratorType).Invoke(null, new object[] { convertedSourceGeneratorsArray });
 
             var analyzerOptions = GetAnalyzerOptions(project);

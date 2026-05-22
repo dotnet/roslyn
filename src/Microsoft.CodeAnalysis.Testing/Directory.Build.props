@@ -11,10 +11,11 @@
 
   <PropertyGroup>
     <!--
+      net8.0: Modern .NET target with current NuGet APIs
       netcoreapp3.1: Ensures full support for nullable reference types
       netstandard2.0/net472: Roslyn 3.x
     -->
-    <TestingLibraryTargetFrameworks>netcoreapp3.1;netstandard2.0;net461;net472</TestingLibraryTargetFrameworks>
+    <TestingLibraryTargetFrameworks>net8.0;netcoreapp3.1;netstandard2.0;net461;net472</TestingLibraryTargetFrameworks>
 
     <!--
       netcoreapp3.1: Ensures full support for nullable reference types

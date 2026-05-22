@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 return NetFramework.Net472.Default;
 #elif NETCOREAPP3_1
                 return NetCore.NetCoreApp31;
+#elif NET8_0_OR_GREATER
+                return Net.Net80;
 #endif
             }
         }
@@ -271,7 +273,9 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <seealso href="https://martinbjorkstrom.com/posts/2018-09-19-revisiting-nuget-client-libraries"/>
         private async Task<ImmutableArray<MetadataReference>> ResolveCoreAsync(string language, CancellationToken cancellationToken)
         {
-            var settings = string.IsNullOrEmpty(NuGetConfigFilePath) ? Settings.LoadDefaultSettings(root: null) : Settings.LoadSpecificSettings(root: null, NuGetConfigFilePath);
+            // Nullable annotation is incorrect on root: https://github.com/NuGet/NuGet.Client/pull/7407.
+            // The NuGetConfigPath parameter warns on net472 as string.IsNullOrEmpty is not annotated on that platform.
+            var settings = string.IsNullOrEmpty(NuGetConfigFilePath) ? Settings.LoadDefaultSettings(root: null) : Settings.LoadSpecificSettings(root: null!, NuGetConfigFilePath!);
             var sourceRepositoryProvider = new SourceRepositoryProvider(new PackageSourceProvider(settings), Repository.Provider.GetCoreV3());
             var targetFramework = NuGetFramework.ParseFolder(TargetFramework);
             var logger = NullLogger.Instance;
@@ -520,7 +524,11 @@ namespace Microsoft.CodeAnalysis.Testing
                         var assembliesByPrecedence = assemblyNameGroup
                             .Select(static name => (name, framework: GetFrameworkNameFromPath(name)))
                             .OrderBy(static x => x.framework, comparer)
+#if NET8_0_OR_GREATER || NET472
+                            .ThenByDescending(static x => x.framework, NuGetFrameworkSorter.Instance)
+#else
                             .ThenByDescending(static x => x.framework, new NuGetFrameworkSorter())
+#endif
                             .ToArray();
                         for (var i = 1; i < assembliesByPrecedence.Length; i++)
                         {
@@ -1572,6 +1580,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         private sealed class ImmutableDictionaryWithImmutableArrayValuesEqualityComparer<TKey, TValue> : IEqualityComparer<ImmutableDictionary<TKey, ImmutableArray<TValue>>?>
+            where TKey : notnull
         {
             public static readonly ImmutableDictionaryWithImmutableArrayValuesEqualityComparer<TKey, TValue> Instance = new();
 

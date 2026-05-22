@@ -19,6 +19,12 @@
         <NuGetApiVersion>5.11.6</NuGetApiVersion>
       </PropertyGroup>
     </When>
+    <When Condition="'$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net8.0'">
+      <PropertyGroup>
+        <NuGetApiVersion>7.0.3</NuGetApiVersion>
+        <DefineConstants>$(DefineConstants);NUGET_SIGNING</DefineConstants>
+      </PropertyGroup>
+    </When>
     <Otherwise>
       <PropertyGroup>
         <NuGetApiVersion>6.3.4</NuGetApiVersion>
