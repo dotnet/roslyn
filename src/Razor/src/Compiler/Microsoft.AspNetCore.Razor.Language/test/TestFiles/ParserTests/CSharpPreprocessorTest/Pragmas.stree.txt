@@ -1,0 +1,22 @@
+﻿RazorDocument - [0..139)::139 - [@{LF#pragma warning disable 123LF#pragma warning restore 123LF#pragma checksum "file.cs" "{00000000-0000-0000-0000-000000000000}" "1234"LF}]
+    MarkupBlock - [0..139)::139
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..139)::139
+            CSharpStatement - [0..139)::139
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..139)::138
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..138)::136
+                        CSharpStatementLiteral - [2..138)::136 - [LF#pragma warning disable 123LF#pragma warning restore 123LF#pragma checksum "file.cs" "{00000000-0000-0000-0000-000000000000}" "1234"LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            CSharpDirective;[#pragma warning disable 123LF];
+                            CSharpDirective;[#pragma warning restore 123LF];
+                            CSharpDirective;[#pragma checksum "file.cs" "{00000000-0000-0000-0000-000000000000}" "1234"LF];
+                    RazorMetaCode - [138..139)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [139..139)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

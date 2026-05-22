@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
@@ -41,11 +40,11 @@ public static class ClassificationTestHelper
             {
                 if (i >= expectedClassificationList.Count)
                 {
-                    AssertEx.Fail("Unexpected actual classification: {0}", GetText(actualClassificationList[i]));
+                    Assert.Fail($"Unexpected actual classification: {GetText(actualClassificationList[i])}");
                 }
                 else if (i >= actualClassificationList.Count)
                 {
-                    AssertEx.Fail("Missing classification for: {0}", GetText(expectedClassificationList[i]));
+                    Assert.Fail($"Missing classification for: {GetText(expectedClassificationList[i])}");
                 }
 
                 var actual = actualClassificationList[i];

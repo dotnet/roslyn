@@ -4176,6 +4176,7 @@ End Class
                     typeName:=typeName,
                     testData:=Nothing)
                 AssertEx.SetEqual(locals.Select(Function(l) l.LocalName), "x", "y")
+                locals.Free()
             End Using
         End Sub
 

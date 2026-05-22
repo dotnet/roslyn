@@ -1,0 +1,19 @@
+﻿RazorDocument - [0..8)::8 - [@(@"""")]
+    MarkupBlock - [0..8)::8
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..8)::8
+            CSharpExplicitExpression - [0..8)::8
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpExplicitExpressionBody - [1..8)::7
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftParenthesis;[(];
+                    CSharpCodeBlock - [2..7)::5
+                        CSharpExpressionLiteral - [2..7)::5 - [@""""] - Gen<Expr>
+                            StringLiteral;[@""""];
+                    RazorMetaCode - [7..8)::1 - Gen<None>
+                        RightParenthesis;[)];
+        MarkupTextLiteral - [8..8)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

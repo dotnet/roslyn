@@ -55,8 +55,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
-        .AddParts(typeof(TestDocumentTrackingService))
-        .AddParts(typeof(TestWorkspaceRegistrationService));
+        .AddParts(typeof(TestDocumentTrackingService));
 
     private sealed class TestSpanMapperProvider : IDocumentServiceProvider
     {
@@ -256,7 +255,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
         string? filterText = null,
         long resultId = 0,
         bool vsResolveTextEditOnCommit = false,
-        LSP.CompletionItemLabelDetails? labelDetails = null)
+        LSP.CompletionItemLabelDetails? labelDetails = null,
+        int matchPriority = 0)
     {
         var position = await document.GetPositionFromLinePositionAsync(
             ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -275,7 +275,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
             Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
             Preselect = preselect,
             VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
-            LabelDetails = labelDetails
+            LabelDetails = labelDetails,
+            MatchPriority = matchPriority
         };
 
         if (tags != null)
@@ -413,7 +414,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var listenerProvider = workspace.ExportProvider.GetExportedValues<MockWorkspaceEventListenerProvider>().SingleOrDefault();
         if (listenerProvider is not null)
         {
-            var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+            var lspWorkspaceRegistrationListener = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
             listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
         }
 

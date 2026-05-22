@@ -300,7 +300,7 @@ public partial class D
             Dim document = workspace.Documents.FirstOrDefault(Function(d) d.CursorPosition.HasValue)
 
             If document Is Nothing Then
-                AssertEx.Fail("The test is missing a $$ in the workspace.")
+                Assert.Fail("The test is missing a $$ in the workspace.")
             End If
 
             Dim textBuffer = document.GetTextBuffer()
