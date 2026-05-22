@@ -61,6 +61,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13074")]
     public async Task NotWhenAtSignFollowsDollarInEmmetAbbreviation()
     {
         await VerifyCompletionListAsync(
