@@ -20,7 +20,7 @@ internal sealed class FSharpTaskListService : ITaskListService
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FSharpTaskListService([Import(AllowDefault = true)] IFSharpTaskListService impl)
+    public FSharpTaskListService([Import(AllowDefault = true)] IFSharpTaskListService? impl)
     {
         _impl = impl;
     }
