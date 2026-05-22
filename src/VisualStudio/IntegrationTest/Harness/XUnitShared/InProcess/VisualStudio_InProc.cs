@@ -8,18 +8,16 @@ namespace Xunit.InProcess
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
-    using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
+    using Microsoft.VisualStudio.IntegrationTest;
     using Microsoft.VisualStudio.Shell.Interop;
     using Windows.Win32;
     using Windows.Win32.Foundation;
     using Windows.Win32.UI.WindowsAndMessaging;
     using Xunit.Harness;
-    using File = System.IO.File;
     using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
     using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
-    using Path = System.IO.Path;
     using SVsActivityLog = Microsoft.VisualStudio.Shell.Interop.SVsActivityLog;
     using SVsUIShell = Microsoft.VisualStudio.Shell.Interop.SVsUIShell;
 
@@ -48,128 +46,7 @@ namespace Xunit.InProcess
 
         public void AddCodeBaseDirectory(string directory)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
-            {
-                var assemblyName = new AssemblyName(e.Name);
-                var isRoslynProductAssembly = IsRoslynProductAssemblyName(assemblyName.Name);
-
-                var loadedAssembly = isRoslynProductAssembly
-                    ? GetRoslynProductAssembly(assemblyName, directory)
-                    : GetLoadedAssembly(assemblyName);
-                if (loadedAssembly != null)
-                {
-                    return loadedAssembly;
-                }
-
-                if (isRoslynProductAssembly)
-                {
-                    return null;
-                }
-
-                var path = Path.Combine(directory, assemblyName.Name + ".dll");
-                if (File.Exists(path))
-                {
-                    return LoadAssemblyFromPath(path);
-                }
-
-                return null;
-            };
-        }
-
-        private static Assembly? GetRoslynProductAssembly(AssemblyName requestedAssemblyName, string codeBaseDirectory)
-        {
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (string.Equals(assembly.GetName().Name, requestedAssemblyName.Name, StringComparison.Ordinal)
-                    && !IsAssemblyFromDirectory(assembly, codeBaseDirectory))
-                {
-                    return assembly;
-                }
-            }
-
-            foreach (var directory in GetVisualStudioRoslynProductAssemblyDirectories(codeBaseDirectory))
-            {
-                var path = Path.Combine(directory, requestedAssemblyName.Name + ".dll");
-                if (File.Exists(path))
-                {
-                    return Assembly.LoadFrom(path);
-                }
-            }
-
-            return null;
-        }
-
-        private static Assembly? GetLoadedAssembly(AssemblyName requestedAssemblyName)
-        {
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (string.Equals(assembly.FullName, requestedAssemblyName.FullName, StringComparison.Ordinal))
-                {
-                    return assembly;
-                }
-            }
-
-            return null;
-        }
-
-        private static Assembly LoadAssemblyFromPath(string path)
-            => Assembly.LoadFile(Path.GetFullPath(path));
-
-        private static IEnumerable<string> GetVisualStudioRoslynProductAssemblyDirectories(string codeBaseDirectory)
-        {
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (!IsRoslynProductAssemblyName(assembly.GetName().Name)
-                    || IsAssemblyFromDirectory(assembly, codeBaseDirectory))
-                {
-                    continue;
-                }
-
-                var directory = Path.GetDirectoryName(assembly.Location);
-                if (directory != null)
-                {
-                    yield return directory;
-                }
-            }
-
-            var baseDirectory = AppContext.BaseDirectory;
-            if (baseDirectory != null)
-            {
-                yield return Path.Combine(
-                    baseDirectory,
-                    "CommonExtensions",
-                    "Microsoft",
-                    "VBCSharp",
-                    "LanguageServices");
-            }
-        }
-
-        private static bool IsAssemblyFromDirectory(Assembly assembly, string directory)
-        {
-            var assemblyLocation = assembly.Location;
-            if (assemblyLocation.Length == 0)
-            {
-                return false;
-            }
-
-            var fullAssemblyLocation = Path.GetFullPath(assemblyLocation);
-            var fullDirectory = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            return fullAssemblyLocation.StartsWith(fullDirectory, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsRoslynProductAssemblyName(string? assemblyName)
-        {
-            if (assemblyName == null
-                || assemblyName.IndexOf(".Test", StringComparison.Ordinal) >= 0
-                || assemblyName.EndsWith("Tests", StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            return assemblyName == "Microsoft.CodeAnalysis"
-                || assemblyName == "Microsoft.VisualStudio.LanguageServices"
-                || assemblyName.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal)
-                || assemblyName.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal);
+            IntegrationTestAssemblyResolver.AddCodeBaseDirectory(directory);
         }
 
         public void ActivateMainWindow()

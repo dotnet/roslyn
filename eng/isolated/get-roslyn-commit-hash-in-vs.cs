@@ -20,9 +20,27 @@ foreach (var candidate in instances)
     Console.Error.WriteLine($"  [{candidate.Version}] {candidate.VisualStudioRootPath}");
 }
 
+if (instances.Length == 0)
+{
+    Console.Error.WriteLine("Could not find any non-SDK Visual Studio instances.");
+    return 1;
+}
+
 var instance = instances.First();
 var cscDir = Path.Combine(instance.MSBuildPath, "Roslyn");
 var cscPath = Path.Combine(cscDir, "csc.exe");
+if (!Directory.Exists(cscDir))
+{
+    Console.Error.WriteLine($"Could not find the Visual Studio Roslyn compiler directory: {cscDir}");
+    return 1;
+}
+
+if (!File.Exists(cscPath))
+{
+    Console.Error.WriteLine($"Could not find the Visual Studio C# compiler: {cscPath}");
+    return 1;
+}
+
 Console.Error.WriteLine($"Using csc: {cscPath}");
 
 AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, e) =>
@@ -51,3 +69,4 @@ var commitHash = (string)assembly.GetCustomAttributesData()
     .ConstructorArguments[0].Value;
 
 Console.WriteLine(commitHash);
+return 0;
