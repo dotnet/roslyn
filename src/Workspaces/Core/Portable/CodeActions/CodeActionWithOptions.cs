@@ -76,4 +76,10 @@ public abstract class CodeActionWithOptions : CodeAction
 
     protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         => [];
+
+    /// <summary>
+    /// True when an options service capable of supplying this action's options is available.
+    /// Hosts may use this to decide whether to surface the action.
+    /// </summary>
+    internal virtual bool IsOptionServiceAvailable() => false;
 }

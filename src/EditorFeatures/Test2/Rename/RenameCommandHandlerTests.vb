@@ -209,7 +209,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, " "c),
-                                              Sub() AssertEx.Fail("Space should not have been passed to the editor."),
+                                              Sub() Assert.Fail("Space should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
 
                 session.Cancel()
@@ -288,7 +288,7 @@ class [|$$Goo|] // comment
 
                 ' with the caret at the start, this should delete the whole identifier
                 commandHandler.ExecuteCommand(New WordDeleteToEndCommandArgs(view, view.TextBuffer),
-                                              Sub() AssertEx.Fail("Command should not have been passed to the editor."),
+                                              Sub() Assert.Fail("Command should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
                 Await VerifyTagsAreCorrect(workspace)
 
@@ -301,7 +301,7 @@ class [|$$Goo|] // comment
                 ' that '@' character is in a read only region during rename.
                 view.Selection.Select(New SnapshotSpan(view.TextSnapshot, Span.FromBounds(startPosition + 2, startPosition + 4)), isReversed:=True)
                 commandHandler.ExecuteCommand(New WordDeleteToStartCommandArgs(view, view.TextBuffer),
-                                              Sub() AssertEx.Fail("Command should not have been passed to the editor."),
+                                              Sub() Assert.Fail("Command should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -344,7 +344,7 @@ Goo f;
 
                 ' LineStart should move to the beginning of identifierSpan
                 commandHandler.ExecuteCommand(New LineStartCommandArgs(view, view.TextBuffer),
-                                              Sub() AssertEx.Fail("Home should not have been passed to the editor."),
+                                              Sub() Assert.Fail("Home should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(0, view.Selection.SelectedSpans.Single().Span.Length)
                 Assert.Equal(startPosition, view.Caret.Position.BufferPosition.Position)
@@ -361,7 +361,7 @@ Goo f;
 
                 ' LineStartExtend should move to the beginning of identifierSpan and extend the selection
                 commandHandler.ExecuteCommand(New LineStartExtendCommandArgs(view, view.TextBuffer),
-                                              Sub() AssertEx.Fail("Shift+Home should not have been passed to the editor."),
+                                              Sub() Assert.Fail("Shift+Home should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(New Span(startPosition, 1), view.Selection.SelectedSpans.Single().Span)
 
@@ -377,7 +377,7 @@ Goo f;
 
                 ' LineEnd should move to the end of identifierSpan
                 commandHandler.ExecuteCommand(New LineEndCommandArgs(view, view.TextBuffer),
-                                              Sub() AssertEx.Fail("End should not have been passed to the editor."),
+                                              Sub() Assert.Fail("End should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(0, view.Selection.SelectedSpans.Single().Span.Length)
                 Assert.Equal(identifierSpan.End, view.Caret.Position.BufferPosition.Position)
@@ -394,7 +394,7 @@ Goo f;
 
                 ' LineEndExtend should move to the end of identifierSpan and extend the selection
                 commandHandler.ExecuteCommand(New LineEndExtendCommandArgs(view, view.TextBuffer),
-                                              Sub() AssertEx.Fail("Shift+End should not have been passed to the editor."),
+                                              Sub() Assert.Fail("Shift+End should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(Span.FromBounds(startPosition + 1, identifierSpan.End), view.Selection.SelectedSpans.Single().Span)
 

@@ -29,10 +29,12 @@ internal sealed class TypeHierarchySupertypesHandler() : ILspServiceDocumentRequ
         => TypeHierarchyHelpers.GetResolveData(request.Item).TextDocument;
 
     public async Task<LSP.TypeHierarchyItem[]?> HandleRequestAsync(LSP.TypeHierarchySupertypesParams request, RequestContext context, CancellationToken cancellationToken)
+        => await ResolveSupertypesAsync(context.GetRequiredDocument(), request.Item, cancellationToken).ConfigureAwait(false);
+
+    internal static async Task<LSP.TypeHierarchyItem[]?> ResolveSupertypesAsync(Document document, LSP.TypeHierarchyItem item, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
         var solution = document.Project.Solution;
-        var typeSymbol = await TypeHierarchyHelpers.GetTypeSymbolAsync(request.Item, solution, cancellationToken).ConfigureAwait(false);
+        var typeSymbol = await TypeHierarchyHelpers.GetTypeSymbolAsync(item, solution, cancellationToken).ConfigureAwait(false);
         if (typeSymbol == null)
             return null;
 
@@ -42,9 +44,9 @@ internal sealed class TypeHierarchySupertypesHandler() : ILspServiceDocumentRequ
         using var _ = ArrayBuilder<LSP.TypeHierarchyItem>.GetInstance(out var items);
         foreach (var baseType in baseTypes)
         {
-            var item = await TypeHierarchyHelpers.CreateItemAsync(baseType, solution, cancellationToken).ConfigureAwait(false);
-            if (item != null)
-                items.Add(item);
+            var hierarchyItem = await TypeHierarchyHelpers.CreateItemAsync(baseType, solution, cancellationToken).ConfigureAwait(false);
+            if (hierarchyItem != null)
+                items.Add(hierarchyItem);
         }
 
         return items.ToArray();

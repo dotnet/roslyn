@@ -1260,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnionKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ClosedKeyword; i++)
             {
                 // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
                 if (i != 8441)
@@ -1324,6 +1324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AllowsKeyword:
                 case SyntaxKind.ExtensionKeyword:
                 case SyntaxKind.UnionKeyword:
+                case SyntaxKind.ClosedKeyword:
                     return true;
                 default:
                     return false;
@@ -1455,6 +1456,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ExtensionKeyword;
                 case "union":
                     return SyntaxKind.UnionKeyword;
+                case "closed":
+                    return SyntaxKind.ClosedKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1906,6 +1909,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "extension";
                 case SyntaxKind.UnionKeyword:
                     return "union";
+                case SyntaxKind.ClosedKeyword:
+                    return "closed";
                 default:
                     return string.Empty;
             }

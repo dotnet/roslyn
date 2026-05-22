@@ -10172,7 +10172,7 @@ class C
     unsafe static D M1() => new D(F);
     static D M2() => new D(F);
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (7,35): warning CS0612: 'C.F()' is obsolete
                 //     unsafe static D M1() => new D(F);
@@ -10181,6 +10181,21 @@ class C
                 //     static D M2() => new D(F);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(8, 28)
             );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (7,35): warning CS0612: 'C.F()' is obsolete
+                //     unsafe static D M1() => new D(F);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(7, 35),
+                // (8,28): warning CS0612: 'C.F()' is obsolete
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(8, 28),
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -10210,7 +10225,7 @@ namespace System.Runtime.InteropServices
         public string EntryPoint;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (8,35): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
                 //     unsafe static D M1() => new D(F);
@@ -10219,6 +10234,21 @@ namespace System.Runtime.InteropServices
                 //     static D M2() => new D(F);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(9, 28)
             );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (8,35): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //     unsafe static D M1() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "F").WithArguments("C.F()").WithLocation(8, 35),
+                // (9,28): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "F").WithArguments("C.F()").WithLocation(9, 28),
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -10833,7 +10863,7 @@ class C2 { }
 [Attr<TypedReference>] // 3
 class C3 { }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [Attr<int*>] // 1
@@ -10850,6 +10880,22 @@ class C3 { }
                 // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
                 // [Attr<TypedReference>] // 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (5,7): error CS0306: The type 'int*' may not be used as a type argument
+                // [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(5, 7),
+                // (8,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                // [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(8, 7),
+                // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
+                // [Attr<TypedReference>] // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7),
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -10894,11 +10940,16 @@ class Attr<T> : Attribute { }
 [Attr<int*[]>] // 1
 class C1 { }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [Attr<int*[]>] // 1
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
@@ -11575,11 +11626,16 @@ class A<T> : System.Attribute
 {
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (2,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<int*[]>] // 1
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 4));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68370")]

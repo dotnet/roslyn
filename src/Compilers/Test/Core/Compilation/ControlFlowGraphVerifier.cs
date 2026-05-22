@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
 
                     default:
-                        Assert.False(true, $"Unexpected block kind {block.Kind}");
+                        Assert.Fail($"Unexpected block kind {block.Kind}");
                         break;
                 }
 
@@ -1567,7 +1567,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 enterRegion($".catch {{{getRegionId(region)}}} ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
                                 break;
                             default:
-                                Assert.False(true, $"Unexpected region kind {region.EnclosingRegion.Kind}");
+                                Assert.Fail($"Unexpected region kind {region.EnclosingRegion.Kind}");
                                 break;
                         }
                         break;
@@ -1597,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
 
                     default:
-                        Assert.False(true, $"Unexpected region kind {region.Kind}");
+                        Assert.Fail($"Unexpected region kind {region.Kind}");
                         break;
                 }
 
@@ -1653,7 +1653,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 goto endRegion;
 
                             default:
-                                Assert.False(true, $"Unexpected region kind {region.EnclosingRegion.Kind}");
+                                Assert.Fail($"Unexpected region kind {region.EnclosingRegion.Kind}");
                                 break;
                         }
 
@@ -1666,7 +1666,7 @@ endRegion:
                     case ControlFlowRegionKind.TryAndFinally:
                         break;
                     default:
-                        Assert.False(true, $"Unexpected region kind {region.Kind}");
+                        Assert.Fail($"Unexpected region kind {region.Kind}");
                         break;
                 }
 
@@ -1790,12 +1790,12 @@ endRegion:
                 if (referencedLocalsAndMethods.Count != 0)
                 {
                     ISymbol symbol = referencedLocalsAndMethods.First();
-                    Assert.True(false, $"{(symbol.Kind == SymbolKind.Local ? "Local" : "Method")} without owning region {symbol.ToTestDisplayString()} in [{getBlockId(block)}]\n{finalGraph()}");
+                    Assert.Fail($"{(symbol.Kind == SymbolKind.Local ? "Local" : "Method")} without owning region {symbol.ToTestDisplayString()} in [{getBlockId(block)}]\n{finalGraph()}");
                 }
 
                 if (referencedCaptureIds.Count != 0)
                 {
-                    Assert.True(false, $"Capture [{referencedCaptureIds.First().Value}] without owning region in [{getBlockId(block)}]\n{finalGraph()}");
+                    Assert.Fail($"Capture [{referencedCaptureIds.First().Value}] without owning region in [{getBlockId(block)}]\n{finalGraph()}");
                 }
             }
 
@@ -2090,7 +2090,7 @@ endRegion:
                     return true;
             }
 
-            Assert.True(false, $"Unhandled node kind OperationKind.{n.Kind}");
+            Assert.Fail($"Unhandled node kind OperationKind.{n.Kind}");
             return false;
         }
 

@@ -1,0 +1,19 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [31] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentAttribute -  - Value -  - AttributeStructure.DoubleQuotes
+                        HtmlContent - (22:0,22 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (22:0,22 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hello
+                HtmlContent - (31:0,31 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (31:0,31 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                CSharpExpression - (36:2,1 [0] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (36:2,1 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 
+            CSharpCode - (47:4,7 [50] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (47:4,7 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public int Param { get; set; }\n
