@@ -60,6 +60,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: null);
     }
 
+    [WorkItem("https://github.com/dotnet/razor/issues/13074")]
     [Fact]
     public async Task NotWhenAtSignFollowsDollarInEmmetAbbreviation()
     {
