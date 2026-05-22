@@ -7152,11 +7152,11 @@ public class Derived : Base
         CompileAndVerify(comp, symbolValidator: module =>
         {
             var c = module.ContainingAssembly.GetTypeByMetadataName("C");
-            AssertEx.NotNull(c);
+            Assert.NotNull(c);
             FieldSymbol field1 = c.GetMember<FieldSymbol>("Field1");
             PropertySymbol property1 = c.GetMember<PropertySymbol>("Property1");
             var d = module.ContainingAssembly.GetTypeByMetadataName("D");
-            AssertEx.NotNull(d);
+            Assert.NotNull(d);
             FieldSymbol field2 = d.GetMember<FieldSymbol>("Field2");
             PropertySymbol property2 = d.GetMember<PropertySymbol>("Property2");
 

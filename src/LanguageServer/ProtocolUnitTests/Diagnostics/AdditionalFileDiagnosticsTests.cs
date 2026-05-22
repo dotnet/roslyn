@@ -58,8 +58,8 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         Assert.NotEmpty(results);
         AssertEx.Equal(
         [
-            @$"{xamlFilePath}: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
-        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(xamlFilePath)}: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
+        ], results.Select(r => $"{r.Uri}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
     }
 
     [Theory, CombinatorialData]
@@ -85,10 +85,10 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.Equal(
         [
-            @$"{csFilePath}: []",
-            @$"{txtFilePath}: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
-            @$"{projFilePath}: []"
-        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(csFilePath)}: []",
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath)}: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(projFilePath)}: []"
+        ], results.Select(r => $"{r.Uri}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -120,7 +120,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         AssertEx.Empty(results[0].Diagnostics);
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(txtFilePath, results[1].Uri.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath), results[1].Uri);
         AssertEx.Empty(results[2].Diagnostics);
 
         var initialSolution = testLspServer.GetCurrentSolution();
@@ -164,10 +164,10 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         Assert.Equal(6, results.Length);
 
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(txtFilePath, results[1].Uri.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath), results[1].Uri);
         Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics!.Single()).Projects!.First().ProjectName);
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics!.Single().Code);
-        Assert.Equal(txtFilePath, results[4].Uri.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath), results[4].Uri);
         Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics!.Single()).Projects!.First().ProjectName);
 
         // Asking again should give us back an unchanged diagnostic.
@@ -209,10 +209,10 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.Equal(
         [
-            @$"{csFilePath}: []",
-            @$"{additionaFilePath}: [{DiagnosticProducingGenerator.Descriptor.Id}, {MockAdditionalFileDiagnosticAnalyzer.Id}]",
-            @$"{projFilePath}: []"
-        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(csFilePath)}: []",
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(additionaFilePath)}: [{DiagnosticProducingGenerator.Descriptor.Id}, {MockAdditionalFileDiagnosticAnalyzer.Id}]",
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(projFilePath)}: []"
+        ], results.Select(r => $"{r.Uri}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
     }
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer), typeof(TestAdditionalFileDocumentSourceProvider));

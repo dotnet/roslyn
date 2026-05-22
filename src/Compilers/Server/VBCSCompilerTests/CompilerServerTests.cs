@@ -202,13 +202,13 @@ End Module")
                         currentDirectory: tempDir);
                     if (result.ExitCode != 0)
                     {
-                        AssertEx.Fail($"Deterministic compile failed \n stdout:  {result.Output}");
+                        Assert.Fail($"Deterministic compile failed \n stdout:  {result.Output}");
                     }
                     var listener = await serverData.Complete();
                     Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
                 }
                 var bytes = File.ReadAllBytes(outFile);
-                AssertEx.NotNull(bytes);
+                Assert.NotNull(bytes);
 
                 return (bytes, finalFlags);
             }
@@ -1455,7 +1455,7 @@ static void Main(string[] args)
             {
                 if (first[i] != second[i])
                 {
-                    AssertEx.Fail($"Bytes were different at position {i} ({first[i]} vs {second[i]}).  Flags used were (\"{finalFlags1}\" vs \"{finalFlags2}\")");
+                    Assert.Fail($"Bytes were different at position {i} ({first[i]} vs {second[i]}).  Flags used were (\"{finalFlags1}\" vs \"{finalFlags2}\")");
                 }
             }
         }
