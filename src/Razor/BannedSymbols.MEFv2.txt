@@ -1,0 +1,1 @@
+﻿N:System.Composition;Use MEF v1 in this project, from System.ComponentModel.Composition
