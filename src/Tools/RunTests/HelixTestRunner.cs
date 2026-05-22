@@ -6,15 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 
 namespace RunTests;
@@ -297,12 +296,12 @@ internal sealed partial class HelixTestRunner
     /// </summary>
     internal static async Task<string> CreateHelixArtifactsAsync(Options options, ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
     {
-        Verify(options.UseHelix);
-        Verify(!options.IncludeHtml);
-        Verify(string.IsNullOrEmpty(options.TestFilter));
-        Verify(!string.IsNullOrEmpty(options.ArtifactsDirectory));
-        Verify(!string.IsNullOrEmpty(options.HelixQueueName));
-        Verify(!string.IsNullOrEmpty(options.Configuration));
+        Contract.ThrowIfFalse(options.UseHelix);
+        Contract.ThrowIfTrue(options.IncludeHtml);
+        Contract.ThrowIfFalse(string.IsNullOrEmpty(options.TestFilter));
+        Contract.ThrowIfFalse(!string.IsNullOrEmpty(options.ArtifactsDirectory));
+        Contract.ThrowIfFalse(!string.IsNullOrEmpty(options.HelixQueueName));
+        Contract.ThrowIfFalse(!string.IsNullOrEmpty(options.Configuration));
 
         // Currently, it's required for the client machine to use the same OS family as the target Helix queue.
         // We could relax this and allow for example Linux clients to kick off Windows jobs, but we'd have to
@@ -337,14 +336,6 @@ internal sealed partial class HelixTestRunner
         File.Copy(helixFilePath, Path.Combine(logsDir, "helix.proj"));
 
         return helixFilePath;
-
-        void Verify([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression("condition")] string? message = null)
-        {
-            if (!condition)
-            {
-                throw new Exception($"Verify failed: {message}");
-            }
-        }
     }
 
     /// <summary>
@@ -481,9 +472,9 @@ internal sealed partial class HelixTestRunner
                 It's used to print out the HelixJobId and HelixJobCancellationToken properties to the console
                 so we can grab them in the process output and setup our helix watching.
               -->
-              <Target Name="PrintHelixInfo" AfterTargets="CoreTest">                                                                                       
-                <Message Text="HelixJobId=$(HelixJobId) HelixJobCancellationToken=$(HelixJobCancellationToken)" Importance="high" />                                                
-              </Target>        
+              <Target Name="PrintHelixInfo" AfterTargets="CoreTest">
+                <Message Text="HelixJobId=$(HelixJobId) HelixJobCancellationToken=$(HelixJobCancellationToken)" Importance="high" />
+              </Target>
 
             </Project>
             """);
