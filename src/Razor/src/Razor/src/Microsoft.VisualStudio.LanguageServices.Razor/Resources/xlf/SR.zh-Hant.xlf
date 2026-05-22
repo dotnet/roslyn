@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../SR.resx">
+    <body>
+      <trans-unit id="ArgumentCannotBeNullOrEmpty">
+        <source>Value cannot be null or an empty string.</source>
+        <target state="translated">值不能為 Null 或空字串。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LanguageServer_Initialization_Failed">
+        <source>{0} failed to initialize.  Please report a problem via Help -&gt; Send Feedback -&gt; Report a Problem.  Status = {1}.  Exception = {2}</source>
+        <target state="translated">{0} 初始化失敗。 請透過説明 -&gt; 傳送意見反應 -&gt; 報告問題。狀態 = {1}。例外狀況 = {2}</target>
+        <note>{0} is the language server name. Status is the status of the initialization. Exception is the exception encountered during initialization.</note>
+      </trans-unit>
+      <trans-unit id="ProximityExpression_Dialog_Description">
+        <source>Razor Debugger</source>
+        <target state="translated">Razor 偵錯工具</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProximityExpression_Dialog_Title">
+        <source>Determining proximity expressions...</source>
+        <target state="translated">正在判斷鄰近運算式...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_to_1">
+        <source>Renaming {0} to {1}</source>
+        <target state="translated">正在將 {0} 重新命名為 {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_Razor_Component">
+        <source>Renaming Razor Component</source>
+        <target state="translated">正在重新命名 Razor 元件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="View Code">
+        <source>View Code</source>
+        <target state="translated">檢視程式碼</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -22,17 +22,18 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
             loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
         using var _ = exportProvider;
 
-        await exportProvider.GetExportedValue<ServiceBrokerFactory>().CreateAsync();
-
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        var workspaceProjectFactoryServiceInstance = (WorkspaceProjectFactoryService)exportProvider
-            .GetExportedValues<IExportedBrokeredService>()
-            .Single(service => service.Descriptor == WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor);
 
-        await using var brokeredServiceFactory = new BrokeredServiceProxy<IWorkspaceProjectFactoryService>(
-            workspaceProjectFactoryServiceInstance);
+        var serviceBrokerInitializers = exportProvider.GetExports<IServiceBrokerInitializer>().Select(e => e.Value);
+        var serviceBrokerFactory = new ServiceBrokerFactory(serviceBrokerInitializers, exportProvider, loggerFactory);
+        var container = await serviceBrokerFactory.CreateAsync(workspaceFactory.HostWorkspace);
 
-        var workspaceProjectFactoryService = await brokeredServiceFactory.GetServiceAsync();
+        var workspaceProjectFactoryService = new WorkspaceProjectFactoryService(
+            workspaceFactory,
+            new ProjectInitializationHandler(
+                container.GetFullAccessServiceBroker(),
+                loggerFactory),
+            loggerFactory);
         using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
             new WorkspaceProjectCreationInfo(LanguageNames.CSharp, "DisplayName", FilePath: null, new Dictionary<string, string>()),
             CancellationToken.None);

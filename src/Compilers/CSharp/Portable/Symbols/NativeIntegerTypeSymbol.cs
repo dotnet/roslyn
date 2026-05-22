@@ -55,6 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasDeclaredRequiredMembers => false;
 
+        internal override bool IsClosed => false;
+
+        internal override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => [];
+
         /// <summary>
         /// Certain members from the underlying types are not exposed from the native integer types:
         ///   constructors other than the default parameterless constructor are not supported;
