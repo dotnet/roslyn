@@ -1,0 +1,24 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(7,28): warning CS0219: The variable 'span1' is assigned but its value is never used
+//         ReadOnlySpan<byte> span1 = "hello"u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "span1").WithArguments("span1").WithLocation(7, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(10,28): warning CS0219: The variable 'span2' is assigned but its value is never used
+//         ReadOnlySpan<byte> span2 = "world"U8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "span2").WithArguments("span2").WithLocation(10, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(13,28): warning CS0219: The variable 'empty' is assigned but its value is never used
+//         ReadOnlySpan<byte> empty = ""u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "empty").WithArguments("empty").WithLocation(13, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(16,28): warning CS0219: The variable 'escaped' is assigned but its value is never used
+//         ReadOnlySpan<byte> escaped = "hello\nworld"u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "escaped").WithArguments("escaped").WithLocation(16, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(19,28): warning CS0219: The variable 'raw' is assigned but its value is never used
+//         ReadOnlySpan<byte> raw = """hello"""u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "raw").WithArguments("raw").WithLocation(19, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(27,13): warning CS0219: The variable 'bytes' is assigned but its value is never used
+//         var bytes = "data"u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "bytes").WithArguments("bytes").WithLocation(27, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(32,28): warning CS0219: The variable 'verbatim' is assigned but its value is never used
+//         ReadOnlySpan<byte> verbatim = @"path\to\file"u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "verbatim").WithArguments("verbatim").WithLocation(32, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(37,28): warning CS0219: The variable 'rawContent' is assigned but its value is never used
+//         ReadOnlySpan<byte> rawContent = """
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "rawContent").WithArguments("rawContent").WithLocation(37, 28)
