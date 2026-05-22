@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/58168
+
 namespace Microsoft.AspNetCore.Razor;
 
 internal static partial class Assumed
@@ -150,3 +152,5 @@ internal static partial class Assumed
         }
     }
 }
+
+#pragma warning restore IDE0060
