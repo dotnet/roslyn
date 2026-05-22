@@ -61,6 +61,24 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    public async Task NotWhenAtSignFollowsDollarInEmmetAbbreviation()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <div>
+                    ul>li.item$@$$
+                </div>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "@",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: null);
+    }
+
+    [Fact]
     public async Task CSharpInEmptyExplicitStatement()
     {
         await VerifyCompletionListAsync(
