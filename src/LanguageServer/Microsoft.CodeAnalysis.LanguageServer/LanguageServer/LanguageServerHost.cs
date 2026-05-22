@@ -78,8 +78,6 @@ internal sealed class LanguageServerHost
         await _roslynLanguageServer.WaitForExitAsync();
     }
 
-    public T GetRequiredLspService<T>() where T : ILspService
-    {
-        return _roslynLanguageServer.GetLspServices().GetRequiredService<T>();
-    }
+    public ILspServices GetLspServices()
+        => _roslynLanguageServer.GetLspServices();
 }

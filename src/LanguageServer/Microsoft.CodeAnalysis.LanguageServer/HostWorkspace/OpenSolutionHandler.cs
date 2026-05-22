@@ -10,16 +10,22 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(OpenSolutionHandler)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(OpenSolutionHandler)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class OpenSolutionHandlerFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new OpenSolutionHandler(lspServices.GetRequiredService<LanguageServerProjectSystem>());
+}
+
 [Method(OpenSolutionName)]
-internal sealed class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolutionHandler.NotificationParams>
+internal sealed class OpenSolutionHandler : ILspService, ILspServiceNotificationHandler<OpenSolutionHandler.NotificationParams>
 {
     internal const string OpenSolutionName = "solution/open";
 
     private readonly LanguageServerProjectSystem _projectSystem;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public OpenSolutionHandler(LanguageServerProjectSystem projectSystem)
     {
         _projectSystem = projectSystem;

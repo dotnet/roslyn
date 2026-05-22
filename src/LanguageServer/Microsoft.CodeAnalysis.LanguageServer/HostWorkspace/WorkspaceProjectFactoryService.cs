@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// </summary>
 internal sealed class WorkspaceProjectFactoryService(
     LanguageServerWorkspaceFactory workspaceFactory,
+    ProjectTargetFrameworkManager targetFrameworkManager,
     ProjectInitializationHandler projectInitializationHandler,
     ILoggerFactory loggerFactory) : IWorkspaceProjectFactoryService
 {
@@ -45,7 +46,7 @@ internal sealed class WorkspaceProjectFactoryService(
             // to returning a project or else we would never have a way to remove this project we created.
             cancellationToken = CancellationToken.None;
 
-            var workspaceProject = new WorkspaceProject(project, _workspaceFactory.HostWorkspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager, _loggerFactory);
+            var workspaceProject = new WorkspaceProject(project, _workspaceFactory.HostWorkspace.Services.SolutionServices, targetFrameworkManager, _loggerFactory);
 
             // We've created a new project, so initialize properties we have
             await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);
