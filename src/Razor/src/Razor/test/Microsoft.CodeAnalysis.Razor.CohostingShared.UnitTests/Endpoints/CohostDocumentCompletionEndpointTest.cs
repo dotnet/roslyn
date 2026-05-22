@@ -80,6 +80,24 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13074")]
+    public async Task ExplicitInvocationAtDollarAtStillShowsCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <div>
+                    ul>li.item$@$$
+                </div>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["char", "DateTime", "Exception"]);
+    }
+
+    [Fact]
     public async Task CSharpInEmptyExplicitStatement()
     {
         await VerifyCompletionListAsync(

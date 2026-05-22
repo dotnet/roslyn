@@ -112,7 +112,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     {
         // Suppress when '@' is typed as part of an Emmet abbreviation.
         // In Emmet syntax, '@' only appears after '$' for numbering modifiers.
-        // '$@' has no valid Razor meaning in HTML content, so suppressing here is safe.
         if (completionContext.TriggerKind == CompletionTriggerKind.TriggerCharacter
             && completionContext.TriggerCharacter == "@"
             && index > 1
