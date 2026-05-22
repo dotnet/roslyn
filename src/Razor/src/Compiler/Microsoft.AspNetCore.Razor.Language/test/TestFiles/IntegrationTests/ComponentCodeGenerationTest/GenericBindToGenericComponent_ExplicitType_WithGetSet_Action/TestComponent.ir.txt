@@ -1,0 +1,25 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TParam
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (19:1,0 [91] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentTypeArgument - (40:1,21 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TValue
+                        IntermediateToken - (40:1,21 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - TParam
+                    ComponentAttribute - (65:1,46 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Value - Value - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (65:1,46 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
+                    ComponentAttribute - (65:1,46 [11] x:\dir\subdir\Test\TestComponent.cshtml) - ValueChanged - ValueChanged - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
+                            IntermediateToken - (95:1,76 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
+                            IntermediateToken -  - CSharp - , ParentValue)
+                    ComponentAttribute - (95:1,76 [11] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (95:1,76 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (95:1,76 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
+            CSharpCode - (119:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (119:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public TParam ParentValue { get; set; } = default;\n\n    public void UpdateValue(TParam value) { ParentValue = value; }\n

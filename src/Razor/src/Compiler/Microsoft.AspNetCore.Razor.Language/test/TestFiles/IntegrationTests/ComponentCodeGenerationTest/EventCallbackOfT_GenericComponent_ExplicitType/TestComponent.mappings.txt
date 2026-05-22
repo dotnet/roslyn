@@ -1,0 +1,29 @@
+﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (703:19,49 [11] )
+|MyComponent|
+
+Source Location: (16:0,16 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyType|
+Generated Location: (799:22,0 [6] )
+|MyType|
+
+Source Location: (24:0,24 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|OnClick|
+Generated Location: (1048:31,0 [7] )
+|OnClick|
+
+Source Location: (35:0,35 [25] x:\dir\subdir\Test\TestComponent.cshtml)
+|(MyType arg) => counter++|
+Generated Location: (1434:39,0 [25] )
+|(MyType arg) => counter++|
+
+Source Location: (75:2,7 [28] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private int counter;
+|
+Generated Location: (1699:50,0 [28] )
+|
+    private int counter;
+|
+

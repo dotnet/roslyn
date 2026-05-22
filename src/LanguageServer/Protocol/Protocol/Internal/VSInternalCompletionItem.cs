@@ -16,6 +16,7 @@ internal sealed class VSInternalCompletionItem : CompletionItem
     internal const string DescriptionSerializedName = "_vs_description";
     internal const string VsCommitCharactersSerializedName = "_vs_commitCharacters";
     internal const string VsResolveTextEditOnCommitName = "_vs_resolveTextEditOnCommit";
+    internal const string MatchPrioritySerializedName = "_vs_matchPriority";
 
     /// <summary>
     /// Gets or sets the icon to show for the completion item. In VS, this is more extensive than the completion kind.
@@ -50,4 +51,13 @@ internal sealed class VSInternalCompletionItem : CompletionItem
     [JsonPropertyName(VsResolveTextEditOnCommitName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool VsResolveTextEditOnCommit { get; set; }
+
+    /// <summary>
+    /// Gets or sets the match priority for this completion item. Used by the client as a tiebreaker
+    /// during best-match selection when multiple items have equal pattern match quality.
+    /// Higher values are preferred. A value of 0 indicates default priority.
+    /// </summary>
+    [JsonPropertyName(MatchPrioritySerializedName)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int MatchPriority { get; set; }
 }

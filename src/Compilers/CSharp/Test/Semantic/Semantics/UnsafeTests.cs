@@ -396,7 +396,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -444,7 +444,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -491,7 +491,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -675,7 +675,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -753,7 +753,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         // Should behave equivalently to Iterator_UnsafeBlock_Async_02.
@@ -811,7 +811,7 @@ unsafe class C
             };
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -935,7 +935,7 @@ unsafe class C
             };
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -963,7 +963,7 @@ unsafe class C
             };
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1014,7 +1014,7 @@ unsafe class C
             };
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1042,7 +1042,7 @@ unsafe class C
             };
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1074,7 +1074,7 @@ unsafe class C
             };
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1106,7 +1106,7 @@ unsafe class C
             };
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73280")]
@@ -1137,7 +1137,7 @@ unsafe class C
             };
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1179,7 +1179,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1227,7 +1227,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1292,7 +1292,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1388,7 +1388,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1414,7 +1414,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1462,7 +1462,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1510,7 +1510,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1575,7 +1575,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1633,7 +1633,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1683,7 +1683,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1736,7 +1736,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1804,7 +1804,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1876,7 +1876,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -1904,7 +1904,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1954,7 +1954,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -2007,7 +2007,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -2075,7 +2075,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -2147,7 +2147,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Fact]
@@ -2175,7 +2175,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -2262,7 +2262,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -2309,7 +2309,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -2374,7 +2374,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -2432,7 +2432,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -2469,7 +2469,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -2509,7 +2509,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -2534,7 +2534,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -2562,7 +2562,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -2597,7 +2597,7 @@ unsafe class C
             ];
 
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -2622,7 +2622,7 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseExe, expectedDiagnostics);
         }
 
         [Fact]
@@ -2999,7 +2999,16 @@ unsafe class C<T>
                     // (8,30): error CS0306: The type 'int*' may not be used as a type argument
                     //     unsafe void Test(C<int*> c) { }
                     Diagnostic(ErrorCode.ERR_BadTypeArgument, "c").WithArguments("int*"),
-                });
+                },
+                expectedWithoutUnsafePreview:
+                [
+                    // (3,24): error CS0306: The type 'int*' may not be used as a type argument
+                    //      void Test(I<int*> i);
+                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "i").WithArguments("int*").WithLocation(3, 24),
+                    // (8,24): error CS0306: The type 'int*' may not be used as a type argument
+                    //      void Test(C<int*> c) { }
+                    Diagnostic(ErrorCode.ERR_BadTypeArgument, "c").WithArguments("int*").WithLocation(8, 24)
+                ]);
         }
 
         [Fact]
@@ -3208,7 +3217,8 @@ unsafe class C<T>
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Unsafe()").WithArguments("p")
             };
 
-            CompareUnsafeDiagnostics(template, expectedWithoutUnsafe, expectedWithUnsafe);
+            CompareUnsafeDiagnostics(template, expectedWithoutUnsafe, expectedWithUnsafe,
+                expectedWithoutUnsafePreview: expectedWithUnsafe);
         }
 
         [Fact]
@@ -3225,7 +3235,7 @@ unsafe class C<T>
 ";
 
             var withoutUnsafe = string.Format(template, "", "");
-            CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(withoutUnsafe, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // CONSIDER: We should probably suppress CS0214 (like Dev10 does) because it's
                 // confusing, but we don't have a good way to do so, because we don't know that
                 // the method is an iterator until we bind the body and we certainly don't want
@@ -3233,6 +3243,13 @@ unsafe class C<T>
 
                 // (4,59): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
+                // (4,64): error CS1637: Iterators cannot have pointer type parameters
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"));
+
+            CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,64): error CS1637: Iterators cannot have pointer type parameters
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"));
+            CreateCompilation(withoutUnsafe, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,64): error CS1637: Iterators cannot have pointer type parameters
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"));
 
@@ -3293,11 +3310,14 @@ unsafe class C<T>
 ";
 
             var withoutUnsafe = string.Format(template, "", "");
-            CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(withoutUnsafe, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,59): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 59)
                 );
+
+            CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(withoutUnsafe, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             var withUnsafeOnType = string.Format(template, "unsafe", "");
             CreateCompilation(withUnsafeOnType, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
@@ -3980,7 +4000,13 @@ class Container<T> {{ }}
                 // (2,2): error CS0181: Attribute constructor parameter 'a' has type 'int*[]', which is not a valid attribute parameter type
                 // [A]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("a", "int*[]")
-                });
+                },
+                expectedWithoutUnsafePreview:
+                [
+                // (2,2): error CS0181: Attribute constructor parameter 'a' has type 'int*[]', which is not a valid attribute parameter type
+                // [A]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("a", "int*[]")
+                ]);
         }
 
         [WorkItem(544938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544938")]
@@ -4013,7 +4039,13 @@ class Container<T> {{ }}
                 // (2,2): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
                 // [A]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("p", "int*")
-                });
+                },
+                expectedWithoutUnsafePreview:
+                [
+                // (2,2): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
+                // [A]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("p", "int*")
+                ]);
         }
 
         [WorkItem(544938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544938")]
@@ -4207,15 +4239,30 @@ class Container<T> {{ }}
 
         private static void CompareUnsafeDiagnostics(string template, params DiagnosticDescription[] expectedWithoutUnsafe)
         {
-            CompareUnsafeDiagnostics(template, expectedWithoutUnsafe, new DiagnosticDescription[0]);
+            // In preview langversion, pointer types and sizeof are safe,
+            // so filter out ERR_UnsafeNeeded and ERR_SizeofUnsafe for preview expected diagnostics.
+            var expectedWithoutUnsafePreview = Array.FindAll(expectedWithoutUnsafe,
+                d => !d.Code.Equals((int)ErrorCode.ERR_UnsafeNeeded) && !d.Code.Equals((int)ErrorCode.ERR_SizeofUnsafe));
+            CompareUnsafeDiagnostics(template, expectedWithoutUnsafe, expectedWithUnsafe: [], expectedWithoutUnsafePreview: expectedWithoutUnsafePreview);
         }
 
-        private static void CompareUnsafeDiagnostics(string template, DiagnosticDescription[] expectedWithoutUnsafe, DiagnosticDescription[] expectedWithUnsafe)
+        private static void CompareUnsafeDiagnostics(string template, DiagnosticDescription[] expectedWithoutUnsafe, DiagnosticDescription[] expectedWithUnsafe, DiagnosticDescription[] expectedWithoutUnsafePreview = null)
         {
             // NOTE: ERR_UnsafeNeeded is not affected by the presence/absence of the /unsafe flag.
             var withoutUnsafe = string.Format(template, "", "");
-            CreateCompilation(withoutUnsafe).VerifyDiagnostics(expectedWithoutUnsafe);
-            CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithoutUnsafe);
+
+            // With old langversion, pointer types require unsafe context.
+            CreateCompilation(withoutUnsafe, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedWithoutUnsafe);
+            CreateCompilation(withoutUnsafe, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithoutUnsafe);
+
+            // With preview langversion, pointer types are safe.
+            var previewExpected = expectedWithoutUnsafePreview ?? expectedWithoutUnsafe;
+            CreateCompilation(withoutUnsafe).VerifyDiagnostics(previewExpected);
+            CreateCompilation(withoutUnsafe, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(previewExpected);
+
+            // RegularNext should match preview behavior.
+            CreateCompilation(withoutUnsafe, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(previewExpected);
+            CreateCompilation(withoutUnsafe, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(previewExpected);
 
             var withUnsafeOnType = string.Format(template, "unsafe", "");
             CreateCompilation(withUnsafeOnType, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithUnsafe);
@@ -4225,6 +4272,19 @@ class Container<T> {{ }}
 
             var withUnsafeOnTypeAndMembers = string.Format(template, "unsafe", "unsafe");
             CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedWithUnsafe);
+        }
+
+        /// <summary>
+        /// Tests that diagnostics are reported with old langversion and correctly filtered in preview.
+        /// In preview, pointer types and sizeof are safe, so ERR_UnsafeNeeded and ERR_SizeofUnsafe are filtered.
+        /// </summary>
+        private static void VerifyUnsafeContextDiagnostics(string code, CSharpCompilationOptions options, DiagnosticDescription[] expectedDiagnostics, DiagnosticDescription[] expectedPreviewDiagnostics = null)
+        {
+            expectedPreviewDiagnostics ??= Array.FindAll(expectedDiagnostics,
+                d => !d.Code.Equals((int)ErrorCode.ERR_UnsafeNeeded) && !d.Code.Equals((int)ErrorCode.ERR_SizeofUnsafe));
+            CreateCompilation(code, parseOptions: TestOptions.Regular14, options: options).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: options).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: options).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [WorkItem(544097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544097")]
@@ -10501,7 +10561,10 @@ struct S
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(text, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(text).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]
@@ -10604,7 +10667,7 @@ class Program
     int F1 = sizeof(null);
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,21): error CS1031: Type expected
                 //     int F1 = sizeof(null);
                 Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
@@ -10617,6 +10680,21 @@ class Program
                 // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
                 //     int F1 = sizeof(null);
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (4,21): error CS1031: Type expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
+                // (4,21): error CS1026: ) expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
+                // (4,21): error CS1003: Syntax error, ',' expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(","),
+            };
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         #endregion sizeof diagnostic tests
@@ -10874,7 +10952,10 @@ struct S
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(text, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(text).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]
@@ -11832,7 +11913,11 @@ public unsafe class B : A
     public override T* M<T>() => throw null!;
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics();
         }
 
@@ -12759,7 +12844,11 @@ namespace Interop
         public PROPVARIANT* pElems;
     }
 }";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics();
         }
 
@@ -12773,14 +12862,21 @@ class C
 {
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.DebugDll);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using unsafe X = int*;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = int*;").WithLocation(2, 1),
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = int*;
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
+            };
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -12793,14 +12889,21 @@ class C
 {
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.DebugDll);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using unsafe X = int;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = int;").WithLocation(2, 1),
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = int;
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
+            };
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -12924,7 +13027,7 @@ class C
     unsafe void N2(Y y) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (3,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using Y = int*;
@@ -12935,6 +13038,11 @@ class C
                 // (10,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void N1(Y y) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Y").WithLocation(10, 13));
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -12947,7 +13055,7 @@ namespace N
     using Y = X;
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (5,5): hidden CS8019: Unnecessary using directive.
                 //     using Y = X;
@@ -12955,6 +13063,17 @@ namespace N
                 // (5,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     using Y = X;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(5, 15));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (5,5): hidden CS8019: Unnecessary using directive.
+                //     using Y = X;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X;").WithLocation(5, 5),
+            };
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -12967,11 +13086,18 @@ namespace N
     using unsafe Y = X;
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (5,5): hidden CS8019: Unnecessary using directive.
                 //     using unsafe Y = X;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe Y = X;").WithLocation(5, 5));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe Y = X;").WithLocation(5, 5),
+            };
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -12985,7 +13111,7 @@ class C
     void M(int* x) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using X = int*;
@@ -12996,6 +13122,17 @@ class C
                 // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(int* x) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 12));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using X = int*;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = int*;").WithLocation(2, 1),
+            };
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -13009,14 +13146,21 @@ class C
     unsafe void M((X x1, X x2) t) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (6,32): error CS0306: The type 'int*' may not be used as a type argument
                 //     unsafe void M((X x1, X x2) t) { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("int*").WithLocation(6, 32),
                 // (6,32): error CS0306: The type 'int*' may not be used as a type argument
                 //     unsafe void M((X x1, X x2) t) { }
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("int*").WithLocation(6, 32));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("int*").WithLocation(6, 32),
+            };
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -13030,7 +13174,11 @@ class C
     unsafe void M(X[] t) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics();
         }
 
@@ -13045,11 +13193,16 @@ class C
     void M(X[] t) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(X[] t) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12));
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -13058,11 +13211,18 @@ class C
             var csharp = @"
 using unsafe X = int*[];
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using unsafe X = int*[];
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = int*[];").WithLocation(2, 1));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = int*[];").WithLocation(2, 1),
+            };
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -13071,7 +13231,7 @@ using unsafe X = int*[];
             var csharp = @"
 using X = int*[];
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using X = int*[];
@@ -13079,6 +13239,17 @@ using X = int*[];
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = int*[];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 11));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using X = int*[];
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = int*[];").WithLocation(2, 1),
+            };
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -13093,11 +13264,16 @@ class C
     unsafe void M2(X t) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M1(X t) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 13));
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -13112,11 +13288,16 @@ class C
     unsafe void M2(X t) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M1(X t) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 13));
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -13130,7 +13311,11 @@ class C
     void ThisMethodIsNotUnsafe(X x) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics();
         }
 
@@ -13145,11 +13330,18 @@ class C
     void ThisMethodIsNotUnsafe(X x) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.DebugDll);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = int;
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
+            };
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -13164,11 +13356,16 @@ class C
     unsafe void M2(X x) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M1(X x) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 13));
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -13183,7 +13380,7 @@ class C
     unsafe void M2(X x) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = delegate*<int,int>;
@@ -13191,6 +13388,11 @@ class C
                 // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M1(X x) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 13));
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -13204,7 +13406,7 @@ class C
     void M(int* x) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using X = delegate*<int,int>;
@@ -13215,6 +13417,17 @@ class C
                 // (6,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(int* x) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 12));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using X = delegate*<int,int>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = delegate*<int,int>;").WithLocation(2, 1),
+            };
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -13230,7 +13443,7 @@ class C
     void M3(X[] t) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0306: The type 'delegate*<int, int>' may not be used as a type argument
                 //     unsafe void M1((X x1, X x2) t) { }
@@ -13241,6 +13454,20 @@ class C
                 // (8,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M3(X[] t) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(8, 13));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (6,33): error CS0306: The type 'delegate*<int, int>' may not be used as a type argument
+                //     unsafe void M1((X x1, X x2) t) { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("delegate*<int, int>").WithLocation(6, 33),
+                // (6,33): error CS0306: The type 'delegate*<int, int>' may not be used as a type argument
+                //     unsafe void M1((X x1, X x2) t) { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("delegate*<int, int>").WithLocation(6, 33),
+            };
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -13250,7 +13477,7 @@ class C
 using unsafe X = delegate*<int,int>[];
 using Y = delegate*<int,int>[];
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using unsafe X = delegate*<int,int>[];
@@ -13261,6 +13488,20 @@ using Y = delegate*<int,int>[];
                 // (3,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using Y = delegate*<int,int>[];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(3, 11));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using unsafe X = delegate*<int,int>[];
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe X = delegate*<int,int>[];").WithLocation(2, 1),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using Y = delegate*<int,int>[];
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = delegate*<int,int>[];").WithLocation(3, 1),
+            };
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -13275,11 +13516,16 @@ class C
     unsafe void M2(X t) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M1(X t) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 13));
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -13294,59 +13540,80 @@ class C
     unsafe void M2(X t) { }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M1(X t) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 13));
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
         public void UsingAlias_Multiple()
         {
-            CreateCompilation("""
+            var src1 = """
                 #pragma warning disable CS8019 // unnecessary using
                 using unsafe X = System.Collections.Generic.List<int*[]>;
                 using Y = System.Collections.Generic.List<long*[]>;
-                """,
-                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                """;
+            CreateCompilation(src1,
+                parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using Y = System.Collections.Generic.List<long*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(3, 43));
 
-            CreateCompilation("""
+            CreateCompilation(src1, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            var src2 = """
                 #pragma warning disable CS8019 // unnecessary using
                 using X = System.Collections.Generic.List<int*[]>;
                 using unsafe Y = System.Collections.Generic.List<long*[]>;
-                """,
-                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                """;
+            CreateCompilation(src2,
+                parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
+
+            CreateCompilation(src2, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(src2, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82426")]
         public void UsingStatic_Multiple()
         {
-            CreateCompilation("""
+            var src1 = """
                 #pragma warning disable CS8019 // unnecessary using
                 using static unsafe System.Collections.Generic.List<int*[]>;
                 using static System.Collections.Generic.List<long*[]>;
-                """,
-                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                """;
+            CreateCompilation(src1,
+                parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,46): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using static System.Collections.Generic.List<long*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(3, 46));
 
-            CreateCompilation("""
+            CreateCompilation(src1, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(src1, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            var src2 = """
                 #pragma warning disable CS8019 // unnecessary using
                 using static System.Collections.Generic.List<int*[]>;
                 using static unsafe System.Collections.Generic.List<long*[]>;
-                """,
-                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                """;
+            CreateCompilation(src2,
+                parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (2,46): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using static System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 46));
+
+            CreateCompilation(src2, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(src2, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -13360,7 +13627,7 @@ unsafe struct S
     X x;
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,7): warning CS0169: The field 'S.x' is never used
                 //     X x;
@@ -13370,6 +13637,8 @@ unsafe struct S
 
             // Try again with a fresh compilation, without having done anything to pull on this type.
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
             Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
         }
 
@@ -13395,7 +13664,7 @@ class C
 }
 
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,7): warning CS0169: The field 'S.x' is never used
                 //     X x;
@@ -13405,6 +13674,8 @@ class C
 
             // Try again with a fresh compilation, without having done anything to pull on this type.
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
             Assert.Equal(ManagedKind.Unmanaged, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
         }
 
@@ -13595,11 +13866,23 @@ using X = System.Collections.Generic.List<int*[]>;
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43)
             };
-            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(expectedCSharp11);
+
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(expectedCSharp11);
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(expectedCSharp11);
+
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(expectedCSharp11);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -13637,11 +13920,23 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 12)
             };
 
-            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -13657,22 +13952,29 @@ class C
     }
 }
 ";
+            var illegalUnsafe = new[]
+            {
+                // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe void M(X x)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17),
+            };
+            var unsafeNeeded = new[]
+            {
+                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43),
+            };
+
             var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular11);
-            comp.VerifyDiagnostics(
-                // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                //     unsafe void M(X x)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17));
+            comp.VerifyDiagnostics(illegalUnsafe);
 
-            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                // using X = System.Collections.Generic.List<int*[]>;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(unsafeNeeded);
 
-            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
@@ -13680,6 +13982,18 @@ class C
                 // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     unsafe void M(X x)
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17));
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(illegalUnsafe);
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(illegalUnsafe);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -13816,8 +14130,14 @@ class C
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -13961,8 +14281,14 @@ class C
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -14063,7 +14389,11 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -14089,9 +14419,14 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
                 );
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -14116,9 +14451,14 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
                 );
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -14144,7 +14484,12 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -14226,12 +14571,17 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
                 // (14,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void ITest<void*[]>.Method()
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 16)
                 );
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -14256,12 +14606,17 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
                 // (14,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     int ITest<void*[]>.P1
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 15)
                 );
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -14286,12 +14641,17 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
                 // (14,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     int ITest<void*[]>.this[int i]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 15)
                 );
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -14317,12 +14677,17 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
                 // (14,31): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     event System.Action ITest<void*[]>.E1
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 31)
                 );
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -14347,7 +14712,7 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (14,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     static ITest<void*[]> ITest<void*[]>.operator-(ITest<void*[]> x)
@@ -14359,6 +14724,11 @@ class PointerImpl : IPointerTest
                 //     static ITest<void*[]> ITest<void*[]>.operator-(ITest<void*[]> x)
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 58)
                 );
+
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -14383,7 +14753,7 @@ class PointerImpl : IPointerTest
     }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (4,39): error CS0552: 'ITest<T>.implicit operator int(ITest<T>)': user-defined conversions to or from an interface are not allowed
                 //     abstract static implicit operator int(ITest<T> x);
@@ -14395,6 +14765,17 @@ class PointerImpl : IPointerTest
                 //     static implicit ITest<void*[]>.operator int(ITest<void*[]> x)
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 55)
                 );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (4,39): error CS0552: 'ITest<T>.implicit operator int(ITest<T>)': user-defined conversions to or from an interface are not allowed
+                //     abstract static implicit operator int(ITest<T> x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("ITest<T>.implicit operator int(ITest<T>)").WithLocation(4, 39),
+            };
+            comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
@@ -14526,13 +14907,15 @@ class PointerImpl : IPointerTest
                 }
                 """;
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (3,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //     C<int*[]> field;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 7),
-                // (3,15): warning CS0169: The field 'C<T>.field' is never used
-                //     C<int*[]> field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(3, 15));
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll,
+                [
+                    // (3,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //     C<int*[]> field;
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 7),
+                    // (3,15): warning CS0169: The field 'C<T>.field' is never used
+                    //     C<int*[]> field;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(3, 15)
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
@@ -14564,13 +14947,15 @@ class PointerImpl : IPointerTest
                 }
                 """;
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         C<int*[]> c = null;
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 11),
-                // (5,19): warning CS0219: The variable 'c' is assigned but its value is never used
-                //         C<int*[]> c = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(5, 19));
+            VerifyUnsafeContextDiagnostics(code, TestOptions.UnsafeReleaseDll,
+                [
+                    // (5,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //         C<int*[]> c = null;
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 11),
+                    // (5,19): warning CS0219: The variable 'c' is assigned but its value is never used
+                    //         C<int*[]> c = null;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(5, 19)
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]

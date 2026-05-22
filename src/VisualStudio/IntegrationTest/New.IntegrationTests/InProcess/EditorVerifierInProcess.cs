@@ -167,7 +167,7 @@ internal sealed partial class EditorVerifierInProcess : ITextViewWindowVerifierI
                 if (expectedTag.taggedText != actualTaggedText)
                     return false;
 
-                AssertEx.NotNull(actualTaggedSpan.Tag.ToolTipContent);
+                Assert.NotNull(actualTaggedSpan.Tag.ToolTipContent);
                 var containerElement = (ContainerElement)actualTaggedSpan.Tag.ToolTipContent;
                 var actualTooltipText = CollectTextInRun(containerElement);
                 if (expectedTag.tooltipText != actualTooltipText)

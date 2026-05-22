@@ -1,0 +1,15 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        RouteAttributeExtensionNode - (6:0,6 [3] x:\dir\subdir\Test\TestComponent.cshtml) - "/"
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupBlock -  - <h1>Hello, world!</h1>\n\nWelcome to your new app.\n\n
+                Component - (67:6,0 [41] x:\dir\subdir\Test\TestComponent.cshtml) - SurveyPrompt
+                    ComponentAttribute - (88:6,21 [16] x:\dir\subdir\Test\TestComponent.cshtml) - Title - Title - AttributeStructure.DoubleQuotes
+                        HtmlContent - (88:6,21 [16] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (88:6,21 [16] x:\dir\subdir\Test\TestComponent.cshtml) - Html - <div>Test!</div>

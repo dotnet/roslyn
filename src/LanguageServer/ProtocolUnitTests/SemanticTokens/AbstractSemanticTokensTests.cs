@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -42,14 +41,6 @@ public abstract class AbstractSemanticTokensTests : AbstractLanguageServerProtoc
         return result;
     }
 
-    private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangesAsync(TestLspServer testLspServer, LSP.Location caret, Range[] ranges)
-    {
-        var result = await testLspServer.ExecuteRequestAsync<SemanticTokensRangesParams, LSP.SemanticTokens>(SemanticTokensRangesHandler.SemanticRangesMethodName,
-            CreateSemanticTokensRangesParams(caret, ranges), CancellationToken.None);
-        Contract.ThrowIfNull(result);
-        return result;
-    }
-
     private static LSP.SemanticTokensFullParams CreateSemanticTokensFullParams(LSP.Location caret)
         => new()
         {
@@ -61,13 +52,6 @@ public abstract class AbstractSemanticTokensTests : AbstractLanguageServerProtoc
         {
             TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = location.DocumentUri },
             Range = location.Range
-        };
-
-    private static SemanticTokensRangesParams CreateSemanticTokensRangesParams(LSP.Location caret, Range[] ranges)
-        => new()
-        {
-            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri },
-            Ranges = ranges
         };
 
     // VS doesn't currently support multi-line tokens, so we want to verify that we aren't

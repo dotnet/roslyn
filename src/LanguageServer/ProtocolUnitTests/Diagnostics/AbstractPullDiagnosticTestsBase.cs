@@ -107,7 +107,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
             diagnostics = progress!.Value.GetFlattenedValues();
         }
 
-        AssertEx.NotNull(diagnostics);
+        Assert.NotNull(diagnostics);
         return [.. diagnostics.Select(d => new TestDiagnosticResult(d.TextDocument!, d.ResultId!, d.Diagnostics))];
     }
 
@@ -144,7 +144,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
 
         }
 
-        AssertEx.NotNull(returnedResult);
+        Assert.NotNull(returnedResult);
         return [.. returnedResult.Items.Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics))];
     }
 
@@ -265,7 +265,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
                 diagnostics = progress!.Value.GetFlattenedValues();
             }
 
-            AssertEx.NotNull(diagnostics);
+            Assert.NotNull(diagnostics);
             return [.. diagnostics.Select(d => new TestDiagnosticResult(vsTextDocumentIdentifier, d.ResultId!, d.Diagnostics))];
         }
         else
@@ -279,7 +279,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
             {
                 Assert.IsType<FullDocumentDiagnosticReport>(diagnostics.Value);
                 Assert.Empty(diagnostics.First.Items);
-                AssertEx.NotNull(progress);
+                Assert.NotNull(progress);
                 diagnostics = progress.Value.GetValues()!.Single().First;
             }
 
