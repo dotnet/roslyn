@@ -35,10 +35,14 @@ parameters:
 - name: roslynRepositoryAlias
   type: string
   default: self
+- name: testStageFilter
+  type: object
+  default: ''
 
 stages:
 - template: /eng/pipelines/test-gates/roslyn-vs-integration/stage.yml@${{parameters.roslynRepositoryAlias}}
   parameters:
+    testStageFilter: ${{ parameters.testStageFilter }}
     prNumber: ${{ parameters.prNumber }}
     sha: ${{ parameters.sha }}
     EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
