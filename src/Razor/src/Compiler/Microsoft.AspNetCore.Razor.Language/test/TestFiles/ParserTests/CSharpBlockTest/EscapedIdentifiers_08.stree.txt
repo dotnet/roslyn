@@ -1,0 +1,67 @@
+﻿RazorDocument - [0..110)::110 - [@code {LF    [Parameter]LF    public Func<int, int> ChildContent { get; set; } = (context) => 1 < @context;LF}]
+    MarkupBlock - [0..110)::110
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..110)::110
+            RazorDirective - [0..110)::110 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..110)::109
+                    RazorMetaCode - [1..5)::4 - Gen<None>
+                        Identifier;[code];
+                    CSharpCodeBlock - [5..110)::105
+                        UnclassifiedTextLiteral - [5..6)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [6..7)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [7..109)::102
+                            CSharpStatementLiteral - [7..109)::102 - [LF    [Parameter]LF    public Func<int, int> ChildContent { get; set; } = (context) => 1 < @context;LF] - Gen<Stmt>
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                LeftBracket;[[];
+                                Identifier;[Parameter];
+                                RightBracket;[]];
+                                NewLine;[LF];
+                                Whitespace;[    ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Identifier;[Func];
+                                LessThan;[<];
+                                Keyword;[int];
+                                Comma;[,];
+                                Whitespace;[ ];
+                                Keyword;[int];
+                                GreaterThan;[>];
+                                Whitespace;[ ];
+                                Identifier;[ChildContent];
+                                Whitespace;[ ];
+                                LeftBrace;[{];
+                                Whitespace;[ ];
+                                Keyword;[get];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                Keyword;[set];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                                RightBrace;[}];
+                                Whitespace;[ ];
+                                Assign;[=];
+                                Whitespace;[ ];
+                                LeftParenthesis;[(];
+                                Identifier;[context];
+                                RightParenthesis;[)];
+                                Whitespace;[ ];
+                                CSharpOperator;[=>];
+                                Whitespace;[ ];
+                                NumericLiteral;[1];
+                                Whitespace;[ ];
+                                LessThan;[<];
+                                Whitespace;[ ];
+                                Identifier;[@context];
+                                Semicolon;[;];
+                                NewLine;[LF];
+                        RazorMetaCode - [109..110)::1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [110..110)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

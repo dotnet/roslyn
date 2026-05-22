@@ -23,17 +23,6 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Install .NET agent skills
-        continue-on-error: true
-        run: |
-          copilot plugin marketplace add dotnet/skills || true
-          copilot plugin install dotnet@dotnet-agent-skills || true
-          copilot plugin install dotnet-diag@dotnet-agent-skills || true
-          copilot plugin install dotnet-msbuild@dotnet-agent-skills || true
-          copilot plugin install dotnet-nuget@dotnet-agent-skills || true
-          copilot plugin install dotnet-test@dotnet-agent-skills || true
-          copilot plugin list || true
-
       # Restore dependencies - this is critical for Copilot to understand the project structure
       - name: Restore dependencies
         continue-on-error: true

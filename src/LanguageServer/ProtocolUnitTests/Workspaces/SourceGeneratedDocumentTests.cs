@@ -42,7 +42,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal("// Hello, World", result.Text);
     }
 
@@ -57,7 +57,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal("// Hello, World", result.Text);
 
         // Verifying opening and closing the document doesn't cause any issues.
@@ -80,7 +80,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         foreach (var sourceGeneratorDocumentUri in sourceGeneratorDocumentUris)
         {
             var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-            AssertEx.NotNull(result?.Text);
+            Assert.NotNull(result?.Text);
             await testLspServer.OpenDocumentAsync(sourceGeneratorDocumentUri, result.Text);
         }
 
@@ -104,7 +104,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, clientCapabilities);
 
         var textDocumentContentCapabilities = testLspServer.GetServerCapabilities().Workspace?.TextDocumentContent;
-        AssertEx.NotNull(textDocumentContentCapabilities);
+        Assert.NotNull(textDocumentContentCapabilities);
         Assert.Contains(SourceGeneratedDocumentUri.Scheme, textDocumentContentCapabilities.Schemes);
     }
 
@@ -122,7 +122,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         var hover = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
                 CreateTextDocumentPositionParams(location), CancellationToken.None);
 
-        AssertEx.NotNull(hover);
+        Assert.NotNull(hover);
         Assert.Contains("class A", hover.Contents.Fourth.Value);
     }
 
@@ -142,7 +142,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal(sourceGeneratorSource, result.Text);
     }
 
@@ -157,12 +157,12 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal("// Hello, World", result.Text);
 
         // Make a second request - since nothing has changed we should get back the same text.
         var secondResult = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-        AssertEx.NotNull(secondResult);
+        Assert.NotNull(secondResult);
         Assert.Equal("// Hello, World", secondResult.Text);
     }
 
@@ -183,7 +183,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal("// callCount: 0", result.Text);
 
         // Modify a normal document in the workspace.
@@ -198,13 +198,13 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         if (sourceGeneratorExecution == SourceGeneratorExecutionPreference.Automatic)
         {
             // We should get newly generated text
-            AssertEx.NotNull(secondResult);
+            Assert.NotNull(secondResult);
             Assert.Equal("// callCount: 1", secondResult.Text);
         }
         else
         {
             // We should get the same text as before
-            AssertEx.NotNull(secondResult);
+            Assert.NotNull(secondResult);
             Assert.Equal("// callCount: 0", secondResult.Text);
         }
     }
@@ -226,14 +226,14 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal("// callCount: 0", result.Text);
 
         // Updating the execution version should trigger source generators to run in both automatic and balanced mode.
         await testLspServer.RefreshSourceGeneratorsAsync(forceRegeneration: true);
 
         var secondResult = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-        AssertEx.NotNull(secondResult);
+        Assert.NotNull(secondResult);
         Assert.Equal("// callCount: 1", secondResult.Text);
     }
 
@@ -265,7 +265,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         Assert.Equal([sourceGeneratorDocumentUri], clientCallbackTarget.GetRefreshedUris());
 
         var refreshedResult = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-        AssertEx.NotNull(refreshedResult);
+        Assert.NotNull(refreshedResult);
         Assert.Equal("// callCount: 1", refreshedResult.Text);
     }
 
@@ -304,7 +304,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         }
 
         var refreshedResult = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-        AssertEx.NotNull(refreshedResult);
+        Assert.NotNull(refreshedResult);
         Assert.Equal(
             sourceGeneratorExecution == SourceGeneratorExecutionPreference.Automatic ? "// callCount: 1" : "// callCount: 0",
             refreshedResult.Text);
@@ -363,7 +363,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal("// callCount: 0", result.Text);
 
         var initialSolution = testLspServer.GetCurrentSolution();
@@ -376,7 +376,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         var solutionWithChangedExecutionVersion = testLspServer.GetCurrentSolution();
 
         var secondResult = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-        AssertEx.NotNull(secondResult);
+        Assert.NotNull(secondResult);
 
         if (forceRegeneration)
         {
@@ -444,7 +444,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal("// Hello, World", result.Text);
 
         // Remove the generator - the document is not opened so it will no longer exist in the workspace.
@@ -468,7 +468,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal("// Hello, World", result.Text);
 
         // Open the document - this will cause the queue to generate frozen sg documents based on the LSP open text
@@ -503,7 +503,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal("// callCount: 0", result.Text);
 
         await testLspServer.OpenDocumentAsync(documentUri, string.Empty);
@@ -515,7 +515,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         await testLspServer.WaitForSourceGeneratorsAsync();
 
         var secondResult = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-        AssertEx.NotNull(secondResult);
+        Assert.NotNull(secondResult);
         if (sourceGeneratorExecution == SourceGeneratorExecutionPreference.Automatic)
         {
             Assert.Equal("// callCount: 1", secondResult.Text);
@@ -535,7 +535,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         await testLspServer.WaitForSourceGeneratorsAsync();
 
         var thirdResult = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
-        AssertEx.NotNull(thirdResult);
+        Assert.NotNull(thirdResult);
         Assert.Equal("// callCount: 1", thirdResult.Text);
     }
 
@@ -554,7 +554,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         var sourceGeneratedDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocuments.Single().Identity);
 
         var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratedDocumentUri);
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
 
         await testLspServer.OpenDocumentAsync(sourceGeneratedDocumentUri, result.Text);
         await testLspServer.WaitForSourceGeneratorsAsync();
