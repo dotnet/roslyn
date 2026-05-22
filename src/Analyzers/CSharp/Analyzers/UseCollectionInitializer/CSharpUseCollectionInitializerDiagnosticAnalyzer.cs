@@ -42,8 +42,41 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
     protected override ISyntaxFacts SyntaxFacts
         => CSharpSyntaxFacts.Instance;
 
+    // C# member-init fade includes the `.` operator token (`c.` is faded). VB's analogous
+    // shape historically faded only the receiver (`c`). See the legacy
+    // `CSharpUseObjectInitializerDiagnosticAnalyzer.FadeOutOperatorToken` for the equivalent.
+    protected override bool FadeOutOperatorToken => true;
+
     protected override CSharpUseCollectionInitializerAnalyzer GetAnalyzer()
         => CSharpUseCollectionInitializerAnalyzer.Allocate();
+
+    protected override bool HasExistingInvalidInitializerForCollectionExpression(BaseObjectCreationExpressionSyntax objectCreationExpression)
+    {
+        // Mirrors `CSharpUseCollectionInitializerAnalyzer.HasExistingInvalidInitializerForCollection`
+        // but takes the object creation as a parameter so the diagnostic analyzer can call it
+        // without going through the pooled walk's `_objectCreationExpression` field.
+        // Pre-Pass-3 the walk-level method was reached implicitly via `ShouldAnalyze`'s
+        // short-circuit; now the diagnostic analyzer's collection-expression branch
+        // consults this check directly.
+        if (objectCreationExpression.Initializer is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression)
+            {
+                Expressions: [var firstExpression, ..],
+            })
+        {
+            if (firstExpression is AssignmentExpressionSyntax
+                {
+                    Left: ImplicitElementAccessSyntax { ArgumentList.Arguments.Count: 1 }
+                } &&
+                this.SyntaxFacts.SupportsKeyValuePairElement(objectCreationExpression.SyntaxTree.Options))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
 
     protected override bool AreCollectionInitializersSupported(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp3;

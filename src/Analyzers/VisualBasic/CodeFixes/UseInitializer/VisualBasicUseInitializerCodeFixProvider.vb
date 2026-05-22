@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.UseInitializer
-Imports Microsoft.CodeAnalysis.UseObjectInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -21,13 +20,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseInitializer
     ''' <summary>
-    ''' Pass 2 of the IDE0017+IDE0028 unification: a single VB fix provider class registered
+    ''' Pass 3 of the IDE0017+IDE0028 unification: a single VB fix provider class registered
     ''' for IDE0017 (object-initializer), IDE0028 (collection-initializer), and IDE0400 (mixed
-    ''' object/collection initializer; never actually emitted in VB but supported by the
-    ''' shared abstract base for symmetry). Replaces the prior
+    ''' object/collection initializer; never actually reported in VB but supported by the
+    ''' shared abstract base for symmetry), backed by a single walk
+    ''' (<c>VisualBasicCollectionInitializerAnalyzer</c>). Replaces the prior
     ''' <c>VisualBasicUseObjectInitializerCodeFixProvider</c> and
-    ''' <c>VisualBasicUseCollectionInitializerCodeFixProvider</c> classes. The two walks
-    ''' remain separate at this layer — Pass 3 collapses them into a single walk.
+    ''' <c>VisualBasicUseCollectionInitializerCodeFixProvider</c> classes, and removes the
+    ''' per-language member-initializer walk dependency.
     ''' </summary>
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseCollectionInitializer), [Shared]>
     Friend NotInheritable Class VisualBasicUseInitializerCodeFixProvider
@@ -42,7 +42,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInitializer
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
-            VisualBasicUseNamedMemberInitializerAnalyzer,
             VisualBasicCollectionInitializerAnalyzer)
         ' Note: above the `AssignmentStatementSyntax` slot serves both `TAssignmentStatementSyntax`
         ' on the abstract base AND the matching slot on the collection-init analyzer's generic
@@ -53,11 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInitializer
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetMemberInitAnalyzer() As VisualBasicUseNamedMemberInitializerAnalyzer
-            Return VisualBasicUseNamedMemberInitializerAnalyzer.Allocate()
-        End Function
-
-        Protected Overrides Function GetCollectionInitAnalyzer() As VisualBasicCollectionInitializerAnalyzer
+        Protected Overrides Function GetAnalyzer() As VisualBasicCollectionInitializerAnalyzer
             Return VisualBasicCollectionInitializerAnalyzer.Allocate()
         End Function
 
@@ -73,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInitializer
                 statement As StatementSyntax,
                 objectCreation As ObjectCreationExpressionSyntax,
                 options As SyntaxFormattingOptions,
-                matches As ImmutableArray(Of InitializerMatch(Of StatementSyntax))) As StatementSyntax
+                matches As ImmutableArray(Of InitializerMatch(Of SyntaxNode))) As StatementSyntax
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
                 GetNewObjectCreationForMemberInit(objectCreation, options, matches))
@@ -97,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInitializer
         Private Function GetNewObjectCreationForMemberInit(
                 objectCreation As ObjectCreationExpressionSyntax,
                 options As SyntaxFormattingOptions,
-                matches As ImmutableArray(Of InitializerMatch(Of StatementSyntax))) As ObjectCreationExpressionSyntax
+                matches As ImmutableArray(Of InitializerMatch(Of SyntaxNode))) As ObjectCreationExpressionSyntax
 
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
@@ -108,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInitializer
         Private Function CreateFieldInitializers(
                 objectCreation As ObjectCreationExpressionSyntax,
                 options As SyntaxFormattingOptions,
-                matches As ImmutableArray(Of InitializerMatch(Of StatementSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
+                matches As ImmutableArray(Of InitializerMatch(Of SyntaxNode))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
             Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
 
             UseInitializerHelpers.AddExistingItems(objectCreation, nodesAndTokens)

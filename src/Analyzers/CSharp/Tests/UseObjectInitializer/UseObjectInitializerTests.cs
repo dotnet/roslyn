@@ -8,8 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.CSharp.UseInitializer;
-using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,46 +18,56 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer;
 
+// Pass 3b of the IDE0017+IDE0028 unification: a single C# diagnostic analyzer
+// (`CSharpUseCollectionInitializerDiagnosticAnalyzer`) registers all three IDs (IDE0017,
+// IDE0028, IDE0400) and a single C# fix provider (`CSharpUseInitializerCodeFixProvider`)
+// implements all three fixes. The legacy `CSharpUseObjectInitializerDiagnosticAnalyzer`
+// alias used here pre-Pass-3b was deleted in this pass.
 using VerifyCS = CSharpCodeFixVerifier<
-    CSharpUseObjectInitializerDiagnosticAnalyzer,
+    CSharpUseCollectionInitializerDiagnosticAnalyzer,
     CSharpUseInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
 public sealed partial class UseObjectInitializerTests
 {
-    /// <summary>
-    /// Test wrapper for the mixed object/collection initializer diagnostic (IDE0400). The
-    /// shared analyzer (<see cref="CSharpUseObjectInitializerDiagnosticAnalyzer"/>) registers
-    /// both IDE0017 and IDE0400 descriptors, and the underlying test framework defaults
-    /// markup-driven (<c>[|…|]</c>) expectations to the first descriptor — IDE0017. Tests
-    /// whose synthesized initializer is mixed (and therefore route to IDE0400 in the
-    /// diagnostic-analyzer routing) override <see cref="GetDefaultDiagnostic"/> via this
-    /// subclass so that markup expectations resolve to IDE0400 instead.
-    /// </summary>
-    private sealed class MixedTest : VerifyCS.Test
+    // Pass 3b of the IDE0017+IDE0028 unification: the shared analyzer registers IDE0017,
+    // IDE0028, and IDE0400 descriptors with IDE0028 first. The test framework's default
+    // markup-driven expectations resolve to the first descriptor, so every test in this
+    // file (all targeting IDE0017 / IDE0400) needs an explicit override. The two
+    // <see cref="Test"/> / <see cref="MixedTest"/> wrappers pin the right ID.
+
+    private static DiagnosticDescriptor RequireDescriptor(DiagnosticAnalyzer[] analyzers, string expectedId)
+    {
+        // If a future refactor drops the expected descriptor from the analyzer's supported
+        // list, fail loudly rather than silently letting tests resolve to the first remaining
+        // descriptor. Without this, removing the expected ID would appear to keep tests
+        // green while quietly changing what they assert.
+        var descriptor = analyzers
+            .SelectMany(a => a.SupportedDiagnostics)
+            .FirstOrDefault(d => d.Id == expectedId);
+
+        return descriptor ?? throw new InvalidOperationException(
+            $"{nameof(CSharpUseCollectionInitializerDiagnosticAnalyzer)} did not register the {expectedId} " +
+            $"descriptor expected by this test wrapper.");
+    }
+
+    private class Test : VerifyCS.Test
     {
         protected override DiagnosticDescriptor? GetDefaultDiagnostic(DiagnosticAnalyzer[] analyzers)
-        {
-            // If a future refactor drops the IDE0400 descriptor from the analyzer's supported
-            // list, fall back to a hard failure rather than silently letting tests pass under
-            // IDE0017 (the previous "first" descriptor). Without this, removing IDE0400 would
-            // appear to keep tests green while losing the unification behavior the tests were
-            // written to assert.
-            var descriptor = analyzers
-                .SelectMany(a => a.SupportedDiagnostics)
-                .FirstOrDefault(d => d.Id == IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId);
+            => RequireDescriptor(analyzers, IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
+    }
 
-            return descriptor ?? throw new InvalidOperationException(
-                $"MixedTest expected the {nameof(CSharpUseObjectInitializerDiagnosticAnalyzer)} to register " +
-                $"the IDE0400 descriptor, but none was found in SupportedDiagnostics.");
-        }
+    private sealed class MixedTest : Test
+    {
+        protected override DiagnosticDescriptor? GetDefaultDiagnostic(DiagnosticAnalyzer[] analyzers)
+            => RequireDescriptor(analyzers, IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId);
     }
 
     private static async Task TestMissingInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         LanguageVersion? languageVersion = null)
     {
-        var test = new VerifyCS.Test
+        var test = new Test
         {
             TestCode = testCode,
         };
@@ -70,7 +80,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestOnVariableDeclarator()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -155,7 +165,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -206,7 +216,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -260,7 +270,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestOnAssignmentExpression()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -295,7 +305,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestStopOnDuplicateMember()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -330,7 +340,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestComplexInitializer()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -367,7 +377,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestNotOnCompoundAssignment()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -404,7 +414,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
     public Task TestWithExistingInitializer()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -440,7 +450,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
     public Task TestWithExistingInitializerComma()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -479,7 +489,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
     public Task TestWithExistingInitializerNotIfAlreadyInitialized()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -520,7 +530,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestWithExistingInitializerNotIfAlreadyInitialized_Compound()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -561,7 +571,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestSubsequentCompoundStatement_FoldsIntoInitializer()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -597,7 +607,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestSubsequentCompoundStatement_PreservesOperatorKind()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -642,7 +652,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestSubsequentCompoundStatement_Event_StackedSubscriptions()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             using System;
@@ -681,7 +691,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestSubsequentCompoundStatement_NotOfferedBeforePreview()
-        => new VerifyCS.Test
+        => new Test
         {
             // The feature is gated to LanguageVersion.Preview. On C# 14 the resulting initializer
             // would itself be a binder error, so the analyzer must not offer to fold compound-form
@@ -903,7 +913,7 @@ public sealed partial class UseObjectInitializerTests
     public Task TestSubsequentAddInvocation_NotOfferedBeforePreview()
         // Pre-Preview: keep the existing IDE0017 behavior; the `c.Add(10);` statement stays as a
         // statement, the simple member-init fold still happens.
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             using System.Collections;
@@ -960,7 +970,7 @@ public sealed partial class UseObjectInitializerTests
         // precondition: target type must implement IEnumerable. Without it, the synthesized
         // `new C { X = 1, 10 }` would not bind. The analyzer must therefore decline the Add-fold
         // and leave the trailing `c.Add(...)` as a plain statement.
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -1005,7 +1015,7 @@ public sealed partial class UseObjectInitializerTests
     public Task TestSubsequentAddInvocation_NamedArgument_NotFolded()
         // `Add(item: value)` rejected by `IsSimpleArgument` in the underlying helper; the fold
         // stops at the named-arg call. The pre-existing simple member-init fold still happens.
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             using System.Collections;
@@ -1060,7 +1070,7 @@ public sealed partial class UseObjectInitializerTests
     public Task TestSubsequentAddInvocation_StaticHelperCall_NotFolded()
         // `Helper.Add(c, 10)` doesn't have `c` as the syntactic receiver of `.Add`, so the
         // value-pattern check rejects it. The static call stays as-is.
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             using System.Collections;
@@ -1244,11 +1254,17 @@ public sealed partial class UseObjectInitializerTests
         }.RunAsync();
 
     [Fact]
-    public Task TestSubsequentAddInvocation_MultiArgAdd_NotFolded()
-        // Multi-argument `Add(a, b)` would synthesize a `{ a, b }` brace-list element initializer.
-        // PR 5 intentionally only folds single-arg Add; the multi-arg shape stops the fold at
-        // that statement and leaves it as-is.
-        => new VerifyCS.Test
+    public Task TestSubsequentAddInvocation_MultiArgAdd_FoldedAsBraceListElement()
+        // Pass 3b of the IDE0017+IDE0028 unification consolidated the member-init and
+        // collection-init walks. PR 5's single-arg restriction (which only fired in the
+        // deleted member-init walk) no longer applies; the unified walk's Add detection
+        // reuses IDE0028's matcher, which accepts multi-arg Add and synthesizes a
+        // `{ a, b }` brace-list element initializer. Under csharplang#10185 the resulting
+        // `new C { X = 1, { 10, 20 } }` binds (the brace-list maps to `Add(10, 20)`), so
+        // the analyzer can offer the mixed fold. This test pins the new behavior; the
+        // pre-Pass-3b version that asserted the fold was rejected for multi-arg Add is
+        // captured in git history under the same test name.
+        => new MixedTest
         {
             TestCode = """
             using System.Collections;
@@ -1268,7 +1284,7 @@ public sealed partial class UseObjectInitializerTests
                 {
                     var c = [|new|] C();
                     [|c.|]X = 1;
-                    c.Add(10, 20);
+                    [|c.|]Add(10, 20);
                 }
             }
             """,
@@ -1290,9 +1306,12 @@ public sealed partial class UseObjectInitializerTests
                 {
                     var c = new C
                     {
-                        X = 1
+                        X = 1,
+                        {
+                            10,
+                            20
+                        }
                     };
-                    c.Add(10, 20);
                 }
             }
             """,
@@ -1308,7 +1327,7 @@ public sealed partial class UseObjectInitializerTests
         // `PreferCollectionInitializer` is false, suppressing the IDE0400 diagnostic without
         // routing back to IDE0017 (which would propose an invalid fix that the user has opted
         // out of by disabling collection-initializer preference).
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             using System.Collections;
@@ -1341,7 +1360,7 @@ public sealed partial class UseObjectInitializerTests
         // Regression guard for the routing: under Preview, a pure-member-only fold should
         // still surface IDE0017 (legacy), not IDE0400. The Add-fold path simply doesn't fire
         // because there's no `c.Add(...)` statement to recognize.
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -1382,39 +1401,15 @@ public sealed partial class UseObjectInitializerTests
             LanguageVersion = LanguageVersion.Preview,
         }.RunAsync();
 
-    [Fact]
-    public Task TestSubsequentAddInvocation_PureAddSequence_YieldsToCollectionInitializer()
-        // When every fold candidate is Add-shape and there is no existing object-member
-        // initializer, the synthesis would be a pure collection initializer — which IDE0028
-        // already owns. The UseObjectInitializer analyzer must therefore *not* report (no
-        // IDE0017 and no IDE0400), avoiding the pre-PR-7 duplicate-suggestion behavior where
-        // both analyzers fired on the same span. The test verifier is wired to this analyzer
-        // only, so the absence of any `[|…|]` marker pins the expected silence.
-        => new VerifyCS.Test
-        {
-            TestCode = """
-            using System.Collections;
-            using System.Collections.Generic;
-
-            class C : IEnumerable<int>
-            {
-                public void Add(int item) { }
-                public IEnumerator<int> GetEnumerator() { yield break; }
-                IEnumerator IEnumerable.GetEnumerator() => null;
-            }
-
-            class Program
-            {
-                static void M()
-                {
-                    var c = new C();
-                    c.Add(10);
-                    c.Add(20);
-                }
-            }
-            """,
-            LanguageVersion = LanguageVersion.Preview,
-        }.RunAsync();
+    // Pre-Pass-3b this file held `TestSubsequentAddInvocation_PureAddSequence_YieldsToCollectionInitializer`,
+    // which verified that the (now-deleted) use-object-initializer analyzer explicitly
+    // refused to report on pure-Add sequences so the use-collection-initializer analyzer
+    // could own them. Pass 3b collapsed both analyzers into a single
+    // <c>CSharpUseCollectionInitializerDiagnosticAnalyzer</c> that picks the right
+    // diagnostic ID by synthesis shape, so the "yield to IDE0028" assertion is now a
+    // structural invariant of the architecture rather than a behavior worth pinning here.
+    // The pure-Add path is covered end-to-end by
+    // <c>UseCollectionInitializerTests.TestOnVariableDeclarator_PureAddSequenceUnderPreview</c>.
 
     #endregion
 
@@ -1422,7 +1417,7 @@ public sealed partial class UseObjectInitializerTests
     public Task TestSubsequentCompoundStatement_StacksOntoExistingEqualsInitializer()
         // `{ i = 1 } + c.i += 5` is a valid stack per spec ("= before any compound"); the analyzer
         // folds the subsequent compound and continues to fold further unrelated targets.
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -1540,7 +1535,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestFixAllInDocument1()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -1590,7 +1585,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestFixAllInDocument2()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -1634,7 +1629,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestFixAllInDocument3()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -1679,7 +1674,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestTrivia1()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -1714,7 +1709,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
     public Task TestTriviaRemoveLeadingBlankLinesForFirstProperty()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -1804,7 +1799,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
     public Task TestAvailableInsidePreprocessorDirective()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             public class Goo
@@ -1841,7 +1836,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19253")]
     public Task TestKeepBlankLinesAfter()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class Goo
@@ -1931,7 +1926,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")]
     public Task TestWithExplicitImplementedInterfaceMembers3()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             interface IExample {
@@ -2002,7 +1997,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact]
     public Task TestImplicitObject()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             class C
@@ -2035,7 +2030,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
     public Task TestInTopLevelStatements()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
             MyClass cl = [|new|]();
@@ -2127,7 +2122,7 @@ public sealed partial class UseObjectInitializerTests
             build_property.EnableCodeStyleSeverity = {enabled}
             """;
 
-        var test = new VerifyCS.Test
+        var test = new Test
         {
             TestState =
             {
@@ -2177,7 +2172,7 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """;
-        await new VerifyCS.Test
+        await new Test
         {
             TestState =
             {
@@ -2201,7 +2196,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
     public Task TestIndentationOfMultiLineExpressions1()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
                 class C
@@ -2242,7 +2237,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
     public Task TestIndentationOfMultiLineExpressions2()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
                 class C
@@ -2287,7 +2282,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
     public Task TestIndentationOfMultiLineExpressions3()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
                 class C
@@ -2328,7 +2323,7 @@ public sealed partial class UseObjectInitializerTests
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
     public Task TestIndentationOfMultiLineExpressions4()
-        => new VerifyCS.Test
+        => new Test
         {
             TestCode = """
                 class C

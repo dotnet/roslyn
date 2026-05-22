@@ -12,27 +12,30 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
-using Microsoft.CodeAnalysis.UseObjectInitializer;
 
 namespace Microsoft.CodeAnalysis.UseInitializer;
 
 /// <summary>
-/// Pass 2 of the IDE0017+IDE0028 unification: one fix provider class handles the three
+/// Pass 3 of the IDE0017+IDE0028 unification: one fix provider class handles the three
 /// related diagnostics (<see cref="IDEDiagnosticIds.UseObjectInitializerDiagnosticId"/>
 /// = IDE0017, <see cref="IDEDiagnosticIds.UseCollectionInitializerDiagnosticId"/> = IDE0028,
 /// and <see cref="IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId"/>
-/// = IDE0400). The two walks (member-initializer and collection-initializer) remain
-/// separate at this layer — Pass 3 collapses them into a single walk. The dispatch lives
-/// in <see cref="FixAsync"/>: the diagnostic's ID picks which walk to run, and the
-/// diagnostic's property bag (<see cref="UseCollectionInitializerHelpers.UseCollectionExpressionName"/>)
-/// then picks between collection-initializer and collection-expression synthesis on the
-/// IDE0028 path.
+/// = IDE0400), backed by a single walk (<see cref="AbstractUseCollectionInitializerAnalyzer{
+/// TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax,
+/// TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax,
+/// TAssignmentStatementSyntax, TLocalDeclarationStatementSyntax, TVariableDeclaratorSyntax,
+/// TAnalyzer}"/>). The diagnostic's property bag tells the fixer which synthesis path
+/// to take (<see cref="UseCollectionInitializerHelpers.UseMemberInitializerName"/> →
+/// member-initializer synthesis, <see cref="UseCollectionInitializerHelpers.UseCollectionExpressionName"/>
+/// → collection-expression synthesis, neither → collection-initializer synthesis).
 /// </summary>
 /// <remarks>
-/// The replaced single-purpose providers (<c>AbstractUseObjectInitializerCodeFixProvider</c>
-/// and <c>AbstractUseCollectionInitializerCodeFixProvider</c>) are deleted by this pass;
-/// per-language concretes consolidate into a single <c>*UseInitializerCodeFixProvider</c>
-/// each. Test verifier aliases switch to the new concrete type name.
+/// The replaced single-purpose providers and walks
+/// (<c>AbstractUseObjectInitializerCodeFixProvider</c>, <c>AbstractUseCollectionInitializerCodeFixProvider</c>,
+/// <c>AbstractUseNamedMemberInitializerAnalyzer</c>, and the per-language concretes) are
+/// all deleted by this pass; per-language concretes consolidate into a single
+/// <c>*UseInitializerCodeFixProvider</c> each. Test verifier aliases switch to the new
+/// concrete type name.
 /// </remarks>
 internal abstract class AbstractUseInitializerCodeFixProvider<
     TSyntaxKind,
@@ -45,8 +48,7 @@ internal abstract class AbstractUseInitializerCodeFixProvider<
     TExpressionStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
-    TMemberInitAnalyzer,
-    TCollectionInitAnalyzer>
+    TAnalyzer>
     : ForkingSyntaxEditorBasedCodeFixProvider<TObjectCreationExpressionSyntax>
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
@@ -58,16 +60,7 @@ internal abstract class AbstractUseInitializerCodeFixProvider<
     where TExpressionStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
-    where TMemberInitAnalyzer : AbstractUseNamedMemberInitializerAnalyzer<
-        TExpressionSyntax,
-        TStatementSyntax,
-        TObjectCreationExpressionSyntax,
-        TMemberAccessExpressionSyntax,
-        TAssignmentStatementSyntax,
-        TLocalDeclarationStatementSyntax,
-        TVariableDeclaratorSyntax,
-        TMemberInitAnalyzer>, new()
-    where TCollectionInitAnalyzer : AbstractUseCollectionInitializerAnalyzer<
+    where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
@@ -77,7 +70,7 @@ internal abstract class AbstractUseInitializerCodeFixProvider<
         TAssignmentStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        TCollectionInitAnalyzer>, new()
+        TAnalyzer>, new()
 {
     private static readonly string s_collectionInitTitle = AnalyzersResources.Collection_initialization_can_be_simplified;
     private static readonly string s_collectionInitTitleChangesSemantics = string.Format(CodeFixesResources._0_may_change_semantics, s_collectionInitTitle);
@@ -91,8 +84,7 @@ internal abstract class AbstractUseInitializerCodeFixProvider<
             IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId,
         ];
 
-    protected abstract TMemberInitAnalyzer GetMemberInitAnalyzer();
-    protected abstract TCollectionInitAnalyzer GetCollectionInitAnalyzer();
+    protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract ISyntaxKinds SyntaxKinds { get; }
     protected abstract ISyntaxFormatting SyntaxFormatting { get; }
@@ -101,15 +93,18 @@ internal abstract class AbstractUseInitializerCodeFixProvider<
 
     /// <summary>
     /// Synthesizes the new statement when the triggering diagnostic was IDE0017 or IDE0400 —
-    /// i.e., the matches were produced by the member-initializer walk and the resulting
-    /// initializer is either pure-member or mixed. The per-language fixer wraps the matches
-    /// into the language's member-initializer syntax.
+    /// i.e., the matches the unified walk produced should be folded as member initializers
+    /// (pure-member for IDE0017; mixed member + Add for IDE0400). The per-language fixer
+    /// wraps the matches into the language's member-initializer syntax. Matches are typed
+    /// as <see cref="InitializerMatch{TNode}"/> over <see cref="SyntaxNode"/> because the
+    /// unified walk reports across the broader collection-init match shapes; the fixer
+    /// narrows back to per-statement nodes using <see cref="InitializerMatch{TNode}.Node"/>.
     /// </summary>
     protected abstract TStatementSyntax GetNewStatementForMemberInit(
         TStatementSyntax statement,
         TObjectCreationExpressionSyntax objectCreation,
         SyntaxFormattingOptions options,
-        ImmutableArray<InitializerMatch<TStatementSyntax>> matches);
+        ImmutableArray<InitializerMatch<SyntaxNode>> matches);
 
     /// <summary>
     /// Synthesizes the replacement when the triggering diagnostic was IDE0028 — either the
@@ -187,28 +182,26 @@ internal abstract class AbstractUseInitializerCodeFixProvider<
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // `ForkingSyntaxEditorBasedCodeFixProvider.FixAsync` only receives the diagnostic's
-        // property bag, not the diagnostic itself, so the analyzers attach a property tag to
-        // each diagnostic identifying which fix path the fixer should take:
+        // property bag, not the diagnostic itself, so the analyzer attaches a property tag
+        // to each diagnostic identifying which fix path the fixer should take:
         //
-        //   * `UseMemberInitializerName` → IDE0017 or IDE0400 (set by the use-object-initializer
-        //     analyzer). Routes to the member-initializer synthesis path.
-        //   * `UseCollectionExpressionName` → IDE0028 in collection-expression mode (set by the
-        //     use-collection-initializer analyzer when the user prefers `[ … ]` and the lang
-        //     supports it). Routes to the collection-expression synthesis path.
+        //   * `UseMemberInitializerName` → IDE0017 or IDE0400. Routes to the member-
+        //     initializer synthesis path; the unified walk reports member + (mixed) Add
+        //     matches in this mode.
+        //   * `UseCollectionExpressionName` → IDE0028 in collection-expression mode (set
+        //     when the user prefers `[ … ]` and the lang supports it). Routes to the
+        //     collection-expression synthesis path.
         //   * Neither → IDE0028 in collection-initializer mode. Routes to the collection-
         //     initializer synthesis path.
         //
-        // Probing the walks isn't safe as a dispatch fallback: under the mixed object/collection
-        // initializer feature (csharplang#10185) both walks can return non-empty matches for the
-        // same object creation, so the analyzer-side tag is the only stable signal.
+        // Under the mixed object/collection initializer feature (csharplang#10185) the same
+        // walk reports both member and Add matches, so the analyzer-side property tag is the
+        // only stable signal: probing the walk and inspecting kinds would mis-route when
+        // both kinds are present (the user's intent — member-init or pure-collection — was
+        // already decided when the diagnostic ID was picked).
         if (properties.ContainsKey(UseCollectionInitializerHelpers.UseMemberInitializerName))
         {
-            using var memberAnalyzer = GetMemberInitAnalyzer();
-            var memberMatches = memberAnalyzer.Analyze(semanticModel, syntaxFacts, objectCreation, cancellationToken);
-            if (memberMatches.IsDefaultOrEmpty)
-                return;
-
-            await FixMemberInitAsync(document, editor, objectCreation, memberMatches, cancellationToken).ConfigureAwait(false);
+            await FixMemberInitAsync(document, editor, objectCreation, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
             return;
         }
 
@@ -221,9 +214,58 @@ internal abstract class AbstractUseInitializerCodeFixProvider<
         Document document,
         SyntaxEditor editor,
         TObjectCreationExpressionSyntax objectCreation,
-        ImmutableArray<InitializerMatch<TStatementSyntax>> matches,
+        SemanticModel semanticModel,
+        ISyntaxFactsService syntaxFacts,
         CancellationToken cancellationToken)
     {
+        // Re-run the unified walk in initializer mode (`analyzeForCollectionExpression: false`)
+        // — collection-expression mode never produces member matches and would silently drop
+        // the IDE0017/IDE0400 fold. The walk's matches arrive as
+        // `InitializerMatch<SyntaxNode>` carrying both member-init and Add matches; the
+        // per-language `GetNewStatementForMemberInit` routes per `match.Kind`.
+        using var analyzer = GetAnalyzer();
+        var (preMatches, postMatches, _) = analyzer.Analyze(
+            semanticModel, syntaxFacts, objectCreation, analyzeForCollectionExpression: false, cancellationToken);
+
+        if (preMatches.IsDefault || postMatches.IsDefault)
+            return;
+
+        // Member-init mode never produces pre-matches (constructor arguments are only
+        // synthesized by collection-expression mode); guard against accidental regressions.
+        Contract.ThrowIfFalse(preMatches.IsEmpty);
+
+        var matches = postMatches;
+
+        // Mirror the diagnostic analyzer's IDE0400 IEnumerable gate: the unified walk emits
+        // Add matches whenever `GetAddMethods().Any()` regardless of IEnumerable status, so
+        // for non-IEnumerable targets the synthesized `new C { X = 1, 10 }` would not bind.
+        // The diagnostic analyzer drops the Add matches and routes to IDE0017 in that case;
+        // the fixer must apply the same drop or the synthesized output diverges from what
+        // the diagnostic title promised. (TestSubsequentAddInvocation_NoIEnumerable_NotFolded
+        // pins this end-to-end through the iterative fix verifier.)
+        var hasAdd = false;
+        var hasMember = false;
+        foreach (var match in matches)
+        {
+            if (match.Kind == InitializerMatchKind.MemberInitializer)
+                hasMember = true;
+            else
+                hasAdd = true;
+        }
+
+        if (hasAdd && hasMember)
+        {
+            var ienumerableType = semanticModel.Compilation.IEnumerableType();
+            var targetType = semanticModel.GetTypeInfo(objectCreation, cancellationToken).Type;
+            if (ienumerableType is null || targetType is null || !targetType.AllInterfaces.Contains(ienumerableType))
+            {
+                matches = matches.WhereAsArray(static m => m.Kind == InitializerMatchKind.MemberInitializer);
+            }
+        }
+
+        if (matches.IsEmpty)
+            return;
+
         var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
         Contract.ThrowIfNull(statement);
 
@@ -246,7 +288,7 @@ internal abstract class AbstractUseInitializerCodeFixProvider<
         bool useCollectionExpression,
         CancellationToken cancellationToken)
     {
-        using var collectionAnalyzer = GetCollectionInitAnalyzer();
+        using var collectionAnalyzer = GetAnalyzer();
         var (preMatches, postMatches, _) = collectionAnalyzer.Analyze(
             semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 

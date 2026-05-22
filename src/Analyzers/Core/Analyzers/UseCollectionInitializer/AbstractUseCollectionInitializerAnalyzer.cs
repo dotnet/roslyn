@@ -487,23 +487,24 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
 
     protected sealed override bool ShouldAnalyze(CancellationToken cancellationToken)
     {
-        // Pre-Pass-3 IDE0028's `ShouldAnalyze` short-circuited both before the walk and (via
-        // its precondition on the collection-expression synthesis) before the
-        // `CanUseCollectionExpression` check could see a problematic existing initializer
-        // like `{ [k] = v }`. The unified walk produces member-init matches when the
-        // language admits them, but to keep IDE0028's strict pre-checks intact this gate is
-        // unchanged from the legacy behavior — pure-member-init scenarios on types without
-        // an accessible `Add` continue to be handled by the unmerged
-        // <see cref="AbstractUseNamedMemberInitializerAnalyzer"/> walk reachable from
-        // <c>AbstractUseObjectInitializerDiagnosticAnalyzer</c>. Full walk consolidation
-        // (deleting the member-init walk and routing pure-member from this analyzer too)
-        // requires also tightening the collection-expression synthesis path to skip
-        // problematic existing initializers; that follow-on work is intentionally not done
-        // in this pass.
-        if (this.HasExistingInvalidInitializerForCollection())
-            return false;
+        // Pass 3b of the IDE0017+IDE0028 unification: the walk fires whenever EITHER member-
+        // init OR collection-init folding could produce matches. Collection-init requires
+        // an accessible `Add` method and an existing initializer the walk can extend
+        // (legacy IDE0028 precondition). Member-init requires the existing initializer not
+        // already be a *collection* initializer (legacy IDE0017 precondition). Pre-Pass-3
+        // the two preconditions lived in separate `ShouldAnalyze` overrides on separate
+        // walks; the unified walk runs whenever either is satisfied and `TryAddMatches`
+        // gates the per-statement matching internally (Add detection is gated on
+        // `GetAddMethods().Any()`; the collection-expression mode early-bails on shapes the
+        // synthesis path can't represent via the diagnostic analyzer's
+        // `HasExistingInvalidInitializerForCollectionExpression` check).
+        var canFoldCollection = !this.HasExistingInvalidInitializerForCollection() &&
+            GetAddMethods(cancellationToken).Any();
 
-        return GetAddMethods(cancellationToken).Any();
+        var canFoldMember = !this.SyntaxFacts.IsObjectCollectionInitializer(
+            this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
+
+        return canFoldCollection || canFoldMember;
     }
 
     protected ImmutableArray<IMethodSymbol> GetAddMethods(CancellationToken cancellationToken)

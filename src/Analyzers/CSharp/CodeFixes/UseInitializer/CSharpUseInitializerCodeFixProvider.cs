@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -19,24 +20,25 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.UseInitializer;
-using Microsoft.CodeAnalysis.UseObjectInitializer;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseInitializer;
 
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
-using ObjectInitializerMatch = InitializerMatch<StatementSyntax>;
 
 /// <summary>
-/// Pass 2 of the IDE0017+IDE0028 unification: a single C# fix provider class registered for
+/// Pass 3 of the IDE0017+IDE0028 unification: a single C# fix provider class registered for
 /// IDE0017 (object-initializer), IDE0028 (collection-initializer), and IDE0400 (mixed
-/// object/collection initializer). Replaces the prior <c>CSharpUseObjectInitializerCodeFixProvider</c>
-/// and <c>CSharpUseCollectionInitializerCodeFixProvider</c> classes. Member-initializer
-/// synthesis (previously the object-initializer fixer) lives in this file; the collection-
-/// initializer and collection-expression synthesizers continue to live in their existing
-/// partial files (<c>CSharpUseCollectionInitializerCodeFixProvider_CollectionInitializer.cs</c>
-/// and <c>_CollectionExpression.cs</c>), now declared as partials of this new class.
+/// object/collection initializer), backed by a single walk
+/// (<see cref="CSharpUseCollectionInitializerAnalyzer"/>). Replaces the prior
+/// <c>CSharpUseObjectInitializerCodeFixProvider</c> and
+/// <c>CSharpUseCollectionInitializerCodeFixProvider</c> classes, and removes the
+/// per-language member-initializer walk dependency. Member-initializer synthesis lives in
+/// this file; the collection-initializer and collection-expression synthesizers continue
+/// to live in their existing partial files
+/// (<c>CSharpUseCollectionInitializerCodeFixProvider_CollectionInitializer.cs</c> and
+/// <c>_CollectionExpression.cs</c>), now declared as partials of this new class.
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionInitializer), Shared]
 [ExtensionOrder(Before = PredefinedCodeFixProviderNames.UseImplicitObjectCreation)]
@@ -56,13 +58,9 @@ internal sealed partial class CSharpUseInitializerCodeFixProvider() :
         ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
-        CSharpUseNamedMemberInitializerAnalyzer,
         CSharpUseCollectionInitializerAnalyzer>
 {
-    protected override CSharpUseNamedMemberInitializerAnalyzer GetMemberInitAnalyzer()
-        => CSharpUseNamedMemberInitializerAnalyzer.Allocate();
-
-    protected override CSharpUseCollectionInitializerAnalyzer GetCollectionInitAnalyzer()
+    protected override CSharpUseCollectionInitializerAnalyzer GetAnalyzer()
         => CSharpUseCollectionInitializerAnalyzer.Allocate();
 
     protected override ISyntaxFormatting SyntaxFormatting => CSharpSyntaxFormatting.Instance;
@@ -91,7 +89,7 @@ internal sealed partial class CSharpUseInitializerCodeFixProvider() :
         StatementSyntax statement,
         BaseObjectCreationExpressionSyntax objectCreation,
         SyntaxFormattingOptions options,
-        ImmutableArray<ObjectInitializerMatch> matches)
+        ImmutableArray<InitializerMatch<SyntaxNode>> matches)
     {
         return statement.ReplaceNode(
             objectCreation,
@@ -101,7 +99,7 @@ internal sealed partial class CSharpUseInitializerCodeFixProvider() :
     private BaseObjectCreationExpressionSyntax GetNewObjectCreationForMemberInit(
         BaseObjectCreationExpressionSyntax objectCreation,
         SyntaxFormattingOptions options,
-        ImmutableArray<ObjectInitializerMatch> matches)
+        ImmutableArray<InitializerMatch<SyntaxNode>> matches)
     {
         return UseInitializerHelpers.GetNewObjectCreation(
             objectCreation,
@@ -111,11 +109,11 @@ internal sealed partial class CSharpUseInitializerCodeFixProvider() :
     private SeparatedSyntaxList<ExpressionSyntax> CreateMemberInitExpressions(
         BaseObjectCreationExpressionSyntax objectCreation,
         SyntaxFormattingOptions options,
-        ImmutableArray<ObjectInitializerMatch> matches)
+        ImmutableArray<InitializerMatch<SyntaxNode>> matches)
     {
         using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
-        UseInitializerHelpers.AddExistingItems<ObjectInitializerMatch, ExpressionSyntax>(
+        UseInitializerHelpers.AddExistingItems<InitializerMatch<SyntaxNode>, ExpressionSyntax>(
             objectCreation, nodesAndTokens, addTrailingComma: true, static (_, e) => e);
 
         for (var i = 0; i < matches.Length; i++)
@@ -150,14 +148,24 @@ internal sealed partial class CSharpUseInitializerCodeFixProvider() :
                 case InitializerMatchKind.AddInvocation:
                     // `x.Add(value)` — emit the bare argument expression as a collection
                     // element initializer (the mixed object/collection initializer shape per
-                    // csharplang#10185).
+                    // csharplang#10185). For multi-argument `x.Add(a, b)` the synthesized
+                    // element is a brace-list `{ a, b }`, matching the legacy IDE0028
+                    // collection-init synthesis for multi-arg Add. Pass 3b reuses IDE0028's
+                    // Add detection in the unified walk so multi-arg Add now reaches this
+                    // fixer (pre-Pass-3b PR 5's `TryMatchAddInvocation` only emitted single-
+                    // arg Add matches).
                     {
                         var invocation = (InvocationExpressionSyntax)expressionStatement.Expression;
                         var memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
                         var memberAccessTrivia = memberAccess.GetLeadingTrivia();
                         var newAddTrivia = i == 0 ? memberAccessTrivia.WithoutLeadingBlankLines() : memberAccessTrivia;
-                        var argument = invocation.ArgumentList.Arguments[0].Expression;
-                        newElement = Indent(argument, options).WithLeadingTrivia(newAddTrivia);
+                        var arguments = invocation.ArgumentList.Arguments;
+                        ExpressionSyntax addElement = arguments.Count == 1
+                            ? arguments[0].Expression
+                            : InitializerExpression(
+                                SyntaxKind.ComplexElementInitializerExpression,
+                                SeparatedList(arguments.Select(a => a.Expression), arguments.GetSeparators()));
+                        newElement = Indent(addElement, options).WithLeadingTrivia(newAddTrivia);
                         break;
                     }
 

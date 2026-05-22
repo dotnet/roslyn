@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
+Imports Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Configuration.ConfigureSeverity
     Partial Public MustInherit Class CodeStyleOptionBasedSeverityConfigurationTests
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(ByVal workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New VisualBasicUseObjectInitializerDiagnosticAnalyzer(), New ConfigureSeverityLevelCodeFixProvider())
+            Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(), New ConfigureSeverityLevelCodeFixProvider())
         End Function
 
         <Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
