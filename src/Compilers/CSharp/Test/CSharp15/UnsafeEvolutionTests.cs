@@ -11941,8 +11941,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         Assert.Equal(type, containingType.GetMember<MethodSymbol>("M2").ReturnType);
     }
 
-    [Fact]
-    public void SafeModifier_LangVersion()
+    [Theory, CombinatorialData]
+    public void SafeModifier_Declarations_ExternSafe(bool allowUnsafe)
     {
         var source = """
             #pragma warning disable CS0067, CS0626, CS0824, CS8321 // unused event, extern without attributes, extern constructor, unused local function
@@ -11960,13 +11960,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
             parseOptions: TestOptions.RegularNext,
-            options: TestOptions.UnsafeReleaseDll)
-            .VerifyDiagnostics();
+            options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
+            .VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseDll)
+            options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
             .VerifyDiagnostics(
             // (4,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     safe public extern void M();
@@ -11985,8 +11993,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(10, 9));
     }
 
-    [Fact]
-    public void SafeModifier_Declarations()
+    [Theory, CombinatorialData]
+    public void SafeModifier_Declarations_SafeOnly(bool allowUnsafe)
     {
         var source = """
             #pragma warning disable CS0067, CS8321 // unused event, unused local function
@@ -12012,7 +12020,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (4,5): error CS9385: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe public void M1() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
@@ -12057,8 +12065,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(19, 9));
     }
 
-    [Fact]
-    public void SafeModifier_Declarations_Extern()
+    [Theory, CombinatorialData]
+    public void SafeModifier_Declarations_ExternOnly(bool allowUnsafe)
     {
         var source = """
             #pragma warning disable CS0067, CS0626, CS0824 // unused event, extern without attributes, extern constructor
@@ -12090,7 +12098,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (4,12): error CS9386: Extern member must be marked 'unsafe' or 'safe'.
             //     public extern void M();
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(4, 12),
