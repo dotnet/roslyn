@@ -61,7 +61,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
 
         await using var progressTracker = progressReporter != null && projects.Length > 0
-            ? new ProjectLoadProgressTracker(progressReporter, projects.Length)
+            ? new WorkDoneProgressTracker(progressReporter, projects.Length)
             : null;
 
         foreach (var (path, guid) in projects)
@@ -79,7 +79,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
             return;
 
         await using var progressTracker = progressReporter != null && projectFilePaths.Length > 0
-            ? new ProjectLoadProgressTracker(progressReporter, projectFilePaths.Length)
+            ? new WorkDoneProgressTracker(progressReporter, projectFilePaths.Length)
             : null;
 
         foreach (var path in projectFilePaths)

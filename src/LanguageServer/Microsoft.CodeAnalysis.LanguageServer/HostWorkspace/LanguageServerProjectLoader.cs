@@ -184,7 +184,7 @@ internal abstract class LanguageServerProjectLoader
                     }
                     finally
                     {
-                        projectToLoad.ProgressTracker?.OnProjectProcessed();
+                        projectToLoad.ProgressTracker?.OnItemProcessed();
                     }
                 },
                 args: (@this: this, toastErrorReporter, buildHostProcessManager),
@@ -464,7 +464,7 @@ internal abstract class LanguageServerProjectLoader
     /// <summary>
     /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
     /// </summary>
-    protected async Task BeginLoadingProjectAsync(string projectPath, string? projectGuid, ProjectLoadProgressTracker? progressTracker = null)
+    protected async Task BeginLoadingProjectAsync(string projectPath, string? projectGuid, WorkDoneProgressTracker? progressTracker = null)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -566,22 +566,23 @@ internal abstract class LanguageServerProjectLoader
     }
 
     /// <summary>
-    /// Helper for tracking and reporting project load percentage progress.
-    /// Uses an <see cref="AsyncBatchingWorkQueue"/> to coalesce notifications from parallel project loads
-    /// into batched percentage reports. Disposing sends the final 100% notification.
+    /// Tracks progress toward processing a fixed number of items and reports percentage updates
+    /// via <see cref="LSP.WorkDoneProgress"/>. Uses an <see cref="AsyncBatchingWorkQueue"/> to
+    /// coalesce notifications from parallel callers into batched percentage reports.
+    /// Disposing sends the final 100% notification.
     /// </summary>
-    internal sealed class ProjectLoadProgressTracker : IAsyncDisposable
+    internal sealed class WorkDoneProgressTracker : IAsyncDisposable
     {
         private readonly IProgress<LSP.WorkDoneProgress> _reporter;
-        private readonly int _totalProjects;
+        private readonly int _totalItems;
         private readonly AsyncBatchingWorkQueue _progressQueue;
-        private int _projectsProcessed;
+        private int _itemsProcessed;
         private int _lastReportedPercentage = -1;
 
-        public ProjectLoadProgressTracker(IProgress<LSP.WorkDoneProgress> reporter, int totalProjects, IAsynchronousOperationListener? listener = null)
+        public WorkDoneProgressTracker(IProgress<LSP.WorkDoneProgress> reporter, int totalItems, IAsynchronousOperationListener? listener = null)
         {
             _reporter = reporter;
-            _totalProjects = totalProjects;
+            _totalItems = totalItems;
             _progressQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.Zero,
                 ReportProgressAsync,
@@ -589,16 +590,16 @@ internal abstract class LanguageServerProjectLoader
                 CancellationToken.None);
         }
 
-        public void OnProjectProcessed()
+        public void OnItemProcessed()
         {
-            Interlocked.Increment(ref _projectsProcessed);
+            Interlocked.Increment(ref _itemsProcessed);
             _progressQueue.AddWork();
         }
 
         private ValueTask ReportProgressAsync(CancellationToken cancellationToken)
         {
-            var processed = Volatile.Read(ref _projectsProcessed);
-            var percentage = processed * 100 / _totalProjects;
+            var processed = Volatile.Read(ref _itemsProcessed);
+            var percentage = processed * 100 / _totalItems;
             percentage = Math.Min(percentage, 99);
 
             if (percentage > _lastReportedPercentage)
@@ -615,8 +616,15 @@ internal abstract class LanguageServerProjectLoader
 
         public async ValueTask DisposeAsync()
         {
-            await _progressQueue.WaitUntilCurrentBatchCompletesAsync();
-            _reporter.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
+            try
+            {
+                await _progressQueue.WaitUntilCurrentBatchCompletesAsync();
+                _reporter.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
+            }
+            finally
+            {
+                _progressQueue.Dispose();
+            }
         }
     }
 }
