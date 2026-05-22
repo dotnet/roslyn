@@ -46,21 +46,24 @@ internal sealed partial class HelixTestRunner
     internal static TimeSpan WorkItemScheduleTime { get; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// This is the amount of time that we pass to vstest as the blame hang timeout.
+    /// This is the amount of time we will wait for a helix work item to complete before we consider it a severe error
+    /// and cancel the helix job entirely.
     /// </summary>
-    internal static TimeSpan WorkItemExecutionTimeout { get; } = WorkItemScheduleTime * 2;
+    /// <remarks>
+    /// The only lever that vstest provides is for timeout on an individual test, not the entire test run. We need a guard
+    /// against the helix job executing for the entire AzDO job time (currently set at six hours).
+    /// </remarks>
+    internal static TimeSpan WorkItemExecutionTimeout { get; } = WorkItemScheduleTime * 3;
 
     /// <summary>
-    /// This is the amount of time we will wait for a helix work item to complete before we consider it a severe error
-    /// and cancel the helix job entirely. Example: if our code somehow hangs without triggering the blame hang
-    /// functionality in vstest.
+    /// This is the timeout value for _individual tests_ that we pass to vstest.
     /// </summary>
-    internal static TimeSpan JobExecutionTimeout { get; } = WorkItemScheduleTime * 2;
+    internal static TimeSpan TestMethodTimeout { get; } = TimeSpan.FromMinutes(15);
 
     /// <summary>
     /// This is the amount of time we will wait between polling the Helix service for updates.
     /// </summary>
-    private static TimeSpan HelixPollTime { get; } = TimeSpan.FromMinutes(5);
+    private static TimeSpan HelixPollTime { get; } = TimeSpan.FromMinutes(2.5);
 
     [GeneratedRegex(@"HelixJobId=(\S+) HelixJobCancellationToken=(\S+)")]
     private static partial Regex HelixJobInfoRegex();
@@ -84,7 +87,7 @@ internal sealed partial class HelixTestRunner
         var (process, helixJobInfoTask) = StartHelixJob(options, helixProjectFilePath);
         try
         {
-            await Task.WhenAny(process.WaitForExitAsync(), helixJobInfoTask);
+            await Task.WhenAny(process.WaitForExitAsync(cts.Token), helixJobInfoTask);
             if (cts.IsCancellationRequested)
             {
                 process.Kill(entireProcessTree: true);
@@ -173,7 +176,7 @@ internal sealed partial class HelixTestRunner
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error while polling Helix API for job status: {ex.Message}");
+                    ConsoleUtil.Warning($"Error while polling Helix API for job status: {ex.Message}");
                 }
 
             } while (true);
@@ -210,7 +213,7 @@ internal sealed partial class HelixTestRunner
 
                         if (HasTimedOut(details))
                         {
-                            ConsoleUtil.Error($"Helix Job {helixJobId} Work item {workItem.Name} has been in state {details.State} for more than {JobExecutionTimeout}. Timing out the job.");
+                            ConsoleUtil.Error($"Helix Job {helixJobId} Work item {workItem.Name} has been in state {details.State} for more than {WorkItemExecutionTimeout}. Timing out the job.");
                             timedOutWorkItems.Add(workItem.Name);
                         }
                     }
@@ -218,7 +221,8 @@ internal sealed partial class HelixTestRunner
                     if (timedOutWorkItems.Count > 0)
                     {
                         WriteSyntheticTimeoutResults(testResultsDirectory, helixJobId, timedOutWorkItems);
-                        throw new TimeoutException($"One or more work items in Helix job {helixJobId} have timed out. Timing out the entire job.");
+                        await helixApi.CancelJobAsync(helixJobId, helixCancellationToken, cancellationToken);
+                        throw new Exception($"One or more work items in Helix job {helixJobId} have timed out. Timing out the entire job.");
                     }
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException and not TimeoutException)
@@ -237,7 +241,7 @@ internal sealed partial class HelixTestRunner
             }
 
             var started = DateTimeOffset.Parse(details.Started);
-            return DateTimeOffset.UtcNow - started > JobExecutionTimeout;
+            return DateTimeOffset.UtcNow - started > WorkItemExecutionTimeout;
         }
 
         static void WriteSyntheticTimeoutResults(string testResultsDirectory, string helixJobId, List<string> timedOutWorkItems)
@@ -262,7 +266,7 @@ internal sealed partial class HelixTestRunner
                             <collection name="Helix Timeout Detection" total="1" passed="0" failed="1" skipped="0">
                               <test name="{escapedWorkItemName}" type="RunTests.TimeoutDetection" method="{escapedWorkItemName}" time="0" result="Fail">
                                 <failure exception-type="WorkItemTimeoutException">
-                                  <message>Helix work item '{escapedWorkItemName}' in job '{escapedJobId}' exceeded the maximum execution time of {JobExecutionTimeout}.
+                                  <message>Helix work item '{escapedWorkItemName}' in job '{escapedJobId}' exceeded the maximum execution time of {WorkItemExecutionTimeout}.
                         Work Item: {workItemUrl}
                         Console: {consoleUrl}</message>
                                   <stack-trace>The work item was still in the Running state when the timeout was detected.
@@ -754,7 +758,7 @@ internal sealed partial class HelixTestRunner
         builder.AppendLine($"/ResultsDirectory:.");
 
         var blameOption = "CollectDump;CollectHangDump";
-        builder.AppendLine($"/Blame:{blameOption};TestTimeout={(int)WorkItemExecutionTimeout.TotalMinutes}minutes;DumpType=full");
+        builder.AppendLine($"/Blame:{blameOption};TestTimeout={(int)TestMethodTimeout.TotalMinutes}minutes;DumpType=full");
 
         // Build the filter string
         if (testMethodNames.Any())
