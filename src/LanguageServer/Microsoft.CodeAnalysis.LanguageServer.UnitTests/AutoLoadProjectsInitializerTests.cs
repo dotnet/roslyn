@@ -80,5 +80,4 @@ public sealed class AutoLoadProjectsInitializerTests : IDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(solutionPath)!);
         File.WriteAllText(solutionPath, string.Empty);
     }
-
 }
