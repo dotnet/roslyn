@@ -182,7 +182,21 @@ public abstract class MSBuildWorkspaceTestBase : WorkspaceTestBase
 
         if (throwOnWorkspaceFailed)
         {
-            _ = workspace.RegisterWorkspaceFailedHandler((e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}"));
+            _ = workspace.RegisterWorkspaceFailedHandler((e) =>
+            {
+                var message = $"MSBuildWorkspace raised WorkspaceFailed with kind {e.Diagnostic.Kind}: {e.Diagnostic.Message}";
+                var logger = LoggerFactory.CreateLogger(nameof(workspace.WorkspaceFailed));
+                if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                {
+                    logger.LogError(message);
+                }
+                else
+                {
+                    logger.LogWarning(message);
+                }
+
+                throw new Exception(message);
+            });
         }
 
         if (skipUnrecognizedProjects)

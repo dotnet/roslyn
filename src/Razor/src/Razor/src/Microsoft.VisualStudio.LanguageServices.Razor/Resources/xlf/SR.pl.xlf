@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../SR.resx">
+    <body>
+      <trans-unit id="ArgumentCannotBeNullOrEmpty">
+        <source>Value cannot be null or an empty string.</source>
+        <target state="translated">Wartość nie może być wartością null ani pustym ciągiem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LanguageServer_Initialization_Failed">
+        <source>{0} failed to initialize.  Please report a problem via Help -&gt; Send Feedback -&gt; Report a Problem.  Status = {1}.  Exception = {2}</source>
+        <target state="translated">Nie można zainicjować serwera {0}.  Zgłoś problem za pośrednictwem pozycji Pomoc -&gt; Wyślij opinię -&gt; Zgłoś problem.  Stan = {1}.  Wyjątek = {2}</target>
+        <note>{0} is the language server name. Status is the status of the initialization. Exception is the exception encountered during initialization.</note>
+      </trans-unit>
+      <trans-unit id="ProximityExpression_Dialog_Description">
+        <source>Razor Debugger</source>
+        <target state="translated">Debuger składni Razor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProximityExpression_Dialog_Title">
+        <source>Determining proximity expressions...</source>
+        <target state="translated">Trwa określanie wyrażeń bliskości...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_to_1">
+        <source>Renaming {0} to {1}</source>
+        <target state="translated">Zmienianie nazwy z „{0}” na „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_Razor_Component">
+        <source>Renaming Razor Component</source>
+        <target state="translated">Zmienianie nazwy składnika Razor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="View Code">
+        <source>View Code</source>
+        <target state="translated">Wyświetl kod</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

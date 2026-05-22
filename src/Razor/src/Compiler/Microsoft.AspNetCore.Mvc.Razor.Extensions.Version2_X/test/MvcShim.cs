@@ -1,0 +1,46 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+#nullable disable
+
+using System.IO;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
+
+internal static class MvcShim
+{
+    public static readonly string AssemblyName = "Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X.Compiler";
+
+    private static Assembly _assembly;
+    private static CSharpCompilation _baseCompilation;
+
+    public static Assembly Assembly
+    {
+        get
+        {
+            if (_assembly == null)
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), AssemblyName + ".dll");
+                _assembly = Assembly.LoadFrom(filePath);
+            }
+
+            return _assembly;
+        }
+    }
+
+    public static CSharpCompilation BaseCompilation
+    {
+        get
+        {
+            if (_baseCompilation == null)
+            {
+                _baseCompilation = TestCompilation.Create(Assembly);
+            }
+
+            return _baseCompilation;
+        }
+    }
+}

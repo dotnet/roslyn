@@ -1,0 +1,2 @@
+# Formatting-log text artifacts come directly from customer machines and must be preserved byte-for-byte.
+*.txt -text
