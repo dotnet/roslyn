@@ -1,0 +1,16 @@
+﻿RazorDocument - [0..12)::12 - [@Section foo]
+    MarkupBlock - [0..12)::12
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..8)::8
+            CSharpImplicitExpression - [0..8)::8
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [1..8)::7
+                    CSharpCodeBlock - [1..8)::7
+                        CSharpExpressionLiteral - [1..8)::7 - [Section] - Gen<Expr>
+                            Identifier;[Section];
+        MarkupTextLiteral - [8..12)::4 - [ foo] - Gen<Markup>
+            Whitespace;[ ];
+            Text;[foo];
+    EndOfFile;[];
