@@ -1,0 +1,55 @@
+﻿Source Location: (1:0,1 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|using System.Text|
+Generated Location: (372:12,0 [17] )
+|using System.Text|
+
+Source Location: (172:10,8 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|float|
+Generated Location: (1068:31,0 [5] )
+|float|
+
+Source Location: (178:10,14 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value5|
+Generated Location: (1220:39,0 [6] )
+|Value5|
+
+Source Location: (117:4,8 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|double|
+Generated Location: (1481:49,0 [6] )
+|double|
+
+Source Location: (124:4,15 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value4|
+Generated Location: (1632:57,0 [6] )
+|Value4|
+
+Source Location: (96:3,8 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|int|
+Generated Location: (1893:67,0 [3] )
+|int|
+
+Source Location: (100:3,12 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value3|
+Generated Location: (2041:75,0 [6] )
+|Value3|
+
+Source Location: (57:2,14 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|StringBuilder|
+Generated Location: (2303:85,0 [13] )
+|StringBuilder|
+
+Source Location: (80:2,37 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value2|
+Generated Location: (2461:93,0 [6] )
+|Value2|
+
+Source Location: (28:1,8 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (2722:103,0 [6] )
+|string|
+
+Source Location: (35:1,15 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value1|
+Generated Location: (2873:111,0 [6] )
+|Value1|
+

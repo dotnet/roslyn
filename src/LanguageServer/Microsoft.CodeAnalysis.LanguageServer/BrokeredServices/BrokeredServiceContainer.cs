@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
@@ -34,7 +35,7 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
     internal ImmutableDictionary<ServiceMoniker, ServiceRegistration> GetRegisteredServices()
         => RegisteredServices;
 
-    internal static async Task<BrokeredServiceContainer> CreateAsync(ExportProvider exportProvider, CancellationToken cancellationToken)
+    internal static async Task<BrokeredServiceContainer> CreateAsync(ExportProvider exportProvider, ImmutableArray<IServiceBrokerInitializer> serviceBrokerInitializers, CancellationToken cancellationToken)
     {
         var traceListener = exportProvider.GetExportedValue<BrokeredServiceTraceListener>();
         var container = new BrokeredServiceContainer(traceListener.Source);
@@ -49,6 +50,12 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 
         // Register local mef services.
         await mefServiceBroker.RegisterAndProfferServicesAsync(cancellationToken);
+
+        // Register and proffer all services that come from service broker manual initialization
+        var servicesToRegister = serviceBrokerInitializers.SelectMany(s => s.ServicesToRegister).ToDictionary(a => a.Key, a => a.Value);
+        container.RegisterServices(servicesToRegister);
+        foreach (var onInitialized in serviceBrokerInitializers)
+            onInitialized.Proffer(container);
 
         // Register the desired remote services
         container.RegisterServices(Descriptors.RemoteServicesToRegister);

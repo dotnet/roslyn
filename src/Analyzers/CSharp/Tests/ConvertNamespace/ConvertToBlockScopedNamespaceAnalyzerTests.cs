@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace;
@@ -24,7 +27,7 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
         get
         {
             yield return new object[] { "" };
-            yield return new object[] { "\r\n" };
+            yield return new object[] { Environment.NewLine };
         }
     }
 

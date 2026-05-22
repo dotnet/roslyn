@@ -1,0 +1,14 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [73] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (22:0,22 [48] x:\dir\subdir\Test\TestComponent.cshtml) - OnClick - OnClick - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (24:0,24 [45] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - EventCallback.Factory.Create(this, Increment)
+            CSharpCode - (84:2,7 [87] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (84:2,7 [87] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private int counter;\n    private void Increment() {\n        counter++;\n    }\n

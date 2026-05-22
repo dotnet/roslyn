@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             resultBinder = new InMethodBinder(accessor, resultBinder);
 
                             resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(
-                                modifiers: default,
+                                modifiers: parent.Modifiers,
                                 isIteratorBody: accessor.IsIterator);
                         }
                     }
