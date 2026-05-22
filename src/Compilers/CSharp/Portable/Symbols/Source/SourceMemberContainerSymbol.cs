@@ -2075,6 +2075,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+            else if (IsUnionType)
+            {
+                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null) is null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
+                }
+
+                if (Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(this) is null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MissingUnionValueProperty, location);
+                }
+            }
 
             return;
 

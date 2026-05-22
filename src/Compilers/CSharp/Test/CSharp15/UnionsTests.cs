@@ -35,6 +35,7 @@ interface I1;
 [System.Runtime.CompilerServices.Union]
 struct S1
 {
+    public S1(int x) {}
     public object Value => null;
 }
 
@@ -46,12 +47,14 @@ struct S2 : IUnion
 [System.Runtime.CompilerServices.Union]
 class C1
 {
+    public C1(int x) {}
     public object Value => null;
 }
 
 [System.Runtime.CompilerServices.Union]
 sealed class C2
 {
+    public C2(int x) {}
     public object Value => null;
 }
 
@@ -62,6 +65,7 @@ sealed class C3 : IUnion
 
 sealed class C4 : C1
 {
+    public C4() : base(0) {}
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
@@ -88,6 +92,7 @@ sealed class C4 : C1
 [System.Runtime.CompilerServices.Union]
 struct S1
 {
+    public S1(int x) {}
     public object Value => null;
 }
 
@@ -111,6 +116,7 @@ namespace System.Runtime.CompilerServices
 [System.Runtime.CompilerServices.Union]
 public struct S1
 {
+    public S1(int x) {}
     public object Value => null;
 }
 ";
@@ -119,14 +125,16 @@ public struct S1
             Assert.True(comp1.GetTypeByMetadataName("S1").IsUnionType);
 
             var src2 = @"
+#pragma warning disable CS0436 // The type 'UnionAttribute' in '' conflicts with the imported type 'UnionAttribute' ...
 [System.Runtime.CompilerServices.Union]
 struct S2
 {
+    public S2(int x) {}
     public object Value => null;
 }
 ";
             var comp2 = CreateCompilation([src2, UnionAttributeSource], references: [comp1.EmitToImageReference()]);
-            comp1.VerifyEmitDiagnostics();
+            comp2.VerifyEmitDiagnostics();
 
             Assert.True(comp2.GetTypeByMetadataName("S1").IsUnionType);
             Assert.True(comp2.GetTypeByMetadataName("S2").IsUnionType);
@@ -175,7 +183,20 @@ class C5
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (3,8): error CS9385: A union type must have at least one union creation member.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S1").WithLocation(3, 8),
+                // (17,8): error CS9385: A union type must have at least one union creation member.
+                // struct S3
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S3").WithLocation(17, 8),
+                // (25,8): error CS9385: A union type must have at least one union creation member.
+                // struct S4
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S4").WithLocation(25, 8),
+                // (32,7): error CS9385: A union type must have at least one union creation member.
+                // class C5
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "C5").WithLocation(32, 7)
+                );
 
             VerifyCaseTypes(comp, "S1", []);
             VerifyCaseTypes(comp, "S2", ["System.Int32", "System.String"]);
@@ -208,15 +229,18 @@ class C5
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
+#line 2
 struct S2
 {
-#line 4
     public static S2(int x){}
     public object Value => null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (2,8): error CS9385: A union type must have at least one union creation member.
+                // struct S2
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S2").WithLocation(2, 8),
                 // (4,19): error CS0515: 'S2.S2(int)': access modifiers are not allowed on static constructors
                 //     public static S2(int x){}
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithAccessModifiers, "S2").WithArguments("S2.S2(int)").WithLocation(4, 19),
@@ -363,9 +387,11 @@ struct S2 : S2.IUnionMembers
         public static S2 Create(int x) => throw null;
         public static virtual S2 Create(string x) => throw null;
         public static abstract S2 Create(long x);
+        public object Value { get; }
     }
 
     public static S2 Create(long x) => throw null;
+    object IUnionMembers.Value => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -379,15 +405,21 @@ struct S2 : S2.IUnionMembers
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
+#line 3
 struct S1 : S1.IUnionMembers
 {
     public S1(byte x){}
 
     public interface IUnionMembers  
-    {}
+    {
+        public object Value { get; }
+    }
+
+    object IUnionMembers.Value => throw null;
 }
 
 [System.Runtime.CompilerServices.Union]
+#line 12
 struct S3 : S3.IUnionMembers
 {
     public S3(byte x){}
@@ -396,10 +428,14 @@ struct S3 : S3.IUnionMembers
     {
         private static S3 Create(int x) => throw null;
         internal static S3 Create(string x) => throw null;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null;
 }
 
 [System.Runtime.CompilerServices.Union]
+#line 24
 struct S4 : S4.IUnionMembers
 {
     public S4(byte y){}
@@ -407,10 +443,14 @@ struct S4 : S4.IUnionMembers
     public interface IUnionMembers  
     {
         public static S4 Create(int x, string y) => throw null;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null;
 }
 
 [System.Runtime.CompilerServices.Union]
+#line 35
 class C5 : C5.IUnionMembers
 {
     public C5(int x){}
@@ -420,11 +460,27 @@ class C5 : C5.IUnionMembers
         protected static C5 Create(int x) => throw null;
         protected internal static C5 Create(string x) => throw null;
         private protected static C5 Create(decimal x) => throw null;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (3,8): error CS9385: A union type must have at least one union creation member.
+                // struct S1 : S1.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S1").WithLocation(3, 8),
+                // (12,8): error CS9385: A union type must have at least one union creation member.
+                // struct S3 : S3.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S3").WithLocation(12, 8),
+                // (24,8): error CS9385: A union type must have at least one union creation member.
+                // struct S4 : S4.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S4").WithLocation(24, 8),
+                // (35,7): error CS9385: A union type must have at least one union creation member.
+                // class C5 : C5.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "C5").WithLocation(35, 7)
+                );
 
             VerifyCaseTypes(comp, "S1", []);
             VerifyCaseTypes(comp, "S3", []);
@@ -440,6 +496,7 @@ class C5 : C5.IUnionMembers
 struct S2 : S2.IUnionMembers<string>
 {
     public S2(byte x){}
+    public object Value => throw null;
 
     public interface IUnionMembers<T>  
     {
@@ -452,6 +509,7 @@ struct S2 : S2.IUnionMembers<string>
 struct S3 : S3.IUnionMembers
 {
     public S3(byte x){}
+    object IUnionMembers.Value => throw null;
 
     public interface IUnionMembers<T>;  
 
@@ -459,6 +517,7 @@ struct S3 : S3.IUnionMembers
     {
         public static S3 Create(int x) => throw null;
         public static S3 Create(string x) => throw null;
+        public object Value { get; }
     }
 
     public interface IUnionMembers<T, S>;  
@@ -479,11 +538,13 @@ struct S3 : S3.IUnionMembers
 struct S2<T> : S2<T>.IUnionMembers
 {
     public S2(byte x){}
+    object IUnionMembers.Value => throw null;
 
     public interface IUnionMembers  
     {
         public static S2<T> Create(int x) => throw null;
         public static S2<T> Create(T x) => throw null;
+        public object Value { get; }
     }
 }
 ";
@@ -502,6 +563,7 @@ struct S2<T> : S2<T>.IUnionMembers
 struct S2<T> : S2<string>.IUnionMembers
 {
     public S2(byte x){}
+    public object Value => throw null;
 
     public interface IUnionMembers  
     {
@@ -526,6 +588,7 @@ struct S2<T> : S2<string>.IUnionMembers
 class S2 : S2.IUnionMembers
 {
     public S2(byte x){}
+    public object Value => throw null;
 
     " + accessibility + @" interface IUnionMembers  
     {
@@ -553,11 +616,18 @@ struct S2 : S2.IUnionMembers
     {
         public static int Create(int x) => throw null;
         public static void Create(string x) => throw null;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (3,8): error CS9385: A union type must have at least one union creation member.
+                // struct S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S2").WithLocation(3, 8)
+                );
 
             VerifyCaseTypes(comp, "S2", []);
         }
@@ -575,7 +645,10 @@ struct S2<T> : S2<T>.IUnionMembers
     {
         public static S2<T> Create(int x) => throw null;
         public static S2<string> Create(T x) => throw null;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -598,11 +671,18 @@ struct S2 : S2.IUnionMembers
     {
         public static ref S2 Create(int x) => throw null;
         public static ref S2 Create(string x) => throw null;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (3,8): error CS9385: A union type must have at least one union creation member.
+                // struct S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S2").WithLocation(3, 8)
+                );
 
             VerifyCaseTypes(comp, "S2", []);
         }
@@ -621,13 +701,19 @@ struct S2 : S2.IUnionMembers
         public S2 Create(int x) => throw null;
         public virtual S2 Create(string x) => throw null;
         public abstract S2 Create(byte x);
+        public object Value { get; }
     }
 
+    object IUnionMembers.Value => throw null;
     public S2 Create(byte x) => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (3,8): error CS9385: A union type must have at least one union creation member.
+                // struct S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionCaseTypes, "S2").WithLocation(3, 8)
+                );
 
             VerifyCaseTypes(comp, "S2", []);
         }
@@ -640,6 +726,7 @@ struct S2 : S2.IUnionMembers
 struct S2 : S2.IUnionMembers
 {
     public S2(byte x){}
+    public object Value => throw null;
 
     public class IUnionMembers  
     {
@@ -665,6 +752,7 @@ struct S2 : S2.IUnionMembers
 struct S2 : S2.IUnionMembers
 {
     public S2(byte x){}
+    public object Value => throw null;
 
     public struct IUnionMembers  
     {
@@ -690,6 +778,7 @@ struct S2 : S2.IUnionMembers
 struct S2 : S2.IUnionMembers
 {
     public S2(byte x){}
+    public object Value => throw null;
 
     public enum IUnionMembers  
     {
@@ -714,6 +803,7 @@ struct S2 : S2.IUnionMembers
 struct S2 : S2.IUnionMembers
 {
     public S2(byte x){}
+    public object Value => throw null;
 
     public delegate void IUnionMembers();
 }
@@ -736,6 +826,7 @@ struct S2 : S2.IUnionMembers
 struct S2
 {
     public S2(byte x){}
+    public object Value => throw null;
 
     public interface IUnionMembers  
     {
@@ -763,8 +854,10 @@ struct S2 : I1
         public static S2 Create(int x) => throw null;
         public static virtual S2 Create(string x) => throw null;
         public static abstract S2 Create(byte x);
+        public object Value { get; }
     }
 
+    object IUnionMembers.Value => throw null;
     public static S2 Create(byte x) => throw null;
 }
 
@@ -790,12 +883,14 @@ class S2 : S1
         public static S2 Create(int x) => throw null;
         public static virtual S2 Create(string x) => throw null;
         public static abstract S2 Create(byte x);
+        public object Value { get; }
     }
 }
 
 class S1 : S2.IUnionMembers
 {
     public static S2 Create(byte x) => throw null;
+    object S2.IUnionMembers.Value => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -812,6 +907,7 @@ class S1 : S2.IUnionMembers
 public struct S2 : IUnionMembers
 {
     public S2(byte x){}
+    public object Value => throw null;
 }
 
 public interface IUnionMembers  
@@ -833,6 +929,7 @@ public interface IUnionMembers
 class S2 : S1, S1.IUnionMembers
 {
     public S2(byte x){}
+    public object Value => throw null;
 }
 
 class S1 : S1.IUnionMembers
@@ -857,6 +954,7 @@ class S1 : S1.IUnionMembers
 struct S2 : S2.C.IUnionMembers
 {
     public S2(byte x){}
+    public object Value => throw null;
 
     public class C
     {
@@ -885,8 +983,10 @@ struct S2 : S2.IUnionMembers
     public interface IUnionMembers  
     {
         public static S2 Create(int x) => throw null;
+        public object Value { get; }
     }
 
+    object IUnionMembers.Value => throw null;
     public static S2 Create(long x) => throw null;
 }
 ";
@@ -914,7 +1014,10 @@ struct S2 : S2.IUnionMembers
         public static S2 Create(int? x) => throw null!;
         public static S2 Create(long? x) => throw null!;
         public static S2 Create(string? x) => throw null!;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null!;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -938,7 +1041,10 @@ struct S2 : S2.IUnionMembers
         public static S2 Create(ref readonly string x) => throw null;
         public static S2 Create(ref long x) => throw null;
         public static S2 Create(out char x) => throw null;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -959,7 +1065,10 @@ struct S2 : S2.IUnionMembers
     public interface IUnionMembers : IUnionMembersBase 
     {
         public static S2 Create(int x) => throw null;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null;
 
     public interface IUnionMembersBase  
     {
@@ -987,7 +1096,10 @@ struct S2 : S2.IUnionMembers
     {
         public static S2 Create(int x) => throw null;
         public static S2 Create<T>(string x) => throw null;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null;
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
@@ -10181,14 +10293,59 @@ public static class Repro
         [Fact]
         public void EmptyUnion_01()
         {
+            // #nullable enable
+            // [System.Runtime.CompilerServices.Union]
+            // struct S1
+            // {
+            //     public object Value => null!;
+            // }
+            var ilSource = @"
+.class public sequential ansi sealed beforefieldinit S1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+        01 00 01 00 00
+    )
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 00 00 00
+    )
+    .custom instance void System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .pack 0
+    .size 1
+
+    .method public hidebysig specialname 
+        instance object get_Value () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .property instance object Value()
+    {
+        .get instance object S1::get_Value()
+    }
+}
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.UnionAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
             var src = @"
 #nullable enable
-
-[System.Runtime.CompilerServices.Union]
-struct S1
-{
-    public object Value => null!;
-}
 
 class Program
 {
@@ -10271,7 +10428,7 @@ class Program
     } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilationWithIL([src, UnionAttributeSource], ilSource);
             comp.VerifyDiagnostics(
                 // (100,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         return u switch { int => 1, null => 3 };
@@ -13728,6 +13885,7 @@ class C1;
 struct S1
 {
     public S1(C1 x) => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -13791,6 +13949,7 @@ struct S1
 {
     public S1(C1 x) => throw null;
     public S1(C2 x) => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -13851,6 +14010,7 @@ class S1
 {
     public S1(C1 x) => throw null;
     public S1(C2 x) => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -13862,6 +14022,7 @@ class Program
 
     static S1 Test1()
     {
+#line 21
         return new();
     }   
 }
@@ -13886,6 +14047,7 @@ class S1
 {
     public S1(C1 x) => throw null;
     public S1(C2 x) => throw null;
+    public object Value => throw null;
 }
 
 class Program
@@ -13897,6 +14059,7 @@ class Program
 
     static S1 Test1()
     {
+#line 21
         return (S1)new();
     }   
 }
@@ -41207,6 +41370,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // class S1<T>
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
                 // (15,21): error CS0656: Missing compiler required member 'S1<T>.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1<T>", "Value").WithLocation(15, 21),
@@ -41546,6 +41712,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (9,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // class S1<T> : S0<T>
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(9, 7),
                 // (19,21): error CS0656: Missing compiler required member 'S1<T>.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1<T>", "Value").WithLocation(19, 21),
@@ -41965,6 +42134,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // class S1
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
                 // (14,21): error CS0656: Missing compiler required member 'S1.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1", "Value").WithLocation(14, 21)
@@ -42012,6 +42184,12 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // class S1
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
+                // (11,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // class S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S2").WithLocation(11, 7),
                 // (27,21): error CS0656: Missing compiler required member 'S1.Value'
                 //         return x is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1", "Value").WithLocation(27, 21),
@@ -42059,6 +42237,12 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // class S1
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
+                // (11,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // class S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S2").WithLocation(11, 7),
                 // (25,21): error CS0656: Missing compiler required member 'S1.Value'
                 //         return x is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1", "Value").WithLocation(25, 21),
@@ -42108,6 +42292,12 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // class S1
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 7),
+                // (11,7): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // class S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S2").WithLocation(11, 7),
                 // (27,21): error CS0656: Missing compiler required member 'S1.Value'
                 //         return x is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1", "Value").WithLocation(27, 21),
@@ -42216,6 +42406,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // struct S1
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1", "Value").WithLocation(21, 21)
@@ -46431,6 +46624,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // struct S1 : S1.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
@@ -46727,6 +46923,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // struct S1 : S1.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
@@ -46766,6 +46965,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // struct S1<T> : S1<T>.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (25,21): error CS0656: Missing compiler required member 'S1<T>.IUnionMembers.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1<T>.IUnionMembers", "Value").WithLocation(25, 21)
@@ -46806,6 +47008,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // struct S1 : S1.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
@@ -46843,6 +47048,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // struct S1 : S1.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
@@ -46946,6 +47154,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (3,8): error CS9386: A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.
+                // struct S1 : S1.IUnionMembers
+                Diagnostic(ErrorCode.ERR_MissingUnionValueProperty, "S1").WithLocation(3, 8),
                 // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
                 //         return u is 10;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
@@ -46962,6 +47173,7 @@ struct S
     public S(C? c)
     {
     }
+    public object Value => throw null;
 }
 
 struct C
@@ -46994,6 +47206,7 @@ class B
     public B(C c)
     {
     }
+    public object Value => throw null;
 }
 
 class C
@@ -47028,6 +47241,7 @@ struct B
 {
     public B(C c)
     {}
+    public object Value => throw null;
 }
 
 struct C
@@ -47035,6 +47249,7 @@ struct C
     void M1(C? c1)
     {
         int x;
+#line 14
         B b = (B?)c1?.M1(x = 0) ?? c1!.Value.M2(x = 0);
         x.ToString();
     }
@@ -47062,6 +47277,7 @@ struct B
 {
     public B(C c)
     {}
+    public object Value => throw null;
 }
 
 struct C
@@ -47069,6 +47285,7 @@ struct C
     void M1(C? c1)
     {
         int x;
+#line 14
         B? b = (B?)c1?.M1(x = 0) ?? c1!.Value.M2(x = 0);
         x.ToString();
     }
@@ -47096,6 +47313,7 @@ struct B
 {
     public B(C c)
     {}
+    public object Value => throw null;
 }
 
 class C
@@ -47135,7 +47353,10 @@ class D : D.IUnionMembers
     public interface IUnionMembers  
     {
         public static D? Create(C c) => default;
+        public object Value { get; }
     }
+
+    object IUnionMembers.Value => throw null!;
 }
 ";
 
@@ -47159,6 +47380,7 @@ class D : D.IUnionMembers
 class A<T>
 {
     public A(B<T> b) => throw null!;
+    public object Value => throw null!;
 }
 class B<T>
 {
@@ -47197,6 +47419,7 @@ class C
 class A<T>
 {
     public A(B<T> b) => throw null!;
+    public object Value => throw null!;
 }
 
 class B<T>
@@ -47240,6 +47463,7 @@ class C
 {
     public C(S? s)
     {}
+    public object Value => throw null!;
 }
 
 class Program
@@ -47335,6 +47559,8 @@ struct B
         Console.Write($""B({b1.N})!=B({b2.N}); "");
         return b1.N != b2.N;
     }
+
+    public object Value => throw null;
 }
 ";
             var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
