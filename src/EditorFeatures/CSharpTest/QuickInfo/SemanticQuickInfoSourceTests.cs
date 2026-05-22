@@ -10320,7 +10320,6 @@ AnonymousTypes(
             """,
             MainDescription($"MyCollection<string> MyBuilder.Create<string>(int i, ReadOnlySpan<string> items)"));
 
-<<<<<<< HEAD
     [Fact]
     public Task TestChainedRelationalComparison_OuterLessThan_Intrinsic()
         => TestWithOptionsAsync(
@@ -10349,7 +10348,6 @@ AnonymousTypes(
             }
             """,
             MainDescription("bool S.operator <(S a, S b)"));
-=======
     #region Interceptors
 
     private static readonly CSharpParseOptions s_parseOptionsWithInterceptors =
@@ -10629,5 +10627,4 @@ AnonymousTypes(
     }
 
     #endregion
->>>>>>> merge-main-into-chained-relational-comparison
 }
