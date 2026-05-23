@@ -36,6 +36,12 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
+    - task: UseDotNet@2
+      displayName: Install .NET (from global.json)
+      inputs:
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+
     - task: BatchScript@1
       displayName: Rehydrate RunTests
       inputs:
