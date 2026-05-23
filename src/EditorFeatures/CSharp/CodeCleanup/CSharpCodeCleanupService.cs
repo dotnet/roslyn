@@ -167,8 +167,15 @@ internal sealed class CSharpCodeCleanupService(ICodeFixService codeFixService)
                 CSharpRemoveUnusedVariableCodeFixProvider.CS0219),
             new DiagnosticSet(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive,
                 IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
-                IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId)
-,
+                IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId),
+            new DiagnosticSet(CSharpFeaturesResources.Apply_collection_expression_preferences,
+                IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId,
+                IDEDiagnosticIds.UseCollectionExpressionForNewDiagnosticId),
         ];
 
     protected override string OrganizeImportsDescription

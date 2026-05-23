@@ -1,0 +1,652 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../HtmlDescriptions.resx">
+    <body>
+      <trans-unit id="HtmlAttribute_async">
+        <source>The script will be executed asynchronously, as soon as it is available.</source>
+        <target state="translated">脚本一旦可用，就将异步执行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_defer">
+        <source>The script is executed when the page has finished parsing.</source>
+        <target state="translated">在该页完成分析后，将执行脚本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_draggable">
+        <source>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</source>
+        <target state="translated">具有可拖动属性的元素还应具有对该元素命名的 title 属性，以便实现非视觉交互目的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_integrity">
+        <source>The integrity attribute represents integrity metadata for an element.</source>
+        <target state="translated">integrity 属性表示元素的完整性元数据。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_open">
+        <source>When specified, it indicates that the dialog element is active and that the user can interact with it.</source>
+        <target state="translated">指定后，它指示对话元素处于活动状态，用户可以与其进行交互。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_sizes">
+        <source>Image sizes between breakpoints.</source>
+        <target state="translated">介于断点之间的图像大小。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_srcset">
+        <source>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</source>
+        <target state="translated">要在不同情况下使用的图像(例如高分辨率显示器、小型监视器等)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_a">
+        <source>If the a element has an href attribute, then it represents a hyperlink (a hypertext anchor) labeled by its contents.</source>
+        <target state="translated">如果 a 元素具有 href 属性，则该元素表示由其内容标记的超链接(超文本定位)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_abbr">
+        <source>The abbr element represents an abbreviation or acronym, optionally with its expansion. The title attribute may be used to provide an expansion of the abbreviation. The attribute, if specified, must contain an expansion of the abbreviation, and nothing else.</source>
+        <target state="translated">abbr 元素表示缩写或首字母缩略词，可带有其扩展。可使用 title 属性提供该缩写的扩展。如果指定，则该属性必须包含该缩写的扩展，而不包含其他任何内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_address">
+        <source>The address element represents the contact information for its nearest article or body element ancestor. If that is the body element, then the contact information applies to the document as a whole.</source>
+        <target state="translated">address 元素表示最近的 article 或 body 元素上级的联系信息。如果该元素是 body 元素，则该联系信息全部都适用于文档。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_area">
+        <source>The area element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map.</source>
+        <target state="translated">area 元素表示图像地图上一个带有某些文本的超链接和相应区域，或图像地图上的死区域。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_article">
+        <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</source>
+        <target state="translated">article 元素表示文档、页面、应用程序或站点中的完整或自包含组合，从原则上讲，该元素可独立分发或重使用，例如以联合形式。此元素可能是论坛帖子、杂志或报纸文章、博客条目、用户提交的评论、交互式小工具，或其他任何无关的内容项。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_aside">
+        <source>The aside element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content. Such sections are often represented as sidebars in printed typography.</source>
+        <target state="translated">aside 元素表示页面的某个部分，该部分包含与 aside 元素周围的内容略微相关的内容，以及可能被认为与该内容分隔开的内容。这些部分在打印版式中通常表示为边栏。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_audio">
+        <source>An audio element represents a sound or audio stream.</source>
+        <target state="translated">audio 元素表示声音或音频流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_b">
+        <source>The b element represents a span of text to which attention is being drawn for utilitarian purposes without conveying any extra importance and with no implication of an alternate voice or mood, such as key words in a document abstract, product names in a review, actionable words in interactive text-driven software, or an article lede.</source>
+        <target state="translated">b 元素表示一段文本，该文本出于实用目的受到关注，不必传达任何额外的重要性，并且不指示备选语态或语气，例如文档摘要中的关键字、接受检查的产品名称、交互式的文本驱动软件中的可操作单词或文章导语。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_base">
+        <source>The base element allows authors to specify the document base URL for the purposes of resolving relative URLs, and the name of the default browsing context for the purposes of following hyperlinks. The element does not represent any content beyond this information.</source>
+        <target state="translated">base 元素允许作者指定文档基 URL 以便解析相对 URL，以及指定默认浏览上下文的名称以便打开超链接。该元素不表示此信息以外的任何内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_bdi">
+        <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</source>
+        <target state="translated">bdi 元素表示一段文本，该文本要与其周围内容隔离，以用于双向文本格式化。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_bdo">
+        <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</source>
+        <target state="translated">bdo 元素表示其子级的显式文本方向性格式化控件。该元素允许作者通过明确指定方向重写来重写 Unicode 双向算法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_blockquote">
+        <source>The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a footer or cite element, and optionally with in-line changes such as annotations and abbreviations.</source>
+        <target state="translated">blockquote 元素表示从其他源中引用的内容，可以带有必须位于 footer 或 cite 元素中的引文，也可以带有批注和缩写等行内更改。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_body">
+        <source>The body element represents the content of the document.</source>
+        <target state="translated">body 元素表示文档的内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_br">
+        <source>The br element represents a line break.</source>
+        <target state="translated">br 元素表示换行符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_button">
+        <source>The button element represents a button labeled by its contents.</source>
+        <target state="translated">button 元素表示由其内容标记的按钮。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_canvas">
+        <source>The canvas element provides scripts with a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, art, or other visual images on the fly.</source>
+        <target state="translated">canvas 元素为脚本提供与分辨率有关的位图画布，该画布可用于动态呈现图形、游戏图形、艺术或其他可视图像。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_caption">
+        <source>The caption element represents the title of the table that is its parent, if it has a parent and that is a table element.</source>
+        <target state="translated">caption 元素表示作为其父级的表的标题(如果它有父级，并且该父级是 table 元素)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_cite">
+        <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</source>
+        <target state="translated">cite 元素表示对创意作品的引用。该元素必须包括作品的标题或作者(个人、一群人或组织)的名称或 URL 引用(根据用于添加引文元数据的约定，可以采用缩写形式)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_code">
+        <source>The code element represents a fragment of computer code. This could be an XML element name, a file name, a computer program, or any other string that a computer would recognize.</source>
+        <target state="translated">code 元素表示计算机代码的片段。这可以是 XML 元素名称、文件名、计算机程序，或计算机可识别的其他任何字符串。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_col">
+        <source>If a col element has a parent and that is a colgroup element that itself has a parent that is a table element, then the col element represents one or more columns in the column group represented by that colgroup.</source>
+        <target state="translated">如果 col 元素有父级，并且该父级是 colgroup 元素且自身有作为 table 元素的父级，则该 col 元素表示由该 colgroup 表示的列组中的一个或多个列。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_colgroup">
+        <source>The colgroup element represents a group of one or more columns in the table that is its parent, if it has a parent and that is a table element.</source>
+        <target state="translated">colgroup 元素表示作为其父级的表中的一个或多个列组(如果它有父级，并且该父级是 table 元素)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_command">
+        <source>The command element represents a command that the user can invoke.</source>
+        <target state="translated">command 元素表示用户可调用的命令。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_content">
+        <source>The content element represents an insertion point in the shadow tree.</source>
+        <target state="translated">content 元素表示阴影树中的插入点。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_datalist">
+        <source>The datalist element represents a set of option elements that represent predefined options for other controls. In the rendering, the datalist element represents nothing and it, along with its children, should be hidden.</source>
+        <target state="translated">datalist 元素表示一组 option 元素，这些元素表示其他控件的预定义选项。在呈现时，datalist 元素不表示任何内容，该元素及其子级应被隐藏。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dd">
+        <source>The dd element represents the description, definition, or value, part of a term-description group in a description list (dl element).</source>
+        <target state="translated">dd 元素表示描述、定义或值，即描述列表(dl 元素)中术语描述组的一部分。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_del">
+        <source>The del element represents a removal from the document.</source>
+        <target state="translated">del 元素表示从文档中删除。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_details">
+        <source>The details element represents a disclosure widget from which the user can obtain additional information or controls.</source>
+        <target state="translated">details 元素表示用户可以从中获取其他信息或控件的公开小组件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dfn">
+        <source>The dfn element represents the defining instance of a term. The paragraph, description list group, or section that is the nearest ancestor of the dfn element must also contain the definition(s) for the term given by the dfn element.</source>
+        <target state="translated">dfn 元素表示术语的定义实例。作为 dfn 元素最近上级的段落、描述列表组或部分还必须包含由该 dfn 元素提供的术语的定义。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dialog">
+        <source>The dialog element represents a part of an application that a user interacts with to perform a task, for example a dialog box, inspector, or window.</source>
+        <target state="translated">dialog 元素表示用户为了执行任务而与之交互的应用程序的一部分，例如，对话框、检查器或窗口。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_div">
+        <source>The div element has no special meaning at all. It represents its children. It can be used with the class, lang, and title attributes to mark up semantics common to a group of consecutive elements.</source>
+        <target state="translated">div 元素根本没有特殊含义。该元素表示其子级。它可与 class、lang 和 title 属性一起用于标记一组连续元素通用的语义。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dl">
+        <source>The dl element represents an association list consisting of zero or more name-value groups (a description list). A name-value group consists of one or more names (dt elements) followed by one or more values (dd elements), ignoring any nodes other than dt and dd elements. Within a single dl element, there should not be more than one dt element for each name.</source>
+        <target state="translated">dl 元素表示包含零个或多个名称/值组的关联列表(描述列表)。名称/值组包含一个或多个名称(dt 元素)，后跟一个或多个值(dd 元素)，从而忽略 dt 和 dd 元素之外的任何节点。在单个 dl 元素中，每个名称都不能有多个 dt 元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dt">
+        <source>The dt element represents the term, or name, part of a term-description group in a description list (dl element).</source>
+        <target state="translated">dt 元素表示术语或名称，即描述列表(dl 元素)中术语描述组的一部分。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_em">
+        <source>The em element represents stress emphasis of its contents.</source>
+        <target state="translated">em 元素表示对其内容的强调。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_embed">
+        <source>The embed element provides an integration point for an external (typically non-HTML) application or interactive content.</source>
+        <target state="translated">embed 元素为外部(通常是非 HTML)应用程序或交互式内容提供集成点。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_fieldset">
+        <source>The fieldset element represents a set of form controls optionally grouped under a common name.</source>
+        <target state="translated">fieldset 元素表示一组可以按常见名称分组的表单控件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_figure">
+        <source>The figure element represents some flow content, optionally with a caption, that is self-contained (like a complete sentence) and is typically referenced as a single unit from the main flow of the document.</source>
+        <target state="translated">figure 元素表示一些可以带有标题的自包含流内容(例如完整句子)，通常在文档的主要流中引用为单个单元。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_footer">
+        <source>The footer element represents a footer for its nearest ancestor sectioning content or sectioning root element. A footer typically contains information about its section such as who wrote it, links to related documents, copyright data, and the like.</source>
+        <target state="translated">footer 元素表示最近的上级分区内容或分区根元素的脚注。脚注通常包含与其所在部分相关的信息，例如编写者、指向相关文档的链接、版权数据等等。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_form">
+        <source>The form element represents a collection of form-associated elements, some of which can represent editable values that can be submitted to a server for processing.</source>
+        <target state="translated">form 元素表示与表单关联的元素的集合，其中一些元素可以表示可编辑值，这些值可提交到服务器进行处理。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h1">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">这些元素表示其所在部分的标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h2">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">这些元素表示其所在部分的标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h3">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">这些元素表示其所在部分的标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h4">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">这些元素表示其所在部分的标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h5">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">这些元素表示其所在部分的标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h6">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">这些元素表示其所在部分的标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_head">
+        <source>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</source>
+        <target state="translated">head 元素表示文档的元数据集合。head 元素必须是 html 元素中的第一个元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_header">
+        <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</source>
+        <target state="translated">header 元素表示最近的上级分区内容或分区根元素的介绍性内容。标题通常包含一组介绍性或导航帮助。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_hr">
+        <source>The hr element represents a paragraph-level thematic break, e.g. a scene change in a story, or a transition to another topic within a section of a reference book.</source>
+        <target state="translated">hr 元素表示段落级别主题间隔，例如故事中的场景变化或向参考书的某个章节中的另一个主题转换。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_html">
+        <source>The html element represents the root of an HTML document.</source>
+        <target state="translated">html 元素表示 HTML 文档的根。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_i">
+        <source>The i element represents a span of text in an alternate voice or mood, or otherwise offset from the normal prose in a manner indicating a different quality of text, such as a taxonomic designation, a technical term, an idiomatic phrase from another language, transliteration, a thought, or a ship name in Western texts.</source>
+        <target state="translated">i 元素表示采用备选语态或语气的一段文本，或以指示不同文本质量的方式表示的与常规文本的偏移量，例如分类指定、技术术语、其他语言的惯用短语、音译、想法或采用西方文本的船舶名称。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_iframe">
+        <source>The iframe element represents a nested browsing context.</source>
+        <target state="translated">iframe 元素表示嵌套的浏览上下文。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_img">
+        <source>An img element represents an image.</source>
+        <target state="translated">img 元素表示图像。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_input">
+        <source>The input element represents a typed data field, usually with a form control to allow the user to edit the data.</source>
+        <target state="translated">input 元素表示类型化数据字段，通常带有允许用户编辑数据的表单控件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ins">
+        <source>The ins element represents an addition to the document.</source>
+        <target state="translated">ins 元素表示添加到文档中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_kbd">
+        <source>The kbd element represents user input (typically keyboard input, although it may also be used to represent other input, such as voice commands).</source>
+        <target state="translated">kbd 元素表示用户输入(通常是键盘输入，尽管该元素可能还用于表示语音命令等其他输入)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_label">
+        <source>The label element represents a caption in a user interface. The caption can be associated with a specific form control, known as the label element's labeled control, either using the for attribute, or by putting the form control inside the label element itself.</source>
+        <target state="translated">label 元素表示用户界面中的标题。该标题可与特定表单控件(称为 label 元素的标记控件)关联，方法是使用 for 属性，或将表单控件放在 label 元素自身内。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_legend">
+        <source>The legend element represents a caption for the rest of the contents of the legend element's parent fieldset element, if any.</source>
+        <target state="translated">legend 元素表示该 legend 元素的父 fieldset 元素(如果有)的其余内容的标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_li">
+        <source>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
+        <target state="translated">li 元素表示项目列表。如果其父元素是 ol 或 ul，则该元素是为那些元素定义的父元素列表的项目。否则，该列表项目与其他任何 li 元素没有已定义的列表相关关系。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_link">
+        <source>The link element allows authors to link their document to other resources.</source>
+        <target state="translated">link 元素允许作者将其文档链接到其他资源。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_main">
+        <source>The main element represents the main content of the body of a document or application. The main content area consists of content that is directly related to or expands upon the central topic of a document or central functionality of an application.</source>
+        <target state="translated">main 元素表示文档或应用程序正文的主要内容。主要内容区域中的内容与文档的中心主题或应用程序的中心功能直接相关，或根据该中心主题或中心功能进行扩展。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_map">
+        <source>The map element, in conjunction with an img element and any area element descendants, defines an image map. The element represents its children.</source>
+        <target state="translated">map 元素，与 img 元素和任何 area 元素后代一起用于定义图像地图。该元素表示其子级。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_mark">
+        <source>The mark element represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context. When used in a quotation or other block of text referred to from the prose, it indicates a highlight that was not originally present but which has been added to bring the reader's attention to a part of the text that might not have been considered important by the original author when the block was originally written, but which is now under previously unexpected scrutiny. When used in the main prose of a document, it indicates a part of the document that has been highlighted due to its likely relevance to the user's current activity.</source>
+        <target state="translated">mark 元素表示一个文档中的一连串文本，这些文本由于其在另一个上下文中的相关性而进行了标记或突出显示，以实现引用目的。如果在从文本中引用的引文或其他文本块中使用，则该元素指示突出显示，该突出显示原先并不存在，但已添加以将读者的注意力吸引到原作者在最初编写块时可能未被视为重要而现在正在接受以前未预料到的仔细查阅的文本部分。如果在文档的主要文本中使用，该元素指示由于其可能与用户的当前活动相关而已突出显示的文档部分。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_math">
+        <source>The math element from the MathML namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</source>
+        <target state="translated">MathML 命名空间中的 math 元素归入嵌入内容、分段内容和流内容类别，以用于此规范中的内容模型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_menu">
+        <source>The menu element represents a list of commands.</source>
+        <target state="translated">menu 元素表示一组命令。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_menuitem">
+        <source>The menuitem element represents a command that the user can invoke from a popup menu (either a context menu or the menu of a menu button).</source>
+        <target state="translated">menuitem 元素表示用户可从弹出菜单(上下文菜单或菜单按钮的菜单)中调用的命令。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_meta">
+        <source>The meta element represents various kinds of metadata that cannot be expressed using the title, base, link, style, and script elements.</source>
+        <target state="translated">meta 元素表示不能使用 title、base、link、style 和 script 元素表示的各种元数据。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_meter">
+        <source>The meter element represents a scalar measurement within a known range, or a fractional value; for example disk usage, the relevance of a query result, or the fraction of a voting population to have selected a particular candidate.</source>
+        <target state="translated">meter 元素表示已知范围内的标量度量或分数值; 例如磁盘使用量、查询结果的相关性，或已选择特定候选人的投票人的分数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_nav">
+        <source>The nav element represents a section of a page that links to other pages or to parts within the page: a section with navigation links.</source>
+        <target state="translated">nav 元素表示页面中链接到其他页面或该页面中的部分的某个部分: 包含导航链接的部分。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-form">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">由 AngularJS JavaScript 库使用的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-include">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">由 AngularJS JavaScript 库使用的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-pluralize">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">由 AngularJS JavaScript 库使用的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-switch">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">由 AngularJS JavaScript 库使用的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-view">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">由 AngularJS JavaScript 库使用的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_noscript">
+        <source>The noscript element represents nothing if scripting is enabled, and represents its children if scripting is disabled. It is used to present different markup to user agents that support scripting and those that don't support scripting, by affecting how the document is parsed.</source>
+        <target state="translated">noscript 元素不表示任何内容(如果启用脚本编写)，或表示其子级(如果禁用脚本编写)。该元素用于通过影响文档的分析方式来为支持脚本编写和不支持脚本编写的用户代理提供不同标记。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_object">
+        <source>The object element can represent an external resource, which, depending on the type of the resource, will either be treated as an image, as a nested browsing context, or as an external resource to be processed by a plugin.</source>
+        <target state="translated">object 元素可表示外部资源，根据资源类型，该资源将被视为图像、嵌套的浏览上下文，或要由插件处理的外部资源。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ol">
+        <source>The ol element represents a list of items, where the items have been intentionally ordered, such that changing the order would change the meaning of the document.</source>
+        <target state="translated">ol 元素表示项目列表，其中项目已特意经过排序，以致更改顺序会更改文档的含义。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_optgroup">
+        <source>The optgroup element represents a group of option elements with a common label.</source>
+        <target state="translated">optgroup 元素表示带有常见标签的一组 option 元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_option">
+        <source>The option element represents an option in a select element or as part of a list of suggestions in a datalist element.</source>
+        <target state="translated">option 元素表示 select 元素中的选项，或 datalist 元素中的建议列表的一部分。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_output">
+        <source>The output element represents the result of a calculation or user action.</source>
+        <target state="translated">output 元素表示计算或用户操作的结果。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_p">
+        <source>The p element represents a paragraph.</source>
+        <target state="translated">p 元素表示段落。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_param">
+        <source>The param element defines parameters for plugins invoked by object elements. It does not represent anything on its own.</source>
+        <target state="translated">param 元素为 object 元素所调用的插件定义参数。该元素本身不表示任何内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_picture">
+        <source>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
+        <target state="translated">picture 元素是一个容器，它为其包含的 img 元素提供多个源，从而允许作者以声明方式，基于屏幕像素密度、视区大小、图像格式和其他因素控制要使用的图像资源或为用户代理提供其相关提示。该元素表示其子级。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_polymer-element">
+        <source>A polymer-element is used to create new HTML elements using the Polymer JavaScript library.</source>
+        <target state="translated">聚合元素用于使用 Polymer JavaScript 库创建新的 HTML 元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_pre">
+        <source>The pre element represents a block of preformatted text, in which structure is represented by typographic conventions rather than by elements.</source>
+        <target state="translated">pre 元素表示预设了格式的文本块，在该块中，结构由排字约定而非元素来表示。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_progress">
+        <source>The progress element represents the completion progress of a task. The progress is either indeterminate, indicating that progress is being made but that it is not clear how much more work remains to be done before the task is complete (e.g. because the task is waiting for a remote host to respond), or the progress is a number in the range zero to a maximum, giving the fraction of work that has so far been completed.</source>
+        <target state="translated">progress 元素表示任务的完成进度。该进度要么不确定，即指示任务正在进行，但不清楚在任务完成前还有多少工作要做(例如因为该任务正在等待远程主机响应)，要么该进度是零到最大值范围内的一个数字，这提供了迄今为止已完成的工作的分数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_q">
+        <source>The q element represents some phrasing content quoted from another source.</source>
+        <target state="translated">q 元素表示一些从其他源中引用的分段内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rp">
+        <source>The rp element is used to provide fallback text to be shown by user agents that don't support ruby annotations. One widespread convention is to provide parentheses around the ruby text component of a ruby annotation.</source>
+        <target state="translated">rp 元素用于提供备用文本，这些文本将由不支持 Ruby 注音批注的用户代理显示。一种广泛使用的惯例是在 Ruby 注音批注的 Ruby 注音文本组件周围加上圆括号。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rt">
+        <source>The rt element marks the ruby text component of a ruby annotation. When it is the child of a ruby element or of an rtc element that is itself the child of a ruby element, it doesn't represent anything itself, but its ancestor ruby element uses it as part of determining what it represents.</source>
+        <target state="translated">rt 元素标记 Ruby 注音批注的 Ruby 注音文本组件。当它是 ruby 元素或 rtc 元素(本身是 ruby 元素的子级)的子级时，它本身不表示任何内容，但其上级 ruby 元素在确定它所表示的内容时使用它。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rtc">
+        <source>The rtc element marks a ruby text container for ruby text components in a ruby annotation. When it is the child of a ruby element it doesn't represent anything itself, but its parent ruby element uses it as part of determining what it represents.</source>
+        <target state="translated">rtc 元素标记 Ruby 注音标注中 Ruby 注音文本组件的 Ruby 注音文本容器。当它是 ruby 元素的子级时，它本身不表示任何内容，但它的父级 ruby 元素在确定它所表示的内容时使用它。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ruby">
+        <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</source>
+        <target state="translated">ruby 元素允许一个或多个跨度的短语内容使用 Ruby 注音批注进行标记。Ruby 注音批注是在基本文本旁边呈现的简短文本，主要在东亚排版中用作发音指南，或者用于包括其他批注。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_s">
+        <source>The s element represents contents that are no longer accurate or no longer relevant.</source>
+        <target state="translated">s 元素表示不再准确或不再相关的内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_samp">
+        <source>The samp element represents (sample) output from a program or computing system.</source>
+        <target state="translated">samp 元素表示程序或计算系统的(示例)输出。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_script">
+        <source>The script element allows authors to include dynamic script and data blocks in their documents. The element does not represent content for the user.</source>
+        <target state="translated">script 元素允许作者在其文档中包括动态脚本和数据块。该元素不表示用户的内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_section">
+        <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</source>
+        <target state="translated">section 元素表示文档或应用程序的通用部分。在此上下文中，部分是内容的主题分组。应标识每个部分的标题，方法通常是将标题(h1-h6 元素)作为 section 元素的子级包括在内。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_select">
+        <source>The select element represents a control for selecting amongst a set of options.</source>
+        <target state="translated">select 元素表示用于在一组选项中进行选择的控件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_shadow">
+        <source>The shadow element represents an shadow insertion point in a shadow tree.</source>
+        <target state="translated">shadow 元素表示阴影树中的阴影插入点。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_small">
+        <source>The small element represents side comments such as small print.</source>
+        <target state="translated">small 元素表示边注，例如小号字体。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_source">
+        <source>The source element allows authors to specify multiple alternative media resources for media elements. It does not represent anything on its own.</source>
+        <target state="translated">source 元素允许作者为媒体元素指定多个备选媒体资源。该元素本身不表示任何内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_span">
+        <source>The span element doesn't mean anything on its own, but can be useful when used together with the global attributes, e.g. class, lang, or dir. It represents its children.</source>
+        <target state="translated">span 元素本身不表示任何内容，但与全局属性(例如 class、lang 或 dir)一起使用时可能很有用。该元素表示其子级。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_strong">
+        <source>The strong element represents strong importance, seriousness, or urgency for its contents.</source>
+        <target state="translated">strong 元素表示其内容很强的重要性、严重性或紧急性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_style">
+        <source>The style element allows authors to embed style information in their documents. The style element is one of several inputs to the styling processing model. The element does not represent content for the user.</source>
+        <target state="translated">style 元素允许作者将样式信息嵌入在其文档中。该 style 元素是样式化处理模型的多个输入之一。该元素不表示用户的内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_sub">
+        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
+        <target state="translated">sup 元素表示上标，sub 元素表示下标。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_summary">
+        <source>The summary element represents a summary, caption, or legend for the rest of the contents of the summary element's parent details element, if any.</source>
+        <target state="translated">summary 元素表示 summary 元素的父 details 元素(如果有)的其余内容的摘要、标题或图例。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_sup">
+        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
+        <target state="translated">sup 元素表示上标，sub 元素表示下标。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_svg">
+        <source>The svg element from the SVG namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</source>
+        <target state="translated">SVG 命名空间中的 svg 元素归入嵌入内容、分段内容和流内容类别，以用于此规范中的内容模型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_table">
+        <source>The table element represents data with more than one dimension, in the form of a table.</source>
+        <target state="translated">table 元素以表的形式表示具有多个维度的数据。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tbody">
+        <source>The tbody element represents a block of rows that consist of a body of data for the parent table element, if the tbody element has a parent and it is a table.</source>
+        <target state="translated">tbody 元素表示行块，这些行包含父 table 元素的数据正文(如果 tbody 元素有父级，并且该父级是表)。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_td">
+        <source>The td element represents a data cell in a table.</source>
+        <target state="translated">td 元素表示表中的数据单元格。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_template">
+        <source>The template element is used to declare fragments of HTML that can be cloned and inserted in the document by script.</source>
+        <target state="translated">template 元素用于声明可由脚本克隆并插入文档中的 HTML 片段。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_textarea">
+        <source>The textarea element represents a multiline plain text edit control for the element's raw value. The contents of the control represent the control's default value.</source>
+        <target state="translated">textarea 元素表示该元素的原始值的多个纯文本编辑控件。该控件的内容表示该控件的默认值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tfoot">
+        <source>The tfoot element represents the block of rows that consist of the column summaries (footers) for the parent table element, if the tfoot element has a parent and it is a table.</source>
+        <target state="translated">tfoot 元素表示由父 table 元素的列摘要(页脚)组成的行块，前提是 tfoot 元素存在父元素且该父元素为 table。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_th">
+        <source>The th element represents a header cell in a table.</source>
+        <target state="translated">th 元素表示表中的标题单元格。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_thead">
+        <source>The thead element represents the block of rows that consist of the column labels (headers) for the parent table element, if the thead element has a parent and it is a table.</source>
+        <target state="translated">thead 元素表示行块，这些行包含父 table 元素的列标签(标题)，前提是 thead 元素有父级，并且该父级是表。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_time">
+        <source>The time element represents its contents, along with a machine-readable form of those contents in the datetime attribute. The kind of content is limited to various kinds of dates, times, time-zone offsets, and durations, as described below.</source>
+        <target state="translated">time 元素表示其内容，以及这些内容在 datetime 属性中的计算机可读形式。此类内容限于各种类型的日期、时间、时区偏移量和持续时间，如下所述。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_title">
+        <source>The title element represents the document's title or name. Authors should use titles that identify their documents even when they are used out of context, for example in a user's history or bookmarks, or in search results. The document's title is often different from its first heading, since the first heading does not have to stand alone when taken out of context.</source>
+        <target state="translated">title 元素表示文档的标题或名称。作者应使用标题以标识其文档，即使它们不在上下文中使用，例如在用户的历史记录或书签或搜索结果中使用。该文档的标题通常不同于其第一个标题，因为第一个标题在移出上下文时未必是孤立的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tr">
+        <source>The tr element represents a row of cells in a table.</source>
+        <target state="translated">tr 元素表示表中的一行单元格。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_track">
+        <source>The track element allows authors to specify explicit external timed text tracks for media elements. It does not represent anything on its own.</source>
+        <target state="translated">track 元素允许作者为媒体元素指定明确的外部计时文本轨道。该元素本身不表示任何内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_u">
+        <source>The u element represents a span of text with an unarticulated, though explicitly rendered, non-textual annotation, such as labeling the text as being a proper name in Chinese text (a Chinese proper name mark), or labeling the text as being misspelt.</source>
+        <target state="translated">u 元素表示带有未阐明但明确呈现的非文本批注的一段文本，例如使用中文文本(中文的正确名称标记)将文本标记为正确名称，或将文本标记为拼写有误。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ul">
+        <source>The ul element represents a list of items, where the order of the items is not important — that is, where changing the order would not materially change the meaning of the document.</source>
+        <target state="translated">ul 元素表示项目列表，其中项目的顺序不重要，即在其中更改顺序其实不会更改文档的含义。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_var">
+        <source>The var element represents a variable. This could be an actual variable in a mathematical expression or programming context, an identifier representing a constant, a symbol identifying a physical quantity, a function parameter, or just be a term used as a placeholder in prose.</source>
+        <target state="translated">var 元素表示变量。这可以是数学表达式或程序上下文中的实际变量、表示常量的标识符、标识物理数量的符号、函数参数，或只是在文本中用作占位符的词。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_video">
+        <source>A video element is used for playing videos or movies, and audio files with captions.</source>
+        <target state="translated">video 元素用于播放视频或电影，以及带有字幕的音频文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_wbr">
+        <source>The wbr element represents a line break opportunity.</source>
+        <target state="translated">wbr 元素表示换行符机会。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_x-ms-webview">
+        <source>Displays HTML content in an app.</source>
+        <target state="translated">在应用中显示 HTML 内容。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
