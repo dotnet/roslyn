@@ -111,11 +111,17 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     private static bool ShouldSuppressCompletion(VSInternalCompletionContext completionContext, SourceText sourceText, int index)
     {
         // Suppress when '@' is typed as part of an Emmet abbreviation.
-        // In Emmet syntax, '@' only appears after '$' for numbering modifiers.
+        // In Emmet syntax, '@' only appears after '$' for numbering modifiers (e.g., item$@-).
+        // We also require an alphanumeric or '$' character before the '$' to distinguish Emmet
+        // from Razor expressions like "Your cost is $@price" (space before '$').
+        // This heuristic isn't perfect in either direction: Emmet text content like {text $@-}
+        // won't be suppressed, and unlikely-but-valid Razor like "thecostis$@price" will be.
+        // Both edge cases are uncommon enough to be acceptable tradeoffs.
         if (completionContext.TriggerKind == CompletionTriggerKind.TriggerCharacter
             && completionContext.TriggerCharacter == "@"
-            && index > 1
-            && sourceText[index - 2] == '$')
+            && index > 2
+            && sourceText[index - 2] == '$'
+            && (char.IsLetterOrDigit(sourceText[index - 3]) || sourceText[index - 3] == '$'))
         {
             return true;
         }

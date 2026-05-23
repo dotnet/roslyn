@@ -98,6 +98,25 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13074")]
+    public async Task DollarAtInNonEmmetContextStillShowsCompletion()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <div>
+                    Your cost is $@$$
+                </div>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "@",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["char", "DateTime", "Exception"]);
+    }
+
+    [Fact]
     public async Task CSharpInEmptyExplicitStatement()
     {
         await VerifyCompletionListAsync(
