@@ -166,6 +166,9 @@ internal static partial class CSharpCodeStyleOptions
         SyntaxKind.NewKeyword,
         SyntaxKind.VirtualKeyword,
         SyntaxKind.AbstractKeyword,
+    #if !OLDER_ROSLYN
+        SyntaxKind.ClosedKeyword,
+    #endif
         SyntaxKind.SealedKeyword,
         SyntaxKind.OverrideKeyword,
         SyntaxKind.ReadOnlyKeyword,

@@ -45,7 +45,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
 
     /// <summary>Directories which are ignored per convention.</summary>
-    /// <remarks>Some conventional directories like '.git' and '.vs' are expected to be marked hidden and will be automatically ignored by discovery.</remarks>
+    /// <remarks>Directories whose name starts with '.' (e.g. '.git', '.vs') are also ignored.</remarks>
     private static readonly SearchValues<string> s_ignoredDirectories = SearchValues.Create([
         "artifacts",
         "bin",
@@ -283,7 +283,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
         private void VisitDirectory(string directory, DateTimeOffset createdOrModifiedTimeUtc)
         {
-            if (Path.GetFileName(directory.AsSpan()).ContainsAny(s_ignoredDirectories))
+            var directoryName = Path.GetFileName(directory.AsSpan());
+            if (directoryName.StartsWith('.') || directoryName.ContainsAny(s_ignoredDirectories))
                 return;
 
             if (createdOrModifiedTimeUtc < cache.LastWalkTimeUtc)

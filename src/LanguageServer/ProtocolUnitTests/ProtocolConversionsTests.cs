@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -236,6 +237,32 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     }
 
     [Fact]
+    public void RangeToTextSpanClampsCharacterPastLineEnd()
+    {
+        var markup = GetTestMarkup();
+        var sourceText = SourceText.From(markup);
+
+        var range = new Range() { Start = new Position(2, 8), End = new Position(2, int.MaxValue) };
+        var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
+
+        Assert.Equal(21, textSpan.Start);
+        Assert.Equal(27, textSpan.End);
+    }
+
+    [Fact]
+    public void RangeToTextSpanClampsStartCharacterPastLineEnd()
+    {
+        var markup = GetTestMarkup();
+        var sourceText = SourceText.From(markup);
+
+        var range = new Range() { Start = new Position(2, int.MaxValue), End = new Position(2, int.MaxValue) };
+        var textSpan = ProtocolConversions.RangeToTextSpan(range, sourceText);
+
+        Assert.Equal(27, textSpan.Start);
+        Assert.Equal(27, textSpan.End);
+    }
+
+    [Fact]
     public void RangeToTextSpanLineEndOfDocument()
     {
         var markup = GetTestMarkup();
@@ -321,8 +348,8 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         var markup = GetTestMarkup();
         var sourceText = SourceText.From(markup);
 
-        // This start position will be beyond the end position
-        var range = new Range() { Start = new Position(2, 20), End = new Position(3, 0) };
+        // This start position will still be beyond the end position after clamping.
+        var range = new Range() { Start = new Position(2, int.MaxValue), End = new Position(2, 0) };
         Assert.Throws<ArgumentException>(() => ProtocolConversions.RangeToTextSpan(range, sourceText));
     }
 
@@ -375,7 +402,8 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     {
 
         // Create a server that supports LSP misc files.
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition: composition);
 
         // Open an empty loose file.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
