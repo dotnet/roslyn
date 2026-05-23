@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     default:
                         if (null != exp.Text)
                         {
-                            Assert.True(false, String.Format("You are expecting some text in the directive, but this method doesn't know how to verify it for `{0}`.", exp.Kind));
+                            Assert.Fail(String.Format("You are expecting some text in the directive, but this method doesn't know how to verify it for `{0}`.", exp.Kind));
                         }
                         break;
                 } // switch
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                         else
                         {
-                            Assert.True(false, "Warning ID must be an identifier or numeric literal");
+                            Assert.Fail("Warning ID must be an identifier or numeric literal");
                         }
                     }
                 }

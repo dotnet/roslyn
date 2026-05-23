@@ -7,6 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [Shared]
 internal sealed class VSTypeScriptInProcLanguageClientCapabilitiesProvider() : ICapabilitiesProvider
 {
-    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
     {
         var serverCapabilities = new VSInternalServerCapabilities
         {

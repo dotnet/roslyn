@@ -506,6 +506,9 @@
   <data name="Apply_namespace_preferences" xml:space="preserve">
     <value>Apply namespace preferences</value>
   </data>
+  <data name="Apply_collection_expression_preferences" xml:space="preserve">
+    <value>Apply collection expression preferences</value>
+  </data>
   <data name="Apply_new_preferences" xml:space="preserve">
     <value>Apply new() preferences</value>
   </data>

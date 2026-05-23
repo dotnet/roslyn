@@ -38,6 +38,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             Me.Services.GetService(Of IWorkspaceEventListenerService)()
         End Sub
 
+        Protected Overrides Sub InitializeTelemetrySession()
+            ' Don't do anything in unit tests, since the telemetry wouldn't go anywhere anyways
+        End Sub
+
         Public Overrides Function CanApplyChange(feature As ApplyChangesKind) As Boolean
             Return _workspace.CanApplyChange(feature)
         End Function

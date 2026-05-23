@@ -133,7 +133,7 @@ public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
 
             if (diagnostics.Length > 0)
             {
-                Assert.True(false, CreateDiagnosticsString(diagnostics, updatedSignature, testState.InvocationDocument, totalParameters, (await testState.InvocationDocument.GetTextAsync()).ToString()));
+                Assert.Fail(CreateDiagnosticsString(diagnostics, updatedSignature, testState.InvocationDocument, totalParameters, (await testState.InvocationDocument.GetTextAsync()).ToString()));
             }
         }
 

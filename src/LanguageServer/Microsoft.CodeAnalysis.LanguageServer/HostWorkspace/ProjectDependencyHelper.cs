@@ -55,7 +55,7 @@ internal static class ProjectDependencyHelper
             return true;
         }
 
-        if (projectFileInfo.PackageReferences.IsEmpty)
+        if (projectFileInfo.PackageReferences.Length == 0)
         {
             // If there are no package references then there are no unresolved dependencies.
             return false;

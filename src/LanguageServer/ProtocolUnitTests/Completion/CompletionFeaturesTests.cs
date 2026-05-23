@@ -92,7 +92,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
-        AssertEx.NotNull(results);
+        Assert.NotNull(results);
         Assert.NotEmpty(results.Items);
     }
 
@@ -664,7 +664,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
-        AssertEx.NotNull(results);
+        Assert.NotNull(results);
         Assert.NotEmpty(results.Items);
         Assert.Equal(new() { Start = new(2, 0), End = caret.Range.Start }, results.ItemDefaults.EditRange.Value.First);
     }
@@ -771,7 +771,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
-        AssertEx.NotNull(results);
+        Assert.NotNull(results);
         Assert.NotEmpty(results.Items);
         Assert.Empty(results.ItemDefaults.CommitCharacters);
         Assert.True(results.Items.All(item => item.CommitCharacters is null));
@@ -1103,7 +1103,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         // Because of the limit in list size, we should not have item "if" returned here
         var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
-        AssertEx.NotNull(results);
+        Assert.NotNull(results);
         Assert.True(results.IsIncomplete);
         Assert.Equal(listMaxSize, results.Items.Length);
         Assert.False(results.Items.Any(i => i.Label == "if"));

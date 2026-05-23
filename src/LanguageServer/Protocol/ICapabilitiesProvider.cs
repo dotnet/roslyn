@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal interface ICapabilitiesProvider : ILspService
 {
-    ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);
+    ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices);
 }
