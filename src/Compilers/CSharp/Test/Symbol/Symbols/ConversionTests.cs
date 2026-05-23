@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     if (kind != result.Kind)
                     {
                         var result2 = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics); // set breakpoint here if this test is failing...
-                        Assert.True(false, string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
+                        Assert.Fail(string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
                     }
                 }
             }
@@ -2079,7 +2079,7 @@ class C<T>
             var boundForEach = memberModel.GetBoundNodes(forEachSyntax).ToArray().OfType<BoundForEachStatement>().Single();
             var elementConversion = BoundNode.GetConversion(boundForEach.ElementConversion, boundForEach.ElementPlaceholder);
             Assert.Equal(LookupResultKind.OverloadResolutionFailure, elementConversion.ResultKind);
-            AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions.GetPublicSymbols(), conversionSymbols);
+            AssertEx.SetEqual(elementConversion.OriginalUserDefinedOrUnionConversions.GetPublicSymbols(), conversionSymbols);
         }
 
         [WorkItem(715207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715207")]

@@ -610,6 +610,7 @@ internal static partial class SyntaxNodeExtensions
     /// <summary>
     /// If the position is inside of token, return that token; otherwise, return the token to the right.
     /// </summary>
+    /// <remarks>This may throw when `position` is invalid or there is no token to the right.</remarks>
     public static SyntaxToken FindTokenOnRightOfPosition(
         this SyntaxNode root,
         int position,
@@ -620,7 +621,6 @@ internal static partial class SyntaxNodeExtensions
         var findSkippedToken = includeSkipped ? s_findSkippedTokenForward : ((l, p) => default);
 
         var token = GetInitialToken(root, position, includeSkipped, includeDirectives, includeDocumentationComments);
-
         if (position < token.SpanStart)
         {
             var skippedToken = findSkippedToken(token.LeadingTrivia, position);
@@ -649,6 +649,7 @@ internal static partial class SyntaxNodeExtensions
     /// <summary>
     /// If the position is inside of token, return that token; otherwise, return the token to the left.
     /// </summary>
+    /// <remarks>This may throw when `position` is invalid or there is no token to the left.</remarks>
     public static SyntaxToken FindTokenOnLeftOfPosition(
         this SyntaxNode root,
         int position,

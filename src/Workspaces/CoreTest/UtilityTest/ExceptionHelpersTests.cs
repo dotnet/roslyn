@@ -43,7 +43,7 @@ public sealed class ExceptionHelpersTests : TestBase
                 throw ExceptionUtilities.Unreachable();
             }
 
-            Assert.True(false, "Should not get here because an exception should be thrown before this point.");
+            Assert.Fail("Should not get here because an exception should be thrown before this point.");
         }
         catch (OperationCanceledException)
         {
@@ -51,7 +51,7 @@ public sealed class ExceptionHelpersTests : TestBase
             return;
         }
 
-        Assert.True(false, "Should have returned in the catch block before this point.");
+        Assert.Fail("Should have returned in the catch block before this point.");
     }
 
     [Fact]

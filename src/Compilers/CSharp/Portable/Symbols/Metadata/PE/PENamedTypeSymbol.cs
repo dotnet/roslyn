@@ -152,6 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
             internal ThreeState lazyHasUnionAttribute = ThreeState.Unknown;
 
+            internal ThreeState lazyIsClosed = ThreeState.Unknown;
+            internal ImmutableArray<NamedTypeSymbol> lazyCandidateClosedSubtypeDefinitions = default;
+
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
             internal ExtensionInfo extensionInfo;
@@ -173,6 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
                     !lazyHasUnionAttribute.HasValue() &&
+                    !lazyIsClosed.HasValue() &&
+                    lazyCandidateClosedSubtypeDefinitions.IsDefault &&
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
@@ -953,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (RoslynImmutableInterlocked.VolatileRead(in uncommon.lazyCustomAttributes).IsDefault)
             {
-                ImmutableArray<CSharpAttributeData> loadedCustomAttributes = loadAndFilterAttributes(out var hasRequiredMembers);
+                ImmutableArray<CSharpAttributeData> loadedCustomAttributes = loadAndFilterAttributes(out var hasRequiredMembers, out var isClosed);
 
                 if (!uncommon.lazyHasRequiredMembers.HasValue())
                 {
@@ -961,14 +966,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 Debug.Assert(uncommon.lazyHasRequiredMembers.Value() == hasRequiredMembers);
 
+                if (!uncommon.lazyIsClosed.HasValue())
+                {
+                    uncommon.lazyIsClosed = isClosed.ToThreeState();
+                }
+                Debug.Assert(uncommon.lazyIsClosed.Value() == isClosed);
+
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }
 
             return uncommon.lazyCustomAttributes;
 
-            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMembers)
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMembers, out bool isClosed)
             {
                 hasRequiredMembers = false;
+                isClosed = false;
 
                 if (IsExtension)
                 {
@@ -1009,6 +1021,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
                     {
                         hasRequiredMembers = true;
+                        continue;
+                    }
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.ClosedAttribute))
+                    {
+                        isClosed = true;
                         continue;
                     }
 
@@ -1176,6 +1194,154 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var hasRequiredMemberAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiredMemberAttribute);
                 uncommon.lazyHasRequiredMembers = hasRequiredMemberAttribute.ToThreeState();
                 return hasRequiredMemberAttribute;
+            }
+        }
+
+        internal sealed override bool IsClosed
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (uncommon.lazyIsClosed.HasValue())
+                {
+                    return uncommon.lazyIsClosed.Value();
+                }
+
+                var hasClosedAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.ClosedAttribute);
+                uncommon.lazyIsClosed = hasClosedAttribute.ToThreeState();
+                return hasClosedAttribute;
+            }
+        }
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions
+        {
+            get
+            {
+                if (!IsClosed)
+                    return [];
+
+                var uncommon = GetUncommonProperties();
+                if (RoslynImmutableInterlocked.VolatileRead(in uncommon.lazyCandidateClosedSubtypeDefinitions).IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCandidateClosedSubtypeDefinitions, findClosedSubtypes());
+                }
+
+                return uncommon.lazyCandidateClosedSubtypeDefinitions;
+
+                ImmutableArray<NamedTypeSymbol> findClosedSubtypes()
+                {
+                    var subtypeDefinitionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                    var metadataReader = ContainingPEModule.Module.MetadataReader;
+                    var decoder = new MetadataDecoder(ContainingPEModule);
+                    var thisTypeIsGeneric = IsGenericType;
+                    try
+                    {
+                        foreach (var candidateTypeDefHandle in metadataReader.TypeDefinitions)
+                        {
+                            var typeDef = metadataReader.GetTypeDefinition(candidateTypeDefHandle);
+                            var baseTypeHandle = typeDef.BaseType;
+                            if (tryHandleTypeDefOrTypeRef(baseTypeHandle, candidateTypeDefHandle))
+                                continue;
+
+                            if (baseTypeHandle.Kind == HandleKind.TypeSpecification)
+                            {
+                                if (!thisTypeIsGeneric)
+                                    continue;
+
+                                // Dig through the TypeSpec and check the handle for the original definition.
+                                var sigReader = decoder.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)baseTypeHandle);
+                                var typeCode = sigReader.ReadSignatureTypeCode();
+                                if (typeCode != SignatureTypeCode.GenericTypeInstance)
+                                    continue;
+
+                                var elementType = sigReader.ReadSignatureTypeCode();
+                                if (elementType != SignatureTypeCode.TypeHandle)
+                                    throw new UnsupportedSignatureContent();
+
+                                var baseTypeDefinitionHandle = sigReader.ReadTypeHandle();
+                                if (tryHandleTypeDefOrTypeRef(baseTypeDefinitionHandle, candidateTypeDefHandle))
+                                    continue;
+                            }
+
+                            // Easy-outs did not work. Need to just decode a symbol and compare.
+                            var candidateSubtype = decoder.GetTypeOfToken(candidateTypeDefHandle);
+                            if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
+                                subtypeDefinitionsBuilder.Add((NamedTypeSymbol)candidateSubtype);
+                        }
+                    }
+                    catch (Exception ex) when (ex is BadImageFormatException or UnsupportedSignatureContent)
+                    {
+                        // https://github.com/dotnet/roslyn/issues/83617: It seems like we don't know what the candidate subtypes are in this case,
+                        // so, perhaps we should not allow exhausting the type via its subtypes.
+                    }
+
+                    return subtypeDefinitionsBuilder.ToImmutableAndFree();
+
+                    bool tryHandleTypeDefOrTypeRef(EntityHandle baseTypeHandle, TypeDefinitionHandle candidateTypeDefHandle)
+                    {
+                        if (baseTypeHandle.IsNil)
+                            return true;
+
+                        if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
+                        {
+                            if (baseTypeHandle == this.Handle)
+                            {
+                                var candidateSubtype = (NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle);
+                                if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
+                                {
+                                    subtypeDefinitionsBuilder.Add(candidateSubtype);
+                                }
+                            }
+
+                            return true;
+                        }
+
+                        if (baseTypeHandle.Kind == HandleKind.TypeReference)
+                        {
+                            // A TypeRef usually refers to a type in a different module, but, strictly, it is possible for it to refer to the current module.
+                            // Dig through any containing types of the TypeRef, to see if it is ultimately a reference to the current module.
+                            // In that case, we can fall through to handling it in the slow path.
+                            // Reject cases where 'this' and the candidate type, have a different ContainingType nesting depth.
+                            var originalTypeRef = metadataReader.GetTypeReference((TypeReferenceHandle)baseTypeHandle);
+                            var typeRef = originalTypeRef;
+                            NamedTypeSymbol container = this;
+                            while (typeRef.ResolutionScope.Kind == HandleKind.TypeReference)
+                            {
+                                if (container.ContainingType is null)
+                                    return true;
+
+                                typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)typeRef.ResolutionScope);
+                                container = container.ContainingType;
+                            }
+
+                            if (container.ContainingType is not null)
+                                return true;
+
+                            if (typeRef.ResolutionScope.Kind == HandleKind.ModuleReference)
+                            {
+                                // Note: module names are case insensitive. See also MetadataDecoder.LookupTopLevelTypeDefSymbol.
+                                var referencedModuleName = decoder.Module.GetModuleRefNameOrThrow((ModuleReferenceHandle)typeRef.ResolutionScope);
+                                if (!decoder.Module.Name.Equals(referencedModuleName, StringComparison.OrdinalIgnoreCase))
+                                    return true;
+                            }
+                            else if (typeRef.ResolutionScope != EntityHandle.ModuleDefinition)
+                            {
+                                return true;
+                            }
+
+                            // We have a TypeRef to a type in the same module.
+                            // Check for a difference in the simple names of the respective types.
+                            return !this.MetadataName.Equals(metadataReader.GetString(originalTypeRef.Name), StringComparison.Ordinal);
+                        }
+
+                        return false;
+                    }
+                }
             }
         }
 

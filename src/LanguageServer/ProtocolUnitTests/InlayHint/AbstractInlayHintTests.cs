@@ -34,7 +34,7 @@ public abstract class AbstractInlayHintTests : AbstractLanguageServerProtocolTes
         };
 
         var actualInlayHints = await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
-        AssertEx.NotNull(actualInlayHints);
+        Assert.NotNull(actualInlayHints);
 
         foreach (var kvp in expectedInlayHints)
         {
@@ -49,16 +49,16 @@ public abstract class AbstractInlayHintTests : AbstractLanguageServerProtocolTes
                 var matchingInlayHint = matchingInlayHints.Single();
                 AssertEx.Equal(name, matchingInlayHint.Label.First.TrimEnd(':'));
 
-                AssertEx.NotNull(matchingInlayHint.Kind);
+                Assert.NotNull(matchingInlayHint.Kind);
                 Assert.True(matchingInlayHint.PaddingRight);
                 Assert.False(matchingInlayHint.PaddingLeft);
                 if (hasTextEdits)
                 {
-                    AssertEx.NotNull(matchingInlayHint.TextEdits);
+                    Assert.NotNull(matchingInlayHint.TextEdits);
                 }
 
                 var resolvedInlayHint = await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, matchingInlayHint, CancellationToken.None);
-                AssertEx.NotNull(resolvedInlayHint?.ToolTip);
+                Assert.NotNull(resolvedInlayHint?.ToolTip);
             }
         }
     }
