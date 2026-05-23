@@ -251,6 +251,14 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        protected static readonly string ClosedAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class ClosedAttribute : Attribute { }
+            }
+            """;
+
         protected static readonly string IsExternalInitTypeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -715,7 +723,7 @@ namespace System.Runtime.CompilerServices
         protected static readonly string RequiresUnsafeAttributeDefinition = """
             namespace System.Diagnostics.CodeAnalysis
             {
-                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
                 public sealed class RequiresUnsafeAttribute : Attribute { }
             }
             """;
@@ -3318,9 +3326,10 @@ namespace System
                     }
                     break;
 
-                case IsPatternExpressionSyntax n:
+                case IsPatternExpressionSyntax:
+                case BinaryExpressionSyntax n when n.Kind() == SyntaxKind.IsExpression:
                     {
-                        var b = (BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        var b = (BoundIsPatternExpression)binder.BindExpression((ExpressionSyntax)(object)node, BindingDiagnosticBag.Discarded);
                         decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
                     }
                     break;

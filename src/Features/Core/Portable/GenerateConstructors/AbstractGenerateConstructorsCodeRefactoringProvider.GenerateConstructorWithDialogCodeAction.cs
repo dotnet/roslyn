@@ -39,6 +39,9 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
 
         public override string Title => FeaturesResources.Generate_constructor_from_members;
 
+        internal override bool IsOptionServiceAvailable()
+            => (_service._pickMembersService_forTesting ?? _document.Project.Solution.Services.GetService<IPickMembersService>()) is not null;
+
         public override object GetOptions(CancellationToken cancellationToken)
         {
             var service = _service._pickMembersService_forTesting ?? _document.Project.Solution.Services.GetRequiredService<IPickMembersService>();

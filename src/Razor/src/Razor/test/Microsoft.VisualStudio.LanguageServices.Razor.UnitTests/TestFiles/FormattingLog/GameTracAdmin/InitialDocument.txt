@@ -1,0 +1,446 @@
+@page "/admin/gametrac"
+@using Microsoft.AspNetCore.Authorization
+@using System.Net.Http.Json
+@attribute [Authorize]
+@inject HttpClient Http
+@inject ServiceTrac.Client.Services.IClientAuthService AuthService
+@inject ServiceTrac.Client.Services.ToastService ToastService
+@implements IDisposable
+
+<PageTitle>GameTrac Sync — Admin — ServiceTrac</PageTitle>
+
+<div class="d-flex flex-column h-100" style="margin:0;padding:0;">
+    <!-- Header -->
+    <div class="text-white p-2 p-md-3 m-0 d-flex align-items-center justify-content-between"
+         style="background:linear-gradient(180deg,#1e3a8a 0%,#1d4ed8 100%);">
+        <h4 class="mb-0 fs-5">
+            <i class="bi bi-database-gear me-2"></i>GameTrac Sync Administration
+        </h4>
+        <span class="badge bg-light text-dark fs-6">Admin Panel</span>
+    </div>
+
+    <div class="flex-fill p-2 p-md-3" style="background:linear-gradient(135deg,#f5f7fa 0%,#e8ecf1 100%);overflow-y:auto;">
+
+        @if (!isAuthorized)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-shield-exclamation me-2"></i>
+                <strong>Access Denied</strong> — You do not have permission to access this page.
+            </div>
+        }
+        else
+        {
+            <!-- Status + Trigger Row -->
+            <div class="row g-3 mb-3">
+                <!-- Sync Status Card -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header py-2 text-white fw-semibold"
+                             style="background:linear-gradient(135deg,#0f172a,#1e3a8a);">
+                            <i class="bi bi-activity me-1"></i> Sync Status
+                        </div>
+                        <div class="card-body">
+                            @if (statusData == null && isLoading)
+                            {
+                                <div class="text-center py-3">
+                                    <div class="spinner-border spinner-border-sm text-primary"></div>
+                                </div>
+                            }
+                            else if (statusData != null)
+                            {
+                                <div class="mb-2 d-flex align-items-center gap-2">
+                                    <span class="fw-semibold text-muted small">Sync Enabled:</span>
+                                    @if (statusData.SyncEnabled)
+                                    {
+                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>No</span>
+                                    }
+                                </div>
+
+                                @if (statusData.RecentLogs.Any())
+                                {
+                                    var last = statusData.RecentLogs.First();
+                                    <div class="mb-1 small"><span class="text-muted">Last Run:</span> <strong>@last.SyncedOn.ToLocalTime().ToString("MM/dd/yyyy h:mm tt")</strong></div>
+                                    <div class="mb-1 small">
+                                        <span class="text-muted">Status:</span>
+                                        <span class="badge @StatusBadgeClass(last.Status)">@last.Status</span>
+                                    </div>
+                                    <div class="mb-1 small"><span class="text-muted">Records Read:</span> <strong>@last.RecordsRead.ToString("N0")</strong></div>
+                                    <div class="mb-1 small"><span class="text-muted">Records Upserted:</span> <strong>@last.RecordsUpserted.ToString("N0")</strong></div>
+                                    @if (last.WeekEndingFrom.HasValue && last.WeekEndingTo.HasValue)
+                                    {
+                                        <div class="mb-1 small">
+                                            <span class="text-muted">Week Range:</span>
+                                            <strong>@last.WeekEndingFrom.Value.ToString("MM/dd/yy") — @last.WeekEndingTo.Value.ToString("MM/dd/yy")</strong>
+                                        </div>
+                                    }
+                                    <div class="mb-1 small"><span class="text-muted">Triggered By:</span> <strong>@(last.TriggeredBy ?? "—")</strong></div>
+
+                                    @if (!string.IsNullOrEmpty(last.ErrorMessage))
+                                    {
+                                        <div class="alert alert-danger mt-2 py-1 px-2 small">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>@last.ErrorMessage
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-muted small">No sync runs recorded yet.</div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Sync Card -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header py-2 text-white fw-semibold"
+                             style="background:linear-gradient(135deg,#065f46,#059669);">
+                            <i class="bi bi-arrow-repeat me-1"></i> Manual Sync
+                        </div>
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <p class="text-muted small mb-3">
+                                Trigger an immediate sync from the GameTrac .mdb file.
+                                The scheduled sync also runs automatically every 4 hours.
+                                Only one sync can run at a time.
+                            </p>
+                            <div>
+                                        <div class="d-flex gap-2 mb-2">
+                                    <button class="btn btn-success flex-fill" @onclick="() => TriggerSync(false)"
+                                            disabled="@(isSyncing || isSyncRunning)">
+                                        @if (isSyncing && !isFullResync)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-1"></span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-arrow-repeat me-1"></i>
+                                        }
+                                        Sync Now
+                                    </button>
+                                    <button class="btn btn-warning flex-fill" @onclick="() => TriggerSync(true)"
+                                            disabled="@(isSyncing || isSyncRunning)"
+                                            title="Pulls ALL records from GameTrac regardless of last sync date. Use to backfill history.">
+                                        @if (isSyncing && isFullResync)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-1"></span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-database-fill-down me-1"></i>
+                                        }
+                                        Full Resync
+                                    </button>
+                                </div>
+                                @if (isSyncRunning && !isSyncing)
+                                {
+                                    <div class="text-info small text-center">
+                                        <span class="spinner-border spinner-border-sm me-1"></span>Sync in progress…
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(syncMessage))
+                                {
+                                    <div class="alert @(syncSuccess ? "alert-success" : "alert-warning") mt-2 py-1 px-2 small">
+                                        @syncMessage
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How It Works Card -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header py-2 text-white fw-semibold"
+                             style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">
+                            <i class="bi bi-info-circle me-1"></i> How Equipment Linking Works
+                        </div>
+                        <div class="card-body">
+                            <ol class="small text-muted ps-3 mb-0">
+                                <li class="mb-1">The sync pulls weekly data from the GameTrac .mdb and stores it in SQL Server indexed by <strong>IC Tag</strong>.</li>
+                                <li class="mb-1">Go to <strong>Equipment → Edit</strong> on any machine.</li>
+                                <li class="mb-1">Enter the machine's <strong>GameTrac IC Tag</strong> (e.g. <code>216000006A00</code>) in the identifiers section.</li>
+                                <li class="mb-1">Save — the <strong>Performance</strong> tab will now show weekly revenue charts for that machine.</li>
+                                <li>The IC Tag value can be found in GameTrac's EquipmentIC table under the <em>ICTag</em> field.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sync History Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-2 d-flex align-items-center justify-content-between"
+                     style="background:linear-gradient(135deg,#334155,#475569);">
+                    <span class="text-white fw-semibold small"><i class="bi bi-clock-history me-1"></i>Sync History (Last 10 Runs)</span>
+                    <button class="btn btn-sm btn-outline-light" @onclick="LoadStatus" disabled="@isLoading">
+                        <i class="bi bi-arrow-clockwise me-1 @(isLoading ? "spin" : "")"></i>Refresh
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    @if (isLoading && statusData == null)
+                    {
+                        <div class="text-center p-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    }
+                    else if (statusData == null || !statusData.RecentLogs.Any())
+                    {
+                        <div class="text-center text-muted p-4">
+                            <i class="bi bi-inbox d-block mb-2" style="font-size:2rem;"></i>
+                            No sync runs recorded yet. Click <strong>Sync Now</strong> to run the first sync.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0" style="font-size:0.82rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Run #</th>
+                                        <th>Started</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Read</th>
+                                        <th class="text-end">Upserted</th>
+                                        <th>Week Range</th>
+                                        <th>Triggered By</th>
+                                        <th>Error</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in statusData.RecentLogs)
+                                    {
+                                        <tr class="@(log.Status == "Failed" ? "table-danger" : log.Status == "Running" ? "table-info" : "")">
+                                            <td class="fw-semibold">#@log.SyncId</td>
+                                            <td>@log.SyncedOn.ToLocalTime().ToString("MM/dd/yy h:mm tt")</td>
+                                            <td><span class="badge @StatusBadgeClass(log.Status)">@log.Status</span></td>
+                                            <td class="text-end">@log.RecordsRead.ToString("N0")</td>
+                                            <td class="text-end">@log.RecordsUpserted.ToString("N0")</td>
+                                            <td>
+                                                @if (log.WeekEndingFrom.HasValue && log.WeekEndingTo.HasValue)
+                                                {
+                                                    @($"{log.WeekEndingFrom.Value:MM/dd/yy} → {log.WeekEndingTo.Value:MM/dd/yy}")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td>@(log.TriggeredBy ?? "—")</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(log.ErrorMessage))
+                                                {
+                                                    <span class="text-danger" title="@log.ErrorMessage">
+                                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                                        @(log.ErrorMessage.Length > 40 ? log.ErrorMessage[..40] + "…" : log.ErrorMessage)
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool isAuthorized = false;
+    private bool isLoading = false;
+    private bool isSyncing = false;
+    private bool isFullResync = false;
+    private bool isSyncRunning = false;
+    private bool syncSuccess = false;
+    private string syncMessage = "";
+    private string currentUsername = "";
+
+    private ApiGameTracSyncStatusDto? statusData = null;
+
+    private System.Threading.Timer? _refreshTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await AuthService.GetCurrentUserAsync();
+        currentUsername = user?.Username ?? "";
+        isAuthorized = user?.RoleId >= 500;
+
+        if (isAuthorized)
+            await LoadStatus();
+    }
+
+    private async Task LoadStatus()
+    {
+        isLoading = true;
+        StateHasChanged();
+        try
+        {
+            var response = await Http.GetAsync("api/gametrac/syncstatus");
+            if (response.IsSuccessStatusCode)
+                statusData = await response.Content.ReadFromJsonAsync<ApiGameTracSyncStatusDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GAMETRAC ADMIN] LoadStatus error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+
+            // If a sync is still Running, poll every 5 seconds
+            var wasRunning = isSyncRunning;
+            isSyncRunning = statusData?.RecentLogs.FirstOrDefault()?.Status == "Running";
+            if (isSyncRunning)
+            {
+                StartPolling();
+            }
+            else
+            {
+                StopPolling();
+                // If we just transitioned from Running → done, show a toast
+                if (wasRunning)
+                {
+                    var last = statusData?.RecentLogs.FirstOrDefault();
+                    if (last?.Status == "Success")
+                    {
+                        syncMessage = $"Sync complete — {last.RecordsUpserted:N0} records upserted.";
+                        syncSuccess = true;
+                        ToastService.ShowSuccess("GameTrac Sync", syncMessage);
+                    }
+                    else if (last?.Status == "Failed")
+                    {
+                        syncMessage = $"Sync failed: {last.ErrorMessage}";
+                        syncSuccess = false;
+                        ToastService.ShowError("GameTrac Sync Failed", last.ErrorMessage ?? "Unknown error");
+                    }
+                }
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task TriggerSync(bool fullResync = false)
+    {
+        isSyncing = true;
+        isFullResync = fullResync;
+        syncMessage = "";
+        StateHasChanged();
+        try
+        {
+            var url = fullResync ? "api/gametrac/sync?fullResync=true" : "api/gametrac/sync";
+            var response = await Http.PostAsync(url, null);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Accepted)
+            {
+                // 202 — sync started in background, poll for completion
+                syncSuccess = true;
+                syncMessage = fullResync
+                    ? "Full resync started — reading all records. This may take a few minutes…"
+                    : "Sync started — polling for completion…";
+                isSyncRunning = true;
+                StartPolling();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                syncSuccess = false;
+                syncMessage = "A sync is already running. Watch the table below for progress.";
+                isSyncRunning = true;
+                StartPolling();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                syncSuccess = false;
+                syncMessage = "Access denied — admin privileges required.";
+            }
+            else
+            {
+                syncSuccess = false;
+                syncMessage = $"Unexpected response: {(int)response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            syncSuccess = false;
+            syncMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isSyncing = false;
+            StateHasChanged();
+        }
+    }
+
+    private void StartPolling()
+    {
+        StopPolling();
+        _refreshTimer = new System.Threading.Timer(async _ =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadStatus();
+                if (!isSyncRunning) StopPolling();
+            });
+        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+    }
+
+    private void StopPolling()
+    {
+        _refreshTimer?.Dispose();
+        _refreshTimer = null;
+    }
+
+    public void Dispose() => StopPolling();
+
+    private static string StatusBadgeClass(string status) => status switch
+    {
+        "Success" => "bg-success",
+        "Failed"  => "bg-danger",
+        "Running" => "bg-info text-dark",
+        "Partial" => "bg-warning text-dark",
+        _         => "bg-secondary"
+    };
+
+    // ── DTOs ─────────────────────────────────────────────────────────────────────
+
+    public class ApiGameTracSyncLogDto
+    {
+        public int SyncId { get; set; }
+        public DateTime SyncedOn { get; set; }
+        public DateTime? WeekEndingFrom { get; set; }
+        public DateTime? WeekEndingTo { get; set; }
+        public int RecordsRead { get; set; }
+        public int RecordsUpserted { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string? ErrorMessage { get; set; }
+        public string? TriggeredBy { get; set; }
+    }
+
+    public class ApiGameTracSyncStatusDto
+    {
+        public List<ApiGameTracSyncLogDto> RecentLogs { get; set; } = new();
+        public bool SyncEnabled { get; set; }
+    }
+}
+
+<style>
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+    }
+</style>
