@@ -27,8 +27,6 @@ internal sealed class DevKitProjectLoadingServiceContributor(
     LanguageServerWorkspaceFactory workspaceFactory,
     ILoggerFactory loggerFactory) : IServiceBrokerInitializer
 {
-    private ProjectInitializationHandler? _projectInitializationHandler;
-
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
     {
         { WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
@@ -36,14 +34,12 @@ internal sealed class DevKitProjectLoadingServiceContributor(
 
     public void Proffer(GlobalBrokeredServiceContainer container)
     {
-        var serviceBroker = container.GetFullAccessServiceBroker();
-        _projectInitializationHandler = new ProjectInitializationHandler(serviceBroker, loggerFactory);
-
         container.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             async (moniker, options, innerServiceBroker, cancellationToken) =>
             {
-                var service = new WorkspaceProjectFactoryService(workspaceFactory, _projectInitializationHandler, loggerFactory);
+                var projectInitializationHandler = new ProjectInitializationHandler(innerServiceBroker, loggerFactory);
+                var service = new WorkspaceProjectFactoryService(workspaceFactory, projectInitializationHandler, loggerFactory);
                 await service.InitializeAsync(cancellationToken);
                 return service;
             });

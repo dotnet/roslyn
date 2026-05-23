@@ -767,12 +767,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     delegateType: null,
                     isAsync: IsAsync,
                     Binder.Conversions);
+                returnTypes.Free();
 
                 returnType = inferredReturnType.TypeWithAnnotations;
                 returnRefKind = inferredReturnType.RefKind;
 
                 if (!returnType.HasType && inferredReturnType.NumExpressions > 0)
                 {
+                    parameterScopesBuilder.Free();
                     return null;
                 }
             }
