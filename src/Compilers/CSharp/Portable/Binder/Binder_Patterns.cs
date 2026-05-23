@@ -35,47 +35,61 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static PropertySymbol? GetUnionTypeValueProperty(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            PropertySymbol? valueProperty = GetUnionTypeValuePropertyOriginalDefinition(inputUnionType, ref useSiteInfo);
-            if (valueProperty is null)
-            {
-                return null;
-            }
-
-            return valueProperty.AsMember(inputUnionType);
-        }
-
-        private static PropertySymbol? GetUnionTypeValuePropertyOriginalDefinition(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            // https://github.com/dotnet/roslyn/issues/82636: Not dealing with inheritance for now.
-            //            The inherited property might not be a definition, therefore the name of the function should probably change
-            PropertySymbol? valueProperty = null;
-            foreach (var m in inputUnionType.OriginalDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
+            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
+
+            if (membersInterfaceForDefinition is not null)
+            {
+                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(inputUnionType);
+
+                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
+                {
+                    if (isSuitableProperty(member, out PropertySymbol? valueProperty))
+                    {
+                        return reportDiagnosticAndReturnProperty(membersInterface, valueProperty.AsMember(membersInterface), ref useSiteInfo);
+                    }
+                }
+
+                return reportDiagnosticAndReturnProperty(membersInterface, null, ref useSiteInfo);
+            }
+            else
+            {
+                return reportDiagnosticAndReturnProperty(
+                    inputUnionType,
+                    TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo),
+                    ref useSiteInfo);
+            }
+
+            static PropertySymbol? reportDiagnosticAndReturnProperty(NamedTypeSymbol memberProvider, PropertySymbol? valueProperty, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (valueProperty is not null)
+                {
+                    Debug.Assert(valueProperty.Type.IsObjectType());
+                    useSiteInfo.Add(valueProperty.GetUseSiteInfo());
+                }
+                else
+                {
+                    useSiteInfo.AddDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberProvider.OriginalDefinition, WellKnownMemberNames.ValuePropertyName));
+                }
+
+                return valueProperty;
+            }
+
+            static bool isSuitableProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? valueProperty)
             {
                 if (m is PropertySymbol prop && hasUnionValueSignature(prop))
                 {
                     valueProperty = prop;
-                    break;
+                    return true;
                 }
-            }
 
-            if (valueProperty is not null)
-            {
-                Debug.Assert(valueProperty.Type.IsObjectType());
-                useSiteInfo.Add(valueProperty.GetUseSiteInfo());
+                valueProperty = null;
+                return false;
             }
-            else
-            {
-                useSiteInfo.AddDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, inputUnionType, WellKnownMemberNames.ValuePropertyName)); // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
-            }
-
-            return valueProperty;
 
             static bool hasUnionValueSignature(PropertySymbol property)
             {
-                // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
-                // https://github.com/dotnet/roslyn/issues/82636: Cover scenaros with a setter present
                 return property is
                 {
                     IsStatic: false,
@@ -88,6 +102,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private delegate bool IsSuitableUnionProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? member);
+
+        private static PropertySymbol? TryGetOwnOrInheritedUnionProperty(NamedTypeSymbol inputUnionType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
+                 declaringType is not null;
+                 declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+            {
+                if (getMemberDeclaredInType(declaringType, memberName, isSuitableUnionMember, out PropertySymbol? member))
+                {
+                    if (!inputUnionType.IsDefinition)
+                    {
+                        NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+
+                        if (declaringType == (object)inputUnionType.OriginalDefinition)
+                        {
+                            possiblyConstructedOrSubstitutedType = inputUnionType;
+                        }
+                        else
+                        {
+                            possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                        }
+
+                        member = member.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedType);
+                    }
+
+                    return member;
+                }
+            }
+
+            return null;
+
+            static bool getMemberDeclaredInType(NamedTypeSymbol declaringType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, [NotNullWhen(true)] out PropertySymbol? member)
+            {
+                foreach (var m in declaringType.GetMembers(memberName))
+                {
+                    if (isSuitableUnionMember(m, out member))
+                    {
+                        return true;
+                    }
+                }
+
+                member = null;
+                return false;
+            }
+        }
+
         internal static PropertySymbol? GetUnionTypeValuePropertyNoUseSiteDiagnostics(NamedTypeSymbol inputUnionType)
         {
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
@@ -96,43 +157,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsUnionTypeValueProperty(NamedTypeSymbol unionType, Symbol symbol)
         {
-            // https://github.com/dotnet/roslyn/issues/82636: Deal with inheritance?
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return Binder.GetUnionTypeValuePropertyOriginalDefinition(unionType, ref useSiteInfo) == (object)symbol.OriginalDefinition;
+            return Symbol.Equals(Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType), symbol, TypeCompareKind.AllIgnoreOptions);
         }
 
-        private static PropertySymbol? GetUnionTypeHasValuePropertyOriginalDefinition(NamedTypeSymbol inputUnionType)
+        internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            PropertySymbol? valueProperty = null;
+            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
 
-            // https://github.com/dotnet/roslyn/issues/82636: Not dealing with inheritance for now.
-            foreach (var m in inputUnionType.OriginalDefinition.GetMembers(WellKnownMemberNames.HasValuePropertyName))
+            if (membersInterfaceForDefinition is not null)
+            {
+                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.HasValuePropertyName))
+                {
+                    if (isSuitableProperty(member, out PropertySymbol? valueProperty))
+                    {
+                        return checkAndReturnProperty(valueProperty.AsMember(membersInterfaceForDefinition.AsMember(inputUnionType)));
+                    }
+                }
+
+                return null;
+            }
+            else
+            {
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return checkAndReturnProperty(TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo));
+            }
+
+            static PropertySymbol? checkAndReturnProperty(PropertySymbol? hasValueProperty)
+            {
+                if (hasValueProperty?.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
+                {
+                    return null;
+                }
+
+                return hasValueProperty;
+            }
+
+            static bool isSuitableProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? hasValueProperty)
             {
                 if (m is PropertySymbol prop && hasHasValueSignature(prop))
                 {
-                    valueProperty = prop;
-                    break;
+                    hasValueProperty = prop;
+                    return true;
                 }
-            }
 
-            if (valueProperty is null || valueProperty.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
-            {
-                return null; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
+                hasValueProperty = null;
+                return false;
             }
-
-            return valueProperty;
 
             static bool hasHasValueSignature(PropertySymbol property)
             {
-                // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
                 return property is
                 {
                     IsStatic: false,
                     DeclaredAccessibility: Accessibility.Public,
                     GetMethod: not null,
-                    SetMethod: null,
                     RefKind: RefKind.None,
                     ParameterCount: 0,
                     Type.SpecialType: SpecialType.System_Boolean
@@ -140,64 +220,223 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
-        {
-            PropertySymbol? valueProperty = GetUnionTypeHasValuePropertyOriginalDefinition(inputUnionType);
-            if (valueProperty is null)
-            {
-                return null;
-            }
-
-            return valueProperty.AsMember(inputUnionType);
-        }
-
-        internal static MethodSymbol? GetUnionTypeTryGetValueMethod(NamedTypeSymbol inputUnionType, TypeSymbol type)
+        internal static MethodSymbol? GetUnionTypeTryGetValueMethod(ConversionsBase conversions, NamedTypeSymbol inputUnionType, TypeSymbol type)
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            // https://github.com/dotnet/roslyn/issues/82636: Not dealing with inheritance for now.
-            NamedTypeSymbol unionDefinition = inputUnionType.OriginalDefinition;
-            ImmutableArray<TypeSymbol> caseTypes = unionDefinition.UnionCaseTypes;
+            MethodSymbol? bestMatch = null;
+            Conversion bestMatchConversion = Conversion.NoConversion;
+            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
+            PooledHashSet<TypeSymbol>? typeSet = null;
 
-            foreach (var m in unionDefinition.GetMembers(WellKnownMemberNames.TryGetValueMethodName))
+            if (membersInterfaceForDefinition is not null)
             {
-                if (m is MethodSymbol method && isTryGetValueSignature(method))
+                foundBetterMatch(
+                    conversions, inputUnionType, type,
+                    possiblyConstructedOrSubstitutedType: membersInterfaceForDefinition.AsMember(inputUnionType),
+                    declaringType: membersInterfaceForDefinition,
+                    ref typeSet, ref bestMatch, ref bestMatchConversion);
+            }
+            else
+            {
+                for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
+                     declaringType is not null;
+                     declaringType = declaringType.BaseTypeNoUseSiteDiagnostics)
                 {
-                    var candidate = method.AsMember(inputUnionType);
-                    if (candidate.Parameters[0].Type.Equals(type, TypeCompareKind.AllIgnoreOptions) && // https://github.com/dotnet/roslyn/issues/82636: Allow conversions per spec
-                        caseTypes.Contains(method.Parameters[0].Type, Symbols.SymbolEqualityComparer.AllIgnoreOptions)) // https://github.com/dotnet/roslyn/issues/82636: Optimize this check?
-                    {
-                        if (method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
-                        {
-                            continue; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
-                        }
+                    NamedTypeSymbol possiblyConstructedOrSubstitutedType;
 
-                        return candidate;
+                    if (inputUnionType.IsDefinition)
+                    {
+                        possiblyConstructedOrSubstitutedType = declaringType;
+                    }
+                    else if (declaringType == (object)inputUnionType.OriginalDefinition)
+                    {
+                        possiblyConstructedOrSubstitutedType = inputUnionType;
+                    }
+                    else
+                    {
+                        possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                    }
+
+                    if (foundBetterMatch(conversions, inputUnionType, type, possiblyConstructedOrSubstitutedType, declaringType, ref typeSet, ref bestMatch, ref bestMatchConversion) &&
+                        bestMatchConversion.IsIdentity)
+                    {
+                        break;
                     }
                 }
             }
 
-            return null;
+            typeSet?.Free();
+            return bestMatch;
 
-            static bool isTryGetValueSignature(MethodSymbol method)
+            static bool foundBetterMatch(
+                ConversionsBase conversions,
+                NamedTypeSymbol inputUnionType,
+                TypeSymbol type,
+                NamedTypeSymbol possiblyConstructedOrSubstitutedType,
+                NamedTypeSymbol declaringType,
+                ref PooledHashSet<TypeSymbol>? typeSet,
+                ref MethodSymbol? bestMatch,
+                ref Conversion bestMatchConversion
+                )
             {
-                // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
-                return method is
+                bool foundBetterMatch = false;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                foreach (var m in possiblyConstructedOrSubstitutedType.GetMembers(WellKnownMemberNames.TryGetValueMethodName))
                 {
-                    IsStatic: false,
-                    DeclaredAccessibility: Accessibility.Public,
-                    Arity: 0,
-                    RefKind: RefKind.None,
-                    Parameters: [{ RefKind: RefKind.Out }],
-                    ReturnType.SpecialType: SpecialType.System_Boolean
-                };
+                    if (m is MethodSymbol candidate && HasTryGetValueSignature(candidate))
+                    {
+                        Conversion conversion = conversions.ClassifyBuiltInConversion(type, candidate.Parameters[0].Type, isChecked: false, ref discardedUseSiteInfo);
+
+                        if (!conversion.Exists || !conversion.IsImplicit ||
+                            !(conversion.IsIdentity || conversion.IsReference || conversion.IsBoxing ||
+                              (conversion.IsNullable && conversion.UnderlyingConversions[0].IsIdentity)))
+                        {
+                            continue;
+                        }
+
+                        MethodSymbol declaredMethod = candidate;
+
+                        if (!inputUnionType.IsDefinition)
+                        {
+                            declaredMethod = candidate.OriginalDefinition.AsMember(declaringType);
+                        }
+
+                        if (typeSet is null)
+                        {
+                            typeSet = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
+
+                            foreach (var caseType in inputUnionType.OriginalDefinition.UnionCaseTypes)
+                            {
+                                typeSet.Add(caseType);
+
+                                if (caseType.IsNullableType())
+                                {
+                                    typeSet.Add(caseType.GetNullableUnderlyingType());
+                                }
+
+                            }
+                        }
+
+                        bool isMatch =
+                             HasTryGetValueSignature(declaredMethod) &&
+                             declaredMethod.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
+                             typeSet.Contains(declaredMethod.Parameters[0].Type);
+
+                        Debug.Assert(isMatch == IsUnionTypeTryGetValueMethod(inputUnionType, candidate));
+
+                        if (isMatch)
+                        {
+                            if (conversion.IsIdentity)
+                            {
+                                bestMatch = candidate;
+                                bestMatchConversion = conversion;
+                                return true;
+                            }
+                            else
+                            {
+                                Debug.Assert(bestMatch is null ||
+                                             bestMatchConversion.IsReference || bestMatchConversion.IsBoxing ||
+                                             (bestMatchConversion.IsNullable && bestMatchConversion.UnderlyingConversions[0].IsIdentity));
+                                Debug.Assert(!bestMatchConversion.IsReference || !conversion.IsNullable);
+                                Debug.Assert(!conversion.IsReference || !bestMatchConversion.IsNullable);
+                                Debug.Assert(!bestMatchConversion.IsReference || !conversion.IsBoxing);
+                                Debug.Assert(!conversion.IsReference || !bestMatchConversion.IsBoxing);
+
+                                if (bestMatch is null || (!conversion.IsBoxing && bestMatchConversion.IsBoxing))
+                                {
+                                    bestMatch = candidate;
+                                    bestMatchConversion = conversion;
+                                    foundBetterMatch = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return foundBetterMatch;
+            }
+        }
+
+        internal static bool HasTryGetValueSignature(MethodSymbol method)
+        {
+            return method is
+            {
+                IsStatic: false,
+                DeclaredAccessibility: Accessibility.Public,
+                Arity: 0,
+                RefKind: RefKind.None,
+                Parameters: [{ RefKind: RefKind.Out }],
+                ReturnType.SpecialType: SpecialType.System_Boolean
+            };
+        }
+
+        internal static bool IsUnionTypeTryGetValueMethod(NamedTypeSymbol unionType, MethodSymbol method)
+        {
+            Debug.Assert(unionType.IsUnionType);
+
+            if (method.Name is not WellKnownMemberNames.TryGetValueMethodName)
+            {
+                return false;
+            }
+
+            NamedTypeSymbol originalContainingType = method.ContainingType.OriginalDefinition;
+            NamedTypeSymbol unionDefinition = unionType.OriginalDefinition;
+
+            NamedTypeSymbol? membersInterfaceForDefinition = unionType.GetMemberProviderInterfaceForDefinition();
+
+            if (membersInterfaceForDefinition is not null)
+            {
+                if (membersInterfaceForDefinition == (object)originalContainingType)
+                {
+                    return isMatch(method.OriginalDefinition, unionDefinition);
+                }
+            }
+            else
+            {
+                for (var container = unionDefinition; container is not null; container = container.BaseTypeNoUseSiteDiagnostics)
+                {
+                    if (container.OriginalDefinition == (object)originalContainingType)
+                    {
+                        if (!unionType.IsDefinition)
+                        {
+                            method = method.OriginalDefinition.AsMember(container);
+                        }
+
+                        return isMatch(method, unionDefinition);
+                    }
+                }
+            }
+
+            return false;
+
+            static bool isMatch(MethodSymbol method, NamedTypeSymbol unionDefinition)
+            {
+                return HasTryGetValueSignature(method) && method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
+                       unionDefinition.UnionCaseTypes.Any(
+                           static (caseType, parameterType) =>
+                           {
+                               if (caseType.Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
+                               {
+                                   return true;
+                               }
+
+                               if (caseType.IsNullableType() &&
+                                   caseType.GetNullableUnderlyingType().Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
+                               {
+                                   return true;
+                               }
+
+                               return false;
+                           },
+                           method.Parameters[0].Type);
             }
         }
 
         internal static bool IsUnionTypeHasValueProperty(NamedTypeSymbol unionType, PropertySymbol property)
         {
-            // https://github.com/dotnet/roslyn/issues/82636: Deal with inheritance?
-            return (object)property.OriginalDefinition == Binder.GetUnionTypeHasValuePropertyOriginalDefinition(unionType);
+            return Symbol.Equals(Binder.GetUnionTypeHasValueProperty(unionType), property, TypeCompareKind.AllIgnoreOptions);
         }
 
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -674,7 +913,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Therefore, the type isn't narrowed by this pattern and the following pattern, if any, will do union matching from scratch.
 
                     // Ensure that the null value can actually be also matched against the original input type, since we are matching it against the input value as well.
-                    BindExpressionForPatternContinued(originalExpression, unionType: null, inputType: unionMatchingInputType, patternExpression: innerExpression, ref hasErrors, diagnostics, constantValueOpt: out _, patternExpressionConversion: out _);
+                    if (originalExpression.Type is not null && !originalExpression.Type.Equals(unionMatchingInputType.StrippedType(), TypeCompareKind.AllIgnoreOptions))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ConstantValueOfTypeExpected, innerExpression.Location, unionMatchingInputType.StrippedType());
+                    }
 
                     unionType = unionTypeOnEntry;
                     return new BoundConstantPattern(
@@ -690,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
 
                 var boundType = (BoundTypeExpression)convertedExpression;
-                bool isExplicitNotNullTest = !hasUnionMatching && boundType.Type.SpecialType == SpecialType.System_Object; // https://github.com/dotnet/roslyn/issues/82636: Add test coverage
+                bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, isUnionMatching: hasUnionMatching, inputType: unionMatchingInputType ?? inputType, boundType.Type, hasErrors);
             }
         }
@@ -856,7 +1098,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This permits us to match a value of type `IComparable<T>` with a pattern of type `int`.
             if (inputType.ContainsTypeParameter())
             {
-                // https://github.com/dotnet/roslyn/issues/82636: Make sure code in this block makes sense for union matching.
                 convertedExpression = expression;
                 // If the expression does not have a constant value, an error will be reported in the caller
                 if (!hasErrors && expression.ConstantValueOpt is object)
@@ -1730,8 +1971,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DiscardDesignation:
                     {
                         hasUnionMatching = false;
-                        // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for a Union type
-                        // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for 'unionType' not changing
                         return new BoundDiscardPattern(node, inputType: inputType, narrowedType: inputType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
@@ -1746,7 +1985,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(node.Parent is { });
 
                         hasUnionMatching = false;
-                        // https://github.com/dotnet/roslyn/issues/82636: Add test coverage for 'unionType' not changing
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
                             boundOperandType, isVar: true, variableSymbol, variableAccess,
@@ -1925,7 +2163,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol? unionType = null;
                 BoundPattern boundPattern = BindPattern(pattern, ref unionType, memberType, permitDesignations, hasErrors, diagnostics, out bool patternHasUnionMatching);
                 hasUnionMatching |= patternHasUnionMatching;
-                builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
+                var subpattern = new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern);
+
+                if (subpattern is { Member: { Receiver: null, Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property }, IsLengthOrCount: false } &&
+                    inputType is NamedTypeSymbol { IsUnionType: true } inputUnionType &&
+                    Binder.IsUnionTypeValueProperty(inputUnionType, property))
+                {
+                    // https://github.com/dotnet/roslyn/issues/82636: The condition above matches the logic in DecisionDagBuilder.MakeTestsAndBindingsForRecursivePattern
+                    //                                                and, at the moment, it doesn't accept qualified names for the value property. However, it probably should.
+                    //                                                Once that is changed, this place should be updated to match the new logic.
+                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, subpattern.Member.Syntax); // Since new exhaustiveness rules will be used by DecisionDagBuilder.
+                }
+
+                builder.Add(subpattern);
             }
 
             return builder.ToImmutableAndFree();

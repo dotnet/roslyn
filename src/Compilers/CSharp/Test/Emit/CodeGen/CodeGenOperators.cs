@@ -5640,6 +5640,7 @@ struct S1
 
         [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
+        [ValidatePooledObjects(LeakReason = "Deep binary expression tree overflows stack guard, leaking ArrayBuilder")]
         public void EmitSequenceOfBinaryExpressions_07()
         {
             const int start = 1024;

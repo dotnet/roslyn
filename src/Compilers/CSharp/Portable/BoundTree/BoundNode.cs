@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(conversion);
                     }
 
-                    if (conversionGroupOpt?.Conversion.IsUnion == true) // https://github.com/dotnet/roslyn/issues/82636: Add coverage
+                    if (conversionGroupOpt?.Conversion.IsUnion == true)
                     {
                         BoundConversion? possiblyUnion = boundConversion;
                         while (possiblyUnion?.Conversion.IsUnion == false)

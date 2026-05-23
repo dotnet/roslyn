@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool SuppressDynamicAttribute => true;
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
 
         // When the containing top-level method body is updated we don't need to attempt to update the cache field
