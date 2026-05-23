@@ -1,0 +1,9 @@
+﻿Source Location: (2:0,2 [93] x:\dir\subdir\Test\TestComponent.razor)
+|
+    System.Collections.Generic.List<string> values = [with(capacity: 32), "a", "b", "c"];
+|
+Generated Location: (733:21,0 [93] )
+|
+    System.Collections.Generic.List<string> values = [with(capacity: 32), "a", "b", "c"];
+|
+
