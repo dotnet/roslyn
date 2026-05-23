@@ -1682,7 +1682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (method.IsAbstract || method.IsVirtual)
             {
-                if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                if (receiver is not BoundTypeExpression { Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } })
                 {
                     throw ExceptionUtilities.Unreachable();
                 }

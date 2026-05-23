@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Services;
 
 public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
-    [Theory]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83181")]
     [CombinatorialData]
     public async Task TestExtractBaseClass(bool includeDevKitComponents)
     {
@@ -42,7 +42,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
             """);
     }
 
-    [Theory]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83181")]
     [CombinatorialData]
     public async Task TestExtractInterface(bool includeDevKitComponents)
     {

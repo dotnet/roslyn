@@ -164,6 +164,18 @@
     <value>Loading {0}...</value>
     <comment>The placeholder is a name of a file</comment>
   </data>
+  <data name="Loaded_0" xml:space="preserve">
+    <value>Loaded {0}</value>
+    <comment>The placeholder is a name of a file</comment>
+  </data>
+  <data name="Loading_0_projects" xml:space="preserve">
+    <value>Loading {0} project(s)...</value>
+    <comment>The placeholder is the number of projects</comment>
+  </data>
+  <data name="Loaded_0_projects" xml:space="preserve">
+    <value>Loaded {0} project(s)</value>
+    <comment>The placeholder is the number of projects</comment>
+  </data>
   <data name="Message" xml:space="preserve">
     <value>Message</value>
   </data>

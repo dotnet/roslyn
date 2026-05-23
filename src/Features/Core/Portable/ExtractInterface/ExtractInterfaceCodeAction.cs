@@ -64,4 +64,7 @@ internal sealed class ExtractInterfaceCodeAction(
     }
 
     public override string Title => FeaturesResources.Extract_interface;
+
+    internal override bool IsOptionServiceAvailable()
+        => AbstractExtractInterfaceService.IsOptionsServiceAvailable(_typeAnalysisResult.DocumentToExtractFrom);
 }

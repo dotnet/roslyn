@@ -259,7 +259,7 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
     {
         if (expectedOrderedItemsMetadataReference == null || expectedOrderedItemsSameSolution == null)
         {
-            AssertEx.Fail("Expected signature help items must be provided for EditorBrowsable tests. If there are no expected items, provide an empty IEnumerable rather than null.");
+            Assert.Fail("Expected signature help items must be provided for EditorBrowsable tests. If there are no expected items, provide an empty IEnumerable rather than null.");
         }
 
         await TestSignatureHelpWithMetadataReferenceHelperAsync(markup, referencedCode, expectedOrderedItemsMetadataReference, sourceLanguage, referencedLanguage, hideAdvancedMembers);

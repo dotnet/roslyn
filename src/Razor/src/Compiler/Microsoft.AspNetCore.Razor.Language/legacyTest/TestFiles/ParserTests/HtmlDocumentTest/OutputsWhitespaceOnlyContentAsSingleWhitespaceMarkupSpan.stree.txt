@@ -1,0 +1,5 @@
+﻿RazorDocument - [0..10)::10 - [          ]
+    MarkupBlock - [0..10)::10
+        MarkupTextLiteral - [0..10)::10 - [          ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Whitespace;[          ];
+    EndOfFile;[];

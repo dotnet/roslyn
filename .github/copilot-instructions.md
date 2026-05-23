@@ -10,6 +10,7 @@
 - **EditorFeatures** (`src/EditorFeatures/`): Editor-specific implementations and text buffer integration
 - **LanguageServer** (`src/LanguageServer/`): LSP implementation used by VS Code extension
 - **VisualStudio** (`src/VisualStudio/`): VS-specific language services and UI integration
+- **Razor** (`src/Razor/`): Razor compiler and Razor IDE tooling for `.razor`/`.cshtml` files (merged from `dotnet/razor`). The sub-tree kept its internal layout, so source actually lives under `src/Razor/src/Razor/`, `src/Razor/src/Compiler/`, `src/Razor/src/Shared/`, and `src/Razor/src/Analyzers/`. See `.github/instructions/Razor.instructions.md` for razor-specific guidance.
 
 ## Development Workflow
 
