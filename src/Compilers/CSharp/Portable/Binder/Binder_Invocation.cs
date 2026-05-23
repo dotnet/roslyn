@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
             }
-            resolution.Free();
+            resolution.Free(keepArguments: resolution.AnalyzedArguments == analyzedArguments);
             return result;
         }
 
@@ -2456,6 +2456,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ErrorCode.ERR_NameofExtensionMethod, methodGroup.Syntax.Location);
             }
+
+            resolution.Free();
         }
 
         /// <summary>
@@ -2573,6 +2575,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     delegateTypeBeingInvoked: null,
                     returnRefKind: funcPtr.Signature.RefKind);
 
+                overloadResolutionResult.Free();
+
                 return new BoundFunctionPointerInvocation(
                     node,
                     boundExpression,
@@ -2586,6 +2590,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodsBuilder.Free();
 
             MemberResolutionResult<FunctionPointerMethodSymbol> methodResult = overloadResolutionResult.ValidResult;
+
+            overloadResolutionResult.Free();
+
             CheckAndCoerceArguments(node, methodResult, analyzedArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false, argsToParamsOpt: out _);
 
             var args = analyzedArguments.Arguments.ToImmutable();

@@ -112,7 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
+                        if (this.IsStatic)
+                        {
+                            SourceMemberMethodSymbol.ReportLackOfRuntimeSupportForStaticMembersInInterfaces(declaratorSyntax, DeclaredAccessibility, diagnostics, this.GetFirstLocation());
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
+                        }
                     }
                 }
                 else if (!this.IsAbstract && !this.IsPartialDefinition)

@@ -1,0 +1,146 @@
+<svg height="700" width="1500" xmlns="http://www.w3.org/2000/svg">
+<title>Your Diagram Title</title>
+<!-- Generated with SankeyMATIC: 06/04/2023, 10:08:29 am -->
+<rect height="700" width="1500" fill="#ffffff"></rect>
+<g transform="translate(152.01251071453095,18)">
+<g id="sankey_flows">
+<path id="flow0" d="M9 30.15728C273.33391 30.15728 273.33391 183.25639 537.66782 183.25639" fill="none" stroke-width="22.01778" stroke="#1f77b4" opacity="0.45"><title>OmniSharp → MS.AspNetCore.Razor.LanguageServer.Common: 1</title></path>
+<path id="flow1" d="M9 75.78131C462.69934 75.78131 462.69934 186.57229 916.39869 186.57229" fill="none" stroke-width="22.01778" stroke="#2ca02c" opacity="0.45"><title>RoslynWorkspace → ProjectEngineHost: 1</title></path>
+<path id="flow2" d="M228.84378 147.39779C383.2558 147.39779 383.2558 227.29194 537.66782 227.29194" fill="none" stroke-width="22.01778" stroke="#1f77b4" opacity="0.45"><title>MS.AspNetCore.Razor.LanguageServer → MS.AspNetCore.Razor.LanguageServer.Common: 1</title></path>
+<path id="flow3" d="M546.66782 183.25639C859.07661 183.25639 859.07661 262.98161 1171.4854 262.98161" fill="none" stroke-width="22.01778" stroke="#9467bd" opacity="0.45"><title>MS.AspNetCore.Razor.LanguageServer.Common → Compiler: 1</title></path>
+<path id="flow4" d="M546.66782 205.27416C671.78514 205.27416 671.78514 297.48757 796.90247 297.48757" fill="none" stroke-width="22.01778" stroke="#8c564b" opacity="0.45"><title>MS.AspNetCore.Razor.LanguageServer.Common → Workspaces: 1</title></path>
+<path id="flow5" d="M925.39869 186.57229C1048.44204 186.57229 1048.44204 240.96383 1171.4854 240.96383" fill="none" stroke-width="22.01778" stroke="#9467bd" opacity="0.45"><title>ProjectEngineHost → Compiler: 1</title></path>
+<path id="flow6" d="M805.90247 319.50535C988.69393 319.50535 988.69393 284.99938 1171.4854 284.99938" fill="none" stroke-width="22.01778" stroke="#9467bd" opacity="0.45"><title>Workspaces → Compiler: 1</title></path>
+<path id="flow7" d="M805.90247 297.48757C861.15058 297.48757 861.15058 208.59007 916.39869 208.59007" fill="none" stroke-width="22.01778" stroke="#2ca02c" opacity="0.45"><title>Workspaces → ProjectEngineHost: 1</title></path>
+<path id="flow8" d="M180.68463 421.6689C488.79355 421.6689 488.79355 341.52312 796.90247 341.52312" fill="none" stroke-width="22.01778" stroke="#8c564b" opacity="0.45"><title>OOP Tag Helper Discovery → Workspaces: 1</title></path>
+<path id="flow9" d="M738.90765 421.00378C767.90506 421.00378 767.90506 363.5409 796.90247 363.5409" fill="none" stroke-width="22.01778" stroke="#8c564b" opacity="0.45"><title>MS.VS.Editor.Razor → Workspaces: 1</title></path>
+<path id="flow10" d="M348.23928 249.34848C284.04153 249.34848 284.04153 147.39779 219.84378 147.39779" fill="none" stroke-width="22.01778" stroke="#d62728" opacity="0.45"><title>MS.VS.LanguageServerClient.Razor → MS.AspNetCore.Razor.LanguageServer: 1</title></path>
+<path id="flow11" d="M348.23928 227.33071C442.95355 227.33071 442.95355 205.27416 537.66782 205.27416" fill="none" stroke-width="22.01778" stroke="#1f77b4" opacity="0.45"><title>MS.VS.LanguageServerClient.Razor → MS.AspNetCore.Razor.LanguageServer.Common: 1</title></path>
+<path id="flow12" d="M348.23928 271.36626C572.57087 271.36626 572.57087 319.50535 796.90247 319.50535" fill="none" stroke-width="22.01778" stroke="#8c564b" opacity="0.45"><title>MS.VS.LanguageServerClient.Razor → Workspaces: 1</title></path>
+<path id="flow13" d="M348.23928 315.40182C539.07346 315.40182 539.07346 421.00378 729.90765 421.00378" fill="none" stroke-width="22.01778" stroke="#7f7f7f" opacity="0.45"><title>MS.VS.LanguageServerClient.Razor → MS.VS.Editor.Razor: 1</title></path>
+<path id="flow14" d="M348.23928 293.38404C442.46941 293.38404 442.46941 318.62729 536.69954 318.62729" fill="none" stroke-width="22.01778" stroke="#17becf" opacity="0.45"><title>MS.VS.LanguageServerClient.Razor → ContainedLanguage: 1</title></path>
+<path id="flow15" d="M185.32422 385.08323C457.61593 385.08323 457.61593 465.03933 729.90765 465.03933" fill="none" stroke-width="22.01778" stroke="#7f7f7f" opacity="0.45"><title>LanguageServices.VS → MS.VS.Editor.Razor: 1</title></path>
+<path id="flow16" d="M178.30437 611.10301C454.10601 611.10301 454.10601 509.07489 729.90765 509.07489" fill="none" stroke-width="22.01778" stroke="#7f7f7f" opacity="0.45"><title>LiveShare → MS.VS.Editor.Razor: 1</title></path>
+<path id="flow17" d="M181.04601 340.41297C455.47683 340.41297 455.47683 443.02156 729.90765 443.02156" fill="none" stroke-width="22.01778" stroke="#7f7f7f" opacity="0.45"><title>Mac.LanguageServices → MS.VS.Editor.Razor: 1</title></path>
+<path id="flow18" d="M9 298.80355C590.2427 298.80355 590.2427 307.01716 1171.4854 307.01716" fill="none" stroke-width="22.01778" stroke="#9467bd" opacity="0.45"><title>VS Mac → Compiler: 1</title></path>
+<path id="flow19" d="M9 254.768C174.11964 254.768 174.11964 227.33071 339.23928 227.33071" fill="none" stroke-width="22.01778" stroke="#bcbd22" opacity="0.45"><title>VS Mac → MS.VS.LanguageServerClient.Razor: 1</title></path>
+<path id="flow20" d="M9 276.78577C90.52301 276.78577 90.52301 340.41297 172.04601 340.41297" fill="none" stroke-width="22.01778" stroke="#2ca02c" opacity="0.45"><title>VS Mac → Mac.LanguageServices: 1</title></path>
+<path id="flow21" d="M9 413.99214C114.42189 413.99214 114.42189 169.41556 219.84378 169.41556" fill="none" stroke-width="22.01778" stroke="#d62728" opacity="0.45"><title>VS → MS.AspNetCore.Razor.LanguageServer: 1</title></path>
+<path id="flow22" d="M9 524.08103C273.33391 524.08103 273.33391 249.30972 537.66782 249.30972" fill="none" stroke-width="22.01778" stroke="#1f77b4" opacity="0.45"><title>VS → MS.AspNetCore.Razor.LanguageServer.Common: 1</title></path>
+<path id="flow23" d="M9 546.09881C402.95123 546.09881 402.95123 385.55868 796.90247 385.55868" fill="none" stroke-width="22.01778" stroke="#8c564b" opacity="0.45"><title>VS → Workspaces: 1</title></path>
+<path id="flow24" d="M9 480.04548C90.34231 480.04548 90.34231 421.6689 171.68463 421.6689" fill="none" stroke-width="22.01778" stroke="#e377c2" opacity="0.45"><title>VS → OOP Tag Helper Discovery: 1</title></path>
+<path id="flow25" d="M9 502.06326C369.45382 502.06326 369.45382 487.05711 729.90765 487.05711" fill="none" stroke-width="22.01778" stroke="#7f7f7f" opacity="0.45"><title>VS → MS.VS.Editor.Razor: 1</title></path>
+<path id="flow26" d="M9 590.13437C272.84977 590.13437 272.84977 340.64506 536.69954 340.64506" fill="none" stroke-width="22.01778" stroke="#17becf" opacity="0.45"><title>VS → ContainedLanguage: 1</title></path>
+<path id="flow27" d="M9 436.00992C174.11964 436.00992 174.11964 249.34848 339.23928 249.34848" fill="none" stroke-width="22.01778" stroke="#bcbd22" opacity="0.45"><title>VS → MS.VS.LanguageServerClient.Razor: 1</title></path>
+<path id="flow28" d="M9 458.0277C92.66211 458.0277 92.66211 385.08323 176.32422 385.08323" fill="none" stroke-width="22.01778" stroke="#1f77b4" opacity="0.45"><title>VS → LanguageServices.VS: 1</title></path>
+<path id="flow29" d="M9 568.11659C89.15219 568.11659 89.15219 611.10301 169.30437 611.10301" fill="none" stroke-width="22.01778" stroke="#ff7f0e" opacity="0.45"><title>VS → LiveShare: 1</title></path>
+<path id="flow30" d="M9 461.08778C114.42189 461.08778 114.42189 191.43334 219.84378 191.43334" fill="none" stroke-width="22.01778" stroke="#d62728" opacity="0.45"><title>rzls → MS.AspNetCore.Razor.LanguageServer: 1</title></path>
+</g>
+<g id="sankey_nodes">
+<g class="node">
+<rect id="r0" class="for_r0" x="0" y="19.14839" height="22.01778" width="9" fill="#17becf" fill-opacity="1"><title>OmniSharp:
+1</title></rect>
+</g>
+<g class="node">
+<rect id="r1" class="for_r1" x="585.7427" y="151.75904" height="88.07111" width="9" fill="#1f77b4" fill-opacity="1" transform="translate(-48.07488,20.48845)"><title>MS.AspNetCore.Razor.LanguageServer.Common:
+4</title></rect>
+</g>
+<g class="node">
+<rect id="r2" class="for_r2" x="0" y="58.53756" height="22.01778" width="9" fill="#ff7f0e" fill-opacity="1" transform="translate(0,6.23487)"><title>RoslynWorkspace:
+1</title></rect>
+</g>
+<g class="node">
+<rect id="r3" class="for_r3" x="976.23783" y="179.44064" height="44.03556" width="9" fill="#2ca02c" fill-opacity="1" transform="translate(-59.83915,-3.87724)"><title>ProjectEngineHost:
+2</title></rect>
+</g>
+<g class="node">
+<rect id="r4" class="for_r4" x="390.49513" y="138.25084" height="66.05333" width="9" fill="#d62728" fill-opacity="1" transform="translate(-170.65135,-1.86194)"><title>MS.AspNetCore.Razor.LanguageServer:
+3</title></rect>
+</g>
+<g class="node">
+<rect id="r5" class="for_r5" x="1171.4854" y="230.8411" height="88.07111" width="9" fill="#9467bd" fill-opacity="1" transform="translate(0,-0.88616)"><title>Compiler:
+4</title></rect>
+</g>
+<g class="node">
+<rect id="r6" class="for_r6" x="780.99027" y="250.48224" height="110.08889" width="9" fill="#8c564b" fill-opacity="1" transform="translate(15.9122,35.99644)"><title>Workspaces:
+5</title></rect>
+</g>
+<g class="node">
+<rect id="r7" class="for_r7" x="195.24757" y="305.72053" height="22.01778" width="9" fill="#e377c2" fill-opacity="1" transform="translate(-23.56294,104.93948)"><title>OOP Tag Helper Discovery:
+1</title></rect>
+</g>
+<g class="node">
+<rect id="r8" class="for_r8" x="390.49513" y="339.84304" height="110.08889" width="9" fill="#7f7f7f" fill-opacity="1" transform="translate(339.41251,70.15185)"><title>MS.VS.Editor.Razor:
+5</title></rect>
+</g>
+<g class="node">
+<rect id="r9" class="for_r9" x="195.24757" y="99.48193" height="110.08889" width="9" fill="#bcbd22" fill-opacity="1" transform="translate(143.99171,116.83989)"><title>MS.VS.LanguageServerClient.Razor:
+5</title></rect>
+</g>
+<g class="node">
+<rect id="r10" class="for_r10" x="1171.4854" y="436.58266" height="44.03556" width="9" fill="#17becf" fill-opacity="1" transform="translate(-634.78586,-128.96426)"><title>ContainedLanguage:
+2</title></rect>
+</g>
+<g class="node">
+<rect id="r11" class="for_r11" x="195.24757" y="384.49885" height="22.01778" width="9" fill="#1f77b4" fill-opacity="1" transform="translate(-18.92335,-10.42452)"><title>LanguageServices.VS:
+1</title></rect>
+</g>
+<g class="node">
+<rect id="r12" class="for_r12" x="195.24757" y="463.27718" height="22.01778" width="9" fill="#ff7f0e" fill-opacity="1" transform="translate(-25.9432,136.81695)"><title>LiveShare:
+1</title></rect>
+</g>
+<g class="node">
+<rect id="r13" class="for_r13" x="195.24757" y="266.33137" height="22.01778" width="9" fill="#2ca02c" fill-opacity="1" transform="translate(-23.20155,63.07271)"><title>Mac.LanguageServices:
+1</title></rect>
+</g>
+<g class="node">
+<rect id="r14" class="for_r14" x="0" y="228.86753" height="66.05333" width="9" fill="#d62728" fill-opacity="1" transform="translate(0,14.89158)"><title>VS Mac:
+3</title></rect>
+</g>
+<g class="node">
+<rect id="r15" class="for_r15" x="0" y="312.29225" height="198.16" width="9" fill="#d62728" fill-opacity="1" transform="translate(0,90.69101)"><title>VS:
+9</title></rect>
+</g>
+<g class="node">
+<rect id="r16" class="for_r16" x="0" y="527.82364" height="22.01778" width="9" fill="#9467bd" fill-opacity="1" transform="translate(0,-77.74474)"><title>rzls:
+1</title></rect>
+</g>
+</g>
+<g id="sankey_labels" font-family="sans-serif" font-size="16px" font-weight="400" fill="#000000">
+<text text-anchor="middle" x="597.9874892854691" y="677" font-size="11px" font-weight="400" fill="rgb(127, 127, 127)">Made with SankeyMATIC</text>
+<rect id="label0_bg" class="for_r0" x="-92.29375" y="17.91061" width="90.66042" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0"></rect>
+<text id="label0" class="for_r0" text-anchor="end" x="-6.3" y="30.15728" dy="5.22">OmniSharp</text>
+<rect id="label1_bg" class="for_r1" x="596.37606" y="183.54793" width="362.79583" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(-48.07488,20.48845)"></rect>
+<text id="label1" class="for_r1" text-anchor="start" x="601.0427" y="195.7946" dy="5.22" transform="translate(-48.07488,20.48845)">MS.AspNetCore.Razor.LanguageServer.Common</text>
+<rect id="label2_bg" class="for_r2" x="-140.0125" y="57.29977" width="138.37918" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(0,6.23487)"></rect>
+<text id="label2" class="for_r2" text-anchor="end" x="-6.3" y="69.54644" dy="5.22" transform="translate(0,6.23487)">RoslynWorkspace</text>
+<rect id="label3_bg" class="for_r3" x="986.87117" y="189.21175" width="142.47032" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(-59.83915,-3.87724)"></rect>
+<text id="label3" class="for_r3" text-anchor="start" x="991.53783" y="201.45842" dy="5.22" transform="translate(-59.83915,-3.87724)">ProjectEngineHost</text>
+<rect id="label4_bg" class="for_r4" x="401.12847" y="159.03084" width="294.99893" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(-170.65135,-1.86194)"></rect>
+<text id="label4" class="for_r4" text-anchor="start" x="405.79513" y="171.27751" dy="5.22" transform="translate(-170.65135,-1.86194)">MS.AspNetCore.Razor.LanguageServer</text>
+<rect id="label5_bg" class="for_r5" x="1182.11873" y="262.62999" width="74.42083" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(0,-0.88616)"></rect>
+<text id="label5" class="for_r5" text-anchor="start" x="1186.7854" y="274.87666" dy="5.22" transform="translate(0,-0.88616)">Compiler</text>
+<rect id="label6_bg" class="for_r6" x="791.62362" y="293.28002" width="97.47292" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(15.9122,35.99644)"></rect>
+<text id="label6" class="for_r6" text-anchor="start" x="796.29027" y="305.52668" dy="5.22" transform="translate(15.9122,35.99644)">Workspaces</text>
+<rect id="label7_bg" class="for_r7" x="205.88091" y="304.48278" width="201.88438" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(-23.56294,104.93948)"></rect>
+<text id="label7" class="for_r7" text-anchor="start" x="210.54757" y="316.72942" dy="5.22" transform="translate(-23.56294,104.93948)">OOP Tag Helper Discovery</text>
+<rect id="label8_bg" class="for_r8" x="401.12847" y="382.64086" width="152.67865" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(339.41251,70.15185)"></rect>
+<text id="label8" class="for_r8" text-anchor="start" x="405.79513" y="394.88749" dy="5.22" transform="translate(339.41251,70.15185)">MS.VS.Editor.Razor</text>
+<rect id="label9_bg" class="for_r9" x="205.88091" y="142.27973" width="270.98333" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(143.99171,116.83989)"></rect>
+<text id="label9" class="for_r9" text-anchor="start" x="210.54757" y="154.52638" dy="5.22" transform="translate(143.99171,116.83989)">MS.VS.LanguageServerClient.Razor</text>
+<rect id="label10_bg" class="for_r10" x="1182.11873" y="446.35378" width="153.86876" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(-634.78586,-128.96426)"></rect>
+<text id="label10" class="for_r10" text-anchor="start" x="1186.7854" y="458.60044" dy="5.22" transform="translate(-634.78586,-128.96426)">ContainedLanguage</text>
+<rect id="label11_bg" class="for_r11" x="205.88091" y="383.2611" width="168.06668" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(-18.92335,-10.42452)"></rect>
+<text id="label11" class="for_r11" text-anchor="start" x="210.54757" y="395.50774" dy="5.22" transform="translate(-18.92335,-10.42452)">LanguageServices.VS</text>
+<rect id="label12_bg" class="for_r12" x="205.88091" y="462.03942" width="81.78542" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(-25.9432,136.81695)"></rect>
+<text id="label12" class="for_r12" text-anchor="start" x="210.54757" y="474.28607" dy="5.22" transform="translate(-25.9432,136.81695)">LiveShare</text>
+<rect id="label13_bg" class="for_r13" x="205.88091" y="265.09362" width="176.95208" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(-23.20155,63.07271)"></rect>
+<text id="label13" class="for_r13" text-anchor="start" x="210.54757" y="277.34026" dy="5.22" transform="translate(-23.20155,63.07271)">Mac.LanguageServices</text>
+<rect id="label14_bg" class="for_r14" x="-68.05417" y="249.64754" width="67.08229" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(0,14.89158)"></rect>
+<text id="label14" class="for_r14" text-anchor="end" x="-6.3" y="261.8942" dy="5.22" transform="translate(0,14.89158)">VS Mac</text>
+<rect id="label15_bg" class="for_r15" x="-33.37708" y="399.1256" width="31.74375" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(0,90.69101)"></rect>
+<text id="label15" class="for_r15" text-anchor="end" x="-6.3" y="411.37225" dy="5.22" transform="translate(0,90.69101)">VS</text>
+<rect id="label16_bg" class="for_r16" x="-36.25208" y="526.58586" width="34.61875" height="23.6" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0" transform="translate(0,-77.74474)"></rect>
+<text id="label16" class="for_r16" text-anchor="end" x="-6.3" y="538.83252" dy="5.22" transform="translate(0,-77.74474)">rzls</text>
+</g>
+</g></svg>

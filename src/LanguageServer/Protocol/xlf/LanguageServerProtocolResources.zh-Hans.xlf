@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../LanguageServerProtocolResources.resx">
     <body>
+      <trans-unit id="Cancelled">
+        <source>Cancelled</source>
+        <target state="translated">已取消</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DocumentUriSerializationError">
         <source>Unable to deserialize Uri. Unexpected value encountered: {0}</source>
         <target state="translated">无法反序列化 URI。出现意外值: {0}</target>

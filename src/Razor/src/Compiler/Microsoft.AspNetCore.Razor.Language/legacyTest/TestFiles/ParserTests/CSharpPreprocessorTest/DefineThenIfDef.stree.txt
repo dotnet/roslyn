@@ -1,0 +1,68 @@
+﻿RazorDocument - [0..115)::115 - [@{LF#define SYMBOLLF#if SYMBOLLF#undef SYMBOLLF#if SYMBOLLF    var x = 1;LF#endifLF#elseLF    var x = 1;LF#endifLF}]
+    MarkupBlock - [0..115)::115
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..115)::115
+            CSharpStatement - [0..115)::115
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [1..115)::114
+                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..114)::112
+                        CSharpStatementLiteral - [2..114)::112 - [LF#define SYMBOLLF#if SYMBOLLF#undef SYMBOLLF#if SYMBOLLF    var x = 1;LF#endifLF#elseLF    var x = 1;LF#endifLF] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[define];
+                            Whitespace;[ ];
+                            Identifier;[SYMBOL];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Keyword;[if];
+                            Whitespace;[ ];
+                            Identifier;[SYMBOL];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[undef];
+                            Whitespace;[ ];
+                            Identifier;[SYMBOL];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Keyword;[if];
+                            Whitespace;[ ];
+                            Identifier;[SYMBOL];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Identifier;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            IntegerLiteral;[1];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[endif];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Keyword;[else];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Identifier;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            IntegerLiteral;[1];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[endif];
+                            NewLine;[LF];
+                    RazorMetaCode - [114..115)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupTextLiteral - [115..115)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+    EndOfFile;[];
