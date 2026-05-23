@@ -1,0 +1,7 @@
+﻿Markup span at (0:0,0 [0] ) (Accepts:Any) - Parent: Markup block at (0:0,0 [31] )
+Transition span at (0:0,0 [1] ) (Accepts:None) - Parent: Directive block at (0:0,0 [9] )
+MetaCode span at (1:0,1 [4] ) (Accepts:None) - Parent: Directive block at (0:0,0 [9] )
+MetaCode span at (5:0,5 [1] ) (Accepts:None) - Parent: Directive block at (0:0,0 [9] )
+Code span at (6:0,6 [2] ) (Accepts:Any) - Parent: Directive block at (0:0,0 [9] )
+MetaCode span at (8:1,0 [1] ) (Accepts:None) - Parent: Directive block at (0:0,0 [9] )
+MetaCode span at (9:1,1 [22] ) (Accepts:Any) - Parent: Statement block at (0:0,0 [31] )

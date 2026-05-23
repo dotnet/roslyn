@@ -1,0 +1,20 @@
+<Project>
+  <!-- Run after https://github.com/dotnet/sdk/blob/main/src/RazorSdk/Targets/Microsoft.NET.Sdk.Razor.SourceGenerators.targets#L15 -->
+  <Target Name="_PrepareRazorSourceGeneratorsToolset"
+    BeforeTargets="GenerateMSBuildEditorConfigFileShouldRun"
+    DependsOnTargets="_PrepareRazorSourceGenerators">
+
+    <ItemGroup>
+      <Analyzer Remove="@(_RazorAnalyzer)" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_RazorSdkSourceGeneratorDirectoryRootOverride>$(MSBuildThisFileDirectory)..\source-generators\</_RazorSdkSourceGeneratorDirectoryRootOverride>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_RazorAnalyzerOverride Include="$(_RazorSdkSourceGeneratorDirectoryRootOverride)*.dll" />
+      <Analyzer Include="@(_RazorAnalyzerOverride)" />
+    </ItemGroup>
+  </Target>
+</Project>

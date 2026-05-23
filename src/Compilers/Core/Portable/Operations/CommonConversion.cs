@@ -83,7 +83,12 @@ namespace Microsoft.CodeAnalysis.Operations
             [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
             get
             {
-                return MethodSymbol is { MethodKind: MethodKind.Constructor };
+                return MethodSymbol is
+                { MethodKind: MethodKind.Constructor, ContainingType.IsUnion: true } or
+                {
+                    MethodKind: MethodKind.Ordinary, IsStatic: true, Name: WellKnownMemberNames.UnionFactoryMethodName,
+                    ContainingType: { TypeKind: TypeKind.Interface, Name: WellKnownMemberNames.UnionMembersInterfaceName, Arity: 0, ContainingType.IsUnion: true }
+                };
             }
         }
 

@@ -1,0 +1,15 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupElement - (0:0,0 [18] x:\dir\subdir\Test\TestComponent.cshtml) - elem
+                    HtmlAttribute - (5:0,5 [10] x:\dir\subdir\Test\TestComponent.cshtml) -  attr= - 
+                        CSharpExpressionAttributeValue - (11:0,11 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (12:0,12 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Foo
+            CSharpCode - (31:1,11 [29] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (31:1,11 [29] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n        int Foo = 18;\n    

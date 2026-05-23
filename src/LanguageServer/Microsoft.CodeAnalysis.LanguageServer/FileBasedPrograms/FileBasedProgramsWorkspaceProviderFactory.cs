@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -11,17 +10,14 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>
 /// Service to create <see cref="FileBasedProgramsProjectSystem"/> instances.
-/// This is not exported as a <see cref="ILspServiceFactory"/> as it requires
-/// special base language server dependencies such as the <see cref="HostServices"/>
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(ILspMiscellaneousFilesWorkspaceProviderFactory), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(ILspMiscellaneousFilesWorkspaceProvider), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramsWorkspaceProviderFactory(
@@ -34,9 +30,9 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
     ProjectLoadTelemetryReporter projectLoadTelemetry,
     ServerConfigurationFactory serverConfigurationFactory,
     IBinLogPathProvider binLogPathProvider,
-    DotnetCliHelper dotnetCliHelper) : ILspMiscellaneousFilesWorkspaceProviderFactory
+    DotnetCliHelper dotnetCliHelper) : ILspServiceFactory
 {
-    public ILspMiscellaneousFilesWorkspaceProvider CreateLspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         return new FileBasedProgramsProjectSystem(
             lspServices,

@@ -4,14 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+#if !MSBUILDWORKSPACE_BUILDHOST
 using System.Collections.Immutable;
+#endif
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis;
+#if !MSBUILDWORKSPACE_BUILDHOST
 using Microsoft.CodeAnalysis.PooledObjects;
+#endif
 
 namespace Roslyn.Utilities
 {
@@ -721,6 +724,8 @@ namespace Roslyn.Utilities
             return hc;
         }
 
+#if !MSBUILDWORKSPACE_BUILDHOST // This uses ImmutableArray but isn't needed in the BuildHost.
+
         public static string NormalizePathPrefix(string filePath, ImmutableArray<KeyValuePair<string, string>> pathMap)
         {
             if (pathMap.IsDefaultOrEmpty)
@@ -756,6 +761,8 @@ namespace Roslyn.Utilities
 
             return filePath;
         }
+
+#endif
 
         public static string NormalizeDriveLetter(string filePath)
         {
@@ -876,22 +883,33 @@ namespace Roslyn.Utilities
             var toSkip = isDriveRooted ? 2 : 1;
             Debug.Assert(parts[toSkip - 1] == string.Empty);
 
+#if MSBUILDWORKSPACE_BUILDHOST
+            var resolvedParts = new List<string>();
+#else
             var resolvedParts = ArrayBuilder<string>.GetInstance();
+#endif
+
             foreach (var part in parts.Skip(toSkip))
             {
                 if (!part.Equals(ParentRelativeDirectory))
                 {
-                    resolvedParts.Push(part);
+                    resolvedParts.Add(part);
                 }
-                // /../../file is considered equal to /file, so we only process the parent relative directory info if there is actually a parent
-                else if (resolvedParts.Count > 0)
+                else
                 {
-                    resolvedParts.Pop();
+                    // /../../file is considered equal to /file, so we only process the parent relative directory info if there is actually a parent
+                    var partCount = resolvedParts.Count;
+                    if (partCount > 0)
+                    {
+                        resolvedParts.RemoveAt(partCount - 1);
+                    }
                 }
             }
 
             var expandedPath = volumeSpecifier + '/' + string.Join("/", resolvedParts);
+#if !MSBUILDWORKSPACE_BUILDHOST
             resolvedParts.Free();
+#endif
             return expandedPath;
         }
 

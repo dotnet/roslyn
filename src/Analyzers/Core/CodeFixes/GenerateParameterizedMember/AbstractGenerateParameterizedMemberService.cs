@@ -72,13 +72,4 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
 
         return result.ToImmutableAndClear();
     }
-
-    /// <summary>
-    /// Checks if a document comes from the Razor source generator
-    /// </summary>
-    /// <returns>SourceGeneratedDocument.Identity is not available in the code style layer, so we can't use the existing extension method</returns>
-    private static bool IsRazorSourceGeneratedDocument(Document document)
-        => document is SourceGeneratedDocument &&
-           document.FilePath is string filePath &&
-           filePath.IndexOf("Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", StringComparison.Ordinal) >= 0;
 }

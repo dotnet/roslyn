@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundConversion { Conversion: { Kind: var conversionKind } conversion } when conversionMustBePerformedOnOriginalExpression(conversionKind):
                     // Some conversions cannot be performed on a copy of the argument and must be done early.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
-                case BoundConversion { Conversion: { IsUserDefined: true } or { IsUnion: true } } conv when conv.ExplicitCastInCode || enclosingConversionWasExplicit: // https://github.com/dotnet/roslyn/issues/82636: Add coverage
+                case BoundConversion { Conversion: { IsUserDefined: true } or { IsUnion: true } } conv when conv.ExplicitCastInCode || enclosingConversionWasExplicit:
                     // A user-defined conversion triggered by a cast must be performed early.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
                 case BoundConversion conv:
@@ -315,6 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!isLeftNullable && !isRightNullable)
             {
                 // The outer sequence degenerates when we know that both `leftHasValue` and `rightHasValue` are true
+                outerEffects.Free();
                 return innerSequence;
             }
 
@@ -406,7 +407,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundConversion { Conversion: { IsIdentity: true }, Operand: var o }:
                         return makeNullableHasValue(o);
                     case BoundConversion { Conversion: { IsNullable: true, UnderlyingConversions: var underlying } conversion, Operand: var o }
-                            when expr.Type.IsNullableType() && o.Type is { } && o.Type.IsNullableType() && !underlying[0].IsUserDefined: // https://github.com/dotnet/roslyn/issues/82636: Confirm union conversions don't need special handling here
+                            when expr.Type.IsNullableType() && o.Type is { } && o.Type.IsNullableType() &&
+                                 !(underlying[0].IsUserDefined || underlying[0].IsUnion): // It looks like this condition is always satisfied because neither user-defined, nor union conversion can be underlying for a Nullable conversion, but let's keep it just in case.
                         // Note that a user-defined conversion from K to Nullable<R> which may translate
                         // a non-null K to a null value gives rise to a lifted conversion from Nullable<K> to Nullable<R> with the same property.
                         // We therefore do not attempt to optimize nullable conversions with an underlying user-defined conversion.

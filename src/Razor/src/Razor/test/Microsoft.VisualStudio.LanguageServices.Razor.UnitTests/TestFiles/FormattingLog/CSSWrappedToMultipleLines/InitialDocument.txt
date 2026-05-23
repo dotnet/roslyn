@@ -1,0 +1,331 @@
+@page "/networking"
+@using KalTire.KAOSMgr.Features.Azure.Networking.Models
+@using KalTire.KAOSMgr.Features.Azure.Networking.Components
+@using Telerik.Blazor
+@using Telerik.Blazor.Components
+@using Telerik.SvgIcons
+@inject Services.IpamDataService IpamService
+
+@attribute [Authorize(Roles = "KAOS.Admin,KAOS.Azure.Networking")]
+
+<div style="height:100%">
+    <TelerikCard>
+        <CardHeader Class="custom-card-header">
+            <div class="ipam-card-header-row">
+                <h3>Azure Networking</h3>
+                @if (_outerTabId == "ipam" && !_loading && string.IsNullOrEmpty(_error))
+                {
+                    <div class="ipam-stats-group">
+                        <div class="ipam-stat-inline">
+                            <span class="ipam-stat-inline-label">Total IPs</span>
+                            <span class="ipam-stat-inline-value">@_stats.TotalIPs</span>
+                            <span class="ipam-stat-inline-sub">@_stats.PublicIPs pub · @_stats.PrivateIPs priv</span>
+                        </div>
+                        <div class="ipam-stat-inline">
+                            <span class="ipam-stat-inline-label">IP Usage</span>
+                            <span class="ipam-stat-inline-value">@_stats.AssignedPublicIPs / @_stats.PublicIPs</span>
+                            <span class="ipam-stat-inline-sub">@_stats.UnassignedPublicIPs unassigned</span>
+                        </div>
+                        <div class="ipam-stat-inline">
+                            <span class="ipam-stat-inline-label">Subnets</span>
+                            <span class="ipam-stat-inline-value">@_stats.TotalSubnets</span>
+                            <span class="ipam-stat-inline-sub">@_stats.CriticalSubnets crit · @_stats.WarningSubnets warn</span>
+                        </div>
+                        <div class="ipam-stat-inline">
+                            <span class="ipam-stat-inline-label">VNets</span>
+                            <span class="ipam-stat-inline-value">@_stats.VNets</span>
+                        </div>
+                        <div class="ipam-stat-inline">
+                            <span class="ipam-stat-inline-label">Conflicts</span>
+                            <span class="ipam-stat-inline-value @(_stats.Conflicts > 0 ? "ipam-stat-alert" : "")">@_stats.Conflicts</span>
+                        </div>
+                        <div class="ipam-stat-inline">
+                            <span class="ipam-stat-inline-label">Orphans</span>
+                            <span class="ipam-stat-inline-value @(_stats.OrphanResources > 0 ? "ipam-stat-alert" : "")">@_stats.OrphanResources</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </CardHeader>
+        <CardSubTitle Class="custom-card-subtitle">Various networking related tooling.</CardSubTitle>
+        <CardSeparator />
+        <CardBody>
+
+            @* TabPosition="@TabPosition.Left" *@
+            <TelerikTabStrip ActiveTabId="@_outerTabId" ActiveTabIdChanged="@((string id) => _outerTabId = id)" PersistTabContent="true">
+                <TabStripTab Title="IP Address Management" Id="ipam">
+                   
+                    <div style="padding-top: 12px">
+                        <h6>Azure IP Address Management</h6>
+                        <CardSubTitle>Manage the Azure IP Address space.</CardSubTitle>
+                        @if (_loading)
+                        {
+                            <div class="ipam-loading-container">
+                                <div class="ipam-loading-spinner"></div>
+                                <p class="ipam-loading-text">Loading Azure resources...</p>
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(_error))
+                        {
+                            <div class="ipam-error-container">
+                                <p class="ipam-error-message">@_error</p>
+                                <TelerikButton ThemeColor="@ThemeConstants.Button.ThemeColor.Error" OnClick="LoadData">Retry</TelerikButton>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="ipam-layout">
+                                @* ── Filter Panel ── *@
+                                <div class="ipam-filter-panel">
+                                    <div class="ipam-filter-row">
+                                        @* Search *@
+                                        <div class="ipam-filter-group">
+                                            <label class="ipam-filter-label">Search</label>
+                                            <TelerikTextBox Value="@_filter.SearchQuery"
+                                                            ValueChanged="@((string v) => { _filter.SearchQuery = v; ApplyFilters(); })"
+                                                            Placeholder="Search IPs, resources..."
+                                                            Width="250px" />
+                                        </div>
+
+                                        @* IP Type Filter *@
+                                        <div class="ipam-filter-group">
+                                            <label class="ipam-filter-label">IP Type</label>
+                                            <TelerikButtonGroup SelectionMode="@ButtonGroupSelectionMode.Single">
+                                                <ButtonGroupToggleButton Selected="@(_filter.IpType == "all")"
+                                                                         SelectedChanged="@((bool selected) => { if(selected) { _filter.IpType = "all"; ApplyFilters(); } })"
+                                                                         Size="@ThemeConstants.Button.Size.Small">
+                                                    All
+                                                </ButtonGroupToggleButton>
+                                                <ButtonGroupToggleButton Selected="@(_filter.IpType == "Public")"
+                                                                         SelectedChanged="@((bool selected) => { if(selected) { _filter.IpType = "Public"; ApplyFilters(); } })"
+                                                                         Size="@ThemeConstants.Button.Size.Small">
+                                                    Public
+                                                </ButtonGroupToggleButton>
+                                                <ButtonGroupToggleButton Selected="@(_filter.IpType == "Private")"
+                                                                         SelectedChanged="@((bool selected) => { if(selected) { _filter.IpType = "Private"; ApplyFilters(); } })"
+                                                                         Size="@ThemeConstants.Button.Size.Small">
+                                                    Private
+                                                </ButtonGroupToggleButton>
+                                            </TelerikButtonGroup>
+                                        </div>
+
+                                        @* Allocation Method Filter *@
+                                        <div class="ipam-filter-group">
+                                            <label class="ipam-filter-label">Allocation</label>
+                                            <TelerikButtonGroup SelectionMode="@ButtonGroupSelectionMode.Single">
+                                                <ButtonGroupToggleButton Selected="@(_filter.AllocationMethod == "all")"
+                                                                         SelectedChanged="@((bool selected) => { if(selected) { _filter.AllocationMethod = "all"; ApplyFilters(); } })"
+                                                                         Size="@ThemeConstants.Button.Size.Small">
+                                                    All
+                                                </ButtonGroupToggleButton>
+                                                <ButtonGroupToggleButton Selected="@(_filter.AllocationMethod == "Static")"
+                                                                         SelectedChanged="@((bool selected) => { if(selected) { _filter.AllocationMethod = "Static"; ApplyFilters(); } })"
+                                                                         Size="@ThemeConstants.Button.Size.Small">
+                                                    Static
+                                                </ButtonGroupToggleButton>
+                                                <ButtonGroupToggleButton Selected="@(_filter.AllocationMethod == "Dynamic")"
+                                                                         SelectedChanged="@((bool selected) => { if(selected) { _filter.AllocationMethod = "Dynamic"; ApplyFilters(); } })"
+                                                                         Size="@ThemeConstants.Button.Size.Small">
+                                                    Dynamic
+                                                </ButtonGroupToggleButton>
+                                            </TelerikButtonGroup>
+                                        </div>
+
+                                        @* Subscriptions Filter *@
+                                        <div class="ipam-filter-group ipam-filter-subscriptions">
+                                            <div class="ipam-subscription-header">
+                                                <label class="ipam-filter-label">Subscriptions</label>
+                                                <div class="ipam-subscription-actions">
+                                                    <TelerikButton FillMode="@ThemeConstants.Button.FillMode.Flat"
+                                                                   Size="@ThemeConstants.Button.Size.Small"
+                                                                   OnClick="SelectAllSubscriptions">All</TelerikButton>
+                                                    <span style="color: #9ca3af;">|</span>
+                                                    <TelerikButton FillMode="@ThemeConstants.Button.FillMode.Flat"
+                                                                   Size="@ThemeConstants.Button.Size.Small"
+                                                                   OnClick="ClearAllSubscriptions">None</TelerikButton>
+                                                </div>
+                                            </div>
+                                            <TelerikMultiSelect Data="@_subscriptions"
+                                                                @bind-Value="@_filter.Subscriptions"
+                                                                TextField="@nameof(SubscriptionInfo.Name)"
+                                                                ValueField="@nameof(SubscriptionInfo.Id)"
+                                                                Placeholder="Select subscriptions..."
+                                                                Width="400px"
+                                                                AutoClose="false"
+                                                                Filterable="true"
+                                                                FilterOperator="StringFilterOperator.Contains"
+                                                                OnChange="@OnSubscriptionsChanged">
+                                                <MultiSelectSettings>
+                                                    <MultiSelectPopupSettings Height="auto" MaxHeight="400px" />
+                                                </MultiSelectSettings>
+                                                <FooterTemplate>
+                                                    <div style="padding: 0.5rem; border-top: 1px solid #e5e7eb; text-align: end; font-size: 0.75rem; color: #6b7280;">
+                                                        Selected: <b>@(_filter.Subscriptions?.Count ?? 0)</b> / <b>@_subscriptions.Count</b>
+                                                    </div>
+                                                </FooterTemplate>
+                                            </TelerikMultiSelect>
+                                        </div>
+
+                                        @* Refresh Button *@
+                                        <div class="ipam-filter-group ipam-filter-refresh">
+                                            <TelerikButton ThemeColor="@ThemeConstants.Button.ThemeColor.Primary"
+                                                           OnClick="LoadData"
+                                                           Icon="@SvgIcon.Undo" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @* ── Main Content ── *@
+                                <div class="ipam-main">
+                                    @* Tab Bar *@
+                                    <TelerikTabStrip ActiveTabId="@_activeTabId" ActiveTabIdChanged="@((string id) => _activeTabId = id)" TabAlignment="@TabStripTabAlignment.End" TabPosition="@TabPosition.Top">
+                                        <TabStripTab Title="Dashboard" Id="dashboard">
+                                            <DashboardOverviewTab IpAddresses="@_filteredIPs"
+                                                                  Subnets="@_filteredSubnets"
+                                                                  Conflicts="@_filteredConflicts"
+                                                                  Events="@_events"
+                                                                  OrphanResources="@_orphanResources"
+                                                                  Stats="@_stats"
+                                                                  OnNavigate="NavigateToTab" />
+                                        </TabStripTab>
+                                        <TabStripTab Title="@($"IP Addresses ({_filteredIPs.Count})")" Id="ipaddresses">
+                                            <IPAddressesTab IpAddresses="@_filteredIPs" />
+                                        </TabStripTab>
+                                        <TabStripTab Title="@($"Subnets ({_filteredSubnets.Count})")" Id="subnets">
+                                            <SubnetsTab Subnets="@_filteredSubnets" />
+                                        </TabStripTab>
+                                        <TabStripTab Title="@($"Conflicts ({_filteredConflicts.Count})")" Id="conflicts">
+                                            <ConflictsTab Conflicts="@_filteredConflicts" />
+                                        </TabStripTab>
+                                        <TabStripTab Title="@($"Events ({_events.Count})")" Id="events">
+                                            <EventsTab Events="@_events" />
+                                        </TabStripTab>
+                                        <TabStripTab Title="@($"Orphan Resources ({_orphanResources.Count})")" Id="orphans">
+                                            <OrphanResourcesTab OrphanResources="@_orphanResources" />
+                                        </TabStripTab>
+                                    </TelerikTabStrip>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </TabStripTab>
+                <TabStripTab Title="On Prem Connectivity Checker" Id="onprem">
+                    <OnPremChecker />
+                </TabStripTab>
+            </TelerikTabStrip>
+        </CardBody>
+    </TelerikCard>
+</div>
+
+<style>
+        .full-height {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .custom-tab-strip {
+        padding-top: 12px;
+    }
+
+    .custom-card-header {
+        margin-bottom: 0px;
+        padding-bottom: 0px;
+    }
+
+    .custom-card-subtitle {
+        padding-left: 12px;
+    }
+
+    .status-message {
+        padding-left: 12px;
+        padding-right: 12px;
+        vertical-align: middle;
+    }
+
+
+    /* Hide the group header row */
+    .k-grouping-header {
+        display: none;
+    }
+    /* Layout: filter panel + main */
+    .ipam-layout { display: flex; flex-direction: column; gap: 0.75rem; width: 100%; }
+
+    /* Filter Panel */
+    .ipam-filter-panel {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 0.5rem 1rem;
+        width: 100%;
+    }
+
+    .ipam-filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        align-items: flex-end;
+        width: 100%;
+    }
+
+    .ipam-filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .ipam-filter-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    /* Subscriptions Filter */
+    .ipam-filter-subscriptions {
+        min-width: 300px;
+    }
+
+    .ipam-subscription-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .ipam-subscription-actions {
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
+        font-size: 0.75rem;
+    }
+
+    /* Refresh Button */
+    .ipam-filter-refresh { margin-left: auto; }
+    
+    .ipam-main { flex: 1; min-width: 0; width: 100%; }
+
+    /* Card header row */
+    .ipam-card-header-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    .ipam-card-header-row h3 { margin: 0; }
+
+    /* Inline stat chips */
+    .ipam-stats-group { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .ipam-stat-inline { display: flex; align-items: baseline; gap: 0.35rem; padding: 0.3rem 0.65rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; white-space: nowrap; }
+    .ipam-stat-inline-label { font-size: 0.7rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; }
+    .ipam-stat-inline-value { font-size: 1.1rem; font-weight: 700; color: #1f2937; }
+    .ipam-stat-inline-sub { font-size: 0.7rem; color: #9ca3af; }
+    .ipam-stat-alert { color: #ef4444; }
+
+    /* Loading / Error */
+    .ipam-loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem; }
+    .ipam-loading-spinner { width: 3rem; height: 3rem; border: 3px solid #e5e7eb; border-top-color: #0078d4; border-radius: 50%; animation: ipam-spin 1s linear infinite; }
+    @@keyframes ipam-spin { to { transform: rotate(360deg); } }
+    .ipam-loading-text { margin-top: 1rem; color: #9ca3af; font-size: 0.875rem; }
+    .ipam-error-container { background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.75rem; padding: 1.5rem; text-align: center; }
+    .ipam-error-message { color: #ef4444; font-size: 0.875rem; }
+
+    /* Responsive adjustments */
+    @@media (max-width: 1200px) {
+        .ipam-filter-row { gap: 1rem; }
+        .ipam-filter-group { min-width: 150px; }
+    }
+</style>
