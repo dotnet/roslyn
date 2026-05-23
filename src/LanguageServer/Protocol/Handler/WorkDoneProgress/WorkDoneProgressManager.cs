@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.LanguageServer.Protocol;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -43,12 +44,18 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
 
     /// <summary>
     /// Initiates a new work done progress reporting session with the client.
-    /// This sends the initial `window/workDoneProgress/create` request, but callers are responsible for sending the
-    /// begin and end reports.
+    /// This sends the initial `window/workDoneProgress/create` request and begin report to the client.
     /// In the case of server side cancellation, an end report will be sent automatically with a "Cancelled" message.
+    /// On dispose of the <see cref="IWorkDoneProgressReporter"/>, an end report will be sent with the provided end message.
     /// </summary>
     /// <param name="serverCancellationToken">a cancellation token that signals when the server wants to cancel the operation</param>
-    public async Task<IWorkDoneProgressReporter> CreateWorkDoneProgressAsync(bool reportProgressToClient, CancellationToken serverCancellationToken)
+    public async Task<IWorkDoneProgressReporter> CreateWorkDoneProgressAsync(
+        bool reportProgressToClient,
+        string title,
+        string startMessage,
+        string endMessage,
+        bool clientCanCancel,
+        CancellationToken serverCancellationToken)
     {
         var token = Guid.NewGuid().ToString();
         IWorkDoneProgressReporter reporter;
@@ -58,12 +65,28 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
 
         if (reportProgress)
         {
-            var clientReporter = new WorkDoneProgressReporter(token, this, serverCancellationToken);
+            var clientReporter = new WorkDoneProgressReporter(token, endMessage, this, serverCancellationToken);
             await clientReporter.SendCreateRequestAsync().ConfigureAwait(false);
+
+            // Tell the client to end the work done progress if the server cancels the request.
+            // Note - no need to observe client cancellation - the client does not expect an end report when it cancels.
+            serverCancellationToken.Register(() =>
+            {
+                clientReporter.TryReportEndAsync(LanguageServerProtocolResources.Cancelled).ReportNonFatalErrorAsync();
+            });
+
             lock (_progressLock)
             {
                 _progressReporters[token] = clientReporter;
             }
+
+            clientReporter.Report(new WorkDoneProgressBegin()
+            {
+                Title = title,
+                Message = startMessage,
+                Cancellable = clientCanCancel,
+                Percentage = 0,
+            });
 
             return clientReporter;
         }
@@ -90,6 +113,8 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
 
     private class WorkDoneProgressReporter : IWorkDoneProgressReporter
     {
+        private int _ended = 0;
+
         private readonly WorkDoneProgressManager _manager;
 
         /// <summary>
@@ -97,28 +122,23 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
         /// </summary>
         private readonly string _token;
 
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        /// <summary>
+        /// The message to send to the client when the work done progress session ends.
+        /// </summary>
+        private readonly string _endMessage;
 
-        public CancellationToken CancellationToken => _cancellationTokenSource.Token;
+        private readonly CancellationTokenSource _linkedCancellationSource;
 
-        public WorkDoneProgressReporter(string token, WorkDoneProgressManager manager, CancellationToken serverCancellationToken)
+        public CancellationToken CancellationToken { get; }
+
+        public WorkDoneProgressReporter(string token, string endMessage, WorkDoneProgressManager manager, CancellationToken serverCancellationToken)
         {
             _token = token;
+            _endMessage = endMessage;
             _manager = manager;
             // Link the server cancellation token to the source handling client side cancellation.
-            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(serverCancellationToken);
-
-            // Tell the client to end the work done progress if the server cancels the request.
-            // This needs to not observe the linked cancellation token as it will already be cancelled.
-            serverCancellationToken.Register(() =>
-            {
-                // the reporter is already cancelled (linked cancellation token) - but we need to ensure the client is notified of the server requested cancellation.
-                // this report should not be cancellable so report with no cancellation token.
-                ReportProgressAsync(new WorkDoneProgressEnd()
-                {
-                    Message = "Cancelled"
-                }, CancellationToken.None).ReportNonFatalErrorAsync();
-            });
+            _linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(serverCancellationToken);
+            CancellationToken = _linkedCancellationSource.Token;
         }
 
         public async Task SendCreateRequestAsync()
@@ -148,16 +168,47 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
         /// </summary>
         public void CancelSource_NoLock()
         {
-            _cancellationTokenSource.Cancel();
+            _linkedCancellationSource.Cancel();
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             // Take the lock here to ensure we don't run this concurrently with Cancel.
+            var isDisposedByCancellation = false;
             lock (_manager._progressLock)
             {
+                isDisposedByCancellation = _linkedCancellationSource.IsCancellationRequested;
                 _manager._progressReporters.Remove(_token);
-                _cancellationTokenSource.Dispose();
+                _linkedCancellationSource.Dispose();
+            }
+
+            // Do not send an end report if the reporter was disposed due to cancellation.
+            // If the client cancelled, the client is not expecting an end report.
+            // If the server cancelled, we have/will send a report in the cancellation callback registered in CreateWorkDoneProgressAsync.
+            if (!isDisposedByCancellation)
+            {
+                await TryReportEndAsync(_endMessage).ConfigureAwait(false);
+            }
+        }
+
+        public async Task TryReportEndAsync(string message)
+        {
+            // There is an inherent race in that the server can complete while we get a cancellation from another source.
+            // We'll just respond based on whatever we see first.
+            if (Interlocked.CompareExchange(ref _ended, 1, 0) != 0)
+                return;
+
+            try
+            {
+                await ReportProgressAsync(new WorkDoneProgressEnd()
+                {
+                    Message = message
+                }, CancellationToken.None /* do not observe cancellation as this may be a report triggered by cancellation. */).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
+            {
+                // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a notification.
+                // These are safely ignored as there is no client to recieve the notification.
             }
         }
 
@@ -169,9 +220,7 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
     private record struct NoOpProgressReporter(CancellationToken cancellationToken) : IWorkDoneProgressReporter
     {
         public readonly CancellationToken CancellationToken => cancellationToken;
-        public readonly void Dispose()
-        {
-        }
+        public readonly ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
         public readonly void Report(WorkDoneProgress value)
         {

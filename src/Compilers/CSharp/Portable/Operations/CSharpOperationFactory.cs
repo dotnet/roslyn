@@ -1038,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 isImplicit = true;
             }
-            else if (boundConversion.ConversionGroupOpt?.Conversion.IsUnion == true &&
+            else if (boundConversion.ConversionGroupOpt?.Conversion is { IsUnion: true, IsValid: true } &&
                 (boundConversion.InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) == 0)
             {
                 boundConversion.TryGetUnionConversionParts(out BoundConversion? sourceConversion, out BoundConversion? unionConversion, out _);

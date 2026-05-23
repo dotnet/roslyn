@@ -97,7 +97,8 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         // Manually register the workspace for followup requests - the workspace event listener that
         //  normally registers it on creation is not running in test code.
-        testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>().Register(workspaceForDocument);
+        var lspWorkspaceRegistrationListener = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
+        lspWorkspaceRegistrationListener.StartListening(workspaceForDocument);
 
         var locationOfStringKeyword = new LSP.Location
         {
