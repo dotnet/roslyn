@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => _underlyingField.CallerUnsafeMode;
+
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {
             // This occurs rarely, if ever.  The scenario would be a generic struct

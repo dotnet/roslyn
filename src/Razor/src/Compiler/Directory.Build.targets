@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
+
+  <ItemGroup>
+    <!-- Remove unneeded reference to AspNetCore.App -->
+    <KnownFrameworkReference Remove="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

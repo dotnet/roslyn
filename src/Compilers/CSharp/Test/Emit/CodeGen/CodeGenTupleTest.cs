@@ -6569,6 +6569,7 @@ End Class";
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
         public void CreateTupleTypeSymbol2_VisualBasicElements()
         {
             var vbSource = @"Public Class C

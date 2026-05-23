@@ -595,7 +595,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_InlineArray13,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray14,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray15,
-                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16,
+                         WellKnownType.System_Runtime_CompilerServices_ClosedAttribute
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -701,7 +702,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_InlineArray13,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray14,
                          WellKnownType.System_Runtime_CompilerServices_InlineArray15,
-                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16,
+                         WellKnownType.System_Runtime_CompilerServices_ClosedAttribute
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -814,7 +816,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -1036,7 +1039,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

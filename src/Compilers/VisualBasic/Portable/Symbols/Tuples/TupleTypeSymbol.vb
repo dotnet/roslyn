@@ -872,6 +872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Next
 
+            elementsMatchedByFields.Free()
             Return members.ToImmutableAndFree()
         End Function
 
