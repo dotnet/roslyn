@@ -83,6 +83,8 @@
     <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <ProjectReference Include="..\ExternalAccess\Copilot\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+    <!-- Ship the VS Code Razor entrypoint as a real runtime dependency so it participates in the server deps.json. -->
+    <ProjectReference Include="..\..\Razor\src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -341,5 +341,42 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal('\u2026', sourceText[0]);
             }
         }
+
+        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
+        public void NonUtf8_MiddleDot()
+        {
+            // Bytes 0xA0 and 0xB7 are invalid UTF-8 but valid in CodePage 1252 (and Latin-1).
+            // 0xA0 = No-Break Space (U+00A0)
+            // 0xB7 = Middle Dot (U+00B7)
+            // Verifies that the fallback encoding correctly decodes these bytes
+            // instead of treating them as invalid UTF-8 replacement characters (U+FFFD).
+            byte[] srcBytes = [0xA0, 0xB7];
+            using var stream = new MemoryStream(srcBytes);
+            var sourceText = EncodedStringText.Create(stream);
+            Assert.Equal(2, sourceText.Length);
+            Assert.Equal('\u00A0', sourceText[0]);
+            Assert.Equal('\u00B7', sourceText[1]);
+        }
+
+        [Fact]
+        public void CreateFallbackEncoding_IsNotUtf8OnWindows()
+        {
+            var fallback = EncodedStringText.CreateFallbackEncoding();
+
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                // On Windows, registering CodePagesEncodingProvider makes GetEncoding(0) return
+                // the real ANSI code page (e.g., 1252) even when the UTF-8 locale setting is enabled.
+                // The fallback is used when a source file without BOM contains bytes that are not
+                // valid UTF-8. If the fallback were UTF-8, those bytes would be decoded as replacement
+                // characters (U+FFFD) instead of the intended code page characters.
+                Assert.NotEqual(Encoding.UTF8.CodePage, fallback.CodePage);
+            }
+            else
+            {
+                // On Linux/macOS there is no ANSI code page, so the fallback is UTF-8.
+                Assert.Equal(Encoding.UTF8.CodePage, fallback.CodePage);
+            }
+        }
     }
 }

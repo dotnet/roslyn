@@ -1387,6 +1387,7 @@ internal sealed partial class ProjectSystemProject
             _dynamicFileInfoProvidersSubscribedTo.Clear();
         }
 
+        _documentFileChangeContext.FileChanged -= DocumentFileChangeContext_FileChanged;
         _documentFileChangeContext.Dispose();
 
         IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;

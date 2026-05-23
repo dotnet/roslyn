@@ -264,8 +264,11 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             Logger.LogInformation(message);
 
             // Allow implementations to do any additional cleanup on shutdown.
-            var lifeCycleManager = GetLspServices().GetRequiredService<ILifeCycleManager>();
-            await lifeCycleManager.ShutdownAsync().ConfigureAwait(false);
+            var shutdownHooks = GetLspServices().GetRequiredServices<IOnServerShutdown>();
+            foreach (var hook in shutdownHooks)
+            {
+                await hook.ShutdownAsync().ConfigureAwait(false);
+            }
 
             await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
         }
@@ -304,8 +307,11 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 var lspServices = GetLspServices();
 
                 // Allow implementations to do any additional cleanup on exit.
-                var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
-                await lifeCycleManager.ExitAsync().ConfigureAwait(false);
+                var exitHooks = lspServices.GetRequiredServices<IOnServerShutdown>();
+                foreach (var hook in exitHooks)
+                {
+                    await hook.ExitAsync().ConfigureAwait(false);
+                }
 
                 await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
 
