@@ -23,10 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void LearnFromAnyNullPatterns(
             BoundExpression expression,
+            bool hasUnionMatching,
             BoundPattern pattern)
         {
             int slot = MakeSlot(expression);
-            LearnFromAnyNullPatterns(slot, expression.Type, pattern);
+            LearnFromAnyNullPatterns(slot, expression.Type, hasUnionMatching, pattern);
         }
 
         private void VisitForRewriting(BoundNode node)
@@ -152,14 +153,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void LearnFromAnyNullPatterns(
             int inputSlot,
             TypeSymbol inputType,
+            bool hasUnionMatching,
             BoundPattern pattern)
         {
             if (inputSlot <= 0)
                 return;
 
-            // https://github.com/dotnet/roslyn/issues/35041 We only need to do this when we're rewriting, so we
-            // can get information for any nodes in the pattern.
-            VisitForRewriting(pattern);
+            if (hasUnionMatching)
+            {
+                pattern = UnionMatchingRewriter.Rewrite(compilation, pattern);
+            }
 
             switch (pattern)
             {
@@ -200,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 BoundSubpattern item = rp.Deconstruction[i];
                                 FieldSymbol element = elements[i];
-                                LearnFromAnyNullPatterns(GetOrCreateSlot(element, inputSlot), element.Type, item.Pattern);
+                                LearnFromAnyNullPatterns(GetOrCreateSlot(element, inputSlot), element.Type, hasUnionMatching: false, item.Pattern);
                             }
                         }
 
@@ -211,14 +214,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if (subpattern.Member is BoundPropertySubpatternMember member)
                                 {
-                                    LearnFromAnyNullPatterns(getExtendedPropertySlot(member, inputSlot), member.Type, subpattern.Pattern);
+                                    LearnFromAnyNullPatterns(getExtendedPropertySlot(member, inputSlot), member.Type, hasUnionMatching: false, subpattern.Pattern);
                                 }
                             }
                         }
                     }
                     break;
                 case BoundNegatedPattern p:
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Negated);
+                    LearnFromAnyNullPatterns(inputSlot, inputType, hasUnionMatching: false, p.Negated);
                     break;
                 case BoundBinaryPattern p:
                     // Do not use left recursion because we can have many nested binary patterns.
@@ -227,15 +230,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // We don't need to visit in order here because we're only moving analysis in one direction:
                         // towards MaybeNull. Visiting the right or left first has no impact on the final state.
-                        LearnFromAnyNullPatterns(inputSlot, inputType, current.Right);
+                        LearnFromAnyNullPatterns(inputSlot, inputType, hasUnionMatching: false, current.Right);
                         if (current.Left is BoundBinaryPattern left)
                         {
                             current = left;
-                            VisitForRewriting(current);
                         }
                         else
                         {
-                            LearnFromAnyNullPatterns(inputSlot, inputType, current.Left);
+                            LearnFromAnyNullPatterns(inputSlot, inputType, hasUnionMatching: false, current.Left);
                             break;
                         }
                     }
@@ -281,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var label in section.SwitchLabels)
                     {
-                        LearnFromAnyNullPatterns(slot, originalInputType, label.Pattern);
+                        LearnFromAnyNullPatterns(slot, originalInputType, label.HasUnionMatching, label.Pattern);
                     }
                 }
             }
@@ -482,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         if (property.GetMethod is not null)
                                         {
                                             // A property evaluation splits the state if MemberNotNullWhen is used
-                                            ApplyMemberPostConditions(inputSlot, property.GetMethod);
+                                            ApplyMemberPostConditions(inputType, inputSlot, property.GetMethod);
                                         }
 
                                         break;
@@ -983,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var originalInputType = node.Expression.Type;
                 foreach (var arm in node.SwitchArms)
                 {
-                    LearnFromAnyNullPatterns(slot, originalInputType, arm.Pattern);
+                    LearnFromAnyNullPatterns(slot, originalInputType, arm.HasUnionMatching, arm.Pattern);
                 }
             }
 
@@ -1000,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var nodes = node.ReachabilityDecisionDag.TopologicallySortedNodes;
                 var leaf = nodes.Where(n => n is BoundLeafDecisionDagNode leaf && leaf.Label == node.DefaultLabel).First();
                 var samplePattern = PatternExplainer.SamplePatternForPathToDagNode(
-                    BoundDagTemp.ForOriginalInput(node.Expression), nodes, leaf, nullPaths: true, out bool requiresFalseWhenClause, out _);
+                    _binder, BoundDagTemp.ForOriginalInput(node.Expression), nodes, leaf, nullPaths: true, out bool requiresFalseWhenClause, out _);
                 ErrorCode warningCode = requiresFalseWhenClause ? ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen : ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull;
                 ReportDiagnostic(
                     warningCode,
@@ -1153,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            LearnFromAnyNullPatterns(node.Expression, node.Pattern);
+            LearnFromAnyNullPatterns(node.Expression, node.HasUnionMatching, node.Pattern);
             VisitForRewriting(node.Pattern);
             var hasStateWhenNotNull = VisitPossibleConditionalAccess(node.Expression, out var conditionalStateWhenNotNull);
             var expressionState = ResultType;

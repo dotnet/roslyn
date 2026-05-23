@@ -1,0 +1,15 @@
+﻿Source Location: (2:0,2 [99] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+#pragma warning disable 219 // variable declared but not used
+#if true
+    var x = 1;
+#endif
+|
+Generated Location: (734:21,0 [99] )
+|
+#pragma warning disable 219 // variable declared but not used
+#if true
+    var x = 1;
+#endif
+|
+

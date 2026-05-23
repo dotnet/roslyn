@@ -42,7 +42,7 @@ internal sealed partial class InlineHintsTaggerProvider(
     Lazy<IStreamingFindUsagesPresenter> streamingFindUsagesPresenter,
     EditorOptionsService editorOptionsService,
     TaggerHost taggerHost,
-    [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor) : IViewTaggerProvider
+    [Import(AllowDefault = true)] IInlineHintKeyProcessor? inlineHintKeyProcessor) : IViewTaggerProvider
 {
     public readonly IGlobalOptionService GlobalOptionService = globalOptionService;
     public readonly IClassificationFormatMapService ClassificationFormatMapService = classificationFormatMapService;

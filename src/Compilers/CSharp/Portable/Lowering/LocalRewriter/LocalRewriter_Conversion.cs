@@ -953,12 +953,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsUnion)
             {
+                Debug.Assert(conversion.IsValid);
+                Debug.Assert(conversion.BestUnionConversionAnalysis is { });
+
                 UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
                 conversion.AssertUnderlyingConversionsCheckedRecursive();
                 Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
-                Debug.Assert(analysis.Operator is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+                Debug.Assert(analysis.Operator is { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
                 Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
-                Debug.Assert(TypeSymbol.Equals(rewrittenType.StrippedType(), analysis.Operator.ContainingType, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(TypeSymbol.Equals(rewrittenType.StrippedType(), analysis.Operator.MethodKind == MethodKind.Constructor ? analysis.Operator.ContainingType : analysis.Operator.ReturnType, TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(TypeSymbol.Equals(rewrittenType.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
 
@@ -1554,24 +1557,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion)
         {
             Debug.Assert(conversion.IsUnion);
-            Debug.Assert(conversion.Method is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+            Debug.Assert(conversion.Method is { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
             Debug.Assert(rewrittenOperand.Type is { });
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(conversion.Method.Parameters[0].Type.Equals(rewrittenOperand.Type, TypeCompareKind.AllIgnoreOptions));
 
-            var constructor = conversion.Method;
-            return new BoundObjectCreationExpression(
-                syntax,
-                constructor,
-                [rewrittenOperand],
-                argumentNamesOpt: default,
-                SyntheticBoundNodeFactory.ArgumentRefKindsFromParameterRefKinds(constructor, useStrictArgumentRefKinds: false),
-                expanded: false,
-                argsToParamsOpt: default,
-                defaultArguments: default,
-                constantValueOpt: null,
-                initializerExpressionOpt: null,
-                constructor.ContainingType);
+            var factory = conversion.Method;
+
+            if (factory is { MethodKind: MethodKind.Constructor } constructor)
+            {
+                return new BoundObjectCreationExpression(
+                    syntax,
+                    constructor,
+                    [rewrittenOperand],
+                    argumentNamesOpt: default,
+                    SyntheticBoundNodeFactory.ArgumentRefKindsFromParameterRefKinds(constructor, useStrictArgumentRefKinds: false),
+                    expanded: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    constantValueOpt: null,
+                    initializerExpressionOpt: null,
+                    constructor.ContainingType);
+            }
+            else
+            {
+                return BoundCall.Synthesized(
+                    syntax,
+                    receiverOpt: new BoundTypeExpression(syntax, aliasOpt: null, conversion.Method.ReturnType),
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    conversion.Method,
+                    rewrittenOperand);
+            }
         }
 
         private BoundExpression RewriteIntPtrConversion(
@@ -1888,7 +1904,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case ConversionKind.Union:
                     {
-                        // https://github.com/dotnet/roslyn/issues/82636: Confirm
+                        // The enclosing method is called only for a user defined conversion, or for a built-in conversion that is backed by
+                        // a runtime helper treated as a user-defined conversion operator, or for a To/From conversions underlying a user-defined
+                        // conversion. A union conversion is not a standard conversion and, therefore, cannot be used in any of those cases.
                         throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
                     }
                 case ConversionKind.IntPtr:

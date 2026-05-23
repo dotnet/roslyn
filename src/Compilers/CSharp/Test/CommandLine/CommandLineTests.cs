@@ -6354,6 +6354,7 @@ public class CS1698_a {}
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
+        [ValidatePooledObjects(LeakReason = "Binary file detection exception path")]
         public void BinaryFileErrorTest()
         {
             var binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path;
@@ -12773,6 +12774,7 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        [ValidatePooledObjects(Skip = "AnalyzerDriver async continuations may not complete before pool validation")]
         public void TestSuppression_CompilerSyntaxParseError_SuppressWarningCaughtDuringParsingStage(bool skipAnalyzers)
         {
             const string SourceCode = @"

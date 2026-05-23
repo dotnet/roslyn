@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: Find the set of applicable constructors
             var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
-            computeApplicableConstructorSet(sourceExpression, source, target, namedTarget, ubuild, ref useSiteInfo);
+            computeApplicableFactorySet(sourceExpression, source, target, namedTarget, ubuild, ref useSiteInfo);
 
             if (ubuild.Count == 0)
             {
@@ -1012,13 +1012,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol sx = MostSpecificSourceTypeForImplicitUserDefinedConversion(u, source, ref useSiteInfo);
             if ((object)sx == null || MostSpecificConversionOperator(sx, namedTarget, u) is not int best)
             {
-                // Ambiguous. The first applicable is good enough then.
-                best = 0;
+                // Ambiguous.
+                return Conversion.CreateUnionConversion(UserDefinedConversionResult.Ambiguous(u));
             }
 
             return Conversion.CreateUnionConversion(UserDefinedConversionResult.Valid(u, best));
 
-            void computeApplicableConstructorSet(
+            void computeApplicableFactorySet(
                 BoundExpression sourceExpression,
                 TypeSymbol source,
                 TypeSymbol target,
@@ -1026,25 +1026,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<UserDefinedConversionAnalysis> u,
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                foreach (MethodSymbol ctor in declaringType.InstanceConstructors)
-                {
-                    if (!NamedTypeSymbol.IsSuitableUnionConstructor(ctor))
+                var localUseSiteInfo = useSiteInfo;
+                declaringType.ForEachUnionFactoryMethod(
+                    (factory, u) =>
                     {
-                        continue;
-                    }
+                        TypeSymbol convertsFrom = factory.GetParameterType(0);
+                        Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref localUseSiteInfo);
+                        Conversion targetConversion = EncompassingImplicitConversion(declaringType, target, ref localUseSiteInfo);
 
-                    TypeSymbol convertsFrom = ctor.GetParameterType(0);
-                    Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteInfo);
-                    Conversion targetConversion = EncompassingImplicitConversion(declaringType, target, ref useSiteInfo);
+                        Debug.Assert(targetConversion.Exists && targetConversion.IsImplicit);
+                        Debug.Assert(targetConversion.IsIdentity || (targetConversion.IsNullable && targetConversion.UnderlyingConversions[0].IsIdentity));
 
-                    Debug.Assert(targetConversion.Exists && targetConversion.IsImplicit);
-                    Debug.Assert(targetConversion.IsIdentity || (targetConversion.IsNullable && targetConversion.UnderlyingConversions[0].IsIdentity));
+                        if (fromConversion.Exists && targetConversion.Exists)
+                        {
+                            u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, factory, fromConversion, targetConversion, convertsFrom, toType: declaringType));
+                        }
 
-                    if (fromConversion.Exists && targetConversion.Exists)
-                    {
-                        u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, ctor, fromConversion, targetConversion, convertsFrom, toType: declaringType));
-                    }
-                }
+                        return false;
+                    },
+                    u);
+
+                useSiteInfo = localUseSiteInfo;
             }
         }
     }
