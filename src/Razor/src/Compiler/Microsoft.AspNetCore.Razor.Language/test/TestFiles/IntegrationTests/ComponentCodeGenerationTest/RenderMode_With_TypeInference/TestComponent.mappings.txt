@@ -1,0 +1,39 @@
+﻿Source Location: (11:0,11 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|TRenderMode|
+Generated Location: (474:16,0 [11] )
+|TRenderMode|
+
+Source Location: (23:0,23 [72] x:\dir\subdir\Test\TestComponent.cshtml)
+|where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode|
+Generated Location: (682:24,0 [72] )
+|where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode|
+
+Source Location: (127:2,28 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|RenderModeParam|
+Generated Location: (1198:37,0 [15] )
+|RenderModeParam|
+
+Source Location: (161:2,62 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+Generated Location: (1369:46,0 [64] )
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+
+Source Location: (241:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter] public TRenderMode RenderModeParam { get; set;}
+|
+Generated Location: (1630:56,0 [67] )
+|
+    [Parameter] public TRenderMode RenderModeParam { get; set;}
+|
+
+Source Location: (100:2,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestComponent|
+Generated Location: (2273:73,45 [13] )
+|TestComponent|
+
+Source Location: (144:2,45 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|RenderModeParam|
+Generated Location: (2487:77,0 [15] )
+|RenderModeParam|
+

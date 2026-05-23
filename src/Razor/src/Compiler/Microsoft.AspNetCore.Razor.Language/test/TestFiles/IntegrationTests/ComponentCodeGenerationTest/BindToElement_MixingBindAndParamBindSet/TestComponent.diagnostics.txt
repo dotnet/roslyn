@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,50): Error RZ10015: Attribute '@bind-value:get' must be used with attribute '@bind-value:set'.

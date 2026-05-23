@@ -379,7 +379,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
         Assert.Equal(2, results.Length);
-        Assert.True(results.Any(r => r.Location.DocumentUri.GetRequiredParsedUri().LocalPath.EndsWith("generated_file.cs")));
+        Assert.True(results.Any(r => r.Location.DocumentUri.UriString.Contains("/generated_file.cs")));
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
         Assert.True(service.DidMapSpans);
@@ -417,7 +417,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
         Assert.Equal(2, results.Length);
-        Assert.True(results.Any(r => r.Location.DocumentUri.GetRequiredParsedUri().LocalPath.EndsWith("generated_file.cs")));
+        Assert.True(results.Any(r => r.Location.DocumentUri.UriString.Contains("/generated_file.cs")));
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
         Assert.True(service.DidMapSpans);

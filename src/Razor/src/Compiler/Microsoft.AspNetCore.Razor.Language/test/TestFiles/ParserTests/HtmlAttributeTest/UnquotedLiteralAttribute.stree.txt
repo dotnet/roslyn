@@ -1,0 +1,49 @@
+﻿RazorDocument - [0..25)::25 - [@{<a href=Foo Bar Baz />}]
+    MarkupBlock - [0..25)::25
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..25)::25
+            CSharpStatement - [0..25)::25
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..25)::24
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..24)::22
+                        MarkupBlock - [2..24)::22
+                            MarkupElement - [2..24)::22
+                                MarkupStartTag - [2..24)::22 - [<a href=Foo Bar Baz />] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[a];
+                                    MarkupAttributeBlock - [4..13)::9 - [ href=Foo]
+                                        MarkupTextLiteral - [4..5)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        MarkupTextLiteral - [5..9)::4 - [href] - Gen<Markup>
+                                            Text;[href];
+                                        Equals;[=];
+                                        GenericBlock - [10..13)::3
+                                            MarkupLiteralAttributeValue - [10..13)::3 - [Foo]
+                                                MarkupTextLiteral - [10..13)::3 - [Foo] - Gen<Markup>
+                                                    Text;[Foo];
+                                    MarkupMinimizedAttributeBlock - [13..17)::4 - [ Bar]
+                                        MarkupTextLiteral - [13..14)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        MarkupTextLiteral - [14..17)::3 - [Bar] - Gen<Markup>
+                                            Text;[Bar];
+                                    MarkupMinimizedAttributeBlock - [17..21)::4 - [ Baz]
+                                        MarkupTextLiteral - [17..18)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        MarkupTextLiteral - [18..21)::3 - [Baz] - Gen<Markup>
+                                            Text;[Baz];
+                                    MarkupMiscAttributeContent - [21..22)::1
+                                        MarkupTextLiteral - [21..22)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                    ForwardSlash;[/];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [24..24)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [24..25)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [25..25)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

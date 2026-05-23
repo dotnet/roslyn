@@ -550,7 +550,7 @@ public sealed class MixedInitializerBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (16,58): error CS9379: An expression tree may not contain a mixed object and collection initializer.
+            // (16,58): error CS9387: An expression tree may not contain a mixed object and collection initializer.
             //     static Expression<Func<C>> E1 = () => new C { X = 1, 10 };
             Diagnostic(ErrorCode.ERR_ExpressionTreeContainsMixedObjectAndCollectionInitializer, "10").WithLocation(16, 58));
     }

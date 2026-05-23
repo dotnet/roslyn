@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MissingPredefinedMember(Diagnostic error) : base(error.ToString())
             {
                 this.Diagnostic = error;
+
+                // The exception unwinds through intermediate lowering methods that may have allocated
+                // ArrayBuilder instances which are now abandoned. Forgive those leaks since
+                // MissingPredefinedMember is a rare error path (not a normal code flow concern).
+                PoolTracker.ForgiveLeaks();
             }
 
             public Diagnostic Diagnostic { get; }

@@ -172,7 +172,7 @@ internal sealed class LoadedProject : IDisposable
             _targetFrameworkManager.UpdateIdentifierForProject(_projectSystemProject.Id, newProjectInfo.TargetFrameworkIdentifier);
         }
 
-        _optionsProcessor.SetCommandLine(newProjectInfo.CommandLineArgs);
+        _optionsProcessor.SetCommandLine([.. newProjectInfo.CommandLineArgs]);
         var commandLineArguments = _optionsProcessor.GetParsedCommandLineArguments();
 
         UpdateProjectSystemProjectCollection(
@@ -182,12 +182,12 @@ internal sealed class LoadedProject : IDisposable
             document =>
             {
                 if (PathUtilities.IsAbsolute(document.FilePath))
-                    _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders);
+                    _projectSystemProject.AddSourceFile(document.FilePath, folders: [.. document.Folders]);
                 else
                     // When the file doesn't have an absolute path, then we think it doesn't exist on disk.
                     // e.g. it is a virtual document for an unsaved file or similar.
                     // In this case we just put a SourceTextContainer with empty text for it and rely on the LSP's solution forking to ensure it has up to date text.
-                    _projectSystemProject.AddSourceTextContainer(SourceText.From("").Container, document.FilePath, folders: document.Folders);
+                    _projectSystemProject.AddSourceTextContainer(SourceText.From("").Container, document.FilePath, folders: [.. document.Folders]);
             },
             document =>
             {
@@ -241,7 +241,7 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.AdditionalDocuments,
             _mostRecentFileInfo?.AdditionalDocuments,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: document.Folders),
+            document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: [.. document.Folders]),
             document => _projectSystemProject.RemoveAdditionalFile(document.FilePath),
             "Project {0} now has {1} additional file(s). ({2} added, {3} removed.)");
 
