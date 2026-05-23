@@ -1,0 +1,81 @@
+﻿RazorDocument - [0..122)::122 - [@{LF    @string.Format("1{0}", DateTime.Now)LF    var x = 1;LF    var y = @x;LF    @string.Format("2{0}", DateTime.Now)LF}]
+    MarkupBlock - [0..122)::122
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..122)::122
+            CSharpStatement - [0..122)::122
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..122)::121
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..121)::119
+                        CSharpStatementLiteral - [2..8)::6 - [LF    ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                        CSharpCodeBlock - [8..44)::36
+                            CSharpImplicitExpression - [8..44)::36
+                                CSharpTransition - [8..9)::1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [9..44)::35
+                                    CSharpCodeBlock - [9..44)::35
+                                        CSharpExpressionLiteral - [9..44)::35 - [string.Format("1{0}", DateTime.Now)] - Gen<Expr>
+                                            Keyword;[string];
+                                            Dot;[.];
+                                            Identifier;[Format];
+                                            LeftParenthesis;[(];
+                                            StringLiteral;["1{0}"];
+                                            Comma;[,];
+                                            Whitespace;[ ];
+                                            Identifier;[DateTime];
+                                            Dot;[.];
+                                            Identifier;[Now];
+                                            RightParenthesis;[)];
+                        CSharpStatementLiteral - [44..83)::39 - [LF    var x = 1;LF    var y = @x;LF    ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[1];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[y];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Identifier;[@x];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                        CSharpCodeBlock - [83..119)::36
+                            CSharpImplicitExpression - [83..119)::36
+                                CSharpTransition - [83..84)::1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [84..119)::35
+                                    CSharpCodeBlock - [84..119)::35
+                                        CSharpExpressionLiteral - [84..119)::35 - [string.Format("2{0}", DateTime.Now)] - Gen<Expr>
+                                            Keyword;[string];
+                                            Dot;[.];
+                                            Identifier;[Format];
+                                            LeftParenthesis;[(];
+                                            StringLiteral;["2{0}"];
+                                            Comma;[,];
+                                            Whitespace;[ ];
+                                            Identifier;[DateTime];
+                                            Dot;[.];
+                                            Identifier;[Now];
+                                            RightParenthesis;[)];
+                        CSharpStatementLiteral - [119..121)::2 - [LF] - Gen<Stmt>
+                            NewLine;[LF];
+                    RazorMetaCode - [121..122)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [122..122)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

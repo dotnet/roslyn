@@ -1,0 +1,37 @@
+﻿RazorDocument - [0..41)::41 - [<person tag='"0" + new @String("1 2")' />]
+    MarkupBlock - [0..41)::41
+        MarkupTagHelperElement - [0..41)::41 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [0..41)::41 - [<person tag='"0" + new @String("1 2")' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [7..38)::31 - tag - SingleQuotes - Bound - [ tag='"0" + new @String("1 2")']
+                    MarkupTextLiteral - [7..8)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [8..11)::3 - [tag] - Gen<Markup>
+                        Text;[tag];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [13..37)::24
+                        CSharpExpressionLiteral - [13..37)::24 - ["0" + new @String("1 2")] - Gen<None>
+                            DoubleQuote;["];
+                            Text;[0];
+                            DoubleQuote;["];
+                            Whitespace;[ ];
+                            Text;[+];
+                            Whitespace;[ ];
+                            Text;[new];
+                            Whitespace;[ ];
+                            Transition;[@];
+                            Identifier;[String];
+                            LeftParenthesis;[(];
+                            StringLiteral;["1 2"];
+                            RightParenthesis;[)];
+                    MarkupTextLiteral - [37..38)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [38..39)::1
+                    MarkupTextLiteral - [38..39)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

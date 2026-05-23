@@ -1,0 +1,12 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml(12,19): error CS0103: The name 'items' does not exist in the current context
+// items
+Diagnostic(ErrorCode.ERR_NameNotInContext, "items").WithArguments("items").WithLocation(12, 19),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml(13,21): error CS0103: The name 'items' does not exist in the current context
+// items
+Diagnostic(ErrorCode.ERR_NameNotInContext, "items").WithArguments("items").WithLocation(13, 21),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml(14,24): error CS0103: The name 'doSomething' does not exist in the current context
+// doSomething()
+Diagnostic(ErrorCode.ERR_NameNotInContext, "doSomething").WithArguments("doSomething").WithLocation(14, 24),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml(15,25): error CS0103: The name 'doSomething' does not exist in the current context
+// doSomething()
+Diagnostic(ErrorCode.ERR_NameNotInContext, "doSomething").WithArguments("doSomething").WithLocation(15, 25)

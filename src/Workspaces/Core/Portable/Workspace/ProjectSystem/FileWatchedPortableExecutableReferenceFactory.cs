@@ -102,14 +102,6 @@ internal sealed class FileWatchedReferenceFactory<TReference>
                 referenceDirectories.Add("/usr/local/share/dotnet/packs");
             }
 
-            // Also watch the NuGet restore path; we don't do this (yet) on Windows due to potential concerns about
-            // whether this creates additional overhead responding to changes during a restore. TODO: remove this
-            // condition
-            if (!PlatformInformation.IsWindows)
-            {
-                referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
-            }
-
             return referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, [".dll"]));
         }
     }

@@ -1,0 +1,652 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../HtmlDescriptions.resx">
+    <body>
+      <trans-unit id="HtmlAttribute_async">
+        <source>The script will be executed asynchronously, as soon as it is available.</source>
+        <target state="translated">Skrypt zostanie wykonany asynchronicznie, gdy stanie się dostępny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_defer">
+        <source>The script is executed when the page has finished parsing.</source>
+        <target state="translated">Skrypt zostanie wykonany po zakończeniu analizy strony.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_draggable">
+        <source>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</source>
+        <target state="translated">Element z atrybutem z możliwością przeciągania powinien również zawierać atrybut tytułu, który określa nazwę elementu na potrzeby interakcji niewizualnych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_integrity">
+        <source>The integrity attribute represents integrity metadata for an element.</source>
+        <target state="translated">Atrybut integrity reprezentuje metadane integralności elementu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_open">
+        <source>When specified, it indicates that the dialog element is active and that the user can interact with it.</source>
+        <target state="translated">W przypadku określenia wskazuje, że element okna dialogowego jest aktywny i użytkownik może wchodzić z nim w interakcje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_sizes">
+        <source>Image sizes between breakpoints.</source>
+        <target state="translated">Rozmiary obrazów między punktami przerwań.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_srcset">
+        <source>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</source>
+        <target state="translated">Obrazy używane w różnych sytuacjach (np. wyświetlacze o wysokiej rozdzielczości, małe monitory itp.).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_a">
+        <source>If the a element has an href attribute, then it represents a hyperlink (a hypertext anchor) labeled by its contents.</source>
+        <target state="translated">Jeśli element a ma atrybut href, reprezentuje hiperlink (kotwicę hipertekstu), którego etykietą jest jego zawartość.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_abbr">
+        <source>The abbr element represents an abbreviation or acronym, optionally with its expansion. The title attribute may be used to provide an expansion of the abbreviation. The attribute, if specified, must contain an expansion of the abbreviation, and nothing else.</source>
+        <target state="translated">Element abbr reprezentuje skrót lub akronim (opcjonalnie wraz z jego rozwinięciem). Skrót można rozwinąć przy użyciu atrybutu title. Atrybut, jeśli zostanie określony, może zawierać tylko rozwinięcie skrótu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_address">
+        <source>The address element represents the contact information for its nearest article or body element ancestor. If that is the body element, then the contact information applies to the document as a whole.</source>
+        <target state="translated">Element address reprezentuje informacje kontaktowe związane z jego najbliższym elementem nadrzędnym elementu article lub body. W przypadku elementu body informacje kontaktowe mają zastosowanie do całego dokumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_area">
+        <source>The area element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map.</source>
+        <target state="translated">Element area reprezentuje hiperlink z tekstem i odpowiadający mu obszar na mapie obrazkowej lub martwy obszar na mapie obrazkowej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_article">
+        <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</source>
+        <target state="translated">Element article reprezentuje pełną (samodzielną) strukturę dokumentu, strony, aplikacji lub witryny, która może być niezależnie rozpowszechniana lub używana ponownie, na przykład w przypadku syndykacji. Może to być wpis na forum, artykuł w magazynie lub gazecie, wpis w blogu, komentarz użytkownika, interakcyjny widżet lub gadżet albo inny niezależny element zawartości.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_aside">
+        <source>The aside element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content. Such sections are often represented as sidebars in printed typography.</source>
+        <target state="translated">Element aside reprezentuje sekcję strony z zawartością, która jest luźno związana z zawartością wokół elementu aside i może zostać uznana za samodzielną całość. Takie sekcje są często reprezentowane jako paski boczne w drukowanej typografii.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_audio">
+        <source>An audio element represents a sound or audio stream.</source>
+        <target state="translated">Element audio reprezentuje strumień dźwiękowy (strumień audio).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_b">
+        <source>The b element represents a span of text to which attention is being drawn for utilitarian purposes without conveying any extra importance and with no implication of an alternate voice or mood, such as key words in a document abstract, product names in a review, actionable words in interactive text-driven software, or an article lede.</source>
+        <target state="translated">Element b reprezentuje fragment tekstu, na który uwaga użytkownika jest zwracana w celach użytkowych bez przekazywania informacji o specjalnym znaczeniu oraz innym stylu lub trybie, na przykład słowa kluczowe w streszczeniu dokumentu, nazwy produktów w recenzji, słowa umożliwiające działanie w tekstowym oprogramowaniu interaktywnym lub główka artykułu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_base">
+        <source>The base element allows authors to specify the document base URL for the purposes of resolving relative URLs, and the name of the default browsing context for the purposes of following hyperlinks. The element does not represent any content beyond this information.</source>
+        <target state="translated">Element base pozwala autorom na określanie podstawowego adresu URL dokumentu na potrzeby rozpoznawania względnych adresów URL oraz nazwy domyślnego kontekstu przeglądania na potrzeby używania hiperlinków. Ten element nie reprezentuje żadnej zawartości poza tymi informacjami.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_bdi">
+        <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</source>
+        <target state="translated">Element bdi reprezentuje fragment tekstu, który ma być odizolowany od jego otoczenia na potrzeby formatowania tekstu dwukierunkowego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_bdo">
+        <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</source>
+        <target state="translated">Element bdo reprezentuje jawną kontrolę formatowania kierunku tekstu dla jego elementów podrzędnych. Przy użyciu tego elementu autorzy mogą przesłaniać algorytm dwukierunkowy Unicode, jawnie określając przesłonięcie kierunku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_blockquote">
+        <source>The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a footer or cite element, and optionally with in-line changes such as annotations and abbreviations.</source>
+        <target state="translated">Element blockquote reprezentuje zawartość cytowaną z innego źródła, opcjonalnie wraz z cytatem, który musi się znajdować w elemencie footer lub cite, oraz opcjonalnie ze zmianami w tekście, na przykład adnotacjami i skrótami.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_body">
+        <source>The body element represents the content of the document.</source>
+        <target state="translated">Element body reprezentuje zawartość dokumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_br">
+        <source>The br element represents a line break.</source>
+        <target state="translated">Element br reprezentuje podział wiersza.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_button">
+        <source>The button element represents a button labeled by its contents.</source>
+        <target state="translated">Element button reprezentuje przycisk, którego etykietą jest jego zawartość.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_canvas">
+        <source>The canvas element provides scripts with a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, art, or other visual images on the fly.</source>
+        <target state="translated">Element canvas udostępnia skrypty kanwy mapy bitowej zależnej od rozdzielczości, przy użyciu której można na bieżąco renderować wykresy, grafikę gier, sztukę lub inne obrazy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_caption">
+        <source>The caption element represents the title of the table that is its parent, if it has a parent and that is a table element.</source>
+        <target state="translated">Element caption reprezentuje tytuł tabeli, która jest względem niego nadrzędna, jeśli element caption ma element nadrzędny, którym jest element table.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_cite">
+        <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</source>
+        <target state="translated">Element cite reprezentuje odwołanie do dzieła twórczego. Musi on zawierać tytuł dzieła lub nazwę autora (osoby, osób lub organizacji) albo adres URL odwołania, który może mieć postać skrótu zgodnie z konwencją dodatku związanego z metadanymi cytatu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_code">
+        <source>The code element represents a fragment of computer code. This could be an XML element name, a file name, a computer program, or any other string that a computer would recognize.</source>
+        <target state="translated">Element code reprezentuje fragment kodu komputerowego. Może to być nazwa elementu XML, nazwa pliku, program komputerowy lub inny ciąg rozpoznawany przez komputer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_col">
+        <source>If a col element has a parent and that is a colgroup element that itself has a parent that is a table element, then the col element represents one or more columns in the column group represented by that colgroup.</source>
+        <target state="translated">Jeśli element col ma element nadrzędny będący elementem colgroup, który z kolei ma element nadrzędny będący elementem table, element col reprezentuje co najmniej jedną kolumnę w grupie kolumn reprezentowanych przez element colgroup.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_colgroup">
+        <source>The colgroup element represents a group of one or more columns in the table that is its parent, if it has a parent and that is a table element.</source>
+        <target state="translated">Element colgroup reprezentuje grupę jednej lub kilku kolumn w tabeli, która jest względem niego nadrzędna, jeśli element colgroup ma element nadrzędny, którym jest element table.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_command">
+        <source>The command element represents a command that the user can invoke.</source>
+        <target state="translated">Element command reprezentuje polecenie, które może wywołać użytkownik.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_content">
+        <source>The content element represents an insertion point in the shadow tree.</source>
+        <target state="translated">Element content reprezentuje punkt wstawienia w drzewie towarzyszącym.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_datalist">
+        <source>The datalist element represents a set of option elements that represent predefined options for other controls. In the rendering, the datalist element represents nothing and it, along with its children, should be hidden.</source>
+        <target state="translated">Element datalist reprezentuje zestaw elementów option reprezentujących wstępnie zdefiniowane opcje dla innych kontrolek. Podczas renderowania element datalist niczego nie reprezentuje i powinien być ukryty wraz z jego elementami podrzędnymi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dd">
+        <source>The dd element represents the description, definition, or value, part of a term-description group in a description list (dl element).</source>
+        <target state="translated">Element dd reprezentuje opis, definicję lub wartość i jest częścią grupy termin-opis listy opisowej (element dl).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_del">
+        <source>The del element represents a removal from the document.</source>
+        <target state="translated">Element del reprezentuje usunięcie zawartości z dokumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_details">
+        <source>The details element represents a disclosure widget from which the user can obtain additional information or controls.</source>
+        <target state="translated">Element details reprezentuje element widget ujawniania, z którego użytkownik może uzyskać dodatkowe informacje lub kontrolki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dfn">
+        <source>The dfn element represents the defining instance of a term. The paragraph, description list group, or section that is the nearest ancestor of the dfn element must also contain the definition(s) for the term given by the dfn element.</source>
+        <target state="translated">Element dfn reprezentuje wystąpienie definiujące termin. Dodatkowo akapit, grupa listy opisowej lub sekcja, która jest najbliższym elementem nadrzędnym elementu dfn, musi zawierać definicję terminu podanego w elemencie dfn.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dialog">
+        <source>The dialog element represents a part of an application that a user interacts with to perform a task, for example a dialog box, inspector, or window.</source>
+        <target state="translated">Element dialog reprezentuje część aplikacji, z którą użytkownik wchodzi w interakcję w celu wykonania zadania, na przykład okno dialogowe, inspektor lub okno.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_div">
+        <source>The div element has no special meaning at all. It represents its children. It can be used with the class, lang, and title attributes to mark up semantics common to a group of consecutive elements.</source>
+        <target state="translated">Element div nie ma specjalnego znaczenia. Reprezentuje on swoje elementy podrzędne. Może być używany z atrybutami class, lang i title do oznaczania semantyki wspólnej dla grupy kolejnych elementów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dl">
+        <source>The dl element represents an association list consisting of zero or more name-value groups (a description list). A name-value group consists of one or more names (dt elements) followed by one or more values (dd elements), ignoring any nodes other than dt and dd elements. Within a single dl element, there should not be more than one dt element for each name.</source>
+        <target state="translated">Element dl reprezentuje listę skojarzeń zawierającą zero lub więcej grup nazwa-wartość (lista opisowa). Grupa nazwa-wartość zawiera jedną lub kilka nazw (elementy dt) oraz jedną lub kilka wartości (elementy dd), a wszystkie węzły inne niż dt i dd są ignorowane. Pojedynczy element dl nie powinien zawierać więcej niż jednego elementu dt dla każdej nazwy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dt">
+        <source>The dt element represents the term, or name, part of a term-description group in a description list (dl element).</source>
+        <target state="translated">Element dt reprezentuje termin lub nazwę i jest częścią grupy termin–opis listy opisowej (element dl).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_em">
+        <source>The em element represents stress emphasis of its contents.</source>
+        <target state="translated">Element em reprezentuje inną wymowę jego zawartości (akcent).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_embed">
+        <source>The embed element provides an integration point for an external (typically non-HTML) application or interactive content.</source>
+        <target state="translated">Element embed udostępnia punkt integracji dla zewnętrznej aplikacji (zwykle utworzonej w innym języku niż HTML) lub zawartości interaktywnej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_fieldset">
+        <source>The fieldset element represents a set of form controls optionally grouped under a common name.</source>
+        <target state="translated">Element fieldset reprezentuje zestaw kontrolek formularzy, które mogą opcjonalnie zostać zgrupowane pod wspólną nazwą.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_figure">
+        <source>The figure element represents some flow content, optionally with a caption, that is self-contained (like a complete sentence) and is typically referenced as a single unit from the main flow of the document.</source>
+        <target state="translated">Element figure reprezentuje zawartość przepływu, opcjonalnie z tekstem, który stanowi całość (na przykład pełnym zdaniem), i jest zwykle przywoływany jako pojedyncza jednostka z głównego przepływu dokumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_footer">
+        <source>The footer element represents a footer for its nearest ancestor sectioning content or sectioning root element. A footer typically contains information about its section such as who wrote it, links to related documents, copyright data, and the like.</source>
+        <target state="translated">Element footer reprezentuje stopkę dla jego najbliższej nadrzędnej zawartości sekcji lub najbliższego elementu głównego sekcji. Element footer zwykle zawiera informacje o jego sekcji, na przykład o jej autorze, linki do pokrewnych dokumentów, dane związane z prawami autorskimi i tym podobne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_form">
+        <source>The form element represents a collection of form-associated elements, some of which can represent editable values that can be submitted to a server for processing.</source>
+        <target state="translated">Element formularza reprezentuje kolekcję elementów skojarzonych z formularzem, z których niektóre mogą reprezentować edytowalne wartości, które można przesłać do serwera w celu przetworzenia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h1">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h2">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h3">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h4">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h5">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h6">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_head">
+        <source>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</source>
+        <target state="translated">Element head reprezentuje kolekcję metadanych dokumentu. Musi on być pierwszym elementem w elemencie html.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_header">
+        <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</source>
+        <target state="translated">Element header reprezentuje wprowadzenie dla jego najbliższej nadrzędnej zawartości sekcji lub najbliższego elementu głównego sekcji. Element header zwykle zawiera grupę dodatkowych elementów stanowiących pomoc dotyczącą wprowadzenia lub nawigacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_hr">
+        <source>The hr element represents a paragraph-level thematic break, e.g. a scene change in a story, or a transition to another topic within a section of a reference book.</source>
+        <target state="translated">Element hr reprezentuje zmianę tematu na poziomie akapitu, na przykład zmianę sceny w opowiadaniu lub zmianę tematu w encyklopedii.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_html">
+        <source>The html element represents the root of an HTML document.</source>
+        <target state="translated">Element html reprezentuje element główny dokumentu HTML.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_i">
+        <source>The i element represents a span of text in an alternate voice or mood, or otherwise offset from the normal prose in a manner indicating a different quality of text, such as a taxonomic designation, a technical term, an idiomatic phrase from another language, transliteration, a thought, or a ship name in Western texts.</source>
+        <target state="translated">Element i reprezentuje fragment tekstu w innym stylu lub trybie albo inną zmianę prozy, która wskazuje inne cechy tekstu, na przykład oznaczenia taksonomiczne, termin techniczny, wyrażenie idiomatyczne z innego języka, transliterację, myśl lub nazwę statku w zachodnich tekstach.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_iframe">
+        <source>The iframe element represents a nested browsing context.</source>
+        <target state="translated">Element iframe reprezentuje zagnieżdżony kontekst przeglądania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_img">
+        <source>An img element represents an image.</source>
+        <target state="translated">Element img reprezentuje obraz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_input">
+        <source>The input element represents a typed data field, usually with a form control to allow the user to edit the data.</source>
+        <target state="translated">Element input reprezentuje pole danych, które ma typ, zwykle z kontrolką formularza umożliwiającą użytkownikowi edytowanie danych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ins">
+        <source>The ins element represents an addition to the document.</source>
+        <target state="translated">Element ins reprezentuje zawartość dodaną do dokumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_kbd">
+        <source>The kbd element represents user input (typically keyboard input, although it may also be used to represent other input, such as voice commands).</source>
+        <target state="translated">Element kbd reprezentuje dane wejściowe użytkownika (zwykle wprowadzane przy użyciu klawiatury, chociaż może on być używany do reprezentowania innych danych wejściowych, na przykład poleceń głosowych).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_label">
+        <source>The label element represents a caption in a user interface. The caption can be associated with a specific form control, known as the label element's labeled control, either using the for attribute, or by putting the form control inside the label element itself.</source>
+        <target state="translated">Element label reprezentuje napis w interfejsie użytkownika. Napis może zostać skojarzony z konkretną kontrolką formularza, znaną jako kontrolka z etykietą elementu label, przy użyciu atrybutu for lub poprzez umieszczenie kontrolki formularza wewnątrz elementu label.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_legend">
+        <source>The legend element represents a caption for the rest of the contents of the legend element's parent fieldset element, if any.</source>
+        <target state="translated">Element legend reprezentuje podpis dla pozostałej zawartości elementu nadrzędnego fieldset elementu legend, jeśli taka zawartość istnieje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_li">
+        <source>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
+        <target state="translated">Element li reprezentuje pozycję listy. Jeśli elementem nadrzędnym elementu li jest element ol lub ul, element li jest pozycją na liście elementu nadrzędnego zgodnie z definicją tych elementów. W przeciwnym razie elementy li nie mają zdefiniowanych relacji listy z innymi elementami li.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_link">
+        <source>The link element allows authors to link their document to other resources.</source>
+        <target state="translated">Element link pozwala autorom na utworzenie linku z ich dokumentu do innych zasobów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_main">
+        <source>The main element represents the main content of the body of a document or application. The main content area consists of content that is directly related to or expands upon the central topic of a document or central functionality of an application.</source>
+        <target state="translated">Element main reprezentuje główną część dokumentu lub aplikacji. Obszar zawartości elementu main zawiera zawartość, która jest bezpośrednio powiązana z głównym tematem dokumentu lub główną funkcją aplikacji albo rozszerza ten główny temat lub tę główną funkcję.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_map">
+        <source>The map element, in conjunction with an img element and any area element descendants, defines an image map. The element represents its children.</source>
+        <target state="translated">Element map, wraz z elementem img i dowolnymi elementami potomnymi elementu area, definiuje mapę obrazkową. Ten element reprezentuje swoje elementy podrzędne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_mark">
+        <source>The mark element represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context. When used in a quotation or other block of text referred to from the prose, it indicates a highlight that was not originally present but which has been added to bring the reader's attention to a part of the text that might not have been considered important by the original author when the block was originally written, but which is now under previously unexpected scrutiny. When used in the main prose of a document, it indicates a part of the document that has been highlighted due to its likely relevance to the user's current activity.</source>
+        <target state="translated">Element mark reprezentuje fragment tekstu w dokumencie, który jest zaznaczony lub wyróżniony ze względu na jego znaczenie w innym kontekście. Gdy zostanie on użyty w cytacie lub innym bloku tekstu, do którego istnieje odwołanie w prozie, wskazuje on wyróżnienie, które pierwotnie nie znajdowało się w tekście, ale zostało do niego dodane w celu zwrócenia uwagi czytelnika na część tekstu, której pierwotny autor mógł nie uważać za ważną, ale jest nieoczekiwanie analizowana. Gdy ten element zostanie użyty w głównej prozie dokumentu, wskazuje on część dokumentu, która została wyróżniona ze względu na jej znaczenie dla bieżącej aktywności czytelnika.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_math">
+        <source>The math element from the MathML namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</source>
+        <target state="translated">Element math z przestrzeni nazw MathML należy do kategorii zawartości osadzonej, zawartości właściwej i zawartości przepływu modeli zawartości określonych w tej specyfikacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_menu">
+        <source>The menu element represents a list of commands.</source>
+        <target state="translated">Element menu reprezentuje listę poleceń.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_menuitem">
+        <source>The menuitem element represents a command that the user can invoke from a popup menu (either a context menu or the menu of a menu button).</source>
+        <target state="translated">Element menuitem reprezentuje polecenie, które użytkownik może wywołać z menu podręcznego (menu kontekstowego lub menu przycisku).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_meta">
+        <source>The meta element represents various kinds of metadata that cannot be expressed using the title, base, link, style, and script elements.</source>
+        <target state="translated">Element meta reprezentuje różne rodzaje metadanych, których nie można wyrazić przy użyciu elementów title, base, link, style i script.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_meter">
+        <source>The meter element represents a scalar measurement within a known range, or a fractional value; for example disk usage, the relevance of a query result, or the fraction of a voting population to have selected a particular candidate.</source>
+        <target state="translated">Element meter reprezentuje miarę skalarną w znanym zakresie lub wartość ułamkową, na przykład użycie dysku, istotność rezultatów zapytania lub część wyborców, którzy wybrali konkretnego kandydata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_nav">
+        <source>The nav element represents a section of a page that links to other pages or to parts within the page: a section with navigation links.</source>
+        <target state="translated">Element nav reprezentuje sekcję strony z linkami do innych stron lub innych części strony: jest to sekcja z linkami nawigacyjnymi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-form">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">Element używany przez bibliotekę AngularJS języka JavaScript.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-include">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">Element używany przez bibliotekę AngularJS języka JavaScript.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-pluralize">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">Element używany przez bibliotekę AngularJS języka JavaScript.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-switch">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">Element używany przez bibliotekę AngularJS języka JavaScript.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-view">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">Element używany przez bibliotekę AngularJS języka JavaScript.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_noscript">
+        <source>The noscript element represents nothing if scripting is enabled, and represents its children if scripting is disabled. It is used to present different markup to user agents that support scripting and those that don't support scripting, by affecting how the document is parsed.</source>
+        <target state="translated">Element noscript niczego nie reprezentuje, jeśli jest włączona obsługa skryptów, i reprezentuje swoje elementy podrzędne, jeśli obsługa skryptów jest wyłączona. Ten element służy do prezentowania różnych znaczników agentom użytkownika obsługującym skrypty i agentom użytkownika nieobsługujących skryptów poprzez wpływanie na sposób analizowania dokumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_object">
+        <source>The object element can represent an external resource, which, depending on the type of the resource, will either be treated as an image, as a nested browsing context, or as an external resource to be processed by a plugin.</source>
+        <target state="translated">Element object może reprezentować zewnętrzny zasób, który, zależnie od jego typu, będzie traktowany jak obraz, zagnieżdżony kontekst przeglądania lub zasób zewnętrzny przetwarzany przez wtyczkę.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ol">
+        <source>The ol element represents a list of items, where the items have been intentionally ordered, such that changing the order would change the meaning of the document.</source>
+        <target state="translated">Element ol reprezentuje listę pozycji celowo uporządkowanych w taki sposób, że zmianach ich kolejności zmieniłaby znaczenie dokumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_optgroup">
+        <source>The optgroup element represents a group of option elements with a common label.</source>
+        <target state="translated">Element optgroup reprezentuje grupę elementów option o wspólnej etykiecie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_option">
+        <source>The option element represents an option in a select element or as part of a list of suggestions in a datalist element.</source>
+        <target state="translated">Element option reprezentuje opcję w elemencie select lub będącą częścią listy sugestii w elemencie datalist.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_output">
+        <source>The output element represents the result of a calculation or user action.</source>
+        <target state="translated">Element output reprezentuje rezultat wykonanego obliczenia lub akcji użytkownika.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_p">
+        <source>The p element represents a paragraph.</source>
+        <target state="translated">Element p reprezentuje akapit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_param">
+        <source>The param element defines parameters for plugins invoked by object elements. It does not represent anything on its own.</source>
+        <target state="translated">Element param definiuje parametry wtyczek wywoływanych przez elementy object. Ten element samodzielnie niczego nie reprezentuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_picture">
+        <source>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
+        <target state="translated">Element picture to kontener udostępniający wiele źródeł dla zawartego w nim elementu img w celu umożliwienia autorom deklaratywnego sterowania lub udostępniania podpowiedzi agentowi użytkownika w zakresie tego, którego zasobu obrazu użyć, na podstawie rozdzielczości ekranu w pikselach, rozmiaru okienka ekranu, formatu obrazu i innych czynników. Reprezentuje on swoje elementy podrzędne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_polymer-element">
+        <source>A polymer-element is used to create new HTML elements using the Polymer JavaScript library.</source>
+        <target state="translated">Element polymer służy do tworzenia nowych elementów HTML za pomocą biblioteki Polymer języka JavaScript.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_pre">
+        <source>The pre element represents a block of preformatted text, in which structure is represented by typographic conventions rather than by elements.</source>
+        <target state="translated">Element pre reprezentuje blok wstępnie sformatowanego tekstu, w którym struktura jest reprezentowana w większym stopniu przy użyciu konwencji typograficznej niż elementów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_progress">
+        <source>The progress element represents the completion progress of a task. The progress is either indeterminate, indicating that progress is being made but that it is not clear how much more work remains to be done before the task is complete (e.g. because the task is waiting for a remote host to respond), or the progress is a number in the range zero to a maximum, giving the fraction of work that has so far been completed.</source>
+        <target state="translated">Element progress reprezentuje postęp w wykonywaniu zadania. Może on być nieokreślony i wskazywać, że postęp trwa, ale nie jest jasne, jak dużo pracy będzie jeszcze wymagać ukończenie zadania (na przykład ponieważ zadanie czeka na odpowiedź hosta zdalnego), lub postęp może też określać liczba z zakresu od zera do maksimum wskazująca część wykonanej do tej pory pracy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_q">
+        <source>The q element represents some phrasing content quoted from another source.</source>
+        <target state="translated">Element q reprezentuje zawartość właściwą cytowaną z innego źródła.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rp">
+        <source>The rp element is used to provide fallback text to be shown by user agents that don't support ruby annotations. One widespread convention is to provide parentheses around the ruby text component of a ruby annotation.</source>
+        <target state="translated">Element rp umożliwia określenie tekstu wyświetlanego przez agentów użytkownika, gdy nie obsługują oni dopisków fonetycznych. Jedną z powszechnie stosowanych konwencji jest umieszczanie w nawiasach składnika dopisków fonetycznych dla dopisków fonetycznych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rt">
+        <source>The rt element marks the ruby text component of a ruby annotation. When it is the child of a ruby element or of an rtc element that is itself the child of a ruby element, it doesn't represent anything itself, but its ancestor ruby element uses it as part of determining what it represents.</source>
+        <target state="translated">Element rt służy do oznaczania składnika dopisków fonetycznych dla dopisków fonetycznych. Gdy element rt jest elementem podrzędnym elementu ruby lub elementu rtc, który jest elementem podrzędnym elementu ruby, element rt samodzielnie niczego nie reprezentuje. Element nadrzędny ruby elementu rt używa elementu rt w ramach określania, jakie informacje mają być reprezentowane przez ten element ruby.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rtc">
+        <source>The rtc element marks a ruby text container for ruby text components in a ruby annotation. When it is the child of a ruby element it doesn't represent anything itself, but its parent ruby element uses it as part of determining what it represents.</source>
+        <target state="translated">Element rtc służy do oznaczania kontenera dopisków fonetycznych dla składników dopisków fonetycznych w dopiskach fonetycznych. Gdy element rtc jest elementem podrzędnym elementu ruby, element rtc samodzielnie niczego nie reprezentuje. Element nadrzędny ruby elementu rtc używa elementu rtc w ramach określania, jakie informacje mają być reprezentowane przez ten element ruby.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ruby">
+        <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</source>
+        <target state="translated">Element ruby służy do oznaczania co najmniej jednego fragmentu zawartości właściwej przy użyciu dopisków fonetycznych. Dopiski fonetyczne to krótkie fragmenty prezentowane wraz z podstawowym tekstem, które są używane głównie w przypadku typografii wschodnioazjatyckiej jako pomoc w wymowie lub w celu dołączenia innych adnotacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_s">
+        <source>The s element represents contents that are no longer accurate or no longer relevant.</source>
+        <target state="translated">Element s reprezentuje zawartość, która nie jest już trafna lub istotna.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_samp">
+        <source>The samp element represents (sample) output from a program or computing system.</source>
+        <target state="translated">Element samp reprezentuje przykładowe dane wyjściowe z programu lub systemu komputerowego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_script">
+        <source>The script element allows authors to include dynamic script and data blocks in their documents. The element does not represent content for the user.</source>
+        <target state="translated">Element script umożliwia autorom umieszczanie w dokumentach skryptów dynamicznych i bloków danych. Ten element nie reprezentuje zawartości dla użytkownika.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_section">
+        <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</source>
+        <target state="translated">Element section reprezentuje ogólną sekcję dokumentu lub aplikacji. W tym kontekście sekcja to tematyczna grupa elementów zawartości. Należy określić temat każdej sekcji. Zwykle w tym celu jest dołączany nagłówek (elementy h1-h6) jako element podrzędny elementu section.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_select">
+        <source>The select element represents a control for selecting amongst a set of options.</source>
+        <target state="translated">Element select reprezentuje kontrolkę służącą do wyboru z zestawu opcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_shadow">
+        <source>The shadow element represents an shadow insertion point in a shadow tree.</source>
+        <target state="translated">Element shadow reprezentuje punkt wstawienia cienia w drzewie towarzyszącym.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_small">
+        <source>The small element represents side comments such as small print.</source>
+        <target state="translated">Element small reprezentuje poboczne komentarze, na przykład drobny druk.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_source">
+        <source>The source element allows authors to specify multiple alternative media resources for media elements. It does not represent anything on its own.</source>
+        <target state="translated">Element source umożliwia autorom określanie wielu alternatywnych zasobów multimedialnych dla elementów media. Ten element samodzielnie niczego nie reprezentuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_span">
+        <source>The span element doesn't mean anything on its own, but can be useful when used together with the global attributes, e.g. class, lang, or dir. It represents its children.</source>
+        <target state="translated">Element span samodzielnie niczego nie oznacza. Może być jednak przydatny, gdy jest używany z atrybutami globalnymi, na przykład class, lang lub dir. Reprezentuje on swoje elementy podrzędne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_strong">
+        <source>The strong element represents strong importance, seriousness, or urgency for its contents.</source>
+        <target state="translated">Element strong oznacza, że treść ma duże znaczenie, jest poważna lub ma pilny charakter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_style">
+        <source>The style element allows authors to embed style information in their documents. The style element is one of several inputs to the styling processing model. The element does not represent content for the user.</source>
+        <target state="translated">Element style umożliwia autorom osadzanie w dokumentach informacji o stylu. Element style to jedno z kilku wejść modelu przetwarzania stylów. Ten element nie reprezentuje zawartości dla użytkownika.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_sub">
+        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
+        <target state="translated">Element sup reprezentuje indeks górny, a element sub reprezentuje indeks dolny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_summary">
+        <source>The summary element represents a summary, caption, or legend for the rest of the contents of the summary element's parent details element, if any.</source>
+        <target state="translated">Element summary reprezentuje podsumowanie, podpis lub legendę dla pozostałej zawartości elementu nadrzędnego details elementu summary, jeśli taka zawartość istnieje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_sup">
+        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
+        <target state="translated">Element sup reprezentuje indeks górny, a element sub reprezentuje indeks dolny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_svg">
+        <source>The svg element from the SVG namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</source>
+        <target state="translated">Element svg z przestrzeni nazw SVG należy do kategorii zawartości osadzonej, zawartości właściwej i zawartości przepływu modeli zawartości określonych w tej specyfikacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_table">
+        <source>The table element represents data with more than one dimension, in the form of a table.</source>
+        <target state="translated">Element table reprezentuje dane w postaci tabeli o więcej niż jednym wymiarze.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tbody">
+        <source>The tbody element represents a block of rows that consist of a body of data for the parent table element, if the tbody element has a parent and it is a table.</source>
+        <target state="translated">Element tbody reprezentuje blok wierszy składający się z zawartości danych elementu nadrzędnego table, jeśli element tbody ma element nadrzędny, którym jest element table.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_td">
+        <source>The td element represents a data cell in a table.</source>
+        <target state="translated">Element td reprezentuje komórkę danych w tabeli.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_template">
+        <source>The template element is used to declare fragments of HTML that can be cloned and inserted in the document by script.</source>
+        <target state="translated">Element template służy do deklarowania fragmentów kodu HTML, które można klonować i wstawiać w dokumencie przy użyciu skryptu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_textarea">
+        <source>The textarea element represents a multiline plain text edit control for the element's raw value. The contents of the control represent the control's default value.</source>
+        <target state="translated">Element textarea reprezentuje kontrolkę edycji zwykłego tekstu w wielu wierszach dla nieprzetworzonej wartości elementu. Zawartość kontrolki jest reprezentowana przez jej wartość domyślną.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tfoot">
+        <source>The tfoot element represents the block of rows that consist of the column summaries (footers) for the parent table element, if the tfoot element has a parent and it is a table.</source>
+        <target state="translated">Element tfoot reprezentuje blok wierszy składających się z podsumowań kolumn (stopek) dla elementu nadrzędnego table, jeśli element tfoot ma element nadrzędny, którym jest element table.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_th">
+        <source>The th element represents a header cell in a table.</source>
+        <target state="translated">Element th reprezentuje komórkę nagłówka w tabeli.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_thead">
+        <source>The thead element represents the block of rows that consist of the column labels (headers) for the parent table element, if the thead element has a parent and it is a table.</source>
+        <target state="translated">Element thead reprezentuje blok wierszy składających się z etykiet kolumn (nagłówków) dla elementu nadrzędnego table, jeśli element thead ma element nadrzędny, którym jest element table.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_time">
+        <source>The time element represents its contents, along with a machine-readable form of those contents in the datetime attribute. The kind of content is limited to various kinds of dates, times, time-zone offsets, and durations, as described below.</source>
+        <target state="translated">Element time reprezentuje swoją zawartość wraz z postacią tej zawartości, która jest możliwa do odczytania przez komputer w atrybucie datetime. Rodzaj zawartości jest ograniczony do różnych rodzajów dat, czasu, przesunięć stref czasowych i okresów zgodnie z opisem poniżej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_title">
+        <source>The title element represents the document's title or name. Authors should use titles that identify their documents even when they are used out of context, for example in a user's history or bookmarks, or in search results. The document's title is often different from its first heading, since the first heading does not have to stand alone when taken out of context.</source>
+        <target state="translated">Element title reprezentuje tytuł lub nazwę dokumentu. Autorzy powinni używać elementów title pozwalających na zidentyfikowanie dokumentów, nawet jeśli znajdują się one poza kontekstem, na przykład w historii lub zakładkach użytkownika albo w wynikach wyszukiwania. Element title dokumentu często różni się od jego pierwszego nagłówka, ponieważ pierwszy nagłówek nie musi występować sam poza kontekstem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tr">
+        <source>The tr element represents a row of cells in a table.</source>
+        <target state="translated">Element tr reprezentuje wiersz komórek w tabeli.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_track">
+        <source>The track element allows authors to specify explicit external timed text tracks for media elements. It does not represent anything on its own.</source>
+        <target state="translated">Element track pozwala autorom na określanie jawnych zewnętrznych tekstowych ścieżek czasu dla elementów media. Ten element samodzielnie niczego nie reprezentuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_u">
+        <source>The u element represents a span of text with an unarticulated, though explicitly rendered, non-textual annotation, such as labeling the text as being a proper name in Chinese text (a Chinese proper name mark), or labeling the text as being misspelt.</source>
+        <target state="translated">Element u reprezentuje fragment tekstu z adnotacją inną niż tekstowa, która nie jest wyrażona, ale jawnie renderowana, na przykład fragment z oznaczeniem chińskiego tekstu jako nazwy własnej (chińskiego znaku nazwy własnej) lub oznaczeniem tekstu jako tekstu zawierającego literówki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ul">
+        <source>The ul element represents a list of items, where the order of the items is not important — that is, where changing the order would not materially change the meaning of the document.</source>
+        <target state="translated">Element ul reprezentuje listę pozycji, których kolejność nie jest ważna, a jej zmiana nie zmienia w istotny sposób znaczenia dokumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_var">
+        <source>The var element represents a variable. This could be an actual variable in a mathematical expression or programming context, an identifier representing a constant, a symbol identifying a physical quantity, a function parameter, or just be a term used as a placeholder in prose.</source>
+        <target state="translated">Element var reprezentuje zmienną. Może to być rzeczywista zmienna w wyrażeniu matematycznym lub w kontekście programowania, identyfikator reprezentujący stałą, symbol identyfikujący wielkość fizyczną, parametr funkcji lub po prostu termin użyty jako element zastępczy w prozie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_video">
+        <source>A video element is used for playing videos or movies, and audio files with captions.</source>
+        <target state="translated">Element video służy do odtwarzania plików wideo lub filmów oraz plików dźwiękowych z napisami.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_wbr">
+        <source>The wbr element represents a line break opportunity.</source>
+        <target state="translated">Element wbr reprezentuje możliwość podziału wiersza.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_x-ms-webview">
+        <source>Displays HTML content in an app.</source>
+        <target state="translated">Wyświetla zawartość HTML w aplikacji.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
