@@ -1,0 +1,49 @@
+﻿RazorDocument - [0..45)::45 - [<p notRequired="@DateTime.Now" class="btn" />]
+    MarkupBlock - [0..45)::45
+        MarkupTagHelperElement - [0..45)::45 - p[SelfClosing] - pTagHelper
+            MarkupTagHelperStartTag - [0..45)::45 - [<p notRequired="@DateTime.Now" class="btn" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTagHelperAttribute - [2..30)::28 - notRequired - DoubleQuotes - Unbound - [ notRequired="@DateTime.Now"]
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [3..14)::11 - [notRequired] - Gen<Markup>
+                        Text;[notRequired];
+                    Equals;[=];
+                    MarkupTextLiteral - [15..16)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [16..29)::13
+                        MarkupDynamicAttributeValue - [16..29)::13 - [@DateTime.Now]
+                            GenericBlock - [16..29)::13
+                                CSharpCodeBlock - [16..29)::13
+                                    CSharpImplicitExpression - [16..29)::13
+                                        CSharpTransition - [16..17)::1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [17..29)::12
+                                            CSharpCodeBlock - [17..29)::12
+                                                CSharpExpressionLiteral - [17..29)::12 - [DateTime.Now] - Gen<Expr>
+                                                    Identifier;[DateTime];
+                                                    Dot;[.];
+                                                    Identifier;[Now];
+                    MarkupTextLiteral - [29..30)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [30..42)::12 - class - DoubleQuotes - Unbound - [ class="btn"]
+                    MarkupTextLiteral - [30..31)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [31..36)::5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [37..38)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [38..41)::3
+                        MarkupLiteralAttributeValue - [38..41)::3 - [btn]
+                            MarkupTextLiteral - [38..41)::3 - [btn] - Gen<Markup>
+                                Text;[btn];
+                    MarkupTextLiteral - [41..42)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [42..43)::1
+                    MarkupTextLiteral - [42..43)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

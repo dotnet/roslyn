@@ -423,83 +423,81 @@ public sealed class NavigateToSearchIndexTests
 
     #endregion
 
-    #region TrigramCheck
+    #region NgramCheck
 
     [Theory]
     // ═══ Readline ═══
-    // Word-part: "Readline" (one word-part since 'R' followed by lowercase).
-    // Stored trigrams: "rea", "ead", "adl", "dli", "lin", "ine".
+    // N-grams are indexed over the full lowercased name "readline".
+    // Sparse n-grams of the lowercased name are stored in a Bloom filter.
     //
-    // True: all trigrams of the pattern are present.
+    // True: all covering n-grams of the pattern are present in the filter.
     [InlineData("Readline", "rea", true)]
     [InlineData("Readline", "ead", true)]
     [InlineData("Readline", "adl", true)]
     [InlineData("Readline", "dli", true)]
     [InlineData("Readline", "lin", true)]
     [InlineData("Readline", "ine", true)]
-    [InlineData("Readline", "read", true)]       // trigrams: "rea", "ead" — both stored
-    [InlineData("Readline", "line", true)]       // trigrams: "lin", "ine" — both stored
-    [InlineData("Readline", "readline", true)]   // all trigrams present
-    [InlineData("Readline", "adli", true)]       // trigrams: "adl", "dli" — both stored
+    [InlineData("Readline", "read", true)]
+    [InlineData("Readline", "line", true)]
+    [InlineData("Readline", "readline", true)]
+    [InlineData("Readline", "adli", true)]
     //
-    // False: pattern contains a trigram not present in the filter.
-    [InlineData("Readline", "xyz", false)]       // "xyz" not stored
-    [InlineData("Readline", "rex", false)]       // "rex" not stored
-    [InlineData("Readline", "reax", false)]      // "rea" stored, but "eax" not stored
-    [InlineData("Readline", "xead", false)]      // "xea" not stored (even though "ead" is)
-    [InlineData("Readline", "readz", false)]     // "rea","ead" ok, but "adz" not stored
-    [InlineData("Readline", "linex", false)]     // "lin","ine" ok, but "nex" not stored
-    [InlineData("Readline", "readlinex", false)] // all original trigrams ok, but trailing "nex" fails
+    // False: pattern contains an n-gram not present in the filter.
+    [InlineData("Readline", "xyz", false)]
+    [InlineData("Readline", "rex", false)]
+    [InlineData("Readline", "reax", false)]
+    [InlineData("Readline", "xead", false)]
+    [InlineData("Readline", "readz", false)]
+    [InlineData("Readline", "linex", false)]
+    [InlineData("Readline", "readlinex", false)]
     //
-    // False: too short for trigrams (need at least 3 characters).
+    // False: too short for n-grams (need at least 3 characters).
     [InlineData("Readline", "re", false)]
     [InlineData("Readline", "r", false)]
     //
-    // False: mixed-case patterns are not checked by the trigram filter.
+    // False: mixed-case patterns are not checked by the n-gram filter.
     [InlineData("Readline", "Read", false)]
     [InlineData("Readline", "Line", false)]
     [InlineData("Readline", "REA", false)]
     //
     // ═══ Combine ═══
     // Word-part: "Combine"
-    // Stored trigrams: "com", "omb", "mbi", "bin", "ine".
     //
     [InlineData("Combine", "com", true)]
     [InlineData("Combine", "bin", true)]
-    [InlineData("Combine", "bine", true)]        // "bin", "ine" — both stored
-    [InlineData("Combine", "comb", true)]        // "com", "omb" — both stored
-    [InlineData("Combine", "combine", true)]     // all trigrams present
-    [InlineData("Combine", "xyz", false)]        // no matching trigrams
-    [InlineData("Combine", "comx", false)]       // "com" ok, but "omx" not stored
-    [InlineData("Combine", "xbin", false)]       // "xbi" not stored
-    [InlineData("Combine", "binez", false)]      // "bin","ine" ok, but "nez" not stored
+    [InlineData("Combine", "bine", true)]
+    [InlineData("Combine", "comb", true)]
+    [InlineData("Combine", "combine", true)]
+    [InlineData("Combine", "xyz", false)]
+    [InlineData("Combine", "comx", false)]
+    [InlineData("Combine", "xbin", false)]
+    [InlineData("Combine", "binez", false)]
     //
     // ═══ GooBar ═══
-    // Word-parts: "Goo" and "Bar" (two separate word-parts from CamelCase).
-    // Stored trigrams: "goo" (from "Goo"), "bar" (from "Bar").
-    // Each word-part is only 3 chars, so exactly one trigram each.
+    // N-grams are indexed over the full lowercased name "goobar" (not per-word-part),
+    // so cross-boundary n-grams like "oob" and "oba" ARE present in the filter.
     //
     [InlineData("GooBar", "goo", true)]
     [InlineData("GooBar", "bar", true)]
-    // False: cross-word-part trigrams are NOT stored.
-    [InlineData("GooBar", "oob", false)]         // spans "Goo" → "Bar" boundary
-    [InlineData("GooBar", "oba", false)]         // spans boundary
+    [InlineData("GooBar", "oob", true)]           // spans "Goo" → "Bar" boundary — present because full-name indexing
+    [InlineData("GooBar", "oba", true)]           // spans boundary — present because full-name indexing
+    [InlineData("GooBar", "goobar", true)]        // full name
+    [InlineData("GooBar", "ooba", true)]          // cross-boundary, length 4
     //
     // ═══ Longer symbol: "Transformer" ═══
     // Word-part: "Transformer"
-    // Stored trigrams: "tra","ran","ans","nsf","sfo","for","orm","rme","mer"
     //
     [InlineData("Transformer", "tra", true)]
-    [InlineData("Transformer", "transform", true)] // "tra","ran","ans","nsf","sfo","for","orm" — all stored
-    [InlineData("Transformer", "former", true)]    // "for","orm","rme","mer" — all stored
+    [InlineData("Transformer", "transform", true)]
+    [InlineData("Transformer", "former", true)]
     [InlineData("Transformer", "transformer", true)]
     [InlineData("Transformer", "xyz", false)]
-    [InlineData("Transformer", "trax", false)]     // "tra" ok, "rax" not stored
-    [InlineData("Transformer", "formerx", false)]  // "for","orm","rme","mer" ok, but "erx" not stored
-    public void TrigramCheck(string symbolName, string pattern, bool expected)
+    [InlineData("Transformer", "trax", false)]
+    [InlineData("Transformer", "formerx", false)]
+    public void NgramCheck(string symbolName, string pattern, bool expected)
     {
         var index = CreateIndex((symbolName, ""));
-        Assert.Equal(expected, index.GetTestAccessor().TrigramCheckPasses(pattern));
+        Assert.Equal(expected, index.GetTestAccessor().NgramCheckPasses(pattern));
     }
 
     #endregion
@@ -669,7 +667,7 @@ public sealed class NavigateToSearchIndexTests
         Assert.False(index.GetTestAccessor().BigramCountCheckPasses("Xyzwvq"));
 
         // "Xyzwvq" is mixed case (X then lowercase), one hump 'X'. 'X' is not a hump initial of
-        // any symbol. Not all-lowercase, so trigram check doesn't apply either. The bigram check
+        // any symbol. Not all-lowercase, so n-gram check doesn't apply either. The bigram check
         // also fails. With all three checks failing, the document is skipped entirely.
         Assert.Equal(PatternMatcherKind.None, index.CouldContainNavigateToMatch("Xyzwvq", null));
     }
@@ -1054,7 +1052,7 @@ public sealed class NavigateToSearchIndexTests
     #region Individual checks are independent
 
     /// <summary>
-    /// Verifies that the hump check, trigram check, and length check operate independently.
+    /// Verifies that the hump check, n-gram check, and length check operate independently.
     /// A pattern that fails one check can pass through another.
     /// </summary>
     [Fact]
@@ -1070,14 +1068,14 @@ public sealed class NavigateToSearchIndexTests
         // So hump check fails.
         Assert.False(index.GetTestAccessor().HumpCheckPasses("line"));
 
-        // Trigram check: "line" has trigrams "lin", "ine". Both stored from "Readline". Passes.
-        Assert.True(index.GetTestAccessor().TrigramCheckPasses("line"));
+        // N-gram check: "line" has covering n-grams stored from "Readline". Passes.
+        Assert.True(index.GetTestAccessor().NgramCheckPasses("line"));
 
         // Length check: "line" has length 4, threshold ±1, checks lengths 3..5.
         // "Readline" has length 8, not in range. Fails.
         Assert.False(index.GetTestAccessor().LengthCheckPasses("line"));
 
-        // Overall: CouldContainNavigateToMatch returns Standard (trigram check saves it).
+        // Overall: CouldContainNavigateToMatch returns Standard (n-gram check saves it).
         // Fuzzy is disabled because the length check failed.
         var matchKinds = index.CouldContainNavigateToMatch("line", null);
         Assert.True(matchKinds.HasFlag(PatternMatcherKind.Standard));
@@ -1094,7 +1092,7 @@ public sealed class NavigateToSearchIndexTests
 
         // "GozBar" is a fuzzy match (edit distance 1, same length 6).
         // Hump check: "GozBar" mixed-case, parts ["Goz","Bar"], humps G, B → bigram "GB" → passes.
-        // But let's test with a pattern where hump/trigram don't help.
+        // But let's test with a pattern where hump/n-gram don't help.
 
         // "Goxxar" — mixed-case, parts ["Goxxar"] (one part: G followed by lowercase).
         // Single hump 'G' → hump check passes trivially.
@@ -1102,8 +1100,8 @@ public sealed class NavigateToSearchIndexTests
 
         // "Xoobar" — mixed case? No, 'X' upper then all lower → one part, hump 'X'. 'X' not stored.
         Assert.False(index.GetTestAccessor().HumpCheckPasses("Xoobar"));
-        // Trigram: "Xoobar" is not all-lowercase (capital X) → false.
-        Assert.False(index.GetTestAccessor().TrigramCheckPasses("Xoobar"));
+        // N-gram: "Xoobar" is not all-lowercase (capital X) → false.
+        Assert.False(index.GetTestAccessor().NgramCheckPasses("Xoobar"));
         // Length: "Xoobar" length 6 matches "GooBar" length 6. Within ±2 (threshold for length 6). Passes.
         Assert.True(index.GetTestAccessor().LengthCheckPasses("Xoobar"));
         // Bigram: "xoobar" bigrams "xo","oo","ob","ba","ar". "GooBar" has "go","oo","ob","ba","ar".
@@ -1117,7 +1115,7 @@ public sealed class NavigateToSearchIndexTests
 
     /// <summary>
     /// Verifies that a verbatim identifier pattern like "@static" correctly produces an Exact match
-    /// against the symbol "static". The pre-filter strips the leading '@' before running hump/trigram
+    /// against the symbol "static". The pre-filter strips the leading '@' before running hump/n-gram
     /// checks, so NonFuzzy is correctly set.
     /// </summary>
     [Fact]
@@ -1166,7 +1164,7 @@ public sealed class NavigateToSearchIndexTests
     /// match (all-lowercase pattern at a non-word-boundary). NavigateTo maps this to
     /// <c>NavigateToMatchKind.Fuzzy</c> because there is no dedicated <c>NavigateToMatchKind</c>
     /// for lowercase substrings — Fuzzy is the closest available quality tier.
-    /// The pre-filter correctly sets NonFuzzy (trigram check passes for "lin"/"ine").
+    /// The pre-filter correctly sets NonFuzzy (n-gram check passes for "line").
     /// </summary>
     [Fact]
     public void EndToEnd_LowercaseSubstring_MapsToFuzzyInNavigateTo()
@@ -1175,7 +1173,7 @@ public sealed class NavigateToSearchIndexTests
 
         var matchKinds = index.CouldContainNavigateToMatch("line", null);
 
-        // Standard set via trigram check. Fuzzy not set (length 4 vs 8, delta 4 > ±2).
+        // Standard set via n-gram check. Fuzzy not set (length 4 vs 8, delta 4 > ±2).
         Assert.True(matchKinds.HasFlag(PatternMatcherKind.Standard));
         Assert.False(matchKinds.HasFlag(PatternMatcherKind.Fuzzy));
 
@@ -1188,8 +1186,8 @@ public sealed class NavigateToSearchIndexTests
     }
 
     /// <summary>
-    /// When hump/trigram fail even after preprocessing, fuzzy is enabled by the length + bigram checks.
-    /// "Xoobar" shares no hump structure or trigrams with "GooBar", but same length and enough shared
+    /// When hump/n-gram fail even after preprocessing, fuzzy is enabled by the length + bigram checks.
+    /// "Xoobar" shares no hump structure or n-grams with "GooBar", but same length and enough shared
     /// bigrams → fuzzy match.
     /// </summary>
     [Fact]
@@ -1198,7 +1196,7 @@ public sealed class NavigateToSearchIndexTests
         var index = CreateIndex(("GooBar", ""));
 
         Assert.False(index.GetTestAccessor().HumpCheckPasses("Xoobar"));
-        Assert.False(index.GetTestAccessor().TrigramCheckPasses("Xoobar"));
+        Assert.False(index.GetTestAccessor().NgramCheckPasses("Xoobar"));
         Assert.True(index.GetTestAccessor().LengthCheckPasses("Xoobar"));
         // "xoobar" bigrams: "xo","oo","ob","ba","ar". "GooBar" bigrams: "go","oo","ob","ba","ar".
         // k=2, min_shared=1, matches=4 → passes.

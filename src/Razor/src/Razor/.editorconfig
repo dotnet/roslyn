@@ -1,0 +1,11 @@
+﻿[*.cs]
+
+# Enforce the use of accessibility modifiers for all types
+dotnet_diagnostic.IDE0040.severity = warning
+
+# Fix Formatting
+dotnet_diagnostic.IDE0055.severity = warning
+
+# IDE0130: Namespaces should match folder structure
+# We don't follow this convention
+dotnet_diagnostic.IDE0130.severity = none

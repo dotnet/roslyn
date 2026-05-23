@@ -1,0 +1,40 @@
+﻿RazorDocument - [0..31)::31 - [<p class=btn" bar="foo"<strong>]
+    MarkupBlock - [0..31)::31
+        MarkupTagHelperElement - [0..31)::31 - p[StartTagAndEndTag] - ptaghelper
+            MarkupTagHelperStartTag - [0..23)::23 - [<p class=btn" bar="foo"] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTagHelperAttribute - [2..12)::10 - class - DoubleQuotes - Unbound - [ class=btn]
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [3..8)::5 - [class] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTagHelperAttributeValue - [9..12)::3
+                        MarkupLiteralAttributeValue - [9..12)::3 - [btn]
+                            MarkupTextLiteral - [9..12)::3 - [btn] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                Text;[btn];
+                MarkupMinimizedTagHelperAttribute - [12..13)::1 - " - Minimized - Unbound - ["]
+                    MarkupTextLiteral - [12..13)::1 - ["] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [13..23)::10 - bar - DoubleQuotes - Unbound - [ bar="foo"]
+                    MarkupTextLiteral - [13..14)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [14..17)::3 - [bar] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Text;[bar];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19)::1 - ["] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..22)::3
+                        MarkupLiteralAttributeValue - [19..22)::3 - [foo]
+                            MarkupTextLiteral - [19..22)::3 - [foo] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                Text;[foo];
+                    MarkupTextLiteral - [22..23)::1 - ["] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        DoubleQuote;["];
+                CloseAngle;[<Missing>];
+            MarkupTagHelperElement - [23..31)::8 - strong[StartTagAndEndTag] - strongtaghelper
+                MarkupTagHelperStartTag - [23..31)::8 - [<strong>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                    OpenAngle;[<];
+                    Text;[strong];
+                    CloseAngle;[>];
+    EndOfFile;[];
