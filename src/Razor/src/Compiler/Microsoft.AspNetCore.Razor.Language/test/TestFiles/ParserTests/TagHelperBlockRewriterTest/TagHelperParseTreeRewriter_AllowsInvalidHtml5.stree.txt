@@ -1,0 +1,34 @@
+﻿RazorDocument - [0..19)::19 - [< class="foo" <p />]
+    MarkupBlock - [0..19)::19
+        MarkupElement - [0..14)::14
+            MarkupStartTag - [0..14)::14 - [< class="foo" ] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[<Missing>];
+                MarkupAttributeBlock - [1..13)::12 - [ class="foo"]
+                    MarkupTextLiteral - [1..2)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [2..7)::5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [8..9)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [9..12)::3
+                        MarkupLiteralAttributeValue - [9..12)::3 - [foo]
+                            MarkupTextLiteral - [9..12)::3 - [foo] - Gen<Markup>
+                                Text;[foo];
+                    MarkupTextLiteral - [12..13)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [13..14)::1
+                    MarkupTextLiteral - [13..14)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                CloseAngle;[<Missing>];
+        MarkupTagHelperElement - [14..19)::5 - p[SelfClosing] - ptaghelper
+            MarkupTagHelperStartTag - [14..19)::5 - [<p />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupMiscAttributeContent - [16..17)::1
+                    MarkupTextLiteral - [16..17)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

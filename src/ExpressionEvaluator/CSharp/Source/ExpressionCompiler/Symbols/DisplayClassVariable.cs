@@ -219,6 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             public override RefKind RefKind => RefKind.None;
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+            internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
         }
     }
 }
