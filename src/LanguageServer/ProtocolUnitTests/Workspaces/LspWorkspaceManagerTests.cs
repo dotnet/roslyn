@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -263,8 +264,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
         // Manually register the workspace since the workspace listener does not listen for this workspace kind.
-        var workspaceRegistrationService = testLspServer.TestWorkspace.GetService<LspWorkspaceRegistrationService>();
-        workspaceRegistrationService.Register(testWorkspaceTwo);
+        var lspWorkspaceRegistrationListener = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
+        lspWorkspaceRegistrationListener.StartListening(testWorkspaceTwo);
 
         // Verify both workspaces registered.
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
@@ -289,9 +290,6 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             """;
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml, mutatingLspWorkspace, workspaceKind: WorkspaceKind.MiscellaneousFiles);
-        var exportProvider = testLspServer.TestWorkspace.ExportProvider;
-
-        var workspaceRegistrationService = exportProvider.GetExport<LspWorkspaceRegistrationService>();
 
         // Verify the workspace is registered.
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
@@ -494,9 +492,10 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         // This verifies that we will still see the lsp view of the document, even though it found out about a document
         // prior to a project system even telling it about a file, and even if the project system removes the file.
 
-        // Start with an empty workspace.
+        // Start with an empty workspace and composition with misc files provider.
+        var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
         await using var testLspServer = await CreateTestLspServerAsync(
-            [], mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+            [], mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition: composition);
 
         // Open the doc
         var filePath = TestHelpers.CreateAbsolutePath("\ue25b\ud86d\udeac.cs");

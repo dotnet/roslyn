@@ -57,7 +57,9 @@ namespace Microsoft.CodeAnalysis
 
         private struct ChildSyntaxListEnumeratorStack : IDisposable
         {
-            private static readonly ObjectPool<ChildSyntaxList.Enumerator[]> s_stackPool = new ObjectPool<ChildSyntaxList.Enumerator[]>(() => new ChildSyntaxList.Enumerator[16]);
+            // This pool doesn't track leaks because Array.Resize replaces the rented array with a new one,
+            // making it incompatible with the pool's allocation tracking.
+            private static readonly ObjectPool<ChildSyntaxList.Enumerator[]> s_stackPool = new ObjectPool<ChildSyntaxList.Enumerator[]>(() => new ChildSyntaxList.Enumerator[16], trackLeaks: false);
 
             /// <summary>
             /// Optional green-node predicate checked before creating a red node for a child.
@@ -163,7 +165,9 @@ namespace Microsoft.CodeAnalysis
 
         private struct TriviaListEnumeratorStack : IDisposable
         {
-            private static readonly ObjectPool<SyntaxTriviaList.Enumerator[]> s_stackPool = new ObjectPool<SyntaxTriviaList.Enumerator[]>(() => new SyntaxTriviaList.Enumerator[16]);
+            // This pool doesn't track leaks because Array.Resize replaces the rented array with a new one,
+            // making it incompatible with the pool's allocation tracking.
+            private static readonly ObjectPool<SyntaxTriviaList.Enumerator[]> s_stackPool = new ObjectPool<SyntaxTriviaList.Enumerator[]>(() => new SyntaxTriviaList.Enumerator[16], trackLeaks: false);
 
             private SyntaxTriviaList.Enumerator[] _stack;
             private int _stackPtr;

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,9 +20,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorSourceGeneratedDocumentSpanMappingServiceWrapper(
-    [Import(AllowDefault = true)] IRazorSourceGeneratedDocumentSpanMappingService? implementation) : ISourceGeneratedDocumentSpanMappingService
+    [Import(AllowDefault = true)] Lazy<IRazorSourceGeneratedDocumentSpanMappingService>? implementation) : ISourceGeneratedDocumentSpanMappingService
 {
-    private readonly IRazorSourceGeneratedDocumentSpanMappingService? _implementation = implementation;
+    private readonly Lazy<IRazorSourceGeneratedDocumentSpanMappingService>? _implementation = implementation;
 
     public bool CanMapSpans(SourceGeneratedDocument document)
     {
@@ -37,7 +38,7 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingServiceWrapper(
             return [];
         }
 
-        var mappedChanges = await _implementation.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+        var mappedChanges = await _implementation.Value.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
         if (mappedChanges.IsDefaultOrEmpty)
         {
             return [];
@@ -68,7 +69,7 @@ internal sealed class RazorSourceGeneratedDocumentSpanMappingServiceWrapper(
             return [];
         }
 
-        var mappedSpans = await _implementation.MapSpansAsync(document, spans, cancellationToken).ConfigureAwait(false);
+        var mappedSpans = await _implementation.Value.MapSpansAsync(document, spans, cancellationToken).ConfigureAwait(false);
         if (mappedSpans.IsDefault ||
             mappedSpans.Length != spans.Length)
         {

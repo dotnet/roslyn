@@ -107,12 +107,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
 
             If synthesized IsNot Nothing Then
-                For Each attribute In synthesized
-                    Debug.Assert(attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule))
-                    Yield attribute
-                Next
-
-                synthesized.Free()
+                Try
+                    For Each attribute In synthesized
+                        Debug.Assert(attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule))
+                        Yield attribute
+                    Next
+                Finally
+                    synthesized.Free()
+                End Try
             End If
 
             For i = 0 To userDefined.Length - 1

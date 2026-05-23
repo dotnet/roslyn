@@ -68,7 +68,12 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
         bool enableProgressReporting,
         CancellationToken cancellationToken)
     {
-        using var progress = await workDoneProgressManager.CreateWorkDoneProgressAsync(reportProgressToClient: enableProgressReporting, cancellationToken);
+        await using var progress = await workDoneProgressManager.CreateWorkDoneProgressAsync(reportProgressToClient: enableProgressReporting,
+            title: LanguageServerResources.Restore,
+            startMessage: LanguageServerResources.Restore_started,
+            endMessage: LanguageServerResources.Restore_complete,
+            clientCanCancel: true,
+            cancellationToken);
         // Ensure we're observing cancellation token from the work done progress (to allow client cancellation).
         cancellationToken = progress.CancellationToken;
         return await RestoreCoreAsync(pathsToRestore, progress, dotnetCliHelper, logger, cancellationToken);
@@ -82,17 +87,6 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        // Report the start of the work done progress to the client.
-        progress.Report(new WorkDoneProgressBegin()
-        {
-            Title = LanguageServerResources.Restore,
-            // Adds a cancel button to the client side progress UI.
-            // Cancellation here is fine, it just means the restore will be incomplete (same as a cntrl+C for a CLI restore).
-            Cancellable = true,
-            Message = LanguageServerResources.Restore_started,
-            Percentage = 0,
-        });
-
         var success = true;
         foreach (var path in pathsToRestore)
         {
@@ -121,13 +115,6 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
                 success = false;
             }
         }
-
-        // Report work done progress completion
-        progress.Report(
-            new WorkDoneProgressEnd()
-            {
-                Message = LanguageServerResources.Restore_complete
-            });
 
         logger.LogInformation(LanguageServerResources.Restore_complete);
         return success;

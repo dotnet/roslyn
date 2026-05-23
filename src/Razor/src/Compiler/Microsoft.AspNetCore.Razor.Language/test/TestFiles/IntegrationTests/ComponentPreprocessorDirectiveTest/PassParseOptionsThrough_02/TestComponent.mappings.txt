@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [49] x:\dir\subdir\Test\TestComponent.razor)
+|
+#if !SomeSymbol
+    <p>Some text</p>
+#endif
+|
+Generated Location: (733:21,0 [49] )
+|
+#if !SomeSymbol
+    <p>Some text</p>
+#endif
+|
+

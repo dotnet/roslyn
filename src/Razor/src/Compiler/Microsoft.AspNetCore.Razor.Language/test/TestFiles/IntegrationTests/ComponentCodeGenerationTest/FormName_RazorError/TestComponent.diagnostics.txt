@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(2,54): Error RZ9986: Component attributes do not support complex content (mixed C# and markup). Attribute: '@formname', text: ' '

@@ -1022,6 +1022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             closureDebugInfoBuilder.Free()
             stateMachineStateDebugInfoBuilder.Free()
             lambdaRuntimeRudeEditsBuilder.Free()
+            lambdaRuntimeRudeEdits.Free()
         End Sub
 
         Private Sub CompileSynthesizedMethods(compilationState As TypeCompilationState)
@@ -1307,6 +1308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not DoLoweringPhase AndAlso sourceMethod IsNot Nothing Then
                 Debug.Assert(Me._diagnostics.DependenciesBag Is Nothing)
                 _diagnostics.AddRange(sourceMethod.Diagnostics)
+                diagsForCurrentMethod.Free()
                 Return
             End If
 
@@ -1589,6 +1591,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaDebugInfoBuilder.Free()
                 closureDebugInfoBuilder.Free()
                 lambdaRuntimeRudeEditsBuilder.Free()
+                lambdaRuntimeRudeEdits.Free()
+                stateMachineStateDebugInfoBuilder.Free()
             End Try
         End Sub
 
@@ -1994,9 +1998,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Dim locations As ImmutableArray(Of Location) = If(constructor.IsImplicitlyDeclared, containingType.Locations, constructor.Locations)
-            diagnostics.Add(If(locations.IsDefaultOrEmpty, Location.None, locations(0)), useSiteInfo)
-
             ' Generate an error
             If candidate Is Nothing Then
 
@@ -2071,7 +2072,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
                 End If
+
+                useSiteInfo.Add(candidate.GetUseSiteInfo())
             End If
+
+            Dim locations As ImmutableArray(Of Location) = If(constructor.IsImplicitlyDeclared, containingType.Locations, constructor.Locations)
+            diagnostics.Add(If(locations.IsDefaultOrEmpty, Location.None, locations(0)), useSiteInfo)
 
             Return candidate
         End Function
