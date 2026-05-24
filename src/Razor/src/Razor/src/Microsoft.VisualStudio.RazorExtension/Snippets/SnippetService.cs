@@ -38,7 +38,7 @@ internal class SnippetService
     {
         {
             s_CSharpLanguageId,
-            ImmutableHashSet.Create(CohostInlineCompletionEndpoint.GetBuildInCSharpSnippetTriggers())
+            ImmutableHashSet.Create(CohostInlineCompletionEndpoint.GetBuiltInCSharpSnippetTriggers())
         },
         {
             s_HtmlLanguageId,
