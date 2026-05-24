@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected) |
                 checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers) |
                 checkFeature(DeclarationModifiers.File, MessageID.IDS_FeatureFileTypes) |
+                checkFeature(DeclarationModifiers.Closed, MessageID.IDS_FeatureClosedClasses) |
                 checkFeature(DeclarationModifiers.Async, MessageID.IDS_FeatureAsync);
 
             return result;
@@ -350,6 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.ScopedKeyword);
                 case DeclarationModifiers.File:
                     return SyntaxFacts.GetText(SyntaxKind.FileKeyword);
+                case DeclarationModifiers.Closed:
+                    return SyntaxFacts.GetText(SyntaxKind.ClosedKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -403,6 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Scoped;
                 case SyntaxKind.FileKeyword:
                     return DeclarationModifiers.File;
+                case SyntaxKind.ClosedKeyword:
+                    return DeclarationModifiers.Closed;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
@@ -604,6 +609,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // i.e.: public private void Goo()
                     return false;
             }
+        }
+
+        /// <summary>
+        /// Gets the location of the <c>unsafe</c> keyword (preferred) or <c>extern</c> keyword from the given modifiers,
+        /// falling back to <paramref name="fallback"/> if neither is found.
+        /// Used for diagnostics related to <see cref="CallerUnsafeMode.Explicit"/>.
+        /// </summary>
+        internal static Location GetUnsafeOrExternLocation(this SyntaxTokenList modifiers, Location fallback)
+        {
+            var keyword = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword) is { } unsafeKeyword && unsafeKeyword != default
+                ? unsafeKeyword
+                : modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
+            return keyword != default ? keyword.GetLocation() : fallback;
         }
     }
 }

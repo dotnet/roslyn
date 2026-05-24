@@ -82,10 +82,25 @@
         <target state="translated">Znalezione testy ({0}) w {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Loaded_0">
+        <source>Loaded {0}</source>
+        <target state="translated">Załadowany plik {0}</target>
+        <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Loaded_0_projects">
+        <source>Loaded {0} project(s)</source>
+        <target state="translated">Załadowane projekty: {0}</target>
+        <note>The placeholder is the number of projects</note>
+      </trans-unit>
       <trans-unit id="Loading_0">
         <source>Loading {0}...</source>
         <target state="translated">Trwa ładowanie {0}...</target>
         <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Loading_0_projects">
+        <source>Loading {0} project(s)...</source>
+        <target state="translated">Trwa ładowanie {0} projektów...</target>
+        <note>The placeholder is the number of projects</note>
       </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>

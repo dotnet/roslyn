@@ -5,14 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -21,12 +19,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
 /// Implementation of a brokered service available in Visual Studio in-proc container and in DevKit.
+/// Created via <see cref="ManagedHotReloadLanguageServiceFactory"/>.
 /// </summary>
-[Shared]
-[Export(typeof(IEditAndContinueSolutionProvider))]
-[Export(typeof(ManagedHotReloadLanguageServiceImpl))]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ManagedHotReloadLanguageServiceImpl(
     EditAndContinueSessionState sessionState,
     Lazy<IHostWorkspaceProvider> workspaceProvider,
@@ -77,10 +71,11 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
     {
         sessionState.IsSessionActive = true;
 
-        if (_disabled)
-        {
-            return;
-        }
+        // Reset the disabled flag so that a previous session's failure does not permanently
+        // disable Hot Reload for subsequent sessions. Any exception that caused _disabled to be
+        // set is a product bug, but resetting here gives the user a chance to try again after
+        // restarting the debug session, instead of having to restart the Roslyn process.
+        _disabled = false;
 
         try
         {

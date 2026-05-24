@@ -2069,7 +2069,7 @@ class E<V>
         {
             var testClass = module.GlobalNamespace.GetTypeMember("D");
             var container = testClass.GetTypeMember("<Test>O__1_0");
-            AssertEx.NotNull(container);
+            Assert.NotNull(container);
 
             var typeParameters = container.TypeParameters;
             Assert.Equal(1, container.TypeParameters.Length);
@@ -2130,7 +2130,7 @@ class E<V>
             var globalNs = module.GlobalNamespace;
             var mainClass = globalNs.GetTypeMember("C");
             var container = globalNs.GetMember<NamedTypeSymbol>("D.<Test>O__1_0");
-            AssertEx.NotNull(container);
+            Assert.NotNull(container);
 
             var typeParameters = container.TypeParameters;
             Assert.Equal(1, container.TypeParameters.Length);
@@ -2187,13 +2187,13 @@ class E
         static void containerValidator(ModuleSymbol module)
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("D.<Test>O__0_0");
-            AssertEx.NotNull(container);
+            Assert.NotNull(container);
 
             var typeParameters = container.TypeParameters;
             Assert.Equal(1, container.TypeParameters.Length);
 
             var m = typeParameters[0];
-            AssertEx.NotNull(m);
+            Assert.NotNull(m);
             Assert.True(m.IsValueType);
         }
         CompileAndVerify(source, symbolValidator: containerValidator, expectedOutput: PASS).VerifyIL("D.Test<M>", @"
@@ -6304,7 +6304,7 @@ class Test
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test.<M>O__1_0");
             var field = Assert.Single(container.GetMembers()) as FieldSymbol;
-            AssertEx.NotNull(field);
+            Assert.NotNull(field);
 
             var typeParameters = new List<TypeParameterSymbol>();
             field.Type.VisitType(static (typeSymbol, typeParameters, _) =>
@@ -6856,7 +6856,7 @@ class D
         return module =>
         {
             var container = module.GlobalNamespace.GetMember<NamedTypeSymbol>(typeName);
-            AssertEx.NotNull(container);
+            Assert.NotNull(container);
             Assert.Equal(arity, container.Arity);
 
             var fields = container.GetMembers().OfType<FieldSymbol>().Select(field => $"{field.Type.ToTestDisplayString()} {field.Name}").ToArray();
@@ -6869,7 +6869,7 @@ class D
         return module =>
         {
             var containingType = module.GlobalNamespace.GetMember<NamedTypeSymbol>(containingTypeName);
-            AssertEx.NotNull(containingType);
+            Assert.NotNull(containingType);
 
             var nestedTypes = containingType.GetTypeMembers();
             Assert.DoesNotContain(nestedTypes, t => t.Name.StartsWith("<") && t.Name.Contains(">O"));

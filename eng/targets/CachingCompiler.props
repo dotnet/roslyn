@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" PrivateAssets="all" VersionOverride="5.7.0-1.26203.6">
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" PrivateAssets="all" VersionOverride="5.8.0-1.26228.20">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>

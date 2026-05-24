@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ArrayBuilder<GeneratedSourceText> _sourcesAdded;
         private readonly string _fileExtension;
+        private readonly ImmutableHashSet<string> _reservedHintNames;
 
         private const StringComparison _hintNameComparison = StringComparison.OrdinalIgnoreCase;
 
@@ -27,10 +28,17 @@ namespace Microsoft.CodeAnalysis
         private static readonly Regex s_invalidSegmentPattern = new Regex(@"(\.{1,2}|/|^| )/", RegexOptions.Compiled);
 
         internal AdditionalSourcesCollection(string fileExtension)
+            : this(fileExtension, ImmutableHashSet<string>.Empty)
+        {
+        }
+
+        internal AdditionalSourcesCollection(string fileExtension, ImmutableHashSet<string> reservedHintNames)
         {
             Debug.Assert(fileExtension.Length > 0 && fileExtension[0] == '.');
+            Debug.Assert(reservedHintNames.IsEmpty || reservedHintNames.KeyComparer == s_hintNameComparer);
             _sourcesAdded = ArrayBuilder<GeneratedSourceText>.GetInstance();
             _fileExtension = fileExtension;
+            _reservedHintNames = reservedHintNames;
         }
 
         public void Add(string hintName, SourceText source)
@@ -102,6 +110,10 @@ namespace Microsoft.CodeAnalysis
         public bool Contains(string hintName)
         {
             hintName = AppendExtensionIfRequired(hintName);
+            if (_reservedHintNames.Contains(hintName))
+            {
+                return true;
+            }
             for (int i = 0; i < _sourcesAdded.Count; i++)
             {
                 if (s_hintNameComparer.Equals(_sourcesAdded[i].HintName, hintName))
@@ -115,8 +127,8 @@ namespace Microsoft.CodeAnalysis
         public void CopyTo(AdditionalSourcesCollection asc)
         {
             // we know the individual hint names are valid, but we do need to check that they
-            // don't collide with any we already have
-            if (asc._sourcesAdded.Count == 0)
+            // don't collide with any we already have, including reserved hint names in `asc`
+            if (asc._sourcesAdded.Count == 0 && asc._reservedHintNames.IsEmpty)
             {
                 asc._sourcesAdded.AddRange(this._sourcesAdded);
             }

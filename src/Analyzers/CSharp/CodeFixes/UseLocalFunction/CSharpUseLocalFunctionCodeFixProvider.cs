@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
@@ -63,7 +64,7 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
 
         foreach (var diagnostic in diagnostics)
         {
-            var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+            var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
 
             var references = new List<ExpressionSyntax>(diagnostic.AdditionalLocations.Count - 2);
@@ -99,7 +100,8 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
         foreach (var (localDeclaration, anonymousFunction, references) in nodesFromDiagnostics.OrderByDescending(nodes => nodes.function.SpanStart))
         {
             var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType;
-            var parameterList = GenerateParameterList(anonymousFunction, delegateType.DelegateInvokeMethod);
+            var parameterList = EnsureUniqueParameterNames(
+                GenerateParameterList(anonymousFunction, delegateType.DelegateInvokeMethod));
             var makeStatic = MakeStatic(semanticModel, makeStaticIfPossible, localDeclaration, cancellationToken);
 
             var currentLocalDeclaration = currentRoot.GetCurrentNode(localDeclaration);
@@ -166,7 +168,9 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
         {
             // This is the split decl+init form.  Remove the second statement as we're
             // merging into the first one.
-            editor.RemoveNode(anonymousFunctionStatement);
+            editor.RemoveNode(anonymousFunctionStatement.Parent is GlobalStatementSyntax globalStatement
+                ? globalStatement
+                : anonymousFunctionStatement);
         }
 
         return editor.GetChangedRoot();
@@ -234,6 +238,32 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
         return LocalFunctionStatement(
             modifiers, returnType, identifier, typeParameterList, parameterList,
             constraintClauses, body, expressionBody, semicolonToken);
+    }
+
+    private static ParameterListSyntax EnsureUniqueParameterNames(ParameterListSyntax parameterList)
+    {
+        // Lambdas can contain multiple discard parameters, e.g.:
+        // Action<int, int> f = (_, _) => {};
+        // Ensure these parameters get unique names after conversion:
+        // void f(int _1, int _2) {}
+
+        var parameterNames = parameterList.Parameters.Select(p => p.Identifier.Text);
+        var isFixed = parameterNames.Select(name => name != "_");
+        var uniqueNames = NameGenerator.EnsureUniqueness([.. parameterNames], [.. isFixed]);
+
+        if (parameterNames.SequenceEqual(uniqueNames))
+            return parameterList;
+
+        var renameMap = parameterList.Parameters
+            .Zip(uniqueNames, (parameter, name) => (parameter, renamed: RenameParameter(parameter, name)))
+            .ToDictionary(p => p.parameter, p => p.renamed);
+
+        return parameterList.ReplaceNodes(parameterList.Parameters, (parameter, _) => renameMap[parameter]);
+
+        static ParameterSyntax RenameParameter(ParameterSyntax parameter, string newName)
+            => parameter.Identifier.Text == newName
+                ? parameter
+                : parameter.WithIdentifier(newName.ToIdentifierToken());
     }
 
     private static ParameterListSyntax GenerateParameterList(
