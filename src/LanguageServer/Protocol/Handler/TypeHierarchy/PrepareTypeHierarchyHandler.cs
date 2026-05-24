@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -28,10 +29,12 @@ internal sealed class PrepareTypeHierarchyHandler() : ILspServiceDocumentRequest
         => request.TextDocument;
 
     public async Task<LSP.TypeHierarchyItem[]?> HandleRequestAsync(LSP.TypeHierarchyPrepareParams request, RequestContext context, CancellationToken cancellationToken)
+        => await PrepareTypeHierarchyAsync(context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+
+    internal static async Task<LSP.TypeHierarchyItem[]?> PrepareTypeHierarchyAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
         var solution = document.Project.Solution;
-        var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+        var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var symbol = await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, solution.Services, includeType: true, cancellationToken).ConfigureAwait(false);

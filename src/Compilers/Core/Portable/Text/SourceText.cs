@@ -30,8 +30,10 @@ namespace Microsoft.CodeAnalysis.Text
         private const int CharBufferCount = 5;
         internal const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
-        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
-        private static readonly ObjectPool<XxHash128> s_contentHashPool = new ObjectPool<XxHash128>(() => new XxHash128());
+        // These pools don't track leaks because they are shared static pools where allocate/free pairs can
+        // span different test tracking contexts (e.g., lazy GetContentHash on a SourceText from a prior test).
+        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount, trackLeaks: false);
+        private static readonly ObjectPool<XxHash128> s_contentHashPool = new ObjectPool<XxHash128>(() => new XxHash128(), trackLeaks: false);
 
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private SourceTextContainer? _lazyContainer;
@@ -744,19 +746,13 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             });
 #else
-            var builder = PooledStringBuilder.GetInstance();
-            builder.Builder.EnsureCapacity(length);
+            // The netstandard approach can't utilize string.Create, so instead we copy into a temporary buffer
+            // and then construct the string from that. This uses plain arrays as the temporary storage, which avoids
+            // the overhead of a potentially large PooledStringBuilder, which earlier approaches used.
+            var copyBuffer = length <= tempBuffer.Length ? tempBuffer : new char[length];
 
-            while (position < this.Length && length > 0)
-            {
-                int copyLength = Math.Min(tempBuffer.Length, length);
-                this.CopyTo(position, tempBuffer, 0, copyLength);
-                builder.Builder.Append(tempBuffer, 0, copyLength);
-                length -= copyLength;
-                position += copyLength;
-            }
-
-            result = builder.ToStringAndFree();
+            this.CopyTo(position, copyBuffer, 0, length);
+            result = new string(copyBuffer, 0, length);
 #endif
 
             s_charArrayPool.Free(tempBuffer);
@@ -984,11 +980,43 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal sealed class LineInfo : TextLineCollection
         {
+            // Each entry encodes two fields in a uint:
+            //   Bit  31    (1 bit):  was the prior line break a \r\n (Windows-style) pair?
+            //   Bits 30-0  (31 bits): start position of this line
+            //
+            // Every line break is exactly one character (\n, \r, \u0085, \u2028, \u2029) except for
+            // the Windows \r\n sequence, which is two characters.  So the top bit is really a boolean:
+            // 0 means the prior line break was a single character (length 1), and 1 means it was the
+            // \r\n pair (length 2).  To recover the prior break length: (bit >>> 31) + 1.
+            //
+            // The first entry (_lineStarts[0]) always has bit 31 == 0, but that bit is never read as
+            // a break length: the indexer reads break lengths from _lineStarts[index + 1], so the
+            // minimum index accessed for break length is 1, which always corresponds to a real prior
+            // line break.
+            internal const int LineBreakLengthShift = 31;
+            internal const uint LineStartMask = (1u << LineBreakLengthShift) - 1; // 31 bits
+
+            private static int GetLineStart(uint entry) => (int)(entry & LineStartMask);
+
+            private sealed class LineStartComparer : IComparer<uint>
+            {
+                public static readonly LineStartComparer Instance = new LineStartComparer();
+                public int Compare(uint x, uint y) => GetLineStart(x).CompareTo(GetLineStart(y));
+            }
+
+            // priorLineBreakLength is 1 (any single-char break) or 2 (\r\n only); the top bit stores
+            // whether this was the 2-char \r\n case: (priorLineBreakLength - 1).
+            internal static uint PackEntry(int lineStart, int priorLineBreakLength)
+            {
+                Debug.Assert(priorLineBreakLength is 1 or 2);
+                return (uint)lineStart | ((uint)(priorLineBreakLength - 1) << LineBreakLengthShift);
+            }
+
             private readonly SourceText _text;
-            private readonly SegmentedList<int> _lineStarts;
+            private readonly SegmentedList<uint> _lineStarts;
             private int _lastLineNumber;
 
-            public LineInfo(SourceText text, SegmentedList<int> lineStarts)
+            public LineInfo(SourceText text, SegmentedList<uint> lineStarts)
             {
                 _text = text;
                 _lineStarts = lineStarts;
@@ -1005,15 +1033,17 @@ namespace Microsoft.CodeAnalysis.Text
                         throw new ArgumentOutOfRangeException(nameof(index));
                     }
 
-                    int start = _lineStarts[index];
+                    var start = GetLineStart(_lineStarts[index]);
                     if (index == _lineStarts.Count - 1)
                     {
-                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length));
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length), lineBreakLength: 0);
                     }
                     else
                     {
-                        int end = _lineStarts[index + 1];
-                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end));
+                        var nextEntry = _lineStarts[index + 1];
+                        var end = GetLineStart(nextEntry);
+                        var lineBreakLen = (int)(nextEntry >>> LineBreakLengthShift) + 1; // reverse the bias-1 encoding
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end), lineBreakLen);
                     }
                 }
             }
@@ -1027,15 +1057,15 @@ namespace Microsoft.CodeAnalysis.Text
 
                 int lineNumber;
 
-                // it is common to ask about position on the same line 
+                // it is common to ask about position on the same line
                 // as before or on the next couple lines
                 var lastLineNumber = _lastLineNumber;
-                if (position >= _lineStarts[lastLineNumber])
+                if (position >= GetLineStart(_lineStarts[lastLineNumber]))
                 {
                     var limit = Math.Min(_lineStarts.Count, lastLineNumber + 4);
-                    for (int i = lastLineNumber; i < limit; i++)
+                    for (var i = lastLineNumber; i < limit; i++)
                     {
-                        if (position < _lineStarts[i])
+                        if (position < GetLineStart(_lineStarts[i]))
                         {
                             lineNumber = i - 1;
                             _lastLineNumber = lineNumber;
@@ -1047,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // Binary search to find the right line
                 // if no lines start exactly at position, round to the left
                 // EoF position will map to the last line.
-                lineNumber = _lineStarts.BinarySearch(position);
+                lineNumber = _lineStarts.BinarySearch((uint)position, LineStartComparer.Instance);
                 if (lineNumber < 0)
                 {
                     lineNumber = (~lineNumber) - 1;
@@ -1083,19 +1113,19 @@ namespace Microsoft.CodeAnalysis.Text
             s_charArrayPool.Free(buffer);
         }
 
-        private SegmentedList<int> ParseLineStarts()
+        private SegmentedList<uint> ParseLineStarts()
         {
             // Corner case check
             if (0 == this.Length)
             {
-                return [0];
+                return [0u];
             }
 
             // Initial line capacity estimated at 64 chars / line. This value was obtained by
             // looking at ratios in large files in the roslyn repo.
-            var lineStarts = new SegmentedList<int>(Length / 64)
+            var lineStarts = new SegmentedList<uint>(Length / 64)
             {
-                0 // there is always the first line
+                0u // there is always the first line; top bits are 0 (no prior line break)
             };
 
             var lastWasCR = false;
@@ -1103,23 +1133,27 @@ namespace Microsoft.CodeAnalysis.Text
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
+            // Each entry encodes the start of the line in the low 31 bits and whether the
+            // *prior* line's break was the 2-char \r\n pair in the top bit (see LineInfo).
             EnumerateChars((int position, char[] buffer, int length) =>
             {
                 var index = 0;
                 if (lastWasCR)
                 {
+                    var breakLen = 1;
                     if (length > 0 && buffer[0] == '\n')
                     {
                         index++;
+                        breakLen = 2;
                     }
 
-                    lineStarts.Add(position + index);
+                    lineStarts.Add(LineInfo.PackEntry(position + index, breakLen));
                     lastWasCR = false;
                 }
 
                 while (index < length)
                 {
-                    char c = buffer[index];
+                    var c = buffer[index];
                     index++;
 
                     // Common case - ASCII & not a line break
@@ -1132,11 +1166,13 @@ namespace Microsoft.CodeAnalysis.Text
                     }
 
                     // Assumes that the only 2-char line break sequence is CR+LF
+                    var lineBreakLen = 1;
                     if (c == '\r')
                     {
                         if (index < length && buffer[index] == '\n')
                         {
                             index++;
+                            lineBreakLen = 2;
                         }
                         else if (index >= length)
                         {
@@ -1149,8 +1185,8 @@ namespace Microsoft.CodeAnalysis.Text
                         continue;
                     }
 
-                    // next line starts at index
-                    lineStarts.Add(position + index);
+                    // next line starts at index; encode the prior line's break length in the top bit
+                    lineStarts.Add(LineInfo.PackEntry(position + index, lineBreakLen));
                 }
             });
 

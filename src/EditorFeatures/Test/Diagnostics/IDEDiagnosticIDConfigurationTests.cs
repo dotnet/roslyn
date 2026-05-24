@@ -95,7 +95,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
         if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
         {
-            Assert.True(false, $"Invalid help link for {diagnosticId}");
+            Assert.Fail($"Invalid help link for {diagnosticId}");
         }
     }
 
@@ -138,7 +138,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             if (!expectedMap.TryGetValue(diagnosticIdString, out var expectedValue))
             {
-                Assert.False(true, $"""
+                Assert.Fail($"""
                     Missing entry:
 
                     {diagnosticIdString}
@@ -149,7 +149,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             // Verify entries match for diagnosticId
             if (expectedValue != editorConfigString)
             {
-                Assert.False(true, $"""
+                Assert.Fail($"""
                     Mismatch for '{diagnosticId}'
                     Expected: {expectedValue}
                     Actual: {editorConfigString}
@@ -161,7 +161,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
         if (expectedLines.Length == 0)
         {
-            Assert.False(true, $"Test Baseline:{baseline}");
+            Assert.Fail($"Test Baseline:{baseline}");
         }
 
         if (expectedMap.Count > 0)
@@ -174,7 +174,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
                 extraEntitiesBuilder.AppendLine(kvp.Value);
             }
 
-            Assert.False(true, $@"Unexpected entries:{extraEntitiesBuilder.ToString()}");
+            Assert.Fail($@"Unexpected entries:{extraEntitiesBuilder.ToString()}");
         }
     }
 
@@ -792,13 +792,13 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             if (!expectedMap.TryGetValue((diagnosticId, optionName), out var expectedValue))
             {
-                Assert.False(true, $@"Missing entry: {diagnosticId}, {optionName}, {optionValue}");
+                Assert.Fail($@"Missing entry: {diagnosticId}, {optionName}, {optionValue}");
             }
 
             // Verify entries match for diagnosticId
             if (expectedValue != optionValue)
             {
-                Assert.False(true, $@"Mismatch for: {diagnosticId}, {optionName}, {optionValue}");
+                Assert.Fail($@"Mismatch for: {diagnosticId}, {optionName}, {optionValue}");
             }
 
             expectedMap.Remove((diagnosticId, optionName));
@@ -850,7 +850,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0033", "dotnet_style_explicit_tuple_names", "true"),
             ("IDE0034", "csharp_prefer_simple_default_expression", "true"),
             ("IDE0035", null, null),
-            ("IDE0036", "csharp_preferred_modifier_order", "public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async"),
+            ("IDE0036", "csharp_preferred_modifier_order", "public,private,protected,internal,file,static,extern,new,virtual,abstract,closed,sealed,override,readonly,unsafe,required,volatile,async"),
             ("IDE0037", "dotnet_style_prefer_inferred_tuple_names", "true"),
             ("IDE0037", "dotnet_style_prefer_inferred_anonymous_type_member_names", "true"),
             ("IDE0038", "csharp_style_pattern_matching_over_is_with_cast_check", "true"),

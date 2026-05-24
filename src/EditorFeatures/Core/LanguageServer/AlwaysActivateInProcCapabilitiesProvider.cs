@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
@@ -23,13 +24,13 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
     IDiagnosticSourceManager diagnosticSourceManager,
     [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : ICapabilitiesProvider
 {
-    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
     {
         // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
         var isLspEditorEnabled = globalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
         var serverCapabilities = isLspEditorEnabled
-            ? (VSInternalServerCapabilities)defaultCapabilitiesProvider.GetCapabilities(clientCapabilities)
+            ? (VSInternalServerCapabilities)defaultCapabilitiesProvider.GetCapabilities(clientCapabilities, lspServices)
             : new VSInternalServerCapabilities()
             {
                 // Even if the flag is off, we want to include text sync capabilities.

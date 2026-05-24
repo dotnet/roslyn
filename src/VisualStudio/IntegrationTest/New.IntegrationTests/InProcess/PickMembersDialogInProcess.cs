@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
@@ -32,7 +33,7 @@ internal sealed partial class PickMembersDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
     }

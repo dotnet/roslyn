@@ -157,6 +157,7 @@ internal static class CompletionResultFactory
             if (lspVSClientCapability)
             {
                 lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache);
+
                 return lspItem;
             }
 
@@ -386,6 +387,7 @@ internal static class CompletionResultFactory
         {
             Label = item.GetEntireDisplayText(),
             Icon = new ImageElement(item.Tags.GetFirstGlyph().ToLSPImageId()),
+            MatchPriority = item.Rules.MatchPriority,
         };
 
         // Complex text edits (e.g. override and partial method completions) are always populated in the

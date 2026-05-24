@@ -64,7 +64,7 @@ public sealed class SolutionAssetCacheTests
         }
 
         // it should not reach here
-        AssertEx.Fail("asset not cleaned up");
+        Assert.Fail("asset not cleaned up");
     }
 
     [Fact]
@@ -119,6 +119,6 @@ public sealed class SolutionAssetCacheTests
         }
 
         // it should not reach here
-        AssertEx.Fail("asset not cleaned up");
+        Assert.Fail("asset not cleaned up");
     }
 }

@@ -1127,7 +1127,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A1]class C { }]@98 -> [[A2]class C { }]@98");
+            "Update [[A1]class C { }]@102 -> [[A2]class C { }]@102");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_)],
@@ -1162,7 +1162,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A, B]class C { }]@96 -> [[A]class C { }]@96");
+            "Update [[A, B]class C { }]@100 -> [[A]class C { }]@100");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_)],
@@ -1181,7 +1181,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[B, A]class C { }]@96 -> [[A]class C { }]@96");
+            "Update [[B, A]class C { }]@100 -> [[A]class C { }]@100");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_)],
@@ -1350,7 +1350,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A]class C { }]@96 -> [[A, B]class C { }]@96");
+            "Update [[A]class C { }]@100 -> [[A, B]class C { }]@100");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_)],
@@ -1368,7 +1368,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [class C { }]@48 -> [[A]class C { }]@48");
+            "Update [class C { }]@50 -> [[A]class C { }]@50");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_)],
@@ -1415,7 +1415,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[System.Obsolete(\"1\"), A, B]class C { }]@96 -> [[A, B, System.Obsolete(\"2\")]class C { }]@96");
+            "Update [[System.Obsolete(\"1\"), A, B]class C { }]@100 -> [[A, B, System.Obsolete(\"2\")]class C { }]@100");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_)],
@@ -2026,7 +2026,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", FeaturesResources.struct_));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Struct_ReadonlyModifier_Add()
     {
         var src1 = "struct X { }";
@@ -4418,7 +4418,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [enum E { }]@48 -> [[A]enum E { }]@48");
+            "Update [enum E { }]@50 -> [[A]enum E { }]@50");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "enum E", FeaturesResources.enum_)],
@@ -4436,7 +4436,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A]X]@57 -> [X]@57");
+            "Update [[A]X]@59 -> [X]@59");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "X", FeaturesResources.enum_value)],
@@ -4454,7 +4454,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [X]@57 -> [[A]X]@57");
+            "Update [X]@59 -> [[A]X]@59");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "[A]X", FeaturesResources.enum_value)],
@@ -4473,7 +4473,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A1]X]@107 -> [[A2]X]@107");
+            "Update [[A1]X]@111 -> [[A2]X]@111");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "[A2]X", FeaturesResources.enum_value)],
@@ -4998,7 +4998,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [public delegate int D(int a);]@39 -> [[return: A]public delegate int D(int a);]@39");
+            "Update [public delegate int D(int a);]@41 -> [[return: A]public delegate int D(int a);]@41");
 
         edits.VerifySemantics(
             [
@@ -5114,7 +5114,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [int a]@61 -> [[A]int a]@61");
+            "Update [int a]@63 -> [[A]int a]@63");
 
         edits.VerifySemantics(
             ActiveStatementsDescription.Empty,
@@ -5245,7 +5245,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [T]@70 -> [[A]T]@70");
+            "Update [T]@72 -> [[A]T]@72");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.GenericTypeUpdate, "T")],
@@ -5263,7 +5263,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [public delegate int D(int a);]@48 -> [[A]public delegate int D(int a);]@48");
+            "Update [public delegate int D(int a);]@50 -> [[A]public delegate int D(int a);]@50");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public delegate int D(int a)", FeaturesResources.delegate_)],
@@ -5281,7 +5281,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [public delegate int D(int a);]@48 -> [[A]public delegate int D(int a);]@48");
+            "Update [public delegate int D(int a);]@50 -> [[A]public delegate int D(int a);]@50");
 
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D"))],
@@ -5299,7 +5299,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [public delegate int D(int a);]@39 -> [[return: A][A]public delegate int D(int a);]@39");
+            "Update [public delegate int D(int a);]@41 -> [[return: A][A]public delegate int D(int a);]@41");
 
         edits.VerifySemantics(
             [
@@ -7388,7 +7388,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Extension_Block_ChangeParent()
     {
         var src1 = """
@@ -8030,7 +8030,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("extension block")));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Extension_Operator_AddRemove()
     {
         var src1 = """
@@ -9554,7 +9554,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IMethodSymbol>("M")));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Method_ReadOnlyModifier_Add_InReadOnlyStruct2()
     {
         var src1 = """
@@ -17150,7 +17150,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             ]);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void MemberInitializer_Update_Property_StaticCtorUpdate1()
     {
         var src1 = "class C { static int a { get; } = 1; static C() { } }";
@@ -23435,7 +23435,7 @@ class C() : B{{initializer}}
             capabilities: EditAndContinueCapabilities.Baseline);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void EventField_Delete()
     {
         var src1 = "class C { event System.Action E; }";
@@ -24576,7 +24576,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [int a]@63 -> [[A]int a]@63");
+            "Update [int a]@65 -> [[A]int a]@65");
 
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))],
@@ -24594,7 +24594,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [int a]@101 -> [[A]int a]@101");
+            "Update [int a]@103 -> [[A]int a]@103");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", "AAttribute", FeaturesResources.parameter)],
@@ -24613,7 +24613,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [int a]@143 -> [[A]int a]@143");
+            "Update [int a]@147 -> [[A]int a]@147");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", "AAttribute", FeaturesResources.parameter)],
@@ -24631,7 +24631,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [int a]@72 -> [[A]int a]@72");
+            "Update [int a]@74 -> [[A]int a]@74");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter)],
@@ -24650,7 +24650,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A]int a]@120 -> [[A, B]int a]@120");
+            "Update [[A]int a]@124 -> [[A, B]int a]@124");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter)],
@@ -24668,7 +24668,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A]int a]@72 -> [int a]@72");
+            "Update [[A]int a]@74 -> [int a]@74");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter)],
@@ -24687,7 +24687,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[System.Obsolete(\"1\"), B]int a]@120 -> [[System.Obsolete(\"2\"), A]int a]@120");
+            "Update [[System.Obsolete(\"1\"), B]int a]@124 -> [[System.Obsolete(\"2\"), A]int a]@124");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter)],
@@ -24894,7 +24894,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [T]@75 -> [[A]T]@72");
+            "Update [T]@77 -> [[A]T]@74");
 
         // Updating attributes of type parameters not supported:
         edits.VerifySemanticDiagnostics(
@@ -24914,7 +24914,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A   ]T]@120 -> [[A, B]T]@120");
+            "Update [[A   ]T]@124 -> [[A, B]T]@124");
 
         // Updating attributes of type parameters not supported:
         edits.VerifySemanticDiagnostics(
@@ -24933,7 +24933,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A]T]@72 -> [T]@75");
+            "Update [[A]T]@74 -> [T]@77");
 
         // Updating attributes of type parameters not supported:
         edits.VerifySemanticDiagnostics(
@@ -25112,7 +25112,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [T]@56 -> [[A]T]@56");
+            "Update [T]@58 -> [[A]T]@58");
 
         edits.VerifySemanticDiagnostics(
             [
@@ -25133,7 +25133,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A]T]@104 -> [[A, B]T]@104");
+            "Update [[A]T]@108 -> [[A, B]T]@108");
 
         edits.VerifySemanticDiagnostics(
             [
@@ -25153,7 +25153,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [T]@56 -> [[A]T]@56");
+            "Update [T]@58 -> [[A]T]@58");
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.GenericTypeUpdate, "T")],
@@ -25171,7 +25171,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[A]T]@56 -> [T]@56");
+            "Update [[A]T]@58 -> [T]@58");
 
         edits.VerifySemanticDiagnostics(
             [
@@ -25192,7 +25192,7 @@ class C() : B{{initializer}}
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyEdits(
-            "Update [[System.Obsolete(\"1\"), B]T]@104 -> [[System.Obsolete(\"2\"), A]T]@104");
+            "Update [[System.Obsolete(\"1\"), B]T]@108 -> [[System.Obsolete(\"2\"), A]T]@108");
 
         edits.VerifySemanticDiagnostics(
             [

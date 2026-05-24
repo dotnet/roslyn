@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             try
             {
                 SyntaxFactory.Token(SyntaxKind.IdentifierName);
-                AssertEx.Fail("Should have thrown - can't create an IdentifierName token");
+                Assert.Fail("Should have thrown - can't create an IdentifierName token");
                 return;
             }
             catch (Exception e)
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 try
                 {
                     SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.IdentifierToken, "text", "valueText", default(SyntaxTriviaList));
-                    AssertEx.Fail("Should have thrown");
+                    Assert.Fail("Should have thrown");
                     return;
                 }
                 catch (ArgumentException e)
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 try
                 {
                     SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.CharacterLiteralToken, "text", "valueText", default(SyntaxTriviaList));
-                    AssertEx.Fail("Should have thrown");
+                    Assert.Fail("Should have thrown");
                     return;
                 }
                 catch (ArgumentException e)
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 try
                 {
                     SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.NumericLiteralToken, "text", "valueText", default(SyntaxTriviaList));
-                    AssertEx.Fail("Should have thrown");
+                    Assert.Fail("Should have thrown");
                     return;
                 }
                 catch (ArgumentException e)

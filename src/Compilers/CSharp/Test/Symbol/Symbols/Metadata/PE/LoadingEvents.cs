@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                     Assert.Same(@event.RemoveMethod, accessor);
                     break;
                 default:
-                    Assert.False(true, string.Format("Accessor {0} has unexpected MethodKind {1}", accessor, accessor.MethodKind));
+                    Assert.Fail(string.Format("Accessor {0} has unexpected MethodKind {1}", accessor, accessor.MethodKind));
                     break;
             }
 
