@@ -4770,5 +4770,53 @@ class C { }
         }
 
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+        [Fact]
+        public void IdentificationProperties_DefaultIsNull()
+        {
+            var options = new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None);
+            Assert.Null(options.IdentificationProperties);
+        }
+
+        [Fact]
+        public void IdentificationProperties_Roundtrip()
+        {
+            var properties = ImmutableDictionary.CreateRange(new[]
+            {
+                new KeyValuePair<string, string?>("projectName", "MyProject"),
+                new KeyValuePair<string, string?>("projectId", "12345"),
+            });
+
+            var options = new GeneratorDriverOptions(identificationProperties: properties);
+            Assert.Same(properties, options.IdentificationProperties);
+        }
+
+        [Fact]
+        public void IdentificationProperties_NullExplicit()
+        {
+            var options = new GeneratorDriverOptions(identificationProperties: null);
+            Assert.Null(options.IdentificationProperties);
+        }
+
+        [Fact]
+        public void IdentificationProperties_PreservedThroughDriverRun()
+        {
+            var properties = ImmutableDictionary.CreateRange(new[]
+            {
+                new KeyValuePair<string, string?>("projectName", "TestProject"),
+            });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class C { }", parseOptions: parseOptions);
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                generators: [],
+                parseOptions: parseOptions,
+                driverOptions: new GeneratorDriverOptions(identificationProperties: properties));
+
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+            Assert.Empty(result.Diagnostics);
+        }
     }
 }

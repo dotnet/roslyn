@@ -219,8 +219,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             // run the actual generation
-            using var timer = CodeAnalysisEventSource.Log.CreateGeneratorDriverRunTimer();
             var state = _state;
+            using var timer = CodeAnalysisEventSource.Log.CreateGeneratorDriverRunTimer(state.IdentificationProperties);
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var syntaxInputNodes = ArrayBuilder<SyntaxInputNode>.GetInstance();
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], state.TrackingName, (t) => t.Add(syntaxStoreBuilder.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
+                using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], (t) => t.Add(syntaxStoreBuilder.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
                 try
                 {
                     // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.

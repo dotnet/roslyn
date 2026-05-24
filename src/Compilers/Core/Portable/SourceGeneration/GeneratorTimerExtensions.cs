@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.Tracing;
 using System.Text;
 using Roslyn.Utilities;
@@ -13,12 +14,21 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class GeneratorTimerExtensions
     {
-        public static RunTimer CreateGeneratorDriverRunTimer(this CodeAnalysisEventSource eventSource)
+        public static RunTimer CreateGeneratorDriverRunTimer(this CodeAnalysisEventSource eventSource, ImmutableDictionary<string, string?>? identificationProperties)
         {
             if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
             {
                 var id = Guid.NewGuid().ToString();
                 eventSource.StartGeneratorDriverRunTime(id);
+
+                if (identificationProperties is not null)
+                {
+                    foreach (var (name, value) in identificationProperties)
+                    {
+                        eventSource.GeneratorDriverTrackingProperty(id, name, value);
+                    }
+                }
+
                 return new RunTimer(t => eventSource.StopGeneratorDriverRunTime(t.Ticks, id));
             }
             else
@@ -27,14 +37,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static RunTimer CreateSingleGeneratorRunTimer(this CodeAnalysisEventSource eventSource, ISourceGenerator generator, string? trackingName, Func<TimeSpan, TimeSpan> adjustRunTime)
+        public static RunTimer CreateSingleGeneratorRunTimer(this CodeAnalysisEventSource eventSource, ISourceGenerator generator, Func<TimeSpan, TimeSpan> adjustRunTime)
         {
             if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
             {
                 var id = Guid.NewGuid().ToString();
                 var type = generator.GetGeneratorType();
                 eventSource.StartSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, id);
-                return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, trackingName ?? "<No Tracking Name>", type.Assembly.Location, t.Ticks, id), adjustRunTime);
+                return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id), adjustRunTime);
             }
             else
             {

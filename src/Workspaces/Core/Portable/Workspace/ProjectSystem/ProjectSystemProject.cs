@@ -1163,7 +1163,7 @@ internal sealed partial class ProjectSystemProject
                     if (redirectedPath == null)
                     {
                         redirectedPath = currentlyRedirectedPath;
-                        CodeAnalysisEventSource.Log.AnanlyzerReferenceRedirected(redirector.GetType().Name, fullPath, redirectedPath, DisplayName);
+                        CodeAnalysisEventSource.Log.AnalyzerReferenceRedirected(redirector.GetType().Name, fullPath, redirectedPath, DisplayName);
                     }
                     else if (redirectedPath != currentlyRedirectedPath)
                     {

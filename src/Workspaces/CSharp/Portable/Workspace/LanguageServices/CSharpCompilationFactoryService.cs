@@ -53,6 +53,6 @@ internal sealed class CSharpCompilationFactoryService : ICompilationFactoryServi
         return new CSharpCompilationOptions(outputKind: outputKind);
     }
 
-    GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, string? generatedFilesBaseDirectory, string? trackingName)
-        => CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider, new GeneratorDriverOptions(baseDirectory: generatedFilesBaseDirectory, trackingName: trackingName));
+    GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, string? generatedFilesBaseDirectory, ImmutableDictionary<string, string?>? identificationProperties)
+        => CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider, new GeneratorDriverOptions(baseDirectory: generatedFilesBaseDirectory, identificationProperties: identificationProperties));
 }

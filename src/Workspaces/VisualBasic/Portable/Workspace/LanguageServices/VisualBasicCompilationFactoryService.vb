@@ -66,8 +66,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optionsProvider As AnalyzerConfigOptionsProvider,
                 additionalTexts As ImmutableArray(Of AdditionalText),
                 generatedFilesBaseDirectory As String,
-                trackingName As String) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
-            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), optionsProvider, New GeneratorDriverOptions(baseDirectory:=generatedFilesBaseDirectory, trackingName:=trackingName))
+                identificationProperties As ImmutableDictionary(Of String, String)) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
+            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), optionsProvider, New GeneratorDriverOptions(baseDirectory:=generatedFilesBaseDirectory, identificationProperties:=identificationProperties))
         End Function
     End Class
 End Namespace

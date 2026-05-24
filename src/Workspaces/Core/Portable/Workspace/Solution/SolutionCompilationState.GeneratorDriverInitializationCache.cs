@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -68,13 +69,17 @@ internal sealed partial class SolutionCompilationState
                 var additionalTexts = projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
                 var compilationFactory = projectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
+                using var _ = PooledDictionary<string, string?>.GetInstance(out var identificationProperties);
+                identificationProperties.Add("projectName", projectState.Name);
+                identificationProperties.Add("projectId", projectState.Id.ToString());
+
                 var generatorDriver = compilationFactory.CreateGeneratorDriver(
                     projectState.ParseOptions!,
                     GetSourceGenerators(projectState),
                     projectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider,
                     additionalTexts,
                     generatedFilesBaseDirectory,
-                    $"{projectState.Name} ({projectState.Id})");
+                    identificationProperties.ToImmutableDictionary());
 
                 return generatorDriver.RunGenerators(compilation, generatorFilter, cancellationToken);
             }

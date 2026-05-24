@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis
         internal string? BaseDirectory => _driverOptions.BaseDirectory;
 
         /// <summary>
-        /// An optional tracking name that can be used to identify this driver.
+        /// An optional set of identification properties that can be used to identify this driver in logging frameworks.
         /// </summary>
-        internal string? TrackingName => _driverOptions.TrackingName;
+        internal ImmutableDictionary<string, string?>? IdentificationProperties => _driverOptions.IdentificationProperties;
 
         /// <summary>
         /// ParseOptions to use when parsing generator provided source.

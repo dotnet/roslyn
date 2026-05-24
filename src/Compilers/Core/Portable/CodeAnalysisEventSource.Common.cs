@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         private CodeAnalysisEventSource() { }
 
         [Event(1, Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Start, Task = Tasks.GeneratorDriverRunTime)]
-        internal void StartGeneratorDriverRunTime(string id) => WriteEvent(1, id);
+        internal void StartGeneratorDriverRunTime(string runId) => WriteEvent(1, runId);
 
         [Event(2, Message = "Generators ran for {0} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.GeneratorDriverRunTime)]
         internal void StopGeneratorDriverRunTime(long elapsedTicks, string id) => WriteEvent(2, elapsedTicks, id);
@@ -37,19 +37,17 @@ namespace Microsoft.CodeAnalysis
         internal void StartSingleGeneratorRunTime(string generatorName, string assemblyPath, string id) => WriteEvent(3, generatorName, assemblyPath, id);
 
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
-        internal unsafe void StopSingleGeneratorRunTime(string generatorName, string trackingName, string assemblyPath, long elapsedTicks, string id)
+        internal unsafe void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id)
         {
             if (IsEnabled())
             {
                 fixed (char* generatorNameBytes = generatorName)
-                fixed (char* trackingNameBytes = trackingName)
                 fixed (char* assemblyPathBytes = assemblyPath)
                 fixed (char* idBytes = id)
                 {
                     Span<EventData> data =
                     [
                         GetEventDataForString(generatorName, generatorNameBytes),
-                        GetEventDataForString(trackingName, trackingNameBytes),
                         GetEventDataForString(assemblyPath, assemblyPathBytes),
                         GetEventDataForInt64(&elapsedTicks),
                         GetEventDataForString(id, idBytes),
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis
         internal void AnalyzerReferenceRemovedFromProject(string path, string projectName) => WriteEvent(16, path, projectName);
 
         [Event(17, Message = "Analyzer reference was redirected by '{0}' from '{1}' to '{2}' for project '{3}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
-        internal unsafe void AnanlyzerReferenceRedirected(string redirectorType, string originalPath, string newPath, string project)
+        internal unsafe void AnalyzerReferenceRedirected(string redirectorType, string originalPath, string newPath, string project)
         {
             if (IsEnabled())
             {
@@ -186,6 +184,9 @@ namespace Microsoft.CodeAnalysis
 
         [Event(20, Message = "Project '{0}' created with file path '{1}'", Level = EventLevel.Informational)]
         internal void ProjectCreated(string projectSystemName, string? filePath) => WriteEvent(20, projectSystemName, filePath ?? string.Empty);
+
+        [Event(21, Keywords = Keywords.Performance, Level = EventLevel.Informational)]
+        internal void GeneratorDriverTrackingProperty(string id, string propertyName, string? propertyValue) => WriteEvent(21, id, propertyName, propertyValue);
 
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {

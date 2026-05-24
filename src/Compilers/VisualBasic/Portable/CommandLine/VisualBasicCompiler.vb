@@ -7,6 +7,7 @@ Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.MetadataTypeName
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -297,9 +298,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Private Protected Overrides Function CreateGeneratorDriver(baseDirectory As String, trackingName As String, parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver
-            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider,
-                                                     driverOptions:=New GeneratorDriverOptions(disabledOutputs:=IncrementalGeneratorOutputKind.Host, baseDirectory:=baseDirectory, trackingName:=trackingName))
+        Private Protected Overrides Function CreateGeneratorDriver(baseDirectory As String, assemblyName As String, parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver
+            Return VisualBasicGeneratorDriver.Create(generators,
+                                                     additionalTexts,
+                                                     DirectCast(parseOptions, VisualBasicParseOptions),
+                                                     analyzerConfigOptionsProvider,
+                                                     driverOptions:=New GeneratorDriverOptions(disabledOutputs:=IncrementalGeneratorOutputKind.Host,
+                                                                                               baseDirectory:=baseDirectory,
+                                                                                               identificationProperties:=ImmutableDictionary.Create(Of String, String)().Add(NameOf(assemblyName), assemblyName)))
         End Function
 
         Private Protected Overrides Sub DiagnoseBadAccesses(consoleOutput As TextWriter, errorLogger As ErrorLogger, compilation As Compilation, diagnostics As ImmutableArray(Of Diagnostic))

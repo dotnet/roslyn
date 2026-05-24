@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -17,15 +18,15 @@ namespace Microsoft.CodeAnalysis
         public readonly bool TrackIncrementalGeneratorSteps;
 
         /// <summary>
+        /// A dictionary of properties used to identify this driver in logging frameworks.
+        /// </summary>
+        public ImmutableDictionary<string, string?>? IdentificationProperties { get; }
+
+        /// <summary>
         /// Absolute path to directory that generated source file paths are rooted with, or null to use relative paths for the generated files.
         /// Usually the project's output directory unless <see cref="CommandLineArguments.GeneratedFilesOutputDirectory"/> is specified.
         /// </summary>
         public string? BaseDirectory { get; }
-
-        /// <summary>
-        /// A tracking name that can be used to identify the generator driver that these options belong to.
-        /// </summary>
-        public string? TrackingName { get; }
 
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
             : this(disabledOutputs, false)
@@ -44,9 +45,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="disabledOutputs"></param>
         /// <param name="trackIncrementalGeneratorSteps"></param>
         /// <param name="baseDirectory">Absolute path to the base directory used for file paths of generated files.</param>
-        /// <param name="trackingName">An identifier that can be used to identify a generator driver.</param>
+        /// <param name="identificationProperties">A dictionary of properties used to identify this driver in logging frameworks.</param>
         /// <exception cref="ArgumentException"><paramref name="baseDirectory"/> is not an absolute path.</exception>
-        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null, string? trackingName = null)
+        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null, ImmutableDictionary<string, string?>? identificationProperties = null)
         {
             if (baseDirectory != null && !PathUtilities.IsAbsolute(baseDirectory))
             {
@@ -56,12 +57,12 @@ namespace Microsoft.CodeAnalysis
             DisabledOutputs = disabledOutputs;
             TrackIncrementalGeneratorSteps = trackIncrementalGeneratorSteps;
             BaseDirectory = baseDirectory;
-            TrackingName = trackingName;
+            IdentificationProperties = identificationProperties;
         }
 
         // 5.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs, bool trackIncrementalGeneratorSteps, string? baseDirectory)
-            : this(disabledOutputs, trackIncrementalGeneratorSteps, baseDirectory, trackingName: null)
+            : this(disabledOutputs, trackIncrementalGeneratorSteps, baseDirectory, identificationProperties: null)
         {
         }
     }
