@@ -657,7 +657,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
-    public void ChainInsideExpressionTree_ReportsCS9388()
+    public void ChainInsideExpressionTree_ReportsCS9389()
     {
         var src = """
             using System;
@@ -670,7 +670,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
             .VerifyDiagnostics(
-                // (6,67): error CS9388: An expression tree may not contain a chained relational comparison.
+                // (6,67): error CS9389: An expression tree may not contain a chained relational comparison.
                 //     static Expression<Func<int, int, int, bool>> F = (a, b, c) => a < b < c;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsChainedRelationalComparison, "a < b < c").WithLocation(6, 67));
     }
@@ -1036,9 +1036,9 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
-    public void ChainFallback_OuterLinkResolvesToNonBoolOperator_ReportsCS9387()
+    public void ChainFallback_OuterLinkResolvesToNonBoolOperator_ReportsCS9388()
     {
-        // Outer `b < c` resolves but its operator returns S, not bool -> CS9387.
+        // Outer `b < c` resolves but its operator returns S, not bool -> CS9388.
         var src = """
             struct S
             {
@@ -1065,15 +1065,15 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
             .VerifyDiagnostics(
-                // (21,45): error CS9387: Operator '<' cannot be applied to operands of type 'S' and 'int' as a chained relational comparison.
+                // (21,45): error CS9388: Operator '<' cannot be applied to operands of type 'S' and 'int' as a chained relational comparison.
                 //     static bool F(S a, S b, int c) => a < b < c;
                 Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "int").WithLocation(21, 45));
     }
 
     [Fact]
-    public void ChainFallback_OuterLinkResolutionIsAmbiguous_ReportsCS9387()
+    public void ChainFallback_OuterLinkResolutionIsAmbiguous_ReportsCS9388()
     {
-        // Ambiguous `Y op B` overload resolution also routes through CS9387.
+        // Ambiguous `Y op B` overload resolution also routes through CS9388.
         var src = """
             struct Wrap1
             {
@@ -1115,7 +1115,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
             .VerifyDiagnostics(
-                // (36,45): error CS9387: Operator '<' cannot be applied to operands of type 'S' and 'int' as a chained relational comparison.
+                // (36,45): error CS9388: Operator '<' cannot be applied to operands of type 'S' and 'int' as a chained relational comparison.
                 //     static bool F(S a, S b, int c) => a < b < c;
                 Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "int").WithLocation(36, 45));
     }
@@ -1123,7 +1123,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void ChainFallback_OnOlderLanguageVersion_ReportsBothPreviewAndRule2Errors()
     {
-        // Both CS8652 (preview-gate) and CS9387 (rule 2(b)) fire on an older langver.
+        // Both CS8652 (preview-gate) and CS9388 (rule 2(b)) fire on an older langver.
         var src = """
             struct S
             {
@@ -1149,16 +1149,16 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 // (17,41): error CS8652: The feature 'chained relational comparison' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static bool F(S a, S b, Point c) => a < b < c;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "a < b < c").WithArguments("chained relational comparison").WithLocation(17, 41),
-                // (17,47): error CS9387: Operator '<' cannot be applied to operands of type 'S' and 'Point' as a chained relational comparison.
+                // (17,47): error CS9388: Operator '<' cannot be applied to operands of type 'S' and 'Point' as a chained relational comparison.
                 //     static bool F(S a, S b, Point c) => a < b < c;
                 Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "Point").WithLocation(17, 47));
     }
 
     [Fact]
-    public void ChainFallback_InnerConversionShapesYAwayFromCompatibleRawType_ReportsCS9387()
+    public void ChainFallback_InnerConversionShapesYAwayFromCompatibleRawType_ReportsCS9388()
     {
         // The outer resolution sees Y *as classified by the inner link*. The inner link
-        // converts `b` from B to int, and outer `int < string` has no operator -> CS9387.
+        // converts `b` from B to int, and outer `int < string` has no operator -> CS9388.
         var src = """
             struct B
             {
@@ -1182,7 +1182,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
             .VerifyDiagnostics(
-                // (18,50): error CS9387: Operator '<' cannot be applied to operands of type 'int' and 'string' as a chained relational comparison.
+                // (18,50): error CS9388: Operator '<' cannot be applied to operands of type 'int' and 'string' as a chained relational comparison.
                 //     static bool F(int a, B b, string c) => a < b < c;
                 Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "int", "string").WithLocation(18, 50));
     }
@@ -1192,9 +1192,9 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [InlineData("<=")]
     [InlineData(">")]
     [InlineData(">=")]
-    public void ChainFallback_OuterLinkError_ReportsCS9387_ForEveryChainableOperator(string op)
+    public void ChainFallback_OuterLinkError_ReportsCS9388_ForEveryChainableOperator(string op)
     {
-        // Cross-check the CS9387 path on each of the four chainable operators.
+        // Cross-check the CS9388 path on each of the four chainable operators.
         var src = $$"""
             struct S
             {
@@ -1221,9 +1221,9 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
-    public void ChainFallback_OuterLinkHasNoApplicableOperator_ReportsCS9387()
+    public void ChainFallback_OuterLinkHasNoApplicableOperator_ReportsCS9388()
     {
-        // Outer `S < Point` has no applicable operator -> CS9387 (not CS0019).
+        // Outer `S < Point` has no applicable operator -> CS9388 (not CS0019).
         var src = """
             struct S
             {
@@ -1250,7 +1250,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
             .VerifyDiagnostics(
-                // (21,47): error CS9387: Operator '<' cannot be applied to operands of type 'S' and 'Point' as a chained relational comparison.
+                // (21,47): error CS9388: Operator '<' cannot be applied to operands of type 'S' and 'Point' as a chained relational comparison.
                 //     static bool F(S a, S b, Point c) => a < b < c;
                 Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "Point").WithLocation(21, 47));
     }
