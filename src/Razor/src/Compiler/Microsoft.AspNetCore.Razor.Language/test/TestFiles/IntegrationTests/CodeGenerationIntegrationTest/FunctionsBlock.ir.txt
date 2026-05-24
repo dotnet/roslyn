@@ -1,0 +1,30 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_FunctionsBlock - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (19:3,0 [2] FunctionsBlock.cshtml)
+                    LazyIntermediateToken - (19:3,0 [2] FunctionsBlock.cshtml) - Html - \n
+                HtmlContent - (140:10,0 [26] FunctionsBlock.cshtml)
+                    LazyIntermediateToken - (140:10,0 [26] FunctionsBlock.cshtml) - Html - \nHere's a random number: 
+                CSharpExpression - (167:11,25 [11] FunctionsBlock.cshtml)
+                    LazyIntermediateToken - (167:11,25 [11] FunctionsBlock.cshtml) - CSharp - RandomInt()
+            CSharpCode - (12:0,12 [4] FunctionsBlock.cshtml)
+                LazyIntermediateToken - (12:0,12 [4] FunctionsBlock.cshtml) - CSharp - \n\n
+            CSharpCode - (33:4,12 [104] FunctionsBlock.cshtml)
+                LazyIntermediateToken - (33:4,12 [104] FunctionsBlock.cshtml) - CSharp - \n    Random _rand = new Random();\n    private int RandomInt() {\n        return _rand.Next();\n    }\n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

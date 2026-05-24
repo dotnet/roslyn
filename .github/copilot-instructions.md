@@ -10,6 +10,7 @@
 - **EditorFeatures** (`src/EditorFeatures/`): Editor-specific implementations and text buffer integration
 - **LanguageServer** (`src/LanguageServer/`): LSP implementation used by VS Code extension
 - **VisualStudio** (`src/VisualStudio/`): VS-specific language services and UI integration
+- **Razor** (`src/Razor/`): Razor compiler and Razor IDE tooling for `.razor`/`.cshtml` files (merged from `dotnet/razor`). The sub-tree kept its internal layout, so source actually lives under `src/Razor/src/Razor/`, `src/Razor/src/Compiler/`, `src/Razor/src/Shared/`, and `src/Razor/src/Analyzers/`. See `.github/instructions/Razor.instructions.md` for razor-specific guidance.
 
 ## Development Workflow
 
@@ -106,3 +107,7 @@ Several core data structures are generated from XML definitions — never edit g
 - `src/Compilers/CSharp/Portable/Syntax/Syntax.xml` — Syntax tree node definitions
 - `src/Compilers/CSharp/Portable/BoundTree/BoundNodes.xml` — Bound tree node definitions
 - `docs/wiki/Roslyn-Overview.md` — Architecture deep-dive
+
+## Code Review
+
+When performing a code review, follow the review process, priorities, conventions, and output format defined in the [code-review skill](/.github/skills/code-review/SKILL.md).

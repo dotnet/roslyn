@@ -1,0 +1,652 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../HtmlDescriptions.resx">
+    <body>
+      <trans-unit id="HtmlAttribute_async">
+        <source>The script will be executed asynchronously, as soon as it is available.</source>
+        <target state="translated">스크립트가 사용 가능한 즉시 비동기적으로 실행됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_defer">
+        <source>The script is executed when the page has finished parsing.</source>
+        <target state="translated">페이지 구문 분석이 끝날 때 스크립트가 실행됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_draggable">
+        <source>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</source>
+        <target state="translated">draggable 특성이 있는 요소에는 비시각적 상호 작용을 위해 요소의 이름을 지정하는 title 특성도 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_integrity">
+        <source>The integrity attribute represents integrity metadata for an element.</source>
+        <target state="translated">integrity 특성은 요소에 대한 무결성 메타데이터를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_open">
+        <source>When specified, it indicates that the dialog element is active and that the user can interact with it.</source>
+        <target state="translated">지정된 경우 대화 상자 요소가 활성화되어 있고 사용자가 이 요소를 조작할 수 있음을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_sizes">
+        <source>Image sizes between breakpoints.</source>
+        <target state="translated">중단점 간의 이미지 크기입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlAttribute_srcset">
+        <source>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</source>
+        <target state="translated">여러 가지 상황에서 사용할 이미지입니다(예: 고해상도 디스플레이, 소형 모니터 등).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_a">
+        <source>If the a element has an href attribute, then it represents a hyperlink (a hypertext anchor) labeled by its contents.</source>
+        <target state="translated">요소에 href 특성이 있으면 해당 콘텐츠별로 레이블이 지정된 하이퍼링크(하이퍼텍스트 앵커)를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_abbr">
+        <source>The abbr element represents an abbreviation or acronym, optionally with its expansion. The title attribute may be used to provide an expansion of the abbreviation. The attribute, if specified, must contain an expansion of the abbreviation, and nothing else.</source>
+        <target state="translated">abbr 요소는 경우에 따라 확장이 있는 약어 또는 머리 글자어를 나타냅니다. title 특성을 사용하여 약어에 대한 확장을 제공할 수 있습니다. 지정된 경우 특성에는 약어에 대한 확장만 포함되어 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_address">
+        <source>The address element represents the contact information for its nearest article or body element ancestor. If that is the body element, then the contact information applies to the document as a whole.</source>
+        <target state="translated">address 요소는 가장 가까운 문서 또는 body 요소의 상위 항목에 대한 연락처 정보를 나타냅니다. body 요소인 경우 연락처 정보는 문서에 전체적으로 적용됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_area">
+        <source>The area element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map.</source>
+        <target state="translated">area 요소는 이미지 맵에 일부 텍스트와 해당 영역이 있거나 이미지 맵에 사용되지 않는 영역이 있는 하이퍼링크를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_article">
+        <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</source>
+        <target state="translated">article 요소는 문서, 페이지, 애플리케이션 또는 사이트에서 전체 컴퍼지션 또는 자체 포함 컴퍼지션을 나타냅니다. 즉, 원칙적으로 배포와 같은 경우에 독립적으로 배포하거나 다시 사용할 수 있습니다. 이는 포럼 게시물, 잡지 또는 신문 기사, 블로그 항목, 사용자 제출 의견, 대화형 위젯이나 가젯, 또는 콘텐츠의 독립적인 기타 항목일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_aside">
+        <source>The aside element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content. Such sections are often represented as sidebars in printed typography.</source>
+        <target state="translated">aside 요소는 aside 요소 주위의 콘텐츠와 별로 관계가 없는 콘텐츠로 구성된 페이지 섹션을 나타내며, 이는 해당 콘텐츠와 별개로 간주할 수 있습니다. 이러한 섹션은 주로 인쇄된 입력 체계에서 사이드바로 표시됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_audio">
+        <source>An audio element represents a sound or audio stream.</source>
+        <target state="translated">audio 요소는 사운드 또는 오디오 스트림을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_b">
+        <source>The b element represents a span of text to which attention is being drawn for utilitarian purposes without conveying any extra importance and with no implication of an alternate voice or mood, such as key words in a document abstract, product names in a review, actionable words in interactive text-driven software, or an article lede.</source>
+        <target state="translated">b 요소는 문서 요약의 키워드, 검토 시 제품 이름, 대화형 텍스트 기반의 소프트웨어에서 작동 가능한 단어 또는 문서 소식 같이 중요성을 더 알리지 않고도 대체 음성이나 무드가 포함되지 않은 상태로 이해하기 쉽게 주의를 끄는 텍스트 범위를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_base">
+        <source>The base element allows authors to specify the document base URL for the purposes of resolving relative URLs, and the name of the default browsing context for the purposes of following hyperlinks. The element does not represent any content beyond this information.</source>
+        <target state="translated">base 요소를 통해 작성자는 상대 URL을 확인하는 목적으로 문서의 기본 URL을 지정할 수 있으며 다음 하이퍼링크에 사용될 목적으로 기본 검색 컨텍스트의 이름을 지정할 수 있습니다. 요소는 이 정보를 벗어나는 콘텐츠를 나타내지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_bdi">
+        <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</source>
+        <target state="translated">bdi 요소는 양방향 텍스트 서식 지정을 위해 주변 항목에서 격리할 텍스트 범위를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_bdo">
+        <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</source>
+        <target state="translated">bdo 요소는 해당 자식에 대한 명시적인 텍스트 방향 서식 지정을 나타냅니다. 이 요소를 통해 작성자는 방향 재정의를 명시적으로 지정하여 유니코드 양방향 알고리즘을 재정의할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_blockquote">
+        <source>The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a footer or cite element, and optionally with in-line changes such as annotations and abbreviations.</source>
+        <target state="translated">blockquote 요소는 다른 원본에서 인용된 콘텐츠를 나타냅니다. 경우에 따라 footer 또는 cite 요소 내에 있어야 하는 인용구를 사용하거나 주석 및 약어 같은 인라인 변경 내용으로 표시됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_body">
+        <source>The body element represents the content of the document.</source>
+        <target state="translated">body 요소는 문서의 콘텐츠를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_br">
+        <source>The br element represents a line break.</source>
+        <target state="translated">br 요소는 줄 바꿈을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_button">
+        <source>The button element represents a button labeled by its contents.</source>
+        <target state="translated">button 요소는 해당 콘텐츠별로 레이블이 지정된 단추를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_canvas">
+        <source>The canvas element provides scripts with a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, art, or other visual images on the fly.</source>
+        <target state="translated">canvas 요소는 해상도 기반의 비트맵 캔버스를 사용하는 스크립트를 제공합니다. 이를 사용하여 그래프, 게임 그래픽, 예술 또는 기타 시각적 이미지를 신속하게 렌더링할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_caption">
+        <source>The caption element represents the title of the table that is its parent, if it has a parent and that is a table element.</source>
+        <target state="translated">caption 요소는 부모가 있고 이 부모가 table 요소인 경우 해당 부모인 테이블의 제목을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_cite">
+        <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</source>
+        <target state="translated">cite 요소는 창작물에 대한 참조를 나타냅니다. 이 요소는 작업의 제목이나 작성자의 이름(개인, 사람들 또는 조직) 또는 URL 참조를 포함해야 하며, 이 경우 인용구 메타데이터를 추가하는 데 사용되는 규칙에 따라 축약된 형태일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_code">
+        <source>The code element represents a fragment of computer code. This could be an XML element name, a file name, a computer program, or any other string that a computer would recognize.</source>
+        <target state="translated">code 요소는 컴퓨터 코드 조각을 나타냅니다. 이 요소는 XML 요소 이름, 파일 이름, 컴퓨터 프로그램 또는 컴퓨터에서 인식하는 다른 모든 문자열일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_col">
+        <source>If a col element has a parent and that is a colgroup element that itself has a parent that is a table element, then the col element represents one or more columns in the column group represented by that colgroup.</source>
+        <target state="translated">col 요소에 부모가 있고 이 부모가 자체에 table 요소인 부모가 있는 colgroup 요소인 경우 col 요소는 해당 colgroup에서 표시하는 열 그룹에 하나 이상의 열을 표시합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_colgroup">
+        <source>The colgroup element represents a group of one or more columns in the table that is its parent, if it has a parent and that is a table element.</source>
+        <target state="translated">colgroup 요소는 부모가 있고 이 부모가 table 요소인 경우 해당 부모인 테이블에 하나 이상의 열 그룹을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_command">
+        <source>The command element represents a command that the user can invoke.</source>
+        <target state="translated">command 요소는 사용자가 호출할 수 있는 명령을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_content">
+        <source>The content element represents an insertion point in the shadow tree.</source>
+        <target state="translated">content 요소는 그림자 트리의 삽입 지점을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_datalist">
+        <source>The datalist element represents a set of option elements that represent predefined options for other controls. In the rendering, the datalist element represents nothing and it, along with its children, should be hidden.</source>
+        <target state="translated">datalist 요소는 다른 컨트롤에 대해 미리 정의된 옵션을 나타내는 옵션 집합 요소를 나타냅니다. 렌더링 시 datalist 요소는 아무것도 나타내지 않으며 해당 자식과 함께 숨겨야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dd">
+        <source>The dd element represents the description, definition, or value, part of a term-description group in a description list (dl element).</source>
+        <target state="translated">dd 요소는 설명 목록(dl 요소)에서 설명, 정의 또는 값, 용어-설명 그룹의 일부를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_del">
+        <source>The del element represents a removal from the document.</source>
+        <target state="translated">del 요소는 문서에서 제거된 항목을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_details">
+        <source>The details element represents a disclosure widget from which the user can obtain additional information or controls.</source>
+        <target state="translated">details 요소는 사용자가 추가 정보나 컨트롤을 볼 수 있는 공개 위젯을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dfn">
+        <source>The dfn element represents the defining instance of a term. The paragraph, description list group, or section that is the nearest ancestor of the dfn element must also contain the definition(s) for the term given by the dfn element.</source>
+        <target state="translated">dfn 요소는 용어의 정의 인스턴스를 나타냅니다. dfn 요소의 가장 가까운 상위 항목인 단락, 설명 목록 그룹 또는 섹션에는 dfn 요소에서 지정된 용어에 대한 정의도 포함되어 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dialog">
+        <source>The dialog element represents a part of an application that a user interacts with to perform a task, for example a dialog box, inspector, or window.</source>
+        <target state="translated">dialog 요소는 사용자가 작업을 수행하기 위해 상호 작용하는 애플리케이션의 일부를 나타냅니다(예: 대화 상자, 검사기 또는 창).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_div">
+        <source>The div element has no special meaning at all. It represents its children. It can be used with the class, lang, and title attributes to mark up semantics common to a group of consecutive elements.</source>
+        <target state="translated">div 요소는 특별한 의미가 없으며 해당 자식 항목을 나타냅니다. 이 요소는 class, lang 및 title 특성과 함께 사용하여 연속적인 요소 그룹에 공통된 의미 체계를 구성할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dl">
+        <source>The dl element represents an association list consisting of zero or more name-value groups (a description list). A name-value group consists of one or more names (dt elements) followed by one or more values (dd elements), ignoring any nodes other than dt and dd elements. Within a single dl element, there should not be more than one dt element for each name.</source>
+        <target state="translated">dl 요소는 0개 이상의 이름-값 그룹(설명 목록)으로 구성된 연관 목록을 나타냅니다. 이름-값 그룹은 하나 이상의 이름(dt 요소) 뒤에 하나 이상의 값(dd 요소)이 있는 항목으로 구성되며 dt 및 dd 요소를 제외한 노드를 모두 무시합니다. 단일 dl 요소 내에 각 이름에 대한 dt 요소가 두 개 이상 있으면 안 됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_dt">
+        <source>The dt element represents the term, or name, part of a term-description group in a description list (dl element).</source>
+        <target state="translated">dt 요소는 설명 목록(dl 요소)에서 용어, 이름, 용어-설명 그룹의 일부를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_em">
+        <source>The em element represents stress emphasis of its contents.</source>
+        <target state="translated">em 요소는 해당 콘텐츠의 강조를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_embed">
+        <source>The embed element provides an integration point for an external (typically non-HTML) application or interactive content.</source>
+        <target state="translated">embed 요소는 외부(일반적으로 HTML이 아님) 애플리케이션 또는 대화형 콘텐츠에 대한 통합 지점을 제공합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_fieldset">
+        <source>The fieldset element represents a set of form controls optionally grouped under a common name.</source>
+        <target state="translated">fieldset 요소는 일반 이름으로 선택적으로 그룹화된 폼 컨트롤 집합을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_figure">
+        <source>The figure element represents some flow content, optionally with a caption, that is self-contained (like a complete sentence) and is typically referenced as a single unit from the main flow of the document.</source>
+        <target state="translated">figure 요소는 경우에 따라 캡션이 있는 일부 유동 콘텐츠를 나타냅니다. 즉, 문서의 기본 흐름에서 일반적으로 하나의 단위로 참조되거나 전체 문장처럼 자체 포함되어 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_footer">
+        <source>The footer element represents a footer for its nearest ancestor sectioning content or sectioning root element. A footer typically contains information about its section such as who wrote it, links to related documents, copyright data, and the like.</source>
+        <target state="translated">footer 요소는 가장 가까운 상위 섹션의 콘텐츠 또는 섹션의 루트 요소에 대한 바닥글을 나타냅니다. 일반적으로 footer에는 콘텐츠 작성자, 관련 문서에 대한 링크, 저작권 데이터 등과 같은 해당 섹션에 대한 정보가 포함됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_form">
+        <source>The form element represents a collection of form-associated elements, some of which can represent editable values that can be submitted to a server for processing.</source>
+        <target state="translated">form 요소는 폼과 연관된 요소의 컬렉션을 나타냅니다. 이 중 일부는 처리를 위해 서버에 제출할 수 있는 편집 가능한 값을 나타낼 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h1">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">이러한 요소는 해당 섹션의 머리글을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h2">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">이러한 요소는 해당 섹션의 머리글을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h3">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">이러한 요소는 해당 섹션의 머리글을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h4">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">이러한 요소는 해당 섹션의 머리글을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h5">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">이러한 요소는 해당 섹션의 머리글을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_h6">
+        <source>These elements represent headings for their sections.</source>
+        <target state="translated">이러한 요소는 해당 섹션의 머리글을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_head">
+        <source>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</source>
+        <target state="translated">head 요소는 문서의 메타데이터 컬렉션을 나타냅니다. head 요소는 HTML 요소의 첫 번째 요소여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_header">
+        <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</source>
+        <target state="translated">header 요소는 가장 가까운 상위 섹션의 콘텐츠 또는 섹션의 루트 요소에 대한 소개 콘텐츠를 나타냅니다. 일반적으로 header에는 소개 또는 탐색 지원 그룹이 포함됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_hr">
+        <source>The hr element represents a paragraph-level thematic break, e.g. a scene change in a story, or a transition to another topic within a section of a reference book.</source>
+        <target state="translated">hr 요소는 단락 수준으로 주제를 구분지어 나타냅니다(예: 이야기에서 장면이 바뀌거나 참고 도서의 한 섹션 내에서 다른 항목으로 전환되는 경우).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_html">
+        <source>The html element represents the root of an HTML document.</source>
+        <target state="translated">html 요소는 HTML 문서의 루트를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_i">
+        <source>The i element represents a span of text in an alternate voice or mood, or otherwise offset from the normal prose in a manner indicating a different quality of text, such as a taxonomic designation, a technical term, an idiomatic phrase from another language, transliteration, a thought, or a ship name in Western texts.</source>
+        <target state="translated">i 요소는 대체 음성 또는 무드 상태의 텍스트 범위, 또는 영어 텍스트로 된 분류 지정, 기술 용어, 다른 언어의 관용구, 음역, 생각 또는 배 이름 같이 어느 정도 다른 품질의 텍스트를 나타내는 일반 문서의 오프셋을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_iframe">
+        <source>The iframe element represents a nested browsing context.</source>
+        <target state="translated">iframe 요소는 중첩된 검색 컨텍스트를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_img">
+        <source>An img element represents an image.</source>
+        <target state="translated">img 요소는 이미지를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_input">
+        <source>The input element represents a typed data field, usually with a form control to allow the user to edit the data.</source>
+        <target state="translated">input 요소는 사용자가 데이터를 편집할 수 있도록 일반적으로 폼 컨트롤을 사용하여 입력된 데이터 필드를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ins">
+        <source>The ins element represents an addition to the document.</source>
+        <target state="translated">ins 요소는 문서에 추가된 항목을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_kbd">
+        <source>The kbd element represents user input (typically keyboard input, although it may also be used to represent other input, such as voice commands).</source>
+        <target state="translated">kbd 요소는 사용자 입력(일반적으로 키보드 입력이며, 음성 명령 등의 다른 입력을 나타내는 데 사용될 수도 있음)을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_label">
+        <source>The label element represents a caption in a user interface. The caption can be associated with a specific form control, known as the label element's labeled control, either using the for attribute, or by putting the form control inside the label element itself.</source>
+        <target state="translated">label 요소는 사용자 인터페이스의 캡션을 나타냅니다. 캡션은 특성에 사용하거나 자체 레이블 요소 내에 폼 컨트롤을 배치하여 레이블 요소 중 레이블이 지정된 컨트롤로 알려진 특정 폼 컨트롤과 연결할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_legend">
+        <source>The legend element represents a caption for the rest of the contents of the legend element's parent fieldset element, if any.</source>
+        <target state="translated">legend 요소는 범례 요소의 부모 fieldset 요소(있는 경우)의 나머지 콘텐츠에 대한 캡션을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_li">
+        <source>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
+        <target state="translated">li 요소는 목록 항목을 나타냅니다. 해당 부모 요소가 ol 또는 ul이면 해당 요소에 정의된 대로 요소는 부모 요소의 목록에 대한 항목입니다. 그렇지 않은 경우 목록 항목에 다른 li 요소에 대해 정의된 목록 관련 관계가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_link">
+        <source>The link element allows authors to link their document to other resources.</source>
+        <target state="translated">link 요소를 통해 작성자는 문서를 다른 리소스에 연결할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_main">
+        <source>The main element represents the main content of the body of a document or application. The main content area consists of content that is directly related to or expands upon the central topic of a document or central functionality of an application.</source>
+        <target state="translated">main 요소는 문서나 애플리케이션의 기본 본문 콘텐츠를 나타냅니다. 기본 콘텐츠 영역은 직접적으로 관련된 콘텐츠로 구성되거나 문서의 핵심 항목 또는 애플리케이션의 핵심 기능을 바탕으로 확장됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_map">
+        <source>The map element, in conjunction with an img element and any area element descendants, defines an image map. The element represents its children.</source>
+        <target state="translated">map 요소는 img 요소 및 area 요소 하위 항목과 함께 이미지 맵을 정의합니다. 이 요소는 해당 자식 항목을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_mark">
+        <source>The mark element represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context. When used in a quotation or other block of text referred to from the prose, it indicates a highlight that was not originally present but which has been added to bring the reader's attention to a part of the text that might not have been considered important by the original author when the block was originally written, but which is now under previously unexpected scrutiny. When used in the main prose of a document, it indicates a part of the document that has been highlighted due to its likely relevance to the user's current activity.</source>
+        <target state="translated">mark 요소는 다른 컨텍스트에서의 연관성으로 인해 한 문서에서 참조용으로 표시되거나 강조 표시된 연속적인 텍스트를 나타냅니다. 인용 또는 문서에서 참조되는 다른 텍스트 블록에서 사용되는 경우 원래는 없지만 블록이 처음 작성될 때 원래 작성자가 중요하지 않게 여겼던 텍스트 부분으로 독자의 관심을 유도하기 위해 추가된 강조 표시를 나타냅니다. 하지만 현재 이 요소는 이전의 예상과 달리 철저한 조사를 거치고 있습니다. 문서의 주요 내용에서 사용되는 경우 사용자의 현재 활동과 관련이 있을 것 같아 강조 표시된 문서의 일부를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_math">
+        <source>The math element from the MathML namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</source>
+        <target state="translated">MathML 네임스페이스의 math 요소는 이 사양에서 콘텐츠 모델 용도로 포함된 콘텐츠, 관용구 콘텐츠 및 유동 콘텐츠 범주에 해당합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_menu">
+        <source>The menu element represents a list of commands.</source>
+        <target state="translated">menu 요소는 명령 목록을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_menuitem">
+        <source>The menuitem element represents a command that the user can invoke from a popup menu (either a context menu or the menu of a menu button).</source>
+        <target state="translated">menuitem 요소는 사용자가 팝업 메뉴(상황에 맞는 메뉴 또는 메뉴 단추의 메뉴)에서 호출할 수 있는 명령을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_meta">
+        <source>The meta element represents various kinds of metadata that cannot be expressed using the title, base, link, style, and script elements.</source>
+        <target state="translated">meta 요소는 title, base, link, style 및 script 요소를 사용하여 표현할 수 없는 다양한 종류의 메타데이터를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_meter">
+        <source>The meter element represents a scalar measurement within a known range, or a fractional value; for example disk usage, the relevance of a query result, or the fraction of a voting population to have selected a particular candidate.</source>
+        <target state="translated">meter 요소는 알려진 범위 또는 비율 값(예: 디스크 사용, 쿼리 결과의 관련성 또는 특정 후보자를 선택하기 위한 투표 모집단의 비율) 내에서의 스칼라 측정을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_nav">
+        <source>The nav element represents a section of a page that links to other pages or to parts within the page: a section with navigation links.</source>
+        <target state="translated">nav 요소는 다른 페이지 또는 페이지 내의 다른 부분으로 연결되는 페이지 섹션 즉, 탐색 링크가 있는 섹션을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-form">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript 라이브러리에서 사용되는 요소입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-include">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript 라이브러리에서 사용되는 요소입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-pluralize">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript 라이브러리에서 사용되는 요소입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-switch">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript 라이브러리에서 사용되는 요소입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ng-view">
+        <source>An element used by the AngularJS JavaScript library.</source>
+        <target state="translated">AngularJS JavaScript 라이브러리에서 사용되는 요소입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_noscript">
+        <source>The noscript element represents nothing if scripting is enabled, and represents its children if scripting is disabled. It is used to present different markup to user agents that support scripting and those that don't support scripting, by affecting how the document is parsed.</source>
+        <target state="translated">noscript 요소는 스크립팅을 사용할 경우 아무것도 나타내지 않으며 스크립팅을 사용하지 않을 경우 해당 자식을 나타냅니다. 이 요소는 문서를 구문 분석하는 방법에 영향을 미침으로써 스크립팅을 지원하고 스크립팅을 지원하지 않는 사용자 에이전트에게 다른 태그를 표시하는 데 사용됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_object">
+        <source>The object element can represent an external resource, which, depending on the type of the resource, will either be treated as an image, as a nested browsing context, or as an external resource to be processed by a plugin.</source>
+        <target state="translated">object 요소는 외부 리소스를 나타낼 수 있습니다. 이 경우 플러그 인에서 처리되도록 리소스 유형에 따라 이미지, 중첩된 검색 컨텍스트 또는 외부 리소스로 처리됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ol">
+        <source>The ol element represents a list of items, where the items have been intentionally ordered, such that changing the order would change the meaning of the document.</source>
+        <target state="translated">ol 요소는 항목이 의도적으로 정렬되어 있는 항목의 목록을 나타냅니다. 이 경우 순서를 변경하면 문서의 의미가 달라집니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_optgroup">
+        <source>The optgroup element represents a group of option elements with a common label.</source>
+        <target state="translated">optgroup 요소는 일반 레이블을 사용하는 옵션 그룹 요소를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_option">
+        <source>The option element represents an option in a select element or as part of a list of suggestions in a datalist element.</source>
+        <target state="translated">option 요소는 select 요소에서 옵션을 나타내거나 datalist 요소에서 제안 목록의 일부로 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_output">
+        <source>The output element represents the result of a calculation or user action.</source>
+        <target state="translated">output 요소는 계산 또는 사용자 작업 결과를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_p">
+        <source>The p element represents a paragraph.</source>
+        <target state="translated">p 요소는 단락을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_param">
+        <source>The param element defines parameters for plugins invoked by object elements. It does not represent anything on its own.</source>
+        <target state="translated">param 요소는 object 요소에서 호출되는 플러그 인의 매개 변수를 정의합니다. 자체적으로는 아무것도 나타내지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_picture">
+        <source>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
+        <target state="translated">picture 요소는 포함된 img 요소에 다중 원본을 제공하는 컨테이너로, 이를 통해 작성자는 화면 픽셀 밀도, 뷰포트 크기, 이미지 형식 및 기타 요인을 기반으로 사용할 이미지 리소스를 선언적으로 제어하거나 사용자 에이전트에 힌트를 제공할 수 있습니다. 해당 자식 항목을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_polymer-element">
+        <source>A polymer-element is used to create new HTML elements using the Polymer JavaScript library.</source>
+        <target state="translated">polymer-element는 Polymer JavaScript 라이브러리를 사용하여 새 HTML 요소를 만드는 데 사용됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_pre">
+        <source>The pre element represents a block of preformatted text, in which structure is represented by typographic conventions rather than by elements.</source>
+        <target state="translated">pre 요소는 미리 서식이 지정된 텍스트 블록을 나타냅니다. 이 경우 구조는 요소가 아닌 인쇄 규칙으로 표시됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_progress">
+        <source>The progress element represents the completion progress of a task. The progress is either indeterminate, indicating that progress is being made but that it is not clear how much more work remains to be done before the task is complete (e.g. because the task is waiting for a remote host to respond), or the progress is a number in the range zero to a maximum, giving the fraction of work that has so far been completed.</source>
+        <target state="translated">progress 요소는 작업 완료 진행 상황을 나타냅니다. progress가 정할 수 없는 상태이거나, 즉 진행은 되고 있지만 작업을 완료할 때까지 수행할 작업이 얼마나 더 남았는지 명확하지 않거나(예: 작업은 원격 호스트가 응답할 때까지 대기하므로), progress는 0에서 최대값 범위에 해당하는 숫자이며 지금까지 완료된 작업 비율을 제공합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_q">
+        <source>The q element represents some phrasing content quoted from another source.</source>
+        <target state="translated">q 요소는 다른 원본에서 인용된 일부 관용구 콘텐츠를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rp">
+        <source>The rp element is used to provide fallback text to be shown by user agents that don't support ruby annotations. One widespread convention is to provide parentheses around the ruby text component of a ruby annotation.</source>
+        <target state="translated">rp 요소는 Ruby 주석을 지원하지 않는 사용자 에이전트에서 표시할 대체 텍스트를 제공하는 데 사용됩니다. 광범위한 한 가지 규칙은 Ruby 주석의 Ruby 텍스트 구성 요소 주위에 괄호를 입력하는 것입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rt">
+        <source>The rt element marks the ruby text component of a ruby annotation. When it is the child of a ruby element or of an rtc element that is itself the child of a ruby element, it doesn't represent anything itself, but its ancestor ruby element uses it as part of determining what it represents.</source>
+        <target state="translated">rt 요소는 Ruby 주석의 Ruby 텍스트 구성 요소를 표시합니다. Ruby 요소의 자식이거나 Ruby 요소의 자체 자식인 rtc 요소의 자식인 경우 그 자체로 어떤 것도 나타내지 않지만 해당 상위 Ruby 요소는 이 요소를 사용하여 요소에서 나타낼 항목을 결정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_rtc">
+        <source>The rtc element marks a ruby text container for ruby text components in a ruby annotation. When it is the child of a ruby element it doesn't represent anything itself, but its parent ruby element uses it as part of determining what it represents.</source>
+        <target state="translated">rtc 요소는 Ruby 주석에서 Ruby 텍스트 구성 요소에 대한 Ruby 텍스트 컨테이너를 표시합니다. Ruby 요소의 자식인 경우에는 그 자체로 어떤 것도 나타내지 않지만 해당 부모 Ruby 요소는 이 요소를 사용하여 요소에서 나타낼 항목을 결정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ruby">
+        <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</source>
+        <target state="translated">Ruby 요소에서는 Ruby 주석으로 표시할 관용구 콘텐츠의 범위를 하나 이상 허용합니다. Ruby 주석은 기본 텍스트, 동아시아 입력 체계에서 주로 발음 안내로 사용되거나 다른 주석을 포함하기 위해 기본 텍스트 옆에 표시되는 짧은 텍스트입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_s">
+        <source>The s element represents contents that are no longer accurate or no longer relevant.</source>
+        <target state="translated">s 요소는 더 이상 정확하지 않거나 더 이상 관련이 없는 콘텐츠를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_samp">
+        <source>The samp element represents (sample) output from a program or computing system.</source>
+        <target state="translated">samp 요소는 프로그램 또는 컴퓨터 시스템의 (샘플) 출력을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_script">
+        <source>The script element allows authors to include dynamic script and data blocks in their documents. The element does not represent content for the user.</source>
+        <target state="translated">script 요소를 통해 작성자는 관련 문서에 동적 스크립트 및 데이터 블록을 포함할 수 있습니다. 요소는 사용자에 대한 콘텐츠를 나타내지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_section">
+        <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</source>
+        <target state="translated">section 요소는 문서나 애플리케이션의 일반 섹션을 나타냅니다. 이 경우 섹션은 콘텐츠를 주제에 따라 그룹화한 것입니다. 각 섹션의 주제는 일반적으로 머리글(h1-h6 요소)을 section 요소의 자식으로 포함하여 구분지어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_select">
+        <source>The select element represents a control for selecting amongst a set of options.</source>
+        <target state="translated">select 요소는 옵션 집합에서 선택하는 컨트롤을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_shadow">
+        <source>The shadow element represents an shadow insertion point in a shadow tree.</source>
+        <target state="translated">shadow 요소는 그림자 트리의 그림자 삽입 지점을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_small">
+        <source>The small element represents side comments such as small print.</source>
+        <target state="translated">small 요소는 작은 글자의 인쇄물 같이 부가적인 설명을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_source">
+        <source>The source element allows authors to specify multiple alternative media resources for media elements. It does not represent anything on its own.</source>
+        <target state="translated">source 요소를 통해 작성자는 media 요소에 대한 여러 대체 미디어 리소스를 지정할 수 있습니다. 자체적으로는 아무것도 나타내지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_span">
+        <source>The span element doesn't mean anything on its own, but can be useful when used together with the global attributes, e.g. class, lang, or dir. It represents its children.</source>
+        <target state="translated">span 요소는 자체적으로 아무런 의미가 없지만 전역 특성(예: class, lang 또는 dir)과 함께 사용할 경우 유용할 수 있습니다. 해당 자식 항목을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_strong">
+        <source>The strong element represents strong importance, seriousness, or urgency for its contents.</source>
+        <target state="translated">strong 요소는 해당 콘텐츠의 중요성, 심각성 또는 긴급성을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_style">
+        <source>The style element allows authors to embed style information in their documents. The style element is one of several inputs to the styling processing model. The element does not represent content for the user.</source>
+        <target state="translated">style 요소를 통해 작성자는 문서에 스타일 정보를 포함할 수 있습니다. style 요소는 스타일 지정 처리 모델에 대한 여러 입력 중 하나입니다. 요소는 사용자에 대한 콘텐츠를 나타내지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_sub">
+        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
+        <target state="translated">sup 요소는 위 첨자를 나타내며 sub 요소는 하위 스크립트를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_summary">
+        <source>The summary element represents a summary, caption, or legend for the rest of the contents of the summary element's parent details element, if any.</source>
+        <target state="translated">summary 요소는 summary 요소의 부모 details 요소(있는 경우)의 나머지 콘텐츠에 대한 요약, 캡션 또는 범례를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_sup">
+        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
+        <target state="translated">sup 요소는 위 첨자를 나타내며 sub 요소는 하위 스크립트를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_svg">
+        <source>The svg element from the SVG namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</source>
+        <target state="translated">SVG 네임스페이스의 svg 요소는 이 사양에서 콘텐츠 모델 용도로 포함된 콘텐츠, 관용구 콘텐츠 및 유동 콘텐츠 범주에 해당합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_table">
+        <source>The table element represents data with more than one dimension, in the form of a table.</source>
+        <target state="translated">table 요소는 테이블 형식에서 차원이 두 개 이상인 데이터를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tbody">
+        <source>The tbody element represents a block of rows that consist of a body of data for the parent table element, if the tbody element has a parent and it is a table.</source>
+        <target state="translated">tbody 요소에 부모가 있고 이 부모가 테이블인 경우 tbody 요소는 부모 table 요소에 대한 데이터 본문으로 구성된 행 블록을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_td">
+        <source>The td element represents a data cell in a table.</source>
+        <target state="translated">td 요소는 테이블의 데이터 셀을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_template">
+        <source>The template element is used to declare fragments of HTML that can be cloned and inserted in the document by script.</source>
+        <target state="translated">template 요소를 사용하여 스크립트로 문서에서 복제하고 삽입할 수 있는 HTML 조각을 선언합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_textarea">
+        <source>The textarea element represents a multiline plain text edit control for the element's raw value. The contents of the control represent the control's default value.</source>
+        <target state="translated">textarea 요소는 요소의 원시 값에 대한 여러 줄 일반 텍스트 편집 컨트롤을 나타냅니다. 컨트롤의 콘텐츠는 컨트롤의 기본값을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tfoot">
+        <source>The tfoot element represents the block of rows that consist of the column summaries (footers) for the parent table element, if the tfoot element has a parent and it is a table.</source>
+        <target state="translated">tfoot 요소에 부모가 있고 테이블인 경우 tfoot 요소는 부모 테이블 요소에 대한 열 요약(바닥글)으로 구성된 행 블록을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_th">
+        <source>The th element represents a header cell in a table.</source>
+        <target state="translated">th 요소는 테이블에서 헤더 셀을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_thead">
+        <source>The thead element represents the block of rows that consist of the column labels (headers) for the parent table element, if the thead element has a parent and it is a table.</source>
+        <target state="translated">thead 요소에 부모가 있고 이 부모가 테이블인 경우 thead 요소는 부모 table 요소에 대한 열 레이블(헤더)로 구성된 행 블록을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_time">
+        <source>The time element represents its contents, along with a machine-readable form of those contents in the datetime attribute. The kind of content is limited to various kinds of dates, times, time-zone offsets, and durations, as described below.</source>
+        <target state="translated">time 요소는 시스템에서 읽을 수 있는 형식의 콘텐츠와 함께 관련 콘텐츠를 datetime 특성으로 나타냅니다. 아래 설명된 것과 같이 이러한 콘텐츠는 다양한 종류의 일자, 시간, 표준 시간대 오프셋 및 기간으로 제한됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_title">
+        <source>The title element represents the document's title or name. Authors should use titles that identify their documents even when they are used out of context, for example in a user's history or bookmarks, or in search results. The document's title is often different from its first heading, since the first heading does not have to stand alone when taken out of context.</source>
+        <target state="translated">title 요소는 문서의 제목 또는 이름을 나타냅니다. 작성자는 문서가 컨텍스트와 무관하게 사용되는 경우(예: 사용자의 기록 또는 책갈피)나 검색 결과에서 사용되는 경우에도 해당 문서를 식별할 수 있는 제목을 사용해야 합니다. 문서 제목은 주로 해당 문서의 첫 번째 머리글과는 다릅니다. 왜냐하면 첫 번째 머리글은 컨텍스트를 고려할 때 독립적일 필요가 없기 때문입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_tr">
+        <source>The tr element represents a row of cells in a table.</source>
+        <target state="translated">tr 요소는 테이블에서 셀 행을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_track">
+        <source>The track element allows authors to specify explicit external timed text tracks for media elements. It does not represent anything on its own.</source>
+        <target state="translated">track 요소를 통해 작성자는 media 요소에 대한 명시적인 외부 시간 텍스트 트랙을 지정할 수 있습니다. 자체적으로는 아무것도 나타내지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_u">
+        <source>The u element represents a span of text with an unarticulated, though explicitly rendered, non-textual annotation, such as labeling the text as being a proper name in Chinese text (a Chinese proper name mark), or labeling the text as being misspelt.</source>
+        <target state="translated">u 요소는 중국어 텍스트의 고유 명사처럼 텍스트 레이블을 지정(중국어 고유 명사 표시)하거나 철자가 틀린 텍스트 레이블을 지정하는 것과 같이 명확하지는 않지만 명시적으로 렌더링되는 텍스트가 아닌 주석이 있는 텍스트 범위를 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_ul">
+        <source>The ul element represents a list of items, where the order of the items is not important — that is, where changing the order would not materially change the meaning of the document.</source>
+        <target state="translated">ul 요소는 항목 순서가 중요하지 않은 항목의 목록을 나타냅니다. 즉, 순서를 변경해도 실질적으로 문서의 의미는 달라지지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_var">
+        <source>The var element represents a variable. This could be an actual variable in a mathematical expression or programming context, an identifier representing a constant, a symbol identifying a physical quantity, a function parameter, or just be a term used as a placeholder in prose.</source>
+        <target state="translated">var 요소는 변수를 나타냅니다. 이 요소는 수학 표현식 또는 프로그래밍 컨텍스트의 실제 변수, 상수를 나타내는 식별자, 실제 수량을 식별하는 기호, 함수 매개 변수 또는 문서에서 자리 표시자로 사용되는 용어일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_video">
+        <source>A video element is used for playing videos or movies, and audio files with captions.</source>
+        <target state="translated">video 요소는 캡션이 있는 비디오나 동영상 및 오디오 파일을 재생하는 데 사용됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_wbr">
+        <source>The wbr element represents a line break opportunity.</source>
+        <target state="translated">wbr 요소는 줄 바꿈 가능성을 나타냅니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_x-ms-webview">
+        <source>Displays HTML content in an app.</source>
+        <target state="translated">애플리케이션에 HTML 콘텐츠를 표시합니다.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

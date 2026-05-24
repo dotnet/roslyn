@@ -1,0 +1,32 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_CodeBlockWithTextElement - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                CSharpCode - (2:0,2 [17] CodeBlockWithTextElement.cshtml)
+                    LazyIntermediateToken - (2:0,2 [17] CodeBlockWithTextElement.cshtml) - CSharp - \n    var a = 1; 
+                HtmlContent - (25:1,21 [3] CodeBlockWithTextElement.cshtml)
+                    LazyIntermediateToken - (25:1,21 [3] CodeBlockWithTextElement.cshtml) - Html - foo
+                CSharpCode - (35:1,31 [22] CodeBlockWithTextElement.cshtml)
+                    LazyIntermediateToken - (35:1,31 [22] CodeBlockWithTextElement.cshtml) - CSharp -  		\n    var b = 1;			
+                HtmlContent - (63:2,23 [4] CodeBlockWithTextElement.cshtml)
+                    LazyIntermediateToken - (63:2,23 [4] CodeBlockWithTextElement.cshtml) - Html - bar 
+                CSharpExpression - (69:2,29 [3] CodeBlockWithTextElement.cshtml)
+                    LazyIntermediateToken - (69:2,29 [3] CodeBlockWithTextElement.cshtml) - CSharp - a+b
+                CSharpCode - (80:2,40 [2] CodeBlockWithTextElement.cshtml)
+                    LazyIntermediateToken - (80:2,40 [2] CodeBlockWithTextElement.cshtml) - CSharp - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

@@ -158,15 +158,20 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         _updateUIContextJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
 
-        // Set up our telemetry session and log an event for the version
-        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
-        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
-        telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession, logDelta);
+        InitializeTelemetrySession();
 
         Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(
             static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
 
         SubscribeToSourceGeneratorImpactingEvents();
+    }
+
+    protected virtual void InitializeTelemetrySession()
+    {
+        // Set up our telemetry session and log an event for the version
+        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
+        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
+        telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession, logDelta);
     }
 
     private void SolutionClosingContext_UIContextChanged(object sender, UIContextChangedEventArgs e)
