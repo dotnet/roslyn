@@ -1507,6 +1507,11 @@
         <target state="translated">'Experimental' 특성에 대한 diagnosticId 인수는 유효한 식별자여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberProviderInUnionDeclaration">
+        <source>A 'union' declaration cannot use a union member provider interface.</source>
+        <target state="new">A 'union' declaration cannot use a union member provider interface.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MissingUnionCaseTypes">
         <source>A union type must have at least one union creation member.</source>
         <target state="new">A union type must have at least one union creation member.</target>
