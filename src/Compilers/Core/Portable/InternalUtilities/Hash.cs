@@ -6,7 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+#if !MSBUILDWORKSPACE_BUILDHOST
 using System.Collections.Immutable;
+#endif
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -20,6 +22,8 @@ namespace Roslyn.Utilities
         {
             return unchecked((currentKey * (int)0xA5555529) + newKey);
         }
+
+#if !MSBUILDWORKSPACE_BUILDHOST // The BuildHost only needs the method above, and since there's various uses of immutable collections we can just ignore all of these
 
         internal static int Combine(bool newKeyPart, int currentKey)
         {
@@ -403,5 +407,7 @@ namespace Roslyn.Utilities
 
             return hashCode;
         }
+
+#endif
     }
 }

@@ -1,0 +1,152 @@
+@page
+@using netlandingpage.Helpers;
+@using Microsoft.Extensions.Configuration;
+@inject IConfiguration Configuration;
+@inject OperatingSystemManager OperatingSystemManager;
+
+@{
+    ViewData["BodyCssClass"] = "refresh";
+    ViewData["Title"] = S["Doggie Bus: how one developer built an \"Uber for Dogs\" with .NET MAUI and Azure | .NET"];
+    ViewData["Description"] = S["Doggie Bus is a New Orleans startup founded by Troy Bergeron, offering a unique Uber for dogs service – an app that lets pet owners schedule safe, convenient rides for their dogs."];
+    this.Breadcrumb("Doggie Bus", (S["Home"], "/"), (S["Customers"], "/platform/customers"));
+}
+
+@section styles {
+    <link rel="stylesheet" href="~/static/css/pages/platform/customers/customer.css" asp-append-version="true" environmental="true" />
+}
+
+<section class="content-container pt-12">
+    <div class="grid-wrapper mb-0">
+        <div class="banner col-span-6 md:col-span-6">
+            <p class="mb-3"><img data-src=@Url.Content($"{Configuration["Environment:BaseUrl"]}/blob-assets/images/customers/doggie-bus/doggie-bus.png") width="150" height="150" alt="@T["Doggie Bus logo"]" class="lazyload" asp-append-version="true" /></p>
+            <h1 class="title-1">@T["Doggie Bus: how one developer built an \"Uber for Dogs\" with .NET MAUI and Azure"]</h1>
+        </div>
+        <div class="hero col-span-6 md:col-span-6">
+            <p><img data-src=@Url.Content($"{Configuration["Environment:BaseUrl"]}/blob-assets/images/customers/doggie-bus/mario-and-troy.png") height="336" alt="@T["Mario and Troy standing in front of the Doggie Bus"]" class="lazyload" asp-append-version="true" /></p>
+        </div>
+        <div class="category col-span-6 md:col-span-3">
+            <p class="subtitle-2-stronger">@T["Industry"]</p>
+            <p class="my-2.5 body-1">@T["Transportation"]</p>
+            <p class="subtitle-2-stronger">@T["Organization Size"]</p>
+            <p class="my-2.5 body-1">@T["Small (1-100 employees)"]</p>
+            <p class="subtitle-2-stronger">@T["Country/region"]</p>
+            <p class="my-2.5 body-1">@T["United States"]</p>
+            <p>
+                    <span class="subtitle-2-stronger">@T["Technology"]</span><br />
+                    <div class="mt-2.5">
+                        <small class="badge caption-2-strong">.NET MAUI</small>
+                        <small class="badge caption-2-strong">ASP.NET</small>
+                        <small class="badge caption-2-strong">Azure</small>
+                        <small class="badge caption-2-strong">Azure SignalR</small>
+                        <small class="badge caption-2-strong">Entity Framework</small>
+                    </div>
+            </p>
+        </div>
+
+        <div class="col-span-6 md:col-span-9">
+            <h2 class="subtitle-2-stronger">@T["Company"]</h2>
+            <p class="my-2.5 body-1-strong"><a class="text-link" href="https://thedoggiebusnola.com" target="_blank">Doggie Bus</a></p>
+            <p class="body-1 description">@T["Doggie Bus is a New Orleans startup founded by Troy Bergeron, offering a unique \"Uber for dogs\" service – a mobile app that lets pet owners schedule safe, convenient rides for their dogs to daycare, the vet, and more. Troy, a lifelong dog lover, personally drives the Doggie Bus shuttle and treats every pup like family. His goal is to make pet transport as easy and trustworthy as hailing a rideshare, so owners have total peace of mind."]</p>
+        </div>
+
+        <div class="col-span-6 md:col-span-3">
+        </div>
+
+        <div class="col-span-6 md:col-span-9">
+            <div class="mb-7">
+                <p class="mb-4 body-1">@T["To bring this vision to life, Troy teamed up with Mario DeLuca (DeLuca Technologies), a veteran software engineer and early adopter of .NET MAUI (and Xamarin before that). Together they built a cross-platform mobile app that rivals top rideshare experiences but is tailored for pet parents."]</p>
+                <div class="grid-wrapper my-4">
+                    <div class="col-span-6 md:col-span-4">
+                        <img alt="@T["Dashboard screenshot"]" data-src=@Url.Content($"{Configuration["Environment:BaseUrl"]}/blob-assets/images/customers/doggie-bus/dashboard.png") class="lazyload" asp-append-version="true" />
+                    </div>
+                    <div class="col-span-6 md:col-span-4">
+                        <img alt="@T["Schedule pickup screenshot"]" data-src=@Url.Content($"{Configuration["Environment:BaseUrl"]}/blob-assets/images/customers/doggie-bus/schedule-pickup.png") class="lazyload" asp-append-version="true" />
+                    </div>
+                    <div class="col-span-6 md:col-span-4">
+                        <img alt="@T["Live tracking Doggie Bus location"]" data-src=@Url.Content($"{Configuration["Environment:BaseUrl"]}/blob-assets/images/customers/doggie-bus/live-tracking.png") class="lazyload" asp-append-version="true" />
+                    </div>
+                </div>
+                <h2 class="title-2 mb-7">@T["Real people, real passion"]</h2>
+                <p class="my-4 body-1">@T["In early 2024, Doggie Bus launched on iOS and Android, making it a breeze for pet owners to arrange rides. Troy's personal commitment to pet safety is at the heart of the service. He meets every new client (human and dog) and provides trust through transparency: owners can track the Doggie Bus in real time on a map and get notifications at each pickup or drop-off."]</p>
+                <p class="my-4 body-1">@T["Pet parents, who are often as protective as any parent, love this visibility. The app gives them peace of mind, knowing where their \"fur baby\" is at all times and that they're in caring hands."]</p>
+                <p class="my-4 body-1">@T["On the tech side, Mario was the behind-the-scenes hero. As a long-time C# developer, he was thrilled to use .NET end-to-end for Doggie Bus. This allowed him to single-handedly create a polished, native mobile experience on both platforms. The partnership worked seamlessly: Troy contributed deep domain insight and constant feedback as the first user of the app (running his daily route via an admin mode), while Mario iterated quickly on features. Both were driven by the mission to make the service \"so easy a dog could do it,\" as Troy likes to joke."]</p>
+                <blockquote class="blockquote my-10">
+                    <svg width="55" height="36" viewBox="0 0 55 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="blockquote-img">
+                        <path d="M54.5297 2.40301C53.7318 5.80474 52.9128 9.37446 52.0729 13.1122C51.275 16.8499 50.54 20.5246 49.8681 24.1363C49.1961 27.706 48.6292 30.9818 48.1672 33.9635C48.1672 33.9635 37.0966 35.4223 30.2278 34.903C29.4271 34.8425 29.2278 34.903 29.6466 32.5777C30.0654 30.2523 31.3685 26.2571 32.5444 22.8134C33.7623 19.3277 35.0642 15.842 36.4501 12.3562C37.878 8.82851 39.7278 5.40301 41.2278 2.40301C42.7278 -0.596991 55.3276 -0.998725 54.5297 2.40301ZM25.111 2.40301C24.3131 5.80474 23.4941 9.37446 22.6542 13.1122C21.8563 16.8499 21.1213 20.5246 20.4494 24.1363C19.7774 27.706 19.2105 30.9818 18.7485 33.9635C18.7485 33.9635 8.11633 34.903 1.22802 34.903C0.227849 34.903 -0.345614 34.903 0.227938 32.5777C0.80149 30.2523 1.9498 26.2571 3.12571 22.8134C4.34362 19.3277 5.64551 15.842 7.03141 12.3562C8.4593 8.82851 10.2278 5.40301 12.2278 2.40301C14.2278 -0.596991 25.9089 -0.998725 25.111 2.40301Z" fill="url(#paint0_linear_77_964)" />
+                        <defs>
+                            <linearGradient id="paint0_linear_77_964" x1="4.85647e-08" y1="11.0252" x2="28.7674" y2="47.1599" gradientUnits="userSpaceOnUse">
+                                <stop offset="0" stop-color="var(--colors-primary-purple)" />
+                                <stop offset="1" stop-color="var(--colors-primary-magenta)" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="mt-3">
+                        <p class="blockquote-body title-2 text-fill-transparent gradients-multi-color-purple-magenta">@T["Our service should be so easy, a dog could do it.\""]</p>
+                        <footer class="blockquote-footer mt-7">@T["Troy Bergeron, founder, pet parent & driver"] <strong>Doggie Bus</strong></footer>
+                    </div>
+                </blockquote>
+            </div>
+
+            <div class="mb-7">
+                <h2 class="title-2 mb-7">@T["Better together - solving it with .NET MAUI"]</h2>
+                <p class="my-4 body-1">@T["The Challenge: Doggie Bus needed high-quality mobile apps on two platforms without double the effort. They also required real-time communication (for live ride tracking) and a slick, user-friendly UI to instill confidence in users. As a small startup, they had to deliver all this with limited time and budget."]</p>
+                <p class="my-4 body-1">@T["The .NET Solution: Mario chose .NET MAUI for the mobile app, enabling him to target iOS and Android from a single C# codebase. This decision immediately cut development time and cost in half, since one codebase produces two native apps. \"With .NET MAUI, we were able to share over 90% of our code across platforms. That efficiency let us move faster, reduce maintenance overhead, and deliver a consistent experience on both iOS and Android.\", Mario adds. The .NET MAUI framework provided the native performance and flexibility needed, without requiring a large team. Key aspects of the solution include:"]</p>
+                <ul class="ul-list pl-5 my-4">
+                    <li class="my-4 body-1">@T["<b>Unified App Codebase:</b> ~90% of the Doggie Bus app code is shared across platforms. Core features (UI layouts, ride logic, data models) were written once in .NET and run natively on both iOS and Android. Only a few parts required platform-specific tweaks (for example, a custom map renderer on each OS to smoothly animate the little bus icon). This single-codebase approach ensures feature parity and simplified maintenance."]</li>
+                    <li class="my-4 body-1">@T["<b>Azure-Powered Backend:</b> The team built a cloud backend with ASP.NET Core and Azure to handle authentication, scheduling, and data storage. Using Azure SignalR, the app achieves real-time updates: as Troy drives, the van's GPS location is sent to the cloud and instantly pushed to pet owners' phones, so they see the bus moving live on the map. All data (schedules, pet profiles, vaccination records) is stored in Azure SQL Database via Entity Framework. The backend also integrates with Apple and Google for easy sign-in. This end-to-end Microsoft stack (MAUI app + Azure services) ensures reliability and scalability from day one."]</li>
+                    <li class="my-4 body-1">@T["<b>Modern Dev Tools & Libraries:</b> Mario leveraged the rich .NET ecosystem to accelerate development. He used the .NET MAUI Community Toolkit for ready-made UI components and effects and tapped into open-source libraries for things like authentication flows. Productivity features like XAML Hot Reload allowed rapid UI tweaks, and GitHub Copilot acted as an AI pair-programmer, generating boilerplate code and speeding up development. The result: Doggie Bus went from concept to feature-rich, polished app in a fraction of the time compared to traditional multi-team development."]</li>
+                </ul>
+                <p class="my-4 body-1">@T["Why .NET MAUI? Aside from cross-platform efficiency, Doggie Bus chose .NET for its performance and unified ecosystem. The app uses ahead-of-time (AOT) compilation, so it runs with \"buttery smooth\" performance even on older Android phones. By using C# on both client and server, the team can share code and skills across the whole project. For example, data models are defined once and reused on both ends, reducing bugs and mismatches."]</p>
+                <p class="my-4 body-1">@T["Mario briefly considered other frameworks, but having delivered successful apps with Xamarin, he trusted .NET MAUI to give native-quality results. \"In my opinion, it's a no-brainer,\" he says about choosing MAUI. This unified approach eliminated hiring separate iOS/Android developers and learning new languages - a huge advantage for a small company. Even challenges like implementing real-time maps and social login were solved smoothly with .NET's flexibility and libraries."]</p>
+                <p class="body-1">@T["Whenever a hurdle arose (like fine-tuning the moving map pin animation), .NET allowed custom solutions without hitting a dead end. In short, .NET provides everything needed in one platform, making development faster, cheaper, and more enjoyable for the Doggie Bus team."]</p>
+            </div>
+
+            <div class="mb-7">
+                <blockquote class="blockquote mt-10">
+                    <svg width="55" height="36" viewBox="0 0 55 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="blockquote-img">
+                        <path d="M54.5297 2.40301C53.7318 5.80474 52.9128 9.37446 52.0729 13.1122C51.275 16.8499 50.54 20.5246 49.8681 24.1363C49.1961 27.706 48.6292 30.9818 48.1672 33.9635C48.1672 33.9635 37.0966 35.4223 30.2278 34.903C29.4271 34.8425 29.2278 34.903 29.6466 32.5777C30.0654 30.2523 31.3685 26.2571 32.5444 22.8134C33.7623 19.3277 35.0642 15.842 36.4501 12.3562C37.878 8.82851 39.7278 5.40301 41.2278 2.40301C42.7278 -0.596991 55.3276 -0.998725 54.5297 2.40301ZM25.111 2.40301C24.3131 5.80474 23.4941 9.37446 22.6542 13.1122C21.8563 16.8499 21.1213 20.5246 20.4494 24.1363C19.7774 27.706 19.2105 30.9818 18.7485 33.9635C18.7485 33.9635 8.11633 34.903 1.22802 34.903C0.227849 34.903 -0.345614 34.903 0.227938 32.5777C0.80149 30.2523 1.9498 26.2571 3.12571 22.8134C4.34362 19.3277 5.64551 15.842 7.03141 12.3562C8.4593 8.82851 10.2278 5.40301 12.2278 2.40301C14.2278 -0.596991 25.9089 -0.998725 25.111 2.40301Z" fill="url(#paint0_linear_77_964)" />
+                        <defs>
+                            <linearGradient id="paint0_linear_77_964" x1="4.85647e-08" y1="11.0252" x2="28.7674" y2="47.1599" gradientUnits="userSpaceOnUse">
+                                <stop offset="0" stop-color="var(--colors-primary-purple)" />
+                                <stop offset="1" stop-color="var(--colors-primary-magenta)" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="mt-3">
+                        <p class="blockquote-body title-2 text-fill-transparent gradients-multi-color-purple-magenta">@T[".NET MAUI helped us reduce development costs by over 50%. With a single codebase and shared backend logic, we delivered high performance native apps for both iOS and Android—without doubling the work.\""]</p>
+                        <footer class="blockquote-footer mt-7">@T["Mario DeLuca, CEO"] <strong>DeLuca Technologies</strong></footer>
+                    </div>
+                </blockquote>
+            </div>
+
+            <div class="mb-7">
+                <h2 class="title-2 mb-7">@T["Impact and the road ahead"]</h2>
+                <p class="my-4 body-1">@T["Delighting Pet Owners: Since launch, Doggie Bus has transformed how customers manage pet transportation. Booking a ride now takes just seconds in the app, replacing what used to be phone calls or texts. With a couple of taps, a pet owner schedules a pickup - no paperwork or back-and-forth needed. The app sends automatic notifications at key moments (when the bus is approaching, when your dog is picked up, and when drop-off is complete), so owners never worry or wonder."]</p>
+                <p class="my-4 body-1">@T["They especially love the live tracking: watching the Doggie Bus icon move on the map in real time is both reassuring and fun. Troy notes, \"I get a lot of compliments on the notifications,\" and many users have told him the service is incredibly easy to use. This convenience and transparency have driven strong adoption by local pet owners. Many clients now book Doggie Bus rides multiple times a week as part of their routine, confident that it's dependable and safe for their pups."]</p>
+                <p class="my-4 body-1">@T["For Troy's operation, the .NET solution brought immediate improvements. All scheduling and record-keeping became 100% digital - \"everything's in one app, there's not a paper trail,\" as Troy puts it. No more clipboards or manual logs; the app's admin features let him manage each day's route, check dog profiles and vaccination records, and handle payments all in one place."]</p>
+                <p class="my-4 body-1">@T["This has streamlined operations and reduced errors. Troy can focus on caring for the dogs instead of paperwork. Financially, using .NET saved the company a fortune in development costs. Building separate native apps would have required two developers or expensive outsourcing, which was beyond reach. Instead, one developer delivered the entire product."]</p>
+                <p class="my-4 body-1">@T["Mario estimates that choosing .NET MAUI \"cut development costs drastically,\" which was critical for Doggie Bus's launch. Despite a lean budget, the final app achieved polished, professional quality on par with far larger competitors. The technology choice also simplified future maintenance: new features can be added once and appear on both platforms, keeping ongoing costs low."]</p>
+                <p class="my-4 body-1">@T["Thanks to its solid tech foundation, Doggie Bus is ready to scale up. The cloud-native architecture on Azure can easily support more vehicles or new locations, aligning with Troy's plans to franchise the service. The team is already exploring expansion to other cities, knowing the same app and backend can be extended with minimal changes. They're also planning a web portal for bookings (likely built with Blazor WebAssembly), and much of the existing .NET code can be reused for it. With .NET, expansion is built-in, not an afterthought - the platform's versatility means mobile, web, and future platforms can all share one codebase and skillset."]</p>
+                <p class="body-1">@T["In reflecting on the journey so far, Troy and Mario emphasize how .NET empowered them to turn an idea into reality. \"Mario made my dream come true,\" says Troy, grateful for the technology and talent that brought Doggie Bus to life. Mario, in turn, credits the tools: \".NET makes dreams come true,\" he says, noting that the platform enabled a small team to deliver an app beyond their initial expectations. Mario continues: \"This isn't just a mobile app — it's a scalable, cloud connected platform built for growth. With .NET MAUI and Azure, we created a future ready foundation that's lean, efficient, and designed to expand.\". The success of Doggie Bus - happy pet owners, a thriving business, and a foundation for growth - stands as proof. With .NET in the driver's seat, this \"Uber for dogs\" is hitting the road with confidence, and the journey is just getting started."]</p>
+            </div>
+
+            <div>
+                <blockquote class="blockquote mt-10">
+                    <svg width="55" height="36" viewBox="0 0 55 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="blockquote-img">
+                        <path d="M54.5297 2.40301C53.7318 5.80474 52.9128 9.37446 52.0729 13.1122C51.275 16.8499 50.54 20.5246 49.8681 24.1363C49.1961 27.706 48.6292 30.9818 48.1672 33.9635C48.1672 33.9635 37.0966 35.4223 30.2278 34.903C29.4271 34.8425 29.2278 34.903 29.6466 32.5777C30.0654 30.2523 31.3685 26.2571 32.5444 22.8134C33.7623 19.3277 35.0642 15.842 36.4501 12.3562C37.878 8.82851 39.7278 5.40301 41.2278 2.40301C42.7278 -0.596991 55.3276 -0.998725 54.5297 2.40301ZM25.111 2.40301C24.3131 5.80474 23.4941 9.37446 22.6542 13.1122C21.8563 16.8499 21.1213 20.5246 20.4494 24.1363C19.7774 27.706 19.2105 30.9818 18.7485 33.9635C18.7485 33.9635 8.11633 34.903 1.22802 34.903C0.227849 34.903 -0.345614 34.903 0.227938 32.5777C0.80149 30.2523 1.9498 26.2571 3.12571 22.8134C4.34362 19.3277 5.64551 15.842 7.03141 12.3562C8.4593 8.82851 10.2278 5.40301 12.2278 2.40301C14.2278 -0.596991 25.9089 -0.998725 25.111 2.40301Z" fill="url(#paint0_linear_77_964)" />
+                        <defs>
+                            <linearGradient id="paint0_linear_77_964" x1="4.85647e-08" y1="11.0252" x2="28.7674" y2="47.1599" gradientUnits="userSpaceOnUse">
+                                <stop offset="0" stop-color="var(--colors-primary-purple)" />
+                                <stop offset="1" stop-color="var(--colors-primary-magenta)" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="mt-3">
+                        <p class="blockquote-body title-2 text-fill-transparent gradients-multi-color-purple-magenta">@T["With .NET and Microsoft, you're not just building software — you're turning your vision into real world solutions. It's where dreams become reality.\""]</p>
+                        <footer class="blockquote-footer mt-7">@T["Mario DeLuca, CEO"] <strong>DeLuca Technologies</strong></footer>
+                    </div>
+                </blockquote>
+            </div>
+        </div>
+    </div>
+</section>
