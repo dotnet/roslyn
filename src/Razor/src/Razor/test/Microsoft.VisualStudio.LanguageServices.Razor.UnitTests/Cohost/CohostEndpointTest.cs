@@ -183,7 +183,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
     [Export(typeof(IRazorSemanticTokensRefreshQueue)), PartNotDiscoverable]
     private class TestRazorSemanticTokensRefreshQueue : IRazorSemanticTokensRefreshQueue
     {
-        public void Initialize(VSInternalClientCapabilities clientCapabilitiesString) => throw new NotImplementedException();
+        public void Initialize(VSInternalClientCapabilities clientCapabilities) => throw new NotImplementedException();
         public Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }
