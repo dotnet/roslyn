@@ -16,6 +16,7 @@
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ContractWrappers.cs" Link="EditAndContinue\ContractWrappers.cs" />
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadLanguageService.cs" Link="EditAndContinue\ManagedHotReloadLanguageService.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadLanguageServiceFactory.cs" Link="EditAndContinue\ManagedHotReloadLanguageServiceFactory.cs" />
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadLanguageServiceImpl.cs" Link="EditAndContinue\ManagedHotReloadLanguageServiceImpl.cs" />
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadServiceProxy.cs" Link="EditAndContinue\ManagedHotReloadServiceProxy.cs" />
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\EditAndContinueLogReporter.cs" Link="EditAndContinue\EditAndContinueLogReporter.cs" />

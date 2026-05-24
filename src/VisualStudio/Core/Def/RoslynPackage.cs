@@ -89,7 +89,7 @@ internal sealed class RoslynPackage : AbstractPackage
                 (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProject(s, e),
                 (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProjectStatus(s, e));
 
-            _menuCommandService.AddCommand(VSConstants.VSStd2K, VisualStudioDiagnosticAnalyzerService.RunCodeAnalysisForSelectedProjectCommandId,
+            _menuCommandService.AddCommand(VSConstants.VSStd2K, VisualStudioDiagnosticAnalyzerService.ECMD_RUNFXCOPSEL,
                 (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProject(s, e),
                 (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProjectStatus(s, e));
             _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RunCodeAnalysisForProject,
@@ -119,6 +119,16 @@ internal sealed class RoslynPackage : AbstractPackage
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             (_, _, _, _) => ValueTask.FromResult<object?>(new WorkspaceProjectFactoryService(ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
+
+        var hotReloadFactory = ComponentModel.GetService<ManagedHotReloadLanguageServiceFactory>();
+        var solutionSnapshotProvider = ComponentModel.GetService<ISolutionSnapshotProvider>();
+        serviceBrokerContainer.Proffer(
+            ManagedHotReloadLanguageServiceDescriptor.Descriptor,
+            (_, _, serviceBroker, _) =>
+            {
+                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider);
+                return ValueTask.FromResult<object?>(service);
+            });
     }
 
     protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)

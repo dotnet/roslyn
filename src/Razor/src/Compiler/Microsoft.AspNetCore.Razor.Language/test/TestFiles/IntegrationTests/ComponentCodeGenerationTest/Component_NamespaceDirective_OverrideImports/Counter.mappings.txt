@@ -1,0 +1,10 @@
+﻿Source Location: (11:0,11 [8] x:\dir\subdir\Test\Pages/Counter.razor)
+|New.Test|
+Generated Location: (145:5,0 [8] )
+|New.Test|
+
+Source Location: (22:1,1 [8] x:\dir\subdir\Test\Pages/Counter.razor)
+|Counter2|
+Generated Location: (1088:38,53 [8] )
+|Counter2|
+

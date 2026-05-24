@@ -1,0 +1,24 @@
+﻿Source Location: (26:0,26 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|Selected|
+Generated Location: (837:22,0 [8] )
+|Selected|
+
+Source Location: (49:2,7 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    string[] Selected { get; set; } = Array.Empty<string>();
+|
+Generated Location: (1288:32,0 [64] )
+|
+    string[] Selected { get; set; } = Array.Empty<string>();
+|
+
+Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (1925:48,45 [11] )
+|MyComponent|
+
+Source Location: (19:0,19 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (2123:52,0 [5] )
+|Value|
+

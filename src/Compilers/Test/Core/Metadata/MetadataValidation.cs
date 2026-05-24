@@ -41,7 +41,7 @@ namespace Roslyn.Test.Utilities
             }
             else
             {
-                Assert.True(false, "not impl");
+                Assert.Fail("not impl");
                 return null;
             }
         }

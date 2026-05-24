@@ -156,7 +156,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
         Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of MemberSymbolViewModel)) As MemberSymbolViewModel
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.SymbolName.Equals(name))
             If (member Is Nothing) Then
-                Assert.True(False, $"No member called {name} found")
+                Assert.Fail($"No member called {name} found")
             End If
 
             Return member

@@ -62,8 +62,8 @@ public sealed class ServerInitializationTests : AbstractLanguageServerHostTests
         await using var server = await CreateLanguageServerAsync();
 
         var capabilities = server.ServerCapabilities as VSInternalServerCapabilities;
-        AssertEx.NotNull(capabilities);
-        AssertEx.NotNull(capabilities.OnAutoInsertProvider);
+        Assert.NotNull(capabilities);
+        Assert.NotNull(capabilities.OnAutoInsertProvider);
         Assert.NotEmpty(capabilities.OnAutoInsertProvider.TriggerCharacters);
     }
 }
