@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Transport package for Razor extension binaries. For internal use only.</Description>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsShipping>false</IsShipping>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IsPackable>true</IsPackable>
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" ReferenceOutputAssembly="false" />
+
+    <Content Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.Compiler.dll" PackagePath="lib\$(TargetFramework)" />
+  </ItemGroup>
+
+</Project>

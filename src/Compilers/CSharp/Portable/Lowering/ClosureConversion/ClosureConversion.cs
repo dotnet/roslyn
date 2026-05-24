@@ -277,6 +277,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var body = rewriter.AddStatementsIfNeeded(
                 (BoundStatement)rewriter.Visit(loweredBody));
 
+            // Seal all closure environments so their pooled builders are returned.
+            // This must happen after Visit since IntroduceFrame may add more hoisted fields.
+            foreach (var env in rewriter._frames.Values)
+            {
+                env.SynthesizedEnvironment?.SealMembers();
+            }
+
+            // _lazyStaticLambdaFrame may not be in _frames.Values, so seal it separately.
+            rewriter._lazyStaticLambdaFrame?.SealMembers();
+
             // Add the completed methods to the compilation state
             if (rewriter._synthesizedMethods != null)
             {
