@@ -8343,4 +8343,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MissingUnionValueProperty" xml:space="preserve">
     <value>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</value>
   </data>
+  <data name="ERR_MemberProviderInUnionDeclaration" xml:space="preserve">
+    <value>A 'union' declaration cannot use a union member provider interface.</value>
+  </data>
 </root>
