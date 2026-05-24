@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
 
     <!-- https://github.com/dotnet/roslyn/issues/31412 -->

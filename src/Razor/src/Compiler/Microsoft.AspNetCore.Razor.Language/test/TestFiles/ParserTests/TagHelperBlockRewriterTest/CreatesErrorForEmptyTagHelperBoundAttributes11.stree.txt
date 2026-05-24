@@ -1,0 +1,36 @@
+﻿RazorDocument - [0..29)::29 - [<myth BOUND=''    bOUnd="" />]
+    MarkupBlock - [0..29)::29
+        MarkupTagHelperElement - [0..29)::29 - myth[SelfClosing] - mythTagHelper
+            MarkupTagHelperStartTag - [0..29)::29 - [<myth BOUND=''    bOUnd="" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[myth];
+                MarkupTagHelperAttribute - [5..14)::9 - BOUND - SingleQuotes - Bound - [ BOUND='']
+                    MarkupTextLiteral - [5..6)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [6..11)::5 - [BOUND] - Gen<Markup>
+                        Text;[BOUND];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [13..13)::0
+                        CSharpExpressionLiteral - [13..13)::0 - [] - Gen<None>
+                    MarkupTextLiteral - [13..14)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupTagHelperAttribute - [14..26)::12 - bOUnd - DoubleQuotes - Bound - [    bOUnd=""]
+                    MarkupTextLiteral - [14..18)::4 - [    ] - Gen<Markup>
+                        Whitespace;[    ];
+                    MarkupTextLiteral - [18..23)::5 - [bOUnd] - Gen<Markup>
+                        Text;[bOUnd];
+                    Equals;[=];
+                    MarkupTextLiteral - [24..25)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [25..25)::0
+                        CSharpExpressionLiteral - [25..25)::0 - [] - Gen<None>
+                    MarkupTextLiteral - [25..26)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [26..27)::1
+                    MarkupTextLiteral - [26..27)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];
