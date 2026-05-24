@@ -1,0 +1,14 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TItem
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (88:6,0 [33] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentTypeArgument - (110:6,22 [7] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
+                        LazyIntermediateToken - (111:6,23 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - string
+            CSharpCode - (25:1,7 [58] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (25:1,7 [58] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public TItem MyItem { get; set; }\n

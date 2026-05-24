@@ -1,0 +1,40 @@
+﻿RazorDocument - [0..13)::13 - [< @("a")x@@@b]
+    MarkupBlock - [0..13)::13
+        MarkupElement - [0..13)::13
+            MarkupStartTag - [0..13)::13 - [< @("a")x@@@b] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[<Missing>];
+                MarkupMiscAttributeContent - [1..8)::7
+                    MarkupTextLiteral - [1..2)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    CSharpCodeBlock - [2..8)::6
+                        CSharpExplicitExpression - [2..8)::6
+                            CSharpTransition - [2..3)::1 - Gen<None>
+                                Transition;[@];
+                            CSharpExplicitExpressionBody - [3..8)::5
+                                RazorMetaCode - [3..4)::1 - Gen<None>
+                                    LeftParenthesis;[(];
+                                CSharpCodeBlock - [4..7)::3
+                                    CSharpExpressionLiteral - [4..7)::3 - ["a"] - Gen<Expr>
+                                        StringLiteral;["a"];
+                                RazorMetaCode - [7..8)::1 - Gen<None>
+                                    RightParenthesis;[)];
+                MarkupMinimizedAttributeBlock - [8..9)::1 - [x]
+                    MarkupTextLiteral - [8..9)::1 - [x] - Gen<Markup>
+                        Text;[x];
+                MarkupEphemeralTextLiteral - [9..10)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupMinimizedAttributeBlock - [10..11)::1 - [@]
+                    MarkupTextLiteral - [10..11)::1 - [@] - Gen<Markup>
+                        Transition;[@];
+                MarkupMiscAttributeContent - [11..13)::2
+                    CSharpCodeBlock - [11..13)::2
+                        CSharpImplicitExpression - [11..13)::2
+                            CSharpTransition - [11..12)::1 - Gen<None>
+                                Transition;[@];
+                            CSharpImplicitExpressionBody - [12..13)::1
+                                CSharpCodeBlock - [12..13)::1
+                                    CSharpExpressionLiteral - [12..13)::1 - [b] - Gen<Expr>
+                                        Identifier;[b];
+                CloseAngle;[<Missing>];
+    EndOfFile;[];

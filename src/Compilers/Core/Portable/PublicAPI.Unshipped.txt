@@ -9,3 +9,13 @@ Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnal
 [RSEXPERIMENTAL006]const Microsoft.CodeAnalysis.WellKnownMemberNames.HasValuePropertyName = "HasValue" -> string!
 [RSEXPERIMENTAL006]const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGetValue" -> string!
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ITypeSymbol.IsUnion.get -> bool
+[RSEXPERIMENTAL007]Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterPreCompilationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.PreCompilationSourceProductionContext, TSource>! action) -> void
+[RSEXPERIMENTAL007]Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterPreCompilationSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.PreCompilationSourceProductionContext, TSource>! action) -> void
+[RSEXPERIMENTAL007]Microsoft.CodeAnalysis.PreCompilationSourceProductionContext
+[RSEXPERIMENTAL007]Microsoft.CodeAnalysis.PreCompilationSourceProductionContext.AddSource(string! hintName, Microsoft.CodeAnalysis.Text.SourceText! sourceText) -> void
+[RSEXPERIMENTAL007]Microsoft.CodeAnalysis.PreCompilationSourceProductionContext.AddSource(string! hintName, string! source) -> void
+[RSEXPERIMENTAL007]Microsoft.CodeAnalysis.PreCompilationSourceProductionContext.CancellationToken.get -> System.Threading.CancellationToken
+[RSEXPERIMENTAL007]Microsoft.CodeAnalysis.PreCompilationSourceProductionContext.PreCompilationSourceProductionContext() -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.PreCompilation = 16 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
+const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.PreCompilationSourceOutput = "PreCompilationSourceOutput" -> string!

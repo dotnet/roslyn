@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 internal abstract class LanguageServerProjectLoader
 {
+    private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
+
     private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToReload;
 
     protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
@@ -126,10 +128,7 @@ internal abstract class LanguageServerProjectLoader
             return properties;
         }
 
-        if (serverConfiguration.RazorDesignTimePath is { } razorDesignTimePath)
-        {
-            properties = properties.Add("RazorDesignTimeTargets", razorDesignTimePath);
-        }
+        properties = properties.Add("RazorDesignTimeTargets", s_razorDesignTimePath);
 
         if (serverConfiguration.CSharpDesignTimePath is { } csharpDesignTimePath)
         {

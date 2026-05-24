@@ -1,0 +1,44 @@
+﻿RazorDocument - [0..50)::50 - [@{<script>if(foo < bar) { alert("baz");)</script>}]
+    MarkupBlock - [0..50)::50
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..50)::50
+            CSharpStatement - [0..50)::50
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..50)::49
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..49)::47
+                        MarkupBlock - [2..49)::47
+                            MarkupElement - [2..49)::47
+                                MarkupStartTag - [2..10)::8 - [<script>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[script];
+                                    CloseAngle;[>];
+                                MarkupTextLiteral - [10..40)::30 - [if(foo < bar) { alert("baz");)] - Gen<Markup>
+                                    Text;[if(foo];
+                                    Whitespace;[ ];
+                                    OpenAngle;[<];
+                                    Whitespace;[ ];
+                                    Text;[bar)];
+                                    Whitespace;[ ];
+                                    Text;[{];
+                                    Whitespace;[ ];
+                                    Text;[alert(];
+                                    DoubleQuote;["];
+                                    Text;[baz];
+                                    DoubleQuote;["];
+                                    Text;[);)];
+                                MarkupEndTag - [40..49)::9 - [</script>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[script];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [49..49)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [49..50)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [50..50)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (intersects)
                 {
-                    info[pair.i].LocalDefs.Free();
+                    info[pair.i].Free();
                     info.Remove(pair.i);
                 }
                 else
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     _counter += 1;
 
-                    if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } } typeExpression)
                     {
                         receiver = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
@@ -2319,7 +2319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     _nodeCounter++;
 
-                    if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } } typeExpression)
                     {
                         receiverOpt = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));

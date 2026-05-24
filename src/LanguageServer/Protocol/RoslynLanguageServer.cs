@@ -123,7 +123,6 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<IClientLanguageServerManager>(clientLanguageServerManager);
         AddService<ILspLogger>(logger);
         AddService<AbstractLspLogger>(logger);
-        AddLazyService<ILifeCycleManager>(lspServices => lspServices.GetRequiredService<LspServiceLifeCycleManager>());
         AddService(new ServerInfoProvider(serverKind, supportedLanguages));
         AddLazyService<AbstractRequestContextFactory<RequestContext>>(lspServices => new RequestContextFactory(lspServices));
         AddLazyService<AbstractTelemetryService>(lspServices => new TelemetryService(lspServices));
@@ -133,13 +132,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<IMethodHandler>(new InitializedHandler());
         AddService<IOnInitialized>(this);
         AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
-
-        // In all VS cases, we already have a misc workspace.  Specifically
-        // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
-        // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
-        // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
-        if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-            AddLazyService<ILspMiscellaneousFilesWorkspaceProvider>(lspServices => lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProviderFactory>().CreateLspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices));
+        AddService<HostServices>(hostServices);
 
         return baseServiceMap.ToFrozenDictionary(
             keySelector: kvp => kvp.Key,
@@ -237,13 +230,12 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
             Contract.ThrowIfNull(textDocumentIdentifier, "Failed to deserialize text document identifier property");
             uri = textDocumentIdentifier.DocumentUri;
         }
-        else if (parameters.TryGetProperty("data", out var dataToken))
+        else if (TryGetRequestDataToken(parameters, out var dataToken))
         {
             // All the LSP resolve params have the following known json structure
             // { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... }
             //
             // We can deserialize the data object using our unified DocumentResolveData.
-            //var dataToken = parameters["data"];
             var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
             Contract.ThrowIfNull(data, "Failed to document resolve data object");
             uri = data.TextDocument.DocumentUri;
@@ -264,6 +256,26 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         }
 
         return true;
+
+        static bool TryGetRequestDataToken(JsonElement parameters, out JsonElement dataToken)
+        {
+            if (parameters.TryGetProperty("data", out dataToken))
+            {
+                return true;
+            }
+
+            // Some LSP requests like call hierarchy incoming/outgoing calls and type hierarchy
+            // subtype/supertype requests nest the same payload under item.data.
+            if (parameters.TryGetProperty("item", out var itemToken) &&
+                itemToken.ValueKind == JsonValueKind.Object &&
+                itemToken.TryGetProperty("data", out dataToken))
+            {
+                return true;
+            }
+
+            dataToken = default;
+            return false;
+        }
 
         static bool ShouldUseDefaultLanguage(string methodName)
         {
