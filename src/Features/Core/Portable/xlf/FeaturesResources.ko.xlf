@@ -1012,7 +1012,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Intercepted_by_0">
         <source>Intercepted by '{0}'.</source>
-        <target state="new">Intercepted by '{0}'.</target>
+        <target state="translated">'{0}'이(가) 가로챌 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -2598,6 +2598,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
         <target state="translated">조건식을 명령문으로 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
+        <source>Represents the character '{0}' as a UTF-16 code unit.</source>
+        <target state="translated">'{0}' 문자를 UTF-16 코드 단위로 나타냅니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

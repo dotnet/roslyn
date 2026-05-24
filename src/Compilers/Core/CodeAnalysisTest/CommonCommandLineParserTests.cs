@@ -1112,7 +1112,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var builder = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
             CommandLineParser.ParseSeparatedStrings(arg.AsMemory(), separators, removeEmptyEntries, builder);
-            return builder.Select(x => x.ToString()).ToArray();
+            var result = builder.Select(x => x.ToString()).ToArray();
+            builder.Free();
+            return result;
         }
 
         [Fact]

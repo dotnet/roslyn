@@ -80,6 +80,8 @@ internal abstract class CodeGenerationTypeSymbol(
 
     public virtual bool IsRecord => false;
 
+    public virtual bool IsUnion => false;
+
     public NullableAnnotation NullableAnnotation { get; } = nullableAnnotation;
 
     public ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation)

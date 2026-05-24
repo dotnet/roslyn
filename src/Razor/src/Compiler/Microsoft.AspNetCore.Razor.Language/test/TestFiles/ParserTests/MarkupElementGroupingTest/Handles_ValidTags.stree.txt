@@ -1,0 +1,33 @@
+﻿RazorDocument - [0..30)::30 - [LF<div>Foo</div>LF<p>Bar</p>LF]
+    MarkupBlock - [0..30)::30
+        MarkupTextLiteral - [0..2)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [2..16)::14
+            MarkupStartTag - [2..7)::5 - [<div>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            MarkupTextLiteral - [7..10)::3 - [Foo] - Gen<Markup>
+                Text;[Foo];
+            MarkupEndTag - [10..16)::6 - [</div>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+        MarkupTextLiteral - [16..18)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        MarkupElement - [18..28)::10
+            MarkupStartTag - [18..21)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [21..24)::3 - [Bar] - Gen<Markup>
+                Text;[Bar];
+            MarkupEndTag - [24..28)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [28..30)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];
