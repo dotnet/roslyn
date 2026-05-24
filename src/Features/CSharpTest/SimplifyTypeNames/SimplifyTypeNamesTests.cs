@@ -177,7 +177,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                     MyType c;
                 }
             }
-            """);
+            """.NormalizeLineEndings());
 
     [Fact]
     public Task UseAlias00_FileScopedNamespace()
@@ -6720,7 +6720,7 @@ new TestParameters(Options.Script));
             {
                 nint i;
             }
-            """, new(options: featureOptions));
+            """.NormalizeLineEndings(), new(options: featureOptions));
     }
 
     [Fact]
@@ -6789,7 +6789,7 @@ new TestParameters(Options.Script));
             {
                 nuint i;
             }
-            """, new(options: featureOptions));
+            """.NormalizeLineEndings(), new(options: featureOptions));
     }
 
     [Fact]

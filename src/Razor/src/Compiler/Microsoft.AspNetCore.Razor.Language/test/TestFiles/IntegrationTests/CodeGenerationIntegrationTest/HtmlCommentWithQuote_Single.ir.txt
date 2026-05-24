@@ -1,0 +1,33 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_HtmlCommentWithQuote_Single - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            PreallocatedTagHelperHtmlAttributeValue -  - __tagHelperAttribute_0 - src - ~/images/submit.png - HtmlAttributeValueStyle.DoubleQuotes
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper - __Microsoft_AspNetCore_Mvc_Razor_TagHelpers_UrlResolutionTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (0:0,0 [12] HtmlCommentWithQuote_Single.cshtml)
+                    LazyIntermediateToken - (0:0,0 [4] HtmlCommentWithQuote_Single.cshtml) - Html - <!--
+                    LazyIntermediateToken - (4:0,4 [3] HtmlCommentWithQuote_Single.cshtml) - Html -  ' 
+                    LazyIntermediateToken - (7:0,7 [3] HtmlCommentWithQuote_Single.cshtml) - Html - -->
+                    LazyIntermediateToken - (10:0,10 [2] HtmlCommentWithQuote_Single.cshtml) - Html - \n
+                TagHelper - (12:1,0 [33] HtmlCommentWithQuote_Single.cshtml) - img - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper
+                    PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_0
+                    DefaultTagHelperExecute - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

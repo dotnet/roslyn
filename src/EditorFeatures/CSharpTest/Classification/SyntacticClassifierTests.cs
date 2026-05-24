@@ -363,6 +363,29 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
 
+    [Theory, CombinatorialData]
+    public Task ClosedClass(TestHost testHost)
+        => TestAsync(
+            """
+            closed class C
+            {
+            }
+            """,
+            testHost,
+            Keyword("closed"),
+            Keyword("class"),
+            Class("C"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
+    public Task ClosedAsIdentifierInClass(TestHost testHost)
+        => TestInClassAsync("closed Goo;",
+            testHost,
+            Identifier("closed"),
+            Field("Goo"),
+            Punctuation.Semicolon);
+
     private static readonly string[] s_contextualKeywordsOnlyValidInMethods = ["where", "from", "group", "join", "select", "into", "let", "by", "orderby", "on", "equals", "ascending", "descending"];
 
     /// <summary>

@@ -3,31 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.BrokeredServices;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-[Shared]
-[Export(typeof(IEditAndContinueLogReporter))]
 internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
 {
     private const string CategoryName = "Roslyn";
 
     private readonly AsyncBatchingWorkQueue<HotReloadLogMessage> _queue;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public EditAndContinueLogReporter(
-        IServiceBrokerProvider serviceBrokerProvider,
+        IServiceBroker serviceBroker,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
-        var logger = new HotReloadLoggerProxy(serviceBrokerProvider.ServiceBroker);
+        var logger = new HotReloadLoggerProxy(serviceBroker);
 
         _queue = new AsyncBatchingWorkQueue<HotReloadLogMessage>(
             delay: TimeSpan.Zero,
