@@ -44,10 +44,14 @@ internal class TestHistoryManager
         var phaseName = options.PhaseName ?? GetEnvironmentVariable("SYSTEM_PHASENAME");
 
         // We use the target branch of the current build to lookup the last successful build for the same branch.
-        var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME");
+        // For PR builds, SYSTEM_PULLREQUEST_TARGETBRANCH gives us the target (e.g. "main").
+        // For CI builds, we need the full branch ref. BUILD_SOURCEBRANCH gives us the full ref
+        // (e.g. "refs/heads/features/unions") while BUILD_SOURCEBRANCHNAME only gives the last
+        // segment (e.g. "unions"), which breaks history lookup for nested branch names.
+        var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCH");
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
-            ConsoleUtil.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
+            ConsoleUtil.Warning($"Missing required options to lookup test history, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -58,12 +62,22 @@ internal class TestHistoryManager
         using var buildClient = connection.GetClient<BuildHttpClient>();
 
         ConsoleUtil.WriteLine($"Getting last successful build for branch {targetBranch}");
-        var adoBranch = $"refs/heads/{targetBranch}";
+        var adoBranch = targetBranch.StartsWith("refs/heads/", StringComparison.OrdinalIgnoreCase)
+            ? targetBranch
+            : $"refs/heads/{targetBranch}";
         var lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(pipelineDefinitionId, adoBranch, buildClient, cancellationToken);
+        if (lastSuccessfulBuild == null && adoBranch != "refs/heads/main")
+        {
+            // If this is a new branch or has no successful builds, fall back to main history
+            // to avoid the expensive method-count fallback that creates hundreds of work items.
+            ConsoleUtil.Warning($"Unable to get the last successful build for branch {adoBranch}, falling back to refs/heads/main");
+            lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(pipelineDefinitionId, "refs/heads/main", buildClient, cancellationToken);
+        }
+
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
-            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
+            ConsoleUtil.Warning($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -72,7 +86,7 @@ internal class TestHistoryManager
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
-            ConsoleUtil.WriteLine($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
+            ConsoleUtil.Warning($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
