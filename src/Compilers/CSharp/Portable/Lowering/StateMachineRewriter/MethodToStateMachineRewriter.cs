@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     translated = node.Update(newLocalsBuilder.ToImmutableAndFree(), statements);
                 }
 
-                return MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translated);
+                return MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutableAndFree(), translated);
             }
             else
             {

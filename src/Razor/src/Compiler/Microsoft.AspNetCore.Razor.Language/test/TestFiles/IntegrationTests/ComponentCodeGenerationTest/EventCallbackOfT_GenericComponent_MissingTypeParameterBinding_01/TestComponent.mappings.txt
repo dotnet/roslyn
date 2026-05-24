@@ -1,0 +1,19 @@
+﻿Source Location: (64:2,7 [28] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private int counter;
+|
+Generated Location: (783:23,0 [28] )
+|
+    private int counter;
+|
+
+Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (1257:39,45 [11] )
+|MyComponent|
+
+Source Location: (13:0,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|OnClick|
+Generated Location: (1463:43,0 [7] )
+|OnClick|
+

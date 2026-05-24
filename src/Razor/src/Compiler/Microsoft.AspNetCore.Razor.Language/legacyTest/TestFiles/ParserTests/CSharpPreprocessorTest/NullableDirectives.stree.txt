@@ -1,0 +1,76 @@
+﻿RazorDocument - [0..236)::236 - [@{LF#nullable enableLF#nullable disableLF#nullable restoreLF#nullable enable annotationsLF#nullable disable annotationsLF#nullable restore annotationsLF#nullable enable warningsLF#nullable disable warningsLF#nullable restore warningsLF}]
+    MarkupBlock - [0..236)::236
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..236)::236
+            CSharpStatement - [0..236)::236
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [1..236)::235
+                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..235)::233
+                        CSharpStatementLiteral - [2..235)::233 - [LF#nullable enableLF#nullable disableLF#nullable restoreLF#nullable enable annotationsLF#nullable disable annotationsLF#nullable restore annotationsLF#nullable enable warningsLF#nullable disable warningsLF#nullable restore warningsLF] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[nullable];
+                            Whitespace;[ ];
+                            Identifier;[enable];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[nullable];
+                            Whitespace;[ ];
+                            Identifier;[disable];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[nullable];
+                            Whitespace;[ ];
+                            Identifier;[restore];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[nullable];
+                            Whitespace;[ ];
+                            Identifier;[enable];
+                            Whitespace;[ ];
+                            Identifier;[annotations];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[nullable];
+                            Whitespace;[ ];
+                            Identifier;[disable];
+                            Whitespace;[ ];
+                            Identifier;[annotations];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[nullable];
+                            Whitespace;[ ];
+                            Identifier;[restore];
+                            Whitespace;[ ];
+                            Identifier;[annotations];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[nullable];
+                            Whitespace;[ ];
+                            Identifier;[enable];
+                            Whitespace;[ ];
+                            Identifier;[warnings];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[nullable];
+                            Whitespace;[ ];
+                            Identifier;[disable];
+                            Whitespace;[ ];
+                            Identifier;[warnings];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[nullable];
+                            Whitespace;[ ];
+                            Identifier;[restore];
+                            Whitespace;[ ];
+                            Identifier;[warnings];
+                            NewLine;[LF];
+                    RazorMetaCode - [235..236)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupTextLiteral - [236..236)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+    EndOfFile;[];

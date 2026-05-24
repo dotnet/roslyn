@@ -27,7 +27,4 @@ internal static class Extensions
 
     public static bool IsRazorDocument(this TextDocumentState documentState)
         => documentState.DocumentServiceProvider.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName == RazorCSharpLspClientName;
-
-    public static bool IsRazorSourceGeneratedDocument(this Document document)
-        => document is SourceGeneratedDocument { Identity.Generator.TypeName: "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator" };
 }
