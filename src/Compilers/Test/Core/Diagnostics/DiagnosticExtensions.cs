@@ -96,7 +96,9 @@ namespace Microsoft.CodeAnalysis
             if (unmatchedActualDescription.Count > 0 || unmatchedExpected.Count > 0)
             {
                 var text = DiagnosticDescription.GetAssertText(expected, actual, unmatchedExpected.ToArray(), actual.Select((a, i) => (a, i)).Join(unmatchedActualIndex, ai => ai.i, i => i, (ai, _) => ai.a));
+                unmatchedExpected.Free();
                 Assert.Fail(text);
+                return;
             }
 
             unmatchedExpected.Free();
