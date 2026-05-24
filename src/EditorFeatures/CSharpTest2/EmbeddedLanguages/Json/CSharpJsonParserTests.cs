@@ -369,7 +369,7 @@ public partial class CSharpJsonParserTests
             case JsonKind.EndOfLineTrivia:
                 break;
             default:
-                Assert.False(true, "Incorrect trivia kind");
+                Assert.Fail("Incorrect trivia kind");
                 return;
         }
 

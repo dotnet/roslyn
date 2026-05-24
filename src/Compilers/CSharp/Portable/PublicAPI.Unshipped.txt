@@ -30,3 +30,5 @@
 [RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ContinueStatement(Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax? name = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.ContinueStatementSyntax!
 [RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ContinueStatement(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax!> attributeLists, Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax? name) -> Microsoft.CodeAnalysis.CSharp.Syntax.ContinueStatementSyntax!
 [RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ContinueStatement(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax!> attributeLists, Microsoft.CodeAnalysis.SyntaxToken continueKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax? name, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ContinueStatementSyntax!
+
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClosedKeyword = 8453 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

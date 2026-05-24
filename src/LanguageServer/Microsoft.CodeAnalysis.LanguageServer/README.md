@@ -1,10 +1,10 @@
 # roslyn-language-server
 
-A [Language Server Protocol (LSP)](https://microsoft.github.io/language-server-protocol/) implementation for C# powered by Roslyn.
+A [Language Server Protocol (LSP)](https://microsoft.github.io/language-server-protocol/) implementation for C# and Razor powered by Roslyn.
 
 ## Overview
 
-The `roslyn-language-server` is a .NET tool that provides rich language features for C# through the Language Server Protocol. It powers editor integrations including the [C# extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) and C# Dev Kit.
+The `roslyn-language-server` is a .NET tool that provides rich language features for C# and Razor through the Language Server Protocol. It powers editor integrations including the [C# extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) and C# Dev Kit.
 
 This tool implements the LSP specification, enabling features such as:
 

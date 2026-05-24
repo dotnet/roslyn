@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,7 +34,7 @@ internal interface IBuildHost
     /// contain paths (which can have escaping issues) or could be quite large (which could run into length limits).
     /// </summary>
     /// <param name="knownCommandLineParserLanguages">Languages whose command line parser we understand (ICommandLineParserService).</param>
-    void ConfigureGlobalState(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> globalProperties, string? binlogPath);
+    void ConfigureGlobalState(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, string? binlogPath);
 
     Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken);
 

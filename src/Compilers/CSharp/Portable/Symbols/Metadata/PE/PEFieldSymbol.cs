@@ -30,12 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |........................|qq|rr|v|fffff|
+            // |......................|uu|qq|rr|v|fffff|
             //
             // f = FlowAnalysisAnnotations. 5 bits (4 value bits + 1 completion bit).
             // v = IsVolatile 1 bit
             // r = RefKind 2 bits
             // q = Required members. 2 bits (1 value bit + 1 completion bit).
+            // u = Requires unsafe. 2 bits (1 value bit + 1 completion bit).
 
             private const int HasDisallowNullAttribute = 0x1 << 0;
             private const int HasAllowNullAttribute = 0x1 << 1;
@@ -48,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             private const int HasRequiredMemberAttribute = 0x1 << 8;
             private const int RequiredMemberCompletionBit = 0x1 << 9;
+            private const int RequiresUnsafeBit = 0x1 << 10;
+            private const int RequiresUnsafeCompletionBit = 0x1 << 11;
 
             private int _bits;
 
@@ -110,6 +113,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 hasRequiredMemberAttribute = false;
+                return false;
+            }
+
+            public bool SetRequiresUnsafe(bool requiresUnsafe)
+            {
+                int bitsToSet = RequiresUnsafeCompletionBit | (requiresUnsafe ? RequiresUnsafeBit : 0);
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public bool TryGetRequiresUnsafe(out bool requiresUnsafe)
+            {
+                if ((_bits & RequiresUnsafeCompletionBit) != 0)
+                {
+                    requiresUnsafe = (_bits & RequiresUnsafeBit) != 0;
+                    return true;
+                }
+
+                requiresUnsafe = false;
                 return false;
             }
         }
@@ -582,15 +603,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (RoslynImmutableInterlocked.VolatileRead(in _lazyCustomAttributes).IsDefault)
             {
-                var attributes = loadAndFilterAttributes(out var hasRequiredMemberAttribute);
+                var attributes = loadAndFilterAttributes(out var hasRequiredMemberAttribute, out var hasRequiresUnsafeAttribute);
                 _packedFlags.SetHasRequiredMemberAttribute(hasRequiredMemberAttribute);
+                _packedFlags.SetRequiresUnsafe(ComputeRequiresUnsafe(hasRequiresUnsafeAttribute));
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
             }
             return _lazyCustomAttributes;
 
-            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMemberAttribute)
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMemberAttribute, out bool hasRequiresUnsafeAttribute)
             {
                 hasRequiredMemberAttribute = false;
+                hasRequiresUnsafeAttribute = false;
 
                 var containingModule = ContainingPEModule;
                 if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
@@ -608,6 +631,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
                     {
                         hasRequiredMemberAttribute = true;
+                        continue;
+                    }
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiresUnsafeAttribute))
+                    {
+                        hasRequiresUnsafeAttribute = true;
                         continue;
                     }
 
@@ -711,6 +740,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return hasRequiredMemberAttribute;
+            }
+        }
+
+        private bool RequiresUnsafe
+        {
+            get
+            {
+                if (!_packedFlags.TryGetRequiresUnsafe(out bool requiresUnsafe))
+                {
+                    bool hasRequiresUnsafeAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiresUnsafeAttribute);
+                    requiresUnsafe = ComputeRequiresUnsafe(hasRequiresUnsafeAttribute);
+                    _packedFlags.SetRequiresUnsafe(requiresUnsafe);
+                }
+
+                return requiresUnsafe;
+            }
+        }
+
+        private bool ComputeRequiresUnsafe(bool hasRequiresUnsafeAttribute)
+        {
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? hasRequiresUnsafeAttribute
+                // This might be expensive, so we cache it in _packedFlags.
+                : !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer();
+        }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (!RequiresUnsafe)
+                {
+                    return CallerUnsafeMode.None;
+                }
+
+                return ContainingModule.UseUpdatedMemorySafetyRules
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.Implicit;
             }
         }
     }
