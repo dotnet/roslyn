@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -46,7 +47,13 @@ internal sealed class CohostInlineCompletionEndpoint(
             return [new Registration
             {
                 Method = VSInternalMethods.TextDocumentInlineCompletionName,
-                RegisterOptions = new VSInternalInlineCompletionRegistrationOptions().EnableInlineCompletion()
+                RegisterOptions = new VSInternalInlineCompletionRegistrationOptions()
+                {
+                    Pattern = new Regex(string.Join("|",
+                        ["~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
+                        "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
+                        "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while"]))
+                }
             }];
         }
 

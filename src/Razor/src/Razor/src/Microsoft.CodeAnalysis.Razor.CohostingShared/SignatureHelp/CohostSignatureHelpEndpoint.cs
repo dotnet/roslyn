@@ -46,7 +46,10 @@ internal sealed class CohostSignatureHelpEndpoint(
             {
                 Method = Methods.TextDocumentSignatureHelpName,
                 RegisterOptions = new SignatureHelpRegistrationOptions()
-                    .EnableSignatureHelp()
+                {
+                    TriggerCharacters = ["(", ",", "<"],
+                    RetriggerCharacters = [">", ")"]
+                }
             }];
         }
 

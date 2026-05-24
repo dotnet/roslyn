@@ -75,7 +75,9 @@ internal sealed class CohostOnAutoInsertEndpoint(
             {
                 Method = VSInternalMethods.OnAutoInsertName,
                 RegisterOptions = new VSInternalDocumentOnAutoInsertRegistrationOptions()
-                    .EnableOnAutoInsert(_triggerCharacters)
+                {
+                    TriggerCharacters = _triggerCharacters.Distinct().ToArray()
+                }
             }];
         }
 
