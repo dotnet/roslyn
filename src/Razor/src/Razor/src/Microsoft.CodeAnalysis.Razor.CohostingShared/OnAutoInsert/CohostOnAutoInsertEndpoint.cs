@@ -45,13 +45,13 @@ internal sealed class CohostOnAutoInsertEndpoint(
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostOnAutoInsertEndpoint>();
 
-    private readonly ImmutableArray<string> _triggerCharacters = CalculateTriggerChars(onAutoInsertTriggerCharacterProviders);
+    private readonly string[] _triggerCharacters = CalculateTriggerChars(onAutoInsertTriggerCharacterProviders);
 
-    private static ImmutableArray<string> CalculateTriggerChars(IEnumerable<IOnAutoInsertTriggerCharacterProvider> onAutoInsertTriggerCharacterProviders)
+    private static string[] CalculateTriggerChars(IEnumerable<IOnAutoInsertTriggerCharacterProvider> onAutoInsertTriggerCharacterProviders)
     {
-        var providerTriggerCharacters = onAutoInsertTriggerCharacterProviders.Select((provider) => provider.TriggerCharacter).Distinct();
+        var providerTriggerCharacters = onAutoInsertTriggerCharacterProviders.Select((provider) => provider.TriggerCharacter);
 
-        ImmutableArray<string> triggerCharacters = [
+        HashSet<string> triggerCharacters = [
             .. providerTriggerCharacters,
 #if !VSCODE
             // VS Code's auto insert functionality is poly-filled by Roslyn. The Html server has no support for it.
@@ -59,7 +59,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
 #endif
             .. AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters ];
 
-        return triggerCharacters;
+        return [.. triggerCharacters];
     }
 
     protected override bool MutatesSolutionState => false;
@@ -75,7 +75,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
                 Method = VSInternalMethods.OnAutoInsertName,
                 RegisterOptions = new VSInternalDocumentOnAutoInsertRegistrationOptions()
                 {
-                    TriggerCharacters = _triggerCharacters.Distinct().ToArray()
+                    TriggerCharacters = _triggerCharacters
                 }
             }];
         }

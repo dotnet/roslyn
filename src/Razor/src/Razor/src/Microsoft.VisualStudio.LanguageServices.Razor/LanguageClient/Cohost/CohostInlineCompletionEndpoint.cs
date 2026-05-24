@@ -49,15 +49,18 @@ internal sealed class CohostInlineCompletionEndpoint(
                 RegisterOptions = new VSInternalInlineCompletionRegistrationOptions()
                 {
                     Pattern = new Regex(string.Join("|",
-                        ["~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
-                        "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
-                        "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while"]))
+                        GetBuildInCSharpSnippetTriggers()))
                 }
             }];
         }
 
         return [];
     }
+
+    internal static string[] GetBuildInCSharpSnippetTriggers()
+        => ["~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
+            "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
+            "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while"];
 
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
         => request.TextDocument;
