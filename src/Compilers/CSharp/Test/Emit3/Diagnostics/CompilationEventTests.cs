@@ -69,8 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Console.Write("\"" + e.ToString() + "\"");
                 }
                 Console.WriteLine();
-                Assert.True(false);
+                actual.Free();
+                throw ExceptionUtilities.Unreachable();
             }
+
+            actual.Free();
         }
 
         [Fact]

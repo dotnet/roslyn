@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
                 Dim firstMarkerIndex = expectedMarkUp.IndexOf(Marker)
                 Dim secondMarkerIndex = expectedMarkUp.LastIndexOf(Marker)
                 If firstMarkerIndex = -1 OrElse secondMarkerIndex = 1 OrElse firstMarkerIndex = secondMarkerIndex Then
-                    Assert.True(False, "Can't find proper marks that contains inlined method.")
+                    Assert.Fail("Can't find proper marks that contains inlined method.")
                 End If
 
                 Dim firstPartitionBeforeMarkUp = expectedMarkUp.Substring(0, firstMarkerIndex)
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
                 Dim firstMarkerIndex = expectedMarkUpForCallee.IndexOf(Marker)
                 Dim secondMarkerIndex = expectedMarkUpForCallee.LastIndexOf(Marker)
                 If firstMarkerIndex = -1 OrElse secondMarkerIndex = -1 OrElse firstMarkerIndex = secondMarkerIndex Then
-                    Assert.True(False, "Can't find proper marks that contains inlined method.")
+                    Assert.Fail("Can't find proper marks that contains inlined method.")
                 End If
 
                 Dim firstPartitionBeforeMarkUp = expectedMarkUpForCallee.Substring(0, firstMarkerIndex)

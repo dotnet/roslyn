@@ -39,7 +39,7 @@ public sealed class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtoco
             Command = TestWorkspaceCommandHandler.CommandName
         };
         var response = await server.ExecuteRequestAsync<ExecuteCommandParams, object>(Methods.WorkspaceExecuteCommandName, request, CancellationToken.None);
-        AssertEx.NotNull(response);
+        Assert.NotNull(response);
         Assert.True((bool)response);
 
     }

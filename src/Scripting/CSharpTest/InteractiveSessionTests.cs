@@ -1435,7 +1435,7 @@ d
             try
             {
                 CSharpScript.RunAsync<C<int>>("null", ScriptOptions);
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (CompilationErrorException e)
             {
@@ -1454,7 +1454,7 @@ d
             try
             {
                 CSharpScript.RunAsync<int>("null", ScriptOptions);
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (CompilationErrorException e)
             {
@@ -1467,7 +1467,7 @@ d
             try
             {
                 CSharpScript.RunAsync<string>("1+1", ScriptOptions);
-                Assert.True(false, "Expected an exception");
+                Assert.Fail("Expected an exception");
             }
             catch (CompilationErrorException e)
             {

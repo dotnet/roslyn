@@ -86,7 +86,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal(documentText, document.ToString());
         }
     }
@@ -209,7 +209,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
                 class A
                 {
@@ -280,7 +280,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
             class A
             {
@@ -315,7 +315,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
             class A
             {
@@ -349,7 +349,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
             class A
             {
@@ -428,7 +428,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
             class A
             {

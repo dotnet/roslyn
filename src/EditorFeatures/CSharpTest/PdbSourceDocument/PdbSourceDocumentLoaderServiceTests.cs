@@ -35,14 +35,14 @@ public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocum
             var sourceFilePath = Path.Combine(path, "SourceLink.cs");
             File.Move(GetSourceFilePath(path), sourceFilePath);
 
-            var sourceLinkService = new Lazy<ISourceLinkService>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
-            var service = new PdbSourceDocumentLoaderService(sourceLinkService, logger: null);
+            var sourceLinkService = new TestSourceLinkService(sourceFilePath: sourceFilePath);
+            var service = new PdbSourceDocumentLoaderService(logger: null);
 
             using var hash = SHA256.Create();
             var fileHash = hash.ComputeHash(File.ReadAllBytes(sourceFilePath));
 
             var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithms.Default, [.. fileHash], null, "https://sourcelink");
-            var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, CancellationToken.None);
+            var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, sourceLinkService, CancellationToken.None);
 
             Assert.NotNull(result);
             Assert.Equal(sourceFilePath, result!.FilePath);
@@ -66,11 +66,11 @@ public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocum
             var sourceFilePath = Path.Combine(path, "SourceLink.cs");
             File.Move(GetSourceFilePath(path), sourceFilePath);
 
-            var sourceLinkService = new Lazy<ISourceLinkService>(() => new TestSourceLinkService(sourceFilePath: sourceFilePath));
-            var service = new PdbSourceDocumentLoaderService(sourceLinkService, logger: null);
+            var sourceLinkService = new TestSourceLinkService(sourceFilePath: sourceFilePath);
+            var service = new PdbSourceDocumentLoaderService(logger: null);
 
             var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.None, default, null, SourceLinkUrl: null);
-            var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, CancellationToken.None);
+            var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, sourceLinkService, CancellationToken.None);
 
             Assert.Null(result);
         });

@@ -1,0 +1,7 @@
+﻿is_global = true
+
+# CA2213: 'type' contains field 'field' that is of IDisposable type 'type', but it is never disposed
+dotnet_diagnostic.CA2213.severity = suggestion
+
+# RS0016: Add public types and members to the declared API
+dotnet_public_api_analyzer.require_api_files = true

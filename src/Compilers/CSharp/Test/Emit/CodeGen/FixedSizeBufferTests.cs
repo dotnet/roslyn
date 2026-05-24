@@ -367,7 +367,7 @@ class Program
 }
 ";
 
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (14,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         System.Console.WriteLine(s.x[3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x").WithLocation(14, 34),
@@ -375,6 +375,19 @@ class Program
                 //         System.Console.WriteLine(a[0].x[3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[0].x").WithLocation(18, 34)
                 );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (14,37): error CS9229: Unsafe code may not appear in this context
+                //         System.Console.WriteLine(s.x[3]);
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(14, 37),
+                // (18,40): error CS9229: Unsafe code may not appear in this context
+                //         System.Console.WriteLine(a[0].x[3]);
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(18, 40)
+            };
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
