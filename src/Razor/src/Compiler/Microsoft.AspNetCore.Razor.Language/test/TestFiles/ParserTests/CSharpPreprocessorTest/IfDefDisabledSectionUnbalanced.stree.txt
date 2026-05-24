@@ -1,0 +1,22 @@
+﻿RazorDocument - [0..40)::40 - [@{LF#if falseLF    void M() {LF#endifLF}]
+    MarkupBlock - [0..40)::40
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..40)::40
+            CSharpStatement - [0..40)::40
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..40)::39
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..39)::37
+                        CSharpStatementLiteral - [2..39)::37 - [LF#if falseLF    void M() {LF#endifLF] - Gen<Stmt>
+                            NewLine;[LF];
+                            CSharpDirective;[#if falseLF];
+                            CSharpDisabledText;[    void M() {LF];
+                            CSharpDirective;[#endifLF];
+                    RazorMetaCode - [39..40)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [40..40)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

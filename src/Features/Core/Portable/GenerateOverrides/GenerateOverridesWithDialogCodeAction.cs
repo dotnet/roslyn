@@ -35,6 +35,9 @@ internal sealed partial class GenerateOverridesCodeRefactoringProvider
 
         public override string Title => FeaturesResources.Generate_overrides;
 
+        internal override bool IsOptionServiceAvailable()
+            => (_service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Services.GetService<IPickMembersService>()) is not null;
+
         public override object GetOptions(CancellationToken cancellationToken)
         {
             var services = _document.Project.Solution.Services;

@@ -2470,8 +2470,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CallerUnsafeOverridingSafe = 9364,
         ERR_CallerUnsafeImplicitlyImplementingSafe = 9365,
         ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
-        ERR_RequiresUnsafeAttributeUnsupportedMemberTarget = 9367,
-        WRN_RequiresUnsafeAttributeLegacyRules = 9368,
 
         ERR_ExpressionTreeContainsUnionConversion = 9369,
         ERR_UnionDeclarationNeedsCaseTypes = 9370,
@@ -2485,6 +2483,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnsafeMeaningless = 9377,
 
         ERR_PPShebangNotOnFirstLine = 9378,
+
+        ERR_RequiresUnsafeAttributeInSource = 9379,
+
+        ERR_ClosedTypeNameDisallowed = 9380,
+        ERR_ClosedSealedStatic = 9381,
+        ERR_ClosedBaseTypeBaseFromOtherAssembly = 9382,
+        ERR_UnderspecifiedClosedSubtype = 9383,
+        ERR_ClosedExplicitlyAbstract = 9384,
+
+        ERR_MissingUnionCaseTypes = 9385,
+        ERR_MissingUnionValueProperty = 9386,
+        ERR_MemberProviderInUnionDeclaration = 9387,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

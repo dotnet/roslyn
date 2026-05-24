@@ -1,0 +1,43 @@
+﻿// [ProvideAutoLoad(GuidRazorFileContextString, PackageAutoLoadFlags.BackgroundLoad)]
+[$RootKey$\AutoLoadPackages\{7C3F2F9E-8D4A-4B6C-9E1F-5A8D7C6B3E2D}]
+"{13b72f58-279e-49e0-a56d-296be02f0805}"=dword:00000002
+
+[$RootKey$\Menus]
+"{13b72f58-279e-49e0-a56d-296be02f0805}"=", Menus.ctmenu, 1"
+
+// [ProvideUIContextRule(
+//      contextGuid: RazorConstants.RazorCohostingUIContext,
+//      name: "Razor Cohosting Activation",
+//      expression: "RazorContentType",
+//      termNames: ["RazorContentType"],
+//      termValues: [$"ActiveEditorContentType:{RazorConstants.RazorLSPContentTypeName}"])]
+[$RootKey$\UIContextRules\{6d5b86dc-6b8a-483b-ae30-098a3c7d6774}]
+@="Razor Cohosting Activation"
+"Expression"="RazorContentType"
+"RazorContentType"="ActiveEditorContentType:Razor"
+
+// [ProvideUIContextRule(
+//      contextGuid: GuidRazorFileContextString,
+//      name: "Razor File Selected",
+//      expression: "DotNetCoreRazorProject & (RazorFile | CshtmlFile | RazorNestedFile | CshtmlNestedFile)",
+//      termNames: ["DotNetCoreRazorProject", "RazorFile", "CshtmlFile", "RazorNestedFile", "CshtmlNestedFile"],
+//      termValues: ["ActiveProjectCapability:DotNetCoreRazor", @"HierSingleSelectionName:\.razor$", @"HierSingleSelectionName:\.cshtml$", @"HierSingleSelectionName:\.razor\.", @"HierSingleSelectionName:\.cshtml\."])]
+[$RootKey$\UIContextRules\{7C3F2F9E-8D4A-4B6C-9E1F-5A8D7C6B3E2D}]
+@="Razor File Selected"
+"Expression"="DotNetCoreRazorProject & (RazorFile | CshtmlFile | RazorNestedFile | CshtmlNestedFile)"
+"DotNetCoreRazorProject"="ActiveProjectCapability:DotNetCoreRazor"
+"RazorFile"="HierSingleSelectionName:\.razor$"
+"CshtmlFile"="HierSingleSelectionName:\.cshtml$"
+"RazorNestedFile"="HierSingleSelectionName:\.razor\."
+"CshtmlNestedFile"="HierSingleSelectionName:\.cshtml\."
+
+// The language-service registration is duplicated in Microsoft.VisualStudio.RazorExtension.Custom.pkgdef.
+[$RootKey$\Services\{4513FA64-5B72-4B58-9D4C-1D3C81996C2C}]
+@="{13b72f58-279e-49e0-a56d-296be02f0805}"
+"Name"="Razor Language Service"
+"IsAsyncQueryable"=dword:00000001
+
+// [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
+[$RootKey$\ToolWindows\{28080d9c-0842-4155-9e7d-3b9e6d64bb29}]
+"Name"="Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer.SyntaxVisualizerToolWindow"
+@="{13b72f58-279e-49e0-a56d-296be02f0805}"

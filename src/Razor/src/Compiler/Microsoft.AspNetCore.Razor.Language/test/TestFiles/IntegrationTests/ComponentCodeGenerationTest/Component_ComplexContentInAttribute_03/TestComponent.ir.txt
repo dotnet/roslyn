@@ -1,0 +1,20 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [52] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (29:0,29 [19] x:\dir\subdir\Test\TestComponent.cshtml) - StringProperty - StringProperty - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (30:0,30 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (30:0,30 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
+                        HtmlContent - (31:0,31 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (31:0,31 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  html
+                            IntermediateToken -  - Html -  
+                        CSharpExpression - (39:0,39 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (39:0,39 [8] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "string"
+            CSharpCode - (63:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (63:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    int x = 1;\n
