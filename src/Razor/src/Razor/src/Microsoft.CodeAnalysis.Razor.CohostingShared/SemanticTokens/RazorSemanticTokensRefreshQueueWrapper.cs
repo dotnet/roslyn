@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Composition;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
