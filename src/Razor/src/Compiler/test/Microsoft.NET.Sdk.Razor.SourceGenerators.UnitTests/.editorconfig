@@ -1,0 +1,6 @@
+﻿[*.cs]
+
+# Removal tracked by https://github.com/dotnet/razor-compiler/issues/246
+
+# IDE0161: Convert to file-scoped namespace
+dotnet_diagnostic.IDE0161.severity = none

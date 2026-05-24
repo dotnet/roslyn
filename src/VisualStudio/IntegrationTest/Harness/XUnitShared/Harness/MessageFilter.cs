@@ -7,6 +7,7 @@ namespace Xunit.Harness
     using System;
     using System.Runtime.InteropServices;
     using Windows.Win32.Media;
+    using HTASK = Windows.Win32.Foundation.HTASK;
     using IMessageFilter = Windows.Win32.Media.Audio.IMessageFilter;
     using PENDINGMSG = Windows.Win32.System.Com.PENDINGMSG;
     using SERVERCALL = Windows.Win32.System.Com.SERVERCALL;

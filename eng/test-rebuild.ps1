@@ -52,6 +52,9 @@ try {
   " --exclude net472\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" +
   " --exclude net472\Roslyn.Hosting.Diagnostics.dll" +
   " --exclude net472\Roslyn.VisualStudio.DiagnosticsWindow.dll" +
+  # Match Roslyn's existing WindowsDesktop VS package exclusions, which still rebuild with output differences.
+  " --exclude net472\Microsoft.VisualStudio.RazorExtension.dll" +
+
 # Rebuilds with compilation errors
 # Rebuilds with missing references
 # Rebuilds with other issues

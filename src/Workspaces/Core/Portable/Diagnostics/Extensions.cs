@@ -373,6 +373,21 @@ internal static partial class Extensions
             if (solution.CompilationState.SourceGeneratorExecutionVersionMap.Map.TryGetValue(project.Id, out var executionVersion))
                 tempChecksumArray.Add(executionVersion.Checksum);
 
+            // Open source generated documents are frozen - so the text can differ from what the generator would produce
+            // based on the execution version.  We need to include these in the checksum so diagnostics computed for frozen documents
+            // properly are invalidated if that frozen state is updated.
+            if (solution.CompilationState.FrozenSourceGeneratedDocumentStates.Count > 0)
+            {
+                var frozenGeneratedDocuments = solution.CompilationState.FrozenSourceGeneratedDocumentStates.States.Values
+                    .Where(state => project.Id == state.Identity.DocumentId.ProjectId);
+                // Add the checksums for the frozen documents
+                foreach (var frozenState in frozenGeneratedDocuments)
+                {
+                    var frozenDocumentChecksum = await frozenState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    tempChecksumArray.Add(frozenDocumentChecksum);
+                }
+            }
+
             // Get the checksum for the project itself.  Note: this will normally be cached.  As such, even if we
             // have a different Project instance (due to a change in an unrelated project), this will be fast to
             // compute and return.

@@ -22,26 +22,20 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument;
 [method: ImportingConstructor]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
 internal sealed class PdbSourceDocumentLoaderService(
-    [Import(AllowDefault = true)] Lazy<ISourceLinkService>? sourceLinkService,
     [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IPdbSourceDocumentLoaderService
 {
     private const int SourceLinkTimeout = 1000;
     private const int ExtendedSourceLinkTimeout = 4000;
 
-    /// <summary>
-    /// Lazy import ISourceLinkService because it can cause debugger 
-    /// binaries to be eagerly loaded even if they are never used.
-    /// </summary>
-    private readonly Lazy<ISourceLinkService>? _sourceLinkService = sourceLinkService;
     private readonly IPdbSourceDocumentLogger? _logger = logger;
 
-    public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
+    public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, ISourceLinkService? sourceLinkService, CancellationToken cancellationToken)
     {
         // First we try getting "local" files, either from embedded source or a local file on disk
         // and if they don't work we call the debugger to download a file from SourceLink info
         return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding, telemetry) ??
             TryGetOriginalFile(sourceDocument, encoding, telemetry) ??
-            await TryGetSourceLinkFileAsync(sourceDocument, encoding, telemetry, useExtendedTimeout, cancellationToken).ConfigureAwait(false);
+            await TryGetSourceLinkFileAsync(sourceDocument, encoding, telemetry, useExtendedTimeout, sourceLinkService, cancellationToken).ConfigureAwait(false);
     }
 
     private SourceFileInfo? TryGetEmbeddedSourceFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry)
@@ -122,9 +116,9 @@ internal sealed class PdbSourceDocumentLoaderService(
         return null;
     }
 
-    private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
+    private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, ISourceLinkService? sourceLinkService, CancellationToken cancellationToken)
     {
-        if (sourceDocument.SourceLinkUrl is null || _sourceLinkService is null)
+        if (sourceDocument.SourceLinkUrl is null || sourceLinkService is null)
             return null;
 
         var timeout = useExtendedTimeout ? ExtendedSourceLinkTimeout : SourceLinkTimeout;
@@ -133,7 +127,7 @@ internal sealed class PdbSourceDocumentLoaderService(
         var relativePath = Path.GetFileName(sourceDocument.FilePath);
 
         var delay = Task.Delay(timeout, cancellationToken);
-        var sourceFileTask = _sourceLinkService.Value.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, cancellationToken);
+        var sourceFileTask = sourceLinkService.GetSourceFilePathAsync(sourceDocument.SourceLinkUrl, relativePath, cancellationToken);
 
         var winner = await Task.WhenAny(sourceFileTask, delay).ConfigureAwait(false);
 

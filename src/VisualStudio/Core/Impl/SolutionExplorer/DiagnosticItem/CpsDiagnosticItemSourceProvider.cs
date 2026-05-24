@@ -55,13 +55,8 @@ internal sealed class CpsDiagnosticItemSourceProvider(
                     if (hierarchyMapper != null &&
                         hierarchyMapper.TryGetProjectId(projectRootItem, targetFrameworkMoniker, out var projectId))
                     {
-                        var hierarchy = projectRootItem.HierarchyIdentity.NestedHierarchy;
-                        var itemId = projectRootItem.HierarchyIdentity.NestedItemID;
-                        if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
-                        {
-                            return new CpsDiagnosticItemSource(
-                                _threadingContext, _workspace, projectCanonicalName, projectId, item, _commandHandler, _listenerProvider);
-                        }
+                        return new CpsDiagnosticItemSource(
+                            _threadingContext, _workspace, projectId, item, _commandHandler, _listenerProvider);
                     }
                 }
             }

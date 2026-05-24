@@ -1,0 +1,4 @@
+[*.cs]
+
+# VSTHRD200: Use "Async" suffix for async methods
+dotnet_diagnostic.VSTHRD200.severity = none

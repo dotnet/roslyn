@@ -14,9 +14,7 @@ using System.Text.Json;
 //   dotnet run --file eng/ensure-sources-synced.cs -- --verify
 //   dotnet run --file eng/ensure-sources-synced.cs -- --update
 //
-// Default mode when no args are passed:
-//   - CI: verify
-//   - Local: update
+// Default mode when no args are passed: update
 
 try
 {
@@ -63,16 +61,8 @@ static async Task MainAsync(string[] args)
         includeFile: static name => string.Equals(name, "SourcePackage.editorconfig", StringComparison.OrdinalIgnoreCase),
         mapRelativePath: static _ => ".editorconfig").ConfigureAwait(false);
 
-    var xlfFiles = await GetDirectoryFilesAsync(
-        httpClient,
-        sdkCommit,
-        githubDirectoryPath: "src/Cli/Microsoft.DotNet.FileBasedPrograms/xlf",
-        includeFile: static name => name.EndsWith(".xlf", StringComparison.OrdinalIgnoreCase),
-        mapRelativePath: static name => $"xlf/{name}").ConfigureAwait(false);
-
     var sourcePackageFiles = sourceFiles
         .Concat(editorConfigFiles)
-        .Concat(xlfFiles)
         .ToList();
     if (sourcePackageFiles.Count == 0) throw new InvalidOperationException("No source files found in dotnet/sdk.");
 
@@ -118,8 +108,7 @@ static async Task MainAsync(string[] args)
     if (Directory.Exists(localSourceDir))
     {
         var localMirrorFiles = Directory.GetFiles(localSourceDir, "*", SearchOption.AllDirectories)
-            .Where(f => f.EndsWith(".xlf", StringComparison.OrdinalIgnoreCase)
-                || extensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+            .Where(f => extensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
             .Select(f => Path.GetRelativePath(localSourceDir, f).Replace('\\', '/'))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -165,13 +154,7 @@ static async Task MainAsync(string[] args)
 
 static SyncMode ParseMode(string[] args)
 {
-    if (args.Length == 0)
-    {
-        var onCi = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
-        return onCi ? SyncMode.Verify : SyncMode.Update;
-    }
-
-    if (args is ["--update"])
+    if (args is [] or ["--update"])
         return SyncMode.Update;
 
     if (args is ["--verify"])

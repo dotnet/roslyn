@@ -1,0 +1,45 @@
+﻿RazorDocument - [0..46)::46 - [@{LF    var @string = "blah";LF}LFLF@(@string)]
+    MarkupBlock - [0..46)::46
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..32)::32
+            CSharpStatement - [0..32)::32
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..32)::31
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..31)::29
+                        CSharpStatementLiteral - [2..31)::29 - [LF    var @string = "blah";LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[@string];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["blah"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [31..32)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [32..34)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTextLiteral - [34..36)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [36..46)::10
+            CSharpExplicitExpression - [36..46)::10
+                CSharpTransition - [36..37)::1 - Gen<None>
+                    Transition;[@];
+                CSharpExplicitExpressionBody - [37..46)::9
+                    RazorMetaCode - [37..38)::1 - Gen<None>
+                        LeftParenthesis;[(];
+                    CSharpCodeBlock - [38..45)::7
+                        CSharpExpressionLiteral - [38..45)::7 - [@string] - Gen<Expr>
+                            Identifier;[@string];
+                    RazorMetaCode - [45..46)::1 - Gen<None>
+                        RightParenthesis;[)];
+        MarkupTextLiteral - [46..46)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -45,6 +45,7 @@ internal sealed partial class RemoteRenamerService(in BrokeredServiceBase.Servic
         Checksum solutionChecksum,
         SerializableSymbolAndProjectId symbolAndProjectId,
         SymbolRenameOptions options,
+        bool allowRenamesInRazorSourceGeneratedDocuments,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -56,7 +57,7 @@ internal sealed partial class RemoteRenamerService(in BrokeredServiceBase.Servic
                 return null;
 
             var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
-                symbol, solution, options, cancellationToken).ConfigureAwait(false);
+                symbol, solution, options, allowRenamesInRazorSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
             return new SerializableRenameLocations(
                 options,
