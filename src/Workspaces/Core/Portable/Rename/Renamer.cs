@@ -137,7 +137,10 @@ public static partial class Renamer
 
     /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync(ISymbol, Solution, SymbolRenameOptions, CancellationToken)"/>
     internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CancellationToken cancellationToken)
-        => FindRenameLocationsAsync(solution, symbol, options, allowRenamesInRazorSourceGeneratedDocuments: false, cancellationToken);
+        => FindRenameLocationsAsync(
+            solution, symbol, options,
+            allowRenamesInRazorSourceGeneratedDocuments: solution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>() is not null,
+            cancellationToken);
 
     internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(
         Solution solution,

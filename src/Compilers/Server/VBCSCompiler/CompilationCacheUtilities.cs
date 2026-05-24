@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             var dllName = arguments.OutputFileName;
+            var outputTimestampUtc = DateTime.UtcNow;
             try
             {
                 using var sourceLinkStream = arguments.SourceLink is not null
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             hashKey = CompilationCache.ComputeHashKey(deterministicKey);
 
             var outputFiles = BuildOutputFiles(arguments, dllName);
-            if (cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger))
+            if (cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger, outputTimestampUtc))
             {
                 logger.Log($"Cache hit satisfied: {dllName} [{hashKey}]");
                 return CommonCompiler.Succeeded;

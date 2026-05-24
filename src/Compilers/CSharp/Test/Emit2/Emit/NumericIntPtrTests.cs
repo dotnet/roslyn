@@ -8861,6 +8861,7 @@ class Program
 
             binaryOperator("System.IntPtr", "<<", "System.IntPtr", intMinValue, "int", "0", intMinValue);
             binaryOperatorNotConstant("System.IntPtr", "<<", "System.IntPtr", intMinValue, "int", "1", IntPtr.Size == 4 ? "0" : "-4294967296");
+            binaryOperatorNotConstant("System.IntPtr", "<<", "System.IntPtr", "1", "int", "32", IntPtr.Size == 4 ? "1" : "4294967296");
             binaryOperator("System.IntPtr", "<<", "System.IntPtr", "-1", "int", "31", intMinValue);
             binaryOperatorNotConstant("System.IntPtr", "<<", "System.IntPtr", "-1", "int", "32", IntPtr.Size == 4 ? "-1" : "-4294967296");
             binaryOperator("System.UIntPtr", "<<", "System.UIntPtr", "0", "int", "1", "0");
@@ -8872,10 +8873,14 @@ class Program
             binaryOperator("System.IntPtr", ">>", "System.IntPtr", intMinValue, "int", "1", "-1073741824");
             binaryOperator("System.IntPtr", ">>", "System.IntPtr", "-1", "int", "31", "-1");
             binaryOperator("System.IntPtr", ">>", "System.IntPtr", "-1", "int", "32", "-1");
+            binaryOperatorNotConstant("System.IntPtr", ">>", "System.IntPtr", intMaxValue, "int", "32", IntPtr.Size == 4 ? intMaxValue : "0");
             binaryOperator("System.UIntPtr", ">>", "System.UIntPtr", "0", "int", "1", "0");
             binaryOperator("System.UIntPtr", ">>", "System.UIntPtr", uintMaxValue, "int", "1", intMaxValue);
             binaryOperator("System.UIntPtr", ">>", "System.UIntPtr", "1", "int", "31", "0");
-            binaryOperator("System.UIntPtr", ">>", "System.UIntPtr", "1", "int", "32", "1");
+            binaryOperatorNotConstant("System.UIntPtr", ">>", "System.UIntPtr", "1", "int", "32", IntPtr.Size == 4 ? "1" : "0");
+
+            binaryOperatorNotConstant("System.IntPtr", ">>>", "System.IntPtr", "-1", "int", "32", IntPtr.Size == 4 ? "-1" : uintMaxValue);
+            binaryOperatorNotConstant("System.UIntPtr", ">>>", "System.UIntPtr", "1", "int", "32", IntPtr.Size == 4 ? "1" : "0");
 
             binaryOperator("System.IntPtr", "&", "System.IntPtr", intMinValue, "System.IntPtr", "0", "0");
             binaryOperator("System.IntPtr", "&", "System.IntPtr", intMinValue, "System.IntPtr", "-1", intMinValue);
@@ -9019,7 +9024,8 @@ $@"public class Library
     {declarations}
     public const {opType} F = {expr};
 }}";
-                var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
+                var parseOptions = expr.Contains(">>>", StringComparison.Ordinal) ? TestOptions.Regular11 : TestOptions.Regular9;
+                var comp = CreateCompilation(sourceA, parseOptions: parseOptions, targetFramework: TargetFramework.Net70);
 
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
@@ -9038,7 +9044,7 @@ $@"public class Library
     }
 }";
                 var refA = comp.EmitToImageReference();
-                comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
+                comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: parseOptions, targetFramework: TargetFramework.Net70);
 
                 // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
                 CompileAndVerify(comp, verify: new Verification() { Status = VerificationStatus.PassesOrFailFast | VerificationStatus.FailsPEVerify }, expectedOutput: IncludeExpectedOutput(expectedResult));
@@ -9066,7 +9072,8 @@ class Program
         Console.WriteLine(result);
     }}
 }}";
-                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
+                var parseOptions = expr.Contains(">>>", StringComparison.Ordinal) ? TestOptions.Regular11 : TestOptions.Regular9;
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: parseOptions, targetFramework: TargetFramework.Net70);
 
                 if (expectedDiagnostics.Any(d => ErrorFacts.GetSeverity((ErrorCode)d.Code) == DiagnosticSeverity.Error))
                 {
