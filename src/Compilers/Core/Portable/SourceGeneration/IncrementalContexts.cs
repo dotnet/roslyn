@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable RSEXPERIMENTAL007 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 namespace Microsoft.CodeAnalysis
 {
@@ -163,6 +164,38 @@ namespace Microsoft.CodeAnalysis
         [Experimental(RoslynExperiments.GeneratorHostOutputs, UrlFormat = RoslynExperiments.GeneratorHostOutputs_Url)]
         public void RegisterHostOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<HostOutputProductionContext, TSource> action) => source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action.WrapUserAction(CatchAnalyzerExceptions)));
 
+        /// <summary>
+        /// Registers a source output that will execute before the compilation is available.
+        /// The produced source will be added to the initial compilation, making it visible
+        /// to subsequent phases and other generators.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the value provided by the source provider</typeparam>
+        /// <param name="source">An <see cref="IncrementalValueProvider{TSource}"/> that provides the input value</param>
+        /// <param name="action">An action that receives a <see cref="PreCompilationSourceProductionContext"/> and the input value, and can add source files</param>
+        /// <remarks>
+        /// The source value provider must not depend on compilation or syntax node inputs.
+        /// Attempting to access the compilation or syntax trees during this phase will throw
+        /// an <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        [Experimental(RoslynExperiments.PreCompilationSourceOutput, UrlFormat = RoslynExperiments.PreCompilationSourceOutput_Url)]
+        public void RegisterPreCompilationSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<PreCompilationSourceProductionContext, TSource> action) => RegisterPreCompilationSourceOutput(source.Node, action);
+
+        /// <summary>
+        /// Registers a source output that will execute before the compilation is available.
+        /// The produced source will be added to the initial compilation, making it visible
+        /// to subsequent phases and other generators.
+        /// </summary>
+        /// <typeparam name="TSource">The type of each value provided by the source provider</typeparam>
+        /// <param name="source">An <see cref="IncrementalValuesProvider{TSource}"/> that provides input values</param>
+        /// <param name="action">An action that receives a <see cref="PreCompilationSourceProductionContext"/> and an input value, and can add source files</param>
+        /// <remarks>
+        /// The source value provider must not depend on compilation or syntax node inputs.
+        /// Attempting to access the compilation or syntax trees during this phase will throw
+        /// an <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        [Experimental(RoslynExperiments.PreCompilationSourceOutput, UrlFormat = RoslynExperiments.PreCompilationSourceOutput_Url)]
+        public void RegisterPreCompilationSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<PreCompilationSourceProductionContext, TSource> action) => RegisterPreCompilationSourceOutput(source.Node, action);
+
         private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
         {
             if (!_outputNodes.Contains(outputNode))
@@ -174,6 +207,11 @@ namespace Microsoft.CodeAnalysis
         private void RegisterSourceOutput<TSource>(IIncrementalGeneratorNode<TSource> node, Action<SourceProductionContext, TSource> action, IncrementalGeneratorOutputKind kind, string sourceExt)
         {
             node.RegisterOutput(new SourceOutputNode<TSource>(node, action.WrapUserAction(CatchAnalyzerExceptions), kind, sourceExt));
+        }
+
+        private void RegisterPreCompilationSourceOutput<TSource>(IIncrementalGeneratorNode<TSource> node, Action<PreCompilationSourceProductionContext, TSource> action)
+        {
+            node.RegisterOutput(new PreCompilationSourceOutputNode<TSource>(node, action.WrapUserAction(CatchAnalyzerExceptions), _sourceExtension));
         }
     }
 
@@ -279,6 +317,48 @@ namespace Microsoft.CodeAnalysis
             DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, isSupportedDiagnostic: static (_, _) => true, CancellationToken);
             Diagnostics.Add(diagnostic);
         }
+    }
+
+    /// <summary>
+    /// Context passed to an incremental generator when it has registered an output via
+    /// <see cref="IncrementalGeneratorInitializationContext.RegisterPreCompilationSourceOutput{TSource}(IncrementalValueProvider{TSource}, Action{PreCompilationSourceProductionContext, TSource})"/>.
+    /// Pre-compilation source outputs execute before the compilation is available and can only add source files,
+    /// not report diagnostics.
+    /// </summary>
+    [Experimental(RoslynExperiments.PreCompilationSourceOutput, UrlFormat = RoslynExperiments.PreCompilationSourceOutput_Url)]
+    public readonly struct PreCompilationSourceProductionContext
+    {
+        internal readonly AdditionalSourcesCollection Sources;
+        internal readonly SourceHashAlgorithm ChecksumAlgorithm;
+
+        internal PreCompilationSourceProductionContext(AdditionalSourcesCollection sources, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+        {
+            CancellationToken = cancellationToken;
+            Sources = sources;
+            ChecksumAlgorithm = checksumAlgorithm;
+        }
+
+        /// <summary>
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the generation should be cancelled.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
+
+        /// <summary>
+        /// Adds source code in the form of a <see cref="string"/> to the compilation.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="source">The source code to add to the compilation</param>
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8, checksumAlgorithm: ChecksumAlgorithm == SourceHashAlgorithm.None ? SourceHashAlgorithms.Default : ChecksumAlgorithm));
+
+        /// <summary>
+        /// Adds a <see cref="SourceText"/> to the compilation
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        /// <remarks>
+        /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
+        /// </remarks>
+        public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, sourceText.WithChecksumAlgorithmIfAny(ChecksumAlgorithm));
     }
 
     /// <summary>

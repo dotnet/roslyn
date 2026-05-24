@@ -834,16 +834,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute |
-                ReservedAttributes.IsReadOnlyAttribute |
-                ReservedAttributes.RequiresLocationAttribute |
-                ReservedAttributes.IsUnmanagedAttribute |
-                ReservedAttributes.IsByRefLikeAttribute |
-                ReservedAttributes.TupleElementNamesAttribute |
-                ReservedAttributes.NullableAttribute |
-                ReservedAttributes.NativeIntegerAttribute |
-                ReservedAttributes.ScopedRefAttribute |
-                ReservedAttributes.ExtensionMarkerAttribute))
+                permitted: ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.AllowNullAttribute))

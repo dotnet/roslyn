@@ -11,6 +11,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Newtonsoft;
 using Newtonsoft.Json.Linq;
+using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Microsoft.CodeAnalysis.Emit;
@@ -217,6 +218,29 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         }
 
         [Fact]
+        public void BasicCryptoKeyOptions()
+        {
+            var options = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication, deterministic: true)
+                .WithCryptoKeyContainer("MyContainer")
+                .WithCryptoKeyFile(Path.Combine("path", "to", "MyKeyFile.snk"));
+            var obj = GetCompilationOptionsValue(options);
+            Assert.Equal("MyContainer", obj.Value<string>("cryptoKeyContainer"));
+            Assert.Equal("MyKeyFile.snk", obj.Value<string>("cryptoKeyFile"));
+        }
+
+        [Fact]
+        public void BasicNetModuleCryptoKeyOptions()
+        {
+            var keyFile = Path.Combine("path", "to", "MyKeyFile.snk");
+            var options = new VisualBasicCompilationOptions(OutputKind.NetModule, deterministic: true)
+                .WithCryptoKeyContainer("MyContainer")
+                .WithCryptoKeyFile(keyFile);
+            var obj = GetCompilationOptionsValue(options);
+            Assert.Equal("MyContainer", obj.Value<string>("cryptoKeyContainer"));
+            Assert.Equal(keyFile, obj.Value<string>("cryptoKeyFile"));
+        }
+
+        [Fact]
         public void MetadataReferenceCompilation()
         {
             var utilCompilation = VisualBasicCompilation.Create(
@@ -238,6 +262,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""scriptClassName"": ""Script"",
       ""mainTypeName"": null,
       ""cryptoPublicKey"": """",
+      ""cryptoKeyContainer"": null,
       ""cryptoKeyFile"": null,
       ""delaySign"": null,
       ""publicSign"": false,
@@ -318,6 +343,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""scriptClassName"": ""Script"",
       ""mainTypeName"": null,
       ""cryptoPublicKey"": """",
+      ""cryptoKeyContainer"": null,
       ""cryptoKeyFile"": null,
       ""delaySign"": null,
       ""publicSign"": false,
