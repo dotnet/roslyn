@@ -1507,6 +1507,11 @@
         <target state="translated">O argumento diagnosticId para o atributo 'Experimental' deve ser um identificador válido</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberProviderInUnionDeclaration">
+        <source>A 'union' declaration cannot use a union member provider interface.</source>
+        <target state="new">A 'union' declaration cannot use a union member provider interface.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MissingUnionCaseTypes">
         <source>A union type must have at least one union creation member.</source>
         <target state="new">A union type must have at least one union creation member.</target>
