@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected new void Free()
             {
+                foreach (var entry in _switchArms)
+                {
+                    entry.Value.Free();
+                }
+
                 _switchArms.Free();
                 base.Free();
             }

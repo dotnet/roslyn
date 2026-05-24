@@ -1,0 +1,36 @@
+﻿RazorDocument - [0..16)::16 - [< @("a").@@("b")]
+    MarkupBlock - [0..16)::16
+        MarkupElement - [0..16)::16
+            MarkupStartTag - [0..16)::16 - [< @("a").@@("b")] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[<Missing>];
+                MarkupMiscAttributeContent - [1..8)::7
+                    MarkupTextLiteral - [1..2)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    CSharpCodeBlock - [2..8)::6
+                        CSharpExplicitExpression - [2..8)::6
+                            CSharpTransition - [2..3)::1 - Gen<None>
+                                Transition;[@];
+                            CSharpExplicitExpressionBody - [3..8)::5
+                                RazorMetaCode - [3..4)::1 - Gen<None>
+                                    LeftParenthesis;[(];
+                                CSharpCodeBlock - [4..7)::3
+                                    CSharpExpressionLiteral - [4..7)::3 - ["a"] - Gen<Expr>
+                                        StringLiteral;["a"];
+                                RazorMetaCode - [7..8)::1 - Gen<None>
+                                    RightParenthesis;[)];
+                MarkupMinimizedAttributeBlock - [8..9)::1 - [.]
+                    MarkupTextLiteral - [8..9)::1 - [.] - Gen<Markup>
+                        Text;[.];
+                MarkupEphemeralTextLiteral - [9..10)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupMinimizedAttributeBlock - [10..16)::6 - [@("b")]
+                    MarkupTextLiteral - [10..16)::6 - [@("b")] - Gen<Markup>
+                        Transition;[@];
+                        Text;[(];
+                        DoubleQuote;["];
+                        Text;[b];
+                        DoubleQuote;["];
+                        Text;[)];
+                CloseAngle;[<Missing>];
+    EndOfFile;[];

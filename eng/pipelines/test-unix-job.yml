@@ -26,7 +26,7 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   pool: ${{ parameters.poolParameters }}
-  timeoutInMinutes: 120
+  timeoutInMinutes: 360
   steps:
     - checkout: none
 
@@ -58,3 +58,4 @@ jobs:
       parameters:
         configuration: ${{ parameters.configuration }}
         jobName: ${{ parameters.jobName }}
+        testRunName: ${{ parameters.testRunName }}

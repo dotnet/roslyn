@@ -61,6 +61,15 @@ internal sealed class LanguageServerProtocolResources {
     }
     
     /// <summary>
+    ///   Looks up a localized string similar to Cancelled.
+    /// </summary>
+    internal static string Cancelled {
+        get {
+            return ResourceManager.GetString("Cancelled", resourceCulture);
+        }
+    }
+    
+    /// <summary>
     ///   Looks up a localized string similar to Unable to deserialize Uri. Unexpected value encountered: {0}.
     /// </summary>
     internal static string DocumentUriSerializationError {

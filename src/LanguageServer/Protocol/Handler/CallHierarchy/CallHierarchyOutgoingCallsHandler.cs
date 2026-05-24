@@ -31,10 +31,12 @@ internal sealed class CallHierarchyOutgoingCallsHandler() : ILspServiceDocumentR
         => CallHierarchyHelpers.GetResolveData(request.Item).TextDocument;
 
     public async Task<LSP.CallHierarchyOutgoingCall[]?> HandleRequestAsync(LSP.CallHierarchyOutgoingCallsParams request, RequestContext context, CancellationToken cancellationToken)
+        => await GetOutgoingCallsAsync(context.GetRequiredDocument(), request.Item, cancellationToken).ConfigureAwait(false);
+
+    internal static async Task<LSP.CallHierarchyOutgoingCall[]?> GetOutgoingCallsAsync(Document document, LSP.CallHierarchyItem item, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
         var solution = document.Project.Solution;
-        var resolveData = CallHierarchyHelpers.GetResolveData(request.Item);
+        var resolveData = CallHierarchyHelpers.GetResolveData(item);
 
         var service = document.GetRequiredLanguageService<ICallHierarchyService>();
         var results = await service.SearchOutgoingCallsAsync(
