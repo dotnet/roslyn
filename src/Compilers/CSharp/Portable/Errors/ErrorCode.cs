@@ -2494,6 +2494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_MissingUnionCaseTypes = 9385,
         ERR_MissingUnionValueProperty = 9386,
+        ERR_MemberProviderInUnionDeclaration = 9387,
 
         ERR_ExpressionTreeContainsMixedObjectAndCollectionInitializer = 9387,
 
