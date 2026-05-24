@@ -106,7 +106,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : this;
             }
 
-            return !withoutUnsafe && modifiers.Any(SyntaxKind.UnsafeKeyword)
+            // Under the updated memory safety rules, the `unsafe` modifier on a type or member declaration
+            // does not introduce an unsafe context (no interior meaning).
+            // `unsafe { }` blocks also introduce an unsafe context.
+            return !withoutUnsafe && modifiers.Any(SyntaxKind.UnsafeKeyword) && !this.Compilation.SourceModule.UseUpdatedMemorySafetyRules
                 ? new Binder(this, this.Flags | BinderFlags.UnsafeRegion)
                 : this;
         }

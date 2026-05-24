@@ -1,0 +1,25 @@
+﻿Source Location: (1:0,1 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Grid|
+Generated Location: (703:19,49 [4] )
+|Grid|
+
+Source Location: (13:0,13 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|WeatherForecast|
+Generated Location: (792:22,0 [15] )
+|WeatherForecast|
+
+Source Location: (39:0,39 [30] x:\dir\subdir\Test\TestComponent.cshtml)
+|Array.Empty<WeatherForecast>()|
+Generated Location: (1019:31,0 [30] )
+|Array.Empty<WeatherForecast>()|
+
+Source Location: (106:2,9 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|Column|
+Generated Location: (2082:54,45 [6] )
+|Column|
+
+Source Location: (126:2,29 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|FieldName|
+Generated Location: (2337:59,0 [9] )
+|FieldName|
+
