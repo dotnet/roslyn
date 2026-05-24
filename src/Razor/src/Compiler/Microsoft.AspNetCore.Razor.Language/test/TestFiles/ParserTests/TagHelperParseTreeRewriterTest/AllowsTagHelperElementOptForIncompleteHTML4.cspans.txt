@@ -1,0 +1,4 @@
+﻿Markup span at (0:0,0 [1] ) - Parent: Tag block at (0:0,0 [10] )
+MetaCode span at (1:0,1 [1] ) - Parent: Tag block at (0:0,0 [10] )
+Markup span at (2:0,2 [1] ) - Parent: Tag block at (0:0,0 [10] )
+Markup span at (3:0,3 [7] ) - Parent: Markup block at (3:0,3 [7] )

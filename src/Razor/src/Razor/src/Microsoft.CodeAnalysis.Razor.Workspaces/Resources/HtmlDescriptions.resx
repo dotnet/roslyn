@@ -1,0 +1,430 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute name="space" use="optional" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="HtmlElement_a" xml:space="preserve">
+    <value>If the a element has an href attribute, then it represents a hyperlink (a hypertext anchor) labeled by its contents.</value>
+  </data>
+  <data name="HtmlElement_abbr" xml:space="preserve">
+    <value>The abbr element represents an abbreviation or acronym, optionally with its expansion. The title attribute may be used to provide an expansion of the abbreviation. The attribute, if specified, must contain an expansion of the abbreviation, and nothing else.</value>
+  </data>
+  <data name="HtmlElement_address" xml:space="preserve">
+    <value>The address element represents the contact information for its nearest article or body element ancestor. If that is the body element, then the contact information applies to the document as a whole.</value>
+  </data>
+  <data name="HtmlElement_area" xml:space="preserve">
+    <value>The area element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map.</value>
+  </data>
+  <data name="HtmlElement_article" xml:space="preserve">
+    <value>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</value>
+  </data>
+  <data name="HtmlElement_aside" xml:space="preserve">
+    <value>The aside element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content. Such sections are often represented as sidebars in printed typography.</value>
+  </data>
+  <data name="HtmlElement_audio" xml:space="preserve">
+    <value>An audio element represents a sound or audio stream.</value>
+  </data>
+  <data name="HtmlElement_b" xml:space="preserve">
+    <value>The b element represents a span of text to which attention is being drawn for utilitarian purposes without conveying any extra importance and with no implication of an alternate voice or mood, such as key words in a document abstract, product names in a review, actionable words in interactive text-driven software, or an article lede.</value>
+  </data>
+  <data name="HtmlElement_base" xml:space="preserve">
+    <value>The base element allows authors to specify the document base URL for the purposes of resolving relative URLs, and the name of the default browsing context for the purposes of following hyperlinks. The element does not represent any content beyond this information.</value>
+  </data>
+  <data name="HtmlElement_bdi" xml:space="preserve">
+    <value>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</value>
+  </data>
+  <data name="HtmlElement_bdo" xml:space="preserve">
+    <value>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</value>
+  </data>
+  <data name="HtmlElement_blockquote" xml:space="preserve">
+    <value>The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a footer or cite element, and optionally with in-line changes such as annotations and abbreviations.</value>
+  </data>
+  <data name="HtmlElement_body" xml:space="preserve">
+    <value>The body element represents the content of the document.</value>
+  </data>
+  <data name="HtmlElement_br" xml:space="preserve">
+    <value>The br element represents a line break.</value>
+  </data>
+  <data name="HtmlElement_button" xml:space="preserve">
+    <value>The button element represents a button labeled by its contents.</value>
+  </data>
+  <data name="HtmlElement_canvas" xml:space="preserve">
+    <value>The canvas element provides scripts with a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, art, or other visual images on the fly.</value>
+  </data>
+  <data name="HtmlElement_caption" xml:space="preserve">
+    <value>The caption element represents the title of the table that is its parent, if it has a parent and that is a table element.</value>
+  </data>
+  <data name="HtmlElement_cite" xml:space="preserve">
+    <value>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</value>
+  </data>
+  <data name="HtmlElement_code" xml:space="preserve">
+    <value>The code element represents a fragment of computer code. This could be an XML element name, a file name, a computer program, or any other string that a computer would recognize.</value>
+  </data>
+  <data name="HtmlElement_col" xml:space="preserve">
+    <value>If a col element has a parent and that is a colgroup element that itself has a parent that is a table element, then the col element represents one or more columns in the column group represented by that colgroup.</value>
+  </data>
+  <data name="HtmlElement_colgroup" xml:space="preserve">
+    <value>The colgroup element represents a group of one or more columns in the table that is its parent, if it has a parent and that is a table element.</value>
+  </data>
+  <data name="HtmlElement_command" xml:space="preserve">
+    <value>The command element represents a command that the user can invoke.</value>
+  </data>
+  <data name="HtmlElement_content" xml:space="preserve">
+    <value>The content element represents an insertion point in the shadow tree.</value>
+  </data>
+  <data name="HtmlElement_datalist" xml:space="preserve">
+    <value>The datalist element represents a set of option elements that represent predefined options for other controls. In the rendering, the datalist element represents nothing and it, along with its children, should be hidden.</value>
+  </data>
+  <data name="HtmlElement_dd" xml:space="preserve">
+    <value>The dd element represents the description, definition, or value, part of a term-description group in a description list (dl element).</value>
+  </data>
+  <data name="HtmlElement_del" xml:space="preserve">
+    <value>The del element represents a removal from the document.</value>
+  </data>
+  <data name="HtmlElement_details" xml:space="preserve">
+    <value>The details element represents a disclosure widget from which the user can obtain additional information or controls.</value>
+  </data>
+  <data name="HtmlElement_dfn" xml:space="preserve">
+    <value>The dfn element represents the defining instance of a term. The paragraph, description list group, or section that is the nearest ancestor of the dfn element must also contain the definition(s) for the term given by the dfn element.</value>
+  </data>
+  <data name="HtmlElement_dialog" xml:space="preserve">
+    <value>The dialog element represents a part of an application that a user interacts with to perform a task, for example a dialog box, inspector, or window.</value>
+  </data>
+  <data name="HtmlElement_div" xml:space="preserve">
+    <value>The div element has no special meaning at all. It represents its children. It can be used with the class, lang, and title attributes to mark up semantics common to a group of consecutive elements.</value>
+  </data>
+  <data name="HtmlElement_dl" xml:space="preserve">
+    <value>The dl element represents an association list consisting of zero or more name-value groups (a description list). A name-value group consists of one or more names (dt elements) followed by one or more values (dd elements), ignoring any nodes other than dt and dd elements. Within a single dl element, there should not be more than one dt element for each name.</value>
+  </data>
+  <data name="HtmlElement_dt" xml:space="preserve">
+    <value>The dt element represents the term, or name, part of a term-description group in a description list (dl element).</value>
+  </data>
+  <data name="HtmlElement_em" xml:space="preserve">
+    <value>The em element represents stress emphasis of its contents.</value>
+  </data>
+  <data name="HtmlElement_embed" xml:space="preserve">
+    <value>The embed element provides an integration point for an external (typically non-HTML) application or interactive content.</value>
+  </data>
+  <data name="HtmlElement_fieldset" xml:space="preserve">
+    <value>The fieldset element represents a set of form controls optionally grouped under a common name.</value>
+  </data>
+  <data name="HtmlElement_figure" xml:space="preserve">
+    <value>The figure element represents some flow content, optionally with a caption, that is self-contained (like a complete sentence) and is typically referenced as a single unit from the main flow of the document.</value>
+  </data>
+  <data name="HtmlElement_footer" xml:space="preserve">
+    <value>The footer element represents a footer for its nearest ancestor sectioning content or sectioning root element. A footer typically contains information about its section such as who wrote it, links to related documents, copyright data, and the like.</value>
+  </data>
+  <data name="HtmlElement_form" xml:space="preserve">
+    <value>The form element represents a collection of form-associated elements, some of which can represent editable values that can be submitted to a server for processing.</value>
+  </data>
+  <data name="HtmlElement_h1" xml:space="preserve">
+    <value>These elements represent headings for their sections.</value>
+  </data>
+  <data name="HtmlElement_h2" xml:space="preserve">
+    <value>These elements represent headings for their sections.</value>
+  </data>
+  <data name="HtmlElement_h3" xml:space="preserve">
+    <value>These elements represent headings for their sections.</value>
+  </data>
+  <data name="HtmlElement_h4" xml:space="preserve">
+    <value>These elements represent headings for their sections.</value>
+  </data>
+  <data name="HtmlElement_h5" xml:space="preserve">
+    <value>These elements represent headings for their sections.</value>
+  </data>
+  <data name="HtmlElement_h6" xml:space="preserve">
+    <value>These elements represent headings for their sections.</value>
+  </data>
+  <data name="HtmlElement_head" xml:space="preserve">
+    <value>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</value>
+  </data>
+  <data name="HtmlElement_header" xml:space="preserve">
+    <value>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</value>
+  </data>
+  <data name="HtmlElement_hr" xml:space="preserve">
+    <value>The hr element represents a paragraph-level thematic break, e.g. a scene change in a story, or a transition to another topic within a section of a reference book.</value>
+  </data>
+  <data name="HtmlElement_html" xml:space="preserve">
+    <value>The html element represents the root of an HTML document.</value>
+  </data>
+  <data name="HtmlElement_i" xml:space="preserve">
+    <value>The i element represents a span of text in an alternate voice or mood, or otherwise offset from the normal prose in a manner indicating a different quality of text, such as a taxonomic designation, a technical term, an idiomatic phrase from another language, transliteration, a thought, or a ship name in Western texts.</value>
+  </data>
+  <data name="HtmlElement_iframe" xml:space="preserve">
+    <value>The iframe element represents a nested browsing context.</value>
+  </data>
+  <data name="HtmlElement_img" xml:space="preserve">
+    <value>An img element represents an image.</value>
+  </data>
+  <data name="HtmlElement_input" xml:space="preserve">
+    <value>The input element represents a typed data field, usually with a form control to allow the user to edit the data.</value>
+  </data>
+  <data name="HtmlElement_ins" xml:space="preserve">
+    <value>The ins element represents an addition to the document.</value>
+  </data>
+  <data name="HtmlElement_kbd" xml:space="preserve">
+    <value>The kbd element represents user input (typically keyboard input, although it may also be used to represent other input, such as voice commands).</value>
+  </data>
+  <data name="HtmlElement_label" xml:space="preserve">
+    <value>The label element represents a caption in a user interface. The caption can be associated with a specific form control, known as the label element&apos;s labeled control, either using the for attribute, or by putting the form control inside the label element itself.</value>
+  </data>
+  <data name="HtmlElement_legend" xml:space="preserve">
+    <value>The legend element represents a caption for the rest of the contents of the legend element&apos;s parent fieldset element, if any.</value>
+  </data>
+  <data name="HtmlElement_li" xml:space="preserve">
+    <value>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element&apos;s list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</value>
+  </data>
+  <data name="HtmlElement_link" xml:space="preserve">
+    <value>The link element allows authors to link their document to other resources.</value>
+  </data>
+  <data name="HtmlElement_main" xml:space="preserve">
+    <value>The main element represents the main content of the body of a document or application. The main content area consists of content that is directly related to or expands upon the central topic of a document or central functionality of an application.</value>
+  </data>
+  <data name="HtmlElement_map" xml:space="preserve">
+    <value>The map element, in conjunction with an img element and any area element descendants, defines an image map. The element represents its children.</value>
+  </data>
+  <data name="HtmlElement_mark" xml:space="preserve">
+    <value>The mark element represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context. When used in a quotation or other block of text referred to from the prose, it indicates a highlight that was not originally present but which has been added to bring the reader&apos;s attention to a part of the text that might not have been considered important by the original author when the block was originally written, but which is now under previously unexpected scrutiny. When used in the main prose of a document, it indicates a part of the document that has been highlighted due to its likely relevance to the user&apos;s current activity.</value>
+  </data>
+  <data name="HtmlElement_math" xml:space="preserve">
+    <value>The math element from the MathML namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</value>
+  </data>
+  <data name="HtmlElement_menu" xml:space="preserve">
+    <value>The menu element represents a list of commands.</value>
+  </data>
+  <data name="HtmlElement_menuitem" xml:space="preserve">
+    <value>The menuitem element represents a command that the user can invoke from a popup menu (either a context menu or the menu of a menu button).</value>
+  </data>
+  <data name="HtmlElement_meta" xml:space="preserve">
+    <value>The meta element represents various kinds of metadata that cannot be expressed using the title, base, link, style, and script elements.</value>
+  </data>
+  <data name="HtmlElement_meter" xml:space="preserve">
+    <value>The meter element represents a scalar measurement within a known range, or a fractional value; for example disk usage, the relevance of a query result, or the fraction of a voting population to have selected a particular candidate.</value>
+  </data>
+  <data name="HtmlElement_nav" xml:space="preserve">
+    <value>The nav element represents a section of a page that links to other pages or to parts within the page: a section with navigation links.</value>
+  </data>
+  <data name="HtmlElement_ng-form" xml:space="preserve">
+    <value>An element used by the AngularJS JavaScript library.</value>
+  </data>
+  <data name="HtmlElement_ng-include" xml:space="preserve">
+    <value>An element used by the AngularJS JavaScript library.</value>
+  </data>
+  <data name="HtmlElement_ng-pluralize" xml:space="preserve">
+    <value>An element used by the AngularJS JavaScript library.</value>
+  </data>
+  <data name="HtmlElement_ng-switch" xml:space="preserve">
+    <value>An element used by the AngularJS JavaScript library.</value>
+  </data>
+  <data name="HtmlElement_ng-view" xml:space="preserve">
+    <value>An element used by the AngularJS JavaScript library.</value>
+  </data>
+  <data name="HtmlElement_noscript" xml:space="preserve">
+    <value>The noscript element represents nothing if scripting is enabled, and represents its children if scripting is disabled. It is used to present different markup to user agents that support scripting and those that don&apos;t support scripting, by affecting how the document is parsed.</value>
+  </data>
+  <data name="HtmlElement_object" xml:space="preserve">
+    <value>The object element can represent an external resource, which, depending on the type of the resource, will either be treated as an image, as a nested browsing context, or as an external resource to be processed by a plugin.</value>
+  </data>
+  <data name="HtmlElement_ol" xml:space="preserve">
+    <value>The ol element represents a list of items, where the items have been intentionally ordered, such that changing the order would change the meaning of the document.</value>
+  </data>
+  <data name="HtmlElement_optgroup" xml:space="preserve">
+    <value>The optgroup element represents a group of option elements with a common label.</value>
+  </data>
+  <data name="HtmlElement_option" xml:space="preserve">
+    <value>The option element represents an option in a select element or as part of a list of suggestions in a datalist element.</value>
+  </data>
+  <data name="HtmlElement_output" xml:space="preserve">
+    <value>The output element represents the result of a calculation or user action.</value>
+  </data>
+  <data name="HtmlElement_p" xml:space="preserve">
+    <value>The p element represents a paragraph.</value>
+  </data>
+  <data name="HtmlElement_param" xml:space="preserve">
+    <value>The param element defines parameters for plugins invoked by object elements. It does not represent anything on its own.</value>
+  </data>
+  <data name="HtmlElement_picture" xml:space="preserve">
+    <value>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</value>
+  </data>
+  <data name="HtmlElement_polymer-element" xml:space="preserve">
+    <value>A polymer-element is used to create new HTML elements using the Polymer JavaScript library.</value>
+  </data>
+  <data name="HtmlElement_pre" xml:space="preserve">
+    <value>The pre element represents a block of preformatted text, in which structure is represented by typographic conventions rather than by elements.</value>
+  </data>
+  <data name="HtmlElement_progress" xml:space="preserve">
+    <value>The progress element represents the completion progress of a task. The progress is either indeterminate, indicating that progress is being made but that it is not clear how much more work remains to be done before the task is complete (e.g. because the task is waiting for a remote host to respond), or the progress is a number in the range zero to a maximum, giving the fraction of work that has so far been completed.</value>
+  </data>
+  <data name="HtmlElement_q" xml:space="preserve">
+    <value>The q element represents some phrasing content quoted from another source.</value>
+  </data>
+  <data name="HtmlElement_rp" xml:space="preserve">
+    <value>The rp element is used to provide fallback text to be shown by user agents that don&apos;t support ruby annotations. One widespread convention is to provide parentheses around the ruby text component of a ruby annotation.</value>
+  </data>
+  <data name="HtmlElement_rt" xml:space="preserve">
+    <value>The rt element marks the ruby text component of a ruby annotation. When it is the child of a ruby element or of an rtc element that is itself the child of a ruby element, it doesn&apos;t represent anything itself, but its ancestor ruby element uses it as part of determining what it represents.</value>
+  </data>
+  <data name="HtmlElement_rtc" xml:space="preserve">
+    <value>The rtc element marks a ruby text container for ruby text components in a ruby annotation. When it is the child of a ruby element it doesn&apos;t represent anything itself, but its parent ruby element uses it as part of determining what it represents.</value>
+  </data>
+  <data name="HtmlElement_ruby" xml:space="preserve">
+    <value>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</value>
+  </data>
+  <data name="HtmlElement_s" xml:space="preserve">
+    <value>The s element represents contents that are no longer accurate or no longer relevant.</value>
+  </data>
+  <data name="HtmlElement_samp" xml:space="preserve">
+    <value>The samp element represents (sample) output from a program or computing system.</value>
+  </data>
+  <data name="HtmlElement_script" xml:space="preserve">
+    <value>The script element allows authors to include dynamic script and data blocks in their documents. The element does not represent content for the user.</value>
+  </data>
+  <data name="HtmlElement_section" xml:space="preserve">
+    <value>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</value>
+  </data>
+  <data name="HtmlElement_select" xml:space="preserve">
+    <value>The select element represents a control for selecting amongst a set of options.</value>
+  </data>
+  <data name="HtmlElement_shadow" xml:space="preserve">
+    <value>The shadow element represents an shadow insertion point in a shadow tree.</value>
+  </data>
+  <data name="HtmlElement_small" xml:space="preserve">
+    <value>The small element represents side comments such as small print.</value>
+  </data>
+  <data name="HtmlElement_source" xml:space="preserve">
+    <value>The source element allows authors to specify multiple alternative media resources for media elements. It does not represent anything on its own.</value>
+  </data>
+  <data name="HtmlElement_span" xml:space="preserve">
+    <value>The span element doesn&apos;t mean anything on its own, but can be useful when used together with the global attributes, e.g. class, lang, or dir. It represents its children.</value>
+  </data>
+  <data name="HtmlElement_strong" xml:space="preserve">
+    <value>The strong element represents strong importance, seriousness, or urgency for its contents.</value>
+  </data>
+  <data name="HtmlElement_style" xml:space="preserve">
+    <value>The style element allows authors to embed style information in their documents. The style element is one of several inputs to the styling processing model. The element does not represent content for the user.</value>
+  </data>
+  <data name="HtmlElement_sub" xml:space="preserve">
+    <value>The sup element represents a superscript and the sub element represents a subscript.</value>
+  </data>
+  <data name="HtmlElement_summary" xml:space="preserve">
+    <value>The summary element represents a summary, caption, or legend for the rest of the contents of the summary element&apos;s parent details element, if any.</value>
+  </data>
+  <data name="HtmlElement_sup" xml:space="preserve">
+    <value>The sup element represents a superscript and the sub element represents a subscript.</value>
+  </data>
+  <data name="HtmlElement_svg" xml:space="preserve">
+    <value>The svg element from the SVG namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</value>
+  </data>
+  <data name="HtmlElement_table" xml:space="preserve">
+    <value>The table element represents data with more than one dimension, in the form of a table.</value>
+  </data>
+  <data name="HtmlElement_tbody" xml:space="preserve">
+    <value>The tbody element represents a block of rows that consist of a body of data for the parent table element, if the tbody element has a parent and it is a table.</value>
+  </data>
+  <data name="HtmlElement_td" xml:space="preserve">
+    <value>The td element represents a data cell in a table.</value>
+  </data>
+  <data name="HtmlElement_template" xml:space="preserve">
+    <value>The template element is used to declare fragments of HTML that can be cloned and inserted in the document by script.</value>
+  </data>
+  <data name="HtmlElement_textarea" xml:space="preserve">
+    <value>The textarea element represents a multiline plain text edit control for the element&apos;s raw value. The contents of the control represent the control&apos;s default value.</value>
+  </data>
+  <data name="HtmlElement_tfoot" xml:space="preserve">
+    <value>The tfoot element represents the block of rows that consist of the column summaries (footers) for the parent table element, if the tfoot element has a parent and it is a table.</value>
+  </data>
+  <data name="HtmlElement_th" xml:space="preserve">
+    <value>The th element represents a header cell in a table.</value>
+  </data>
+  <data name="HtmlElement_thead" xml:space="preserve">
+    <value>The thead element represents the block of rows that consist of the column labels (headers) for the parent table element, if the thead element has a parent and it is a table.</value>
+  </data>
+  <data name="HtmlElement_time" xml:space="preserve">
+    <value>The time element represents its contents, along with a machine-readable form of those contents in the datetime attribute. The kind of content is limited to various kinds of dates, times, time-zone offsets, and durations, as described below.</value>
+  </data>
+  <data name="HtmlElement_title" xml:space="preserve">
+    <value>The title element represents the document&apos;s title or name. Authors should use titles that identify their documents even when they are used out of context, for example in a user&apos;s history or bookmarks, or in search results. The document&apos;s title is often different from its first heading, since the first heading does not have to stand alone when taken out of context.</value>
+  </data>
+  <data name="HtmlElement_tr" xml:space="preserve">
+    <value>The tr element represents a row of cells in a table.</value>
+  </data>
+  <data name="HtmlElement_track" xml:space="preserve">
+    <value>The track element allows authors to specify explicit external timed text tracks for media elements. It does not represent anything on its own.</value>
+  </data>
+  <data name="HtmlElement_u" xml:space="preserve">
+    <value>The u element represents a span of text with an unarticulated, though explicitly rendered, non-textual annotation, such as labeling the text as being a proper name in Chinese text (a Chinese proper name mark), or labeling the text as being misspelt.</value>
+  </data>
+  <data name="HtmlElement_ul" xml:space="preserve">
+    <value>The ul element represents a list of items, where the order of the items is not important — that is, where changing the order would not materially change the meaning of the document.</value>
+  </data>
+  <data name="HtmlElement_var" xml:space="preserve">
+    <value>The var element represents a variable. This could be an actual variable in a mathematical expression or programming context, an identifier representing a constant, a symbol identifying a physical quantity, a function parameter, or just be a term used as a placeholder in prose.</value>
+  </data>
+  <data name="HtmlElement_video" xml:space="preserve">
+    <value>A video element is used for playing videos or movies, and audio files with captions.</value>
+  </data>
+  <data name="HtmlElement_wbr" xml:space="preserve">
+    <value>The wbr element represents a line break opportunity.</value>
+  </data>
+  <data name="HtmlElement_x-ms-webview" xml:space="preserve">
+    <value>Displays HTML content in an app.</value>
+  </data>
+  <data name="HtmlAttribute_integrity" xml:space="preserve">
+    <value>The integrity attribute represents integrity metadata for an element.</value>
+  </data>
+  <data name="HtmlAttribute_draggable" xml:space="preserve">
+    <value>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</value>
+  </data>
+  <data name="HtmlAttribute_defer" xml:space="preserve">
+    <value>The script is executed when the page has finished parsing.</value>
+  </data>
+  <data name="HtmlAttribute_async" xml:space="preserve">
+    <value>The script will be executed asynchronously, as soon as it is available.</value>
+  </data>
+  <data name="HtmlAttribute_open" xml:space="preserve">
+    <value>When specified, it indicates that the dialog element is active and that the user can interact with it.</value>
+  </data>
+  <data name="HtmlAttribute_srcset" xml:space="preserve">
+    <value>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</value>
+  </data>
+  <data name="HtmlAttribute_sizes" xml:space="preserve">
+    <value>Image sizes between breakpoints.</value>
+  </data>
+</root>

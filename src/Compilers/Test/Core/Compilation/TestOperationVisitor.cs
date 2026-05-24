@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal override void VisitNoneOperation(IOperation operation)
         {
 #if Test_IOperation_None_Kind
-            Assert.True(false, "Encountered an IOperation with `Kind == OperationKind.None` while walking the operation tree.");
+            Assert.Fail("Encountered an IOperation with `Kind == OperationKind.None` while walking the operation tree.");
 #endif
             Assert.Equal(OperationKind.None, operation.Kind);
         }
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         }
                         catch (ArgumentException)
                         {
-                            Assert.False(true, $"Duplicate explicit node for syntax ({descendant.Syntax.RawKind}): {descendant.Syntax.ToString()}");
+                            Assert.Fail($"Duplicate explicit node for syntax ({descendant.Syntax.RawKind}): {descendant.Syntax.ToString()}");
                         }
                     }
 
@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 semanticModel.Compilation.CreateBuiltinOperator(symbol.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
                                 break;
                             default:
-                                AssertEx.Fail($"Unexpected parameter count for built in method: {method.ToDisplayString()}");
+                                Assert.Fail($"Unexpected parameter count for built in method: {method.ToDisplayString()}");
                                 break;
                         }
                     }
@@ -1500,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.Equal("ITuple", type.Name);
                     break;
                 default:
-                    Assert.True(false, $"Unexpected symbol {operation.DeconstructSymbol}");
+                    Assert.Fail($"Unexpected symbol {operation.DeconstructSymbol}");
                     break;
             }
 
@@ -1544,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 case IPropertySymbol prop:
                     break;
                 case var symbol:
-                    Assert.True(false, $"Unexpected symbol {symbol}");
+                    Assert.Fail($"Unexpected symbol {symbol}");
                     break;
             }
         }
@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 case OperationKind.OmittedArgument:
                 case OperationKind.DeclarationExpression:
                 case OperationKind.Discard:
-                    Assert.False(true, $"A {operation.Value.Kind} node should not be spilled or captured.");
+                    Assert.Fail($"A {operation.Value.Kind} node should not be spilled or captured.");
                     break;
 
                 default:

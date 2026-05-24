@@ -529,7 +529,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     {
         public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
-            Assert.True(false, $"Content of document should never be loaded");
+            Assert.Fail($"Content of document should never be loaded");
             throw ExceptionUtilities.Unreachable();
         }
     }

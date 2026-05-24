@@ -79,9 +79,6 @@ internal abstract class ExportProviderBuilder(
 
         var parts = await discovery.CreatePartsAsync(AssemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
 
-        // Work around https://github.com/microsoft/vs-mef/issues/620 -- parts might be incomplete if the cancellationToken was cancelled
-        cancellationToken.ThrowIfCancellationRequested();
-
         var catalog = ComposableCatalog.Create(Resolver)
             .AddParts(parts)
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import

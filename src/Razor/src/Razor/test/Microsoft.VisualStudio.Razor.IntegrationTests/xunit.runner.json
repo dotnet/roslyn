@@ -1,0 +1,6 @@
+﻿{
+  "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
+  "methodDisplay": "method",
+  "longRunningTestSeconds": 120,
+  "shadowCopy": false
+}

@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!elementConversionClassification.IsValid)
             {
-                ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversionClassification.OriginalUserDefinedConversions;
+                ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversionClassification.OriginalUserDefinedOrUnionConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
                     diagnostics.Add(ErrorCode.ERR_AmbigUDConv, foreachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType.Type, iterationVariableType);
@@ -1216,6 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         patternDisposeMethod.ParameterRefKinds.All(static refKind => refKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
 
                     diagnostics.AddRangeAndFree(patternDiagnostics);
+
                     var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(patternDisposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
 
@@ -1243,6 +1244,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return;
+                }
+                else
+                {
+                    patternDiagnostics.Free();
                 }
             }
 

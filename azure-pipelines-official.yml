@@ -78,17 +78,16 @@ variables:
     value: true
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
-  # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
+  # DevDiv drop access token is acquired via WIF service connection (dnceng-devdiv-drop-rw-code-rw-wif)
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
+    value: ''
   - name: ArtifactServices.Drop.PAT
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
-  - group: DotNet-Roslyn-Insertion-Variables
+    value: ''
   - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BranchName
@@ -272,6 +271,18 @@ extends:
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
           displayName: Setting VisualStudio.DropName variable
 
+        - task: AzureCLI@2
+          displayName: Get DevDiv Drop Access Token
+          inputs:
+            azureSubscription: 'dnceng-devdiv-drop-rw-code-rw-wif'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+              Write-Host "##vso[task.setvariable variable=_DevDivDropAccessToken;issecret=true]$token"
+              Write-Host "##vso[task.setvariable variable=ArtifactServices.Drop.PAT;issecret=true]$token"
+          condition: succeeded()
+
         - task: NodeTool@0
           inputs:
             versionSpec: '16.x'
@@ -354,7 +365,7 @@ extends:
           condition: succeeded()
 
         # Publish OptProf configuration files to the artifact service
-        # This uses the ArtifactServices.Drop.PAT build variable which is required to enable cross account access using PAT (dnceng -> devdiv)
+        # ArtifactServices.Drop.PAT is set via WIF service connection for cross account access (dnceng -> devdiv)
         - task: 1ES.PublishArtifactsDrop@1
           inputs:
             dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
@@ -379,6 +390,7 @@ extends:
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
         parameters:
           publishUsingPipelines: true
+          publishAssetsImmediately: true
           dependsOn:
           - OfficialBuild
           pool:
@@ -396,7 +408,7 @@ extends:
 
     - stage: insert
       dependsOn:
-      - publish_using_darc
+      - build
       displayName: Insert to VS
 
       jobs:
@@ -411,7 +423,6 @@ extends:
           displayName: Get Branch Name
         - template: /eng/pipelines/insert.yml@self
           parameters:
-            devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
             dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
@@ -424,6 +435,9 @@ extends:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
           publishingInfraVersion: 3
+          publishAssetsImmediately: true
+          enableSigningValidation: false
+          enableNugetValidation: false
           enableSourceLinkValidation: false
           # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
           SDLValidationParameters:

@@ -1,0 +1,2 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,38): Error RZ10018: Attribute 'bind' can't be used in conjunction with 'bind:get'.
+x:\dir\subdir\Test\TestComponent.cshtml(1,63): Error RZ10015: Attribute '@bind:get' must be used with attribute '@bind:set'.
