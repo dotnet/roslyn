@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <IsShipping>false</IsShipping>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <TargetFrameworks>$(NetVSAndVSCode)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(NetFxVS)</TargetFrameworks>
+    <DefaultItemExcludes>$(DefaultItemExcludes);TestFiles\**\*</DefaultItemExcludes>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+
+    <!-- Tests do not work on Helix yet -->
+    <BuildHelixPayload>false</BuildHelixPayload>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
+
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" />
+    <PackageReference Include="Moq" />
+
+  </ItemGroup>
+
+</Project>

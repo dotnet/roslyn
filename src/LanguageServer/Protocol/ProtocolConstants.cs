@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class ProtocolConstants
 {
-    public const string RazorCSharp = "RazorCSharp";
-
     public static ImmutableArray<string> RoslynLspLanguages = [LanguageNames.CSharp, LanguageNames.VisualBasic, LanguageNames.FSharp];
 
     public const string RoslynLspLanguagesContract = "RoslynLspLanguages";

@@ -39,8 +39,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider) : IVisualStudioDiagnosticAnalyzerService
 {
     // "Run Code Analysis on <%ProjectName%>" command for Top level "Build" and "Analyze" menus.
-    // The below ID is actually defined as "ECMD_RUNFXCOPSEL" in stdidcmd.h, we're just referencing it here.
-    internal const int RunCodeAnalysisForSelectedProjectCommandId = 1647;
+    internal const int ECMD_RUNFXCOPSEL = 1647;
 
     private readonly VisualStudioWorkspace _workspace = workspace;
     private readonly IVsService<IVsStatusbar> _statusbar = statusbar;
@@ -126,7 +125,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
         if (visible)
         {
-            if (command.CommandID.ID == RunCodeAnalysisForSelectedProjectCommandId &&
+            if (command.CommandID.ID == ECMD_RUNFXCOPSEL &&
                 hierarchy!.TryGetProject(out var project))
             {
                 // Change to show the name of the project as part of the menu item display text.

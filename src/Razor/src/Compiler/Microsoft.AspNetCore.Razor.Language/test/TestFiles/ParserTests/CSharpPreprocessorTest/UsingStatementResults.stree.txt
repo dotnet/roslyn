@@ -1,0 +1,28 @@
+﻿RazorDocument - [0..48)::48 - [@using (var test = blah)LF#if trueLF{LF#endifLF}]
+    MarkupBlock - [0..48)::48
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..48)::48
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..48)::47 - [using (var test = blah)LF#if trueLF{LF#endifLF}] - Gen<Stmt>
+                Keyword;[using];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Keyword;[var];
+                Whitespace;[ ];
+                Identifier;[test];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                Identifier;[blah];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                CSharpDirective;[#if trueLF];
+                LeftBrace;[{];
+                NewLine;[LF];
+                CSharpDirective;[#endifLF];
+                RightBrace;[}];
+        MarkupTextLiteral - [48..48)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];
