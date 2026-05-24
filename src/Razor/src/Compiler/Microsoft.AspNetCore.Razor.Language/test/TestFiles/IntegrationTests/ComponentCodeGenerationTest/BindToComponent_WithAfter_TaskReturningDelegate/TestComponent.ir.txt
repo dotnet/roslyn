@@ -1,0 +1,22 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [72] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (30:0,30 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Value - Value - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (30:0,30 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
+                    ComponentAttribute - (30:0,30 [11] x:\dir\subdir\Test\TestComponent.cshtml) - ValueChanged - ValueChanged - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken -  - CSharp - async  __value => { ParentValue = __value; await global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeAsynchronousDelegate(
+                            IntermediateToken - (62:0,62 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Update
+                            IntermediateToken -  - CSharp - ); }
+                    ComponentAttribute - (62:0,62 [6] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (62:0,62 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Update
+            CSharpCode - (81:1,7 [101] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (81:1,7 [101] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n\n    public Task Update() => Task.CompletedTask;\n

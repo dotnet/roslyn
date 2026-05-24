@@ -1,0 +1,62 @@
+﻿RazorDocument - [0..79)::79 - [<input @* comment1 *@ type="text" @* comment2 *@ value="test" @* comment3 *@ />]
+    MarkupBlock - [0..79)::79
+        MarkupTagHelperElement - [0..79)::79 - input[SelfClosing] - InputTagHelper
+            MarkupTagHelperStartTag - [0..79)::79 - [<input @* comment1 *@ type="text" @* comment2 *@ value="test" @* comment3 *@ />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupTextLiteral - [6..7)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                RazorComment - [7..21)::14
+                    RazorCommentTransition;[@];
+                    RazorCommentStar;[*];
+                    RazorCommentLiteral;[ comment1 ];
+                    RazorCommentStar;[*];
+                    RazorCommentTransition;[@];
+                MarkupTagHelperAttribute - [21..33)::12 - type - DoubleQuotes - Bound - [ type="text"]
+                    MarkupTextLiteral - [21..22)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [22..26)::4 - [type] - Gen<Markup>
+                        Text;[type];
+                    Equals;[=];
+                    MarkupTextLiteral - [27..28)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [28..32)::4
+                        MarkupTextLiteral - [28..32)::4 - [text] - Gen<Markup>
+                            Text;[text];
+                    MarkupTextLiteral - [32..33)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTextLiteral - [33..34)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                RazorComment - [34..48)::14
+                    RazorCommentTransition;[@];
+                    RazorCommentStar;[*];
+                    RazorCommentLiteral;[ comment2 ];
+                    RazorCommentStar;[*];
+                    RazorCommentTransition;[@];
+                MarkupTagHelperAttribute - [48..61)::13 - value - DoubleQuotes - Bound - [ value="test"]
+                    MarkupTextLiteral - [48..49)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [49..54)::5 - [value] - Gen<Markup>
+                        Text;[value];
+                    Equals;[=];
+                    MarkupTextLiteral - [55..56)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [56..60)::4
+                        MarkupTextLiteral - [56..60)::4 - [test] - Gen<Markup>
+                            Text;[test];
+                    MarkupTextLiteral - [60..61)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTextLiteral - [61..62)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                RazorComment - [62..76)::14
+                    RazorCommentTransition;[@];
+                    RazorCommentStar;[*];
+                    RazorCommentLiteral;[ comment3 ];
+                    RazorCommentStar;[*];
+                    RazorCommentTransition;[@];
+                MarkupMiscAttributeContent - [76..77)::1
+                    MarkupTextLiteral - [76..77)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

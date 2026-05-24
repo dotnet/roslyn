@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
+            private new void Free()
+            {
+                ((PooledDictionary<SyntaxNode, LabelSymbol>)_sectionLabels).Free();
+                base.Free();
+            }
+
             /// <summary>
             /// We revise the returned label for a leaf so that all leaves in the same switch section are given the same label.
             /// This enables the switch emitter to produce better code.

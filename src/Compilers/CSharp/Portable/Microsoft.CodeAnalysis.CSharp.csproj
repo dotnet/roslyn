@@ -21,7 +21,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj">
+    <ProjectReference Include="..\..\..\Tools\CompilerGeneratorTools\Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <!-- The generator project currently builds as both a console app and a source generator,

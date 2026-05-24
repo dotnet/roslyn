@@ -130,7 +130,7 @@
     <PropertyGroup>
       <CrossgenWorkDir>$(PublishDir)CrossGen\</CrossgenWorkDir>
       <OriginalAssemblyDir>$(CrossgenWorkDir)OriginalAssemblies\</OriginalAssemblyDir>
-      <PdbWorkDir>$(CrossgenWorkDir)Symbols\</PdbWorkDir>
+      <SymbolsPackageWorkDir>$(CrossgenWorkDir)Symbols\</SymbolsPackageWorkDir>
       <RspWorkDir>$(CrossgenWorkDir)RspFiles\</RspWorkDir>
     </PropertyGroup>   
   </Target>
@@ -158,7 +158,7 @@
 
     <PropertyGroup>
       <_SymbolPackageId>$(ProjectName).Symbols</_SymbolPackageId>
-      <_NuspecFilePath>$(PdbWorkDir)\$(_SymbolPackageId).nuspec</_NuspecFilePath>
+      <_NuspecFilePath>$(SymbolsPackageWorkDir)\$(_SymbolPackageId).nuspec</_NuspecFilePath>
       <_NuspecFileContent>
           <![CDATA[<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
@@ -181,7 +181,7 @@
     <WriteLinesToFile File="$(_NuspecFilePath)" Lines="$(_NuspecFileContent)" Overwrite="true"/>
 
     <MakeDir Directories="$(ArtifactsNonShippingPackagesDir)" />
-    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).$(PackageVersion).symbols.nupkg" Overwrite="true"/>
+    <ZipDirectory SourceDirectory="$(SymbolsPackageWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).$(PackageVersion).symbols.nupkg" Overwrite="true"/>
   </Target>
 
   <!--
@@ -197,7 +197,7 @@
       <_R2ROptimizeAssemblyPath>%(_CrossgenTargetPaths.FullPath)</_R2ROptimizeAssemblyPath>
       <_R2ROptimizeAssemblyOutputPath>%(_CrossgenTargetPaths.OutputPath)</_R2ROptimizeAssemblyOutputPath>
       <_RspFilePath>$(RspWorkDir)%(_CrossgenTargetPaths._RelativeDirectory)\%(_CrossgenTargetPaths.Filename).CrossgenArgs.rsp</_RspFilePath>
-      <_R2RPdbOutputDirecotry>$(PdbWorkDir)\%(_CrossgenTargetPaths._RelativeDirectory)</_R2RPdbOutputDirecotry>
+      <_R2RSymbolsOutputDirectory>$(SymbolsPackageWorkDir)\%(_CrossgenTargetPaths._RelativeDirectory)</_R2RSymbolsOutputDirectory>
     </PropertyGroup>
     <ItemGroup>
       <!-- Find MIBC PGO data files produced by the CrossGen OptProf pipeline.
@@ -209,7 +209,7 @@
       <_RspFileLines Include="$(_R2ROptimizeAssemblyPath)" />
       <_RspFileLines Include="--out:$(_R2ROptimizeAssemblyOutputPath)" />
       <_RspFileLines Include="--pdb" />
-      <_RspFileLines Include="--pdb-path:$(_R2RPdbOutputDirecotry)" />
+      <_RspFileLines Include="--pdb-path:$(_R2RSymbolsOutputDirectory)" />
       <_RspFileLines Include="--targetarch:$(TargetArch)" />
       <_RspFileLines Include="--optimize" />
       <_RspFileLines Include="--opt-cross-module:*" />
@@ -222,7 +222,7 @@
     <WriteLinesToFile File="$(_RspFilePath)" Lines="" Overwrite="true" />
     <WriteLinesToFile File="$(_RspFilePath)" Lines="@(_RspFileLines)" />
     
-    <MakeDir Directories="$(_R2RPdbOutputDirecotry)" />
+    <MakeDir Directories="$(_R2RSymbolsOutputDirectory)" />
   
     <Exec Command='"$(_Crossgen2ExePath)" @"$(_RspFilePath)"' ConsoleToMSBuild="true" IgnoreExitCode="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="_Crossgen2Output" />
@@ -230,6 +230,9 @@
     </Exec>
     <Message Text="$(_Crossgen2Output)" />
     <Error Text="Crossgen2 failed with exit code $(_Crossgen2ErrorCode)." Condition="'$(_Crossgen2ErrorCode)' != '0'" />
+
+    <!-- Make sure we include the DLL in the symbols package so the DLLs are indexed as well -->
+    <Copy SourceFiles="$(_R2ROptimizeAssemblyOutputPath)" DestinationFolder="$(_R2RSymbolsOutputDirectory)" />
   </Target>
 
   <Target Name="PublishedProjectOutputGroup" DependsOnTargets="CalculateCrossgenInputs" Returns="@(_VsixItem)">
