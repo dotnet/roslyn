@@ -1,0 +1,44 @@
+﻿Source Location: (17:0,17 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|s|
+Generated Location: (837:22,0 [1] )
+|s|
+
+Source Location: (24:0,24 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|2|
+Generated Location: (991:30,0 [1] )
+|2|
+
+Source Location: (31:0,31 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|s|
+Generated Location: (1145:38,0 [1] )
+|s|
+
+Source Location: (45:1,7 [31] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string s = "x";
+|
+Generated Location: (1343:48,0 [31] )
+|
+    private string s = "x";
+|
+
+Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (2163:64,45 [11] )
+|MyComponent|
+
+Source Location: (13:0,13 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+|P1|
+Generated Location: (2371:68,0 [2] )
+|P1|
+
+Source Location: (20:0,20 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+|P2|
+Generated Location: (2622:77,0 [2] )
+|P2|
+
+Source Location: (27:0,27 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+|P3|
+Generated Location: (2873:86,0 [2] )
+|P3|
+

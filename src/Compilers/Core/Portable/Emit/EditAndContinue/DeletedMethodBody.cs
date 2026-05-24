@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             builder.EmitToken(hotReloadExceptionCtorDef.GetCciAdapter(), syntaxNode);
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
+            builder.FreeBasicBlocks();
 
             return builder.RealizedIL;
         }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+               xmlns="http://schemas.microsoft.com/VisualStudio/ImageManifestSchema/2014">
+  <Symbols>
+    <String Name="RazorExtensionResources" Value="/Microsoft.VisualStudio.RazorExtension;Component/Resources" />
+    <Guid Name="RazorCompletionImagesGuid" Value="{77A8B215-415E-495B-BB56-3F34D1105D51}" />
+    <ID Name="Angular" Value="1" />
+  </Symbols>
+
+  <Images>
+    <Image Guid="$(RazorCompletionImagesGuid)" ID="$(Angular)">
+      <Source Uri="$(RazorExtensionResources)/angular16.png">
+        <Size Value="16" />
+      </Source>
+    </Image>
+  </Images>
+  <ImageLists />
+</ImageManifest>
