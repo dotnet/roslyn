@@ -49,7 +49,7 @@ internal sealed class CohostInlineCompletionEndpoint(
                 RegisterOptions = new VSInternalInlineCompletionRegistrationOptions()
                 {
                     Pattern = new Regex(string.Join("|",
-                        GetBuildInCSharpSnippetTriggers()))
+                        GetBuiltInCSharpSnippetTriggers()))
                 }
             }];
         }
@@ -57,7 +57,7 @@ internal sealed class CohostInlineCompletionEndpoint(
         return [];
     }
 
-    internal static string[] GetBuildInCSharpSnippetTriggers()
+    internal static string[] GetBuiltInCSharpSnippetTriggers()
         => ["~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
             "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
             "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while"];
