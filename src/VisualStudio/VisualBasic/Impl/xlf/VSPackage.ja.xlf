@@ -33,21 +33,21 @@ Collapse #regions on file open;
 Collapse Imports on file open;
 Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">再割り当てされる変数に下線を引く; インラインのヒントを表示する; コンストラクトの終端の自動挿入; 再フォーマット設定の変更; アウトライン モードの変更; Interface と MustOverride メンバーの自動挿入; プロシージャ行の区切り記号の表示/非表示; エラー修正候補のオン/オフの切り替え; 参照とキーワードの強調表示のオン/オフの切り替え; 
-Regex; 
-正規表現; 
-カーソルの下の関連コンポーネント; 
-無効な正規表現の報告; 
-RegEx; 
-正規表現; 
-JSON; 
-JSON 文字列の色付け; 
-無効な JSON 文字列の報告; 
-JSON 文字列のエディター機能の検出と提供; 
-ファイルを開くときに #regions を折りたたむ; 
-ファイルを開くときに imports を折りたたむ; 
-ファイルを開くときにメタデータを折りたたむ; 
-拡張された色を使用する; エディターの配色; 継承余白; インポート ディレクティブ;</target>
+        <target state="new">Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -117,7 +117,7 @@ JSON 文字列のエディター機能の検出と提供;
       </trans-unit>
       <trans-unit id="312">
         <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する</target>
+        <target state="new">Change completion list settings;Pre-select most recently used member</target>
         <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">
