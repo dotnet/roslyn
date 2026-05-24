@@ -3196,6 +3196,7 @@ class C { }
         }
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.         
+#pragma warning disable RSEXPERIMENTAL007 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
         [Theory]
         [CombinatorialData]
@@ -3206,6 +3207,9 @@ class C { }
         [InlineData(IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host)]
         [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
         [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit | IncrementalGeneratorOutputKind.Host)]
+        [InlineData(IncrementalGeneratorOutputKind.PreCompilation)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.PreCompilation)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit | IncrementalGeneratorOutputKind.Host | IncrementalGeneratorOutputKind.PreCompilation)]
         public void Generator_Output_Kinds_Can_Be_Disabled(IncrementalGeneratorOutputKind disabledOutput)
         {
             var source = @"
@@ -3222,6 +3226,7 @@ class C { }
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Source", ""));
                 ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Implementation", ""));
                 ctx.RegisterHostOutput(ctx.CompilationOptionsProvider, (context, ct) => context.AddOutput("Host", ""));
+                ctx.RegisterPreCompilationSourceOutput(ctx.ParseOptionsProvider, (context, ct) => context.AddSource("PreCompilation", ""));
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
@@ -3270,6 +3275,7 @@ class C { }
         }
 
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore RSEXPERIMENTAL007 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
         [Fact]
         public void IncrementalGeneratorInputSourcesHaveNames()
