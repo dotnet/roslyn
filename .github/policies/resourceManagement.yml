@@ -350,6 +350,27 @@ configuration:
       then:
       - addCodeFlowLink
 
+    - description: Request second sign-off for compiler PRs after first approval
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request_Review
+      - isPullRequest
+      - isOpen
+      - hasLabel:
+          label: Area-Compilers
+      - isAction:
+          action: Submitted
+      - isReviewState:
+          reviewState: Approved
+      - not:
+          hasLabel:
+            label: Second Signoff Requested
+      then:
+      - addLabel:
+          label: Second Signoff Requested
+      - addReply:
+          reply: "@roslyn-compiler this PR needs a second sign-off"
+
 onFailure: 
 onSuccess:
 
