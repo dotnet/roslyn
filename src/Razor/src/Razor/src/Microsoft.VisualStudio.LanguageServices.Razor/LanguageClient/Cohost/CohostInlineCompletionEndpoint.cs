@@ -3,10 +3,10 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
@@ -46,12 +46,21 @@ internal sealed class CohostInlineCompletionEndpoint(
             return [new Registration
             {
                 Method = VSInternalMethods.TextDocumentInlineCompletionName,
-                RegisterOptions = new VSInternalInlineCompletionRegistrationOptions().EnableInlineCompletion()
+                RegisterOptions = new VSInternalInlineCompletionRegistrationOptions()
+                {
+                    Pattern = new Regex(string.Join("|",
+                        GetBuiltInCSharpSnippetTriggers()))
+                }
             }];
         }
 
         return [];
     }
+
+    internal static string[] GetBuiltInCSharpSnippetTriggers()
+        => ["~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
+            "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
+            "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while"];
 
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
         => request.TextDocument;

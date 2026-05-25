@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
@@ -52,7 +51,10 @@ internal sealed class CohostOnTypeFormattingEndpoint(
             {
                 Method = Methods.TextDocumentOnTypeFormattingName,
                 RegisterOptions = new DocumentOnTypeFormattingRegistrationOptions()
-                    .EnableOnTypeFormattingTriggerCharacters()
+                {
+                    FirstTriggerCharacter = RazorFormattingService.FirstTriggerCharacter,
+                    MoreTriggerCharacter = RazorFormattingService.MoreTriggerCharacters
+                }
             }];
         }
 
