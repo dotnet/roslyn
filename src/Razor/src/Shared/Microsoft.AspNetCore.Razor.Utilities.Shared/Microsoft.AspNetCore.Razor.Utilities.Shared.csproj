@@ -15,6 +15,8 @@
     <Compile Include="..\..\..\..\Dependencies\Contracts\ReferenceEqualityComparer.cs" />
   </ItemGroup>
 
+  <Import Project="..\Microsoft.AspNetCore.Razor.SharedUtilities\Microsoft.AspNetCore.Razor.SharedUtilities.projitems" Label="Shared" />
+  <Import Project="..\..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
@@ -61,7 +63,5 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.RazorExtension" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.UnitTests" Key="$(RazorKey)" />
   </ItemGroup>
-
-  <Import Project="..\..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 
 </Project>
