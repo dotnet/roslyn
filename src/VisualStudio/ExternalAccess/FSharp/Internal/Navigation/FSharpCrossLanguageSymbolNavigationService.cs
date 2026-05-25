@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
 [Export(typeof(ICrossLanguageSymbolNavigationService)), Shared]
 internal sealed class FSharpCrossLanguageSymbolNavigationService : ICrossLanguageSymbolNavigationService
 {
-    private readonly IFSharpCrossLanguageSymbolNavigationService _underlyingService;
+    private readonly IFSharpCrossLanguageSymbolNavigationService? _underlyingService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public FSharpCrossLanguageSymbolNavigationService(
-        [Import(AllowDefault = true)] IFSharpCrossLanguageSymbolNavigationService underlyingService)
+        [Import(AllowDefault = true)] IFSharpCrossLanguageSymbolNavigationService? underlyingService)
     {
         _underlyingService = underlyingService;
     }

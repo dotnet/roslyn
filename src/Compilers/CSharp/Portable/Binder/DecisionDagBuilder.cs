@@ -1003,6 +1003,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // This sub-pattern is a union matching 
 
                         Debug.Assert(subpattern is { Member.Receiver: null, IsLengthOrCount: false }); // This is the shape created by UnionMatchingRewriter.
+
+                        // https://github.com/dotnet/roslyn/issues/82636: Since direct property access can be a qualified name, we probably should recognize that case as well.
+                        //                                                Once changed, the logic in BindPropertyPatternClause should be aligned as well.
                         if (subpattern is { Member.Receiver: null, IsLengthOrCount: false })
                         {
                             tests.Add(MakeTestsAndBindings(new TestInputOutputInfo(input, subpattern.Member), pattern, output: out _, bindings));
