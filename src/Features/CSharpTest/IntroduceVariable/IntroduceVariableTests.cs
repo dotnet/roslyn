@@ -2999,6 +2999,87 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
             """,
             new(options: ImplicitTypingEverywhere()));
 
+    [Fact]
+    public Task TestInMixedObjectAndCollectionInitializer()
+        // Mixed object/collection initializer (dotnet/csharplang#10185): a bare-element child
+        // of an `ObjectInitializerExpression` (the wrapper kind chosen by the parser when any
+        // sibling is assignment-shape) must be eligible for "introduce local", same as the
+        // element children of a pure `CollectionInitializerExpression`.
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C : IEnumerable<int>
+            {
+                public int Y { get; set; }
+                public void Add(int item) { }
+                public IEnumerator<int> GetEnumerator() { yield break; }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+
+            class Program
+            {
+                static void M()
+                {
+                    var c = new C { Y = 1, [|Environment.TickCount|] };
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C : IEnumerable<int>
+            {
+                public int Y { get; set; }
+                public void Add(int item) { }
+                public IEnumerator<int> GetEnumerator() { yield break; }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+
+            class Program
+            {
+                static void M()
+                {
+                    var {|Rename:tickCount|} = Environment.TickCount;
+                    var c = new C { Y = 1, tickCount };
+                }
+            }
+            """,
+            new(options: ImplicitTypingEverywhere(), parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
+
+    [Fact]
+    public Task TestMissingInMixedObjectAndCollectionInitializer_OnMemberLhs()
+        // Negative regression: the member-name LHS of `Y = 1` inside a mixed initializer must
+        // NOT be replaceable with an LValue. (Today this is blocked higher up by `IsWrittenTo`
+        // in `CanReplaceWithRValue`, but the `CanReplaceWithLValue` widening in PR 6 must not
+        // change that.)
+        => TestMissingAsync(
+            """
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C : IEnumerable<int>
+            {
+                public int Y { get; set; }
+                public void Add(int item) { }
+                public IEnumerator<int> GetEnumerator() { yield break; }
+                IEnumerator IEnumerable.GetEnumerator() => null;
+            }
+
+            class Program
+            {
+                static void M()
+                {
+                    var c = new C { [|Y|] = 1, 2 };
+                }
+            }
+            """,
+            new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
     public Task TestInArrayInitializer()
         => TestInRegularAndScriptAsync(

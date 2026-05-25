@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
+using Microsoft.CodeAnalysis.CSharp.UseInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionInitializerDiagnosticAnalyzer,
-    CSharpUseCollectionInitializerCodeFixProvider>;
+    CSharpUseInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
 public sealed partial class UseCollectionInitializerTests_CollectionExpression

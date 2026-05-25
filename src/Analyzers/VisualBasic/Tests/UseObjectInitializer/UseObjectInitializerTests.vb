@@ -4,7 +4,7 @@
 
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer.VisualBasicUseObjectInitializerDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer.VisualBasicUseObjectInitializerCodeFixProvider)
+    Microsoft.CodeAnalysis.VisualBasic.UseInitializer.VisualBasicUseInitializerCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObjectInitializer
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>

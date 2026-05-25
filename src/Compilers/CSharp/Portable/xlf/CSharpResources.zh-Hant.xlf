@@ -902,6 +902,11 @@
         <target state="translated">運算式樹狀架構不可包含差補字串處理常式轉換。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsMixedObjectAndCollectionInitializer">
+        <source>An expression tree may not contain a mixed object and collection initializer.</source>
+        <target state="new">An expression tree may not contain a mixed object and collection initializer.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
         <source>An expression tree may not contain a named argument specification out of position</source>
         <target state="translated">運算式樹中不得包含位置不正確的具名引數</target>
@@ -2962,6 +2967,11 @@
         <target state="translated">集合運算式</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCompoundAssignmentInInitializer">
+        <source>compound assignment in object initializer and with expression</source>
+        <target state="new">compound assignment in object initializer and with expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">Covariant 傳回</target>
@@ -3075,6 +3085,11 @@
       <trans-unit id="IDS_FeatureLockObject">
         <source>Lock object</source>
         <target state="translated">鎖定物件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedObjectAndCollectionInitializers">
+        <source>mixed object and collection initializers</source>
+        <target state="new">mixed object and collection initializers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">

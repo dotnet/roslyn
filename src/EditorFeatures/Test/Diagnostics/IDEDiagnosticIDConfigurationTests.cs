@@ -523,6 +523,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
             # IDE0391
             dotnet_diagnostic.IDE0391.severity = %value%
 
+            # IDE0400
+            dotnet_diagnostic.IDE0400.severity = %value%
+
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -694,6 +697,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             # IDE0100
             dotnet_diagnostic.IDE0100.severity = %value%
+
+            # IDE0400
+            dotnet_diagnostic.IDE0400.severity = %value%
 
             # IDE1006
             dotnet_diagnostic.IDE1006.severity = %value%
@@ -942,6 +948,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0380", null, null),
             ("IDE0390", null, null),
             ("IDE0391", null, null),
+            ("IDE0400", "dotnet_style_object_initializer", "true"),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),
@@ -1025,6 +1032,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0120", null, null),
             ("IDE0140", "visual_basic_style_prefer_simplified_object_creation", "true"),
             ("IDE0270", "dotnet_style_coalesce_expression", "true"),
+            ("IDE0400", "dotnet_style_object_initializer", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),
             ("IDE2000", "dotnet_style_allow_multiple_blank_lines_experimental", "true"),
