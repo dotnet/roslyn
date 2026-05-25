@@ -6008,10 +6008,15 @@ static class E
 }
 ";
             var comp = CreateCompilation(source);
+            // Under the extension-members-on-typeless-receivers feature, `new(out var x).M1(x)`
+            // routes the typeless `new()` receiver through extension lookup. M1 is an applicable
+            // extension on C, so the implicit creation gets target-typed to C. The remaining
+            // diagnostic is the existing forbidden-zone error on the `out var x` declarator
+            // (instead of the pre-feature ERR_ImplicitObjectCreationNoTargetType).
             comp.VerifyDiagnostics(
-                // (8,9): error CS8754: There is no target type for 'new()'
+                // (8,27): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         new(out var x).M1(x);
-                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 27)
                 );
         }
 
@@ -6038,10 +6043,14 @@ static class E
 }
 ";
             var comp = CreateCompilation(source);
+            // Same as OutVar_28 but with a modern extension block. Under the feature, the
+            // typeless `new()` receiver routes through extension lookup; M1 is applicable, the
+            // creation is target-typed to C, and the remaining diagnostic is the existing
+            // forbidden-zone error on the `out var x` declarator.
             comp.VerifyDiagnostics(
-                // (8,9): error CS8754: There is no target type for 'new()'
+                // (8,27): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
                 //         new(out var x).M1(x);
-                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 27)
                 );
         }
 
