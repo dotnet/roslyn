@@ -149,10 +149,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "throw").WithLocation(13, 9),
                 // (13,19): error CS1014: A get or set accessor expected
                 //         throw null;
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(13, 19),
-                // (22,25): error CS1031: Type expected
-                //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(22, 25));
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(13, 19));
         }
 
         [Fact]

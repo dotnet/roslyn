@@ -883,19 +883,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPartialInNamespaceMemberDeclaration()
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-            {
-                if (this.IsPartialType())
-                {
-                    return true;
-                }
-                else if (this.PeekToken(1).Kind == SyntaxKind.NamespaceKeyword)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword
+                && this.IsPartialModifierInDeclarationHead();
         }
 
         public bool IsEndOfNamespace()
@@ -1389,22 +1378,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (newMod)
                 {
                     case DeclarationModifiers.Partial:
-                        var nextToken = PeekToken(1);
-                        if (this.IsPartialType() || this.IsPartialMember())
+                        // 'partial' is a contextual keyword.  Accept it as a modifier whenever the rest of the
+                        // modifier list, followed by the actual declaration head, clearly identifies a
+                        // partial-capable type declaration or member declaration.  Historically 'partial' was
+                        // required to be the last modifier; that restriction is now enforced (with feature
+                        // gating) by the binder in ModifierUtils.ToDeclarationModifiers.
+                        if (this.IsPartialModifierInDeclarationHead())
                         {
-                            // Standard legal cases.
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
-                        {
-                            // Error reported in binding
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (
-                            nextToken.Kind is SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword ||
-                            (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None))
-                        {
-                            // Error reported in ModifierUtils.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
                         else
@@ -1415,29 +1395,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
 
                     case DeclarationModifiers.Ref:
-                        // 'ref' is only a modifier if used on a ref struct
-                        // it must be either immediately before the 'struct'
-                        // keyword, or immediately before 'partial struct' if
-                        // this is a partial ref struct declaration
+                        // 'ref' is accepted as a modifier whenever it is not part of a return-type
+                        // prefix ('ref T ...' or 'ref readonly T ...').  For type declarations this
+                        // matches its canonical use ('ref struct', 'ref partial struct', ...).  For
+                        // members, consuming 'ref' in non-canonical positions lets the binder report
+                        // a targeted error rather than producing cascading parse errors.  The binder
+                        // (ModifierUtils.ToDeclarationModifiers / CheckModifiers) decides whether
+                        // the position is allowed and gates older language versions via the
+                        // relaxed-modifier-ordering feature.
+                        if (this.IsRefModifierInDeclarationHead(forAccessors))
                         {
-                            var next = PeekToken(1);
-                            if (isStructOrRecordOrUnionKeyword(next) ||
-                                (next.ContextualKind == SyntaxKind.PartialKeyword &&
-                                 isStructOrRecordOrUnionKeyword(PeekToken(2))))
-                            {
-                                modTok = this.EatToken();
-                            }
-                            else if (forAccessors && this.IsPossibleAccessorModifier())
-                            {
-                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
-                                modTok = this.EatToken();
-                            }
-                            else
-                            {
-                                return;
-                            }
+                            modTok = this.EatToken();
                             break;
                         }
+
+                        return;
 
                     case DeclarationModifiers.File:
                         if (!parseAsModifier(MessageID.IDS_FeatureFileTypes, out modTok))
@@ -1490,37 +1462,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // LangVersion errors for contextual modifiers are given during binding.
                 modTok = ConvertToKeyword(EatToken());
                 return true;
-            }
-
-            bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
-            {
-                if (token.Kind == SyntaxKind.StructKeyword)
-                {
-                    return true;
-                }
-
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.RecordKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 9 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                        }
-
-                    case SyntaxKind.UnionKeyword:
-                        {
-                            // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                            // does not support a feature, but in this case we are effectively making a language breaking
-                            // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                            // older code that is not using C# 15 we conditionally parse based on langversion
-                            return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                        }
-                }
-
-                return false;
             }
         }
 
@@ -1642,73 +1583,236 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
         }
 
-        private bool IsPartialType()
+        /// <summary>
+        /// Returns true when the current <c>partial</c> token should be consumed as a declaration
+        /// modifier, considering that it may be interleaved with other modifier tokens.  This performs
+        /// a lookahead that skips past any following modifier tokens and then checks whether the
+        /// remaining tokens form the head of a partial-capable declaration (type declaration,
+        /// partial event/constructor/method/property, or an error-reported-later construct like
+        /// <c>namespace</c>, <c>enum</c>, or <c>delegate</c>).
+        /// </summary>
+        /// <remarks>
+        /// This is intentionally permissive at the parse layer.  The binder
+        /// (<see cref="Microsoft.CodeAnalysis.CSharp.Symbols.ModifierUtils.ToDeclarationModifiers"/>)
+        /// is responsible for reporting diagnostics when <c>partial</c> is misplaced or when the
+        /// relaxed ordering feature is not available for the declared language version.
+        /// </remarks>
+        private bool IsPartialModifierInDeclarationHead()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            var nextToken = this.PeekToken(1);
-            switch (nextToken.Kind)
+
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            // Eat 'partial' and then scan past any subsequent modifier tokens.  We want to allow
+            // 'partial' to appear anywhere in the modifier list, so we walk forward looking for a
+            // declaration head that 'partial' could legally modify.
+            this.EatToken();
+            while (true)
             {
-                case SyntaxKind.StructKeyword:
-                case SyntaxKind.ClassKeyword:
-                case SyntaxKind.InterfaceKeyword:
+                var nextMod = GetModifierExcludingScoped(this.CurrentToken);
+                if (nextMod == DeclarationModifiers.None)
+                {
+                    break;
+                }
+
+                // A non-contextual modifier keyword (e.g. 'public', 'static', 'sealed', 'ref', ...)
+                // is a reserved word and cannot start any expression/statement or be an identifier.
+                // Seeing one after 'partial' therefore unambiguously proves we are in a declaration
+                // context, so we can commit to treating 'partial' as a modifier without further
+                // inspection.
+                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                {
                     return true;
+                }
+
+                // Otherwise we saw a contextual modifier (another 'partial', 'async', 'required',
+                // or 'file').  These tokens can also be identifiers in non-declaration contexts, so
+                // we need to keep scanning until we either hit a reserved modifier or the actual
+                // declaration head.
+                this.EatToken();
             }
 
-            switch (nextToken.ContextualKind)
+            // We're now positioned at what should be the declaration head.  Return true if the
+            // current token begins a declaration for which 'partial' is a plausible modifier.
+
+            if (CheckDefinitelyAtMemberDeclarationHead(out var isDeclarationHead))
             {
-                case SyntaxKind.RecordKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                    }
-
-                case SyntaxKind.UnionKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 15 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                    }
+                return isDeclarationHead;
             }
 
-            return false;
-        }
+            // Partial members other than events (events are handled in the helper above).
 
-        private bool IsPartialMember()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-
-            // Check for:
-            //   partial event
-            if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
-            {
-                return true;
-            }
-
-            // Check for constructor:
-            //   partial Identifier(
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+            // 'partial Identifier(...' is a partial constructor only on language versions that
+            // support partial constructors.  On earlier language versions the same tokens must
+            // be parsed as a method whose return type is 'Identifier', so we explicitly gate on
+            // the feature here to avoid changing the parse of existing code.
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
                 return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
             }
 
-            // Check for method/property:
-            //   partial ReturnType MemberName
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+            // 'partial ReturnType MemberName ...' -- partial method or property.  We reuse ScanType
+            // (inside a reset-point, so the advance is local) to determine whether this looks like
+            // a member declaration head.
+            return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
+        }
 
-            this.EatToken(); // partial
+        /// <summary>
+        /// Returns true if the current <c>ref</c> token should be consumed as a modifier (for a
+        /// type declaration, or as a misplaced modifier on a member that the binder will error on)
+        /// rather than as part of a return-type prefix (<c>ref T</c> or <c>ref readonly T</c>).
+        /// </summary>
+        /// <remarks>
+        /// Like the equivalent helper for <c>partial</c>, this is intentionally permissive at the
+        /// parse layer.  Whether the position is actually valid for the language version, and
+        /// whether <c>ref</c> is allowed on the given kind of declaration, are reported by the
+        /// binder (<see cref="Microsoft.CodeAnalysis.CSharp.Symbols.ModifierUtils"/>).
+        /// </remarks>
+        private bool IsRefModifierInDeclarationHead(bool forAccessors)
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.RefKeyword);
 
-            if (this.ScanType() == ScanTypeFlags.NotType)
+            if (forAccessors && this.IsPossibleAccessorModifier())
             {
-                return false;
+                // Historical carve-out: accessor lists accept 'ref' so the binder can produce a
+                // targeted "not valid for this item" error.
+                return true;
             }
 
-            return IsPossibleMemberName();
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            this.EatToken();
+
+            // 'ref readonly T' can be a return-type prefix where T is a type.  We tentatively
+            // consume 'readonly' here; if what follows turns out to be another modifier or a
+            // type-declaration head, this 'readonly' will be a misplaced modifier too and we'll
+            // still commit to 'ref' being a modifier.
+            if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
+            {
+                this.EatToken();
+            }
+
+            // Scan past any additional modifier tokens.  We track whether we saw anything here so
+            // we can distinguish 'ref [readonly] T ...' (return-type form) from 'ref [readonly]
+            // modifier... T ...' (ref must be a misplaced modifier).
+            bool skippedContextualModifier = false;
+            while (true)
+            {
+                var nextMod = GetModifierExcludingScoped(this.CurrentToken);
+                if (nextMod == DeclarationModifiers.None)
+                {
+                    break;
+                }
+
+                // Reserved-keyword modifier: 'ref' is unambiguously a (possibly misplaced) modifier.
+                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                {
+                    return true;
+                }
+
+                // Contextual modifier: could still be either an identifier/type or a modifier.
+                // Keep scanning.
+                this.EatToken();
+                skippedContextualModifier = true;
+            }
+
+            // At the end of the modifier chain, 'ref' is a member/type-declaration modifier if
+            // we're at a definite declaration head.  Whether the specific declaration kind
+            // actually accepts 'ref' (only struct/record struct/union types do; 'ref' on events
+            // or other members is always invalid) is the binder's concern.
+            if (CheckDefinitelyAtMemberDeclarationHead(out var isDeclarationHead))
+            {
+                return isDeclarationHead;
+            }
+
+            // Otherwise we did not land on a type-decl keyword.  If we got here by skipping pure
+            // contextual modifiers after 'ref' (or 'ref readonly'), those can only be modifiers
+            // in this position -- so 'ref' must also be a modifier.  If we skipped nothing, this
+            // is the canonical 'ref T ...' or 'ref readonly T ...' return-type form and we must
+            // leave 'ref' for the return-type parser.
+            return skippedContextualModifier;
+        }
+
+        /// <summary>
+        /// Assumes the current token is positioned at what should be the declaration head (after
+        /// any modifier tokens have been skipped past).  Tells the caller whether this position
+        /// is a conclusive signal about the enclosing modifier parse.
+        /// <para>
+        /// Returns <see langword="true"/> if the position is conclusive: either we are at a type,
+        /// namespace, or event declaration head (<paramref name="isDeclarationHead"/> is set to
+        /// <see langword="true"/>), or we are at a <c>record</c>/<c>union</c> contextual keyword
+        /// whose feature is disabled (<paramref name="isDeclarationHead"/> is set to
+        /// <see langword="false"/>).  In the latter case the caller should decline to commit to
+        /// the enclosing modifier parse: the user is almost certainly trying to declare a type
+        /// and we want the ordinary feature-availability diagnostic to surface downstream rather
+        /// than producing a surprising member/expression parse.
+        /// </para>
+        /// <para>
+        /// Returns <see langword="false"/> if we did not land on any such keyword at all; in
+        /// that case the caller must decide based on its own context.
+        /// </para>
+        /// <para>
+        /// We accept the broader set of declaration keywords here -- including positions where a
+        /// given modifier is not actually legal -- so that the binder can report targeted
+        /// diagnostics for things like <c>ref class</c>, <c>partial namespace</c>, or
+        /// <c>ref event</c>/<c>scoped event</c> instead of surfacing cascading parse errors.
+        /// Constructs like <c>partial event E</c>, <c>ref event E</c>, and <c>scoped event E</c>
+        /// are syntactically unambiguous: the <c>event</c> keyword is reserved and cannot start
+        /// any other member, statement, or expression form, so we can commit to an event
+        /// declaration at the parse layer and let the binder report whether the preceding
+        /// modifier is actually allowed (only <c>partial</c> is, and only from the language
+        /// version that enables partial events).
+        /// </para>
+        /// </summary>
+        private bool CheckDefinitelyAtMemberDeclarationHead(out bool isDeclarationHead)
+        {
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.ClassKeyword:
+                case SyntaxKind.StructKeyword:
+                case SyntaxKind.InterfaceKeyword:
+                case SyntaxKind.NamespaceKeyword:
+                case SyntaxKind.EnumKeyword:
+                case SyntaxKind.EventKeyword:
+                    isDeclarationHead = true;
+                    return true;
+
+                case SyntaxKind.DelegateKeyword:
+                    // `delegate*` is the function-pointer type and is part of a type expression,
+                    // not a delegate declaration head.  For example, `ref delegate*<void> M()`
+                    // is a method whose return type is `ref delegate*<void>`, and the enclosing
+                    // `ref` must remain part of the return-type prefix.  Let the caller decide
+                    // based on its own context in that case.
+                    if (this.PeekToken(1).Kind == SyntaxKind.AsteriskToken)
+                    {
+                        break;
+                    }
+
+                    isDeclarationHead = true;
+                    return true;
+            }
+
+            switch (this.CurrentToken.ContextualKind)
+            {
+                case SyntaxKind.RecordKeyword:
+                    // This is an unusual use of LangVersion.  Normally we only produce errors when the
+                    // langversion does not support a feature, but in this case we are effectively making
+                    // a language breaking change to consider "record" a type declaration in all ambiguous
+                    // cases.  To avoid breaking older code that is not using C# 9 we conditionally parse
+                    // based on langversion.  Either way the answer is conclusive for the enclosing
+                    // modifier parse.
+                    isDeclarationHead = IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    return true;
+
+                case SyntaxKind.UnionKeyword:
+                    // Same rationale as for "record" above; conditional on the C# 15 unions feature.
+                    isDeclarationHead = IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+                    return true;
+            }
+
+            isDeclarationHead = false;
+            return false;
         }
 
         private bool IsPossibleMemberName()
@@ -6104,15 +6208,8 @@ parse_member_name:;
 
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-            {
-                if (this.IsPartialType() || this.IsPartialMember())
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword
+                && this.IsPartialModifierInDeclarationHead();
         }
 
         private bool IsCurrentTokenFieldInKeywordContext()
