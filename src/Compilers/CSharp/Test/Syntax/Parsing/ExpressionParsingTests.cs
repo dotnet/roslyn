@@ -3256,12 +3256,9 @@ class C
                 // (6,14): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         Task.await Task.Delay();
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 14),
-                // (6,24): error CS1003: Syntax error, ',' expected
+                // (6,24): error CS1003: Syntax error, '=' expected
                 //         Task.await Task.Delay();
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(6, 24),
-                // (6,25): error CS1002: ; expected
-                //         Task.await Task.Delay();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Delay").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments("=").WithLocation(6, 24));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3305,22 +3302,26 @@ class C
                                     N(SyntaxKind.VariableDeclarator);
                                     {
                                         N(SyntaxKind.IdentifierToken, "Task");
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
-                                N(SyntaxKind.InvocationExpression);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Delay");
-                                    }
-                                    N(SyntaxKind.ArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.CloseParenToken);
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            M(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                                                {
+                                                    N(SyntaxKind.DotToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "Delay");
+                                                    }
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);
@@ -5871,14 +5872,29 @@ select t";
         [Fact]
         public void RangeExpression_MethodInvocation_NoOperands()
         {
-            UsingExpression(".. .ToString()",
-                // (1,1): error CS1073: Unexpected token '.'
-                // .. .ToString()
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments(".").WithLocation(1, 1));
+            // `.. .ToString()` now parses as a prefix range whose right operand is a target-typed static member
+            // access invocation.  The binder will reject `.ToString()` outside a target-typed context.
+            UsingExpression(".. .ToString()");
 
             N(SyntaxKind.RangeExpression);
             {
                 N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.TargetTypedMemberAccessExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
             }
             EOF();
         }
@@ -5886,10 +5902,8 @@ select t";
         [Fact]
         public void RangeExpression_MethodInvocation_LeftOperand()
         {
-            UsingExpression("1.. .ToString()",
-                // (1,1): error CS1073: Unexpected token '.'
-                // 1.. .ToString()
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "1..").WithArguments(".").WithLocation(1, 1));
+            // `1.. .ToString()` now parses as a postfix-range `1..` followed by a target-typed invocation on its right.
+            UsingExpression("1.. .ToString()");
 
             N(SyntaxKind.RangeExpression);
             {
@@ -5898,6 +5912,22 @@ select t";
                     N(SyntaxKind.NumericLiteralToken, "1");
                 }
                 N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.TargetTypedMemberAccessExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
             }
             EOF();
         }
@@ -6559,9 +6589,6 @@ select t";
             var tree = ParseTree(text, TestOptions.Regular);
             // Note that the parser eventually syncs back up and stops producing diagnostics.
             tree.GetDiagnostics().Verify(
-                // (7,31): error CS1001: Identifier expected
-                //             A B = new C($@"{D(.E}");
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
                 // (7,33): error CS1003: Syntax error, ')' expected
                 //             A B = new C($@"{D(.E}");
                 Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
@@ -6596,9 +6623,6 @@ select t";
             var tree = ParseTree(text, TestOptions.Regular);
             // Note that the parser eventually syncs back up and stops producing diagnostics.
             tree.GetDiagnostics().Verify(
-                    // (7,31): error CS1001: Identifier expected
-                    //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(7, 31),
                     // (7,33): error CS1003: Syntax error, ')' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
                     Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),

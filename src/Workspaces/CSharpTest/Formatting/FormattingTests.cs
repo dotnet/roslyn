@@ -7395,7 +7395,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             				   0,
             				   ref clsid,
             				   Rebracer,
-            				   string.Format(CultureInfo.CurrentCulture, Inside { 0}.MenuItemCallback(), this.ToString()),
+            				   string.Format(CultureInfo.CurrentCulture, Inside { 0}
+            		.MenuItemCallback(), this.ToString()),
             					   string.Empty,
             					   0,
             					   OLEMSGBUTTON.OLEMSGBUTTON_OK,

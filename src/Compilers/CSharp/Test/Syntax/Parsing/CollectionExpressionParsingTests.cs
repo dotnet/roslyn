@@ -1074,12 +1074,15 @@ public sealed class CollectionExpressionParsingTests : ParsingTests
                 namespace A;
                 [B].C();
                 """,
-            // (2,3): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+            // (2,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
             // [B].C();
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(2, 3),
-            // (2,4): error CS1022: Type or namespace definition, or end-of-file expected
+            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 5),
+            // (2,7): error CS8124: Tuple must contain at least two elements.
             // [B].C();
-            Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(2, 4));
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 7),
+            // (2,8): error CS1022: Type or namespace definition, or end-of-file expected
+            // [B].C();
+            Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(2, 8));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1091,16 +1094,6 @@ public sealed class CollectionExpressionParsingTests : ParsingTests
                     N(SyntaxKind.IdentifierToken, "A");
                 }
                 N(SyntaxKind.SemicolonToken);
-                N(SyntaxKind.ConstructorDeclaration);
-                {
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
             }
             N(SyntaxKind.EndOfFileToken);
         }

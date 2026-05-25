@@ -20,5 +20,11 @@
     <PackageReference Include="Microsoft.DiaSymReader" />
     <PackageReference Include="Basic.Reference.Assemblies.Net100" />
   </ItemGroup>
+  <ItemGroup Label="Linked syntax-test helpers">
+    <!-- Pull in the ParsingTests base (and its SyntaxExtensions companion) so tests in this project can use
+         UsingTree / UsingExpression / N-walks just like tests under src/Compilers/CSharp/Test/Syntax/Parsing. -->
+    <Compile Include="..\Syntax\Parsing\ParsingTests.cs" Link="Parsing\ParsingTests.cs" />
+    <Compile Include="..\Syntax\Parsing\SyntaxExtensions.cs" Link="Parsing\SyntaxExtensions.cs" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

@@ -38,6 +38,7 @@ name
   : alias_qualified_name
   | qualified_name
   | simple_name
+  | target_typed_qualified_name
   ;
 
 alias_qualified_name
@@ -59,6 +60,10 @@ type_argument_list
 
 qualified_name
   : name '.' simple_name
+  ;
+
+target_typed_qualified_name
+  : '.' simple_name
   ;
 
 attribute_argument_list
@@ -778,6 +783,7 @@ expression
   | size_of_expression
   | stack_alloc_array_creation_expression
   | switch_expression
+  | target_typed_member_access_expression
   | throw_expression
   | tuple_expression
   | type
@@ -1135,6 +1141,10 @@ switch_expression
 
 switch_expression_arm
   : pattern when_clause? '=>' expression
+  ;
+
+target_typed_member_access_expression
+  : '.' simple_name
   ;
 
 throw_expression

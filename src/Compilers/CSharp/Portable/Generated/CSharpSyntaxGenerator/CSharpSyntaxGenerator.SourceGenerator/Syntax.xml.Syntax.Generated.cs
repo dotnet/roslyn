@@ -137,6 +137,52 @@ public sealed partial class QualifiedNameSyntax : NameSyntax
     public QualifiedNameSyntax WithRight(SimpleNameSyntax right) => Update(this.Left, this.DotToken, right);
 }
 
+/// <summary>Class which represents the syntax node for a target-typed qualified name, i.e. a name of the form <c>.Identifier</c> where the type of the left side is inferred from context.</summary>
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.TargetTypedQualifiedName"/></description></item>
+/// </list>
+/// </remarks>
+[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+public sealed partial class TargetTypedQualifiedNameSyntax : NameSyntax
+{
+    private SimpleNameSyntax? right;
+
+    internal TargetTypedQualifiedNameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    /// <summary>SyntaxToken representing the dot.</summary>
+    public SyntaxToken DotToken => new SyntaxToken(this, ((InternalSyntax.TargetTypedQualifiedNameSyntax)this.Green).dotToken, Position, 0);
+
+    /// <summary>SimpleNameSyntax node representing the name on the right side of the dot token of the target-typed qualified name.</summary>
+    public SimpleNameSyntax Right => GetRed(ref this.right, 1)!;
+
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.right, 1)! : null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.right : null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTargetTypedQualifiedName(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTargetTypedQualifiedName(this);
+
+    public TargetTypedQualifiedNameSyntax Update(SyntaxToken dotToken, SimpleNameSyntax right)
+    {
+        if (dotToken != this.DotToken || right != this.Right)
+        {
+            var newNode = SyntaxFactory.TargetTypedQualifiedName(dotToken, right);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public TargetTypedQualifiedNameSyntax WithDotToken(SyntaxToken dotToken) => Update(dotToken, this.Right);
+    public TargetTypedQualifiedNameSyntax WithRight(SimpleNameSyntax right) => Update(this.DotToken, right);
+}
+
 /// <summary>Class which represents the syntax node for generic name.</summary>
 /// <remarks>
 /// <para>This node is associated with the following syntax kinds:</para>
@@ -1515,6 +1561,52 @@ public sealed partial class MemberBindingExpressionSyntax : ExpressionSyntax
 
     public MemberBindingExpressionSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(operatorToken, this.Name);
     public MemberBindingExpressionSyntax WithName(SimpleNameSyntax name) => Update(this.OperatorToken, name);
+}
+
+/// <summary>Class which represents the syntax node for a target-typed static member access expression, e.g. <c>.Identifier</c> where the type of the containing expression is inferred from context.</summary>
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.TargetTypedMemberAccessExpression"/></description></item>
+/// </list>
+/// </remarks>
+[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+public sealed partial class TargetTypedMemberAccessExpressionSyntax : ExpressionSyntax
+{
+    private SimpleNameSyntax? name;
+
+    internal TargetTypedMemberAccessExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    /// <summary>SyntaxToken representing dot.</summary>
+    public SyntaxToken OperatorToken => new SyntaxToken(this, ((InternalSyntax.TargetTypedMemberAccessExpressionSyntax)this.Green).operatorToken, Position, 0);
+
+    /// <summary>SimpleNameSyntax node representing the member being accessed.</summary>
+    public SimpleNameSyntax Name => GetRed(ref this.name, 1)!;
+
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1)! : null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.name : null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTargetTypedMemberAccessExpression(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTargetTypedMemberAccessExpression(this);
+
+    public TargetTypedMemberAccessExpressionSyntax Update(SyntaxToken operatorToken, SimpleNameSyntax name)
+    {
+        if (operatorToken != this.OperatorToken || name != this.Name)
+        {
+            var newNode = SyntaxFactory.TargetTypedMemberAccessExpression(operatorToken, name);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public TargetTypedMemberAccessExpressionSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(operatorToken, this.Name);
+    public TargetTypedMemberAccessExpressionSyntax WithName(SimpleNameSyntax name) => Update(this.OperatorToken, name);
 }
 
 /// <summary>Class which represents the syntax node for element binding expression.</summary>

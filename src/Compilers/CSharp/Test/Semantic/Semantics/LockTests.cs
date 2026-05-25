@@ -392,9 +392,9 @@ class Test
                 // (9,26): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         lock ((C + yield return +D).ToString())
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(9, 26),
-                // (9,37): warning CS0162: Unreachable code detected
+                // (9,36): warning CS0162: Unreachable code detected
                 //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "ToString").WithLocation(9, 37)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, ".").WithLocation(9, 36)
                 );
         }
 

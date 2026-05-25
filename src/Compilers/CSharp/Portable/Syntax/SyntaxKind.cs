@@ -947,5 +947,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
         UnionDeclaration = 9082,
+
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/csharplang/issues/9138")]
+        TargetTypedQualifiedName = 9083,
+
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/csharplang/issues/9138")]
+        TargetTypedMemberAccessExpression = 9084,
     }
 }

@@ -7183,6 +7183,16 @@ parse_member_name:;
             return IsPredefinedType(tk) || this.IsTrueIdentifier();
         }
 
+        private bool IsPossibleTargetTypedQualifiedName()
+        {
+            // `.Identifier` at the start of a type can be a target-typed qualified name (e.g. `new .Foo()` or
+            // `case .Foo(var x):`).  Only used by pattern parsing to detect when a pattern starts with a target-typed
+            // type reference; kept out of `IsPossibleType` so that surrounding contexts (e.g. `scoped` keyword
+            // recognition in older language versions, tuple-type detection, etc.) continue to ignore leading `.`.
+            return this.CurrentToken.Kind == SyntaxKind.DotToken
+                && this.PeekToken(1).Kind == SyntaxKind.IdentifierToken;
+        }
+
         private ScanTypeFlags ScanType(bool forPattern = false)
         {
             return ScanType(out _, forPattern);
@@ -8010,6 +8020,34 @@ done:
             if (IsTrueIdentifier() || this.CurrentToken.Kind == SyntaxKind.ColonColonToken)
             {
                 return this.ParseQualifiedName(options);
+            }
+
+            // A leading `.Identifier` starts a target-typed qualified name (e.g. `.Foo` or `.Foo<T>`), which appears
+            // in type positions such as patterns (`is .Foo`, `case .Foo(var x):`) and after `new` (`new .Foo()`).
+            // The parser is intentionally permissive here: dotted chains like `.A.B` are built as `QualifiedName(.A, B)`
+            // so the binder can later produce a good diagnostic for disallowed forms.  The `new .Foo(...)` form is
+            // likewise accepted by the grammar even though it is not part of the current feature's binder scope.
+            //
+            // We require an identifier after the `.` so that a stray lone `.` in an error-recovery position (very
+            // common, as dots occur frequently in programs) falls through to the `TypeExpected`/`BadNewExpr` path
+            // below, matching pre-feature behavior.
+            if (this.CurrentToken.Kind == SyntaxKind.DotToken &&
+                this.PeekToken(1).Kind == SyntaxKind.IdentifierToken)
+            {
+                NameSyntax name = _syntaxFactory.TargetTypedQualifiedName(
+                    this.EatToken(),
+                    this.ParseSimpleName(options));
+
+                while (IsDotOrColonColon())
+                {
+                    if (this.PeekToken(1).Kind == SyntaxKind.ThisKeyword)
+                        break;
+
+                    var separator = this.EatToken();
+                    name = ParseQualifiedNameRight(options, name, separator);
+                }
+
+                return name;
             }
 
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
@@ -10716,9 +10754,41 @@ done:
                 return null;
             }
 
-            return _syntaxFactory.WhenClause(
-                this.EatContextualToken(SyntaxKind.WhenKeyword),
-                ParseSubExpression(precedence));
+            var whenKeyword = this.EatContextualToken(SyntaxKind.WhenKeyword);
+
+            // Parse the guard expression optimistically.
+            using var beforeExpression = this.GetDisposableResetPoint(resetOnDispose: false);
+            var expression = ParseSubExpression(precedence);
+
+            // Complex ambiguity with `?` and the case-label terminating `:`.  Specifically: if the user
+            // wrote `when s?.Length == 0:` (a null-conditional access followed by the case-label `:`),
+            // the speculative `?.` / `?[` disambiguation in `TryParseConditionalAccessExpression`
+            // correctly identifies the presence of a later `:` and forces a ternary interpretation.
+            // But that `:` is the case-label terminator, not a ternary separator, so the ternary parse
+            // then eats the case-label `:` as its own, leaves the when-clause open, and produces a
+            // broken parse that consumes tokens beyond the case label.
+            //
+            // We detect this after the fact using the same helper that `consumeConditionalExpression`
+            // uses for its analogous *inner* misparse check: if the optimistic parse contains a
+            // `ConditionalExpressionSyntax` whose when-true starts with `.` (target-typed static member
+            // access) or `[` (collection expression), and we are NOT at the case-label `:` that the
+            // caller expects, then that ternary is almost certainly a null-conditional /
+            // collection-indexer misparse.  Reparse with `ForceConditionalAccessExpression` so that
+            // `?.` / `?[` commit to the conditional-access interpretation.
+            //
+            // Using `ContainsTernaryToReinterpret` (rather than just checking the top-level node) is
+            // important because the misparsed ternary can be NESTED inside another well-formed ternary,
+            // e.g. `when a ? b?.X == 0 : c:`.
+            if (this.CurrentToken.Kind != SyntaxKind.ColonToken
+                && !this.ForceConditionalAccessExpression
+                && ContainsTernaryToReinterpret(expression))
+            {
+                beforeExpression.Reset();
+                using var _ = new ParserSyntaxContextResetter(this, forceConditionalAccessExpression: true);
+                expression = ParseSubExpression(precedence);
+            }
+
+            return _syntaxFactory.WhenClause(whenKeyword, expression);
         }
 
 #nullable enable
@@ -11131,6 +11201,9 @@ done:
                     return true;
                 case SyntaxKind.DotToken when IsAtDotDotToken():
                     return true;
+                case SyntaxKind.DotToken when this.PeekToken(1).Kind == SyntaxKind.IdentifierToken:
+                    // `.Identifier` at the start of an expression is a target-typed static member access.
+                    return true;
                 case SyntaxKind.StaticKeyword:
                     return IsPossibleAnonymousMethodExpression() || IsPossibleLambdaExpression(Precedence.Expression);
                 case SyntaxKind.IdentifierToken:
@@ -11346,6 +11419,8 @@ done:
                 case SyntaxKind.StringLiteralExpression:
                 case SyntaxKind.Utf8StringLiteralExpression:
                 case SyntaxKind.SuppressNullableWarningExpression:
+                case SyntaxKind.TargetTypedMemberAccessExpression:
+                case SyntaxKind.TargetTypedQualifiedName:
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.TupleExpression:
@@ -11637,13 +11712,16 @@ done:
 
             ConditionalExpressionSyntax consumeConditionalExpression(ExpressionSyntax leftOperand)
             {
-                // Complex ambiguity with `?` and collection-expressions.  Specifically: b?[c]:d
+                // Complex ambiguity with `?` and the start of a collection-expression or target-typed static member
+                // access.  Specifically: `b?[c]:d` and `b?.X:d`.
                 //
-                // On its own, we want that to be a conditional expression with a collection expression in it.  However, for
-                // back compat, we need to make sure that `a ? b?[c] : d` sees the inner `b?[c]` as a
-                // conditional-access-expression.  So, if after consuming the portion after the initial `?` if we do not
-                // have the `:` we need, and we can see a `?[` in that portion of the parse, then we retry consuming the
-                // when-true portion, but this time forcing the prior way of handling `?[`.
+                // On their own, we want those to be conditional expressions with a collection expression or a
+                // target-typed static member access in them.  However, for back compat, we need to make sure that
+                // `a ? b?[c] : d` sees the inner `b?[c]` as a conditional-access-expression, and `a ? b?.X : d` sees
+                // the inner `b?.X` as a conditional-access-expression.  So, if after consuming the portion after the
+                // initial `?` if we do not have the `:` we need, and we can see a `?[` or `?.` in that portion of the
+                // parse, then we retry consuming the when-true portion, but this time forcing the prior way of handling
+                // those.
                 var questionToken = this.EatToken();
 
                 using var afterQuestionToken = this.GetDisposableResetPoint(resetOnDispose: false);
@@ -11651,7 +11729,7 @@ done:
 
                 if (this.CurrentToken.Kind != SyntaxKind.ColonToken &&
                     !this.ForceConditionalAccessExpression &&
-                    containsTernaryCollectionToReinterpret(whenTrue))
+                    ContainsTernaryToReinterpret(whenTrue))
                 {
                     // Keep track of where we are right now in case the new parse doesn't make things better.
                     using var originalAfterWhenTrue = this.GetDisposableResetPoint(resetOnDispose: false);
@@ -11704,32 +11782,48 @@ done:
                 }
             }
 
-            static bool containsTernaryCollectionToReinterpret(ExpressionSyntax expression)
-            {
-                var stack = ArrayBuilder<GreenNode>.GetInstance();
-                stack.Push(expression);
+        }
 
-                while (stack.Count > 0)
+        /// <summary>
+        /// Walks <paramref name="expression"/> looking for a <see cref="ConditionalExpressionSyntax"/> whose
+        /// when-true operand starts with <c>[</c> or <c>.</c>.  If found, this indicates a potential
+        /// <c>b?[c]:d</c> or <c>b?.X:d</c> that was misparsed as <c>b ? [c] : d</c> or <c>b ? .X : d</c>
+        /// respectively, and the caller should retry the parse with
+        /// <c>ForceConditionalAccessExpression = true</c> so that the <c>?[</c> / <c>?.</c> commits to the
+        /// conditional-access interpretation.
+        /// </summary>
+        private static bool ContainsTernaryToReinterpret(ExpressionSyntax expression)
+        {
+            var stack = ArrayBuilder<GreenNode>.GetInstance();
+            stack.Push(expression);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                if (current is ConditionalExpressionSyntax conditionalExpression)
                 {
-                    var current = stack.Pop();
-                    if (current is ConditionalExpressionSyntax conditionalExpression &&
-                        conditionalExpression.WhenTrue.GetFirstToken().Kind == SyntaxKind.OpenBracketToken)
+                    // An inner ternary whose when-true starts with `[` is a potential `b?[c]:d` misparse as
+                    // `b ? [c] : d`.  An inner ternary whose when-true starts with `.` is a potential `b?.X:d`
+                    // misparse as `b ? .X : d`.  Note: a prefix-range expression `..X` uses a merged `DotDotToken`
+                    // as its first token, so we won't falsely match it here.
+                    var firstTokenKind = conditionalExpression.WhenTrue.GetFirstToken().Kind;
+                    if (firstTokenKind is SyntaxKind.OpenBracketToken or SyntaxKind.DotToken)
                     {
                         stack.Free();
                         return true;
                     }
-
-                    // Note: we could consider not recursing into anonymous-methods/lambdas (since we reset the 
-                    // ForceConditionalAccessExpression flag when we go into that).  However, that adds a bit of
-                    // fragile coupling between these different code blocks that i'd prefer to avoid.  In practice
-                    // the extra cost here will almost never occur, so the simplicity is worth it.
-                    foreach (var child in current.ChildNodesAndTokens())
-                        stack.Push(child);
                 }
 
-                stack.Free();
-                return false;
+                // Note: we could consider not recursing into anonymous-methods/lambdas (since we reset the 
+                // ForceConditionalAccessExpression flag when we go into that).  However, that adds a bit of
+                // fragile coupling between these different code blocks that i'd prefer to avoid.  In practice
+                // the extra cost here will almost never occur, so the simplicity is worth it.
+                foreach (var child in current.ChildNodesAndTokens())
+                    stack.Push(child);
             }
+
+            stack.Free();
+            return false;
         }
 
         private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind()
@@ -12024,6 +12118,18 @@ done:
                         return this.IsPossibleLambdaExpression(precedence)
                             ? this.ParseLambdaExpression()
                             : this.ParseCollectionExpression();
+                    case SyntaxKind.DotToken when this.PeekToken(1).Kind == SyntaxKind.IdentifierToken:
+                        // A leading `.Identifier` starts a target-typed static member access expression (e.g. `.Red`
+                        // or `.Some(42)`).  Feature availability and legality (e.g. that this only appears in a
+                        // position with a target type, and is not used as the head of chained member access `.A.B`)
+                        // are enforced later in the binder.
+                        //
+                        // We require an identifier after the `.` so that a stray lone `.` (very common in error
+                        // recovery) still falls through to the default `ERR_InvalidExprTerm` path below, matching
+                        // pre-feature behavior.
+                        return _syntaxFactory.TargetTypedMemberAccessExpression(
+                            this.EatToken(),
+                            this.ParseSimpleName(NameOptions.InExpression));
                     case SyntaxKind.ThisKeyword:
                         return _syntaxFactory.ThisExpression(this.EatToken());
                     case SyntaxKind.BaseKeyword:
@@ -12343,10 +12449,9 @@ done:
                     var nextToken = this.PeekToken(1);
                     var nextTokenKind = nextToken.Kind;
 
-                    // ?.   is always the start of of a consequence expression.
-                    //
-                    // ?..  is a ternary with a range expression as it's 'whenTrue' clause.
-                    if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken(nextToken, this.PeekToken(2)))
+                    // ?..  is a ternary with a range expression as its 'whenTrue' clause.
+
+                    if (isStartOfMemberBindingExpression(nextToken, nextTokenKind))
                         return (questionToken: EatToken(), _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)));
 
                     if (isStartOfElementBindingExpression(nextTokenKind))
@@ -12358,14 +12463,27 @@ done:
                 return default;
             }
 
+            bool isStartOfMemberBindingExpression(SyntaxToken nextToken, SyntaxKind nextTokenKind)
+            {
+                // Could simply be `x?.Y`, or could be `x ? .Y : z` (a ternary whose when-true branch is a
+                // target-typed static member access).
+                return nextTokenKind == SyntaxKind.DotToken
+                    && !IsAtDotDotToken(nextToken, this.PeekToken(2))
+                    && isStartOfBindingExpression();
+            }
+
             bool isStartOfElementBindingExpression(SyntaxKind nextTokenKind)
             {
-                if (nextTokenKind != SyntaxKind.OpenBracketToken)
-                    return false;
+                // Could simply be `x?[0]`, or could be `x ? [0] : [1]` (a ternary whose when-true branch is a
+                // collection expression).
+                return nextTokenKind == SyntaxKind.OpenBracketToken
+                    && isStartOfBindingExpression();
+            }
 
-                // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
-
-                // Caller only wants us to parse ?[ how it was originally parsed before collection expressions.
+            bool isStartOfBindingExpression()
+            {
+                // Caller only wants us to parse this the way it was originally parsed before target-typed static
+                // member access and collection expressions existed.
                 if (this.ForceConditionalAccessExpression)
                     return true;
 

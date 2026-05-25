@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case AliasQualifiedNameSyntax a:
                     type = a;
                     return true;
+                case TargetTypedMemberAccessExpressionSyntax { OperatorToken: var operatorToken, Name: var simpleName }:
+                    type = _syntaxFactory.TargetTypedQualifiedName(operatorToken, simpleName);
+                    return true;
                 default:
                     type = null;
                     return false;
@@ -83,6 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
                 (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
+            {
+                return true;
+            }
+
+            // `.Identifier` can start a target-typed qualified name in a pattern (e.g. `is .Foo`, `case .Foo(var x):`,
+            // `{ A: .Some(0) or .None }`).  `..` (range) is specifically excluded so we don't confuse list-pattern
+            // slices or range expressions with a target-typed name.
+            if (IsPossibleTargetTypedQualifiedName())
             {
                 return true;
             }
@@ -490,6 +501,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             when (permitTypeArguments || right is not GenericNameSyntax):
                     var newLeft = ConvertTypeToExpression(left, out var leftExpr, permitTypeArguments: true) ? leftExpr : left;
                     expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newLeft, dotToken, right);
+                    return true;
+                case TargetTypedQualifiedNameSyntax { dotToken: var dotToken, right: var right }
+                            when (permitTypeArguments || right is not GenericNameSyntax):
+                    expr = _syntaxFactory.TargetTypedMemberAccessExpression(dotToken, right);
                     return true;
                 default:
                     expr = null;

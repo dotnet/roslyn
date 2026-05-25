@@ -278,6 +278,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExtendedPropertySubpattern_05()
         {
+            // With target-typed static member access, `a?.b: p` is resolved as a ternary expression
+            // `a ? .b : p` (since a `:` follows the `.b`), mirroring the existing `?[` behavior.
+            // To keep the old conditional-access interpretation, users must parenthesize: `(a?.b): p`.
             UsingExpression(@"e is { a?.b: p }");
 
             N(SyntaxKind.IsPatternExpression);
@@ -294,16 +297,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
                         {
-                            N(SyntaxKind.ExpressionColon);
+                            N(SyntaxKind.ConstantPattern);
                             {
-                                N(SyntaxKind.ConditionalAccessExpression);
+                                N(SyntaxKind.ConditionalExpression);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "a");
                                     }
                                     N(SyntaxKind.QuestionToken);
-                                    N(SyntaxKind.MemberBindingExpression);
+                                    N(SyntaxKind.TargetTypedMemberAccessExpression);
                                     {
                                         N(SyntaxKind.DotToken);
                                         N(SyntaxKind.IdentifierName);
@@ -311,14 +314,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                             N(SyntaxKind.IdentifierToken, "b");
                                         }
                                     }
-                                }
-                                N(SyntaxKind.ColonToken);
-                            }
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "p");
+                                    N(SyntaxKind.ColonToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "p");
+                                    }
                                 }
                             }
                         }
@@ -771,10 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { [0].b: p }",
                 // (1,11): error CS1003: Syntax error, ',' expected
                 // e is { [0].b: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 11),
-                // (1,12): error CS1003: Syntax error, ',' expected
-                // e is { [0].b: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 11));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -806,11 +803,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         M(SyntaxKind.CommaToken);
                         N(SyntaxKind.Subpattern);
                         {
-                            N(SyntaxKind.NameColon);
+                            N(SyntaxKind.ExpressionColon);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.TargetTypedMemberAccessExpression);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "b");
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                    }
                                 }
                                 N(SyntaxKind.ColonToken);
                             }

@@ -23875,12 +23875,6 @@ class Program
 ";
             // Used to assert.
             CreateCompilation(text).VerifyDiagnostics(
-    // (8,10): error CS1513: } expected
-    //         {
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 10),
-    // (9,14): error CS0120: An object reference is required for the non-static field, method, or property 'object.ToString()'
-    //             .ToString();
-    Diagnostic(ErrorCode.ERR_ObjectRequired, "ToString").WithArguments("object.ToString()").WithLocation(9, 14),
     // (7,15): error CS1643: Not all code paths return a value in anonymous method of type 'Program.D'
     //         D d = delegate
     Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "Program.D").WithLocation(7, 15)

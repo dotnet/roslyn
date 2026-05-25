@@ -368,9 +368,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void ConditionalAccess_04()
         {
             UsingNode("x?.y?!.z.ToString()", options: null,
-                // (1,7): error CS1525: Invalid expression term '.'
-                // x?.y?!.z.ToString()
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".", isSuppressed: false).WithArguments(".").WithLocation(1, 7),
                 // (1,20): error CS1003: Syntax error, ':' expected
                 // x?.y?!.z.ToString()
                 Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":").WithLocation(1, 20),
@@ -404,12 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
-                            N(SyntaxKind.SimpleMemberAccessExpression);
+                            N(SyntaxKind.TargetTypedMemberAccessExpression);
                             {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
                                 N(SyntaxKind.DotToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
@@ -584,9 +577,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void ConditionalAccess_07()
         {
             UsingNode("x?.y!?!.ToString()", options: null,
-                // (1,8): error CS1525: Invalid expression term '.'
-                // x?.y!?!.ToString()
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".", isSuppressed: false).WithArguments(".").WithLocation(1, 8),
                 // (1,19): error CS1003: Syntax error, ':' expected
                 // x?.y!?!.ToString()
                 Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":").WithLocation(1, 19),
@@ -622,12 +612,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     N(SyntaxKind.ExclamationToken);
                     N(SyntaxKind.InvocationExpression);
                     {
-                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        N(SyntaxKind.TargetTypedMemberAccessExpression);
                         {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
                             N(SyntaxKind.DotToken);
                             N(SyntaxKind.IdentifierName);
                             {

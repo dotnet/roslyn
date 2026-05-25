@@ -3983,7 +3983,7 @@ class C
             {
                 void goo()
                 {
-                    var c = new Goo { . [|Gibberish|] = 24 };
+                    var c = new Goo { [|Gibberish|] = 24 };
                 }
             }
             """,

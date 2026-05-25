@@ -67,6 +67,26 @@
       <summary>Creates a QualifiedNameSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="TargetTypedQualifiedNameSyntax" Base="NameSyntax" ExperimentalUrl="https://github.com/dotnet/csharplang/issues/9138">
+    <Kind Name="TargetTypedQualifiedName"/>
+    <Field Name="DotToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the dot.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Right" Type="SimpleNameSyntax">
+      <PropertyComment>
+        <summary>SimpleNameSyntax node representing the name on the right side of the dot token of the target-typed qualified name.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a target-typed qualified name, i.e. a name of the form <c>.Identifier</c> where the type of the left side is inferred from context.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a TargetTypedQualifiedNameSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="GenericNameSyntax" Base="SimpleNameSyntax">
     <Kind Name="GenericName"/>
     <Field Name="Identifier" Type="SyntaxToken" Override="true">
@@ -633,6 +653,26 @@
     </TypeComment>
     <FactoryComment>
       <summary>Creates a MemberBindingExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="TargetTypedMemberAccessExpressionSyntax" Base="ExpressionSyntax" ExperimentalUrl="https://github.com/dotnet/csharplang/issues/9138">
+    <Kind Name="TargetTypedMemberAccessExpression"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing dot.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Name" Type="SimpleNameSyntax">
+      <PropertyComment>
+        <summary>SimpleNameSyntax node representing the member being accessed.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a target-typed static member access expression, e.g. <c>.Identifier</c> where the type of the containing expression is inferred from context.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a TargetTypedMemberAccessExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="ElementBindingExpressionSyntax" Base="ExpressionSyntax">

@@ -30350,12 +30350,9 @@ unsafe class C
             // (5,13): error CS1001: Identifier expected
             //         int*.M();
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(5, 13),
-            // (5,13): error CS1003: Syntax error, ',' expected
+            // (5,13): error CS1002: ; expected
             //         int*.M();
-            Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(5, 13),
-            // (5,14): error CS1002: ; expected
-            //         int*.M();
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "M").WithLocation(5, 14),
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ".").WithLocation(5, 13),
             // (6,17): error CS1514: { expected
             //         delegate*<void>.M();
             Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(6, 17),
@@ -30367,10 +30364,7 @@ unsafe class C
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(6, 18),
             // (6,19): error CS1525: Invalid expression term 'void'
             //         delegate*<void>.M();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(6, 19),
-            // (6,24): error CS1525: Invalid expression term '.'
-            //         delegate*<void>.M();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(6, 24));
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(6, 19));
     }
 
     [Fact]
