@@ -2,5 +2,14 @@
 <Project>
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <Import Project="eng\targets\Settings.props" />
-</Project>
 
+  <!-- This must be after the Arcade SDK import so CI/official-build properties are available. -->
+  <PropertyGroup>
+    <_RoslynNativeOSArchitecture>$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</_RoslynNativeOSArchitecture>
+    <RoslynUseInProcBuildTasks Condition="'$(RoslynUseInProcBuildTasks)' == '' and
+                                           '$(ContinuousIntegrationBuild)' != 'true' and
+                                           '$(OfficialBuild)' != 'true' and
+                                           '$(MSBuildRuntimeType)' == 'Full' and
+                                           '$(_RoslynNativeOSArchitecture)' == 'Arm64'">true</RoslynUseInProcBuildTasks>
+  </PropertyGroup>
+</Project>
