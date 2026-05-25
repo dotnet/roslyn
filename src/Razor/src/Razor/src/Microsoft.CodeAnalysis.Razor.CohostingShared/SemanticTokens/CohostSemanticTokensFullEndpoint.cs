@@ -23,7 +23,7 @@ internal sealed class CohostSemanticTokensFullEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     ITelemetryReporter telemetryReporter)
-    : CohostSemanticTokensRangeEndpointBase<SemanticTokensFullParams>(incompatibleProjectService, remoteServiceInvoker, telemetryReporter)
+    : CohostSemanticTokensEndpointBase<SemanticTokensFullParams>(incompatibleProjectService, remoteServiceInvoker, telemetryReporter)
 {
     protected override string LspMethodName => Methods.TextDocumentSemanticTokensFullName;
 

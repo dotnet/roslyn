@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal abstract class CohostSemanticTokensRangeEndpointBase<TRequest>(
+internal abstract class CohostSemanticTokensEndpointBase<TRequest>(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     ITelemetryReporter telemetryReporter)

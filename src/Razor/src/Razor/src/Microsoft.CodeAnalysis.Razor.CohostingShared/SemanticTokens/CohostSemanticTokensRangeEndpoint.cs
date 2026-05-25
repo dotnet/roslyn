@@ -23,7 +23,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     ITelemetryReporter telemetryReporter)
-    : CohostSemanticTokensRangeEndpointBase<SemanticTokensRangeParams>(incompatibleProjectService, remoteServiceInvoker, telemetryReporter)
+    : CohostSemanticTokensEndpointBase<SemanticTokensRangeParams>(incompatibleProjectService, remoteServiceInvoker, telemetryReporter)
 {
     protected override string LspMethodName => Methods.TextDocumentSemanticTokensRangeName;
 
