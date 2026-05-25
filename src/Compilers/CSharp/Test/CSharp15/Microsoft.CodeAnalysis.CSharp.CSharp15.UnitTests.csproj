@@ -20,5 +20,14 @@
     <PackageReference Include="Microsoft.DiaSymReader" />
     <PackageReference Include="Basic.Reference.Assemblies.Net100" />
   </ItemGroup>
+  <ItemGroup Label="Linked files">
+    <!--
+      These base-class and extension-method files live in the Syntax test project but are
+      intentionally shared with language-version-scoped test projects like this one so tests can
+      author UsingTree/UsingNode assertions alongside CreateCompilation binding verification.
+    -->
+    <Compile Include="..\Syntax\Parsing\ParsingTests.cs" Link="Parsing\ParsingTests.cs" />
+    <Compile Include="..\Syntax\Parsing\SyntaxExtensions.cs" Link="Parsing\SyntaxExtensions.cs" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

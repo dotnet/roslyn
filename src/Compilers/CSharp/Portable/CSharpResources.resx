@@ -1171,7 +1171,7 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</value>
+    <value>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
     <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
@@ -8111,6 +8111,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PPShebangNotOnFirstLine" xml:space="preserve">
     <value>'#!' must be the first characters on the first line of the file</value>
   </data>
+  <data name="ERR_RefNotMemberModifier" xml:space="preserve">
+    <value>The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</value>
+  </data>
+  <data name="ERR_RefMisplacedOnType" xml:space="preserve">
+    <value>The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</value>
+  </data>
   <data name="ERR_RequiresUnsafeAttributeInSource" xml:space="preserve">
     <value>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</value>
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
@@ -8288,6 +8294,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureUnions" xml:space="preserve">
     <value>unions</value>
+  </data>
+  <data name="IDS_FeatureRelaxedModifierOrdering" xml:space="preserve">
+    <value>relaxed modifier ordering</value>
   </data>
   <data name="ERR_UnionDeclarationNeedsCaseTypes" xml:space="preserve">
     <value>A union declaration must specify at least one case type.</value>

@@ -85,6 +85,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             syntax.ReturnType.SkipRefInLocalOrReturn(diagnostics, out _refKind);
 
+            // 'scoped' is not a valid modifier on a local function.  When the parser folds a
+            // leading 'scoped' into the declared return type (mirroring how 'ref' return types
+            // are handled), surface the same "modifier 'scoped' is not valid for this item"
+            // diagnostic that used to come from modifier-list validation.
+            if (syntax.ReturnType is ScopedTypeSyntax { ScopedKeyword: var scopedKeyword })
+            {
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, scopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
+            }
+
             _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
             _declarationDependencies.AddAll(diagnostics.DependenciesBag);
             diagnostics.Free();
@@ -262,7 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(diagnostics.DependenciesBag is { });
 
             TypeSyntax returnTypeSyntax = Syntax.ReturnType;
-            Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
+            // 'scoped' is already diagnosed in the constructor (see ERR_BadMemberFlag emission
+            // there). Here we just strip it before binding the underlying type.
             TypeWithAnnotations returnType = WithTypeParametersBinder.BindType(returnTypeSyntax.SkipScoped(out _).SkipRef(), diagnostics);
 
             var compilation = DeclaringCompilation;

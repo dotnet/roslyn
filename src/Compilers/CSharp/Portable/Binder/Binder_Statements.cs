@@ -800,7 +800,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+            // 'scoped' is not valid as a type prefix on a variable declaration. On a local it
+            // must appear as a modifier (outside the variable's type); on a field it is never
+            // valid. When the parser folds a leading 'scoped' into the declared type (mirroring
+            // how 'ref' return types are handled), surface a "modifier 'scoped' is not valid for
+            // this item" diagnostic pointed at the 'scoped' keyword itself.
+            if (typeSyntax is ScopedTypeSyntax { ScopedKeyword: var scopedKeyword })
+            {
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, scopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
+            }
             TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(), diagnostics, out isVar, out alias);
             Debug.Assert(declType.HasType || isVar);
 

@@ -1532,6 +1532,16 @@
         <target state="translated">#! musí být první znaky na prvním řádku souboru.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefNotMemberModifier">
+        <source>The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</source>
+        <target state="new">The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefMisplacedOnType">
+        <source>The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</source>
+        <target state="new">The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">Nepoužívejte RequiresUnsafeAttribute ve zdrojovém kódu; místo toho použijte modifikátor unsafe.</target>
@@ -3190,6 +3200,11 @@
       <trans-unit id="IDS_FeatureUnions">
         <source>unions</source>
         <target state="translated">sjednocení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedModifierOrdering">
+        <source>relaxed modifier ordering</source>
+        <target state="new">relaxed modifier ordering</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
@@ -7291,7 +7306,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
         <target state="translated">Modifikátor partial se může objevit pouze bezprostředně před klíčovým slovem class, record, struct, interface, event, názvem konstruktoru instance nebo návratovým typem metody či vlastnosti.</target>
         <note />
       </trans-unit>

@@ -1532,6 +1532,16 @@
         <target state="translated">"#!" 必须是文件第一行的第一个字符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefNotMemberModifier">
+        <source>The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</source>
+        <target state="new">The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefMisplacedOnType">
+        <source>The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</source>
+        <target state="new">The 'ref' modifier on a type declaration must appear immediately before 'struct', 'record struct', or 'union'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">请勿在源中使用 "RequiresUnsafeAttribute"；请改用 "unsafe" 修饰符。</target>
@@ -3190,6 +3200,11 @@
       <trans-unit id="IDS_FeatureUnions">
         <source>unions</source>
         <target state="translated">联合体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedModifierOrdering">
+        <source>relaxed modifier ordering</source>
+        <target state="new">relaxed modifier ordering</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
@@ -7291,7 +7306,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
         <target state="translated">“partial”修饰符只能紧接在“class”、“record”、“struct”、“interface”、“event”、实例构造函数名称或方法或属性返回类型之前。</target>
         <note />
       </trans-unit>
