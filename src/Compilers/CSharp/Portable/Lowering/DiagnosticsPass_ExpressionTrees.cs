@@ -707,6 +707,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckBinaryOperator(current);
 
+                if (_inExpressionLambda && current.IsChainedRelational)
+                {
+                    // Chained relational comparisons (spec §11.11.13) cannot be faithfully
+                    // expressed in a System.Linq.Expressions tree while preserving the
+                    // single-evaluation-of-middle-operand guarantee. Refuse the conversion.
+                    Error(ErrorCode.ERR_ExpressionTreeContainsChainedRelationalComparison, current);
+                }
+
                 Visit(current.Right);
                 if (current.Left.Kind == BoundKind.BinaryOperator)
                 {

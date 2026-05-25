@@ -221,13 +221,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var binaryOperatorMethod = binaryOperator.BinaryOperatorMethod;
                 Debug.Assert(binaryOperatorMethod is not null);
+
+                // For a chained relational comparison (spec §11.11.13), BinaryOperatorMethod
+                // is the operator selected for `Y op Right`, where Y is the shared middle
+                // operand captured in ChainedRelationalLeftOperand. The node's own `Left` is
+                // the bool-typed inner BoundBinaryOperator, NOT Y, so it must not be paired
+                // with `binaryOperatorMethod`'s first parameter for escape analysis.
+                BoundExpression leftArg = binaryOperator.IsChainedRelational
+                    ? binaryOperator.ChainedRelationalLeftOperand
+                    : binaryOperator.Left;
+
                 return new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(binaryOperatorMethod),
                     Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = binaryOperatorMethod.Parameters,
-                    ArgsOpt = [binaryOperator.Left, binaryOperator.Right],
+                    ArgsOpt = [leftArg, binaryOperator.Right],
                     ArgumentRefKindsOpt = default,
                     ArgsToParamsOpt = default,
                     HasAnyErrors = binaryOperator.HasAnyErrors

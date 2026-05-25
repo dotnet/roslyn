@@ -3895,8 +3895,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // For a chained relational comparison (spec §11.11.13, e.g. the
+                    // outer `<` in `a < b < c`), the node's Left is the bool-typed
+                    // inner link, not an operand of the isolated `Y op Right` operator
+                    // this node reports. Synthesize the intrinsic symbol using the
+                    // outer link's LeftType (stored in ChainedRelationalLeftConvertedType)
+                    // as the left operand type, so `GetSymbolInfo` returns a signature
+                    // that matches what overload resolution actually resolved.
+                    //
+                    // Note: this is NOT the same as Y's type. Y is reachable via
+                    // `IsChainedRelational(out var y)` (i.e. the inner node's Right),
+                    // and `y.Type` is Y's inner-link classified type - e.g. for
+                    // `int < short < long` the inner link resolves to `int < int`
+                    // so `y.Type` is `int`, whereas the outer link resolves to
+                    // `long < long` so `ChainedRelationalLeftConvertedType` is `long`.
+                    // GetSymbolInfo needs the outer operator's signature - `long < long`
+                    // here - so we want the converted-to type, not Y's own type. The
+                    // two coincide only for same-type chains (`int < int < int`).
+                    TypeSymbol leftOperandType = binaryOperator.IsChainedRelational
+                        ? binaryOperator.ChainedRelationalLeftConvertedType
+                        : binaryOperator.Left.Type;
+
                     symbols = OneOrMany.Create(GetIntrinsicOperatorSymbol(op, isDynamic,
-                                                                          binaryOperator.Left.Type,
+                                                                          leftOperandType,
                                                                           binaryOperator.Right.Type,
                                                                           binaryOperator.Type,
                                                                           binaryOperator.OperatorKind.IsChecked()));

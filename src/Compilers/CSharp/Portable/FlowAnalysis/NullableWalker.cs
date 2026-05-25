@@ -12927,8 +12927,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = stack.Pop();
             }
 
-            static void getBinaryConditionalOperatorInfo(BinaryOperatorKind kind, out bool isAnd, out bool isBool)
+            static void getBinaryConditionalOperatorInfo(BinaryOperatorKind kind, bool isChainedRelational, out bool isAnd, out bool isBool)
             {
+                // A chained relational comparison behaves like `&&` on its left (bool) operand
+                // even though kind is `<`/`<=`/`>`/`>=`; the right operand is not bool so
+                // isBool is false to force the Unsplit/Split cycle.
+                if (isChainedRelational)
+                {
+                    isAnd = true;
+                    isBool = false;
+                    return;
+                }
+
                 BinaryOperatorKind op = kind.Operator();
                 isAnd = op == BinaryOperatorKind.And;
                 isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
@@ -12940,11 +12950,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(IsConditionalState);
                 TypeWithState leftType = ResultType;
 
-                getBinaryConditionalOperatorInfo(node.OperatorKind, out bool isAnd, out bool isBool);
+                getBinaryConditionalOperatorInfo(node.OperatorKind, node.IsChainedRelational, out bool isAnd, out bool isBool);
 
                 var leftTrue = this.StateWhenTrue;
                 var leftFalse = this.StateWhenFalse;
                 SetState(isAnd ? leftTrue : leftFalse);
+
+                // TODO(chained-relational, deferred):
+                //
+                // For a chained relational comparison (spec §11.11.13), the outer comparison
+                // is semantically `Y op B` where Y is `node.ChainedRelationalLeftOperand` -
+                // NOT `inner op B`. That affects this method in two ways:
+                //
+                //  1. `leftType` captured above is the inner bool-typed result, but
+                //     InferResultNullability for user-defined chained operators with
+                //     nullable-aware return annotations (e.g. [NotNullIfNotNull("left")])
+                //     would want Y's TypeWithState. Spec §11.11.13 rule 2(b) forces the
+                //     result type to be `bool` anyway, so in practice annotations have no
+                //     effect here and the wrong `leftType` is a theoretical concern only.
+                //
+                //  2. The classical AfterLeftChildHasBeenVisited path runs the
+                //     `SplitAndLearnFromNonNullTest` refinement for `<`/`<=`/`>`/`>=`
+                //     comparisons - the "one side non-null, the other maybe-null, and the
+                //     comparison is true, so the maybe-null side is non-null" rule. Chained
+                //     nodes route through *this* method instead and therefore don't get that
+                //     refinement, so an NRT `s?.Length` used as the outer right operand of a
+                //     chain won't refine `s` to non-null in the chain's when-true branch.
+                //
+                // The natural fix for both is to re-visit Y under the `leftTrue` state to
+                // recover its TypeWithState, then apply the same refinement the classical
+                // path does. That cannot be done today because ChainedRelationalLeftOperand
+                // lives on UncommonData, not as a regular child, and DebugVerifier validates
+                // that every analyzed node is also visited by the verifier's bound-tree
+                // walk - a straightforward `VisitWithoutDiagnostics(ChainedRelationalLeftOperand)`
+                // trips the verifier with "analyzed N nodes but DebugVerifier expects N-1".
+                // Teaching DebugVerifier about ChainedRelationalLeftOperand (and any other
+                // UncommonData-embedded expressions) is the right fix but is out of scope
+                // for the binding-foundation PR.
 
                 Visit(node.Right);
                 TypeWithState rightType = ResultType;
@@ -12962,7 +13004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftTrue = this.StateWhenTrue;
                 var leftFalse = this.StateWhenFalse;
 
-                getBinaryConditionalOperatorInfo(binary.OperatorKind, out bool isAnd, out bool isBool);
+                getBinaryConditionalOperatorInfo(binary.OperatorKind, isChainedRelational: false, out bool isAnd, out bool isBool);
                 Debug.Assert(!isBool);
                 SetState(isAnd ? leftTrue : leftFalse);
 

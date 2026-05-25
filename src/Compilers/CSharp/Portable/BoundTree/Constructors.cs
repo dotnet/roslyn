@@ -456,6 +456,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           BoundExpression right,
                                           TypeSymbol type)
         {
+            // This overload rebuilds UncommonData via CreateIfNeeded, which only knows how to
+            // preserve ConstantValue / Method / ConstrainedToType / OriginalUserDefinedOperators.
+            // It cannot preserve ChainedRelationalLeftOperand (the marker for a chained
+            // relational comparison), so calling it on a chained node would silently drop the
+            // chain marker and produce a wrongly-shaped bound tree.
+            //
+            // All known callers (SpillSequenceSpiller, ExtensionMethodReferenceRewriter,
+            // Optimizer) run post-lowering, where LocalRewriter_ChainedRelationalOperator has
+            // already rewritten chained nodes into a BoundSequence containing a short-circuit &&
+            // chain. If this assert ever fires, a pre-lowering pass has started using this
+            // overload - in that case, switch to the Update(UncommonData) overload instead and
+            // pass through the existing `Data`, or extend this overload to forward
+            // ChainedRelationalLeftOperand.
+            Debug.Assert(!IsChainedRelational, "This Update overload drops ChainedRelationalLeftOperand; use Update(UncommonData) or extend this overload.");
+
             var uncommonData = UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, OriginalUserDefinedOperatorsOpt);
             return Update(operatorKind, uncommonData, resultKind, left, right, type);
         }
