@@ -4628,7 +4628,7 @@ outerDefault:
                         (!conversion.IsDynamic ||
                             (ignoreOpenTypes && TypeContainsTypeParameterFromContainer(candidate, parameters.ParameterTypes[argumentPosition].Type))));
 
-                    if (forExtensionMethodThisArg && !conversion.IsDynamic && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
+                    if (forExtensionMethodThisArg && !conversion.IsDynamic && argument.Type is not null && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
                     {
                         // Return early, without checking conversions of subsequent arguments,
                         // if the instance argument is not convertible to the 'this' parameter,
@@ -4636,6 +4636,11 @@ outerDefault:
                         // lambda binding in particular, for instance, with LINQ expressions.
                         // Note that BuildArgumentsForErrorRecovery will still bind some number
                         // of overloads for the semantic model.
+                        // The strict identity / reference / boxing whitelist is skipped when the
+                        // receiver expression has no type, since in that case the conversion was
+                        // produced by ClassifyImplicitConversionFromExpression (the same machinery
+                        // used for any other typeless argument), which only returns valid implicit
+                        // conversions.
                         Debug.Assert(badArguments.IsNull);
                         Debug.Assert(conversions == null);
                         return MemberAnalysisResult.BadArgumentConversions(argsToParameters, MemberAnalysisResult.CreateBadArgumentsWithPosition(argumentPosition), ImmutableArray.Create(conversion),
