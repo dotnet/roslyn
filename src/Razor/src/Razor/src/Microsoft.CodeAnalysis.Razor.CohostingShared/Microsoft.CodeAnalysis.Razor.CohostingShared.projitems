@@ -48,7 +48,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Rename\CohostRenameEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\WorkspaceWillRenameEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionRanges\CohostSelectionRangeEndpoint.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)semantictokens\CohostSemanticTokensEndpointBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SignatureHelp\CohostSignatureHelpEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FoldingRange\CohostFoldingRangeEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Hover\CohostHoverEndpoint.cs" />
@@ -65,6 +64,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\IRazorSemanticTokensRefreshQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\RazorSemanticTokensRefreshQueueWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensEndpointBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensFullEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensRangeEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TypeHierarchy\CohostPrepareTypeHierarchyEndpoint.cs" />
