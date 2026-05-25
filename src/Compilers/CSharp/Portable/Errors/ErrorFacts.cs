@@ -2108,6 +2108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen
                 or ErrorCode.WRN_PrecedenceInversion
                 or ErrorCode.ERR_ExpressionTreeContainsWithExpression
+                or ErrorCode.ERR_ExpressionTreeContainsMixedObjectAndCollectionInitializer
                 or ErrorCode.WRN_AnalyzerReferencesFramework
                 or ErrorCode.WRN_RecordEqualsWithoutGetHashCode
                 or ErrorCode.ERR_AssignmentInitOnly

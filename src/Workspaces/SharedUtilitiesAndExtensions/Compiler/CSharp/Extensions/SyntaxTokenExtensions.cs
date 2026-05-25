@@ -44,7 +44,7 @@ internal static partial class SyntaxTokenExtensions
 
     public static bool IsOpenBraceOrCommaOfObjectInitializer(this SyntaxToken token)
         => token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken &&
-           token.Parent.IsKind(SyntaxKind.ObjectInitializerExpression);
+           token.Parent?.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression;
 
     public static bool IsOpenBraceOfAccessorList(this SyntaxToken token)
         => token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);
