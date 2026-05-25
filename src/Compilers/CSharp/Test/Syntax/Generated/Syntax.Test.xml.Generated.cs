@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryPlusExpression, InternalSyntaxFactory.Token(SyntaxKind.PlusToken), GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.AwaitExpressionSyntax GenerateAwaitExpression()
-            => InternalSyntaxFactory.AwaitExpression(InternalSyntaxFactory.Token(SyntaxKind.AwaitKeyword), GenerateIdentifierName());
+            => InternalSyntaxFactory.AwaitExpression(InternalSyntaxFactory.Token(SyntaxKind.AwaitKeyword), null, GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.PostfixUnaryExpressionSyntax GeneratePostfixUnaryExpression()
             => InternalSyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.PlusPlusToken));
@@ -1023,6 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateAwaitExpression();
 
             Assert.Equal(SyntaxKind.AwaitKeyword, node.AwaitKeyword.Kind);
+            Assert.Null(node.QuestionToken);
             Assert.NotNull(node.Expression);
 
             AttachAndCheckDiagnostics(node);
@@ -10470,7 +10471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryPlusExpression, SyntaxFactory.Token(SyntaxKind.PlusToken), GenerateIdentifierName());
 
         private static AwaitExpressionSyntax GenerateAwaitExpression()
-            => SyntaxFactory.AwaitExpression(SyntaxFactory.Token(SyntaxKind.AwaitKeyword), GenerateIdentifierName());
+            => SyntaxFactory.AwaitExpression(SyntaxFactory.Token(SyntaxKind.AwaitKeyword), default(SyntaxToken), GenerateIdentifierName());
 
         private static PostfixUnaryExpressionSyntax GeneratePostfixUnaryExpression()
             => SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.PlusPlusToken));
@@ -11413,8 +11414,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateAwaitExpression();
 
             Assert.Equal(SyntaxKind.AwaitKeyword, node.AwaitKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.QuestionToken.Kind());
             Assert.NotNull(node.Expression);
-            var newNode = node.WithAwaitKeyword(node.AwaitKeyword).WithExpression(node.Expression);
+            var newNode = node.WithAwaitKeyword(node.AwaitKeyword).WithQuestionToken(node.QuestionToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
         }
 

@@ -8341,7 +8341,7 @@ done:
                     case SyntaxKind.ForKeyword:
                         return this.ParseForOrForEachStatement(attributes);
                     case SyntaxKind.ForEachKeyword:
-                        return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
+                        return this.ParseForEachStatement(attributes);
                     case SyntaxKind.GotoKeyword:
                         return this.ParseGotoStatement(attributes);
                     case SyntaxKind.IfKeyword:
@@ -8452,20 +8452,26 @@ done:
 
         private StatementSyntax TryParseStatementStartingWithIdentifier(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
-                this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
+            // parse `await foreach` / `await using` and gracefully handle `await? foreach` / `await? using`
+            if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
             {
-                return this.ParseForEachStatement(attributes, this.EatContextualToken(SyntaxKind.AwaitKeyword));
-            }
-            else if (IsPossibleAwaitUsing())
-            {
-                if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+                var peekIndex = 1;
+                if (PeekToken(peekIndex).Kind == SyntaxKind.QuestionToken)
+                    peekIndex++;
+
+                var nextToken = PeekToken(peekIndex);
+                if (nextToken.Kind == SyntaxKind.ForEachKeyword)
+                    return this.ParseForEachStatement(attributes);
+
+                if (nextToken.Kind == SyntaxKind.UsingKeyword)
                 {
-                    // `await using Type ...` is handled below in ParseLocalDeclarationStatement
-                    return this.ParseUsingStatement(attributes, this.EatContextualToken(SyntaxKind.AwaitKeyword));
+                    return PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken
+                        ? this.ParseUsingStatement(attributes)
+                        : this.ParseLocalDeclarationStatement(attributes);
                 }
             }
-            else if (this.IsPossibleLabeledStatement())
+
+            if (this.IsPossibleLabeledStatement())
             {
                 return this.ParseLabeledStatement(attributes);
             }
@@ -8493,7 +8499,33 @@ done:
             => IsPossibleUnsafeStatement() ? ParseUnsafeStatement(attributes) : null;
 
         private bool IsPossibleAwaitUsing()
-            => CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(1).Kind == SyntaxKind.UsingKeyword;
+        {
+            if (CurrentToken.ContextualKind != SyntaxKind.AwaitKeyword)
+                return false;
+
+            var peekIndex = 1;
+            if (PeekToken(peekIndex).Kind == SyntaxKind.QuestionToken)
+                peekIndex++;
+
+            return PeekToken(peekIndex).Kind == SyntaxKind.UsingKeyword;
+        }
+
+        /// <summary>
+        /// Eat an <c>await</c> token, but handle an <c>await?</c> gracefully (attach the <c>?</c> as trailing skipped syntax).
+        /// </summary>
+        private SyntaxToken TryEatAwaitKeywordWithOptionalSkippedQuestion()
+        {
+            if (this.CurrentToken.ContextualKind != SyntaxKind.AwaitKeyword)
+                return null;
+
+            var awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+            if (this.CurrentToken.Kind != SyntaxKind.QuestionToken)
+                return awaitToken;
+
+            return AddTrailingSkippedSyntax(
+                awaitToken,
+                this.AddError(this.EatToken(), ErrorCode.ERR_UnexpectedToken, SyntaxFacts.GetText(SyntaxKind.QuestionToken)));
+        }
 
         private bool IsPossibleLabeledStatement()
         {
@@ -8535,10 +8567,7 @@ done:
             }
 
             if (IsPossibleAwaitUsing())
-            {
-                Debug.Assert(PeekToken(2).Kind != SyntaxKind.OpenParenToken);
                 return true;
-            }
 
             if (IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false))
             {
@@ -9581,7 +9610,7 @@ done:
             {
                 // Looks like a foreach statement.  Parse it that way instead
                 resetPoint.Reset();
-                return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
+                return this.ParseForEachStatement(attributes);
             }
             else
             {
@@ -9733,9 +9762,10 @@ done:
             return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.OpenBraceToken;
         }
 
-        private CommonForEachStatementSyntax ParseForEachStatement(
-            SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt)
+        private CommonForEachStatementSyntax ParseForEachStatement(SyntaxList<AttributeListSyntax> attributes)
         {
+            var awaitTokenOpt = TryEatAwaitKeywordWithOptionalSkippedQuestion();
+
             // Can be a 'for' keyword if the user typed: 'for (SomeType t in'
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForEachKeyword || this.CurrentToken.Kind == SyntaxKind.ForKeyword);
 
@@ -10332,8 +10362,10 @@ done:
                 this.ParsePossiblyAttributedBlock());
         }
 
-        private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt = null)
+        private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes)
         {
+            var awaitTokenOpt = TryEatAwaitKeywordWithOptionalSkippedQuestion();
+
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
@@ -10493,7 +10525,7 @@ done:
             bool canParseAsLocalFunction = false;
             if (IsPossibleAwaitUsing())
             {
-                awaitKeyword = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+                awaitKeyword = TryEatAwaitKeywordWithOptionalSkippedQuestion();
                 usingKeyword = EatToken();
             }
             else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
@@ -11372,7 +11404,19 @@ done:
 
         private bool IsPossibleAwaitExpressionStatement()
         {
-            return (this.IsScript || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            if (!this.IsScript && !this.IsInAsync)
+                return false;
+
+            if (this.CurrentToken.ContextualKind != SyntaxKind.AwaitKeyword)
+                return false;
+
+            // `await [?] using` and `await [?] foreach` are statement-level keyword forms,
+            // not expression statements.
+            var peekIndex = 1;
+            if (PeekToken(peekIndex).Kind == SyntaxKind.QuestionToken)
+                peekIndex++;
+
+            return PeekToken(peekIndex).Kind is not (SyntaxKind.UsingKeyword or SyntaxKind.ForEachKeyword);
         }
 
         private bool IsAwaitExpression()
@@ -11388,6 +11432,8 @@ done:
                 // If we see an await followed by a token that cannot follow an identifier, parse await as a unop.
                 // BindAwait() catches the cases where await successfully parses as a unop but is not in an async
                 // function, and reports an appropriate ERR_BadAwaitWithoutAsync* error.
+                //
+                // Note: in a non-async context, `await ? expr1 : expr2` is a ternary expression
                 var next = PeekToken(1);
                 switch (next.Kind)
                 {
@@ -11491,6 +11537,7 @@ done:
                 {
                     return _syntaxFactory.AwaitExpression(
                         this.EatContextualToken(SyntaxKind.AwaitKeyword),
+                        this.TryEatToken(SyntaxKind.QuestionToken),
                         this.ParseSubExpression(GetPrecedence(SyntaxKind.AwaitExpression)));
                 }
 

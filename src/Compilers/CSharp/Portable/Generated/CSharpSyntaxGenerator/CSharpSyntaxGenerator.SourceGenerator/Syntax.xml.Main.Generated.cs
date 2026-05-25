@@ -1581,7 +1581,7 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
         => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.Operand) ?? throw new ArgumentNullException("operand"));
 
     public override SyntaxNode? VisitAwaitExpression(AwaitExpressionSyntax node)
-        => node.Update(VisitToken(node.AwaitKeyword), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+        => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.QuestionToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
     public override SyntaxNode? VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
         => node.Update((ExpressionSyntax?)Visit(node.Operand) ?? throw new ArgumentNullException("operand"), VisitToken(node.OperatorToken));
@@ -2615,16 +2615,23 @@ public static partial class SyntaxFactory
         };
 
     /// <summary>Creates a new AwaitExpressionSyntax instance.</summary>
-    public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83839")]
+    public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, SyntaxToken questionToken, ExpressionSyntax expression)
     {
         if (awaitKeyword.Kind() != SyntaxKind.AwaitKeyword) throw new ArgumentException(nameof(awaitKeyword));
+        switch (questionToken.Kind())
+        {
+            case SyntaxKind.QuestionToken:
+            case SyntaxKind.None: break;
+            default: throw new ArgumentException(nameof(questionToken));
+        }
         if (expression == null) throw new ArgumentNullException(nameof(expression));
-        return (AwaitExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AwaitExpression((Syntax.InternalSyntax.SyntaxToken)awaitKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+        return (AwaitExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AwaitExpression((Syntax.InternalSyntax.SyntaxToken)awaitKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)questionToken.Node, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
     }
 
     /// <summary>Creates a new AwaitExpressionSyntax instance.</summary>
     public static AwaitExpressionSyntax AwaitExpression(ExpressionSyntax expression)
-        => SyntaxFactory.AwaitExpression(SyntaxFactory.Token(SyntaxKind.AwaitKeyword), expression);
+        => SyntaxFactory.AwaitExpression(SyntaxFactory.Token(SyntaxKind.AwaitKeyword), default, expression);
 
     /// <summary>Creates a new PostfixUnaryExpressionSyntax instance.</summary>
     public static PostfixUnaryExpressionSyntax PostfixUnaryExpression(SyntaxKind kind, ExpressionSyntax operand, SyntaxToken operatorToken)
