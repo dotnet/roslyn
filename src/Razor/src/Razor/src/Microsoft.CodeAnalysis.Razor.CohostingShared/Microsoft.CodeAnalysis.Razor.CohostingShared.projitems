@@ -64,6 +64,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\IRazorSemanticTokensRefreshQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\RazorSemanticTokensRefreshQueueWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensEndpointBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensFullEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensRangeEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TypeHierarchy\CohostPrepareTypeHierarchyEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TypeHierarchy\CohostTypeHierarchySubtypesEndpoint.cs" />

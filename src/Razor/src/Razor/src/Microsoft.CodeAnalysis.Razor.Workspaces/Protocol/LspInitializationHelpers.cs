@@ -20,15 +20,15 @@ internal static class LspInitializationHelpers
         return options;
     }
 
-    public static SemanticTokensOptions EnableSemanticTokens(this SemanticTokensOptions options, ISemanticTokensLegendService legend)
+    public static SemanticTokensOptions EnableSemanticTokens(this SemanticTokensOptions options, ISemanticTokensLegendService legend, bool supportsSemanticTokensRange)
     {
-        options.Full = false;
+        options.Full = !supportsSemanticTokensRange;
         options.Legend = new SemanticTokensLegend
         {
             TokenModifiers = legend.TokenModifiers.All,
             TokenTypes = legend.TokenTypes.All
         };
-        options.Range = true;
+        options.Range = supportsSemanticTokensRange;
 
         return options;
     }
