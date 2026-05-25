@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 
@@ -20,17 +22,26 @@ internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider
     private static Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
-        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
-        ImmutableArray<CollectionMatch<SyntaxNode>> postMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> preMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> postMatches,
         CancellationToken cancellationToken)
     {
+        // The collection-expression rewriter (shared with the IDE0300+ family) still consumes
+        // the legacy `CollectionMatch<TMatchNode>` shape — those analyzers are outside the
+        // IDE0017+IDE0028 unification's scope. Translate at this boundary; the field mapping
+        // is direct (`Node`/`UseSpread`/`UseCast`/`UseKeyValue` are preserved verbatim) and
+        // the discriminator carried by `InitializerMatch.Kind` is unused by the rewriter,
+        // which already inspects the node's syntax shape to decide how to emit.
         return CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
             objectCreation,
-            preMatches,
-            postMatches,
+            preMatches.SelectAsArray(ToCollectionMatch),
+            postMatches.SelectAsArray(ToCollectionMatch),
             static objectCreation => objectCreation.Initializer,
             static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
             cancellationToken);
+
+        static CollectionMatch<SyntaxNode> ToCollectionMatch(InitializerMatch<SyntaxNode> match)
+            => new(match.Node, match.UseSpread, match.UseCast, match.UseKeyValue);
     }
 }

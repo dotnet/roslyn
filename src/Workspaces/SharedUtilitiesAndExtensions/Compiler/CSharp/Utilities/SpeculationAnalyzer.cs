@@ -517,6 +517,17 @@ internal sealed class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
             return previousOriginalNode != null &&
                 ReplacementBreaksCollectionInitializerAddMethod((ExpressionSyntax)previousOriginalNode, (ExpressionSyntax)previousReplacedNode);
         }
+        else if (currentOriginalNode.Kind() == SyntaxKind.ObjectInitializerExpression &&
+                 previousOriginalNode is ExpressionSyntax previousElement &&
+                 !SyntaxFacts.IsAssignmentExpression(previousElement.Kind()))
+        {
+            // Element-shape children of a mixed object/collection initializer
+            // (dotnet/csharplang#10185) flow through the same Add-method resolution as a pure
+            // collection initializer; speculative replacement of one of them needs the same guard.
+            // Assignment-shape children (the member-initializer form) reach the per-target rewrites
+            // elsewhere in this walker and are intentionally skipped here.
+            return ReplacementBreaksCollectionInitializerAddMethod(previousElement, (ExpressionSyntax)previousReplacedNode);
+        }
         else if (currentOriginalNode.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
         {
             return !TypesAreCompatible((ExpressionSyntax)currentOriginalNode, (ExpressionSyntax)currentReplacedNode);

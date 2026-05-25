@@ -21342,7 +21342,12 @@ ref struct R
     public ref S field;
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
+            // Pinned at pre-mixed-init language version: under the mixed object/collection
+            // initializer feature (dotnet/csharplang#10185) the recovered `{ item = 42 }`
+            // brace-list element is treated as an element_initializer and produces a different
+            // diagnostic shape; tests of the post-feature behavior live in the CSharp15
+            // MixedInitializer* files.
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (2,5): warning CS0219: The variable 'x' is assigned but its value is never used
                 // int x = 42;

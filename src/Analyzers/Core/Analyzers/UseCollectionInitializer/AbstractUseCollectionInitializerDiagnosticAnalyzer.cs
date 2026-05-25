@@ -80,7 +80,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         SemanticModel semanticModel,
         TObjectCreationExpressionSyntax objectCreationExpression,
         INamedTypeSymbol? expressionType,
-        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> preMatches,
         bool allowSemanticsChange,
         CancellationToken cancellationToken,
         out bool changesSemantics);
@@ -199,7 +199,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         return;
 
-        (ImmutableArray<CollectionMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
+        (ImmutableArray<InitializerMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
         {
             if (containingStatement is null)
                 return null;
@@ -216,7 +216,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             return (matches, shouldUseCollectionExpression: false, changesSemantics);
         }
 
-        (ImmutableArray<CollectionMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
+        (ImmutableArray<InitializerMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
         {
             if (preferExpressionOption.Value == CollectionExpressionPreference.Never)
                 return null;
@@ -242,7 +242,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
     private void FadeOutCode(
         SyntaxNodeAnalysisContext context,
-        ImmutableArray<CollectionMatch<SyntaxNode>> matches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> matches,
         ImmutableArray<Location> locations,
         ImmutableDictionary<string, string?>? properties)
     {

@@ -39,8 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
         End Function
 
         Protected Overrides Function AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-                preMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
-                postMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
+                preMatches As ArrayBuilder(Of InitializerMatch(Of SyntaxNode)),
+                postMatches As ArrayBuilder(Of InitializerMatch(Of SyntaxNode)),
                 ByRef changesSemantics As Boolean,
                 cancellationToken As CancellationToken) As Boolean
             ' Only called for collection expressions, which VB does not support

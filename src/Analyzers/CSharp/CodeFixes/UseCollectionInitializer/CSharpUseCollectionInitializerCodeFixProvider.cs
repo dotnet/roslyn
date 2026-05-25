@@ -38,8 +38,8 @@ internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider() :
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
-        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
-        ImmutableArray<CollectionMatch<SyntaxNode>> postMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> preMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> postMatches,
         CancellationToken cancellationToken)
     {
         ExpressionSyntax newObjectCreation = useCollectionExpression

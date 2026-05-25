@@ -613,13 +613,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(expression);
 
-            if (expression.Parent != null && expression.Parent.Kind() == SyntaxKind.CollectionInitializerExpression)
+            // Accept either the pure-collection wrapper, or — under the mixed object/collection
+            // initializer feature (dotnet/csharplang#10185) — an element-shape child sitting under
+            // the mixed `ObjectInitializerExpression` wrapper. Member-shape children of a mixed
+            // wrapper (`Name = value`, `Name op= value`, `[args] = value`) are not collection
+            // elements and do not have an `Add` resolution to return.
+            if (expression.Parent is InitializerExpressionSyntax initializer &&
+                (initializer.Kind() == SyntaxKind.CollectionInitializerExpression ||
+                 (initializer.Kind() == SyntaxKind.ObjectInitializerExpression &&
+                  !SyntaxFacts.IsAssignmentExpression(expression.Kind()))))
             {
-                // Find containing object creation expression
-
-                InitializerExpressionSyntax initializer = (InitializerExpressionSyntax)expression.Parent;
-
-                // Skip containing object initializers
+                // Skip containing object initializers (the existing `target = { … }` nested-initializer
+                // form): walk up through `=` whose RHS is the nested initializer.
                 while (initializer.Parent != null &&
                        initializer.Parent.Kind() == SyntaxKind.SimpleAssignmentExpression &&
                        ((AssignmentExpressionSyntax)initializer.Parent).Right == initializer &&

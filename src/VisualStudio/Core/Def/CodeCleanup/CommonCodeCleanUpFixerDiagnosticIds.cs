@@ -85,6 +85,15 @@ internal static class CommonCodeCleanUpFixerDiagnosticIds
     public static readonly FixIdDefinition? UseCollectionInitializerDiagnosticId;
 
     [Export]
+    [FixId(IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId)]
+    [Name(IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId)]
+    [Order(After = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
+    [ConfigurationKey("unused")]
+    [HelpLink($"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId}")]
+    [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Apply_object_collection_initialization_preferences))]
+    public static readonly FixIdDefinition? UseMixedObjectAndCollectionInitializerDiagnosticId;
+
+    [Export]
     [FixId(AbstractCodeCleanUpFixer.FormatDocumentFixId)]
     [Name(AbstractCodeCleanUpFixer.FormatDocumentFixId)]
     [ConfigurationKey("unused")]

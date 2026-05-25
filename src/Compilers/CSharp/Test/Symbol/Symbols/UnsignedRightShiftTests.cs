@@ -922,13 +922,22 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview);
 
+            // Prior to the compound-assignment-in-initializer classifier change (dotnet/csharplang#9896,
+            // Phase 1), this brace list classified as a collection initializer and each `x op= 1`
+            // element produced CS0747. With the feature, any `AssignmentExpressionSyntax` whose left is
+            // an `IdentifierName` (or `ImplicitElementAccess`) is object-initializer evidence, so the
+            // list now classifies as an object initializer and the binder reports CS0117 for `x` not
+            // being a member of `List<int>`.
             compilation1.VerifyEmitDiagnostics(
-                // (8,13): error CS0747: Invalid initializer member declarator
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = int.MinValue;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13),
+                // (8,13): error CS0117: 'List<int>' does not contain a definition for 'x'
                 //             x >>= 1,
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "x >>= 1").WithLocation(8, 13),
-                // (9,13): error CS0747: Invalid initializer member declarator
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.Collections.Generic.List<int>", "x").WithLocation(8, 13),
+                // (9,13): error CS0117: 'List<int>' does not contain a definition for 'x'
                 //             x >>>= 1 
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "x >>>= 1").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.Collections.Generic.List<int>", "x").WithLocation(9, 13)
                 );
         }
 
@@ -1883,13 +1892,20 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview);
 
+            // Classifier change (compound-assignment-in-initializer Phase 1): a brace list whose
+            // only non-`=` assignments have identifier-name lefts now classifies as an object
+            // initializer, so `x` is looked up as a member of `List<int?>` instead of as a local
+            // in a collection-element position. Results in CS0117 rather than CS0747.
             compilation1.VerifyEmitDiagnostics(
-                // (8,13): error CS0747: Invalid initializer member declarator
+                // (6,14): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int? x = int.MinValue;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 14),
+                // (8,13): error CS0117: 'List<int?>' does not contain a definition for 'x'
                 //             x >>= 1,
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "x >>= 1").WithLocation(8, 13),
-                // (9,13): error CS0747: Invalid initializer member declarator
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.Collections.Generic.List<int?>", "x").WithLocation(8, 13),
+                // (9,13): error CS0117: 'List<int?>' does not contain a definition for 'x'
                 //             x >>>= 1 
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "x >>>= 1").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.Collections.Generic.List<int?>", "x").WithLocation(9, 13)
                 );
         }
 
@@ -2443,13 +2459,16 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview);
 
+            // Classifier change (compound-assignment-in-initializer Phase 1): a brace list whose
+            // only non-`=` assignments have identifier-name lefts now classifies as an object
+            // initializer; `x` becomes a member lookup on `List<C1>`.
             compilation1.VerifyEmitDiagnostics(
-                // (21,13): error CS0747: Invalid initializer member declarator
+                // (21,13): error CS0117: 'List<C1>' does not contain a definition for 'x'
                 //             x >>= 1,
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "x >>= 1").WithLocation(21, 13),
-                // (22,13): error CS0747: Invalid initializer member declarator
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.Collections.Generic.List<C1>", "x").WithLocation(21, 13),
+                // (22,13): error CS0117: 'List<C1>' does not contain a definition for 'x'
                 //             x >>>= 1 
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "x >>>= 1").WithLocation(22, 13)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.Collections.Generic.List<C1>", "x").WithLocation(22, 13)
                 );
         }
 
@@ -2674,13 +2693,19 @@ class C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview);
 
+            // Classifier change (compound-assignment-in-initializer Phase 1): a brace list whose
+            // only non-`=` assignments have identifier-name lefts now classifies as an object
+            // initializer; `x` becomes a member lookup on `List<C1?>`.
             compilation1.VerifyEmitDiagnostics(
-                // (21,13): error CS0747: Invalid initializer member declarator
+                // (19,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         C1? x = new C1();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(19, 13),
+                // (21,13): error CS0117: 'List<C1?>' does not contain a definition for 'x'
                 //             x >>= 1,
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "x >>= 1").WithLocation(21, 13),
-                // (22,13): error CS0747: Invalid initializer member declarator
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.Collections.Generic.List<C1?>", "x").WithLocation(21, 13),
+                // (22,13): error CS0117: 'List<C1?>' does not contain a definition for 'x'
                 //             x >>>= 1 
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "x >>>= 1").WithLocation(22, 13)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("System.Collections.Generic.List<C1?>", "x").WithLocation(22, 13)
                 );
         }
 

@@ -72,7 +72,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
                 {
                     node = memberBinding1.Name;
                 }
-                else if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
+                else if (IsCollectionElementInitializerContext(node))
                 {
                     return true;
                 }
@@ -620,7 +620,7 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
     protected override bool IsAddMethodContext(
         SyntaxNode node, SemanticModel semanticModel, out SyntaxNode objectCreationExpression)
     {
-        if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
+        if (IsCollectionElementInitializerContext(node))
         {
             objectCreationExpression = node.GetAncestor<ObjectCreationExpressionSyntax>();
             return objectCreationExpression != null;
@@ -628,5 +628,35 @@ internal sealed class CSharpAddImportFeatureService() : AbstractAddImportFeature
 
         objectCreationExpression = null;
         return false;
+    }
+
+    /// <summary>
+    /// True when <paramref name="node"/> sits as a direct element-shape child of a collection
+    /// initializer body — either a pure <see cref="SyntaxKind.CollectionInitializerExpression"/>
+    /// (the classic <c>new C { 1, 2, 3 }</c> shape) or a mixed object/collection initializer
+    /// (dotnet/csharplang#10185), where element-shape children appear directly under an
+    /// <see cref="SyntaxKind.ObjectInitializerExpression"/> wrapper alongside member-shape
+    /// assignment children. Assignment-shape children of a mixed wrapper bind as member
+    /// initializers, not as Add invocations, so they are excluded here.
+    /// </summary>
+    /// <remarks>
+    /// Only the direct parent is inspected — sub-expressions nested inside a
+    /// <see cref="SyntaxKind.ComplexElementInitializerExpression"/> (the <c>{ k, v }</c>
+    /// brace-list element shape for multi-arg Add) are not considered an Add-method context by
+    /// this helper, matching the pre-existing behavior for pure collection initializers. The
+    /// add-import error-recovery path normally targets the whole brace-list node, not its
+    /// inner expressions, so the recovery still surfaces in the typical user scenario.
+    /// </remarks>
+    private static bool IsCollectionElementInitializerContext(SyntaxNode node)
+    {
+        if (node.Parent is null)
+            return false;
+
+        return node.Parent.Kind() switch
+        {
+            SyntaxKind.CollectionInitializerExpression => true,
+            SyntaxKind.ObjectInitializerExpression => node is not AssignmentExpressionSyntax,
+            _ => false,
+        };
     }
 }
