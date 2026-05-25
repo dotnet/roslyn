@@ -7883,6 +7883,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert(boundLeft != null);
 
+            // Extension members on typeless receivers: when the receiver expression has no type
+            // and is one of the supported typeless forms, route the member access through
+            // extension lookup. This check runs BEFORE MakeMemberAccessValue, which would
+            // otherwise force unconverted typeless forms into error-typed wrappers via
+            // BindToNaturalType, and BEFORE the default-literal / unbound-lambda / null-literal
+            // early rejections below. The feature-availability check is performed inside the
+            // helper.
+            // See https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md
+            if (TryBindMemberAccessOnTypelessReceiver(node, boundLeft, right, invoked, indexed, diagnostics) is { } typelessExtensionResult)
+                return typelessExtensionResult;
+
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
@@ -8256,7 +8267,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
-            receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
+
+            // For extension members on typeless receivers (e.g. `[1, 2, 3].First` where `First` is
+            // an extension property), skip ReplaceTypeOrValueReceiver. Its default branch calls
+            // BindToNaturalType, which destructively converts typeless forms (collection expression,
+            // new(), conditional / switch with no common type, tuple, default) into error-recovery
+            // wrappers and reports ERR_CollectionExpressionNoTargetType / similar. The conversion
+            // is applied below by CheckAndConvertExtensionReceiver against the extension's declared
+            // receiver parameter. The function's named purpose (replacing TypeOrValueExpression or
+            // unwrapping QueryClause) does not apply since both wrappers always have a type.
+            if (receiver is not { Type: null })
+            {
+                receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
+            }
 
             switch (extensionMember)
             {
@@ -8276,6 +8299,128 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(extensionMember.Kind);
+            }
+        }
+#nullable disable
+
+#nullable enable
+        /// <summary>
+        /// If the receiver expression has no type and is a supported typeless form, route the
+        /// member access through extension lookup (the "extension members on typeless receivers"
+        /// feature). Returns null if the receiver is not a supported typeless form, leaving the
+        /// caller to fall back to the existing behavior. The feature-availability check reports
+        /// <c>ERR_FeatureInPreview</c> when the language version is too low but binding continues
+        /// either way, so the SemanticModel and downstream features see the call as bound.
+        /// </summary>
+        /// <remarks>
+        /// See <see href="https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md"/>.
+        /// </remarks>
+        private BoundExpression? TryBindMemberAccessOnTypelessReceiver(
+            SyntaxNode node,
+            BoundExpression boundLeft,
+            SimpleNameSyntax right,
+            bool invoked,
+            bool indexed,
+            BindingDiagnosticBag diagnostics)
+        {
+            // Receiver must have no type and be one of the receiver categories supported by the
+            // proposal: collection expression, target-typed `new()` / `new(args)`, conditional /
+            // switch with no common arm type, lambda without natural type, method group, tuple
+            // literal with at least one typeless element, default literal, or null literal.
+            // Anything else (e.g. BoundBaseReference when there is no base class, BoundPropertyGroup
+            // for COM indexed properties, throw expressions, namespace / type expressions, bad
+            // expressions) falls back to existing behavior so pre-existing diagnostics are
+            // preserved.
+            if (boundLeft.Type is not null)
+                return null;
+
+            switch (boundLeft.Kind)
+            {
+                case BoundKind.UnconvertedCollectionExpression:
+                case BoundKind.UnboundLambda:
+                case BoundKind.UnconvertedObjectCreationExpression:
+                case BoundKind.DefaultLiteral:
+                case BoundKind.UnconvertedConditionalOperator:
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.TupleLiteral:
+                    break;
+                // A method-group receiver is "valid" for the typeless-extension-receiver path when
+                // its lookup was viable and produced at least one candidate. This is the same
+                // conceptual gate that GetUniqueSignatureFromMethodGroup applies to the instance-
+                // method branch when computing whether a method group could naturally have a
+                // delegate type (the inlined ResultKind == LookupResultKind.Viable guard around
+                // its instance-methods loop). The natural-type code adds a signature-uniqueness
+                // check on top, which we don't need here. Inaccessible lookups, ambiguous lookups,
+                // and empty / errored method groups (e.g. inaccessible nested-type lookups that
+                // fell through to extension search and found nothing) fall back to the existing
+                // diagnostic instead of being routed through the new feature.
+                case BoundKind.MethodGroup when boundLeft is BoundMethodGroup { ResultKind: LookupResultKind.Viable, Methods.Length: > 0 }:
+                    break;
+                case BoundKind.Literal when boundLeft.IsLiteralNull():
+                    break;
+                default:
+                    return null;
+            }
+
+            // Only route through the new feature when there is at least one extension member
+            // candidate by this name in scope. Without this check, every typo on a typeless
+            // receiver (e.g. `(() => {}).GetType()`) would emit a misleading "feature is in
+            // Preview" diagnostic on older language versions, suggesting that a version upgrade
+            // would help when no extension would have applied either way. Falling back to null
+            // lets the caller's existing kind-specific rejections (ERR_BadUnaryOp on a lambda,
+            // ERR_BadOpOnNullOrDefaultOrNew on default, ERR_CollectionExpressionNoTargetType
+            // through BindToNaturalType, etc.) produce their pre-feature diagnostics.
+            var rightName = right.Identifier.ValueText;
+            var rightArity = right.Arity;
+            if (!HasExtensionMemberCandidateInScope(rightName, rightArity))
+                return null;
+
+            // Feature-availability check reports ERR_FeatureInPreview when the language version is
+            // too low. Binding continues regardless, matching the established convention in this
+            // file - so the SemanticModel and downstream features see the call as bound on every
+            // language version, even when the version diagnostic is reported.
+            MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node);
+
+            var typeArgumentsSyntax = right is GenericNameSyntax { TypeArgumentList.Arguments: var arguments } ? arguments : default;
+            var typeArgumentsWithAnnotations = typeArgumentsSyntax.Count > 0 ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default;
+            boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
+            return BindInstanceMemberAccess(
+                node, right, boundLeft, rightName, rightArity,
+                typeArgumentsSyntax, typeArgumentsWithAnnotations,
+                invoked, indexed, diagnostics);
+        }
+
+        /// <summary>
+        /// Returns true if any extension member with the given name is in scope. Used to decide
+        /// whether a typeless-receiver member access should route through the new feature path.
+        /// Walks <see cref="ExtensionScopes"/> and short-circuits on the first match, so the cost
+        /// is no greater than the work the regular extension lookup would do anyway.
+        /// </summary>
+        private bool HasExtensionMemberCandidateInScope(string name, int arity)
+        {
+            LookupOptions options = arity == 0 ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
+            var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+            CompoundUseSiteInfo<AssemblySymbol> discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            try
+            {
+                foreach (var scope in new ExtensionScopes(this))
+                {
+                    singleLookupResults.Clear();
+                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(
+                        singleLookupResults, name, arity, options,
+                        originalBinder: this,
+                        ref discardedUseSiteInfo, ref discardedUseSiteInfo);
+
+                    if (singleLookupResults.Count > 0)
+                        return true;
+                }
+
+                return false;
+            }
+            finally
+            {
+                singleLookupResults.Free();
             }
         }
 #nullable disable
@@ -8307,7 +8452,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool leftIsBaseReference = boundLeft.Kind == BoundKind.BaseReference;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                this.LookupInstanceMember(lookupResult, leftType, leftIsBaseReference, rightName, rightArity, invoked, ref useSiteInfo);
+                if ((object)leftType != null)
+                {
+                    // Typed receiver: look up members in the receiver's type.
+                    this.LookupInstanceMember(lookupResult, leftType, leftIsBaseReference, rightName, rightArity, invoked, ref useSiteInfo);
+                }
+                // Typeless receiver: skip instance member lookup (there is no type), and
+                // proceed directly to the extension-search path below.
                 diagnostics.Add(right, useSiteInfo);
 
                 // SPEC: Otherwise, an attempt is made to process E.I as an extension method invocation.
@@ -8751,8 +8902,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool acceptOnlyMethods,
             in CallingConventionInfo callingConvention = default)
         {
-            Debug.Assert(left.Type is not null);
-            Debug.Assert(!left.Type.IsDynamic());
+            // The receiver may be typeless when the typeless-extension-receivers feature is enabled.
+            // The feature gate is checked by callers; once we are here, a null Type is permitted.
+            Debug.Assert(left.Type is null || !left.Type.IsDynamic());
             Debug.Assert((options & ~(OverloadResolution.Options.IsMethodGroupConversion |
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |
@@ -8846,7 +8998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindingDiagnosticBag diagnostics,
                 out MethodGroupResolution result)
             {
-                Debug.Assert(left.Type is not null);
+                // left.Type may be null when the typeless-extension-receivers feature is enabled.
                 result = default;
 
                 // 1. gather candidates
@@ -8962,12 +9114,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (analyzedArguments == null)
                 {
                     // Without arguments (for scenarios such as `nameof` or conversion to non-delegate/dynamic type)
-                    // we can still prune the inapplicable extension methods using the receiver type
-                    for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                    // we can still prune the inapplicable extension methods using the receiver type.
+                    // Skip pruning when the receiver expression has no type (typeless-extension-receivers
+                    // feature); inapplicability is determined later, by overload resolution against the
+                    // candidate's first parameter type.
+                    TypeSymbol? receiverType = left.Type;
+                    for (int i = methodGroup.Methods.Count - 1; receiverType is not null && i >= 0; i--)
                     {
                         MethodSymbol method = methodGroup.Methods[i];
-                        TypeSymbol? receiverType = left.Type;
-                        Debug.Assert(receiverType is not null);
 
                         bool inapplicable = false;
                         if (method.IsExtensionMethod
