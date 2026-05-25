@@ -1890,13 +1890,20 @@ class C
     }
 }";
             var compilation = CreateCompilation(source);
+            // Lines 14 / 15 (`"str".E.F();` / `("str".E).F();`): the receiver is a method-group
+            // produced by an extension lookup, which still rejects `.F` access through the
+            // existing path - our speculative typeless lookup gates the new feature, but the
+            // method group binding paths produce ERR_BadSKunknown for these instance-qualified
+            // forms.
+            // Line 19 (`S.E.G();`): under the extension-members-on-typeless-receivers feature,
+            // `S.E` is a type-qualified static method group (a typeless receiver) and `G` is an
+            // applicable extension on Action<object> (E converts to Action<object>), so the call
+            // now binds successfully instead of producing ERR_BadSKunknown.
             compilation.VerifyDiagnostics(
                 // (14,15): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(14, 15),
                 // (15,16): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(15, 16),
-                // (19,11): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(19, 11));
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(15, 16));
         }
 
         [ClrOnlyFact]

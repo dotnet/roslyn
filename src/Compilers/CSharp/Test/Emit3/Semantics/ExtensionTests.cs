@@ -25227,6 +25227,10 @@ static class E
     [Fact]
     public void LiteralReceiver_Property_Null()
     {
+        // Under the extension-members-on-typeless-receivers feature, `null.Property` routes the
+        // typeless null literal through extension lookup. The extension Property is found and
+        // the access binds to it (instead of producing the pre-feature ERR_BadUnaryOp). Both
+        // member-access nodes resolve to the extension Property in the SemanticModel.
         var src = """
 null.Property = 1;
 _ = null.Property;
@@ -25240,23 +25244,17 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
-            // null.Property = 1;
-            Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.Property").WithArguments(".", "<null>").WithLocation(1, 1),
-            // (2,5): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
-            // _ = null.Property;
-            Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.Property").WithArguments(".", "<null>").WithLocation(2, 5));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "null.Property").First();
-        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "null.Property").Last();
-        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        AssertEx.Equal("System.Int32 E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
     }
@@ -25264,6 +25262,10 @@ static class E
     [Fact]
     public void LiteralReceiver_Property_Default()
     {
+        // Under the extension-members-on-typeless-receivers feature, `default.Property` routes
+        // the typeless `default` literal through extension lookup. The extension Property is
+        // found and the access binds to it (instead of producing the pre-feature
+        // ERR_DefaultLiteralNoTargetType).
         var src = """
 default.Property = 1;
 _ = default.Property;
@@ -25277,13 +25279,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS8716: There is no target type for the default literal.
-            // default.Property = 1;
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(1, 1),
-            // (2,5): error CS8716: There is no target type for the default literal.
-            // _ = default.Property;
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 5));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -50608,13 +50604,12 @@ static class E
 }
 ";
         var comp = CreateCompilation(source);
+        // Under the extension-members-on-typeless-receivers feature, the typeless switch
+        // expression `(b switch { true => 1, false => null })` routes through extension lookup
+        // and target-types against M's `int?` receiver parameter, so the previous
+        // ERR_SwitchExpressionNoBestType / WRN_NullabilityMismatchInAssignment fall away. Only
+        // the unrelated ERR_NameNotInContext for `ERROR` remains.
         comp.VerifyEmitDiagnostics(
-            // (5,4): error CS8506: No best type was found for the switch expression.
-            // (b switch { true => 1, false => null}).M(ERROR);
-            Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(5, 4),
-            // (5,33): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
-            // (b switch { true => 1, false => null}).M(ERROR);
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(5, 33),
             // (5,42): error CS0103: The name 'ERROR' does not exist in the current context
             // (b switch { true => 1, false => null}).M(ERROR);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 42));
