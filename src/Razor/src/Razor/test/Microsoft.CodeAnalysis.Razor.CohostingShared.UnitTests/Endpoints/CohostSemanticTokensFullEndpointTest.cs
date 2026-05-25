@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -59,7 +60,7 @@ public class CohostSemanticTokensFullEndpointTest(ITestOutputHelper testOutputHe
 
     private protected override Task<SemanticTokens?> GetSemanticTokensAsync(TextDocument document, CancellationToken cancellationToken)
     {
-        var endpoint = new CohostSemanticTokensFullEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
+        var endpoint = new CohostSemanticTokensFullEndpoint(IncompatibleProjectService, RemoteServiceInvoker, NoOpTelemetryReporter.Instance);
 
         return endpoint.GetTestAccessor().HandleRequestAsync(document, cancellationToken);
     }
