@@ -1239,7 +1239,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // instance methods. Therefore we must detect this scenario here, rather than in
             // overload resolution.
 
-            var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, useType: !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
+            // For extension members on typeless receivers, the receiver-to-parameter conversion is
+            // applied later by CheckAndCoerceArguments (classic) or CheckAndConvertExtensionReceiver
+            // (modern, C# 14 extension blocks) using the Conversion stored by overload resolution.
+            // ReplaceTypeOrValueReceiver's default branch calls BindToNaturalType, which destructively
+            // converts typeless forms (collection expression, new(), conditional / switch with no
+            // common type, tuple, default) into error-recovery wrappers. The function's named purpose
+            // (replacing a TypeOrValueExpression or unwrapping a QueryClause) does not apply here,
+            // since both of those wrappers always have a type. Both invokedAsExtensionMethod (classic)
+            // and isExtensionBlockMethod (modern) signal an extension call where the receiver-side
+            // conversion is handled downstream; cover both. Note isExtensionBlockMethod resets
+            // invokedAsExtensionMethod to false above, which is why both checks are needed.
+            var receiver = (invokedAsExtensionMethod || isExtensionBlockMethod) && methodGroup.Receiver.Type is null
+                ? methodGroup.Receiver
+                : ReplaceTypeOrValueReceiver(methodGroup.Receiver, useType: !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
             if (invokedAsExtensionMethod && (object)receiver != methodGroup.Receiver)
             {

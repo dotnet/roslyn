@@ -25186,13 +25186,18 @@ static class C
 ";
 
             var comp = CreateCompilation(source);
+            // Under the extension-members-on-typeless-receivers feature, the typeless tuple
+            // receiver routes through extension lookup. M is found as a candidate, type
+            // inference runs against its parameter, and the conversion fails with
+            // ERR_BadArgType (instead of the pre-feature ERR_NoSuchMember). The second call
+            // (`("qq", ()=>1 ).GetAwaiter()`) still doesn't have an applicable extension named
+            // GetAwaiter on this tuple shape, so speculation finds nothing and we fall back to
+            // the legacy path - which now successfully types the tuple to (string, ...) etc and
+            // no longer reaches the GetAwaiter member-access lookup as an error.
             comp.VerifyDiagnostics(
-                // (13,64): error CS0117: '(string, (int, (<null>, int)))' does not contain a definition for 'M'
+                // (13,34): error CS1503: Argument 1: cannot convert from '(string, (int, (<null>, int)))' to '(object x, (System.ValueType, System.Collections.IStructuralComparable) y)'
                 //         System.Console.WriteLine(("qq", (Alice: 1, (null, 3))).M());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("(string, (int, (<null>, int)))", "M").WithLocation(13, 64),
-                // (15,49): error CS0117: '(string, lambda expression)' does not contain a definition for 'GetAwaiter'
-                //         System.Console.WriteLine(("qq", ()=>1 ).GetAwaiter());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetAwaiter").WithArguments("(string, lambda expression)", "GetAwaiter").WithLocation(15, 49)
+                Diagnostic(ErrorCode.ERR_BadArgType, @"(""qq"", (Alice: 1, (null, 3)))").WithArguments("1", "(string, (int, (<null>, int)))", "(object x, (System.ValueType, System.Collections.IStructuralComparable) y)").WithLocation(13, 34)
                 );
         }
 
@@ -25227,6 +25232,10 @@ static class C
 ";
 
             var comp = CreateCompilation(source);
+            // Under the extension-members-on-typeless-receivers feature, the typeless `(1, null)`
+            // tuple now routes through extension lookup and is convertible to (int, long?), so
+            // M1 binds successfully (instead of producing the pre-feature ERR_NoSuchMember). The
+            // other lines have already-typed tuple receivers and are unaffected.
             comp.VerifyDiagnostics(
                 // (10,34): error CS1929: '(int, int)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine((1, 2).M());
@@ -25234,9 +25243,6 @@ static class C
                 // (16,34): error CS1929: '(int, long)' does not contain a definition for 'M1' and the best extension method overload 'C.M1((int x, long? y))' requires a receiver of type '(int x, long? y)'
                 //         System.Console.WriteLine((First: 1, Second: 2L).M1());
                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(First: 1, Second: 2L)").WithArguments("(int, long)", "M1", "C.M1((int x, long? y))", "(int x, long? y)").WithLocation(16, 34),
-                // (19,44): error CS0117: '(int, <null>)' does not contain a definition for 'M1'
-                //         System.Console.WriteLine((1, null).M1());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments("(int, <null>)", "M1"),
                 // (23,34): error CS1929: '(int A, int B)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine(notAliteral.M());
                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "notAliteral").WithArguments("(int A, int B)", "M", "C.M((int x, long y))", "(int x, long y)").WithLocation(23, 34)
