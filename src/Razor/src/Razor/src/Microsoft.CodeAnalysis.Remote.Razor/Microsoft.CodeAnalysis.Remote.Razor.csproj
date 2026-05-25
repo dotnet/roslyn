@@ -153,6 +153,7 @@
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Update="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Update="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
