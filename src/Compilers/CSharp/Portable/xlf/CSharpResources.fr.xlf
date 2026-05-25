@@ -162,6 +162,11 @@
         <target state="translated">L'accesseur 'set' '{0}' implémenté automatiquement ne peut pas être marqué 'readonly'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AwaitConditionalNonNullableValueType">
+        <source>'await?' cannot be applied to an operand of non-nullable value type '{0}'.</source>
+        <target state="new">'await?' cannot be applied to an operand of non-nullable value type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</source>
         <target state="translated">L'instruction foreach asynchrone ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient aucune définition d'extension ou d'instance publique appropriée pour '{1}'</target>
@@ -3085,6 +3090,11 @@
       <trans-unit id="IDS_FeatureNullConditionalAssignment">
         <source>null conditional assignment</source>
         <target state="translated">attribution conditionnelle nulle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNullConditionalAwait">
+        <source>null conditional await</source>
+        <target state="new">null conditional await</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">

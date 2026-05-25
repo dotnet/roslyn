@@ -1274,21 +1274,33 @@ public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     /// <summary>SyntaxToken representing the kind "await" keyword.</summary>
     public SyntaxToken AwaitKeyword => new SyntaxToken(this, ((InternalSyntax.AwaitExpressionSyntax)this.Green).awaitKeyword, Position, 0);
 
+    /// <summary>Optional SyntaxToken representing the "?" of a null-conditional "await?" expression.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83839")]
+    public SyntaxToken QuestionToken
+    {
+        get
+        {
+            var slot = ((Syntax.InternalSyntax.AwaitExpressionSyntax)this.Green).questionToken;
+            return slot != null ? new SyntaxToken(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+        }
+    }
+
     /// <summary>ExpressionSyntax representing the operand of the "await" operator.</summary>
-    public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
+    public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
-    internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
-    internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.expression : null;
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.expression : null;
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAwaitExpression(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAwaitExpression(this);
 
-    public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83839")]
+    public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, SyntaxToken questionToken, ExpressionSyntax expression)
     {
-        if (awaitKeyword != this.AwaitKeyword || expression != this.Expression)
+        if (awaitKeyword != this.AwaitKeyword || questionToken != this.QuestionToken || expression != this.Expression)
         {
-            var newNode = SyntaxFactory.AwaitExpression(awaitKeyword, expression);
+            var newNode = SyntaxFactory.AwaitExpression(awaitKeyword, questionToken, expression);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
@@ -1296,8 +1308,10 @@ public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
         return this;
     }
 
-    public AwaitExpressionSyntax WithAwaitKeyword(SyntaxToken awaitKeyword) => Update(awaitKeyword, this.Expression);
-    public AwaitExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(this.AwaitKeyword, expression);
+    public AwaitExpressionSyntax WithAwaitKeyword(SyntaxToken awaitKeyword) => Update(awaitKeyword, this.QuestionToken, this.Expression);
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83839")]
+    public AwaitExpressionSyntax WithQuestionToken(SyntaxToken questionToken) => Update(this.AwaitKeyword, questionToken, this.Expression);
+    public AwaitExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(this.AwaitKeyword, this.QuestionToken, expression);
 }
 
 /// <summary>Class which represents the syntax node for postfix unary expression.</summary>

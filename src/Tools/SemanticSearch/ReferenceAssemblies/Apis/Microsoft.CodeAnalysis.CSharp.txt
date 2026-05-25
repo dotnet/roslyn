@@ -1488,10 +1488,13 @@ Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
 Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
 Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.WithAwaitKeyword(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.WithQuestionToken(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.get_AwaitKeyword
 Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.get_Expression
+Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax.get_QuestionToken
 Microsoft.CodeAnalysis.CSharp.Syntax.BadDirectiveTriviaSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BadDirectiveTriviaSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
 Microsoft.CodeAnalysis.CSharp.Syntax.BadDirectiveTriviaSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
@@ -4849,6 +4852,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AttributeTargetSpecifier(Microsoft.C
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AttributeTargetSpecifier(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AwaitExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AwaitExpression(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
+Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AwaitExpression(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.BadDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,System.Boolean)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.BadDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken,System.Boolean)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.BadToken(Microsoft.CodeAnalysis.SyntaxTriviaList,System.String,Microsoft.CodeAnalysis.SyntaxTriviaList)

@@ -11667,6 +11667,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
+            accessType = ComputeConditionalAccessResultType(
+                node,
+                accessType,
+                access.Display,
+                access.Syntax.Location,
+                diagnostics,
+                out bool cannotBeMadeNullable);
+
+            if (cannotBeMadeNullable)
+            {
+                receiver = BadExpression(receiver.Syntax, receiver);
+                return new BoundConditionalAccess(node, receiver, access, accessType, hasErrors: true);
+            }
+
+            return new BoundConditionalAccess(node, receiver, access, accessType);
+        }
+
+        /// <summary>
+        /// Applies the null-conditional result-type rule (§11.7.7 for <c>?.</c>, §11.8.8.3 for <c>await?</c>)
+        /// to lift <paramref name="accessType"/> to <c>Nullable&lt;T&gt;</c> when it is a non-nullable value
+        /// type, keep it unchanged when it is a reference type / already-nullable value type / pointer /
+        /// <c>dynamic</c>, or report <see cref="ErrorCode.ERR_CannotBeMadeNullable"/> when it is a type that
+        /// has no representable null (an unconstrained type parameter or a restricted type) and the result
+        /// of the outer expression is used. In the unusable-but-unused case the result type becomes
+        /// <c>void</c>, matching the statement-only shape of <c>x?.M()</c> when <c>M</c> returns void.
+        /// </summary>
+        private TypeSymbol ComputeConditionalAccessResultType(
+            ExpressionSyntax node,
+            TypeSymbol accessType,
+            object accessDisplay,
+            Location errorLocation,
+            BindingDiagnosticBag diagnostics,
+            out bool cannotBeMadeNullable)
+        {
+            cannotBeMadeNullable = false;
+
             // The resulting type must be either a reference type T, Nullable<T>, or a pointer type.
             // Therefore we must reject cases resulting in types that are not reference types and cannot be lifted into nullable.
             // - access cannot have unconstrained generic type
@@ -11680,7 +11716,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // "Error CS0023: Operator '?' cannot be applied to operand of type 'T'"
                 if (ResultIsUsed(node))
                 {
-                    return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
+                    diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CannotBeMadeNullable, accessDisplay), errorLocation));
+                    cannotBeMadeNullable = true;
+                    return CreateErrorType();
                 }
 
                 accessType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
@@ -11697,7 +11735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
             }
 
-            return new BoundConditionalAccess(node, receiver, access, accessType);
+            return accessType;
         }
 
         private bool ResultIsUsed(ExpressionSyntax node)
