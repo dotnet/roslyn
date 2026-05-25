@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text.Json;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -23,8 +22,7 @@ internal sealed class CohostSemanticTokensRegistration(ISemanticTokensLegendServ
         if (clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
         {
             var semanticTokensRefreshQueue = requestContext.GetRequiredService<IRazorSemanticTokensRefreshQueue>();
-            var clientCapabilitiesString = JsonSerializer.Serialize(clientCapabilities);
-            semanticTokensRefreshQueue.Initialize(clientCapabilitiesString);
+            semanticTokensRefreshQueue.Initialize(clientCapabilities);
 
             return [new Registration()
             {
