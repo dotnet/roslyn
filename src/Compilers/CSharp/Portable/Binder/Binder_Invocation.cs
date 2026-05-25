@@ -853,9 +853,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // casting the dynamic arguments or calling the extension method without the extension method
                                 // syntax.
 
-                                Debug.Assert(methodGroup.ReceiverOpt != null && (object)methodGroup.ReceiverOpt.Type != null);
+                                Debug.Assert(methodGroup.ReceiverOpt != null);
 
-                                Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, methodGroup.ReceiverOpt.Type, methodGroup.Name);
+                                // For typeless receivers (collection expression, lambda, method group, etc.) the receiver
+                                // has no Type but Display gives a user-friendly description like "collection expression"
+                                // or "lambda expression". Fall back to that when Type is null. We also force the receiver
+                                // through BindToNaturalType so the bad-call result we hand to flow analysis doesn't carry
+                                // an unconverted child that would trip its "expressions should have been converted" assert.
+                                object receiverDisplay = (object)methodGroup.ReceiverOpt.Type ?? methodGroup.ReceiverOpt.Display;
+                                Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, receiverDisplay, methodGroup.Name);
+
+                                if (methodGroup.ReceiverOpt.Type is null)
+                                {
+                                    var convertedReceiver = BindToNaturalType(methodGroup.ReceiverOpt, diagnostics);
+                                    methodGroup = methodGroup.Update(
+                                        methodGroup.TypeArgumentsOpt, methodGroup.Name, methodGroup.Methods,
+                                        methodGroup.LookupSymbolOpt, methodGroup.LookupError, methodGroup.Flags,
+                                        methodGroup.FunctionType, convertedReceiver, methodGroup.ResultKind);
+                                }
+
                                 result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
                             }
                             else
@@ -1239,7 +1255,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // instance methods. Therefore we must detect this scenario here, rather than in
             // overload resolution.
 
-            var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, useType: !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
+            // For extension members on typeless receivers, the receiver-to-parameter conversion is
+            // applied later by CheckAndCoerceArguments (classic) or CheckAndConvertExtensionReceiver
+            // (modern, C# 14 extension blocks) using the Conversion stored by overload resolution.
+            // ReplaceTypeOrValueReceiver's default branch calls BindToNaturalType, which destructively
+            // converts typeless forms (collection expression, new(), conditional / switch with no
+            // common type, tuple, default) into error-recovery wrappers. The function's named purpose
+            // (replacing a TypeOrValueExpression or unwrapping a QueryClause) does not apply here,
+            // since both of those wrappers always have a type. Both invokedAsExtensionMethod (classic)
+            // and isExtensionBlockMethod (modern) signal an extension call where the receiver-side
+            // conversion is handled downstream; cover both. Note isExtensionBlockMethod resets
+            // invokedAsExtensionMethod to false above, which is why both checks are needed.
+            var receiver = (invokedAsExtensionMethod || isExtensionBlockMethod) && methodGroup.Receiver.Type is null
+                ? methodGroup.Receiver
+                : ReplaceTypeOrValueReceiver(methodGroup.Receiver, useType: !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
             if (invokedAsExtensionMethod && (object)receiver != methodGroup.Receiver)
             {
