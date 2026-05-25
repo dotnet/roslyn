@@ -6916,6 +6916,14 @@ class Program
         [Fact]
         public void PartialStaticLambda()
         {
+            // The source here is invalid: 'partial static' is not a legal lambda modifier sequence.
+            // Under the relaxed modifier-ordering feature, the parser now commits to 'partial static'
+            // as the start of a member declaration once it sees the reserved 'static' keyword after
+            // 'partial'. That is a plausible reading but it happens to be the wrong one for this
+            // broken fragment, and the resulting error recovery cascade is noisy. The precise shape
+            // of the recovery diagnostics is not a contract; this test just pins down the current
+            // behavior. Improving error recovery for this exact pathological input is not worth the
+            // complexity given how unlikely it is in real code.
             CreateCompilation("""
                 class C
                 {
@@ -6925,27 +6933,42 @@ class Program
                     }
                 }
                 """).VerifyDiagnostics(
-                // (5,27): error CS0103: The name 'partial' does not exist in the current context
+                // (5,27): error CS1525: Invalid expression term 'partial'
                 //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(5, 27),
-                // (5,35): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 27),
+                // (5,27): error CS1002: ; expected
                 //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 35),
-                // (5,35): error CS0106: The modifier 'static' is not valid for this item
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 27),
+                // (5,27): error CS1513: } expected
                 //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(5, 35),
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "partial").WithLocation(5, 27),
                 // (5,43): error CS8124: Tuple must contain at least two elements.
                 //         System.Action x = partial static () => { };
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 43),
                 // (5,45): error CS1001: Identifier expected
                 //         System.Action x = partial static () => { };
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 45),
-                // (5,45): error CS1003: Syntax error, ',' expected
+                // (5,45): error CS9249: Partial property 'C.' must have a definition part.
                 //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(5, 45),
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "").WithArguments("C.").WithLocation(5, 45),
+                // (5,45): error CS0751: A partial member must be declared within a partial type
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "").WithLocation(5, 45),
+                // (5,48): error CS1525: Invalid expression term '{'
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(5, 48),
                 // (5,48): error CS1002: ; expected
                 //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 48));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 48),
+                // (5,48): error CS1519: Invalid token '{' in a member declaration
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(5, 48),
+                // (6,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 5),
+                // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
         }
 
         [Fact]

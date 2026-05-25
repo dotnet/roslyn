@@ -5781,29 +5781,13 @@ partial class PartialPartial
     }
 }
 ";
-            // These errors aren't great.  Ideally we can improve things in the future.
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,13): error CS1525: Invalid expression term 'partial'
+                // (5,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial void PM();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 13),
-                // (5,13): error CS1002: ; expected
-                //     partial partial void PM();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 13),
-                // (6,13): error CS1525: Invalid expression term 'partial'
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(5, 13),
+                // (6,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(6, 13),
-                // (6,13): error CS1002: ; expected
-                //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(6, 13),
-                // (6,13): error CS0102: The type 'PartialPartial' already contains a definition for ''
-                //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("PartialPartial", "").WithLocation(6, 13),
-                // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                //     partial partial void PM();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
-                // (6,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                //     partial partial void PM()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(6, 5));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(6, 13));
         }
 
         [Fact]
@@ -5811,7 +5795,7 @@ partial class PartialPartial
         {
             var text = @"partial enum E{}";
             CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
-                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (1,14): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }

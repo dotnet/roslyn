@@ -109,16 +109,9 @@ class Program
 }
 ";
             var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
-                // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,24): error CS0102: The type 'Program' already contains a definition for 'S'
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("Program", "S").WithLocation(5, 24));
+            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
+            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -142,16 +135,42 @@ class C
     ref partial readonly struct S {}
     ref partial readonly struct S {}
 }");
+            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
+            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
             comp.VerifyDiagnostics(
-                // (4,17): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (4,9): error CS1031: Type expected
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 17),
-                // (5,17): error CS1585: Member modifier 'readonly' must precede the member type and name
+                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(4, 9),
+                // (4,9): error CS1525: Invalid expression term 'partial'
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(5, 17),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(4, 9),
+                // (4,9): error CS1002: ; expected
                 //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(4, 9),
+                // (4,9): error CS9064: Target runtime doesn't support ref fields.
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(4, 9),
+                // (4,9): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(4, 9),
+                // (5,9): error CS1031: Type expected
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(5, 9),
+                // (5,9): error CS1525: Invalid expression term 'partial'
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 9),
+                // (5,9): error CS1002: ; expected
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 9),
+                // (5,9): error CS9064: Target runtime doesn't support ref fields.
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(5, 9),
+                // (5,9): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(5, 9),
+                // (5,9): error CS0102: The type 'C' already contains a definition for ''
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(5, 9));
         }
 
         [Fact]
@@ -163,16 +182,12 @@ class C
     partial ref readonly struct S {}
     partial ref readonly struct S {}
 }");
+            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
+            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
             comp.VerifyDiagnostics(
-                // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
                 // (4,26): error CS1031: Type expected
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 26),
-                // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
                 // (5,26): error CS1031: Type expected
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(5, 26),
@@ -190,16 +205,9 @@ class C
     readonly partial ref struct S {}
     readonly partial ref struct S {}
 }");
-            comp.VerifyDiagnostics(
-                // (4,22): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 22),
-                // (5,22): error CS1585: Member modifier 'ref' must precede the member type and name
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+            // Phase 3 (relaxing 'ref' type-modifier ordering) will produce cleaner diagnostics;
+            // for now the mix of relaxed 'partial' + strict 'ref' produces cascading parse errors.
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

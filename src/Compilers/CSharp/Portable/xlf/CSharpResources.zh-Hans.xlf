@@ -3192,6 +3192,11 @@
         <target state="translated">联合体</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedModifierOrdering">
+        <source>relaxed modifier ordering</source>
+        <target state="new">relaxed modifier ordering</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
         <target state="translated">更新后的内存安全规则</target>
@@ -7291,7 +7296,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
         <target state="translated">“partial”修饰符只能紧接在“class”、“record”、“struct”、“interface”、“event”、实例构造函数名称或方法或属性返回类型之前。</target>
         <note />
       </trans-unit>

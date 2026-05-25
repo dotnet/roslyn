@@ -3192,6 +3192,11 @@
         <target state="translated">unie</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedModifierOrdering">
+        <source>relaxed modifier ordering</source>
+        <target state="new">relaxed modifier ordering</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
         <source>updated memory safety rules</source>
         <target state="translated">zaktualizowano reguły zabezpieczeń pamięci</target>
@@ -7291,7 +7296,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
         <target state="translated">Modyfikator „partial” może pojawić się wyłącznie bezpośrednio przed „klasą”, „rekordem”, „strukturą”, „interfejsem”, „zdarzeniem”, nazwą konstruktora wystąpienia lub typem zwracanym metody bądź właściwości.</target>
         <note />
       </trans-unit>

@@ -883,19 +883,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPartialInNamespaceMemberDeclaration()
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-            {
-                if (this.IsPartialType())
-                {
-                    return true;
-                }
-                else if (this.PeekToken(1).Kind == SyntaxKind.NamespaceKeyword)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword
+                && this.IsPartialModifierInDeclarationHead();
         }
 
         public bool IsEndOfNamespace()
@@ -1389,22 +1378,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (newMod)
                 {
                     case DeclarationModifiers.Partial:
-                        var nextToken = PeekToken(1);
-                        if (this.IsPartialType() || this.IsPartialMember())
+                        // 'partial' is a contextual keyword.  Accept it as a modifier whenever the rest of the
+                        // modifier list, followed by the actual declaration head, clearly identifies a
+                        // partial-capable type declaration or member declaration.  Historically 'partial' was
+                        // required to be the last modifier; that restriction is now enforced (with feature
+                        // gating) by the binder in ModifierUtils.ToDeclarationModifiers.
+                        if (this.IsPartialModifierInDeclarationHead())
                         {
-                            // Standard legal cases.
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
-                        {
-                            // Error reported in binding
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (
-                            nextToken.Kind is SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword ||
-                            (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None))
-                        {
-                            // Error reported in ModifierUtils.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
                         else
@@ -1642,19 +1622,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
         }
 
-        private bool IsPartialType()
+        /// <summary>
+        /// Returns true when the current <c>partial</c> token should be consumed as a declaration
+        /// modifier, considering that it may be interleaved with other modifier tokens.  This performs
+        /// a lookahead that skips past any following modifier tokens and then checks whether the
+        /// remaining tokens form the head of a partial-capable declaration (type declaration,
+        /// partial event/constructor/method/property, or an error-reported-later construct like
+        /// <c>namespace</c>, <c>enum</c>, or <c>delegate</c>).
+        /// </summary>
+        /// <remarks>
+        /// This is intentionally permissive at the parse layer.  The binder
+        /// (<see cref="Microsoft.CodeAnalysis.CSharp.Symbols.ModifierUtils.ToDeclarationModifiers"/>)
+        /// is responsible for reporting diagnostics when <c>partial</c> is misplaced or when the
+        /// relaxed ordering feature is not available for the declared language version.
+        /// </remarks>
+        private bool IsPartialModifierInDeclarationHead()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            var nextToken = this.PeekToken(1);
-            switch (nextToken.Kind)
+
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            // Eat 'partial' and then scan past any subsequent modifier tokens.  We want to allow
+            // 'partial' to appear anywhere in the modifier list, so we walk forward looking for a
+            // declaration head that 'partial' could legally modify.
+            this.EatToken();
+            while (true)
             {
-                case SyntaxKind.StructKeyword:
-                case SyntaxKind.ClassKeyword:
-                case SyntaxKind.InterfaceKeyword:
+                var nextMod = GetModifierExcludingScoped(this.CurrentToken);
+                if (nextMod == DeclarationModifiers.None)
+                {
+                    break;
+                }
+
+                // A non-contextual modifier keyword (e.g. 'public', 'static', 'sealed', 'ref', ...)
+                // is a reserved word and cannot start any expression/statement or be an identifier.
+                // Seeing one after 'partial' therefore unambiguously proves we are in a declaration
+                // context, so we can commit to treating 'partial' as a modifier without further
+                // inspection.
+                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                {
                     return true;
+                }
+
+                // Otherwise we saw a contextual modifier (another 'partial', 'async', 'required',
+                // or 'file').  These tokens can also be identifiers in non-declaration contexts, so
+                // we need to keep scanning until we either hit a reserved modifier or the actual
+                // declaration head.
+                this.EatToken();
             }
 
-            switch (nextToken.ContextualKind)
+            // We're now positioned at what should be the declaration head.  Return true if the
+            // current token begins a declaration for which 'partial' is a plausible modifier.
+
+            var kind = this.CurrentToken.Kind;
+            var contextualKind = this.CurrentToken.ContextualKind;
+
+            // Type declarations where 'partial' is legal.
+            if (kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword)
+            {
+                return true;
+            }
+
+            switch (contextualKind)
             {
                 case SyntaxKind.RecordKeyword:
                     {
@@ -1675,40 +1704,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
             }
 
-            return false;
-        }
-
-        private bool IsPartialMember()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-
-            // Check for:
-            //   partial event
-            if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
+            // Constructs where 'partial' is illegal but we still want to consume it so the binder
+            // can produce a targeted diagnostic instead of cascading parse errors.
+            if (kind is SyntaxKind.NamespaceKeyword or SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword)
             {
                 return true;
             }
 
-            // Check for constructor:
-            //   partial Identifier(
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+            // Partial members.
+
+            // 'partial event ...' is unambiguously a partial event on every language version:
+            // 'event' is a reserved keyword and cannot start any other member/statement form, so
+            // we commit to treating 'partial' as a modifier regardless of whether partial events
+            // are actually supported by the current language version.  The binder reports a
+            // feature-availability diagnostic if needed.
+            if (kind == SyntaxKind.EventKeyword)
+            {
+                return true;
+            }
+
+            // 'partial Identifier(...' is a partial constructor only on language versions that
+            // support partial constructors.  On earlier language versions the same tokens must
+            // be parsed as a method whose return type is 'Identifier', so we explicitly gate on
+            // the feature here to avoid changing the parse of existing code.
+            if (kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
                 return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
             }
 
-            // Check for method/property:
-            //   partial ReturnType MemberName
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-
-            this.EatToken(); // partial
-
-            if (this.ScanType() == ScanTypeFlags.NotType)
-            {
-                return false;
-            }
-
-            return IsPossibleMemberName();
+            // 'partial ReturnType MemberName ...' -- partial method or property.  We reuse ScanType
+            // (inside a reset-point, so the advance is local) to determine whether this looks like
+            // a member declaration head.
+            return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
         }
 
         private bool IsPossibleMemberName()
@@ -6104,15 +6132,8 @@ parse_member_name:;
 
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-            {
-                if (this.IsPartialType() || this.IsPartialMember())
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword
+                && this.IsPartialModifierInDeclarationHead();
         }
 
         private bool IsCurrentTokenFieldInKeywordContext()
