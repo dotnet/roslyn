@@ -49,6 +49,9 @@
     <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\TelemetryReporter.cs" Link="Telemetry\TelemetryReporter.cs" />
     <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLog.cs" Link="Telemetry\AggregatingTelemetryLog.cs" />
     <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLogManager.cs" Link="Telemetry\AggregatingTelemetryLogManager.cs" />
+    <Compile Include="$(SharedSourceRoot)Microsoft.AspNetCore.Razor.Utilities.Shared\Utilities\Checksum.cs" Link="Utilities\Checksum.cs" />
+    <Compile Include="$(SharedSourceRoot)Microsoft.AspNetCore.Razor.Utilities.Shared\Utilities\Checksum.Builder.cs" Link="Utilities\Checksum.Builder.cs" />
+    <Compile Include="$(SharedSourceRoot)Microsoft.AspNetCore.Razor.Utilities.Shared\Utilities\Checksum.Builder.XxHash128Pool.cs" Link="Utilities\Checksum.Builder.XxHash128Pool.cs" />
 
     <Compile Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
   </ItemGroup>
