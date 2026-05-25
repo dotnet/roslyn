@@ -8289,6 +8289,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUnions" xml:space="preserve">
     <value>unions</value>
   </data>
+  <data name="IDS_FeatureExtensionMembersOnTypelessReceivers" xml:space="preserve">
+    <value>extension members on typeless receivers</value>
+  </data>
   <data name="ERR_UnionDeclarationNeedsCaseTypes" xml:space="preserve">
     <value>A union declaration must specify at least one case type.</value>
   </data>
