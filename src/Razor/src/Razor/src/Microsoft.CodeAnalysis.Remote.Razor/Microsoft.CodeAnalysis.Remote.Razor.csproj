@@ -36,6 +36,10 @@
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
       <Private>true</Private>
     </ProjectReference>
+    <ProjectReference Include="$(SharedSourceRoot)Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>true</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
       <Private>true</Private>
     </ProjectReference>
