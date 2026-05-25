@@ -8,10 +8,10 @@
     <StartArguments>/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log</StartArguments>
 
     <!-- Required to place the vsix in the right location by WTE MSI -->
-    <ExtensionInstallationRoot>$(RazorExtensionInstallationRoot)</ExtensionInstallationRoot>
-    <ExtensionInstallationFolder>$(RazorExtensionInstallationFolderBase)</ExtensionInstallationFolder>
-    <IsProductComponent>true</IsProductComponent>
-    <VisualStudioInsertionComponent>$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
+    <ExtensionInstallationRoot Condition="'$(RazorExtensionInstallationRoot)' != ''">$(RazorExtensionInstallationRoot)</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder Condition="'$(RazorExtensionInstallationRoot)' != ''">$(RazorExtensionInstallationFolderBase)</ExtensionInstallationFolder>
+    <IsProductComponent>$(RazorIsProductComponent)</IsProductComponent>
+    <VisualStudioInsertionComponent Condition="'$(RazorVisualStudioInsertionComponent)' != ''">$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
 
     <!-- Don't automatically include dependencies -->
     <IncludePackageReferencesInVSIXContainer>false</IncludePackageReferencesInVSIXContainer>
