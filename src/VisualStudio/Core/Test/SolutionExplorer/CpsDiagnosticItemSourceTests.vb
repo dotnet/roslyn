@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -42,9 +41,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim source As IAttachedCollectionSource = New CpsDiagnosticItemSource(
                     workspace.GetService(Of IThreadingContext),
                     workspace,
-                    project.FilePath,
                     project.Id,
-                    New MockHierarchyItem() With {.CanonicalName = Path.Combine(TestWorkspace.RootDirectory, "net472", "analyzerdependency") + "\" + analyzerPath},
+                    New MockHierarchyItem() With {.CanonicalName = analyzerPath},
                     New FakeAnalyzersCommandHandler(),
                     listenerProvider)
 
