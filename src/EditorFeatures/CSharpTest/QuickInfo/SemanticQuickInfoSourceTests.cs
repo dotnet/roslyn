@@ -10320,6 +10320,34 @@ AnonymousTypes(
             """,
             MainDescription($"MyCollection<string> MyBuilder.Create<string>(int i, ReadOnlySpan<string> items)"));
 
+    [Fact]
+    public Task TestChainedRelationalComparison_OuterLessThan_Intrinsic()
+        => TestWithOptionsAsync(
+            Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            class C
+            {
+                static bool M(int a, int b, int c) => a < b <$$ c;
+            }
+            """,
+            MainDescription("bool int.operator <(int left, int right)"));
+
+    [Fact]
+    public Task TestChainedRelationalComparison_OuterLessThan_UserDefinedOverload()
+        => TestWithOptionsAsync(
+            Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            struct S
+            {
+                public static bool operator <(S a, S b) => false;
+                public static bool operator >(S a, S b) => false;
+            }
+            class C
+            {
+                static bool M(S a, S b, S c) => a < b <$$ c;
+            }
+            """,
+            MainDescription("bool S.operator <(S a, S b)"));
     #region Interceptors
 
     private static readonly CSharpParseOptions s_parseOptionsWithInterceptors =

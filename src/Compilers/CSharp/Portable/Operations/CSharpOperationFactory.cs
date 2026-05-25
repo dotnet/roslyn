@@ -1557,46 +1557,77 @@ namespace Microsoft.CodeAnalysis.Operations
 
             IBinaryOperation createBoundUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator boundBinaryOperator, IOperation left, IOperation right)
             {
-                BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
                 IMethodSymbol operatorMethod = boundBinaryOperator.LogicalOperator.GetPublicSymbol();
                 IMethodSymbol unaryOperatorMethod = boundBinaryOperator.OperatorKind.Operator() == CSharp.BinaryOperatorKind.And ?
                                                         boundBinaryOperator.FalseOperator.GetPublicSymbol() :
                                                         boundBinaryOperator.TrueOperator.GetPublicSymbol();
-                SyntaxNode syntax = boundBinaryOperator.Syntax;
-                ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
-                ConstantValue? constantValue = boundBinaryOperator.ConstantValueOpt;
-                bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
-                bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
-                bool isCompareText = false;
-                bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
                 TypeSymbol? constrainedToTypeOpt = GetConstrainedToTypeForOperator(boundBinaryOperator.LogicalOperator, boundBinaryOperator.ConstrainedToTypeOpt) ??
                                                    GetConstrainedToTypeForOperator(boundBinaryOperator.OperatorKind.Operator() == CSharp.BinaryOperatorKind.And ?
                                                                                        boundBinaryOperator.FalseOperator :
                                                                                        boundBinaryOperator.TrueOperator,
                                                                                    boundBinaryOperator.ConstrainedToTypeOpt);
-                return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, constrainedToTypeOpt.GetPublicSymbol(), unaryOperatorMethod,
-                                           _semanticModel, syntax, type, constantValue, isImplicit);
+                return CreateBinaryOperation(
+                    boundBinaryOperator, boundBinaryOperator.OperatorKind,
+                    left, right,
+                    isChecked: boundBinaryOperator.OperatorKind.IsChecked(),
+                    operatorMethod, constrainedToTypeOpt.GetPublicSymbol(), unaryOperatorMethod,
+                    isChainedRelationalComparison: false);
             }
         }
 
         private IBinaryOperation CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
         {
-            BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
             MethodSymbol? binaryOperatorMethod = boundBinaryOperator.BinaryOperatorMethod;
             MethodSymbol? unaryOperatorMethod = boundBinaryOperator.LeftTruthOperatorMethod;
 
-            SyntaxNode syntax = boundBinaryOperator.Syntax;
-            ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundBinaryOperator.ConstantValueOpt;
-            bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
             bool isChecked = boundBinaryOperator.OperatorKind.IsChecked() || (binaryOperatorMethod is not null && SyntaxFacts.IsCheckedOperator(binaryOperatorMethod.Name));
-            bool isCompareText = false;
-            bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
-            return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText,
-                                       binaryOperatorMethod.GetPublicSymbol(),
-                                       GetConstrainedToTypeForOperator(binaryOperatorMethod, boundBinaryOperator.ConstrainedToType).GetPublicSymbol(),
-                                       unaryOperatorMethod.GetPublicSymbol(),
-                                       _semanticModel, syntax, type, constantValue, isImplicit);
+            // The outer link of a chained relational comparison (spec §11.11.13) has
+            // short-circuit semantics over its LeftOperand's bool result. Thread that
+            // signal through to the operation so ControlFlowGraphBuilder emits the
+            // right edges - without it, chained comparisons would flow as straight-
+            // line evaluation and any CFG-based analyzer would be wrong.
+            bool isChainedRelationalComparison = boundBinaryOperator.IsChainedRelational(out _, out _, out _);
+            return CreateBinaryOperation(
+                boundBinaryOperator, boundBinaryOperator.OperatorKind,
+                left, right,
+                isChecked,
+                binaryOperatorMethod.GetPublicSymbol(),
+                GetConstrainedToTypeForOperator(binaryOperatorMethod, boundBinaryOperator.ConstrainedToType).GetPublicSymbol(),
+                unaryOperatorMethod.GetPublicSymbol(),
+                isChainedRelationalComparison);
+        }
+
+        /// <summary>
+        /// Shared construction helper for the two <see cref="BinaryOperation"/> sites that
+        /// lift <see cref="BoundBinaryOperatorBase"/> to <see cref="IBinaryOperation"/>
+        /// (<see cref="CreateBoundBinaryOperatorOperation"/> and the nested
+        /// <c>createBoundUserDefinedConditionalLogicalOperator</c>). Encapsulates the fields
+        /// that are computed identically from the underlying bound node - the <see cref="Operations.BinaryOperatorKind"/>
+        /// derivation, <c>isLifted</c>, <c>isCompareText = false</c>, syntax, type, constant
+        /// value, semantic model, and compiler-generated flag - so adding a new field to
+        /// <see cref="BinaryOperation"/> requires changing only this one helper (not both sites).
+        /// The fields that genuinely differ between sites (<c>isChecked</c>, operator method,
+        /// constrained-to type, unary operator method, chained-relational flag) remain explicit
+        /// parameters.
+        /// </summary>
+        private BinaryOperation CreateBinaryOperation(
+            BoundBinaryOperatorBase node,
+            CSharp.BinaryOperatorKind operatorKind,
+            IOperation left,
+            IOperation right,
+            bool isChecked,
+            IMethodSymbol? operatorMethod,
+            ITypeSymbol? constrainedToType,
+            IMethodSymbol? unaryOperatorMethod,
+            bool isChainedRelationalComparison)
+        {
+            return new BinaryOperation(
+                Helper.DeriveBinaryOperatorKind(operatorKind), left, right,
+                isLifted: operatorKind.IsLifted(), isChecked, isCompareText: false,
+                operatorMethod, constrainedToType, unaryOperatorMethod,
+                isChainedRelationalComparison,
+                _semanticModel, node.Syntax, node.GetPublicTypeSymbol(),
+                node.ConstantValueOpt, isImplicit: node.WasCompilerGenerated);
         }
 
         private IOperation CreateBoundInterpolatedStringBinaryOperator(BoundBinaryOperator boundBinaryOperator)

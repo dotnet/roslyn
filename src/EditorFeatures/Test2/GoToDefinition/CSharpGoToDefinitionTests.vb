@@ -4804,5 +4804,28 @@ public partial class Program
 
             Await TestAsync(workspace)
         End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToDefinition_ChainedRelationalComparison_UserDefinedOperator() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            struct S
+            {
+                public static bool operator [|&lt;|](S a, S b) => false;
+                public static bool operator >(S a, S b) => false;
+            }
+
+            class C
+            {
+                static bool M(S a, S b, S c) => a &lt; b $$&lt; c;
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace
