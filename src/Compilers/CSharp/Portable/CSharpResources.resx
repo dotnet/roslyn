@@ -8337,4 +8337,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MemberProviderInUnionDeclaration" xml:space="preserve">
     <value>A 'union' declaration cannot use a union member provider interface.</value>
   </data>
+  <data name="IDS_FeatureChainedRelationalComparison" xml:space="preserve">
+    <value>chained relational comparison</value>
+  </data>
+  <data name="ERR_NoChainedRelationalComparison" xml:space="preserve">
+    <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' as a chained relational comparison.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsChainedRelationalComparison" xml:space="preserve">
+    <value>An expression tree may not contain a chained relational comparison.</value>
+  </data>
 </root>

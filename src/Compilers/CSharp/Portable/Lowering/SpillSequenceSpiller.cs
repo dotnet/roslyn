@@ -993,6 +993,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!node.OperatorKind.IsDynamic());
 
+            // Chained relational comparisons are rewritten by
+            // LocalRewriter_ChainedRelationalOperator into a BoundSequence before the
+            // spill pass runs. If one reaches here, the eventual call to
+            // `node.Update(..., ConstantValueOpt, ..., BinaryOperatorMethod, ...)` below
+            // would silently drop ChainedRelationalLeftOperand via CreateIfNeeded,
+            // corrupting the bound tree.
+            Debug.Assert(!node.IsChainedRelational(out _, out _, out _));
+
             BoundSpillSequenceBuilder builder = null;
             var right = VisitExpression(ref builder, node.Right);
             BoundExpression left;

@@ -693,6 +693,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// True if <paramref name="kind"/> is one of the four relational-expression
+        /// <see cref="SyntaxKind"/>s that may participate in a chained relational
+        /// comparison (spec §11.11.13): <see cref="SyntaxKind.LessThanExpression"/>,
+        /// <see cref="SyntaxKind.LessThanOrEqualExpression"/>,
+        /// <see cref="SyntaxKind.GreaterThanExpression"/>, or
+        /// <see cref="SyntaxKind.GreaterThanOrEqualExpression"/>. Equality operators
+        /// (<c>==</c>, <c>!=</c>) are intentionally excluded.
+        /// </summary>
+        internal static bool IsChainableRelationalExpression(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public static bool IsAssignmentExpression(SyntaxKind kind)
         {
             switch (kind)
