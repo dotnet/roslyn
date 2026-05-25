@@ -37,17 +37,26 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private static string GetCreationExperimentalUrl(Node node)
+        /// <summary>
+        /// Returns the experimental URL that should annotate a factory method whose signature
+        /// includes the given fields. Node-level and kind-level marks apply regardless of which
+        /// fields appear in the signature; field-level marks only apply if that field actually
+        /// appears as a parameter. This prevents the shorthand factory from being annotated as
+        /// experimental when it doesn't take the experimental field as a parameter.
+        /// </summary>
+        private static string GetFactorySignatureExperimentalUrl(Node node, IEnumerable<Field> signatureFields)
         {
             if (!string.IsNullOrEmpty(node.ExperimentalUrl))
             {
                 return node.ExperimentalUrl;
             }
 
-            var fieldUrl = GetFieldExperimentalUrl(node);
-            if (fieldUrl != null)
+            foreach (var field in signatureFields)
             {
-                return fieldUrl;
+                if (!string.IsNullOrEmpty(field.ExperimentalUrl))
+                {
+                    return field.ExperimentalUrl;
+                }
             }
 
             if (node.Kinds.Count <= 1)
@@ -71,8 +80,11 @@ namespace CSharpSyntaxGenerator
             return experimentalKindCount == node.Kinds.Count - 1 ? experimentalUrl : null;
         }
 
-        // If a field is marked as experimental, then any factory or Update method that lets
-        // you set it is also considered experimental
+        /// <summary>
+        /// Used by Update: its signature always includes every field on the node, so any
+        /// field-level ExperimentalUrl always applies. Kind additions don't change Update's
+        /// signature, so kind-level marks are intentionally not propagated here.
+        /// </summary>
         private static string GetFieldExperimentalUrl(Node node)
         {
             foreach (var field in node.Fields)
@@ -1513,7 +1525,7 @@ namespace CSharpSyntaxGenerator
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
 
-            WriteExperimentalIfNeeded(GetCreationExperimentalUrl(nd));
+            WriteExperimentalIfNeeded(GetFactorySignatureExperimentalUrl(nd, nd.Fields));
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             WriteRedFactoryParameters(nd);
 
@@ -1699,7 +1711,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
-            WriteExperimentalIfNeeded(GetCreationExperimentalUrl(nd));
+            WriteExperimentalIfNeeded(GetFactorySignatureExperimentalUrl(nd, nd.Fields.Where(factoryWithNoAutoCreatableTokenFields.Contains)));
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
@@ -1773,14 +1785,14 @@ namespace CSharpSyntaxGenerator
             if (optionalCount == 0)
                 return; // already handled w/ general factory method
 
-            var minimalFactoryfields = new HashSet<Field>(DetermineMinimalFactoryFields(nd));
+            var minimalFactoryFields = new HashSet<Field>(DetermineMinimalFactoryFields(nd));
 
-            if (withStringNames && minimalFactoryfields.Count(f => IsRequiredFactoryField(nd, f) && CanAutoConvertFromString(f)) == 0)
+            if (withStringNames && minimalFactoryFields.Count(f => IsRequiredFactoryField(nd, f) && CanAutoConvertFromString(f)) == 0)
                 return; // no string-name overload necessary
 
             this.WriteLine();
 
-            var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
+            var hasOptional = minimalFactoryFields.Any(f => !IsRequiredFactoryField(nd, f));
             var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
 
             if (hasOptional && hasAttributeOrModifiersList)
@@ -1789,11 +1801,11 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
-            WriteExperimentalIfNeeded(GetCreationExperimentalUrl(nd));
+            WriteExperimentalIfNeeded(GetFactorySignatureExperimentalUrl(nd, nd.Fields.Where(minimalFactoryFields.Contains)));
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
-                nd.Fields.Where(minimalFactoryfields.Contains).Select(f =>
+                nd.Fields.Where(minimalFactoryFields.Contains).Select(f =>
                 {
                     var type = GetRedPropertyType(f);
 
@@ -1820,7 +1832,7 @@ namespace CSharpSyntaxGenerator
                 nd.Kinds.Count > 1 ? "kind" : "",
                 nd.Fields.Select(f =>
                 {
-                    if (minimalFactoryfields.Contains(f))
+                    if (minimalFactoryFields.Contains(f))
                     {
                         if (IsRequiredFactoryField(nd, f))
                         {
