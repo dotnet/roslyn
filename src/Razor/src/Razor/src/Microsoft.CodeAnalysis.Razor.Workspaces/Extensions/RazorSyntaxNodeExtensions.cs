@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
@@ -319,27 +318,6 @@ internal static class RazorSyntaxNodeExtensions
             .FirstOrDefault();
 
         return matchingNode is not null;
-    }
-
-    public static SyntaxNode RemoveEmptyNewLines(this SyntaxNode node)
-    {
-        if (node is MarkupTextLiteralSyntax markupTextLiteral)
-        {
-            var literalTokens = markupTextLiteral.LiteralTokens;
-            using var literalTokensWithoutLines = new PooledArrayBuilder<SyntaxToken>(literalTokens.Count);
-
-            foreach (var token in literalTokens)
-            {
-                if (token.Kind != SyntaxKind.NewLine)
-                {
-                    literalTokensWithoutLines.Add(token);
-                }
-            }
-
-            return markupTextLiteral.WithLiteralTokens(literalTokensWithoutLines.ToList());
-        }
-
-        return node;
     }
 
     public static bool IsCSharpNode(this SyntaxNode node, [NotNullWhen(true)] out CSharpCodeBlockSyntax? csharpCodeBlock)
