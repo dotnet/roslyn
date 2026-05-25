@@ -44,7 +44,24 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         TAnalyzer>, new()
 {
     protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
-        => (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
+    {
+        // Differentiate the lightbulb title (and the equivalence key that drives fix-all and
+        // user-visible action menus) based on which diagnostic ID surfaced the fix. IDE0017
+        // suggestions stay on the legacy "Object initialization can be simplified" string;
+        // IDE0400 (mixed object/collection initializer) suggestions get the merge-specific
+        // string so users see what is actually being proposed.
+        foreach (var diagnostic in context.Diagnostics)
+        {
+            if (diagnostic.Id == IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId)
+            {
+                return (
+                    AnalyzersResources.Object_and_collection_initialization_can_be_merged,
+                    nameof(AnalyzersResources.Object_and_collection_initialization_can_be_merged));
+            }
+        }
+
+        return (AnalyzersResources.Object_initialization_can_be_simplified, nameof(AnalyzersResources.Object_initialization_can_be_simplified));
+    }
 
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -58,7 +75,14 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
     public override ImmutableArray<string> FixableDiagnosticIds
-        => [IDEDiagnosticIds.UseObjectInitializerDiagnosticId];
+        => [
+            IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+            // Same analyzer + same synthesis path (`UseInitializerHelpers.GetNewObjectCreation`
+            // already picks the wrapper kind from the produced expressions); only the diagnostic
+            // ID differs. See `AbstractUseObjectInitializerDiagnosticAnalyzer.AnalyzeNode` for the
+            // mixed vs. pure routing.
+            IDEDiagnosticIds.UseMixedObjectAndCollectionInitializerDiagnosticId,
+        ];
 
     protected override async Task FixAsync(
         Document document,

@@ -177,6 +177,12 @@
   <data name="Object_initialization_can_be_simplified" xml:space="preserve">
     <value>Object initialization can be simplified</value>
   </data>
+  <data name="Use_mixed_object_and_collection_initializer" xml:space="preserve">
+    <value>Use mixed object and collection initializer</value>
+  </data>
+  <data name="Object_and_collection_initialization_can_be_merged" xml:space="preserve">
+    <value>Object and collection initialization can be merged</value>
+  </data>
   <data name="Add_readonly_modifier" xml:space="preserve">
     <value>Add readonly modifier</value>
   </data>

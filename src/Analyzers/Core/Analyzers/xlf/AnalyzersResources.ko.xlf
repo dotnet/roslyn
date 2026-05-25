@@ -256,6 +256,11 @@
         <target state="translated">Null 검사를 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Object_and_collection_initialization_can_be_merged">
+        <source>Object and collection initialization can be merged</source>
+        <target state="new">Object and collection initialization can be merged</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Order_modifiers">
         <source>Order modifiers</source>
         <target state="translated">순서 한정자</target>
@@ -489,6 +494,11 @@
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">유추 멤버 이름 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_mixed_object_and_collection_initializer">
+        <source>Use mixed object and collection initializer</source>
+        <target state="new">Use mixed object and collection initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">

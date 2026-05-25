@@ -107,7 +107,15 @@ internal sealed partial class SyntaxTreeIndex
                         containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
                         containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                         containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
-                        containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
+                        // Coarse fast-filter for find-refs walks. Set when an initializer wrapper
+                        // is *capable of* carrying `Add`-style children — either the pure
+                        // `CollectionInitializerExpression` shape, or any `ObjectInitializerExpression`
+                        // wrapper (which under the mixed object/collection initializer feature,
+                        // dotnet/csharplang#10185, may also have element-shape children that
+                        // `FindReferencesInCollectionInitializer` walks). Pure-member object
+                        // initializers also set this bit and are filtered downstream by
+                        // `GetCollectionInitializerSymbolInfo` returning `SymbolInfo.None`.
+                        containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node) || syntaxFacts.IsObjectMemberInitializer(node);
                         containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
                         containsPrimaryConstructorBaseType = containsPrimaryConstructorBaseType || syntaxFacts.IsPrimaryConstructorBaseType(node);
                         containsPartialClass = containsPartialClass || IsPartialClass(node);
