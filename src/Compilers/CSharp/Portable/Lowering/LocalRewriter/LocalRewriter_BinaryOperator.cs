@@ -132,6 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitStringConcatenation(node);
             }
 
+            if (node.IsChainedRelational)
+            {
+                return RewriteChainedRelationalOperator(node);
+            }
+
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
             // such as a + b + c + d ...
             // To avoid blowing the call stack, we make an explicit stack of the binary operators to the left, 
@@ -142,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (BoundBinaryOperator? current = node; current != null && current.ConstantValueOpt == null; current = current.Left as BoundBinaryOperator)
             {
                 // The regular visit mechanism will handle this.
-                if (current.InterpolatedStringHandlerData is not null || current.OperatorKind is BinaryOperatorKind.Utf8Addition || IsBinaryStringConcatenation(current))
+                if (current.InterpolatedStringHandlerData is not null || current.OperatorKind is BinaryOperatorKind.Utf8Addition || IsBinaryStringConcatenation(current) || current.IsChainedRelational)
                 {
                     Debug.Assert(stack.Count >= 1);
                     break;
