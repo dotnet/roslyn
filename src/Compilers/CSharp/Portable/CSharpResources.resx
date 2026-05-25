@@ -8289,6 +8289,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUnions" xml:space="preserve">
     <value>unions</value>
   </data>
+  <data name="IDS_FeatureCompoundAssignmentInInitializer" xml:space="preserve">
+    <value>compound assignment in object initializer and with expression</value>
+  </data>
+  <data name="IDS_FeatureMixedObjectAndCollectionInitializers" xml:space="preserve">
+    <value>mixed object and collection initializers</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsMixedObjectAndCollectionInitializer" xml:space="preserve">
+    <value>An expression tree may not contain a mixed object and collection initializer.</value>
+  </data>
   <data name="ERR_UnionDeclarationNeedsCaseTypes" xml:space="preserve">
     <value>A union declaration must specify at least one case type.</value>
   </data>
