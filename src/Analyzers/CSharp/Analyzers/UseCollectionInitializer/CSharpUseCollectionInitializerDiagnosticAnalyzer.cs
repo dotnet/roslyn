@@ -31,6 +31,10 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         MemberAccessExpressionSyntax,
         InvocationExpressionSyntax,
         ExpressionStatementSyntax,
+        // For C#, member assignments and `Add` invocations are both wrapped in
+        // `ExpressionStatementSyntax`. Pass 3 of the IDE0017+IDE0028 unification re-uses this
+        // slot for the unified walk's member-init detection — see the analyzer for details.
+        ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
         CSharpUseCollectionInitializerAnalyzer>
@@ -38,8 +42,41 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
     protected override ISyntaxFacts SyntaxFacts
         => CSharpSyntaxFacts.Instance;
 
+    // C# member-init fade includes the `.` operator token (`c.` is faded). VB's analogous
+    // shape historically faded only the receiver (`c`). See the legacy
+    // `CSharpUseObjectInitializerDiagnosticAnalyzer.FadeOutOperatorToken` for the equivalent.
+    protected override bool FadeOutOperatorToken => true;
+
     protected override CSharpUseCollectionInitializerAnalyzer GetAnalyzer()
         => CSharpUseCollectionInitializerAnalyzer.Allocate();
+
+    protected override bool HasExistingInvalidInitializerForCollectionExpression(BaseObjectCreationExpressionSyntax objectCreationExpression)
+    {
+        // Mirrors `CSharpUseCollectionInitializerAnalyzer.HasExistingInvalidInitializerForCollection`
+        // but takes the object creation as a parameter so the diagnostic analyzer can call it
+        // without going through the pooled walk's `_objectCreationExpression` field.
+        // Pre-Pass-3 the walk-level method was reached implicitly via `ShouldAnalyze`'s
+        // short-circuit; now the diagnostic analyzer's collection-expression branch
+        // consults this check directly.
+        if (objectCreationExpression.Initializer is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression)
+            {
+                Expressions: [var firstExpression, ..],
+            })
+        {
+            if (firstExpression is AssignmentExpressionSyntax
+                {
+                    Left: ImplicitElementAccessSyntax { ArgumentList.Arguments.Count: 1 }
+                } &&
+                this.SyntaxFacts.SupportsKeyValuePairElement(objectCreationExpression.SyntaxTree.Options))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
 
     protected override bool AreCollectionInitializersSupported(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp3;
@@ -51,7 +88,7 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         SemanticModel semanticModel,
         BaseObjectCreationExpressionSyntax objectCreationExpression,
         INamedTypeSymbol? expressionType,
-        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<InitializerMatch<SyntaxNode>> preMatches,
         bool allowSemanticsChange,
         CancellationToken cancellationToken,
         out bool changesSemantics)
@@ -64,7 +101,7 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         return UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
             semanticModel, objectCreationExpression, replacement, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics);
 
-        static IEnumerable<CollectionElementSyntax> GetMatchElements(ImmutableArray<CollectionMatch<SyntaxNode>> preMatches)
+        static IEnumerable<CollectionElementSyntax> GetMatchElements(ImmutableArray<InitializerMatch<SyntaxNode>> preMatches)
         {
             foreach (var match in preMatches)
             {

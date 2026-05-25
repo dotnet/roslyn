@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
+Imports Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Configuration.ConfigureCodeStyle
     Partial Public MustInherit Class BooleanCodeStyleOptionConfigurationTests
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Config
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(ByVal workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New VisualBasicUseObjectInitializerDiagnosticAnalyzer(), New ConfigureCodeStyleOptionCodeFixProvider())
+            Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(), New ConfigureCodeStyleOptionCodeFixProvider())
         End Function
 
         <Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>

@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
+using Microsoft.CodeAnalysis.CSharp.UseInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionInitializerDiagnosticAnalyzer,
-    CSharpUseCollectionInitializerCodeFixProvider>;
+    CSharpUseInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
 public sealed partial class UseCollectionInitializerTests
@@ -80,6 +81,46 @@ public sealed partial class UseCollectionInitializerTests
                 }
             }
             """);
+
+    [Fact]
+    public Task TestOnVariableDeclarator_PureAddSequenceUnderPreview()
+        // Under the mixed object/collection initializer feature
+        // (dotnet/csharplang#10185), the UseObjectInitializer analyzer would also see this
+        // shape as foldable via the Add-fold path introduced in PR 5. PR 7 routes that case to
+        // yield to IDE0028 (instead of either firing IDE0017 or the new IDE0400), so the
+        // single squiggle the user sees here is still IDE0028. This test pins that behavior
+        // from the IDE0028 side — the existing UseObjectInitializer tests pin the silence on
+        // the other side.
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    [|c.Add(|]2);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>
+                    {
+                        1,
+                        2
+                    };
+                }
+            }
+            """,
+            languageVersion: LanguageVersion.Preview);
 
     [Fact]
     public Task TestNotInField1()

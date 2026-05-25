@@ -4534,7 +4534,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundKind.AssignmentOperator:
                                 completion += VisitObjectElementInitializer(containingSlot, containingType, (BoundAssignmentOperator)initializer, delayCompletionForType);
                                 break;
+                            case BoundKind.CompoundAssignmentOperator:
+                            case BoundKind.NullCoalescingAssignmentOperator:
+                                VisitCompoundOrCoalesceObjectElementInitializer(containingSlot, containingType, initializer);
+                                break;
+                            case BoundKind.CollectionElementInitializer:
+                                // Mixed object/collection initializer (dotnet/csharplang#10185): an
+                                // element_initializer appears in an ObjectInitializerExpression. Drive
+                                // flow on it the same way the pure-collection branch below does.
+                                completion += VisitCollectionElementInitializer((BoundCollectionElementInitializer)initializer, containingType, delayCompletionForType);
+                                break;
                             default:
+                                // Event assignments (`E += h`) fall through: the event's backing delegate state
+                                // isn't part of the nullable model in a way that's observable to user code, and the
+                                // compound-style slot tracking wouldn't apply. VisitRvalue on BoundEventAssignmentOperator
+                                // is sufficient to drive flow on the handler argument. The dynamic-element-initializer
+                                // shape from the mixed feature lands here too — same VisitRvalue treatment as the
+                                // pure-collection branch.
                                 VisitRvalue(initializer);
                                 break;
                         }
@@ -4829,6 +4845,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var result = visitMemberAssignment(node, containingSlot, symbol, delayCompletionForType: false, conversionCompletion);
                     Debug.Assert(result is null);
                 };
+            }
+        }
+
+        /// <summary>
+        /// Nullable-flow handling for a compound (`Prop += v` / `Prop |= v`) or null-coalescing
+        /// (`Prop ??= v`) member initializer inside an object initializer. Mirrors
+        /// <see cref="VisitObjectElementInitializer"/>'s slot-tracking for simple assignment: resolve
+        /// the target <see cref="BoundObjectInitializerMember.MemberSymbol"/> against the containing
+        /// object, get the per-member slot, visit the assignment (which produces its result state via
+        /// <see cref="VisitCompoundAssignmentOperator"/> or <see cref="VisitNullCoalescingAssignmentOperator"/>),
+        /// and write that state back to the member's slot. Without this, the containing object's per-
+        /// member nullable state is stale after the initializer. Bare accesses (indexer, array,
+        /// pointer, dynamic-member) don't participate in per-member slot tracking on the container
+        /// and are skipped.
+        /// </summary>
+        private void VisitCompoundOrCoalesceObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundExpression node)
+        {
+            TakeIncrementalSnapshot(node);
+
+            VisitRvalue(node);
+
+            var left = node switch
+            {
+                BoundCompoundAssignmentOperator compound => compound.Left,
+                BoundNullCoalescingAssignmentOperator coalesce => coalesce.LeftOperand,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind),
+            };
+
+            if (left is not BoundObjectInitializerMember { MemberSymbol: { } memberSymbol })
+            {
+                return;
+            }
+
+            var resolved = memberSymbol.IsExtensionBlockMember()
+                ? memberSymbol
+                : AsMemberOfType(containingType, memberSymbol);
+
+            int memberSlot = (containingSlot < 0 || !IsSlotMember(containingSlot, resolved))
+                ? -1
+                : GetOrCreateSlot(resolved, containingSlot);
+
+            if (memberSlot >= 0)
+            {
+                var memberType = GetTypeOrReturnTypeWithAnnotations(resolved);
+                TrackNullableStateForAssignment(node, memberType, memberSlot, ResultType, valueSlot: -1);
             }
         }
 
@@ -11308,8 +11369,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
         {
-            Debug.Assert(expr is not BoundObjectInitializerMember);
-
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
             if (IsAnalyzingAttribute)
@@ -11324,6 +11383,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundFieldAccess field => GetFieldAnnotations(field.FieldSymbol),
                 BoundParameter { ParameterSymbol: ParameterSymbol parameter }
                     => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
+                // Compound / ??= member initializer wraps the target access; unwrap and recurse so
+                // the appropriate concrete-access case above picks it up.
+                BoundObjectInitializerMember { UnderlyingAccess: var underlying } => GetLValueAnnotations(underlying),
                 _ => FlowAnalysisAnnotations.None
             };
 
@@ -12667,8 +12729,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
-            // Should be handled by VisitObjectCreationExpression.
-            throw ExceptionUtilities.Unreachable();
+            // Normally this wrapper is handled inline by VisitObjectCreationExpressionInitializer's
+            // BoundKind.AssignmentOperator switch case, which dispatches to VisitObjectElementInitializer
+            // without calling Visit on the wrapper itself. The compound-assignment-in-initializer path
+            // however puts the wrapper in BoundCompoundAssignmentOperator.Left, so VisitCompoundAssignmentOperator
+            // visits us directly. Produce a result describing the member's type so the caller can track
+            // nullable state for the read / write.
+            foreach (var argument in node.Arguments)
+            {
+                VisitRvalue(argument);
+            }
+
+            var memberSymbol = node.MemberSymbol;
+            if (memberSymbol is null)
+            {
+                SetNotNullResult(node);
+                return null;
+            }
+
+            TypeWithAnnotations memberTypeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(memberSymbol);
+            FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(memberSymbol);
+            TypeWithState typeWithState = ApplyUnconditionalAnnotations(memberTypeWithAnnotations.ToTypeWithState(), memberAnnotations);
+            SetResult(node, typeWithState, memberTypeWithAnnotations);
+            return null;
         }
 
         public override BoundNode? VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)

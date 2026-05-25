@@ -256,6 +256,11 @@
         <target state="translated">Kontrola hodnot null může být zjednodušená.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Object_and_collection_initialization_can_be_merged">
+        <source>Object and collection initialization can be merged</source>
+        <target state="new">Object and collection initialization can be merged</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Order_modifiers">
         <source>Order modifiers</source>
         <target state="translated">Seřadit modifikátory</target>
@@ -489,6 +494,11 @@
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Použít odvozený název člena</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_mixed_object_and_collection_initializer">
+        <source>Use mixed object and collection initializer</source>
+        <target state="new">Use mixed object and collection initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">

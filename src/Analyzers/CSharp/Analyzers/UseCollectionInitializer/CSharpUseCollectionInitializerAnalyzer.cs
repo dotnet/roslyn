@@ -22,12 +22,24 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     MemberAccessExpressionSyntax,
     InvocationExpressionSyntax,
     ExpressionStatementSyntax,
+    // For C#, member assignments and `Add` invocations are both wrapped in
+    // `ExpressionStatementSyntax`; the unified walk uses this slot to detect assignment-
+    // statement shapes for member-init folding (the discriminator is the inner expression's
+    // kind, not the statement's). Re-using `ExpressionStatementSyntax` here keeps the C#
+    // generic instantiation simple.
+    ExpressionStatementSyntax,
     LocalDeclarationStatementSyntax,
     VariableDeclaratorSyntax,
     CSharpUseCollectionInitializerAnalyzer>
 {
     protected override IUpdateExpressionSyntaxHelper<ExpressionSyntax, StatementSyntax> SyntaxHelper
         => CSharpUpdateExpressionSyntaxHelper.Instance;
+
+    protected override bool SupportsCompoundAssignmentInInitializer(ParseOptions options)
+        => options.LanguageVersion().SupportsCompoundAssignmentInInitializer();
+
+    protected override bool SupportsMixedObjectAndCollectionInitializers(ParseOptions options)
+        => options.LanguageVersion().SupportsMixedObjectAndCollectionInitializers();
 
     protected override bool IsInitializerOfLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement, BaseObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out VariableDeclaratorSyntax? variableDeclarator)
         => CSharpObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, out variableDeclarator);
@@ -73,8 +85,8 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     }
 
     protected override bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
-        ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        ArrayBuilder<InitializerMatch<SyntaxNode>> preMatches,
+        ArrayBuilder<InitializerMatch<SyntaxNode>> postMatches,
         out bool mayChangeSemantics,
         CancellationToken cancellationToken)
     {
@@ -107,7 +119,11 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         // Otherwise, if we're in C#15 or above, we can use the 'with(args)' argument trivially.
         if (supportsWithArgument)
         {
-            preMatches.Add(new(argumentList, UseSpread: false, UseKeyValue: false));
+            preMatches.Add(new InitializerMatch<SyntaxNode>(
+                Node: argumentList,
+                Kind: InitializerMatchKind.ConstructorArgument,
+                UseSpread: false,
+                UseKeyValue: false));
             return true;
         }
 
@@ -143,7 +159,11 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             {
                 if (CanSpreadFirstParameter(constructor.ContainingType, firstParameter))
                 {
-                    preMatches.Add(new(argumentList.Arguments[0].Expression, UseSpread: true, UseKeyValue: false));
+                    preMatches.Add(new InitializerMatch<SyntaxNode>(
+                        Node: argumentList.Arguments[0].Expression,
+                        Kind: InitializerMatchKind.ConstructorArgument,
+                        UseSpread: true,
+                        UseKeyValue: false));
 
                     // Can't be certain that spreading the elements will be the same as passing to the constructor.  So pass
                     // that uncertainty up to the caller so they can inform the user.

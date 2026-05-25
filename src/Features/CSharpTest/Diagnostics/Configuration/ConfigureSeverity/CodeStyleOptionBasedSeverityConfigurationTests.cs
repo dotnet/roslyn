@@ -8,7 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity;
-using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
+using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -26,7 +26,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
     internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
     {
         return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                    new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
+                    new CSharpUseCollectionInitializerDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]

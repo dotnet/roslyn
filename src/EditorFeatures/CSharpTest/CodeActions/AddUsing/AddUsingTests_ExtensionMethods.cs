@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -884,6 +885,187 @@ public sealed partial class AddUsingTests
             }
             """,
             new TestParameters(parseOptions: null));
+
+    [Fact]
+    public Task TestAddUsingForAddExtensionMethod_MixedInitializer_AfterMemberInit()
+        // Mixed object/collection initializer (dotnet/csharplang#10185): an unbound bare-element
+        // `Add` target appears as a direct child of the `ObjectInitializerExpression` wrapper
+        // (because a sibling assignment promotes the wrapper kind), not the
+        // `CollectionInitializerExpression` wrapper. The add-import recovery must recognize both
+        // wrappers to surface the extension's namespace.
+        => TestAsync(
+            """
+            using System;
+            using System.Collections;
+
+            class X : IEnumerable
+            {
+                public int Y { get; set; }
+
+                public IEnumerator GetEnumerator()
+                {
+                    new X { Y = 1, [|2|] };
+                    return null;
+                }
+            }
+
+            namespace Ext
+            {
+                static class Extensions
+                {
+                    public static void Add(this X x, int i)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using Ext;
+
+            class X : IEnumerable
+            {
+                public int Y { get; set; }
+
+                public IEnumerator GetEnumerator()
+                {
+                    new X { Y = 1, 2 };
+                    return null;
+                }
+            }
+
+            namespace Ext
+            {
+                static class Extensions
+                {
+                    public static void Add(this X x, int i)
+                    {
+                    }
+                }
+            }
+            """,
+            new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
+
+    [Fact]
+    public Task TestAddUsingForAddExtensionMethod_MixedInitializer_BetweenMemberInits()
+        // Same situation, with the bare-element target interleaved between member assignments;
+        // the wrapper kind is still `ObjectInitializerExpression`.
+        => TestAsync(
+            """
+            using System;
+            using System.Collections;
+
+            class X : IEnumerable
+            {
+                public int Y { get; set; }
+                public int Z { get; set; }
+
+                public IEnumerator GetEnumerator()
+                {
+                    new X { Y = 1, [|2|], Z = 3 };
+                    return null;
+                }
+            }
+
+            namespace Ext
+            {
+                static class Extensions
+                {
+                    public static void Add(this X x, int i)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using Ext;
+
+            class X : IEnumerable
+            {
+                public int Y { get; set; }
+                public int Z { get; set; }
+
+                public IEnumerator GetEnumerator()
+                {
+                    new X { Y = 1, 2, Z = 3 };
+                    return null;
+                }
+            }
+
+            namespace Ext
+            {
+                static class Extensions
+                {
+                    public static void Add(this X x, int i)
+                    {
+                    }
+                }
+            }
+            """,
+            new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
+
+    [Fact]
+    public Task TestAddUsingForAddExtensionMethod_MixedInitializer_ComplexElement()
+        // Brace-list (`{ a, b }`) element-initializer parented under a mixed wrapper. Like the
+        // pure-collection case (`TestAddUsingForAddExtensionMethod10`), the recovery span is on
+        // the whole brace-list node, which is the direct child of the `ObjectInitializerExpression`
+        // wrapper. The widened helper must therefore surface the extension's namespace.
+        => TestAsync(
+            """
+            using System;
+            using System.Collections;
+
+            class X : IEnumerable
+            {
+                public int Y { get; set; }
+
+                public IEnumerator GetEnumerator()
+                {
+                    new X { Y = 1, [|{ 1, 2, 3 }|] };
+                    return null;
+                }
+            }
+
+            namespace Ext
+            {
+                static class Extensions
+                {
+                    public static void Add(this X x, int i)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using Ext;
+
+            class X : IEnumerable
+            {
+                public int Y { get; set; }
+
+                public IEnumerator GetEnumerator()
+                {
+                    new X { Y = 1, { 1, 2, 3 } };
+                    return null;
+                }
+            }
+
+            namespace Ext
+            {
+                static class Extensions
+                {
+                    public static void Add(this X x, int i)
+                    {
+                    }
+                }
+            }
+            """,
+            new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/269")]
     public Task TestAddUsingForAddExtensionMethod11()

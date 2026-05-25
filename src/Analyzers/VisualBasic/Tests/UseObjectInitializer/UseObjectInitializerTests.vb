@@ -2,15 +2,44 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Linq
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer.VisualBasicUseObjectInitializerDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer.VisualBasicUseObjectInitializerCodeFixProvider)
+    Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer.VisualBasicUseCollectionInitializerDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.UseInitializer.VisualBasicUseInitializerCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObjectInitializer
+    ' Pass 3b of the IDE0017+IDE0028 unification: the shared VB diagnostic analyzer registers
+    ' IDE0017, IDE0028 (and IDE0400, which VB never reports). The test framework's default
+    ' markup-driven expectations resolve to the first descriptor (IDE0028); every test in
+    ' this file targets IDE0017, so a Test wrapper that pins GetDefaultDiagnostic to IDE0017
+    ' is required. The legacy `VisualBasicUseObjectInitializerDiagnosticAnalyzer` alias used
+    ' here pre-Pass-3b was deleted in this pass.
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
     Public Class UseObjectInitializerTests
+        Private Class Test
+            Inherits VerifyVB.Test
+
+            Protected Overrides Function GetDefaultDiagnostic(analyzers As DiagnosticAnalyzer()) As DiagnosticDescriptor
+                ' If a future refactor drops the IDE0017 descriptor from the analyzer's
+                ' supported list, fail loudly instead of silently letting tests resolve to
+                ' the next descriptor.
+                Dim descriptor = analyzers _
+                    .SelectMany(Function(a) a.SupportedDiagnostics) _
+                    .FirstOrDefault(Function(d) d.Id = IDEDiagnosticIds.UseObjectInitializerDiagnosticId)
+
+                If descriptor Is Nothing Then
+                    Throw New InvalidOperationException(
+                        $"{NameOf(VisualBasic.UseCollectionInitializer.VisualBasicUseCollectionInitializerDiagnosticAnalyzer)} did not register the IDE0017 descriptor expected by this test wrapper.")
+                End If
+
+                Return descriptor
+            End Function
+        End Class
+
         Private Shared Async Function TestMissingInRegularAndScriptAsync(testCode As String) As Task
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = testCode
             }.RunAsync()
@@ -35,7 +64,7 @@ Class C
         }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -60,7 +89,7 @@ Class C
         }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -87,7 +116,7 @@ Class C
         }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -114,7 +143,7 @@ Class C
         c.i = 2
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -147,7 +176,7 @@ Class C
         }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -176,7 +205,7 @@ Class C
         c.j += 1
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -206,7 +235,7 @@ Class C
         }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -238,7 +267,7 @@ Class C
         c.i = 2
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -289,7 +318,7 @@ Class C
         }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -331,7 +360,7 @@ Class C
         }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -360,7 +389,7 @@ Class C
             }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -406,7 +435,7 @@ class XmlTextReader
     public y as integer
 end class
 "
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -455,7 +484,7 @@ class XmlTextReader
     public y as integer
 end class
 "
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -488,7 +517,7 @@ Class C
     End Sub
 End Class
 "
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -590,7 +619,7 @@ Class Goo
     Public Property LastName As String Implements IExample.LastName
 End Class
 "
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -641,7 +670,7 @@ Class Goo
     Public Property MyLastName As String Implements IExample.LastName
 End Class
 "
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -680,7 +709,7 @@ Class C
         }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
@@ -721,7 +750,7 @@ Class C
         }
     End Sub
 End Class"
-            Await New VerifyVB.Test With {
+            Await New Test With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }.RunAsync()
