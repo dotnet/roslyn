@@ -1504,17 +1504,17 @@
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
-        <target state="new">A 'union' declaration cannot use a union member provider interface.</target>
+        <target state="translated">'union' bildirimi bir birleşim üyesi sağlayıcısı arabirimi kullanamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionCaseTypes">
         <source>A union type must have at least one union creation member.</source>
-        <target state="new">A union type must have at least one union creation member.</target>
+        <target state="translated">Birleşim türünün en az bir birleşim oluşturma üyesi olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="new">A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</target>
+        <target state="translated">Birleşim üyesi sağlayıcısının türü, 'object?' veya 'object' türünde herkese açık bir örnek 'Value' özelliği içermelidir. Özelliğin bir get erişimcisi olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">

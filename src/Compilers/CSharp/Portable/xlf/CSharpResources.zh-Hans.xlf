@@ -1504,17 +1504,17 @@
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
-        <target state="new">A 'union' declaration cannot use a union member provider interface.</target>
+        <target state="translated">'union' 声明不能使用联合成员提供程序接口。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionCaseTypes">
         <source>A union type must have at least one union creation member.</source>
-        <target state="new">A union type must have at least one union creation member.</target>
+        <target state="translated">联合类型必须至少包含一个联合创建成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="new">A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</target>
+        <target state="translated">联合成员提供程序类型必须具有类型为 'object?' 或 'object' 的公共实例 'Value' 属性。属性必须具有 get 访问器。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
