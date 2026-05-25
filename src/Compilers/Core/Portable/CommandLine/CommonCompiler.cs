@@ -982,6 +982,9 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerCts != null)
                 {
                     analyzerCts.Cancel();
+
+                    Debug.Assert(analyzerDriver != null);
+                    analyzerDriver.WhenCompletedTask.Wait(cancellationToken);
                 }
 
                 var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
