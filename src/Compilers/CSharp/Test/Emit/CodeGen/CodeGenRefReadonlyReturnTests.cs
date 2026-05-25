@@ -501,15 +501,15 @@ class Program
 
             var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,25): error CS1031: Type expected
+                // (6,12): error CS9379: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
                 //     static ref readonly ref int M(int x)
-                Diagnostic(ErrorCode.ERR_TypeExpected, "ref").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(6, 12),
+                // (6,33): error CS0106: The modifier 'readonly' is not valid for this item
+                //     static ref readonly ref int M(int x)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(6, 33),
                 // (13,25): error CS0106: The modifier 'readonly' is not valid for this item
                 //     static readonly int M1(int x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("readonly").WithLocation(13, 25),
-                // (15,20): error CS0120: An object reference is required for the non-static field, method, or property 'Program.M(int)'
-                //         return ref M(x);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "M").WithArguments("Program.M(int)").WithLocation(15, 20),
                 // (15,9): error CS8149: By-reference returns may only be used in methods that return by reference
                 //         return ref M(x);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(15, 9)

@@ -3711,23 +3711,13 @@ class C(int X, int Y)
         public void RecordStructParsing_PartialReadonly()
         {
             var text = "partial readonly record struct S;";
-            UsingTree(text, options: TestOptions.RegularPreview,
-                // (1,9): error CS1585: Member modifier 'readonly' must precede the member type and name
-                // partial readonly record struct S;
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(1, 9)
-                );
+            UsingTree(text, options: TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
-                }
                 N(SyntaxKind.RecordStructDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);

@@ -9861,23 +9861,34 @@ public class C
 struct S { }
 partial ext X
 """;
+            // Parse flow here is:
+            //  1. 'struct S { }' parses cleanly (both braces matched).
+            //  2. 'partial ext X' then parses as a field declaration (modifier 'partial', type 'ext',
+            //     name 'X') under the relaxed modifier-ordering rules.
+            //  3. A post-pass notices that a field can't live at the compilation unit level, so it
+            //     reinterprets the struct's closing '}' as spurious and folds the field back into
+            //     'S's body, reporting a missing '}' at end of file.
+            // That cascade is the source of the diagnostics below.
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (1,13): error CS1031: Type expected
+                // (1,12): error CS1519: Invalid token '}' in a member declaration
                 // struct S { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 13),
-                // (1,13): error CS1525: Invalid expression term 'partial'
-                // struct S { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
-                // (1,13): error CS1003: Syntax error, ',' expected
-                // struct S { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
-                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(1, 12),
+                // (2,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "partial").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
+                // (2,9): error CS0246: The type or namespace name 'ext' could not be found (are you missing a using directive or an assembly reference?)
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ext").WithArguments("ext").WithLocation(2, 9),
+                // (2,13): warning CS0169: The field 'S.X' is never used
+                // partial ext X
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("S.X").WithLocation(2, 13),
                 // (2,14): error CS1002: ; expected
                 // partial ext X
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14),
+                // (2,14): error CS1513: } expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 14));
         }
 
         [Fact]
