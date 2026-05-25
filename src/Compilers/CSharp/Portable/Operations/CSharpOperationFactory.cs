@@ -1575,6 +1575,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                        boundBinaryOperator.TrueOperator,
                                                                                    boundBinaryOperator.ConstrainedToTypeOpt);
                 return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText, operatorMethod, constrainedToTypeOpt.GetPublicSymbol(), unaryOperatorMethod,
+                                           isChainedRelationalComparison: false,
                                            _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
@@ -1592,10 +1593,17 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isChecked = boundBinaryOperator.OperatorKind.IsChecked() || (binaryOperatorMethod is not null && SyntaxFacts.IsCheckedOperator(binaryOperatorMethod.Name));
             bool isCompareText = false;
             bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
+            // The outer link of a chained relational comparison (spec §11.11.13) has
+            // short-circuit semantics over its LeftOperand's bool result. Thread that
+            // signal through to the operation so ControlFlowGraphBuilder emits the
+            // right edges - without it, chained comparisons would flow as straight-
+            // line evaluation and any CFG-based analyzer would be wrong.
+            bool isChainedRelationalComparison = boundBinaryOperator.IsChainedRelational(out _);
             return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText,
                                        binaryOperatorMethod.GetPublicSymbol(),
                                        GetConstrainedToTypeForOperator(binaryOperatorMethod, boundBinaryOperator.ConstrainedToType).GetPublicSymbol(),
                                        unaryOperatorMethod.GetPublicSymbol(),
+                                       isChainedRelationalComparison,
                                        _semanticModel, syntax, type, constantValue, isImplicit);
         }
 

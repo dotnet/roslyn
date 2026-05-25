@@ -2439,9 +2439,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.OperatorKind.IsLogical())
+            if (node.IsShortCircuiting)
             {
-                Debug.Assert(!node.OperatorKind.IsUserDefined());
+                // Chained relational comparison nodes (IsChainedRelational==true) are short-
+                // circuiting like `&&` even though their OperatorKind is `<`/`<=`/`>`/`>=`
+                // rather than `LogicalBoolAnd`. Flow walkers that key off IsLogical() for
+                // split-state handling of the right operand must also handle these nodes
+                // through the same path.
+                Debug.Assert(!node.OperatorKind.IsLogical() || !node.OperatorKind.IsUserDefined());
                 VisitBinaryLogicalOperatorChildren(node);
             }
             else if (node.InterpolatedStringHandlerData is { } data)
@@ -2478,12 +2483,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var binOp = (BoundBinaryOperator)child;
 
-                    if (!binOp.OperatorKind.IsLogical())
+                    if (!binOp.IsShortCircuiting)
                     {
                         break;
                     }
 
-                    Debug.Assert(!binOp.OperatorKind.IsUserDefined());
+                    Debug.Assert(!binOp.OperatorKind.IsLogical() || !binOp.OperatorKind.IsUserDefined());
                     binary = child;
                     child = binOp.Left;
                 }
@@ -2532,12 +2537,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BinaryOperatorKind kind;
                 BoundExpression right;
+                bool isChainedRelational = false;
                 switch (binary.Kind)
                 {
                     case BoundKind.BinaryOperator:
                         var binOp = (BoundBinaryOperator)binary;
                         kind = binOp.OperatorKind;
                         right = binOp.Right;
+                        isChainedRelational = binOp.IsChainedRelational(out _);
                         break;
                     case BoundKind.UserDefinedConditionalLogicalOperator:
                         var udBinOp = (BoundUserDefinedConditionalLogicalOperator)binary;
@@ -2548,12 +2555,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(binary.Kind);
                 }
 
+                // A chained relational comparison node behaves like a short-circuit `&&`
+                // on its left (bool) operand, even though its operator kind is a relational
+                // one (`<`, `<=`, `>`, `>=`). Treat isAnd==true; the right operand's type
+                // is not `bool`, so isBool==false forces the Unsplit/Split cycle that
+                // synthesises the `Y op B` conditional state after visiting the right operand.
                 var op = kind.Operator();
-                var isAnd = op == BinaryOperatorKind.And;
-                var isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
+                var isAnd = isChainedRelational || op == BinaryOperatorKind.And;
+                var isBool = !isChainedRelational && kind.OperandTypes() == BinaryOperatorKind.Bool;
                 Debug.Assert(!isBool || binary.Kind != BoundKind.UserDefinedConditionalLogicalOperator);
 
-                Debug.Assert(isAnd || op == BinaryOperatorKind.Or);
+                Debug.Assert(isChainedRelational || isAnd || op == BinaryOperatorKind.Or);
 
                 var leftTrue = this.StateWhenTrue;
                 var leftFalse = this.StateWhenFalse;
@@ -2579,6 +2591,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression right, bool isAnd, bool isBool, ref TLocalState leftTrue, ref TLocalState leftFalse)
         {
+            ComputeBinaryLogicalRightChildConditionalState(right, isAnd, isBool, ref leftTrue, ref leftFalse, out var resultTrue, out var resultFalse);
+            SetConditionalState(resultTrue, resultFalse);
+
+            if (!isBool)
+            {
+                this.Unsplit();
+            }
+        }
+
+        /// <summary>
+        /// Phase one of <see cref="AfterRightChildOfBinaryLogicalOperatorHasBeenVisited"/>:
+        /// adjusts the conditional state around the right operand's visit, normalizes via
+        /// <see cref="Unsplit"/> / <see cref="Split"/> for non-bool operators, and computes
+        /// the final (<paramref name="resultTrue"/>, <paramref name="resultFalse"/>) pair
+        /// without installing the conditional state or calling the trailing
+        /// <see cref="Unsplit"/>.
+        ///
+        /// Callers that need to mutate one of the result branches between the join and the
+        /// final state installation (e.g. NullableWalker's chained-lifted-relational refinement,
+        /// which marks operand slots non-null only on the when-true branch and must avoid the
+        /// trailing <see cref="Unsplit"/>) can compose this helper directly and take over the
+        /// rest of the sequence themselves.
+        /// </summary>
+        protected void ComputeBinaryLogicalRightChildConditionalState(
+            BoundExpression right, bool isAnd, bool isBool,
+            ref TLocalState leftTrue, ref TLocalState leftFalse,
+            out TLocalState resultTrue, out TLocalState resultFalse)
+        {
             AdjustConditionalState(right); // Second part of VisitCondition
 
             if (!isBool)
@@ -2587,8 +2627,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Split();
             }
 
-            var resultTrue = this.StateWhenTrue;
-            var resultFalse = this.StateWhenFalse;
+            resultTrue = this.StateWhenTrue;
+            resultFalse = this.StateWhenFalse;
             if (isAnd)
             {
                 Join(ref resultFalse, ref leftFalse);
@@ -2596,12 +2636,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Join(ref resultTrue, ref leftTrue);
-            }
-            SetConditionalState(resultTrue, resultFalse);
-
-            if (!isBool)
-            {
-                this.Unsplit();
             }
         }
 
@@ -2621,7 +2655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnterRegionIfNeeded(binary);
                 binary = binary.Left as BoundBinaryOperator;
             }
-            while (binary != null && !binary.OperatorKind.IsLogical() && binary.InterpolatedStringHandlerData is null);
+            while (binary != null && !binary.IsShortCircuiting && binary.InterpolatedStringHandlerData is null);
 
             VisitBinaryOperatorChildren(stack);
             stack.Free();
