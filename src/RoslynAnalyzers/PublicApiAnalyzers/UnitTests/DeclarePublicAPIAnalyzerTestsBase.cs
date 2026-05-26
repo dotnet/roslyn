@@ -2941,6 +2941,48 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
+        [Fact]
+        public async Task TestExperimentalAddedToShippedApiAsync()
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class C
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} void Method() { }
+                }
+                """;
+
+            var shippedText = """
+                C
+                C.C() -> void
+                C.Method() -> void
+                """;
+
+            var unshippedText = """
+                *REMOVED*C.Method() -> void
+                [ID1]C.Method() -> void
+                """;
+
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, DefaultVerifier>()
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+                CompilerDiagnostics = CompilerDiagnostics.None,
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles =
+                    {
+                        (ShippedFileName, shippedText),
+                        (UnshippedFileName, unshippedText),
+                    },
+                },
+            };
+            test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
+            await test.RunAsync();
+        }
+
         private const string RequiresUnsafeAttributeSource = """
             namespace System.Runtime.CompilerServices
             {
