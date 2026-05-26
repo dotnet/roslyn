@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
@@ -20,12 +21,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// Also creates the <see cref="ProjectInitializationHandler"/> with the actual service broker instance
 /// so it can subscribe to the remote project initialization status service.
 /// </summary>
-[Export(typeof(IServiceBrokerInitializer)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(DevKitProjectLoadingServiceContributor)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DevKitProjectLoadingServiceContributor(
     LanguageServerWorkspaceFactory workspaceFactory,
-    ILoggerFactory loggerFactory) : IServiceBrokerInitializer
+    ILoggerFactory loggerFactory) : IServiceBrokerInitializer, ILspService
 {
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
     {
