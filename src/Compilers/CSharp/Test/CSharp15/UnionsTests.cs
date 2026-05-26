@@ -41252,7 +41252,7 @@ union S1(int);
             {
                 // union S1(int);
                 var node = SyntaxFactory.CompilationUnit().AddMembers(
-                    SyntaxFactory.StructDeclaration(
+                    SyntaxFactory.UnionDeclaration(
                         attributeLists: default,
                         modifiers: default,
                         keyword: SyntaxFactory.Token(SyntaxKind.UnionKeyword),

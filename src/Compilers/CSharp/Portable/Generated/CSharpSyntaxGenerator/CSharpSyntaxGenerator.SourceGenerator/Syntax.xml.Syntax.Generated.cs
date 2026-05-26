@@ -10531,7 +10531,6 @@ public sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
 /// <para>This node is associated with the following syntax kinds:</para>
 /// <list type="bullet">
 /// <item><description><see cref="SyntaxKind.StructDeclaration"/></description></item>
-/// <item><description><see cref="SyntaxKind.UnionDeclaration"/></description></item>
 /// </list>
 /// </remarks>
 public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
@@ -10559,7 +10558,7 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    /// <summary>Gets the struct or union keyword token.</summary>
+    /// <summary>Gets the struct keyword token.</summary>
     public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.StructDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
     public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.StructDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
@@ -10632,7 +10631,7 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
         if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.StructDeclaration(this.Kind(), attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+            var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
@@ -10691,6 +10690,173 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     public new StructDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     internal override TypeDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items) => AddMembers(items);
     public new StructDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
+}
+
+/// <summary>Union type declaration syntax.</summary>
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.UnionDeclaration"/></description></item>
+/// </list>
+/// </remarks>
+[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82567")]
+public sealed partial class UnionDeclarationSyntax : TypeDeclarationSyntax
+{
+    private SyntaxNode? attributeLists;
+    private TypeParameterListSyntax? typeParameterList;
+    private ParameterListSyntax? parameterList;
+    private BaseListSyntax? baseList;
+    private SyntaxNode? constraintClauses;
+    private SyntaxNode? members;
+
+    internal UnionDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+
+    public override SyntaxTokenList Modifiers
+    {
+        get
+        {
+            var slot = this.Green.GetSlot(1);
+            return slot != null ? new SyntaxTokenList(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+        }
+    }
+
+    /// <summary>Gets the union keyword token.</summary>
+    public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.UnionDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+
+    public override SyntaxToken Identifier => new SyntaxToken(this, ((InternalSyntax.UnionDeclarationSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
+
+    public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 4);
+
+    public override ParameterListSyntax? ParameterList => GetRed(ref this.parameterList, 5);
+
+    public override BaseListSyntax? BaseList => GetRed(ref this.baseList, 6);
+
+    public override SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new SyntaxList<TypeParameterConstraintClauseSyntax>(GetRed(ref this.constraintClauses, 7));
+
+    public override SyntaxToken OpenBraceToken
+    {
+        get
+        {
+            var slot = ((Syntax.InternalSyntax.UnionDeclarationSyntax)this.Green).openBraceToken;
+            return slot != null ? new SyntaxToken(this, slot, GetChildPosition(8), GetChildIndex(8)) : default;
+        }
+    }
+
+    public override SyntaxList<MemberDeclarationSyntax> Members => new SyntaxList<MemberDeclarationSyntax>(GetRed(ref this.members, 9));
+
+    public override SyntaxToken CloseBraceToken
+    {
+        get
+        {
+            var slot = ((Syntax.InternalSyntax.UnionDeclarationSyntax)this.Green).closeBraceToken;
+            return slot != null ? new SyntaxToken(this, slot, GetChildPosition(10), GetChildIndex(10)) : default;
+        }
+    }
+
+    public override SyntaxToken SemicolonToken
+    {
+        get
+        {
+            var slot = ((Syntax.InternalSyntax.UnionDeclarationSyntax)this.Green).semicolonToken;
+            return slot != null ? new SyntaxToken(this, slot, GetChildPosition(11), GetChildIndex(11)) : default;
+        }
+    }
+
+    internal override SyntaxNode? GetNodeSlot(int index)
+        => index switch
+        {
+            0 => GetRedAtZero(ref this.attributeLists)!,
+            4 => GetRed(ref this.typeParameterList, 4),
+            5 => GetRed(ref this.parameterList, 5),
+            6 => GetRed(ref this.baseList, 6),
+            7 => GetRed(ref this.constraintClauses, 7)!,
+            9 => GetRed(ref this.members, 9)!,
+            _ => null,
+        };
+
+    internal override SyntaxNode? GetCachedSlot(int index)
+        => index switch
+        {
+            0 => this.attributeLists,
+            4 => this.typeParameterList,
+            5 => this.parameterList,
+            6 => this.baseList,
+            7 => this.constraintClauses,
+            9 => this.members,
+            _ => null,
+        };
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnionDeclaration(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUnionDeclaration(this);
+
+    public UnionDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+    {
+        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+        {
+            var newNode = SyntaxFactory.UnionDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+    public new UnionDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+    public new UnionDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    internal override TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
+    public new UnionDeclarationSyntax WithKeyword(SyntaxToken keyword) => Update(this.AttributeLists, this.Modifiers, keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    internal override BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
+    public new UnionDeclarationSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Keyword, identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    internal override TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax? typeParameterList) => WithTypeParameterList(typeParameterList);
+    public new UnionDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax? typeParameterList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, typeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    internal override TypeDeclarationSyntax WithParameterListCore(ParameterListSyntax? parameterList) => WithParameterList(parameterList);
+    public new UnionDeclarationSyntax WithParameterList(ParameterListSyntax? parameterList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, parameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    internal override BaseTypeDeclarationSyntax WithBaseListCore(BaseListSyntax? baseList) => WithBaseList(baseList);
+    public new UnionDeclarationSyntax WithBaseList(BaseListSyntax? baseList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, baseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    internal override TypeDeclarationSyntax WithConstraintClausesCore(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => WithConstraintClauses(constraintClauses);
+    public new UnionDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, constraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    internal override BaseTypeDeclarationSyntax WithOpenBraceTokenCore(SyntaxToken openBraceToken) => WithOpenBraceToken(openBraceToken);
+    public new UnionDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    internal override TypeDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members) => WithMembers(members);
+    public new UnionDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
+    internal override BaseTypeDeclarationSyntax WithCloseBraceTokenCore(SyntaxToken closeBraceToken) => WithCloseBraceToken(closeBraceToken);
+    public new UnionDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
+    internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
+    public new UnionDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.ParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
+
+    internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+    public new UnionDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+    internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+    public new UnionDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
+    internal override TypeDeclarationSyntax AddTypeParameterListParametersCore(params TypeParameterSyntax[] items) => AddTypeParameterListParameters(items);
+    public new UnionDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
+    {
+        var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
+        return WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
+    }
+    internal override TypeDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
+    public new UnionDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    {
+        var parameterList = this.ParameterList ?? SyntaxFactory.ParameterList();
+        return WithParameterList(parameterList.WithParameters(parameterList.Parameters.AddRange(items)));
+    }
+    internal override BaseTypeDeclarationSyntax AddBaseListTypesCore(params BaseTypeSyntax[] items) => AddBaseListTypes(items);
+    public new UnionDeclarationSyntax AddBaseListTypes(params BaseTypeSyntax[] items)
+    {
+        var baseList = this.BaseList ?? SyntaxFactory.BaseList();
+        return WithBaseList(baseList.WithTypes(baseList.Types.AddRange(items)));
+    }
+    internal override TypeDeclarationSyntax AddConstraintClausesCore(params TypeParameterConstraintClauseSyntax[] items) => AddConstraintClauses(items);
+    public new UnionDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
+    internal override TypeDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items) => AddMembers(items);
+    public new UnionDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
 }
 
 /// <summary>Interface type declaration syntax.</summary>
