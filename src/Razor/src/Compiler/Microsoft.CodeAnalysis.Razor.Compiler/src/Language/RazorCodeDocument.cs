@@ -1,7 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -262,18 +261,15 @@ public sealed partial class RazorCodeDocument
         return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, value, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
     }
 
-    [Obsolete("Use GetCSharpDocuments instead; a RazorCodeDocument may now have multiple generated C# documents.")]
     internal bool TryGetCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
     {
         result = _csharpDocument;
         return result is not null;
     }
 
-    [Obsolete("Use GetCSharpDocuments instead; a RazorCodeDocument may now have multiple generated C# documents.")]
     internal RazorCSharpDocument? GetCSharpDocument()
         => _csharpDocument;
 
-    [Obsolete("Use GetCSharpDocuments instead; a RazorCodeDocument may now have multiple generated C# documents.")]
     internal RazorCSharpDocument GetRequiredCSharpDocument()
         => _csharpDocument.AssumeNotNull();
 
