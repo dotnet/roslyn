@@ -1979,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsClosed)
             {
                 // Ensure necessary attributes are present
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor, diagnostics, GetFirstLocation());
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, GetFirstLocation());
                 _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
             }
 
