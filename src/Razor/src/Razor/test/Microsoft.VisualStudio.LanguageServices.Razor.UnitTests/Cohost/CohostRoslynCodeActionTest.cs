@@ -752,11 +752,8 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
         var changes = await mappingService.GetMappedTextChangesAsync(generatedDoc, modifiedGeneratedDoc, DisposalToken);
 
         var razorText = await razorDocument.GetTextAsync(DisposalToken);
-        foreach (var change in changes)
-        {
-            Assert.Equal(razorDocument.FilePath, change.FilePath);
-            razorText = razorText.WithChanges(change.TextChanges);
-        }
+        Assert.All(changes, change => Assert.Equal(razorDocument.FilePath, change.MappedFilePath));
+        razorText = razorText.WithChanges(changes.Select(change => change.TextChange));
 
         AssertEx.EqualOrDiff(expectedRazorFile.Text, razorText.ToString());
     }

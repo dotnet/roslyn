@@ -1,15 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 [DataContract]
-internal readonly struct RazorMappedSpanResult
+internal readonly struct RemoteMappedSpanResult
 {
     [DataMember(Order = 0)]
     public readonly string FilePath;
@@ -20,7 +18,7 @@ internal readonly struct RazorMappedSpanResult
     [DataMember(Order = 2)]
     public readonly TextSpan Span;
 
-    public RazorMappedSpanResult(string filePath, LinePositionSpan linePositionSpan, TextSpan span)
+    public RemoteMappedSpanResult(string filePath, LinePositionSpan linePositionSpan, TextSpan span)
     {
         FilePath = filePath;
         LinePositionSpan = linePositionSpan;
@@ -31,7 +29,7 @@ internal readonly struct RazorMappedSpanResult
 }
 
 [DataContract]
-internal readonly record struct RazorMappedEditResult(
+internal readonly record struct RemoteMappedEditResult(
     [property: DataMember(Order = 0)] string FilePath,
     [property: DataMember(Order = 1)] TextChange[] TextChanges)
 {

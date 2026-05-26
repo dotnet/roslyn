@@ -8,18 +8,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentExcerpt;
 
-internal static class DocumentExcerptHelper
+internal static class RazorDocumentExcerptHelper
 {
     public static async Task<ImmutableArray<ClassifiedSpan>.Builder> ClassifyPreviewAsync(
         TextSpan excerptSpan,
         Document generatedDocument,
         ImmutableArray<SourceMapping> mappingsSortedByOriginal,
-        RazorClassificationOptionsWrapper options,
+        ClassificationOptions options,
         CancellationToken cancellationToken)
     {
         var builder = ImmutableArray.CreateBuilder<ClassifiedSpan>();
@@ -33,6 +34,7 @@ internal static class DocumentExcerptHelper
             return builder;
         }
 
+        SemanticModel? semanticModel = null;
         var remainingSpan = excerptSpan;
         foreach (var span in mappingsSortedByOriginal)
         {
@@ -69,11 +71,16 @@ internal static class DocumentExcerptHelper
             //
             // However, we'll have to translate it to the the generated document's coordinates to do that.
             Debug.Assert(remainingSpan.Contains(primarySpan) && remainingSpan.Start == primarySpan.Start);
-            var classifiedSecondarySpans = await RazorClassifierAccessor.GetClassifiedSpansAsync(
-                generatedDocument,
+
+            // Defer realising the semantic model so we don't waste time if there is nothing to be excerpted
+            semanticModel ??= await generatedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var classifiedSecondarySpans = Classifier.GetClassifiedSpans(
+                generatedDocument.Project.Solution.Services,
+                generatedDocument.Project,
+                semanticModel,
                 secondarySpan,
                 options,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
             // NOTE: The Classifier will only returns spans for things that it understands. That means
             // that whitespace is not classified. The preview expects us to provide contiguous spans,
@@ -125,12 +132,12 @@ internal static class DocumentExcerptHelper
         return builder;
     }
 
-    public static TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, RazorExcerptMode mode)
+    public static TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, ExcerptMode mode)
     {
         var startLine = text.Lines.GetLineFromPosition(span.Start);
         var endLine = text.Lines.GetLineFromPosition(span.End);
 
-        if (mode == RazorExcerptMode.Tooltip)
+        if (mode == ExcerptMode.Tooltip)
         {
             // Expand the range by 3 in each direction (if possible).
             var startIndex = Math.Max(startLine.LineNumber - 3, 0);
