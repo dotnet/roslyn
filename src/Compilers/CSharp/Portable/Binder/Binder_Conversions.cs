@@ -103,6 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
+                if (conversion.Kind == ConversionKind.KeyValuePair)
+                {
+                    return false;
+                }
+
                 if ((conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)))
                 {
                     return false;

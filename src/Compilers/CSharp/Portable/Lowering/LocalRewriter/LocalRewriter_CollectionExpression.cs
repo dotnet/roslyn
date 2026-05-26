@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionType is ArrayTypeSymbol arrayType)
             {
-                Debug.Assert(node.Elements.All(e => e is BoundExpression));
+                Debug.Assert(node.Elements.All(e => e is BoundExpression or BoundCollectionExpressionSpreadElement));
                 return createArray(node, arrayType, targetsReadOnlyCollection: false);
             }
 
