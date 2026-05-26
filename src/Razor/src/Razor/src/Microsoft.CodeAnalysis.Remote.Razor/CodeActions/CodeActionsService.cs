@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Reflection;
-using System.Text.Json;
+    using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -16,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -37,8 +34,6 @@ internal sealed class CodeActionsService(
     [ImportMany] IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
     LanguageServerFeatureOptions languageServerFeatureOptions) : ICodeActionsService
 {
-    private static readonly ImmutableHashSet<string> s_allAvailableCodeActionNames = GetAllAvailableCodeActionNames();
-
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IEnumerable<IRazorCodeActionProvider> _razorCodeActionProviders = razorCodeActionProviders;
     private readonly IEnumerable<ICSharpCodeActionProvider> _csharpCodeActionProviders = csharpCodeActionProviders;
@@ -229,14 +224,7 @@ internal sealed class CodeActionsService(
                 continue;
             }
 
-            foreach (var tag in tags)
-            {
-                if (s_allAvailableCodeActionNames.Contains(tag))
-                {
-                    codeAction.Name = tag;
-                    break;
-                }
-            }
+            codeAction.Name = GetCodeActionName(tags);
 
             if (string.IsNullOrEmpty(codeAction.Name))
             {
@@ -256,6 +244,33 @@ internal sealed class CodeActionsService(
         }
 
         return actions.ToArray();
+    }
+
+    private static string? GetCodeActionName(string[] tags)
+    {
+        foreach (var tag in tags)
+        {
+            // VS Code can send these type-accessibility actions with this synthetic marker instead of
+            // a Roslyn provider name. Keep it so the later Razor-specific filtering can recognize the
+            // special path and turn the delegated action into our AddUsing/FullyQualify experience.
+            if (tag == LanguageServerConstants.CodeActions.CodeActionFromVSCode)
+            {
+                return tag;
+            }
+        }
+
+        // Roslyn appends the provider name to CustomTags, and the other known custom tag in this flow
+        // is the high-priority GUID tag. Walk backwards so inlined nested actions still resolve to the provider name.
+        for (var i = tags.Length - 1; i >= 0; i--)
+        {
+            var tag = tags[i];
+            if (!Guid.TryParse(tag, out _))
+            {
+                return tag;
+            }
+        }
+
+        return null;
     }
 
     private async Task<ImmutableArray<RazorVSInternalCodeAction>> FilterDelegatedCodeActionsAsync(
@@ -318,25 +333,4 @@ internal sealed class CodeActionsService(
         return codeActions.ToImmutableOrderedByAndClear(static r => r.Order);
     }
 
-    private static ImmutableHashSet<string> GetAllAvailableCodeActionNames()
-    {
-        using var _ = ArrayBuilderPool<string>.GetPooledObject(out var availableCodeActionNames);
-
-        var refactoringProviderNames = typeof(RazorPredefinedCodeRefactoringProviderNames)
-            .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
-            .Where(property => property.PropertyType == typeof(string))
-            .Select(property => property.GetValue(null) as string)
-            .WhereNotNull();
-        var codeFixProviderNames = typeof(RazorPredefinedCodeFixProviderNames)
-            .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
-            .Where(property => property.PropertyType == typeof(string))
-            .Select(property => property.GetValue(null) as string)
-            .WhereNotNull();
-
-        availableCodeActionNames.AddRange(refactoringProviderNames);
-        availableCodeActionNames.AddRange(codeFixProviderNames);
-        availableCodeActionNames.Add(LanguageServerConstants.CodeActions.CodeActionFromVSCode);
-
-        return availableCodeActionNames.ToImmutableHashSet();
-    }
 }
