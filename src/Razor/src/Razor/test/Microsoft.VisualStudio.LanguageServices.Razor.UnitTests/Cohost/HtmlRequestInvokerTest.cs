@@ -107,7 +107,7 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
     {
         var htmlTextSnapshot = new StringTextSnapshot("");
         var htmlTextBuffer = new TestTextBuffer(htmlTextSnapshot);
-        var checksum = await document.GetChecksumAsync(DisposalToken);
+        var checksum = await document.State.GetChecksumAsync(DisposalToken);
         var requestInvoker = new TestLSPRequestInvoker((method, null));
         var lspDocumentManager = new TestDocumentManager();
         var htmlVirtualDocument = new HtmlVirtualDocumentSnapshot(htmlDocumentUri, htmlTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1, state: checksum);

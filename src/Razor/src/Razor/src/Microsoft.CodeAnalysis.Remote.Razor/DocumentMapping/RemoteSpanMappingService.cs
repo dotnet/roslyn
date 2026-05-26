@@ -227,7 +227,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
 
     private async Task<TextDocument?> TryGetRazorDocumentForGeneratedDocumentAsync(SourceGeneratedDocument generatedDocument, CancellationToken cancellationToken)
     {
-        var identity = RazorGeneratedDocumentIdentity.Create(generatedDocument);
+        var identity = generatedDocument.Identity;
         if (!identity.IsRazorSourceGeneratedDocument())
         {
             return null;
