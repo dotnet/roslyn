@@ -87,7 +87,6 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
         // and skip nodes that belong in the impl half:
         //   - renderMethod
         //   - any IsSynthesizedHelper node (compiler plumbing)
-        //   - IsGenericTyped namespaces (type-inference helpers)
         var declDocNode = CloneContainer(documentNode);
         var declNamespace = CloneContainer(primaryNamespace);
         var declClass = CloneContainer(primaryClass);
@@ -114,7 +113,7 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
 
         foreach (var docChild in documentNode.Children)
         {
-            if (docChild is NamespaceDeclarationIntermediateNode { IsGenericTyped: true })
+            if (docChild.IsSynthesizedHelper)
             {
                 continue;
             }

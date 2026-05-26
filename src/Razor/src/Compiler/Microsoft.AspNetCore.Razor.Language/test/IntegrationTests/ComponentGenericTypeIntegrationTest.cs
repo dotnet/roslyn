@@ -4,6 +4,7 @@
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
@@ -117,6 +118,30 @@ namespace Test
             The component 'MultipleGenericParameter' is missing required type arguments. Specify the missing types using the attributes: 'TItem2', 'TItem3'.
             """,
             diagnostic.GetMessage(CultureInfo.CurrentCulture));
+    }
+
+    [Fact]
+    public void GenericComponent_TypeInferenceNamespace_IsSynthesizedHelper()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(GenericContextComponent);
+
+        // Act
+        var generated = CompileToCSharp(@"
+<GenericContext Items=""@(new[] { ""hello"" })"" />");
+
+        // Assert
+        Assert.Empty(generated.RazorDiagnostics);
+
+        var documentNode = generated.CodeDocument.GetDocumentNode();
+        var helperNamespace = Assert.Single(documentNode.Children
+            .OfType<NamespaceDeclarationIntermediateNode>()
+            .Where(n => n.IsGenericTyped));
+        Assert.True(helperNamespace.IsSynthesizedHelper);
+
+        var declDocument = generated.CodeDocument.GetDeclCSharpDocument();
+        Assert.NotNull(declDocument);
+        Assert.DoesNotContain("TypeInference", declDocument.Text.ToString());
     }
 
     [Fact]

@@ -453,6 +453,7 @@ internal sealed class ComponentGenericTypePass : ComponentIntermediateNodePassBa
                 {
                     Name = @namespace,
                     IsGenericTyped = true,
+                    IsSynthesizedHelper = true,
                 };
 
                 documentNode.Children.Add(namespaceNode);
