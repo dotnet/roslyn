@@ -984,7 +984,17 @@ namespace Microsoft.CodeAnalysis
                     analyzerCts.Cancel();
 
                     Debug.Assert(analyzerDriver != null);
-                    analyzerDriver.WhenCompletedTask.Wait(cancellationToken);
+                    try
+                    {
+                        analyzerDriver.WhenCompletedTaskCore.GetAwaiter().GetResult();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                    finally
+                    {
+                        analyzerDriver.DiagnosticQueue.TryComplete();
+                    }
                 }
 
                 var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
