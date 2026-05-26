@@ -3732,7 +3732,7 @@ public class C2
 }
 ");
 
-            verifyDiagnostics(comp0Ref, comp1Ref,
+            var sourceUsingStatic =
 @"
 using static C1<S<C0>*[]>;
 public class C2
@@ -3742,7 +3742,8 @@ public class C2
         _ = E1.F1 + 1;
     }
 }
-",
+";
+            verifyDiagnostics(comp0Ref, comp1Ref, sourceUsingStatic,
                 // (2,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using static C1<S<C0>*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S<C0>*").WithLocation(2, 17),
@@ -3756,6 +3757,12 @@ public class C2
                 //         _ = E1.F1 + 1;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E1.F1 + 1").WithLocation(7, 13));
 
+            foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext })
+            {
+                var references = new[] { comp0Ref, comp1Ref };
+                CreateCompilation(sourceUsingStatic, parseOptions: parseOptions, references: references, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            }
+
             verifyDiagnostics(comp0Ref, comp1Ref,
 @"
 using static unsafe C1<S<C0>*[]>;
@@ -3768,7 +3775,7 @@ public class C2
 }
 ");
 
-            verifyDiagnostics(comp0Ref, comp1Ref,
+            var sourceUsingStaticE1 =
 @"
 using static C1<S<C0>*[]>.E1;
 public class C2
@@ -3778,7 +3785,8 @@ public class C2
         _ = F1 + 1;
     }
 }
-",
+";
+            verifyDiagnostics(comp0Ref, comp1Ref, sourceUsingStaticE1,
                 // (2,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using static C1<S<C0>*[]>.E1;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S<C0>*").WithLocation(2, 17),
@@ -3791,6 +3799,12 @@ public class C2
                 // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         _ = F1 + 1;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F1 + 1").WithLocation(7, 13));
+
+            foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext })
+            {
+                var references = new[] { comp0Ref, comp1Ref };
+                CreateCompilation(sourceUsingStaticE1, parseOptions: parseOptions, references: references, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            }
 
             verifyDiagnostics(comp0Ref, comp1Ref,
 @"
@@ -3831,14 +3845,14 @@ public class C2
             void verifyDiagnostics(MetadataReference reference0, MetadataReference reference1, string source, params DiagnosticDescription[] diagnostics)
             {
                 var references = new[] { reference0, reference1 };
-                Compilation comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: references, options: TestOptions.UnsafeDebugDll);
+                Compilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, references: references, options: TestOptions.UnsafeDebugDll);
                 comp.VerifyDiagnostics(diagnostics);
             }
 
             void verify(MetadataReference reference0, MetadataReference reference1, string source)
             {
                 var references = new[] { reference0, reference1 };
-                AssertUsedAssemblyReferences(source, references, references, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
+                AssertUsedAssemblyReferences(source, references, references, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             }
         }
 

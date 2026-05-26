@@ -12763,4 +12763,122 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 var v = [ null :  1  +  1 , ( x . y ) :  from   x    in   y    select  z ];
                 """);
 #endif
+
+    [Fact]
+    public Task StandaloneBlocksShouldNotCollapseWhenMethodBraceOptionIsOff()
+        => AssertFormatAsync(
+            expected: """
+                class C
+                {
+                    void M() {
+                        {
+                        }
+                        {
+                        }
+                    }
+                }
+                """,
+            code: """
+                class C
+                {
+                    void M()
+                    {
+                        {
+                        }
+                        {
+                        }
+                    }
+                }
+                """,
+            changedOptionSet: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Methods, false) }
+            });
+
+    [Fact]
+    public Task StandaloneBlocksShouldNotCollapseWhenAllBraceOptionsOff()
+        => AssertFormatAsync(
+            expected: """
+                class C {
+                    void M() {
+                        {
+                        }
+                        {
+                        }
+                    }
+                }
+                """,
+            code: """
+                class C
+                {
+                    void M()
+                    {
+                        {
+                        }
+                        {
+                        }
+                    }
+                }
+                """,
+            changedOptionSet: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.None }
+            });
+
+    [Fact]
+    public Task TopLevelStandaloneBlocksShouldNotCollapseWhenMethodBraceOptionIsOff()
+        => AssertFormatAsync(
+            expected: """
+                {
+                }
+                {
+                }
+                """,
+            code: """
+                {
+                }
+                {
+                }
+                """,
+            changedOptionSet: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Methods, false) }
+            });
+
+    [Fact]
+    public Task TopLevelStandaloneBlocksShouldNotCollapseWhenAllBraceOptionsOff()
+        => AssertFormatAsync(
+            expected: """
+                {
+                }
+                {
+                }
+                """,
+            code: """
+                {
+                }
+                {
+                }
+                """,
+            changedOptionSet: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.None }
+            });
+
+    [Fact]
+    public Task TopLevelLocalFunctionBraceStillFormatsWhenMethodBraceOptionIsOff()
+        => AssertFormatAsync(
+            expected: """
+                void M() {
+                }
+                """,
+            code: """
+                void M()
+                {
+                }
+                """,
+            changedOptionSet: new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Methods, false) }
+            });
 }

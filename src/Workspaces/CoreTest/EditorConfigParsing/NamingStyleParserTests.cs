@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 using static Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles.EditorConfigNamingStylesParser;
@@ -45,7 +46,7 @@ public sealed class NamingStyleParserTests
     [Fact]
     public void TestParseRoslynEditorConfig()
     {
-        var editorconfig = SourceText.From(RoslynEditorConfigText);
+        var editorconfig = SourceText.From(RoslynEditorConfigText.NormalizeLineEndings());
         var namingStyles = Parse(editorconfig, null);
 
         var namingStyleSection = Assert.Single(namingStyles.Sections);

@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
-            propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
+            propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe);
 
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
@@ -463,6 +463,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool LocalDeclaredReadOnly => (DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
 
         /// <summary>
+        /// Indicates whether this accessor itself has an 'unsafe' modifier.
+        /// </summary>
+        internal bool LocalDeclaredUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+
+        /// <summary>
+        /// Whether this accessor or its containing property has an 'unsafe' modifier.
+        /// </summary>
+        internal sealed override bool IsUnsafe => LocalDeclaredUnsafe || _property.HasUnsafeModifier;
+
+        /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
         internal sealed override bool IsDeclaredReadOnly
@@ -529,6 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
+            allowedModifiers |= DeclarationModifiers.Unsafe;
 
             if (containingType.IsStructType())
             {
@@ -545,6 +556,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out _);
+
+            if ((mods & DeclarationModifiers.Unsafe) != 0)
+            {
+                var syntax = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword);
+                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, syntax);
+            }
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -872,6 +889,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (LocalDeclaredReadOnly != implementationAccessor.LocalDeclaredReadOnly)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (LocalDeclaredUnsafe != implementationAccessor.LocalDeclaredUnsafe)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementationAccessor.GetFirstLocation());
             }
 
             if (_usesInit != implementationAccessor._usesInit)

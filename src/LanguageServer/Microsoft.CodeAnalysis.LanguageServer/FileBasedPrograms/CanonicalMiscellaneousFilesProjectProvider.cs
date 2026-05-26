@@ -37,7 +37,6 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
 
         var forkedInfos = canonicalInfos.SelectAsArray(info => info with
         {
-            FilePath = miscDocumentPath,
             Documents = info.Documents.Add(miscDocFileInfo),
             FileGlobs = [],
         });
@@ -65,6 +64,9 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
 
         Directory.CreateDirectory(_tempDirectory);
         var virtualProjectPath = Path.Combine(_tempDirectory, "Canonical.csproj");
+
+        // Write the csproj to disk so we can run restore on it later (required for SDKs prior to .NET 10)
+        File.WriteAllText(virtualProjectPath, virtualProjectXml);
 
         await using var buildHostProcessManager = new BuildHostProcessManager(
             _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),

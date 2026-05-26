@@ -309,6 +309,22 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         }
     }
 
+    [Theory, CombinatorialData]
+    public async Task DoesNotCrashOnRequestForMissingHandler(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        var request = new TestRequestTypeOne(new TextDocumentIdentifier
+        {
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+        });
+
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await server.ExecuteRequestAsync<TestRequestTypeOne, string>("nonExistentMethod", request, CancellationToken.None));
+        Assert.False(server.GetServerAccessor().HasShutdownStarted());
+        Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
+    }
+
     internal sealed record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
 
     internal sealed record TestRequestTypeTwo([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);

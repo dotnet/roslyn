@@ -36,7 +36,7 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         var expectedCodeLens = testLspServer.GetLocations("codeLens").Single();
 
         var actualCodeLenses = await GetCodeLensAsync(testLspServer);
-        AssertEx.NotNull(actualCodeLenses);
+        Assert.NotNull(actualCodeLenses);
         Assert.NotEmpty(actualCodeLenses);
 
         var matchingCodeLenses = actualCodeLenses.Where(actualCodeLens => actualCodeLens.Range == expectedCodeLens.Range);
@@ -46,7 +46,7 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         Assert.Null(matchingCodeLens.Command);
 
         var resolvedCodeLens = await testLspServer.ExecuteRequestAsync<LSP.CodeLens, LSP.CodeLens>(LSP.Methods.CodeLensResolveName, matchingCodeLens, CancellationToken.None);
-        AssertEx.NotNull(resolvedCodeLens?.Command);
+        Assert.NotNull(resolvedCodeLens?.Command);
 
         var expectedReferenceCountString = isCapped ? "99+" : expectedNumberOfReferences.ToString();
         Assert.True(resolvedCodeLens.Command.Title.StartsWith(expectedReferenceCountString));
@@ -63,7 +63,7 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         };
 
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParams, CancellationToken.None);
-        AssertEx.NotNull(actualCodeLenses);
+        Assert.NotNull(actualCodeLenses);
         Assert.NotEmpty(actualCodeLenses);
 
         var matchingCodeLenses = actualCodeLenses
@@ -86,7 +86,7 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         };
 
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParams, CancellationToken.None);
-        AssertEx.NotNull(actualCodeLenses);
+        Assert.NotNull(actualCodeLenses);
         Assert.NotEmpty(actualCodeLenses);
         Assert.All(actualCodeLenses, actualCodeLens => Assert.NotEqual(CodeLensHandler.RunTestsCommandIdentifier, actualCodeLens.Command?.CommandIdentifier));
     }

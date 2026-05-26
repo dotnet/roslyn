@@ -27,6 +27,7 @@ internal sealed partial class DidChangeConfigurationNotificationHandler
         CompletionOptionsStorage.ShowNameSuggestions,
         CompletionOptionsStorage.ProvideRegexCompletions,
         CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
+        CompletionOptionsStorage.ImportCompletionCommitBehavior,
         CompletionOptionsStorage.TriggerInArgumentLists,
         QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
         MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,

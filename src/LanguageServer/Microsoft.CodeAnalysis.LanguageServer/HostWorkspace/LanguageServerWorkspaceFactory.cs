@@ -18,8 +18,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(LanguageServerWorkspaceFactory)), Shared]
-internal sealed class LanguageServerWorkspaceFactory
+[Shared]
+[Export(typeof(IHostWorkspaceProvider))]
+[Export(typeof(LanguageServerWorkspaceFactory))]
+internal sealed class LanguageServerWorkspaceFactory : IHostWorkspaceProvider
 {
     private readonly ILogger _logger;
     private readonly ImmutableArray<string> _solutionLevelAnalyzerPaths;
@@ -77,6 +79,7 @@ internal sealed class LanguageServerWorkspaceFactory
 
     public Workspace HostWorkspace => HostProjectFactory.Workspace;
     public Workspace MiscellaneousFilesWorkspace => MiscellaneousFilesWorkspaceProjectFactory.Workspace;
+    Workspace IHostWorkspaceProvider.Workspace => HostWorkspace;
 
     public ProjectSystemProjectFactory HostProjectFactory { get; }
     public ProjectSystemProjectFactory MiscellaneousFilesWorkspaceProjectFactory { get; }

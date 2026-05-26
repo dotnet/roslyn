@@ -32,17 +32,17 @@ internal sealed class ServiceBrokerFactory
     private readonly WrappedServiceBroker _wrappedServiceBroker;
     private Task _bridgeCompletionTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly ImmutableArray<IOnServiceBrokerInitialized> _onServiceBrokerInitialized;
+    private readonly ImmutableArray<IServiceBrokerInitializer> _serviceBrokerInitializers;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ServiceBrokerFactory([ImportMany] IEnumerable<IOnServiceBrokerInitialized> onServiceBrokerInitialized,
+    public ServiceBrokerFactory([ImportMany] IEnumerable<IServiceBrokerInitializer> onServiceBrokerInitialized,
         ExportProvider exportProvider,
         WrappedServiceBroker wrappedServiceBroker)
     {
         _exportProvider = exportProvider;
         _bridgeCompletionTask = Task.CompletedTask;
-        _onServiceBrokerInitialized = [.. onServiceBrokerInitialized];
+        _serviceBrokerInitializers = [.. onServiceBrokerInitialized];
         _wrappedServiceBroker = wrappedServiceBroker;
     }
 
@@ -64,14 +64,14 @@ internal sealed class ServiceBrokerFactory
     {
         Contract.ThrowIfFalse(_container == null, "We should only create one container.");
 
-        _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
+        _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _serviceBrokerInitializers, _cancellationTokenSource.Token);
         _wrappedServiceBroker.SetServiceBroker(_container.GetFullAccessServiceBroker());
 
-        foreach (var onInitialized in _onServiceBrokerInitialized)
+        foreach (var onInitialized in _serviceBrokerInitializers)
         {
             try
             {
-                onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker());
+                onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker(), _cancellationTokenSource.Token);
             }
             catch (Exception)
             {

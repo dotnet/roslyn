@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
@@ -406,13 +407,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 return ImmutableArray<U>.Empty;
             }
 
-            var tmp = ArrayBuilder<U>.GetInstance(Count);
-            foreach (var i in this)
+            var result = new U[Count];
+            for (int i = 0; i < result.Length; i++)
             {
-                tmp.Add((U)i!);
+                result[i] = (U)this[i]!;
             }
 
-            return tmp.ToImmutableAndFree();
+            return ImmutableCollectionsMarshal.AsImmutableArray(result);
         }
 
         public ImmutableArray<U> ToDowncastedImmutableAndFree<U>() where U : T
@@ -842,13 +843,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                     return [map(this[0]), map(this[1]), map(this[2]), map(this[3])];
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(Count);
-                    foreach (var item in this)
-                    {
-                        builder.Add(map(item));
-                    }
+                    var result = new TResult[Count];
+                    for (int i = 0; i < result.Length; i++)
+                        result[i] = map(this[i]);
 
-                    return builder.ToImmutableAndFree();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(result);
             }
         }
 
@@ -880,13 +879,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                     return [map(this[0], arg), map(this[1], arg), map(this[2], arg), map(this[3], arg)];
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(Count);
-                    foreach (var item in this)
-                    {
-                        builder.Add(map(item, arg));
-                    }
+                    var result = new TResult[Count];
+                    for (int i = 0; i < result.Length; i++)
+                        result[i] = map(this[i], arg);
 
-                    return builder.ToImmutableAndFree();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(result);
             }
         }
 
@@ -918,13 +915,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                     return [map(this[0], 0, arg), map(this[1], 1, arg), map(this[2], 2, arg), map(this[3], 3, arg)];
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(Count);
-                    foreach (var item in this)
-                    {
-                        builder.Add(map(item, builder.Count, arg));
-                    }
+                    var result = new TResult[Count];
+                    for (int i = 0; i < result.Length; i++)
+                        result[i] = map(this[i], i, arg);
 
-                    return builder.ToImmutableAndFree();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(result);
             }
         }
 

@@ -4080,7 +4080,7 @@ class C
             Assert.Equal(1, diags.Length);
             Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, diags[0].Code);
 
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (1,31): error CS1026: ) expected
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
@@ -4102,6 +4102,30 @@ class C
                 // (1,31): warning CS0642: Possible mistaken empty statement
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(1, 31));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (1,31): error CS1026: ) expected
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
+                // (1,28): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(1, 28),
+                // (1,30): error CS0209: The type of a local declared in a fixed statement must be a pointer type
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.ERR_BadFixedInitType, "v").WithLocation(1, 30),
+                // (1,30): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "v").WithLocation(1, 30),
+                // (1,31): warning CS0642: Possible mistaken empty statement
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(1, 31),
+            };
+            CreateCompilation(text).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]

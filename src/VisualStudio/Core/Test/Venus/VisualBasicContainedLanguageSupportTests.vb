@@ -695,7 +695,7 @@ End Class</text>.Value
                     targetDocument:=targetDocument,
                     cancellationToken:=Nothing) Then
 
-                    Assert.True(False, "should have succeeded")
+                    Assert.Fail("should have succeeded")
                 End If
 
                 Assert.Equal(expectedSpan, actualSpan)

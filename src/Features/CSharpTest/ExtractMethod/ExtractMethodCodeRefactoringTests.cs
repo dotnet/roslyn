@@ -1535,7 +1535,8 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
 
-    [Fact, CompilerTrait(CompilerFeature.Tuples)]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [CompilerTrait(CompilerFeature.Tuples)]
     public Task TestDeconstruction2()
         => TestInRegularAndScriptAsync(
             """
@@ -5789,7 +5790,8 @@ class Program
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
     public async Task TestPrimaryConstructorBaseList(bool withBody)
     {
         var source = $$"""

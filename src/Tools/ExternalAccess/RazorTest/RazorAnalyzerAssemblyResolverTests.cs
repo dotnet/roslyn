@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +28,17 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 
     public RazorAnalyzerAssemblyResolverTests()
     {
+        // Ensure that test infrastructure and compilation assemblies are already loaded
+        // before we take the snapshot below. These are lazily loaded on first use, and
+        // if that first use happens *after* the snapshot is taken then those assemblies
+        // show up as unexpected additions and the assertion in Dispose fails.
+        TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.CSharp", typeof(CSharpCompilation).TypeHandle);
+        TestHelpers.EnsureAssemblyLoaded("Basic.Reference.Assemblies.NetStandard20", typeof(NetStandard20).TypeHandle);
+        TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.ExternalAccess.Razor.Features", typeof(RazorAnalyzerAssemblyResolver).TypeHandle);
+        TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.Test.Utilities", typeof(AssertEx).TypeHandle);
+        TestHelpers.EnsureAssemblyLoaded("xunit.assert", typeof(Assert).TypeHandle);
+        TestHelpers.EnsureAssemblyLoaded("System.Threading.Tasks.Parallel", typeof(System.Threading.Tasks.Parallel).TypeHandle);
+
         InitialAssemblies = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
     }
 
@@ -36,7 +46,11 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
     {
         TempRoot.Dispose();
 
-        // This test should not change the set of assemblies loaded in the current context.
+        // This test should not be loading any of the razor assemblies into the test assembly load context. That
+        // would indicate a bug in our product code where it was incorrectly using the default load context.
+        // 
+        // Note: if this test fails due to a normal test assembly, like xunit.assert, being loaded after the 
+        // snapshot, then add that assembly to the list of assemblies loaded in the constructor above.
         var count = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
         AssertEx.SetEqual(InitialAssemblies, count);
     }
@@ -96,7 +110,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
     /// platform DLL, like the object pool, will be in the VS platform directory. Need to fall back
     /// to the compiler context to find those.
     /// </summary>
-    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
+    [Fact]
     public void FallbackToCompilerContext()
     {
         var dir1 = TempRoot.CreateDirectory().Path;
@@ -130,7 +144,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         });
     }
 
-    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
+    [Fact]
     public void FirstLoadWins()
     {
         var dir1 = TempRoot.CreateDirectory().Path;
@@ -154,7 +168,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         });
     }
 
-    [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79352")]
+    [Fact]
     public void ChooseServiceHubFolder()
     {
         var dir = TempRoot.CreateDirectory().Path;

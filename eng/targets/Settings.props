@@ -152,6 +152,8 @@
   -->
   <Import Project="Bootstrap.props" Condition="'$(BootstrapBuildPath)' != ''" />
 
+  <Import Project="CachingCompiler.props" Condition="'$(ROSLYN_USE_CACHING_COMPILER)' != 'false' and ('$(ROSLYN_USE_CACHING_COMPILER)' == 'true' or '$(ROSLYN_CACHE_PATH)' != '') and '$(DotNetBuildSourceOnly)' != 'true' and '$(OfficialBuild)' != 'true'" />
+
   <!--
     Analyzers
   -->

@@ -28,6 +28,8 @@ jobs:
         configuration: ${{ parameters.configuration }}
     - name: artifactName
       value: ${{ parameters.testArtifactName }}
+    - name: ROSLYN_CACHE_PATH
+      value: $(Agent.TempDirectory)/roslyn-cache
 
   steps:
     - template: checkout-windows-task.yml
@@ -38,7 +40,9 @@ jobs:
         filePath: eng/build.ps1
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
 
-    - template: build-file-based-apps.yml
+    - template: cache-roslyn-outputs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
 
     - task: PowerShell@2
       displayName: Build

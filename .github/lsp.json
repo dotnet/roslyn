@@ -1,0 +1,19 @@
+{
+  "lspServers": {
+    "csharp": {
+      "command": "dotnet",
+      "args": [
+        "dnx",
+        "roslyn-language-server",
+        "--yes",
+        "--prerelease",
+        "--",
+        "--stdio",
+        "--autoLoadProjects"
+      ],
+      "fileExtensions": {
+        ".cs": "csharp"
+      }
+    }
+  }
+}

@@ -625,6 +625,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool HasReadOnlyModifier => (_modifiers & DeclarationModifiers.ReadOnly) != 0;
 
+        internal bool HasUnsafeModifier => (_modifiers & DeclarationModifiers.Unsafe) != 0;
+
 #nullable enable
         /// <summary>
         /// The method is called at the end of <see cref="SourcePropertySymbolBase"/> constructor.

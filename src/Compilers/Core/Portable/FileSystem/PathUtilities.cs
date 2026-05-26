@@ -91,6 +91,28 @@ namespace Roslyn.Utilities
             }
         }
 
+        internal static string? GetTempCachePath(string directoryName)
+        {
+            var parentPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (string.IsNullOrEmpty(parentPath))
+            {
+                return null;
+            }
+
+            var path = Path.Combine(parentPath, directoryName);
+
+#if NET
+            if (!PlatformInformation.IsWindows)
+            {
+                Directory.CreateDirectory(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                return path;
+            }
+#endif
+
+            Directory.CreateDirectory(path);
+            return path;
+        }
+
         public static string GetExtension(string path)
         {
             return FileNameUtilities.GetExtension(path);

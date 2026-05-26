@@ -1849,6 +1849,9 @@ Additional information: {1}</value>
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
     <value>Show items from unimported namespaces</value>
   </data>
+  <data name="Completion_behavior_for_items_from_unimported_namespaces" xml:space="preserve">
+    <value>Completion behavior for items from unimported namespaces</value>
+  </data>
   <data name="Unused_local" xml:space="preserve">
     <value>Unused local</value>
   </data>
