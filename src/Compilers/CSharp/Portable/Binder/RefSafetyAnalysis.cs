@@ -1400,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(spreadElement.HasErrors
                                 || spreadElement.IteratorBody is null
-                                or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer });
+                                or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer or BoundKeyValuePairConversion });
                         }
                     }
                 }

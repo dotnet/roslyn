@@ -6717,11 +6717,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElementAddMethod(
+#nullable enable
+        private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElement<TArg>(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
-            Binder collectionInitializerAddMethodBinder,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
+            Func<Binder, ExpressionSyntax, BoundValuePlaceholder, BoundObjectOrCollectionValuePlaceholder?, TArg, BindingDiagnosticBag, BoundExpression> bindItem,
+            TArg arg,
             BindingDiagnosticBag diagnostics)
         {
             var enumeratorInfo = element.EnumeratorInfoOpt;
@@ -6738,22 +6740,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
-            var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
-            var addMethodInvocation = BindCollectionInitializerElementAddMethod(
+            var itemPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
+            itemPlaceholder = (BoundValuePlaceholder)itemPlaceholder.WithSuppression(element.Expression.IsSuppressed);
+            var item = bindItem(
+                this,
                 syntax.Expression,
-                ImmutableArray.Create((BoundExpression)addElementPlaceholder),
-                hasEnumerableInitializerType: true,
-                collectionInitializerAddMethodBinder,
-                diagnostics,
-                implicitReceiver);
+                itemPlaceholder,
+                implicitReceiver,
+                arg,
+                diagnostics);
             return element.Update(
                 element.Expression,
                 expressionPlaceholder: element.ExpressionPlaceholder,
                 conversion: element.Conversion,
                 enumeratorInfo,
                 lengthOrCount: element.LengthOrCount,
-                elementPlaceholder: addElementPlaceholder,
-                iteratorBody: new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true });
+                elementPlaceholder: itemPlaceholder,
+                iteratorBody: new BoundExpressionStatement(syntax, item) { WasCompilerGenerated = true });
         }
 #nullable disable
 
