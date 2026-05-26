@@ -49,66 +49,73 @@ namespace Microsoft.CodeAnalysis
 
             // create a mutable hashset of the new items we can check against
             var itemsSet = (_inputComparer == EqualityComparer<T>.Default) ? PooledHashSet<T>.GetInstance() : new HashSet<T>(_inputComparer);
+            NodeStateTable<T>.Builder? tableBuilder = null;
 
+            try
+            {
 #if NET
-            itemsSet.EnsureCapacity(inputItems.Length);
+                itemsSet.EnsureCapacity(inputItems.Length);
 #endif
 
-            foreach (var item in inputItems)
-            {
-                var added = itemsSet.Add(item);
-                Debug.Assert(added);
-            }
-
-            var tableBuilder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
-
-            // We always have no inputs steps into an InputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
-            var noInputStepsStepInfo = tableBuilder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
-
-            if (previousTable is not null)
-            {
-                // for each item in the previous table, check if its still in the new items
-                int itemIndex = 0;
-                foreach (var (oldItem, _, _, _) in previousTable)
+                foreach (var item in inputItems)
                 {
-                    if (itemsSet.Remove(oldItem))
-                    {
-                        // we're iterating the table, so know that it has entries
-                        var usedCache = tableBuilder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
-                        Debug.Assert(usedCache);
-                    }
-                    else if (inputItems.Length == previousTable.Count)
-                    {
-                        // When the number of items matches the previous iteration, we use a heuristic to mark the input as modified
-                        // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
-                        // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
-                        // but will perform an extra comparison that is omitted in the pure 'added' case.
-                        var modified = tableBuilder.TryModifyEntry(inputItems[itemIndex], elapsedTime, noInputStepsStepInfo, EntryState.Modified);
-                        Debug.Assert(modified);
-                        itemsSet.Remove(inputItems[itemIndex]);
-                    }
-                    else
-                    {
-                        var removed = tableBuilder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
-                        Debug.Assert(removed);
-                    }
-                    itemIndex++;
+                    var added = itemsSet.Add(item);
+                    Debug.Assert(added);
                 }
-            }
 
-            // any remaining new items are added
-            foreach (var newItem in itemsSet)
+                tableBuilder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
+
+                // We always have no inputs steps into an InputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
+                var noInputStepsStepInfo = tableBuilder.TrackIncrementalSteps ? ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default;
+
+                if (previousTable is not null)
+                {
+                    // for each item in the previous table, check if its still in the new items
+                    int itemIndex = 0;
+                    foreach (var (oldItem, _, _, _) in previousTable)
+                    {
+                        if (itemsSet.Remove(oldItem))
+                        {
+                            // we're iterating the table, so know that it has entries
+                            var usedCache = tableBuilder.TryUseCachedEntries(elapsedTime, noInputStepsStepInfo);
+                            Debug.Assert(usedCache);
+                        }
+                        else if (inputItems.Length == previousTable.Count)
+                        {
+                            // When the number of items matches the previous iteration, we use a heuristic to mark the input as modified
+                            // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
+                            // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
+                            // but will perform an extra comparison that is omitted in the pure 'added' case.
+                            var modified = tableBuilder.TryModifyEntry(inputItems[itemIndex], elapsedTime, noInputStepsStepInfo, EntryState.Modified);
+                            Debug.Assert(modified);
+                            itemsSet.Remove(inputItems[itemIndex]);
+                        }
+                        else
+                        {
+                            var removed = tableBuilder.TryRemoveEntries(elapsedTime, noInputStepsStepInfo);
+                            Debug.Assert(removed);
+                        }
+                        itemIndex++;
+                    }
+                }
+
+                // any remaining new items are added
+                foreach (var newItem in itemsSet)
+                {
+                    tableBuilder.AddEntry(newItem, EntryState.Added, elapsedTime, noInputStepsStepInfo, EntryState.Added);
+                }
+
+                var newTable = tableBuilder.ToImmutableAndFree();
+                tableBuilder = null;
+                this.LogTables(previousTable, newTable, inputItems);
+
+                return newTable;
+            }
+            finally
             {
-                tableBuilder.AddEntry(newItem, EntryState.Added, elapsedTime, noInputStepsStepInfo, EntryState.Added);
+                tableBuilder?.Free();
+                (itemsSet as PooledHashSet<T>)?.Free();
             }
-
-            var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(previousTable, newTable, inputItems);
-
-            (itemsSet as PooledHashSet<T>)?.Free();
-
-            return newTable;
-
         }
 
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, _registerOutput, _inputComparer, comparer, _name);
