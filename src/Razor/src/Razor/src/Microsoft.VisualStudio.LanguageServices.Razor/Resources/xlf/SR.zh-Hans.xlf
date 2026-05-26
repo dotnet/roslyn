@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../SR.resx">
+    <body>
+      <trans-unit id="ArgumentCannotBeNullOrEmpty">
+        <source>Value cannot be null or an empty string.</source>
+        <target state="translated">值不能为 null 或空字符串。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LanguageServer_Initialization_Failed">
+        <source>{0} failed to initialize.  Please report a problem via Help -&gt; Send Feedback -&gt; Report a Problem.  Status = {1}.  Exception = {2}</source>
+        <target state="translated">{0} 初始化失败。请通过“帮助”-&gt;“发送反馈”-&gt;“报告问题”来报告问题。状态 = {1}。异常 = {2}</target>
+        <note>{0} is the language server name. Status is the status of the initialization. Exception is the exception encountered during initialization.</note>
+      </trans-unit>
+      <trans-unit id="ProximityExpression_Dialog_Description">
+        <source>Razor Debugger</source>
+        <target state="translated">Razor 调试程序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProximityExpression_Dialog_Title">
+        <source>Determining proximity expressions...</source>
+        <target state="translated">正在确定邻近表达式…</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_to_1">
+        <source>Renaming {0} to {1}</source>
+        <target state="translated">将 {0} 重命名为 {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_Razor_Component">
+        <source>Renaming Razor Component</source>
+        <target state="translated">正在重命名 Razor 组件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="View Code">
+        <source>View Code</source>
+        <target state="translated">查看代码</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

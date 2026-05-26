@@ -69,6 +69,13 @@ stages:
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
+      - task: BatchScript@1
+        displayName: Rehydrate Microsoft.VisualStudio.Razor.IntegrationTests
+        inputs:
+          filename: ./artifacts/bin/Microsoft.VisualStudio.Razor.IntegrationTests/${{ parameters.configuration }}/net472/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
       # This is a temporary step until the actual test run moves to helix (then we would need to rehydrate the tests there instead)
       - task: BatchScript@1
         displayName: Rehydrate Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests (net10.0)

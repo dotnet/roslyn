@@ -1436,6 +1436,7 @@ namespace Microsoft.CodeAnalysis
                     nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
                     nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
                     nameof(CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators) => CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators,
+                    nameof(CompilerFeatureRequiredFeatures.ClosedClasses) => CompilerFeatureRequiredFeatures.ClosedClasses,
                     _ => CompilerFeatureRequiredFeatures.None,
                 };
         }

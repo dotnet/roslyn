@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,7 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGeneratorItemSource, INotifyPropertyChanged
 {
     private readonly IVsHierarchyItem _item;
-    private readonly string _projectDirectoryPath;
     private readonly string? _analyzerFilePath;
 
     private WorkspaceEventRegistration? _workspaceChangedDisposer;
@@ -28,7 +26,6 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
     public CpsDiagnosticItemSource(
         IThreadingContext threadingContext,
         Workspace workspace,
-        string projectPath,
         ProjectId projectId,
         IVsHierarchyItem item,
         IAnalyzersCommandHandler commandHandler,
@@ -36,9 +33,10 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
         : base(threadingContext, workspace, projectId, commandHandler, listenerProvider)
     {
         _item = item;
-        _projectDirectoryPath = Path.GetDirectoryName(projectPath);
 
-        _analyzerFilePath = CpsUtilities.ExtractAnalyzerFilePath(_projectDirectoryPath, _item.CanonicalName);
+        // CPS (VS16.7+) supplies the analyzer assembly's full file path as the hierarchy item's
+        // canonical name, which we use directly to look up the corresponding AnalyzerReference.
+        _analyzerFilePath = _item.CanonicalName;
 
         this.AnalyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
         if (this.AnalyzerReference == null)
