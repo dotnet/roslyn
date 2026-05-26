@@ -292,13 +292,15 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 // On NTFS, the directory timestamps we observe when enumerating can be stale when files are added/deleted from a directory.
                 // If we find the timestamps were old enough (i.e. we entered this block),
                 // we still need to `new DirectoryInfo()` again and force the timestamps to update if needed.
-                DateTimeOffset newCreatedOrModifiedTimeUtc = DateTimeOffset.MinValue;
-                if (!TryPerformDirectoryOperation(directory, logger, () =>
+                DateTimeOffset newCreatedOrModifiedTimeUtc;
+                try
                 {
                     var directoryInfo = new DirectoryInfo(directory);
                     newCreatedOrModifiedTimeUtc = Max(directoryInfo.CreationTimeUtc, directoryInfo.LastWriteTimeUtc);
-                }))
+                }
+                catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
                 {
+                    logger.LogWarning("Skipping directory '{Directory}' during file-based app discovery due to I/O exception: {ExceptionMessage}", directory, ex.Message);
                     return;
                 }
 
@@ -312,10 +314,11 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 createdOrModifiedTimeUtc = Max(createdOrModifiedTimeUtc, newCreatedOrModifiedTimeUtc);
             }
 
+            // The DirectoryEnumerator uses IgnoreInaccessible = true, so it will silently skip
+            // directories/files which we don't have permission to access during enumeration.
             using var currentDirectoryItems = TemporaryArray<CsFileInfo>.Empty;
-            if (!TryPerformDirectoryOperation(directory, logger, () =>
+            using (var enumerator = new DirectoryEnumerator(directory))
             {
-                using var enumerator = new DirectoryEnumerator(directory);
                 while (enumerator.MoveNext())
                 {
                     var fileInfo = enumerator.Current;
@@ -328,9 +331,6 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
                     currentDirectoryItems.Add(fileInfo);
                 }
-            }))
-            {
-                return;
             }
 
             // Did not find a csproj. Continue searching this subtree for entry points.
@@ -372,20 +372,6 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     /// <summary>Get the later of two DateTimeOffsets.</summary>
     private static DateTimeOffset Max(DateTimeOffset lhs, DateTimeOffset rhs)
         => lhs < rhs ? rhs : lhs;
-
-    internal static bool TryPerformDirectoryOperation(string directory, ILogger logger, Action action)
-    {
-        try
-        {
-            action();
-            return true;
-        }
-        catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
-        {
-            logger.LogWarning("Skipping directory '{Directory}' during file-based app discovery due to I/O exception: {ExceptionMessage}", directory, ex.Message);
-            return false;
-        }
-    }
 
     internal sealed record Cache(string WorkspacePath, DateTimeOffset LastWalkTimeUtc, ImmutableArray<string> FileBasedAppFullPaths, ImmutableArray<string> DirectoriesContainingCsproj);
 
