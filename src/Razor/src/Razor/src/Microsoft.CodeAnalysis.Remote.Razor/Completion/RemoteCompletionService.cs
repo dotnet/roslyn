@@ -70,6 +70,11 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             return null;
         }
 
+        if (ShouldSuppressCompletion(completionContext, sourceText, index))
+        {
+            return null;
+        }
+
         var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var positionInfo = GetPositionInfo(codeDocument, index);
@@ -96,6 +101,32 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             && !DelegatedCompletionHelper.IsInDirectiveAttributeParameterContext(codeDocument, index);
 
         return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets, shouldIncludeHtmlCompletions, isStartTagContext);
+    }
+
+    /// <summary>
+    /// Determines whether completion should be suppressed for the current trigger context.
+    /// For example, '@' typed after '$' in Emmet numbering modifiers (e.g., ul>li.item$@-*5)
+    /// should not trigger Razor completion.
+    /// </summary>
+    private static bool ShouldSuppressCompletion(VSInternalCompletionContext completionContext, SourceText sourceText, int index)
+    {
+        // Suppress when '@' is typed as part of an Emmet abbreviation.
+        // In Emmet syntax, '@' only appears after '$' for numbering modifiers (e.g., item$@-).
+        // We also require an alphanumeric or '$' character before the '$' to distinguish Emmet
+        // from Razor expressions like "Your cost is $@price" (space before '$').
+        // This heuristic isn't perfect in either direction: Emmet text content like {text $@-}
+        // won't be suppressed, and unlikely-but-valid Razor like "thecostis$@price" will be.
+        // Both edge cases are uncommon enough to be acceptable tradeoffs.
+        if (completionContext.TriggerKind == CompletionTriggerKind.TriggerCharacter
+            && completionContext.TriggerCharacter == "@"
+            && index > 2
+            && sourceText[index - 2] == '$'
+            && (char.IsLetterOrDigit(sourceText[index - 3]) || sourceText[index - 3] == '$'))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public ValueTask<CompletionResponse> GetCompletionAsync(
@@ -145,27 +176,15 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         var documentSnapshot = remoteDocumentContext.Snapshot;
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        // Build a shared completion context — reused by both local HTML and Razor providers
-        // to avoid duplicate tree walks for finding the Owner node.
-        var razorCompletionContext = RazorCompletionListProvider.CreateCompletionContext(
-            codeDocument, documentPositionInfo.HostDocumentIndex, completionContext, razorCompletionOptions);
-
-        // Compute local HTML completions from the shared context
-        RazorVSInternalCompletionList? localHtmlCompletionList = null;
-        if (isHtmlTrigger
-            && LocalHtmlCompletionProvider.TryGetHtmlCompletionList(razorCompletionContext, out localHtmlCompletionList, out var htmlResolveContext)
-            && localHtmlCompletionList.Items.Length > 0)
-        {
-            // Store resolve context so that completionItem/resolve can populate Detail
-            // and Documentation in O(1) without walking the HTML schema.
-            var resultId = _completionListCache.Add(localHtmlCompletionList, htmlResolveContext);
-            localHtmlCompletionList.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
-
-            // Optimize here to reduce OOP→devenv JSON payload. The devenv-side optimizer
-            // is resilient to re-optimizing after merge (it dematerializes list-level chars).
-            var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
-            localHtmlCompletionList = CompletionListOptimizer.Optimize(localHtmlCompletionList, completionCapability);
-        }
+        GetRazorCompletionContextAndLocalHtmlCompletionList(
+            completionContext,
+            razorCompletionOptions,
+            documentPositionInfo,
+            isRazorTrigger,
+            isHtmlTrigger,
+            codeDocument,
+            out var razorCompletionContext,
+            out var localHtmlCompletionList);
 
         if (!isCSharpTrigger && !isRazorTrigger)
         {
@@ -196,37 +215,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 .ConfigureAwait(false);
         }
 
-        RazorVSInternalCompletionList? razorCompletionList = null;
-
-        if (isRazorTrigger)
-        {
-            // When local HTML completions are available, attach their labels to the context
-            // so that HTML-dependent providers (e.g., TagHelperCompletionProvider) can use them
-            // inline without a separate round-trip.
-            if (localHtmlCompletionList is { Items: { Length: > 0 } items })
-            {
-                // Only include element names — these are used by TagHelperCompletionProvider
-                // to deduplicate tag helpers that share a name with an HTML element.
-                using var _ = ListPool<string>.GetPooledObject(out var elementLabels);
-                foreach (var item in items)
-                {
-                    if (item.Kind == CompletionItemKind.Element)
-                    {
-                        elementLabels.Add(item.Label);
-                    }
-                }
-
-                if (elementLabels.Count > 0)
-                {
-                    var htmlLabels = new HashSet<string>(elementLabels, StringComparer.OrdinalIgnoreCase);
-                    razorCompletionContext = razorCompletionContext with { HtmlLabels = htmlLabels };
-                }
-            }
-
-            razorCompletionList = _razorCompletionListProvider.GetCompletionList(
-                razorCompletionContext,
-                _clientCapabilitiesService.ClientCapabilities);
-        }
+        var razorCompletionList = isRazorTrigger
+            ? _razorCompletionListProvider.GetCompletionList(razorCompletionContext, _clientCapabilitiesService.ClientCapabilities)
+            : null;
 
         var mergedList = CompletionListMerger.Merge(razorCompletionList, csharpCompletionList);
         if (mergedList is not null)
@@ -236,6 +227,73 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         }
 
         return CompletionResults.Create(mergedList, localHtmlCompletionList);
+    }
+
+    private void GetRazorCompletionContextAndLocalHtmlCompletionList(
+        VSInternalCompletionContext completionContext,
+        RazorCompletionOptions razorCompletionOptions,
+        DocumentPositionInfo documentPositionInfo,
+        bool isRazorTrigger,
+        bool isHtmlTrigger,
+        RazorCodeDocument codeDocument,
+        out RazorCompletionContext razorCompletionContext,
+        out RazorVSInternalCompletionList? localHtmlCompletionList)
+    {
+        // Build a shared completion context — reused by both local HTML and Razor providers
+        // to avoid duplicate tree walks for finding the Owner node.
+        razorCompletionContext = RazorCompletionListProvider.CreateCompletionContext(
+            codeDocument, documentPositionInfo.HostDocumentIndex, completionContext, razorCompletionOptions);
+
+        // Compute local HTML completions from the shared context
+        localHtmlCompletionList = null;
+        if (isHtmlTrigger
+            && LocalHtmlCompletionProvider.TryGetHtmlCompletionList(razorCompletionContext, out localHtmlCompletionList, out var htmlResolveContext))
+        {
+            // When local HTML completions are available, attach their labels to the context
+            // so that HTML-dependent providers (e.g., TagHelperCompletionProvider) can use them
+            // inline without a separate round-trip.
+            if (localHtmlCompletionList.Items.Length > 0)
+            {
+                if (isRazorTrigger)
+                {
+                    // Only include element names — these are used by TagHelperCompletionProvider
+                    // to deduplicate tag helpers that share a name with an HTML element.
+                    using var _ = ListPool<string>.GetPooledObject(out var elementLabels);
+                    foreach (var item in localHtmlCompletionList.Items)
+                    {
+                        if (item.Kind == CompletionItemKind.Element)
+                        {
+                            elementLabels.Add(item.Label);
+                        }
+                    }
+
+                    if (elementLabels.Count > 0)
+                    {
+                        var htmlLabels = new HashSet<string>(elementLabels, StringComparer.OrdinalIgnoreCase);
+                        razorCompletionContext = razorCompletionContext with { HtmlLabels = htmlLabels };
+                    }
+                }
+
+                if (!razorCompletionOptions.IsVsCode)
+                {
+                    // Store resolve context so that completionItem/resolve can populate Detail
+                    // and Documentation in O(1) without walking the HTML schema.
+                    var resultId = _completionListCache.Add(localHtmlCompletionList, htmlResolveContext);
+                    localHtmlCompletionList.SetResultId(resultId, _clientCapabilitiesService.ClientCapabilities);
+
+                    // Optimize here to reduce OOP→devenv JSON payload. The devenv-side optimizer
+                    // is resilient to re-optimizing after merge (it dematerializes list-level chars).
+                    var completionCapability = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion;
+                    localHtmlCompletionList = CompletionListOptimizer.Optimize(localHtmlCompletionList, completionCapability);
+                }
+            }
+
+            if (razorCompletionOptions.IsVsCode)
+            {
+                // VSCode should fallback to the html language server for html completions
+                localHtmlCompletionList = null;
+            }
+        }
     }
 
     private async ValueTask<RazorVSInternalCompletionList?> GetCSharpCompletionAsync(

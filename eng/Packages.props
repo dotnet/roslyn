@@ -93,8 +93,8 @@
       See https://github.com/dotnet/arcade/blob/main/Documentation/MirroringPackages.md if any of these packages fail to restore.
     -->
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.9.14-beta" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.13.50" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.13.50" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.3.36" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.3.36" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.2188-preview.1" />
@@ -242,8 +242,9 @@
     <!--
       Testing.
     -->
-    <PackageVersion Include="BenchmarkDotNet" Version="0.13.0" />
-    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.0" />
+    <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.15.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.7.37220.1" />
     <PackageVersion Include="BasicUndo" Version="0.9.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />

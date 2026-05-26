@@ -283,7 +283,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
 
         // VS Code handles commit characters separately upstream, so we don't send any.
-        var suppressCommitCharacters = completionContext.Options.UseVsCodeCompletionCommitCharacters;
+        var suppressCommitCharacters = completionContext.Options.IsVsCode;
 
         foreach (var (displayText, (kind, descriptions, commitCharacters)) in attributeCompletions)
         {

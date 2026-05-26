@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Cancelled">
         <source>Cancelled</source>
-        <target state="new">Cancelled</target>
+        <target state="translated">Annulé</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentUriSerializationError">
