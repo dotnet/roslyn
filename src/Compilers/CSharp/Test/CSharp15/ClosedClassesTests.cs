@@ -817,99 +817,99 @@ public sealed class ClosedClassesTests : CSharpTestBase
         comp1.VerifyEmitDiagnostics(
             // (4,12): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             // [assembly: IsClosedType] // 1
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(4, 12),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(4, 12),
             // (5,10): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             // [module: IsClosedType] // 2
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(5, 10),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(5, 10),
             // (7,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             // [IsClosedType] public class C // 3
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(7, 2),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(7, 2),
             // (9,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             //     [IsClosedType] public C() { } // 4
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(9, 6),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(9, 6),
             // (10,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             //     [IsClosedType] public void M() { } // 5
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(10, 6),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(10, 6),
             // (11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             //     [IsClosedType] public string P { get; set; } // 6
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(11, 6),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(11, 6),
             // (12,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             //     [IsClosedType] public string F; // 7
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(12, 6),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(12, 6),
             // (13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             //     [IsClosedType] public event System.Action E; // 8
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(13, 6),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(13, 6),
             // (15,21): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             //     public void M1([IsClosedType] int param) { } // 9
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(15, 21),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(15, 21),
             // (16,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             //     [return: IsClosedType] public int M2() => 0; // 10
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(16, 14),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(16, 14),
             // (17,21): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             //     public void M3<[IsClosedType] T>() { } // 11
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(17, 21),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(17, 21),
             // (19,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             // [IsClosedType] public struct S { } // 12
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(19, 2),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(19, 2),
             // (20,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             // [IsClosedType] public enum E { } // 13
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(20, 2),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(20, 2),
             // (21,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             // [IsClosedType] public interface I { } // 14
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(21, 2),
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(21, 2),
             // (22,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             // [IsClosedType] public delegate void D(); // 15
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(22, 2));
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(22, 2));
 
         // Note: ERR_AttributeOnBadSymbolType causes well-known attribute decoding to be skipped.
         // So, ERR_ExplicitReservedAttr is only reported for the class attribute in this case.
         comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (4,12): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // (4,12): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             // [assembly: IsClosedType] // 1
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(4, 12),
-            // (5,10): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(4, 12),
+            // (5,10): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             // [module: IsClosedType] // 2
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(5, 10),
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(5, 10),
             // (7,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             // [IsClosedType] public class C // 3
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(7, 2),
-            // (9,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(7, 2),
+            // (9,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             //     [IsClosedType] public C() { } // 4
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(9, 6),
-            // (10,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(9, 6),
+            // (10,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             //     [IsClosedType] public void M() { } // 5
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(10, 6),
-            // (11,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(10, 6),
+            // (11,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             //     [IsClosedType] public string P { get; set; } // 6
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(11, 6),
-            // (12,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(11, 6),
+            // (12,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             //     [IsClosedType] public string F; // 7
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(12, 6),
-            // (13,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(12, 6),
+            // (13,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             //     [IsClosedType] public event System.Action E; // 8
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(13, 6),
-            // (15,21): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(13, 6),
+            // (15,21): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             //     public void M1([IsClosedType] int param) { } // 9
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(15, 21),
-            // (16,14): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(15, 21),
+            // (16,14): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             //     [return: IsClosedType] public int M2() => 0; // 10
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(16, 14),
-            // (17,21): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(16, 14),
+            // (17,21): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             //     public void M3<[IsClosedType] T>() { } // 11
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(17, 21),
-            // (19,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(17, 21),
+            // (19,2): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             // [IsClosedType] public struct S { } // 12
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(19, 2),
-            // (20,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(19, 2),
+            // (20,2): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             // [IsClosedType] public enum E { } // 13
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(20, 2),
-            // (21,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(20, 2),
+            // (21,2): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             // [IsClosedType] public interface I { } // 14
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(21, 2),
-            // (22,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(21, 2),
+            // (22,2): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
             // [IsClosedType] public delegate void D(); // 15
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(22, 2));
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(22, 2));
     }
 
     [Fact]
