@@ -91,7 +91,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var codeGen = projectEngine.Process(sourceItem, cancellationToken);
 
+#pragma warning disable CS0618 // The generator intentionally targets the single C# doc produced by the declaration-only engine.
                     var result = new SourceGeneratorText(codeGen.GetRequiredCSharpDocument().Text);
+#pragma warning restore CS0618
 
                     RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
 
@@ -334,7 +336,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (
                         hintName: GetIdentifierFromPath(filePath),
                         codeDocument: document.CodeDocument,
+#pragma warning disable CS0618 // The generator intentionally targets the main C# doc here; multi-doc emit will be wired up alongside the rest of the multi-doc generator changes.
                         csharpDocument: document.CodeDocument.GetRequiredCSharpDocument());
+#pragma warning restore CS0618
                 })
                 .WithLambdaComparer(static (a, b) =>
                 {
