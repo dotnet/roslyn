@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(element is BoundCollectionElementInitializer or BoundExpression, $"Unexpected collection expression element {element}");
+                    Debug.Assert(element is BoundCollectionElementInitializer or BoundExpression or BoundKeyValuePairElement, $"Unexpected collection expression element {element}");
 
                     if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
                     {

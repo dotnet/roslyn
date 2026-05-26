@@ -2154,6 +2154,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitKeyValuePairElement(BoundKeyValuePairElement node)
+        {
+            VisitRvalue(node.Key);
+            VisitRvalue(node.Value);
+            return null;
+        }
+
+        public override BoundNode VisitKeyValuePairConversion(BoundKeyValuePairConversion node)
+        {
+            VisitRvalue(node.Expression);
+            return null;
+        }
+
         public override BoundNode VisitNewT(BoundNewT node)
         {
             VisitRvalue(node.InitializerExpressionOpt);

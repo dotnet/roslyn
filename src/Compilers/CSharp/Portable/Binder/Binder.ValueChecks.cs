@@ -4873,6 +4873,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if (element is BoundKeyValuePairElement keyValuePairElement)
+            {
+                safeContext = GetValEscape(keyValuePairElement.Key).Intersect(GetValEscape(keyValuePairElement.Value));
+                return true;
+            }
+
             Debug.Assert(element.HasErrors);
             safeContext = default;
             return false;

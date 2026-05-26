@@ -101,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return VisitCollectionBuilderCollectionExpression(node);
                     case CollectionExpressionTypeKind.ArrayInterface:
                         return VisitListInterfaceCollectionExpression(node);
+                    case CollectionExpressionTypeKind.DictionaryInterface:
+                        return VisitDictionaryInterfaceCollectionExpression(node);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
                 }
