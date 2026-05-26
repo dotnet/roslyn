@@ -806,12 +806,35 @@ start:
             {
                 foreach (var markedAsRemoved in _unshippedData.RemovedApiList)
                 {
-                    if (_visitedApiList.ContainsKey(markedAsRemoved.Text))
+                    if (_visitedApiList.ContainsKey(markedAsRemoved.Text) ||
+                        ExistsWithChangedExperimentalStatus(markedAsRemoved.Text))
                     {
                         Location location = markedAsRemoved.ApiLine.GetLocation(_additionalFiles);
                         reportDiagnostic(Diagnostic.Create(RemovedApiIsNotActuallyRemovedRule, location, messageArgs: markedAsRemoved.Text));
                     }
                 }
+            }
+
+            private bool ExistsWithChangedExperimentalStatus(string removedApiText)
+            {
+                // Strip oblivious marker from the removed API text for comparison
+                var baseText = removedApiText.TrimStart(ObliviousMarkerArray);
+
+                foreach (var visitedKey in _visitedApiList.Keys)
+                {
+                    // Strip oblivious marker from the visited key
+                    var key = visitedKey.TrimStart(ObliviousMarkerArray);
+
+                    // Check if the visited key has an experimental prefix [ID] and the base name matches
+                    if (key.Length > 0 && key[0] == '[')
+                    {
+                        var closeBracket = key.IndexOf(']');
+                        if (closeBracket > 0 && key[(closeBracket + 1)..] == baseText)
+                            return true;
+                    }
+                }
+
+                return false;
             }
 
             private bool IsTrackedAPI(ISymbol symbol, CancellationToken cancellationToken)

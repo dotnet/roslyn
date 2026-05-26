@@ -2979,6 +2979,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     },
                 },
             };
+            test.ExpectedDiagnostics.Add(
+                GetAdditionalFileResultAt(1, 1, UnshippedFileName, DeclarePublicApiAnalyzer.RemovedApiIsNotActuallyRemovedRule, "C.Method() -> void"));
             test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
             await test.RunAsync();
         }
