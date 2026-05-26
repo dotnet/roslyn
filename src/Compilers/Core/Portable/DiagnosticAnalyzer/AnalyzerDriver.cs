@@ -1132,7 +1132,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             }
                         }
 
-                        Task.WaitAll(tasks.ToArray(), cancellationToken);
+                        // If cancellation is requested, still wait for suppression tasks to unwind so
+                        // pooled state owned by those tasks is returned before the caller observes completion.
+                        Task.WaitAll(tasks.ToArray(), CancellationToken.None);
                     }
                     finally
                     {
