@@ -1100,10 +1100,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var elements = BindDictionaryInterfaceElements(elementType);
 
+                var placeholder = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, dictionaryType) { WasCompilerGenerated = true };
+
                 return CreateCollectionExpression(
                     CollectionExpressionTypeKind.DictionaryInterface,
                     elements,
-                    placeholder: null,
+                    placeholder: placeholder,
                     collectionCreation: collectionCreation,
                     indexerSetMethod: setMethod);
 
