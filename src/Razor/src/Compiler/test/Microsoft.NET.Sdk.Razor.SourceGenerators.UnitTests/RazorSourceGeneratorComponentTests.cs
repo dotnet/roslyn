@@ -1916,7 +1916,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         // The impl hint name ends in ".g.cs"; the decl hint name substitutes ".decl.g.cs"
         // for the trailing ".g.cs" so both halves keep the .g.cs suffix without stacking it.
         Assert.EndsWith(".g.cs", impl.HintName);
-        Assert.False(impl.HintName.EndsWith(".decl.g.cs"), $"Impl hint name should not end with .decl.g.cs: {impl.HintName}");
+        Assert.False(impl.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal), $"Impl hint name should not end with .decl.g.cs: {impl.HintName}");
         Assert.EndsWith(".decl.g.cs", decl.HintName);
         Assert.Equal(impl.HintName.Substring(0, impl.HintName.Length - ".g.cs".Length) + ".decl.g.cs", decl.HintName);
 
@@ -1967,7 +1967,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         result.Diagnostics.Verify();
 
         var only = Assert.Single(result.GeneratedSources);
-        Assert.False(only.HintName.EndsWith(".decl.g.cs"), $"Cshtml output should not be a decl file: {only.HintName}");
+        Assert.False(only.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal), $"Cshtml output should not be a decl file: {only.HintName}");
         Assert.Empty(result.DeclGeneratedSources());
     }
 

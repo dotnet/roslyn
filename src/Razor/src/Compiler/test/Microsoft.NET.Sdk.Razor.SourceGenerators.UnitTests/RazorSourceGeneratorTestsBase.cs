@@ -469,14 +469,14 @@ internal static class Extensions
     /// output without caring about the decl half.
     /// </summary>
     public static IEnumerable<GeneratedSourceResult> ImplGeneratedSources(this GeneratorRunResult result)
-        => result.GeneratedSources.Where(s => !s.HintName.EndsWith(".decl.g.cs"));
+        => result.GeneratedSources.Where(s => !s.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal));
 
     /// <summary>
     /// Returns just the decl results -- one per splittable component document, none for
     /// non-components or documents whose primary method body is being suppressed.
     /// </summary>
     public static IEnumerable<GeneratedSourceResult> DeclGeneratedSources(this GeneratorRunResult result)
-        => result.GeneratedSources.Where(s => s.HintName.EndsWith(".decl.g.cs"));
+        => result.GeneratedSources.Where(s => s.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal));
 
     private static string CreateBaselineDirectory(string testPath, string testName, string suffix)
     {
