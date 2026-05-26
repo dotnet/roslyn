@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -146,11 +147,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExplicitOrExtendedLayoutField && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, ErrorLocation);
+            }
+
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     ModifiersTokenList.GetModifierLocation(SyntaxKind.UnsafeKeyword, ErrorLocation),
                     modifyCompilation: true);
+            }
+
+            if (HasSafeModifier && (!IsExplicitOrExtendedLayoutField || HasUnsafeModifier))
+            {
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    ModifiersTokenList.GetModifierLocation(SyntaxKind.SafeKeyword, ErrorLocation));
             }
 
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
@@ -190,13 +202,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private bool HasSafeModifier
+            => (Modifiers & DeclarationModifiers.Safe) != 0;
+
+        private bool HasUnsafeModifier
+            => (Modifiers & DeclarationModifiers.Unsafe) != 0;
+
+        private bool IsExplicitOrExtendedLayoutField
+        {
+            get
+            {
+                if (IsConst || ContainingType.TypeKind != TypeKind.Struct)
+                {
+                    return false;
+                }
+
+                var layoutKind = ContainingType.Layout.Kind;
+                return layoutKind == LayoutKind.Explicit || layoutKind == LayoutKind.Extended;
+            }
+        }
+
         internal sealed override CallerUnsafeMode CallerUnsafeMode
         {
             get
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return (Modifiers & DeclarationModifiers.Unsafe) != 0 &&
+                    return HasUnsafeModifier &&
                         AssociatedSymbol is null &&
                         !IsConst
                             ? CallerUnsafeMode.Explicit
@@ -223,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Volatile |
                 DeclarationModifiers.Fixed |
                 DeclarationModifiers.Unsafe |
+                DeclarationModifiers.Safe |
                 DeclarationModifiers.Abstract |
                 DeclarationModifiers.Required; // Some of these are filtered out later, when illegal, for better error messages.
 
@@ -252,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation);
 
                 result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile | DeclarationModifiers.Required);
-                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
+                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe | DeclarationModifiers.New)) == 0);
             }
 
             if ((result & DeclarationModifiers.Const) != 0)
