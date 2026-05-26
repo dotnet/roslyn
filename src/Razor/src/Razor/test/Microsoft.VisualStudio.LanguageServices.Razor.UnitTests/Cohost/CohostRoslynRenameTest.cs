@@ -10,9 +10,9 @@ using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
@@ -373,7 +373,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         var invoker = LocalExportProvider.AssumeNotNull().GetExportedValue<ExportableRemoteServiceInvoker>();
         invoker.SetInvoker(RemoteServiceInvoker);
 
-        var workspaceEdit = await RemoteRenameService.GetRenameEditAsync(renameDocument, renamePosition, newName, DisposalToken);
+        var workspaceEdit = await RenameHandler.GetRenameEditAsync(renameDocument, renamePosition, newName, allowRenamesInRazorSourceGeneratedDocuments: true, DisposalToken);
         Assert.NotNull(workspaceEdit);
 
         var csharpSourceText = await csharpDocument.GetTextAsync(DisposalToken);

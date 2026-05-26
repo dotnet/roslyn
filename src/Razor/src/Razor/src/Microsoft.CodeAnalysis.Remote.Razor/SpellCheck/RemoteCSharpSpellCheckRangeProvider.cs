@@ -7,13 +7,12 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SpellCheck;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SpellCheck;
-using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
@@ -35,7 +34,7 @@ internal sealed class RemoteCSharpSpellCheckRangeProvider() : ICSharpSpellCheckR
 
     private static async Task<ImmutableArray<SpellCheckSpan>> GetSpellCheckSpansAsync(Document document, CancellationToken cancellationToken)
     {
-        var service = document.Project.Services.GetService<ISpellCheckSpanService>();
+        var service = document.GetLanguageService<ISpellCheckSpanService>();
         if (service is null)
         {
             return [];
