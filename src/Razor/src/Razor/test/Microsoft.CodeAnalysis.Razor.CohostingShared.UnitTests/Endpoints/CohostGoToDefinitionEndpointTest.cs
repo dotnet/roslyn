@@ -447,7 +447,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
 
-        var uri = new DocumentUri($"{document.CreateSystemUri()}{document.Name}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
+        var uri = new DocumentUri($"{document.CreateSystemUri()}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
         var htmlResponse = new SumType<LspLocation, LspLocation[], DocumentLink[]>?(new LspLocation[]
         {
             new() {

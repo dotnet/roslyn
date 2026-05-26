@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
@@ -101,7 +102,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
 
-        var uri = new DocumentUri($"{document.GetURI()}{document.Name}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
+        var uri = new DocumentUri($"{document.CreateSystemUri()}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
         var htmlResponse = new LspLocation
         {
             DocumentUri = uri,
