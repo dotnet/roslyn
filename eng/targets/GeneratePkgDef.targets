@@ -72,11 +72,8 @@
   -->
   
   <!-- TODO: Remove UsingTasks when upgrading to Arcade 11: https://github.com/dotnet/roslyn/issues/83095 -->
-  <!-- On local Windows Arm64 full-MSBuild builds, Runtime="NET" routes through an external x64 task host that currently fails to start, so keep these tasks in-proc there. -->
-  <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" Condition="'$(RoslynUseInProcBuildTasks)' == 'true'" />
-  <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" Runtime="NET" Condition="'$(RoslynUseInProcBuildTasks)' != 'true'" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Condition="'$(RoslynUseInProcBuildTasks)' == 'true'" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" Condition="'$(RoslynUseInProcBuildTasks)' != 'true'" />
+  <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" Runtime="$(_BuildTaskRuntime)" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="$(_BuildTaskRuntime)" />
 
   <Target Name="_SetGeneratePkgDefInputsOutputs">
     <PropertyGroup>
