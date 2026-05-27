@@ -294,12 +294,9 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeIdentifier_PropertyAccessor()
+    public void SafeModifier_PropertyAccessor()
     {
-        UsingDeclaration("public int P { safe get; set; }", options: null,
-            // (1,16): error CS1014: A get or set accessor expected
-            // public int P { safe get; set; }
-            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "safe").WithLocation(1, 16));
+        UsingDeclaration("public int P { safe get; set; }");
 
         N(SyntaxKind.PropertyDeclaration);
         {
@@ -312,12 +309,9 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
             N(SyntaxKind.AccessorList);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.UnknownAccessorDeclaration);
-                {
-                    N(SyntaxKind.IdentifierToken, "safe");
-                }
                 N(SyntaxKind.GetAccessorDeclaration);
                 {
+                    N(SyntaxKind.SafeKeyword);
                     N(SyntaxKind.GetKeyword);
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -332,13 +326,28 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
         EOF();
     }
 
-    [Fact]
-    public void SafeIdentifier_EventAccessor()
+    [Theory]
+    [InlineData("public int P { private safe get; set; }", 0, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
+    [InlineData("public int P { safe private get; set; }", 0, SyntaxKind.SafeKeyword, SyntaxKind.PrivateKeyword)]
+    [InlineData("public int P { get; private safe set; }", 1, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
+    public void SafeModifier_PropertyAccessor_WithOtherModifiers(string source, int accessorIndex, params SyntaxKind[] expectedModifiers)
     {
-        UsingDeclaration("public event EHandler E { safe add { } remove { } }", options: null,
-            // (1,27): error CS1055: An add or remove accessor expected
-            // public event EHandler E { safe add { } remove { } }
-            Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "safe").WithLocation(1, 27));
+        var declaration = Assert.IsType<PropertyDeclarationSyntax>(SyntaxFactory.ParseMemberDeclaration(source));
+        Assert.Empty(declaration.GetDiagnostics());
+
+        var modifiers = declaration.AccessorList!.Accessors[accessorIndex].Modifiers;
+        Assert.Equal(expectedModifiers.Length, modifiers.Count);
+
+        for (var i = 0; i < expectedModifiers.Length; i++)
+        {
+            Assert.Equal(expectedModifiers[i], modifiers[i].Kind());
+        }
+    }
+
+    [Fact]
+    public void SafeModifier_EventAccessor()
+    {
+        UsingDeclaration("public event EHandler E { safe add { } remove { } }");
 
         N(SyntaxKind.EventDeclaration);
         {
@@ -352,12 +361,9 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
             N(SyntaxKind.AccessorList);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.UnknownAccessorDeclaration);
-                {
-                    N(SyntaxKind.IdentifierToken, "safe");
-                }
                 N(SyntaxKind.AddAccessorDeclaration);
                 {
+                    N(SyntaxKind.SafeKeyword);
                     N(SyntaxKind.AddKeyword);
                     N(SyntaxKind.Block);
                     {

@@ -1469,7 +1469,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
 
                     case DeclarationModifiers.Safe:
-                        if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if (forAccessors)
+                        {
+                            if (!this.IsPossibleAccessorModifier())
+                            {
+                                return;
+                            }
+                        }
+                        else if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
                         }

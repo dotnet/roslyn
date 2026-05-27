@@ -7516,6 +7516,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 public event System.Action E1 { unsafe add { } remove { } }
                 public event System.Action E2 { add { } unsafe remove { } }
+                public event System.Action E3 { safe add { } remove { } }
+                public event System.Action E4 { add { } safe remove { } }
             }
             """,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
@@ -7525,7 +7527,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "unsafe").WithLocation(3, 37),
             // (4,45): error CS1609: Modifiers cannot be placed on event accessor declarations
             //     public event System.Action E2 { add { } unsafe remove { } }
-            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "unsafe").WithLocation(4, 45));
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "unsafe").WithLocation(4, 45),
+            // (5,37): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     public event System.Action E3 { safe add { } remove { } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(5, 37),
+            // (6,45): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     public event System.Action E4 { add { } safe remove { } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(6, 45));
     }
 
     [Fact]
@@ -10374,6 +10382,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (7,44): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public safe static extern partial void M1();
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M1").WithLocation(7, 44),
+            // (7,44): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public safe static extern partial void M1();
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M1").WithLocation(7, 44),
             // (9,32): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
             //     public static partial void M2();
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "M2").WithLocation(9, 32),
@@ -10383,6 +10394,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (13,45): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public safe extern partial event Action E1;
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "E1").WithLocation(13, 45),
+            // (13,45): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public safe extern partial event Action E1;
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "E1").WithLocation(13, 45),
             // (15,33): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
             //     public partial event Action E2;
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "E2").WithLocation(15, 33),
@@ -10391,7 +10405,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "E2").WithLocation(16, 47),
             // (19,32): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public safe extern partial C();
-            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "C").WithLocation(19, 32));
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "C").WithLocation(19, 32),
+            // (19,32): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public safe extern partial C();
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "C").WithLocation(19, 32));
     }
 
     [Fact]
@@ -11017,14 +11034,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
     }
 
-    [Fact]
-    public void Extern_Property_SafeModifier()
+    [Theory, CombinatorialData]
+    public void Extern_Property_SafeModifier([CombinatorialValues("", "safe")] string accessorModifier)
     {
-        var libSource = """
+        var libSource = $$"""
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                safe public extern int P2 { set; }
+                safe public extern int P2 { {{accessorModifier}} set; }
             }
             """;
 
@@ -11040,6 +11057,45 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C", "C.P2", "C.set_P2"],
             expectedDiagnostics: []);
+    }
+
+    [Fact]
+    public void Extern_Property_SafeModifier_Accessor()
+    {
+        CreateCompilation("""
+            #pragma warning disable CS0626 // extern without attributes
+
+            var c = new C();
+            c.P1 = 0;
+            _ = c.P1;
+            _ = c.P2;
+            c.P3 = 0;
+            _ = c.P3;
+            c.P4 = 0;
+            _ = c.P4;
+
+            public class C
+            {
+                public unsafe extern int P1 { get; private safe set; }
+                public unsafe extern int P2 { safe get; }
+                public unsafe extern int P3 { safe get; set; }
+                public safe extern int P4 { get; unsafe set; }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (4,1): error CS0272: The property or indexer 'C.P1' cannot be used in this context because the set accessor is inaccessible
+            // c.P1 = 0;
+            Diagnostic(ErrorCode.ERR_InaccessibleSetter, "c.P1").WithArguments("C.P1").WithLocation(4, 1),
+            // (5,5): error CS9362: 'C.P1.get' must be used in an unsafe context because it is marked as 'unsafe'
+            // _ = c.P1;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P1").WithArguments("C.P1.get").WithLocation(5, 5),
+            // (7,1): error CS9362: 'C.P3.set' must be used in an unsafe context because it is marked as 'unsafe'
+            // c.P3 = 0;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P3").WithArguments("C.P3.set").WithLocation(7, 1),
+            // (9,1): error CS9362: 'C.P4.set' must be used in an unsafe context because it is marked as 'unsafe'
+            // c.P4 = 0;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P4").WithArguments("C.P4.set").WithLocation(9, 1));
     }
 
     [Fact]
@@ -11219,14 +11275,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
     }
 
-    [Fact]
-    public void Extern_Indexer_SafeModifier()
+    [Theory, CombinatorialData]
+    public void Extern_Indexer_SafeModifier([CombinatorialValues("", "safe")] string accessorModifier)
     {
-        var libSource = """
+        var libSource = $$"""
             #pragma warning disable CS0626 // extern without attributes
             public class C
             {
-                public safe extern int this[int i] { get; set; }
+                public safe extern int this[int i] { {{accessorModifier}} get; set; }
             }
             """;
 
@@ -11956,6 +12012,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 {
                     safe static extern void Local();
                 }
+                safe public extern int A { safe get; set; }
             }
             """;
 
@@ -11990,7 +12047,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(7, 5),
             // (10,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         safe static extern void Local();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(10, 9));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(10, 9),
+            // (12,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     safe public extern int A { safe get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 5),
+            // (12,32): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     safe public extern int A { safe get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 32));
     }
 
     [Theory, CombinatorialData]
@@ -12017,6 +12080,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 {
                     safe void Local() { }
                 }
+                public int P2 { safe get; set; }
+                public string this[string s] { safe get => s; set { } }
             }
             """;
 
@@ -12088,6 +12153,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 public partial event System.Action E1;
                 public safe partial event System.Action E1 { add { } remove { } }
+
+                public partial int P2 { get; }
+                public partial int P2 { safe get => 0; }
             }
             """;
 
@@ -12110,12 +12178,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (13,29): error CS9390: Both partial member declarations must be safe or neither may be safe
             //     public safe partial int P1 => 0;
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "P1").WithLocation(13, 29),
+            // (13,35): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public safe partial int P1 => 0;
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "0").WithLocation(13, 35),
             // (16,25): error CS9390: Both partial member declarations must be safe or neither may be safe
             //     safe public partial C() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "C").WithLocation(16, 25),
             // (19,45): error CS9390: Both partial member declarations must be safe or neither may be safe
             //     public safe partial event System.Action E1 { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "E1").WithLocation(19, 45));
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "E1").WithLocation(19, 45),
+            // (22,34): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public partial int P2 { safe get => 0; }
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "get").WithLocation(22, 34));
     }
 
     [Theory, CombinatorialData]
@@ -12201,6 +12275,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     safe unsafe static extern void Local2();
                     static extern void Local3();
                 }
+                public extern int P3 { safe get; set; }
+                public extern int P4 { safe unsafe get; set; }
             }
             """;
 
@@ -12228,7 +12304,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(17, 9),
             // (18,16): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
             //         static extern void Local3();
-            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(18, 16));
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(18, 16),
+            // (20,12): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
+            //     public extern int P3 { safe get; set; }
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(20, 12),
+            // (21,12): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
+            //     public extern int P4 { safe unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(21, 12));
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (5,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.

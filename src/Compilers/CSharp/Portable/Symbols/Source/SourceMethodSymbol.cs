@@ -95,11 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Whether the method has an 'unsafe' modifier.
-        /// For property/event accessors, this includes the containing member's unsafe modifier.
         /// </summary>
         internal abstract bool HasUnsafeModifier { get; }
 
-        protected virtual bool HasSafeModifier => false;
+        /// <summary>
+        /// Whether the method has a 'safe' modifier.
+        /// </summary>
+        protected abstract bool HasSafeModifier { get; }
 
         internal bool IntroducesUnsafeContext => HasUnsafeModifier && !ContainingModule.UseUpdatedMemorySafetyRules;
 
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return CallerUnsafeMode.None;
                     }
 
-                    return HasUnsafeModifier || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                    return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit)
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }

@@ -462,15 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool LocalDeclaredReadOnly => (DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
 
-        /// <summary>
-        /// Indicates whether this accessor itself has an 'unsafe' modifier.
-        /// </summary>
-        internal bool LocalDeclaredUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
-
-        /// <summary>
-        /// Whether this accessor or its containing property has an 'unsafe' modifier.
-        /// </summary>
-        internal sealed override bool HasUnsafeModifier => LocalDeclaredUnsafe || _property.HasUnsafeModifier;
+        internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        protected sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
         internal sealed override bool CanBeCallerUnsafe => true;
 
         /// <summary>
@@ -540,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
-            allowedModifiers |= DeclarationModifiers.Unsafe;
+            allowedModifiers |= DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
 
             if (containingType.IsStructType())
             {
@@ -892,9 +885,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementationAccessor.GetFirstLocation());
             }
 
-            if (LocalDeclaredUnsafe != implementationAccessor.LocalDeclaredUnsafe)
+            if (HasUnsafeModifier != implementationAccessor.HasUnsafeModifier)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (HasSafeModifier != implementationAccessor.HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberSafeDifference, implementationAccessor.GetFirstLocation());
             }
 
             if (_usesInit != implementationAccessor._usesInit)
