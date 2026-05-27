@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.FoldingRanges;
@@ -27,7 +26,7 @@ internal sealed class RemoteFoldingRangeService(in ServiceArgs args) : RazorDocu
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
     public ValueTask<ImmutableArray<RemoteFoldingRange>> GetFoldingRangesAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         ImmutableArray<RemoteFoldingRange> htmlRanges,
         CancellationToken cancellationToken)

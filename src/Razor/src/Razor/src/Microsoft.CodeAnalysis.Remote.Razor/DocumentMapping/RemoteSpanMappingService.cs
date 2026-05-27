@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentExcerpt;
@@ -35,7 +34,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
     private readonly ITelemetryReporter _telemetryReporter = args.ExportProvider.GetExportedValue<ITelemetryReporter>();
     private readonly IRazorEditService _razorEditService = args.ExportProvider.GetExportedValue<IRazorEditService>();
 
-    public ValueTask<RemoteExcerptResult?> TryExcerptAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId generatedDocumentId, TextSpan span, ExcerptMode mode, ClassificationOptions options, CancellationToken cancellationToken)
+    public ValueTask<RemoteExcerptResult?> TryExcerptAsync(RazorSolutionWrapper solutionInfo, DocumentId generatedDocumentId, TextSpan span, ExcerptMode mode, ClassificationOptions options, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             solution => TryExcerptAsync(solution, generatedDocumentId, span, mode, options, cancellationToken),
@@ -83,7 +82,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         return new RemoteExcerptResult(razorDocument.Id, razorDocumentSpan, excerptSpan, classifiedSpans.ToImmutable(), span);
     }
 
-    public ValueTask<ImmutableArray<RemoteMappedSpanResult>> MapSpansAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<RemoteMappedSpanResult>> MapSpansAsync(RazorSolutionWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
        => RunServiceAsync(
             solutionInfo,
             solution => MapSpansAsync(solution, generatedDocumentId, spans, cancellationToken),
@@ -178,7 +177,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         return false;
     }
 
-    public ValueTask<ImmutableArray<RemoteMappedEditResult>> MapTextChangesAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<RemoteMappedEditResult>> MapTextChangesAsync(RazorSolutionWrapper solutionInfo, DocumentId generatedDocumentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             solution => MapTextChangesAsync(solution, generatedDocumentId, changes, cancellationToken),

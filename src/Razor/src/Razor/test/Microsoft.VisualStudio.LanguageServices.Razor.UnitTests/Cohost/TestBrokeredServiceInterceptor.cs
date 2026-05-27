@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Xunit;
 
@@ -17,7 +17,7 @@ internal sealed class TestBrokeredServiceInterceptor : IRazorBrokeredServiceInte
     private readonly Dictionary<Checksum, Solution> _solutions = [];
     private readonly Dictionary<SolutionId, Solution> _localToRemoteSolutionMap = [];
 
-    public async Task<RazorPinnedSolutionInfoWrapper> GetSolutionInfoAsync(Solution solution, CancellationToken cancellationToken)
+    public async Task<RazorSolutionWrapper> GetSolutionInfoAsync(Solution solution, CancellationToken cancellationToken)
     {
         // Using compilation state, since that is what is used in the real SolutionAssetStorage class.
         // Compilation state is the SolutionState checksum, plus source generator info, which seems pretty relevant :)
@@ -40,7 +40,7 @@ internal sealed class TestBrokeredServiceInterceptor : IRazorBrokeredServiceInte
         => implementation(cancellationToken);
 
     public ValueTask<T> RunServiceAsync<T>(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         Func<Solution, ValueTask<T>> implementation,
         CancellationToken cancellationToken)
     {
@@ -63,11 +63,11 @@ internal sealed class TestBrokeredServiceInterceptor : IRazorBrokeredServiceInte
         _localToRemoteSolutionMap.Add(localSolutionId, remoteSolution);
     }
 
-    private Solution? GetSolution(RazorPinnedSolutionInfoWrapper solutionInfo)
+    private Solution? GetSolution(RazorSolutionWrapper solutionInfo)
     {
         lock (_solutions)
         {
-            _solutions.TryGetValue(solutionInfo.UnderlyingObject, out var solution);
+            _solutions.TryGetValue(solutionInfo.Checksum, out var solution);
 
             return solution;
         }

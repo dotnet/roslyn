@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.TypeHierarchy;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -32,7 +31,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
     public ValueTask<RemoteResponse<TypeHierarchyItem[]?>> PrepareTypeHierarchyAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         Position position,
         CancellationToken cancellationToken)
@@ -76,7 +75,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
     }
 
     public ValueTask<RemoteResponse<TypeHierarchyItem[]?>> ResolveSupertypesAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         TypeHierarchyItem item,
         CancellationToken cancellationToken)
@@ -105,7 +104,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
     }
 
     public ValueTask<RemoteResponse<TypeHierarchyItem[]?>> ResolveSubtypesAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         TypeHierarchyItem item,
         CancellationToken cancellationToken)

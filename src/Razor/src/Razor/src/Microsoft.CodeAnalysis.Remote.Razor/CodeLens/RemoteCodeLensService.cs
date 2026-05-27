@@ -4,7 +4,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -24,7 +23,7 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
     public ValueTask<LspCodeLens[]?> GetCodeLensAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         TextDocumentIdentifier textDocumentIdentifier,
         CancellationToken cancellationToken)
@@ -72,7 +71,7 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
     }
 
     public ValueTask<LspCodeLens?> ResolveCodeLensAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         LspCodeLens codeLens,
         CancellationToken cancellationToken)

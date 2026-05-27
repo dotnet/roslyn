@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -67,7 +66,7 @@ internal sealed class RemoteServiceInvoker(
 
     public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(
         Solution solution,
-        Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation,
+        Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask<TResult>> invocation,
         CancellationToken cancellationToken,
         [CallerFilePath] string? callerFilePath = null,
         [CallerMemberName] string? callerMemberName = null)
@@ -111,7 +110,6 @@ internal sealed class RemoteServiceInvoker(
             .TryGetClientAsync(
                 workspace.Services,
                 RazorServices.Descriptors,
-                RazorRemoteServiceCallbackDispatcherRegistry.Empty,
                 cancellationToken)
             .ConfigureAwait(false);
 
@@ -127,7 +125,6 @@ internal sealed class RemoteServiceInvoker(
             .TryGetClientAsync(
                 workspace.Services,
                 RazorServices.JsonDescriptors,
-                RazorRemoteServiceCallbackDispatcherRegistry.Empty,
                 cancellationToken)
             .ConfigureAwait(false);
 

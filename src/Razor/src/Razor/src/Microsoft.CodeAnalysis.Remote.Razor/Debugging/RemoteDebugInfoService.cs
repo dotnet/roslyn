@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Debugging;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -28,7 +27,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
-    public ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePositionSpan span, CancellationToken cancellationToken)
+    public ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, LinePositionSpan span, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
@@ -57,7 +56,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         return null;
     }
 
-    public ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
+    public ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
@@ -93,7 +92,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         return hostDocumentRange;
     }
 
-    public ValueTask<string[]?> ResolveProximityExpressionsAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
+    public ValueTask<string[]?> ResolveProximityExpressionsAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
