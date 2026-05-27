@@ -6484,7 +6484,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</value>
   </data>
   <data name="ERR_SimpleProgramMultipleUnitsWithTopLevelStatements" xml:space="preserve">
-    <value>Only one compilation unit can have top-level statements.</value>
+    <value>Only one compilation unit can have top-level statements. '{0}' also has top-level statements.</value>
   </data>
   <data name="ERR_TopLevelStatementAfterNamespaceOrType" xml:space="preserve">
     <value>Top-level statements must precede namespace and type declarations.</value>
