@@ -4,13 +4,14 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 // Language features not covered by tests:
-// - Global Using Directive: compilation-unit-only directive that Razor source does not author directly.
 // - Improved Definite Assignment: flow-analysis improvement without a distinct Razor syntax surface.
 // - Source Generator V2 APIs: Roslyn API surface, not Razor-authored source.
 // - Async method builder override: requires substantial task-like / builder plumbing that is not a Razor-specific surface.
@@ -244,6 +245,35 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/GlobalUsingDirective.md")]
+    public void GlobalUsingDirective()
+    {
+        AddCSharpSyntaxTree("""
+            global using Helpers.GlobalUsing;
+            
+            namespace Helpers.GlobalUsing
+            {
+                public static class Utility
+                {
+                    public static string GetValue()
+                        => "Razor";
+                }
+            }
+            """);
+
+        var generated = CompileToCSharp("""
+            @inherits global::LegacyTemplateBase
+            
+            <p>@Utility.GetValue()</p>
+            """,
+            path: DefaultLegacyFileName);
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
+        CompileToAssemblyUsingAppSyntaxTrees(generated);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/parameterless-struct-constructors.md")]
     public void ParameterlessStructConstructors()
     {
@@ -297,6 +327,18 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
         CompileToAssembly(generated);
     }
 
+    private void CompileToAssemblyUsingAppSyntaxTrees(CompiledCSharpCode code)
+    {
+        var generatedCode = code.CodeDocument.GetRequiredCSharpDocument();
+        var generatedSyntaxTree = (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(
+            generatedCode.Text,
+            CSharpParseOptions,
+            path: code.CodeDocument.Source.FilePath ?? string.Empty);
+
+        BaseCompilation
+            .AddSyntaxTrees(CSharpSyntaxTrees)
+            .AddSyntaxTrees(generatedSyntaxTree)
+            .EmitToImageReference();
+    }
+
 }
-
-

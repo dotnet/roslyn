@@ -7,7 +7,6 @@ using Xunit;
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 // Language features not covered by tests:
-// - Global Using Directive: compilation-unit-only directive that Razor source does not author directly.
 // - Improved Definite Assignment: flow-analysis improvement without a distinct Razor syntax surface.
 // - Source Generator V2 APIs: Roslyn API surface, not Razor-authored source.
 // - Async method builder override: requires substantial task-like / builder plumbing that is not a Razor-specific surface.
@@ -182,6 +181,32 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest()
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/GlobalUsingDirective.md")]
+    public void GlobalUsingDirective()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            global using Helpers.GlobalUsing;
+            
+            namespace Helpers.GlobalUsing
+            {
+                public static class Utility
+                {
+                    public static string GetValue()
+                        => "Razor";
+                }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <p>@Utility.GetValue()</p>
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/parameterless-struct-constructors.md")]
     public void ParameterlessStructConstructors()
     {
@@ -226,5 +251,4 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest()
     }
 
 }
-
 
