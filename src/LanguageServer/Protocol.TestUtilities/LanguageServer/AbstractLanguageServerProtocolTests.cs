@@ -67,7 +67,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     internal sealed class TestSpanMapper : ISpanMappingService
     {
         private static readonly LinePositionSpan s_mappedLinePosition = new(new LinePosition(0, 0), new LinePosition(0, 5));
-        private static readonly string s_mappedFilePath = "c:\\MappedFile_\ue25b\ud86d\udeac.cs";
+        private static readonly string s_mappedFilePath = TestHelpers.GetRootedPath("MappedFile_\ue25b\ud86d\udeac.cs");
 
         internal static readonly string GeneratedFileName = "GeneratedFile_\ue25b\ud86d\udeac.cs";
 
@@ -256,7 +256,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
         string? filterText = null,
         long resultId = 0,
         bool vsResolveTextEditOnCommit = false,
-        LSP.CompletionItemLabelDetails? labelDetails = null)
+        LSP.CompletionItemLabelDetails? labelDetails = null,
+        int matchPriority = 0)
     {
         var position = await document.GetPositionFromLinePositionAsync(
             ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -275,7 +276,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
             Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
             Preselect = preselect,
             VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
-            LabelDetails = labelDetails
+            LabelDetails = labelDetails,
+            MatchPriority = matchPriority
         };
 
         if (tags != null)
@@ -451,7 +453,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             generatedDocumentId,
             TestSpanMapper.GeneratedFileName,
             loader: loader,
-            filePath: $"C:\\{TestSpanMapper.GeneratedFileName}",
+            filePath: TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName),
             isGenerated: true)
             .WithDocumentServiceProvider(new TestSpanMapperProvider());
 
@@ -837,6 +839,14 @@ public abstract partial class AbstractLanguageServerProtocolTests
             // The refresh command should trigger source generators to run in both automatic and balanced mode.
             await this.ExecuteRequestAsync<RefreshSourceGeneratorsParams, object>(WorkspaceRefreshSourceGeneratorsHandler.MethodName, refreshSourceGeneratorsParams, CancellationToken.None);
             await this.WaitForSourceGeneratorsAsync();
+        }
+
+        public Task<TextDocumentContentResult?> GetSourceGeneratedDocumentTextAsync(DocumentUri documentUri)
+        {
+            return ExecuteRequestAsync<TextDocumentContentParams, TextDocumentContentResult>(
+                Methods.WorkspaceTextDocumentContentName,
+                new TextDocumentContentParams { Uri = documentUri },
+                CancellationToken.None);
         }
 
         public async Task ShutdownTestServerAsync()

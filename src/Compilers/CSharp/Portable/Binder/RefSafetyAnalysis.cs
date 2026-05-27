@@ -984,49 +984,56 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.InitializerExpressionOpt is { })
             {
-                // Object initializers are different than a normal constructor in that the 
-                // scope of the receiver is determined by evaluating the inputs to the constructor
-                // *and* all of the initializers. Another way of thinking about this is that
-                // every argument in an initializer that can escape to the receiver is 
-                // effectively an argument to the constructor. That means we need to do
-                // a second mixing pass here where we consider the receiver escaping 
-                // back into the ref parameters of the constructor.
-                //
-                // At the moment this is only a hypothetical problem. Because the language 
-                // doesn't support ref field of ref struct mixing like this could not actually
-                // happen in practice. At the same time we want to error on this now so that 
-                // in a future when we do have ref field to ref struct this is not a breaking 
-                // change. Customers can respond to failures like this by putting scoped on
-                // such parameters in the constructor.
-                var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
                 var escapeFrom = GetValEscape(node.InitializerExpressionOpt);
-                GetEscapeValues(
-                    in methodInvocationInfo,
-                    ignoreArglistRefKinds: false,
-                    mixableArguments: null,
-                    escapeValues);
+                VisitObjectCreationWithInitializer(node, in methodInvocationInfo, escapeFrom);
+            }
+        }
 
-                foreach (var (parameter, argument, _, isRefEscape) in escapeValues)
+        private void VisitObjectCreationWithInitializer(BoundObjectCreationExpressionBase node, in MethodInvocationInfo methodInvocationInfo, SafeContext initializerEscape)
+        {
+            Debug.Assert(node.Constructor is not null);
+
+            // Object initializers are different than a normal constructor in that the 
+            // scope of the receiver is determined by evaluating the inputs to the constructor
+            // *and* all of the initializers. Another way of thinking about this is that
+            // every argument in an initializer that can escape to the receiver is 
+            // effectively an argument to the constructor. That means we need to do
+            // a second mixing pass here where we consider the receiver escaping 
+            // back into the ref parameters of the constructor.
+            //
+            // At the moment this is only a hypothetical problem. Because the language 
+            // doesn't support ref field of ref struct mixing like this could not actually
+            // happen in practice. At the same time we want to error on this now so that 
+            // in a future when we do have ref field to ref struct this is not a breaking 
+            // change. Customers can respond to failures like this by putting scoped on
+            // such parameters in the constructor.
+            var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
+            GetEscapeValues(
+                in methodInvocationInfo,
+                ignoreArglistRefKinds: false,
+                mixableArguments: null,
+                escapeValues);
+
+            foreach (var (parameter, argument, _, isRefEscape) in escapeValues)
+            {
+                if (!isRefEscape)
                 {
-                    if (!isRefEscape)
-                    {
-                        continue;
-                    }
-
-                    if (parameter?.Type?.IsRefLikeOrAllowsRefLikeType() != true ||
-                        !parameter.RefKind.IsWritableReference())
-                    {
-                        continue;
-                    }
-
-                    if (!escapeFrom.IsConvertibleTo(GetValEscape(argument)))
-                    {
-                        Error(_diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, node.Constructor, parameter.Name);
-                    }
+                    continue;
                 }
 
-                escapeValues.Free();
+                if (parameter?.Type?.IsRefLikeOrAllowsRefLikeType() != true ||
+                    !parameter.RefKind.IsWritableReference())
+                {
+                    continue;
+                }
+
+                if (!initializerEscape.IsConvertibleTo(GetValEscape(argument)))
+                {
+                    Error(_diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, node.Constructor, parameter.Name);
+                }
             }
+
+            escapeValues.Free();
         }
 
         public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
@@ -1310,6 +1317,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
+            SafeContext receiverScope;
+
             if (node.CollectionCreation is { } collectionCreation)
             {
                 if (node.CollectionBuilderElementsPlaceholder is { } spanPlaceholder)
@@ -1333,9 +1342,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Visit(collectionCreation);
                 }
+
+                receiverScope = GetValEscape(collectionCreation);
+            }
+            else
+            {
+                receiverScope = _localScopeDepth;
             }
 
             VisitList(node.Elements);
+
+            var elementsScope = SafeContext.CallingMethod;
+
+            // Add node.Placeholder scope once before the loop since it's shared across all spread elements.
+            var nodePlaceholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
+            if (node.Placeholder != null)
+            {
+                nodePlaceholders.Add((node.Placeholder, SafeContextAndLocation.Create(receiverScope)));
+            }
+            using var _2 = new PlaceholderRegion(this, nodePlaceholders);
+
+            foreach (var element in node.Elements)
+            {
+                if (element is BoundCollectionExpressionSpreadElement spreadElement)
+                {
+                    // Set up the element placeholder before computing the escape scope,
+                    // since GetInvocationEscapeToReceiver may need to access it.
+                    var spreadPlaceholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
+
+                    if (spreadElement.ElementPlaceholder != null)
+                    {
+                        spreadPlaceholders.Add((spreadElement.ElementPlaceholder, SafeContextAndLocation.Create(GetValEscape(spreadElement.Expression))));
+                    }
+
+                    using var _3 = new PlaceholderRegion(this, spreadPlaceholders);
+
+                    if (TryGetCollectionExpressionElementValEscape(element, out var spreadEscape))
+                    {
+                        elementsScope = elementsScope.Intersect(spreadEscape);
+                    }
+
+                    // Spread elements are effectively foreach - we need to make sure the iteration variable is not captured by an Add(ref) method into the receiver.
+                    if (!spreadElement.HasErrors)
+                    {
+                        if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
+                        {
+                            VisitList(spreadElementInitializer.Arguments);
+                            var methodInvocationInfo = MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer);
+                            CheckInvocationArgMixing(
+                                element.Syntax,
+                                in methodInvocationInfo,
+                                spreadElementInitializer.AddMethod,
+                                _diagnostics);
+                        }
+                        else
+                        {
+                            Debug.Assert(spreadElement.HasErrors
+                                || spreadElement.IteratorBody is null
+                                or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer });
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.Assert(element is BoundCollectionElementInitializer or BoundExpression, $"Unexpected collection expression element {element}");
+
+                    if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
+                    {
+                        elementsScope = elementsScope.Intersect(elementSafeContext);
+                    }
+                }
+            }
+
+            if (node.CollectionCreation is BoundObjectCreationExpression { Constructor: { } } objectCreation && !node.Elements.IsEmpty)
+            {
+                var methodInvocationInfo = MethodInvocationInfo.FromObjectCreation(objectCreation);
+                VisitObjectCreationWithInitializer(objectCreation, in methodInvocationInfo, elementsScope);
+            }
+
             return null;
         }
 

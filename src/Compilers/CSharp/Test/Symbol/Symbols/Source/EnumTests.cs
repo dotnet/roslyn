@@ -930,7 +930,7 @@ enum E2 : int* { }
 enum E3 : dynamic { }
 class C<T> { enum E4 : T { } }
 ";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef }, parseOptions: TestOptions.Regular14);
             compilation.VerifyDiagnostics(
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // enum E2 : int* { }
@@ -984,6 +984,47 @@ class C<T> { enum E4 : T { } }
                 var symbol = model.GetDeclaredSymbol(decl);
                 var type = symbol.EnumUnderlyingType;
                 Assert.Equal(SpecialType.System_Int32, type.SpecialType);
+            }
+
+            foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext })
+            {
+                compilation = CreateEmptyCompilation(text, new[] { MscorlibRef }, parseOptions: parseOptions);
+                compilation.VerifyDiagnostics(
+                    // (2,11): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                    // enum E2 : int* { }
+                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "int*").WithLocation(2, 11),
+                    // (3,11): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                    // enum E3 : dynamic { }
+                    Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(3, 11),
+                    // (3,11): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                    // enum E3 : dynamic { }
+                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "dynamic").WithLocation(3, 11),
+                    // (1,11): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                    // enum E1 : int[] { }
+                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "int[]").WithLocation(1, 11),
+                    // (4,24): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                    // class C<T> { enum E4 : T { } }
+                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "T").WithLocation(4, 24));
+
+                tree = compilation.SyntaxTrees[0];
+                model = compilation.GetSemanticModel(tree);
+                diagnostics = model.GetDeclarationDiagnostics();
+                diagnostics.Verify(
+                    // (2,11): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                    // enum E2 : int* { }
+                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "int*").WithLocation(2, 11),
+                    // (1,11): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                    // enum E1 : int[] { }
+                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "int[]").WithLocation(1, 11),
+                    // (3,11): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                    // enum E3 : dynamic { }
+                    Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(3, 11),
+                    // (3,11): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                    // enum E3 : dynamic { }
+                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "dynamic").WithLocation(3, 11),
+                    // (4,24): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                    // class C<T> { enum E4 : T { } }
+                    Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "T").WithLocation(4, 24));
             }
         }
 

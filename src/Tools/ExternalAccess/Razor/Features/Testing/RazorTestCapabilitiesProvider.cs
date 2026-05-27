@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.RazorLspServer), Shared]
@@ -21,7 +22,7 @@ internal sealed class RazorTestCapabilitiesProvider() : ICapabilitiesProvider
     public IRazorTestCapabilitiesProvider? RazorTestCapabilities { get; set; }
     public JsonSerializerOptions? JsonSerializerOptions { get; set; }
 
-    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
     {
         Contract.ThrowIfNull(RazorTestCapabilities, nameof(RazorTestCapabilities));
         Contract.ThrowIfNull(JsonSerializerOptions, nameof(JsonSerializerOptions));

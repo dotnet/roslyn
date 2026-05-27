@@ -489,7 +489,7 @@ class X
                         default:
                             // If a new warning is added, this test will fail
                             // and whoever is adding the new warning will have to update it with the expected error level.
-                            Assert.True(false, $"Please update this test case with a proper warning level ({ErrorFacts.GetWarningLevel(errorCode)}) for '{errorCodeName}'");
+                            Assert.Fail($"Please update this test case with a proper warning level ({ErrorFacts.GetWarningLevel(errorCode)}) for '{errorCodeName}'");
                             break;
                     }
                 }

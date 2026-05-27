@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
         /// <summary>
-        /// Whether the method has the <see langword="unsafe"/> keyword in its signature.
+        /// Whether the method is in an unsafe context.
+        /// For property/event accessors, this includes the containing property's unsafe modifier.
         /// Do not confuse with <see cref="CallerUnsafeMode"/>.
         /// </summary>
         internal abstract bool IsUnsafe { get; }

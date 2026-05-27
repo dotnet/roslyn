@@ -552,10 +552,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // Note: using ToolArguments here (the property) since
                 // commandLineCommands (the parameter) may have been mucked with
                 // (to support using the dotnet cli)
+                var buildRequestArguments = GenerateCommandLineArgsList(responseFileCommands);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, logger.Log);
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
-                    GenerateCommandLineArgsList(responseFileCommands),
+                    buildRequestArguments,
                     workingDirectory: CurrentDirectoryToUse(),
                     tempDirectory: tempDirectory,
                     keepAlive: null,

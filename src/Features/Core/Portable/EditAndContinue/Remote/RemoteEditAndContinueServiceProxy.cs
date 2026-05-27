@@ -117,7 +117,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
     private IEditAndContinueService GetLocalService()
         => services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
-    public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
+    public async ValueTask<DebuggingSessionProxy?> StartDebuggingSessionAsync(
         Solution solution,
         IManagedHotReloadService debuggerService,
         IPdbMatchingSourceTextProvider sourceTextProvider,
@@ -128,7 +128,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         if (client == null)
         {
             var sessionId = GetLocalService().StartDebuggingSession(solution, debuggerService, sourceTextProvider, reportDiagnostics);
-            return new RemoteDebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
+            return new DebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
         }
 
         // need to keep the providers alive until the session ends:
@@ -142,7 +142,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
 
         if (sessionIdOpt.HasValue)
         {
-            return new RemoteDebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
+            return new DebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
         }
 
         connection.Dispose();

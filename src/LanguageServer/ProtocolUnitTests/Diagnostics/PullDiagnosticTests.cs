@@ -735,7 +735,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
             results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: secondResultId);
             var thirdResultId = results.Single().ResultId;
-            AssertEx.NotNull(results.Single().Diagnostics);
+            Assert.NotNull(results.Single().Diagnostics);
             Assert.Empty(results.Single().Diagnostics!);
             Assert.NotEqual(firstResultId, thirdResultId);
         }
@@ -766,6 +766,78 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var diagnostic = AssertEx.Single(results.Single().Diagnostics);
         Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
+    }
+
+    [Theory, CombinatorialData]
+    internal async Task TestRemovedOpenedSourceGeneratorFileReportsUpdatedDiagnostics(bool useVSDiagnostics, bool mutatingLspWorkspace, SourceGeneratorExecutionPreference executionPreference)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+
+        var configService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
+        configService.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecution: executionPreference);
+
+        var iteration = 0;
+        var callbackGenerator = new CallbackGenerator(() =>
+        {
+            var result = ($"hintName-{iteration}.cs", $"Iteration{iteration}");
+            iteration++;
+            return result;
+        });
+        var generatorReference = await AddGeneratorAsync(callbackGenerator, testLspServer.TestWorkspace);
+
+        var sourceGeneratedDocuments = await testLspServer.GetCurrentSolution().Projects.Single().GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
+        var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
+
+        var originalSgText = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
+        Assert.NotNull(originalSgText);
+        Assert.Equal("Iteration0", originalSgText.Text);
+
+        // Open the document - this will cause the queue to generate frozen sg documents based on the LSP open text
+        // even if the source generated document is removed entirely.
+        await testLspServer.OpenDocumentAsync(sourceGeneratorDocumentUri, originalSgText.Text);
+
+        // First diagnostics request should report a diagnostic with 'Iteration0' as the identifier.
+        var initialDiagnostics = await RunGetDocumentPullDiagnosticsAsync(testLspServer, sourceGeneratorDocumentUri, useVSDiagnostics);
+        var firstResult = AssertEx.Single(initialDiagnostics);
+        var firstDiagnostic = AssertEx.Single(firstResult.Diagnostics!.Where(d => d.Code!.Value.Second == "CS0246"));
+        Assert.Contains("Iteration0", firstDiagnostic.Message);
+
+        // Updating the execution version should trigger source generators to run and generate a new document with new name.
+        await testLspServer.RefreshSourceGeneratorsAsync(forceRegeneration: true);
+
+        // The old source generated document should be removed and return empty text.
+        var newSgText = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
+        Assert.NotNull(newSgText);
+        Assert.Empty(newSgText.Text);
+
+        // Before the client updates the file with the new text it retrieved, make a diagnostics request.
+        // This should recalculate diagnostics (source generator execution changed), but return the same diagnostics based on
+        // the original frozen text since the client hasn't told the server to update the frozen document.
+        var secondDiagnostics = await RunGetDocumentPullDiagnosticsAsync(testLspServer, sourceGeneratorDocumentUri, useVSDiagnostics, previousResultId: firstResult.ResultId);
+        var secondResult = AssertEx.Single(secondDiagnostics);
+        var secondDiagnostic = AssertEx.Single(secondResult.Diagnostics!.Where(d => d.Code!.Value.Second == "CS0246"));
+        Assert.Contains("Iteration0", secondDiagnostic.Message);
+        Assert.NotEqual(secondResult.ResultId, firstResult.ResultId);
+
+        // Now update the LSP text for the source generated document based on the new text we retrieved after the source generator re-ran.
+        var originalText = SourceText.From(originalSgText.Text);
+        var originalSpan = originalText.Lines.GetLinePositionSpan(new TextSpan(0, originalText.Length));
+
+        await testLspServer.ReplaceTextAsync(
+            sourceGeneratorDocumentUri,
+            (new LSP.Range
+            {
+                Start = new LSP.Position(originalSpan.Start.Line, originalSpan.Start.Character),
+                End = new LSP.Position(originalSpan.End.Line, originalSpan.End.Character)
+            }, newSgText.Text));
+
+        // We now have a new version of the frozen source generated document - diagnostics should be recalculated and returned
+        // based on the new frozen source generator contents (empty).
+        var thirdDiagnostics = await RunGetDocumentPullDiagnosticsAsync(testLspServer, sourceGeneratorDocumentUri, useVSDiagnostics);
+        var thirdResult = AssertEx.Single(thirdDiagnostics);
+        Assert.NotEqual(thirdResult.ResultId, secondResult.ResultId);
+        Assert.Empty(thirdResult.Diagnostics!);
     }
 
     [Theory, CombinatorialData]
@@ -1734,7 +1806,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify we a diagnostic in A.cs since B does not exist
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-        AssertEx.NotNull(results);
         Assert.Equal(4, results.Length);
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
         Assert.Equal("CS1001", results[2].Diagnostics!.Single().Code);
@@ -1748,7 +1819,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Get updated workspace diagnostics for the change.
         var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResultIds);
-        AssertEx.NotNull(results);
 
         // We should get updated diagnostics for both A and B now that B exists.
         Assert.Equal(2, results.Length);
@@ -1815,7 +1885,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Verify we have diagnostics in A.cs, B.cs, and C.cs initially.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-        AssertEx.NotNull(results);
         Assert.Equal(6, results.Length);
         // Type C does not exist.
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
@@ -1836,7 +1905,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Get updated workspace diagnostics for the change.
         var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResultIds).ConfigureAwait(false);
-        AssertEx.NotNull(results);
 
         // Verify that we get 3 new reports as the diagnostics in A.cs, B.cs, and C.cs have all changed due to the transitive change in C.cs.
         Assert.Equal(3, results.Length);
@@ -1890,7 +1958,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify we a diagnostic in A.cs since B does not exist
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-        AssertEx.NotNull(results);
         Assert.Equal(4, results.Length);
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
         AssertEx.Empty(results[1].Diagnostics);
@@ -1906,7 +1973,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Get updated workspace diagnostics for the change.
         var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResultIds);
-        AssertEx.NotNull(results);
 
         // We should get 1 report from B.cs reflecting the change we made to it.
         // A.cs is unchanged and we will not get a report for it.
@@ -1958,7 +2024,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify we a diagnostic in A.cs since B does not exist
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-        AssertEx.NotNull(results);
         Assert.Equal(4, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
         Assert.Equal("CS0168", results[2].Diagnostics!.Single().Code);
@@ -1974,8 +2039,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Get updated workspace diagnostics for the change.
         var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResultIds);
-
-        AssertEx.NotNull(results);
 
         // We should get a single report back for B.cs now that the diagnostic has been promoted to an error.
         // The diagnostics in A.cs did not change and so are not reported again.
@@ -2021,7 +2084,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify we a diagnostic in A.cs since B does not exist
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-        AssertEx.NotNull(results);
         Assert.Equal(4, results.Length);
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
         Assert.Equal("CS1001", results[2].Diagnostics!.Single().Code);
@@ -2039,7 +2101,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify that since no actual changes have been made we report unchanged diagnostics.
         // We get an empty array here as this is workspace diagnostics, and we do not report unchanged
         // docs there for efficiency.
-        AssertEx.NotNull(results);
         Assert.Empty(results);
     }
 
@@ -2077,7 +2138,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify we a diagnostic in A.cs since B does not exist
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-        AssertEx.NotNull(results);
         Assert.Equal(6, results.Length);
         Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
 
@@ -2095,7 +2155,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify that since no actual changes have been made we report unchanged diagnostics.
         // We get an empty array here as this is workspace diagnostics, and we do not report unchanged
         // docs there for efficiency.
-        AssertEx.NotNull(results);
         Assert.Empty(results);
     }
 

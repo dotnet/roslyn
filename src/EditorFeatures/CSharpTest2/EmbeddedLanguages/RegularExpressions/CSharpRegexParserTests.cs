@@ -168,7 +168,7 @@ public sealed partial class CSharpRegexParserTests
         if (!tree.Diagnostics.IsEmpty)
         {
             var expectedDiagnostics = CreateDiagnosticsElement(sourceText, tree);
-            Assert.False(true, "Expected diagnostics: \r\n" + expectedDiagnostics.ToString().Replace("""
+            Assert.Fail("Expected diagnostics: \r\n" + expectedDiagnostics.ToString().Replace("""
                 "
                 """, """
                 ""
@@ -313,7 +313,7 @@ public sealed partial class CSharpRegexParserTests
             case RegexKind.WhitespaceTrivia:
                 break;
             default:
-                Assert.False(true, "Incorrect trivia kind");
+                Assert.Fail("Incorrect trivia kind");
                 return;
         }
 
@@ -342,7 +342,7 @@ public sealed partial class CSharpRegexParserTests
     private static string Not(string regex)
         => $"(?({regex})[0-[0]]|.*)";
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Deep recursion test relies on Windows stack size (~1MB) to trigger stack overflow; Linux has 8MB stack")]
     public void TestDeepRecursion()
     {
         var (token, tree, chars) =

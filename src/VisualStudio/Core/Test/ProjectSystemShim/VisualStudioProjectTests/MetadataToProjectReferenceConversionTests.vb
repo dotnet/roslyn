@@ -417,6 +417,74 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Function
 
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79705")>
+        Public Async Function OutputPathChangesInSameBatchStartingAsMetadataReference() As Task
+            ' Scenario: project2 starts with a plain metadata reference to c:\project1.dll (no project has
+            ' that output path yet). Within a single batch on project1, the output path properties are set
+            ' so that c:\project1.dll is added, removed, and re-added as an output path. This causes the
+            ' metadata reference to be converted, unconverted, and reconverted.
+            Using environment = New TestEnvironment()
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project1", LanguageNames.CSharp, CancellationToken.None)
+
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project2", LanguageNames.CSharp, CancellationToken.None)
+
+                Const ReferencePath = "C:\project1.dll"
+                project2.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+
+                Dim getProject2 = Function() environment.Workspace.CurrentSolution.GetProject(project2.Id)
+
+                Assert.Single(getProject2().MetadataReferences)
+                Assert.Empty(getProject2().ProjectReferences)
+
+                Using project1.CreateBatchScope()
+                    project1.OutputFilePath = ReferencePath
+                    project1.OutputFilePath = Nothing
+                    project1.OutputFilePath = ReferencePath
+                End Using
+
+                ' The metadata reference should have been converted to a project reference
+                Assert.Single(getProject2().ProjectReferences)
+                Assert.Empty(getProject2().MetadataReferences)
+            End Using
+        End Function
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/79705")>
+        Public Async Function OutputPathChangesInSameBatchStartingAsProjectReference() As Task
+            ' Scenario: project2 starts with a project reference to project1 (because project1 already has
+            ' output path c:\project1.dll). Within a single batch, project1's output path is removed and
+            ' re-added causing the reference to be unconverted to a metadata reference and then reconverted
+            ' back to a project reference within the same batch.
+            Using environment = New TestEnvironment()
+                Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project1", LanguageNames.CSharp, CancellationToken.None)
+
+                Dim project2 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project2", LanguageNames.CSharp, CancellationToken.None)
+
+                Const ReferencePath = "C:\project1.dll"
+                project1.OutputFilePath = ReferencePath
+                project2.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+
+                Dim getProject2 = Function() environment.Workspace.CurrentSolution.GetProject(project2.Id)
+
+                Assert.Single(getProject2().ProjectReferences)
+                Assert.Empty(getProject2().MetadataReferences)
+
+                Using project1.CreateBatchScope()
+                    project1.OutputFilePath = Nothing
+                    project1.OutputFilePath = ReferencePath
+                    project1.OutputFilePath = Nothing
+                End Using
+
+                Assert.Empty(getProject2().ProjectReferences)
+                Assert.Single(getProject2().MetadataReferences)
+            End Using
+        End Function
+
         ''' <summary>
         ''' Stress test that creates multiple threads which randomly create projects, add/remove
         ''' metadata references (including shared references and project output references),

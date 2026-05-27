@@ -53,12 +53,14 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
     private void DotNetRestore(string solutionOrProjectFileName)
     {
-        RunDotNet($@"msbuild ""{solutionOrProjectFileName}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}");
+        var normalizedPath = solutionOrProjectFileName.Replace('\\', '/');
+        RunDotNet($@"msbuild ""{normalizedPath}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}");
     }
 
     private void DotNetBuild(string solutionOrProjectFileName, string configuration = null)
     {
-        var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
+        var normalizedPath = solutionOrProjectFileName.Replace('\\', '/');
+        var arguments = $@"msbuild ""{normalizedPath}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
 
         if (configuration != null)
         {
@@ -303,7 +305,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
                     break;
 
                 default:
-                    Assert.True(false, $"Unexpected project: {project.Name}");
+                    Assert.Fail($"Unexpected project: {project.Name}");
                     break;
             }
         }
@@ -380,7 +382,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
                     break;
 
                 default:
-                    Assert.True(false, $"Encountered unexpected project: {project.FilePath}");
+                    Assert.Fail($"Encountered unexpected project: {project.FilePath}");
                     return;
             }
 
@@ -410,7 +412,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
             }
             else
             {
-                Assert.True(false, "OutputFilePath with expected TFM not found.");
+                Assert.Fail("OutputFilePath with expected TFM not found.");
             }
         }
     }

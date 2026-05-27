@@ -1010,6 +1010,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Dígitos hexadecimales insuficientes o no válidos</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
+      <trans-unit id="Intercepted_by_0">
+        <source>Intercepted by '{0}'.</source>
+        <target state="translated">Interceptado por "{0}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Introducir la sangría</target>

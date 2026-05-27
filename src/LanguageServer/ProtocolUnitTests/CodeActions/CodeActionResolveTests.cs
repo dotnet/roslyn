@@ -212,13 +212,14 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
                 public static readonly int {|caret:_value|} = 10;
             }
             """;
+        var filePath = TestHelpers.GetRootedPath("C.cs");
         var xmlWorkspace = $"""
             <Workspace>
                 <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
-                    <Document FilePath='C:\C.cs'>{originalMarkup}</Document>
+                    <Document FilePath='{filePath}'>{originalMarkup}</Document>
                 </Project>
                 <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
-                    <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C:\C.cs'/>
+                    <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='{filePath}'/>
                 </Project>
             </Workspace>
             """;
@@ -238,7 +239,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
 
         var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
-        AssertEx.NotNull(actualResolvedAction.Edit);
+        Assert.NotNull(actualResolvedAction.Edit);
         var textDocumentEdit = (LSP.TextDocumentEdit[])actualResolvedAction.Edit.DocumentChanges!.Value;
         Assert.Single(textDocumentEdit);
         var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.DocumentUri);
@@ -251,7 +252,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
 
                 public static int Value => value;
             }
-            """, updatedText);
+            """.ReplaceLineEndings("\r\n"), updatedText.ReplaceLineEndings("\r\n"));
 
     }
 

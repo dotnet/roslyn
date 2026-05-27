@@ -253,7 +253,7 @@ internal sealed class CSharpDocumentationCommentSnippetService() : AbstractDocum
         }
 
         return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-            position - 1, includeDirectives: true, includeDocumentationComments: true, includeSkipped: true);
+            position, includeDirectives: true, includeDocumentationComments: true, includeSkipped: true);
     }
 
     protected override bool IsDocCommentNewLine(SyntaxToken token)

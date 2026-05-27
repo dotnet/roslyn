@@ -113,6 +113,34 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 PathUtilities.TestAccessor.GetDirectoryName(null, isUnixLike: true));
         }
 
+        [Fact]
+        public void GetTempCachePath_UsesLocalApplicationData()
+        {
+            var directoryName = "roslyn-cache-" + Guid.NewGuid().ToString("N");
+            var expectedParentPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var expectedPath = string.IsNullOrEmpty(expectedParentPath)
+                ? null
+                : Path.Combine(expectedParentPath, directoryName);
+
+            try
+            {
+                var path = PathUtilities.GetTempCachePath(directoryName);
+                Assert.Equal(expectedPath, path);
+
+                if (path is not null)
+                {
+                    Assert.True(Directory.Exists(path));
+                }
+            }
+            finally
+            {
+                if (expectedPath is not null && Directory.Exists(expectedPath))
+                {
+                    Directory.Delete(expectedPath, recursive: true);
+                }
+            }
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void TestGetDirectoryName_WindowsSharePaths()
         {

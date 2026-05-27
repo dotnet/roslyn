@@ -129,7 +129,7 @@ public sealed class SplitStringLiteralCommandHandlerTests
             inputMarkup, expectedOutputMarkup,
             callback: () =>
             {
-                Assert.True(false, "Should not reach here.");
+                Assert.Fail("Should not reach here.");
             },
             verifyUndo, indentStyle, useTabs, endOfLine);
     }

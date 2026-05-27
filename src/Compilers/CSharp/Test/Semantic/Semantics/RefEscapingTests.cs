@@ -4690,10 +4690,15 @@ class X : List<int>
                 using System.Collections;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         var local = 1;
                         return [local];
+                    }
+                    R M2()
+                    {
+                        var local = 1;
+                        return new() { local };
                     }
                 }
                 ref struct R : IEnumerable
@@ -4703,9 +4708,154 @@ class X : List<int>
                 }
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local]").WithArguments("R").WithLocation(7, 16));
+                attr == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local]").WithArguments("R").WithLocation(7, 16),
+                    // (12,24): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         return new() { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 24),
+                    // (12,24): error CS8347: Cannot use a result of 'R.Add(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return new() { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "local").WithArguments("R.Add(in int)", "x").WithLocation(12, 24),
+                ]);
+        }
+
+        [Theory]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]")]
+        [InlineData("")]
+        public void CollectionExpression_AddMethod_Spread(string attr)
+        {
+            var source = $$"""
+                using System.Collections;
+                class C
+                {
+                    R M1()
+                    {
+                        var local = 1;
+                        int[] arr = [2, 3];
+                        return [local, .. arr];
+                    }
+                    R M2()
+                    {
+                        int[] arr = [2, 3];
+                        return [.. arr];
+                    }
+                    void M3()
+                    {
+                        int[] arr = [2, 3];
+                        R r = [.. arr];
+                    }
+                }
+                ref struct R : IEnumerable
+                {
+                    public void Add({{attr}} in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                attr == "" ? [] :
+                [
+                    // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local, .. arr]").WithArguments("R").WithLocation(8, 16),
+                    // (8,24): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(8, 24),
+                    // (8,24): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(8, 24),
+                    // (13,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[.. arr]").WithArguments("R").WithLocation(13, 16),
+                    // (13,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(13, 17),
+                    // (13,17): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(13, 17),
+                    // (18,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         R r = [.. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(18, 16),
+                    // (18,16): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         R r = [.. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(18, 16),
+                ]);
+        }
+
+        [Fact]
+        public void CollectionExpression_AddMethod_Spread_CallerContext()
+        {
+            // Verifies that when spreading a collection whose Current property returns a CallingMethod-scoped
+            // ref struct value, the resulting collection expression is also CallingMethod-scoped and can be returned.
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                ref struct MySource
+                {
+                    public MyEnumerator GetEnumerator() => new();
+                }
+
+                ref struct MyEnumerator
+                {
+                    public Span<int> Current => new int[1];
+                    public bool MoveNext() => false;
+                }
+
+                ref struct MyCollection : IEnumerable<Span<int>>
+                {
+                    private Span<int> _stored;
+
+                    public void Add(Span<int> item)
+                    {
+                        _stored = item;
+                    }
+
+                    public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+
+                class C
+                {
+                    static MyCollection M1()
+                    {
+                        MySource source = default;
+                        MyCollection result = [..source];
+                        return result;
+                    }
+
+                    static MyCollection M1s()
+                    {
+                        scoped MySource source = default;
+                        MyCollection result = [..source]; // 1
+                        return result; // 2
+                    }
+
+                    static MyCollection M2()
+                    {
+                        MySource source = default;
+                        MyCollection result = new();
+                        foreach (var el in source)
+                        {
+                            result.Add(el);
+                        }
+                        return result;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (41,32): error CS8352: Cannot use variable '..source' in this context because it may expose referenced variables outside of their declaration scope
+                //         MyCollection result = [..source]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "..source").WithArguments("..source").WithLocation(41, 32),
+                // (41,32): error CS8350: This combination of arguments to 'MyCollection.Add(Span<int>)' is disallowed because it may expose variables referenced by parameter 'item' outside of their declaration scope
+                //         MyCollection result = [..source]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "..source").WithArguments("MyCollection.Add(System.Span<int>)", "item").WithLocation(41, 32),
+                // (42,16): error CS8352: Cannot use variable 'result' in this context because it may expose referenced variables outside of their declaration scope
+                //         return result; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "result").WithArguments("result").WithLocation(42, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -5978,10 +6128,15 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         var local = 1;
                         return [with(local)];
+                    }
+                    R M2()
+                    {
+                        var local = 1;
+                        return new R(local);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -5994,9 +6149,97 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(local)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local)]").WithArguments("R").WithLocation(7, 16));
+                modifier == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local)]").WithArguments("R").WithLocation(7, 16),
+                    // (12,22): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         return new R(local);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 22),
+                    // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(local);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local)").WithArguments("R.R(in int)", "a").WithLocation(12, 16),
+                ]);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With1_A_Spread(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        int[] arr = [2, 3];
+                        return [with(local), .. arr];
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local), .. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), .. arr]").WithArguments("R").WithLocation(8, 16),
+                ]);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81520")]
+        public void CollectionExpression_Constructor_With_Spread_AddRef(string addAttr)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    R M(ref Span<int> heapSpan)
+                    {
+                        int[] arr = [2, 3];
+                        return [with(ref heapSpan), .. arr];
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add({{addAttr}} int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilation([source],
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                addAttr == "" ? [] : [
+                    // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref heapSpan), .. arr]").WithArguments("R").WithLocation(8, 16),
+                    // (8,26): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(8, 26),
+                    // (8,37): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(8, 37),
+                    // (8,37): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "i").WithLocation(8, 37),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6009,9 +6252,13 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         return [with(1)];
+                    }
+                    R M2()
+                    {
+                        return new R(1);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6024,9 +6271,18 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(1)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1)]").WithArguments("R").WithLocation(6, 16));
+                modifier == "" ? [] :
+                [
+                    // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(1)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1)]").WithArguments("R").WithLocation(6, 16),
+                    // (10,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return new R(1);
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 22),
+                    // (10,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(1);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "a").WithLocation(10, 16),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6039,10 +6295,15 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    void M(ref R r)
+                    void M1(ref R r)
                     {
                         var local = 1;
                         r = [with(local)];
+                    }
+                    void M2(ref R r)
+                    {
+                        var local = 1;
+                        r = new R(local);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6055,9 +6316,18 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(local)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local)]").WithArguments("R").WithLocation(7, 13));
+                modifier == "" ? [] :
+                [
+                    // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(local)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local)]").WithArguments("R").WithLocation(7, 13),
+                    // (12,19): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         r = new R(local);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 19),
+                    // (12,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(local);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local)").WithArguments("R.R(in int)", "a").WithLocation(12, 13),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6070,9 +6340,13 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    void M(ref R r)
+                    void M1(ref R r)
                     {
                         r = [with(1)];
+                    }
+                    void M2(ref R r)
+                    {
+                        r = new R(1);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6085,21 +6359,34 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(1)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1)]").WithArguments("R").WithLocation(6, 13));
+                modifier == "" ? [] :
+                [
+                    // (6,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(1)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1)]").WithArguments("R").WithLocation(6, 13),
+                    // (10,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         r = new R(1);
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 19),
+                    // (10,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(1);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "a").WithLocation(10, 13),
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With2_A()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         return [with()];
+                    }
+                    R M2()
+                    {
+                        return new R();
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6110,22 +6397,23 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with()];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with()]").WithArguments("R").WithLocation(6, 16));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With2_B()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    void M(ref R r)
+                    void M1(ref R r)
                     {
                         r = [with()];
+                    }
+                    void M2(ref R r)
+                    {
+                        r = new R();
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6136,23 +6424,25 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with()];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with()]").WithArguments("R").WithLocation(6, 13));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With3_A()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         int local = 1;
                         return [with(), local];
+                    }
+                    R M2()
+                    {
+                        int local = 1;
+                        return new R() { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6163,22 +6453,23 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(), local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), local]").WithArguments("R").WithLocation(7, 16));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With3_B()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         return [with(), 1];
+                    }
+                    R M2()
+                    {
+                        return new R() { 1 };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6189,23 +6480,25 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(), 1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), 1]").WithArguments("R").WithLocation(6, 16));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With3_C()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    void M(ref R r)
+                    void M1(ref R r)
                     {
                         int local = 1;
                         r = [with(), local];
+                    }
+                    void M2(ref R r)
+                    {
+                        int local = 1;
+                        r = new R() { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6216,22 +6509,23 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(), local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), local]").WithArguments("R").WithLocation(7, 13));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With3_D()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    void M(ref R r)
+                    void M1(ref R r)
                     {
                         r = [with(), 1];
+                    }
+                    void M2(ref R r)
+                    {
+                        r = new R() { 1 };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6242,10 +6536,7 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(), 1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), 1]").WithArguments("R").WithLocation(6, 13));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6258,10 +6549,15 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         var local = 1;
                         return [with(local), local];
+                    }
+                    R M2()
+                    {
+                        var local = 1;
+                        return new R(local) { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6274,9 +6570,18 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(local), local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), local]").WithArguments("R").WithLocation(7, 16));
+                modifier == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local), local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), local]").WithArguments("R").WithLocation(7, 16),
+                    // (12,22): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         return new R(local) { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 22),
+                    // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(local) { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local) { local }").WithArguments("R.R(in int)", "a").WithLocation(12, 16),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6289,9 +6594,13 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         return [with(1), 1];
+                    }
+                    R M2()
+                    {
+                        return new R(1) { 1 };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6304,9 +6613,18 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(1), 1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(6, 16));
+                modifier == "" ? [] :
+                [
+                    // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(1), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(6, 16),
+                    // (10,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return new R(1) { 1 };
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 22),
+                    // (10,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(1) { 1 };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) { 1 }").WithArguments("R.R(in int)", "a").WithLocation(10, 16),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6319,10 +6637,15 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    void M(ref R r)
+                    void M1(ref R r)
                     {
                         var local = 1;
                         r = [with(local), local];
+                    }
+                    void M2(ref R r)
+                    {
+                        var local = 1;
+                        r = new R(local) { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6335,9 +6658,18 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(local), local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), local]").WithArguments("R").WithLocation(7, 13));
+                modifier == "" ? [] :
+                [
+                    // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(local), local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), local]").WithArguments("R").WithLocation(7, 13),
+                    // (12,19): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         r = new R(local) { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 19),
+                    // (12,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(local) { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local) { local }").WithArguments("R.R(in int)", "a").WithLocation(12, 13),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6350,9 +6682,13 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    void M(ref R r)
+                    void M1(ref R r)
                     {
                         r = [with(1), 1];
+                    }
+                    void M2(ref R r)
+                    {
+                        r = new R(1) { 1 };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6365,9 +6701,18 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(1), 1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(6, 13));
+                modifier == "" ? [] :
+                [
+                    // (6,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(1), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(6, 13),
+                    // (10,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         r = new R(1) { 1 };
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 19),
+                    // (10,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(1) { 1 };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) { 1 }").WithArguments("R.R(in int)", "a").WithLocation(10, 13),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6380,10 +6725,15 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         int local = 1;
                         return [with(local), 1];
+                    }
+                    R M2()
+                    {
+                        int local = 1;
+                        return new R(local) { 1 };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6396,9 +6746,18 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(local), 1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(7, 16));
+                modifier == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(7, 16),
+                    // (12,22): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         return new R(local) { 1 };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 22),
+                    // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(local) { 1 };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local) { 1 }").WithArguments("R.R(in int)", "a").WithLocation(12, 16),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6411,10 +6770,15 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         int local = 1;
                         return [with(1), local];
+                    }
+                    R M2()
+                    {
+                        int local = 1;
+                        return new R(1) { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6427,9 +6791,18 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(1), local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), local]").WithArguments("R").WithLocation(7, 16));
+                modifier == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(1), local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), local]").WithArguments("R").WithLocation(7, 16),
+                    // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return new R(1) { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                    // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(1) { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) { local }").WithArguments("R.R(in int)", "a").WithLocation(12, 16),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6442,10 +6815,15 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    void M(ref R r)
+                    void M1(ref R r)
                     {
                         int local = 1;
                         r = [with(local), 1];
+                    }
+                    void M2(ref R r)
+                    {
+                        int local = 1;
+                        r = new R(local) { 1 };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6458,9 +6836,18 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(local), 1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(7, 13));
+                modifier == "" ? [] :
+                [
+                    // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(local), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(7, 13),
+                    // (12,19): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         r = new R(local) { 1 };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 19),
+                    // (12,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(local) { 1 };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local) { 1 }").WithArguments("R.R(in int)", "a").WithLocation(12, 13),
+                ]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -6473,10 +6860,15 @@ class X : List<int>
                 using System.Collections.Generic;
                 class C
                 {
-                    void M(ref R r)
+                    void M1(ref R r)
                     {
                         int local = 1;
                         r = [with(1), local];
+                    }
+                    void M2(ref R r)
+                    {
+                        int local = 1;
+                        r = new R(1) { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6489,21 +6881,34 @@ class X : List<int>
                 """;
 
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         r = [with(1), local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), local]").WithArguments("R").WithLocation(7, 13));
+                modifier == "" ? [] :
+                [
+                    // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(1), local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), local]").WithArguments("R").WithLocation(7, 13),
+                    // (12,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         r = new R(1) { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 19),
+                    // (12,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(1) { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) { local }").WithArguments("R.R(in int)", "a").WithLocation(12, 13),
+                ]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With6_A()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    R M(ref int a)
+                    R M1(ref int a)
                     {
                         return [with(ref a)];
+                    }
+                    R M2(ref int a)
+                    {
+                        return new R(ref a);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6515,22 +6920,23 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(ref a)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With6_B()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    R M(ref int a)
+                    R M1(ref int a)
                     {
                         return [with(ref a)];
+                    }
+                    R M2(ref int a)
+                    {
+                        return new R(ref a);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6542,22 +6948,23 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(ref a)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With6_C()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    R M(scoped ref int a)
+                    R M1(scoped ref int a)
                     {
                         return [with(ref a)];
+                    }
+                    R M2(scoped ref int a)
+                    {
+                        return new R(ref a);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6572,19 +6979,29 @@ class X : List<int>
             CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
                 // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
                 //         return [with(ref a)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16),
+                // (10,26): error CS9075: Cannot return a parameter by reference 'a' because it is scoped to the current method
+                //         return new R(ref a);
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "a").WithArguments("a").WithLocation(10, 26),
+                // (10,16): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         return new R(ref a);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref a)").WithArguments("R.R(ref int)", "a").WithLocation(10, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With6_D()
         {
-            var source = $$"""
+            var source = """
                 using System.Collections.Generic;
                 class C
                 {
-                    R M(scoped ref int a)
+                    R M1(scoped ref int a)
                     {
                         return [with(ref a)];
+                    }
+                    R M2(scoped ref int a)
+                    {
+                        return new R(ref a);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6596,26 +7013,30 @@ class X : List<int>
                 }
                 """;
 
-            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [with(ref a)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16));
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With7_A()
         {
-            var source = $$"""
+            var source = """
                 using System;
                 using System.Collections.Generic;
                 class C
                 {
-                    void M()
+                    void M1()
                     {
                         Span<int> stackSpan = stackalloc int[] { 13 };
                         Span<int> heapSpan = default;
 
                         R r = [with(ref heapSpan, stackSpan)];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                
+                        R r = new R(ref heapSpan, stackSpan);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6633,23 +7054,36 @@ class X : List<int>
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan, stackSpan)").WithArguments("R.R(ref System.Span<int>, System.Span<int>)", "b").WithLocation(10, 16),
                 // (10,35): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         R r = [with(ref heapSpan, stackSpan)];
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(10, 35));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(10, 35),
+                // (17,15): error CS8350: This combination of arguments to 'R.R(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         R r = new R(ref heapSpan, stackSpan);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "new R(ref heapSpan, stackSpan)").WithArguments("R.R(ref System.Span<int>, System.Span<int>)", "b").WithLocation(17, 15),
+                // (17,35): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         R r = new R(ref heapSpan, stackSpan);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(17, 35));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With7_B()
         {
-            var source = $$"""
+            var source = """
                 using System;
                 using System.Collections.Generic;
                 class C
                 {
-                    void M()
+                    void M1()
                     {
                         Span<int> stackSpan = stackalloc int[] { 13 };
                         Span<int> heapSpan = default;
 
                         R r = [with(ref stackSpan, heapSpan)];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                
+                        R r = new R(ref stackSpan, heapSpan);
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6667,17 +7101,24 @@ class X : List<int>
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With8_A()
         {
-            var source = $$"""
+            var source = """
                 using System;
                 using System.Collections.Generic;
                 class C
                 {
-                    void M()
+                    void M1()
                     {
                         Span<int> stackSpan = stackalloc int[] { 13 };
                         int local = 0;
 
                         R r = [with(ref stackSpan), local];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+                
+                        R r = new R(ref stackSpan) { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6695,17 +7136,24 @@ class X : List<int>
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With8_B()
         {
-            var source = $$"""
+            var source = """
                 using System;
                 using System.Collections.Generic;
                 class C
                 {
-                    void M()
+                    void M1()
                     {
                         Span<int> stackSpan = stackalloc int[] { 13 };
                         int local = 0;
 
                         R r = [with(ref stackSpan), local];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+                
+                        R r = new R(ref stackSpan) { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6723,17 +7171,24 @@ class X : List<int>
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With8_C()
         {
-            var source = $$"""
+            var source = """
                 using System;
                 using System.Collections.Generic;
                 class C
                 {
-                    void M()
+                    void M1()
                     {
                         Span<int> heapSpan = default;
                         int local = 0;
 
                         R r = [with(ref heapSpan), local];
+                    }
+                    void M2()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+                
+                        R r = new R(ref heapSpan) { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6751,17 +7206,24 @@ class X : List<int>
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With8_D()
         {
-            var source = $$"""
+            var source = """
                 using System;
                 using System.Collections.Generic;
                 class C
                 {
-                    void M()
+                    void M1()
                     {
                         Span<int> heapSpan = default;
                         int local = 0;
 
                         R r = [with(ref heapSpan), local];
+                    }
+                    void M2()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+                
+                        R r = new R(ref heapSpan) { local };
                     }
                 }
                 ref struct R : IEnumerable<int>
@@ -6777,19 +7239,27 @@ class X : List<int>
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81520")]
         public void CollectionExpression_Constructor_With9_A()
         {
-            var source = $$"""
+            var source = """
                 using System;
                 using System.Collections.Generic;
                 class C
                 {
-                    void M()
+                    void M1()
                     {
                         Span<int> stackSpan = stackalloc int[] { 13 };
                         Span<int> heapSpan = default;
 
                         R r = [with(ref heapSpan), stackSpan];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                
+                        R r = new R(ref heapSpan) { stackSpan };
                     }
                 }
                 ref struct R : IEnumerable<Span<int>>
@@ -6801,27 +7271,38 @@ class X : List<int>
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/81520: expect a diagnostic for the possibility of 'stackSpan' being assigned to 'heapSpan'
-            CompileAndVerify(
+            CreateCompilation(
                 [source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition],
-                targetFramework: TargetFramework.Net90,
-                verify: Verification.Fails).VerifyDiagnostics();
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (10,25): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         R r = [with(ref heapSpan), stackSpan];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(10, 25),
+                // (17,25): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         R r = new R(ref heapSpan) { stackSpan };
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(17, 25));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Constructor_With9_B()
         {
-            var source = $$"""
+            var source = """
                 using System;
                 using System.Collections.Generic;
                 class C
                 {
-                    void M()
+                    void M1()
                     {
                         Span<int> stackSpan = stackalloc int[] { 13 };
                         Span<int> heapSpan = default;
 
                         R r = [with(ref stackSpan), heapSpan];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                
+                        R r = new R(ref stackSpan) { heapSpan };
                     }
                 }
                 ref struct R : IEnumerable<Span<int>>

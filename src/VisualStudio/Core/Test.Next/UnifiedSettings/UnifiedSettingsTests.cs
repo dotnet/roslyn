@@ -15,9 +15,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
@@ -41,6 +41,7 @@ public sealed class UnifiedSettingsTests
         Add(CompletionOptionsStorage.EnterKeyBehavior, "languages.csharp.intellisense.returnKeyCompletionBehavior").
         Add(CompletionOptionsStorage.ShowNameSuggestions, "languages.csharp.intellisense.showNameCompletionSuggestions").
         Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "languages.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces").
+        Add(CompletionOptionsStorage.ImportCompletionCommitBehavior, "languages.csharp.intellisense.importCompletionCommitBehavior").
         Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "languages.csharp.intellisense.enableArgumentCompletionSnippets").
         Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, "languages.csharp.intellisense.showNewSnippetExperience");
 
@@ -107,7 +108,16 @@ public sealed class UnifiedSettingsTests
         (CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, CreateBooleanOption(
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             title: "Show items from unimported namespaces",
-            order: 80,
+            order: 80, languageName: LanguageNames.CSharp)),
+        (CompletionOptionsStorage.ImportCompletionCommitBehavior, CreateEnumOption(
+            CompletionOptionsStorage.ImportCompletionCommitBehavior,
+            title: "Completion behavior for items from unimported namespaces",
+            order: 81,
+            enableWhenOptionAndValue: (enableWhenOption: CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, whenValue: true),
+            customDefaultValue: ImportCompletionCommitBehavior.AlwaysAddImport,
+            enumLabels: ["Always add using", "Never add using", "Only add using if explicitly completed (via TAB or double-click)"],
+            enumValues: [ImportCompletionCommitBehavior.AlwaysAddImport, ImportCompletionCommitBehavior.NeverAddImport, ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted],
+            customMaps: [new Map { Result = "alwaysAddImport", Match = 0 }, new Map { Result = "neverAddImport", Match = 1 }, new Map { Result = "onlyAddImportIfExplicitlyCompleted", Match = 2}],
             languageName: LanguageNames.CSharp)),
         (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
@@ -165,6 +175,7 @@ public sealed class UnifiedSettingsTests
         Add(CompletionOptionsStorage.SnippetsBehavior, "languages.basic.intellisense.snippetsBehavior").
         Add(CompletionOptionsStorage.EnterKeyBehavior, "languages.basic.intellisense.returnKeyCompletionBehavior").
         Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "languages.basic.intellisense.showCompletionItemsFromUnimportedNamespaces").
+        Add(CompletionOptionsStorage.ImportCompletionCommitBehavior, "languages.basic.intellisense.importCompletionCommitBehavior").
         Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "languages.basic.intellisense.enableArgumentCompletionSnippets");
 
     /// <summary>
@@ -214,7 +225,16 @@ public sealed class UnifiedSettingsTests
         (CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, CreateBooleanOption(
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             title: "Show items from unimported namespaces",
-            order: 50,
+            order: 50, languageName: LanguageNames.VisualBasic)),
+        (CompletionOptionsStorage.ImportCompletionCommitBehavior, CreateEnumOption(
+            CompletionOptionsStorage.ImportCompletionCommitBehavior,
+            title: "Completion behavior for items from unimported namespaces",
+            order: 51,
+            enableWhenOptionAndValue: (enableWhenOption: CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, whenValue: true),
+            customDefaultValue: ImportCompletionCommitBehavior.AlwaysAddImport,
+            enumLabels: ["Always add import", "Never add import", "Only add import if explicitly completed (via TAB or double-click)"],
+            enumValues: [ImportCompletionCommitBehavior.AlwaysAddImport, ImportCompletionCommitBehavior.NeverAddImport, ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted],
+            customMaps: [new Map { Result = "alwaysAddImport", Match = 0 }, new Map { Result = "neverAddImport", Match = 1 }, new Map { Result = "onlyAddImportIfExplicitlyCompleted", Match = 2}],
             languageName: LanguageNames.VisualBasic)),
         (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,

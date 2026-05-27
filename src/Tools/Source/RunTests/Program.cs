@@ -371,11 +371,26 @@ namespace RunTests
             static bool IsMatch(TestRuntime testRuntime, string dirName) =>
                 testRuntime switch
                 {
-                    TestRuntime.Both => true,
-                    TestRuntime.Core => Regex.IsMatch(dirName, @"^net\d+\."),
+                    TestRuntime.Both => IsCompatibleWithCurrentPlatform(dirName),
+                    TestRuntime.Core => Regex.IsMatch(dirName, @"^net\d+\.") && IsCompatibleWithCurrentPlatform(dirName),
                     TestRuntime.Framework => dirName is "net472",
                     _ => throw new InvalidOperationException($"Unexpected {nameof(TestRuntime)} value: {testRuntime}"),
                 };
+
+            static bool IsCompatibleWithCurrentPlatform(string tfmDirName)
+            {
+                if (tfmDirName.EndsWith("-windows", StringComparison.Ordinal))
+                {
+                    return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                }
+
+                if (tfmDirName.EndsWith("-macos", StringComparison.Ordinal))
+                {
+                    return RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+                }
+
+                return true;
+            }
         }
 
         private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
