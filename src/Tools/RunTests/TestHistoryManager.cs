@@ -25,9 +25,13 @@ internal class TestHistoryManager
 
     /// <summary>
     /// Looks up the last passing test run for the current build and stage to estimate execution times for each
-    /// tests. The dictionary is indexed by test full name.
+    /// tests. The dictionary is indexed by test full name and contains the body duration and theory instance count.
+    ///
+    /// Note: the duration returned is the sum of body execution times (DurationInMs) as reported by xUnit.
+    /// In xUnit v2, DurationInMs does NOT include IAsyncLifetime.InitializeAsync or DisposeAsync time.
+    /// The caller is responsible for adjusting the duration based on the HasAsyncLifetime flag from test discovery.
     /// </summary>
-    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
+    public static async Task<ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
@@ -52,7 +56,7 @@ internal class TestHistoryManager
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
             ConsoleUtil.Warning($"Missing required options to lookup test history, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
+            return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
         }
 
         var credentials = new Microsoft.VisualStudio.Services.Common.VssBasicCredential(string.Empty, accessToken);
@@ -78,7 +82,7 @@ internal class TestHistoryManager
         {
             // If this is a new branch we may not have any historical data for it.
             ConsoleUtil.Warning($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
+            return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
         }
 
         using var testClient = connection.GetClient<TestResultsHttpClient>();
@@ -87,14 +91,14 @@ internal class TestHistoryManager
         {
             // If this is a new stage, historical runs will not have any data for it.
             ConsoleUtil.Warning($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
+            return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
         }
 
         ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {phaseName}");
 
         var totalTests = runForThisStage.TotalTests;
 
-        Dictionary<string, TimeSpan> testInfos = new();
+        Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testInfos = new();
         var duplicateCount = 0;
 
         // Get runtimes for all tests.
@@ -114,7 +118,7 @@ internal class TestHistoryManager
 
                 var testName = CleanTestName(testResult.AutomatedTestName);
 
-                if (!testInfos.TryAdd(testName, TimeSpan.FromMilliseconds(testResult.DurationInMs)))
+                if (testInfos.TryGetValue(testName, out var existing))
                 {
                     // We can get duplicate tests if a test file is included in multiple assemblies (e.g. analyzer codestyle tests).
                     // This is fine, we'll just use capture one of the run times since it is the same test being run in both cases and unlikely to have different run times.
@@ -122,7 +126,14 @@ internal class TestHistoryManager
                     // Another case that can happen is if a test is incorrectly authored to have the same name and namespace as a test in another assembly.  For example
                     // a test that applies to both VB and C#, but the tests in both the C# and VB assembly accidentally use the C# namespace.
                     // It may have a different run time, but ADO does not let us differentiate by assembly name, so we just have to pick one.
+                    //
+                    // Keep tracking the count of theory instances so we can apply async lifetime adjustment.
+                    testInfos[testName] = (existing.Duration, existing.TestTheoryInstances + 1);
                     duplicateCount++;
+                }
+                else
+                {
+                    testInfos[testName] = (TimeSpan.FromMilliseconds(testResult.DurationInMs), 1);
                 }
             }
         }
@@ -134,7 +145,7 @@ internal class TestHistoryManager
             Logger.Log($"Found {duplicateCount} duplicate tests in run {runForThisStage.Name}.");
         }
 
-        var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.TotalMilliseconds));
+        var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.Duration.TotalMilliseconds));
         ConsoleUtil.WriteLine($"Retrieved {testInfos.Keys.Count} tests from AzureDevops in {timer.Elapsed}.  Total runtime of all tests is {totalTestRuntime}");
         return testInfos.ToImmutableDictionary();
     }

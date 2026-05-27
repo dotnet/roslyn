@@ -26,7 +26,7 @@ namespace RunTests
 
         public static ImmutableArray<HelixWorkItem> Schedule(
             IEnumerable<string> assemblyFilePaths,
-            ImmutableDictionary<string, TimeSpan> testHistory)
+            ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
             var orderedTypeInfos = assemblyFilePaths.ToImmutableSortedDictionary(x => x, GetTypeInfoList);
             ConsoleUtil.WriteLine($"Scheduling {orderedTypeInfos.Count} assemblies");
@@ -67,16 +67,16 @@ namespace RunTests
             return workItems;
         }
 
-        private static void LogLongTests(ImmutableDictionary<string, TimeSpan> testHistory)
+        private static void LogLongTests(ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
             var longTests = testHistory
-                .Where(kvp => kvp.Value > HelixTestRunner.WorkItemScheduleTime)
+                .Where(kvp => kvp.Value.Duration > HelixTestRunner.WorkItemScheduleTime)
                 .OrderBy(kvp => kvp.Key)
                 .ToList();
             if (longTests.Count > 0)
             {
                 ConsoleUtil.Warning($"There are {longTests.Count} tests have execution times greater than the maximum execution time of {HelixTestRunner.WorkItemScheduleTime:hh\\:mm\\:ss}.  These tests will be scheduled in their own individual work items and may indicate tests that should be optimized or removed if they are no longer providing value.");
-                foreach (var (test, time) in longTests)
+                foreach (var (test, (time, _)) in longTests)
                 {
                     ConsoleUtil.WriteLine($"\t{test} - {time:hh\\:mm\\:ss}");
                 }
@@ -85,10 +85,16 @@ namespace RunTests
 
         private static ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> assemblyTypes,
-            ImmutableDictionary<string, TimeSpan> testHistory)
+            ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
+            // In xUnit v2, the ExecutionTimer in TestInvoker does NOT include IAsyncLifetime
+            // .InitializeAsync() or .DisposeAsync() in DurationInMs. Test base classes that
+            // perform expensive per-test async setup/teardown (MEF composition, workspace creation)
+            // will have overhead not reflected in the reported duration. We add an empirical
+            // adjustment per test theory instance for tests whose class implements IAsyncLifetime.
+
             // Determine the average execution time so that we can use it for tests that do not have any history.
-            var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.TotalMilliseconds));
+            var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.Duration.TotalMilliseconds));
 
             // Store the tests we found locally that were missing remote historical data.
             var unmatchedLocalTests = new HashSet<string>();
@@ -114,9 +120,18 @@ namespace RunTests
                 // Match by fully qualified test method name to azure devops historical data.
                 // Note for combinatorial tests, azure devops helpfully groups all sub-runs under a top level method (with combined test run times) with the same fully qualified method name
                 // that we get during test discovery.  Since we only filter by the single method name (and not individual combinatorial runs) we do want the combined execution time.
-                if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var executionTime))
+                if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var historyEntry))
                 {
                     matchedRemoteTests.Add(methodInfo.FullyQualifiedName);
+                    var executionTime = historyEntry.Duration;
+
+                    // If the test class implements IAsyncLifetime, add overhead per theory instance
+                    // to account for InitializeAsync/DisposeAsync time not captured in DurationInMs.
+                    if (methodInfo.HasAsyncLifetime)
+                    {
+                        executionTime += TimeSpan.FromMilliseconds(historyEntry.TestTheoryInstances * HelixTestRunner.AsyncLifetimeInstanceOverhead.TotalMilliseconds);
+                    }
+
                     return methodInfo with { ExecutionTime = executionTime };
                 }
 
@@ -245,14 +260,17 @@ namespace RunTests
                 throw new ArgumentException($"{testListPath} does not exist");
             }
 
-            var deserialized = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(testListPath));
-            if (deserialized == null)
+            var deserialized = JsonSerializer.Deserialize<List<TestDiscoveryEntry>>(File.ReadAllText(testListPath));
+            if (deserialized is null)
             {
                 throw new InvalidOperationException($"Could not deserialize {testListPath}");
             }
 
-            var tests = deserialized.GroupBy(GetTypeName)
-                .Select(group => new TypeInfo(GetName(group.Key), group.Key, group.Select(test => new TestMethodInfo(GetName(test), test, TimeSpan.Zero)).ToImmutableArray()))
+            var tests = deserialized.GroupBy(e => GetTypeName(e.MethodName!))
+                .Select(group => new TypeInfo(
+                    GetName(group.Key),
+                    group.Key,
+                    group.Select(e => new TestMethodInfo(GetName(e.MethodName!), e.MethodName!, TimeSpan.Zero, e.HasAsyncLifetime)).ToImmutableArray()))
                 .ToImmutableArray();
             return tests;
 
@@ -267,6 +285,12 @@ namespace RunTests
                 var lastPeriod = fullyQualifiedName.LastIndexOf(".");
                 return fullyQualifiedName[(lastPeriod + 1)..];
             }
+        }
+
+        private sealed class TestDiscoveryEntry
+        {
+            public string? MethodName { get; set; }
+            public bool HasAsyncLifetime { get; set; }
         }
 
         /// <summary>
