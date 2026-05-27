@@ -103,7 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected abstract bool HasSafeModifier { get; }
 
-        internal bool IntroducesUnsafeContext => HasUnsafeModifier && !ContainingModule.UseUpdatedMemorySafetyRules;
+        internal bool IntroducesUnsafeContext
+        {
+            get
+            {
+                return (HasUnsafeModifier || AssociatedSymbol is SourcePropertySymbolBase { HasUnsafeModifier: true })
+                    && !ContainingModule.UseUpdatedMemorySafetyRules;
+            }
+        }
 
         /// <summary>
         /// Whether the method can require callers to be in an unsafe context
