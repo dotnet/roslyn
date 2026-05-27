@@ -57,7 +57,7 @@ internal sealed class AutoLoadProjectsInitializer(
         {
             _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionPath);
             await StartAndReportProgressAsync(
-                () => projectSystem.OpenSolutionAsync(solutionPath),
+                (reporter) => projectSystem.OpenSolutionAsync(solutionPath, reporter),
                 startMessage: string.Format(LanguageServerResources.Loading_0, solutionPath),
                 endMessage: string.Format(LanguageServerResources.Loaded_0, solutionPath));
             return;
@@ -77,7 +77,7 @@ internal sealed class AutoLoadProjectsInitializer(
                 {
                     _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
                     await StartAndReportProgressAsync(
-                        () => projectSystem.OpenSolutionAsync(solutionFiles[0]),
+                        (reporter) => projectSystem.OpenSolutionAsync(solutionFiles[0], reporter),
                         startMessage: string.Format(LanguageServerResources.Loading_0, solutionFiles[0]),
                         endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFiles[0]));
                     return;
@@ -98,11 +98,11 @@ internal sealed class AutoLoadProjectsInitializer(
         _logger.LogInformation("Discovered {count} projects to auto load", projectFiles.Count);
 
         await StartAndReportProgressAsync(
-            () => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable()),
+            (reporter) => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable(), reporter),
             startMessage: string.Format(LanguageServerResources.Loading_0_projects, projectFiles.Count),
             endMessage: string.Format(LanguageServerResources.Loaded_0_projects, projectFiles.Count));
 
-        async Task StartAndReportProgressAsync(Func<Task> loadOperation, string startMessage, string endMessage)
+        async Task StartAndReportProgressAsync(Func<IWorkDoneProgressReporter, Task> loadOperation, string startMessage, string endMessage)
         {
             var workDoneProgressManager = context.GetRequiredLspService<WorkDoneProgressManager>();
 
@@ -119,7 +119,7 @@ internal sealed class AutoLoadProjectsInitializer(
                 {
                     try
                     {
-                        await loadOperation();
+                        await loadOperation(progressReporter);
                     }
                     catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                     {
