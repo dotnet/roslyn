@@ -7,5 +7,10 @@
         UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
-            CSharpCode - (7:0,7 [92] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (7:0,7 [92] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public int Value\n    {\n        get => field;\n        set => field = value;\n    }\n
+                CSharpCode - (2:0,2 [18] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [18] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    Value = 1;\n
+                MarkupElement - (25:4,0 [13] x:\dir\subdir\Test\TestComponent.razor) - p
+                    CSharpExpression - (29:4,4 [5] x:\dir\subdir\Test\TestComponent.razor)
+                        LazyIntermediateToken - (29:4,4 [5] x:\dir\subdir\Test\TestComponent.razor) - CSharp - Value
+            CSharpCode - (49:6,7 [92] x:\dir\subdir\Test\TestComponent.razor)
+                LazyIntermediateToken - (49:6,7 [92] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public int Value\n    {\n        get => field;\n        set => field = value;\n    }\n

@@ -1,4 +1,18 @@
-﻿Source Location: (7:0,7 [92] x:\dir\subdir\Test\TestComponent.razor)
+﻿Source Location: (2:0,2 [18] x:\dir\subdir\Test\TestComponent.razor)
+|
+    Value = 1;
+|
+Generated Location: (733:21,0 [18] )
+|
+    Value = 1;
+|
+
+Source Location: (29:4,4 [5] x:\dir\subdir\Test\TestComponent.razor)
+|Value|
+Generated Location: (954:31,24 [5] )
+|Value|
+
+Source Location: (49:6,7 [92] x:\dir\subdir\Test\TestComponent.razor)
 |
     public int Value
     {
@@ -6,7 +20,7 @@
         set => field = value;
     }
 |
-Generated Location: (782:23,0 [92] )
+Generated Location: (1195:42,0 [92] )
 |
     public int Value
     {

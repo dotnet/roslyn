@@ -17,40 +17,9 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-#nullable restore
-#line (1,3)-(3,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    Value = 1;
-
-#line default
-#line hidden
-#nullable disable
-
-            __builder.OpenElement(0, "p");
-#nullable restore
-#line (5,5)-(5,10) 24 "x:\dir\subdir\Test\TestComponent.razor"
-__builder.AddContent(1, Value
-
-#line default
-#line hidden
-#nullable disable
-            );
-            __builder.CloseElement();
+            __builder.AddMarkupContent(0, "<section>Razor markup literal emitted from generated code.</section>");
         }
         #pragma warning restore 1998
-#nullable restore
-#line (7,8)-(13,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public int Value
-    {
-        get => field;
-        set => field = value;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

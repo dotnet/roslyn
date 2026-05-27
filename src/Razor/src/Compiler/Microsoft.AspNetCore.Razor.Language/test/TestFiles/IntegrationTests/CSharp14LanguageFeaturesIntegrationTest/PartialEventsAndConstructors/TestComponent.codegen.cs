@@ -18,33 +18,37 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line (1,3)-(3,1) "x:\dir\subdir\Test\TestComponent.razor"
+#line (1,3)-(5,1) "x:\dir\subdir\Test\TestComponent.razor"
 
-    Value = 1;
-
-#line default
-#line hidden
-#nullable disable
-
-            __builder.OpenElement(0, "p");
-#nullable restore
-#line (5,5)-(5,10) 24 "x:\dir\subdir\Test\TestComponent.razor"
-__builder.AddContent(1, Value
+    var value = new Example();
+    value.Updated += static () => { };
+    _ = value.Value;
 
 #line default
 #line hidden
 #nullable disable
-            );
-            __builder.CloseElement();
+
         }
         #pragma warning restore 1998
 #nullable restore
-#line (7,8)-(13,1) "x:\dir\subdir\Test\TestComponent.razor"
+#line (7,8)-(25,1) "x:\dir\subdir\Test\TestComponent.razor"
 
-    public int Value
+    public partial class Example
     {
-        get => field;
-        set => field = value;
+        public partial event System.Action Updated;
+        public partial event System.Action Updated
+        {
+            add { }
+            remove { }
+        }
+
+        public int Value { get; }
+
+        public partial Example();
+        public partial Example()
+        {
+            Value = 1;
+        }
     }
 
 #line default

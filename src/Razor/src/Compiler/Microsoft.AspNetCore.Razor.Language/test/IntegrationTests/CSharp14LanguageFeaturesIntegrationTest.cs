@@ -1,6 +1,13 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -8,10 +15,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 // Language features not covered by tests:
 // - First-class Span Types: still primarily a compiler/runtime interaction surface and not clearly isolated by a Razor-specific snippet here.
-// - String literals in data section as UTF8: emit/codegen optimization rather than Razor-authored source.
 // - Simple lambda parameters with modifiers: syntax is still evolving and not yet represented with a stable Razor-specific case here.
-// - Partial Events and Constructors: requires a larger multi-part type setup than this Razor integration sweep is targeting.
-// - Ignored directives: file-based directive surface that Razor does not author directly.
 
 public sealed class CSharp14LanguageFeaturesIntegrationTest()
     : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
@@ -30,6 +34,12 @@ public sealed class CSharp14LanguageFeaturesIntegrationTest()
     public void FieldKeywordInProperties()
     {
         var generated = CompileToCSharp("""
+            @{
+                Value = 1;
+            }
+
+            <p>@Value</p>
+
             @code {
                 public int Value
                 {
@@ -42,6 +52,63 @@ public sealed class CSharp14LanguageFeaturesIntegrationTest()
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-14.0/partial-events-and-constructors.md")]
+    public void PartialEventsAndConstructors()
+    {
+        var generated = CompileToCSharp("""
+            @{
+                var value = new Example();
+                value.Updated += static () => { };
+                _ = value.Value;
+            }
+
+            @code {
+                public partial class Example
+                {
+                    public partial event System.Action Updated;
+                    public partial event System.Action Updated
+                    {
+                        add { }
+                        remove { }
+                    }
+
+                    public int Value { get; }
+
+                    public partial Example();
+                    public partial Example()
+                    {
+                        Value = 1;
+                    }
+                }
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76234")]
+    public void StringLiteralsInDataSectionAsUtf8()
+    {
+        var generated = CompileToCSharp("""
+            <section>Razor markup literal emitted from generated code.</section>
+            """,
+            csharpParseOptions: CSharpParseOptions.Default
+                .WithLanguageVersion(LanguageVersion.Preview)
+                .WithFeatures([new KeyValuePair<string, string>("experimental-data-section-string-literals", "0")]));
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+
+        var compiled = CompileToAssembly(generated);
+        compiled.ExecutableStream!.Position = 0;
+        using var peReader = new PEReader(compiled.ExecutableStream, PEStreamOptions.LeaveOpen);
+        AssertContainsDataSectionStringLiteralType(peReader.GetMetadataReader());
     }
 
     [Fact]
@@ -133,6 +200,25 @@ public sealed class CSharp14LanguageFeaturesIntegrationTest()
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/pull/83862")]
+    public void IgnoredDirectivesDoNotBreakCodeGeneration()
+    {
+        var generated = CompileToCSharp("""
+            @code {
+                #:package Newtonsoft.Json@13.0.3
+                private static readonly int Value = 1;
+            }
+
+            <p>@Value</p>
+            """,
+            Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(2, 6),
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsToken, ":").WithLocation(2, 6));
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-14.0/optional-and-named-parameters-in-expression-trees.md")]
     public void OptionalAndNamedArgumentsInExpressionTrees()
     {
@@ -155,6 +241,13 @@ public sealed class CSharp14LanguageFeaturesIntegrationTest()
         CompileToAssembly(generated);
     }
 
+    private static void AssertContainsDataSectionStringLiteralType(MetadataReader metadataReader)
+    {
+        var typeNames = metadataReader.TypeDefinitions
+            .Select(handle => metadataReader.GetString(metadataReader.GetTypeDefinition(handle).Name))
+            .ToArray();
+
+        Assert.Contains("<PrivateImplementationDetails>", typeNames);
+        Assert.Contains(typeNames, static name => name.StartsWith("<S>", StringComparison.Ordinal));
+    }
 }
-
-

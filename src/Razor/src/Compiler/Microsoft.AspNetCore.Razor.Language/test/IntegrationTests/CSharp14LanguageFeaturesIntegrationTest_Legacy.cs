@@ -1,8 +1,14 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,14 +16,11 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 // Language features not covered by tests:
 // - First-class Span Types: still primarily a compiler/runtime interaction surface and not clearly isolated by a Razor-specific snippet here.
-// - String literals in data section as UTF8: emit/codegen optimization rather than Razor-authored source.
 // - Simple lambda parameters with modifiers: syntax is still evolving and not yet represented with a stable Razor-specific case here.
-// - Partial Events and Constructors: requires a larger multi-part type setup than this Razor integration sweep is targeting.
-// - Ignored directives: file-based directive surface that Razor does not author directly.
-
 public sealed class CSharp14LanguageFeaturesIntegrationTest_Legacy : IntegrationTestBase
 {
     private const string DefaultLegacyFileName = "TestView.cshtml";
+    private CSharpParseOptions? _csharpParseOptions;
 
     private const string LegacyTemplateBaseSource =
         """
@@ -42,6 +45,8 @@ public sealed class CSharp14LanguageFeaturesIntegrationTest_Legacy : Integration
         AddCSharpSyntaxTree(LegacyTemplateBaseSource, filePath: "LegacyTemplateBase.cs");
     }
 
+    protected override CSharpParseOptions CSharpParseOptions => _csharpParseOptions ?? base.CSharpParseOptions;
+
     public override string GetTestFileName([CallerMemberName] string? testName = null)
     {
         var fileName = $"TestFiles/IntegrationTests/{GetType().Name}/{testName}";
@@ -61,6 +66,12 @@ public sealed class CSharp14LanguageFeaturesIntegrationTest_Legacy : Integration
         var generated = CompileToCSharp("""
             @inherits global::LegacyTemplateBase
             
+            @{
+                Value = 1;
+            }
+
+            <p>@Value</p>
+
             @functions {
                 public int Value
                 {
@@ -75,6 +86,71 @@ public sealed class CSharp14LanguageFeaturesIntegrationTest_Legacy : Integration
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-14.0/partial-events-and-constructors.md")]
+    public void PartialEventsAndConstructors()
+    {
+        var generated = CompileToCSharp("""
+            @inherits global::LegacyTemplateBase
+            
+            @{
+                var value = new Example();
+                value.Updated += static () => { };
+                _ = value.Value;
+            }
+
+            @functions {
+                public partial class Example
+                {
+                    public partial event System.Action Updated;
+                    public partial event System.Action Updated
+                    {
+                        add { }
+                        remove { }
+                    }
+
+                    public int Value { get; }
+
+                    public partial Example();
+                    public partial Example()
+                    {
+                        Value = 1;
+                    }
+                }
+            }
+            """,
+            path: DefaultLegacyFileName);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76234")]
+    public void StringLiteralsInDataSectionAsUtf8()
+    {
+        _csharpParseOptions = base.CSharpParseOptions.WithFeatures([new KeyValuePair<string, string>("experimental-data-section-string-literals", "0")]);
+        CSharpSyntaxTrees.Clear();
+        AddCSharpSyntaxTree(LegacyTemplateBaseSource, filePath: "LegacyTemplateBase.cs");
+
+        var generated = CompileToCSharp("""
+            @inherits global::LegacyTemplateBase
+            
+            <section>Razor markup literal emitted from generated code.</section>
+            """,
+            path: DefaultLegacyFileName);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
+
+        var compiled = CompileToAssembly(generated);
+        using var peReader = new PEReader(new MemoryStream(compiled.ImageBytes));
+        AssertContainsDataSectionStringLiteralType(peReader.GetMetadataReader());
     }
 
     [Fact]
@@ -182,6 +258,27 @@ public sealed class CSharp14LanguageFeaturesIntegrationTest_Legacy : Integration
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/pull/83862")]
+    public void IgnoredDirectivesDoNotBreakCodeGeneration()
+    {
+        var generated = CompileToCSharp("""
+            @inherits global::LegacyTemplateBase
+            
+            @functions {
+                #:package Newtonsoft.Json@13.0.3
+                private static readonly int Value = 1;
+            }
+
+            <p>@Value</p>
+            """,
+            path: DefaultLegacyFileName);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-14.0/optional-and-named-parameters-in-expression-trees.md")]
     public void OptionalAndNamedArgumentsInExpressionTrees()
     {
@@ -208,6 +305,13 @@ public sealed class CSharp14LanguageFeaturesIntegrationTest_Legacy : Integration
         CompileToAssembly(generated);
     }
 
+    private static void AssertContainsDataSectionStringLiteralType(MetadataReader metadataReader)
+    {
+        var typeNames = metadataReader.TypeDefinitions
+            .Select(handle => metadataReader.GetString(metadataReader.GetTypeDefinition(handle).Name))
+            .ToArray();
+
+        Assert.Contains("<PrivateImplementationDetails>", typeNames);
+        Assert.Contains(typeNames, static name => name.StartsWith("<S>", StringComparison.Ordinal));
+    }
 }
-
-

@@ -49,4 +49,6 @@ public enum ErrorCode
     ERR_FeatureNotAvailableInVersion10 = 8936,
     ERR_IllegalAtSequence = 9008,
     ERR_RuntimeDoesNotSupportByRefLikeGenerics = 9240,
+    ERR_PPIgnoredFollowsToken = 9297,
+    ERR_PPIgnoredNeedsFileBasedProgram = 9298,
 }
