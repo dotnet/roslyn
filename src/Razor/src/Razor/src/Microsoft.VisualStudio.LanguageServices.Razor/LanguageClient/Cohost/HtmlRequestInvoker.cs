@@ -62,7 +62,7 @@ internal sealed class HtmlRequestInvoker(
 
         // If the request is for a text document, we need to update the Uri to point to the Html document,
         // and most importantly set it back again before leaving the method in case a caller uses it.
-        UpdateTextDocumentUri(request, new(htmlDocument.Uri), out var originalUri);
+        UpdateTextDocumentUri(request, htmlDocument.Uri.CreateDocumentUriFromSystemUri(), out var originalUri);
 
         try
         {

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Editor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
@@ -193,15 +194,16 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
 
         var requestInvoker = new TestHtmlRequestInvoker([(LanguageServerConstants.RazorWrapWithTagEndpoint, htmlResponse)]);
 
-        var documentUri = document.CreateSystemUri();
+        var documentUri = document.GetURI();
+        var systemUri = documentUri.GetRequiredSystemUri();
         var documentManager = new TestDocumentManager();
         if (htmlDocument is not null)
         {
             var snapshot = new StringTextSnapshot(htmlDocument);
             var buffer = new TestTextBuffer(snapshot);
-            var htmlSnapshot = new HtmlVirtualDocumentSnapshot(documentUri, snapshot, hostDocumentSyncVersion: 1, state: null);
-            var documentSnapshot = new TestLSPDocumentSnapshot(documentUri, version: 1, htmlSnapshot);
-            documentManager.AddDocument(documentUri, documentSnapshot);
+            var htmlSnapshot = new HtmlVirtualDocumentSnapshot(systemUri, snapshot, hostDocumentSyncVersion: 1, state: null);
+            var documentSnapshot = new TestLSPDocumentSnapshot(systemUri, version: 1, htmlSnapshot);
+            documentManager.AddDocument(systemUri, documentSnapshot);
         }
 
         var endpoint = new CohostWrapWithTagEndpoint(RemoteServiceInvoker, requestInvoker, documentManager, IncompatibleProjectService, LoggerFactory);
@@ -212,7 +214,7 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
             new FormattingOptions(),
             new VersionedTextDocumentIdentifier()
             {
-                DocumentUri = new(documentUri)
+                DocumentUri = documentUri
             });
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);

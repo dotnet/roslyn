@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -117,10 +118,10 @@ internal sealed class CohostGoToImplementationEndpoint(
 
     private void RemapVirtualHtmlUri(LspLocation? location)
     {
-        if (location?.DocumentUri.ParsedUri is { } uri &&
+        if (location?.DocumentUri.GetSystemUri() is { } uri &&
             _filePathService.IsVirtualHtmlFile(uri))
         {
-            location.DocumentUri = new(_filePathService.GetRazorDocumentUri(uri));
+            location.DocumentUri = _filePathService.GetRazorDocumentUri(uri).CreateDocumentUriFromSystemUri();
         }
     }
 
