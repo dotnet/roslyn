@@ -6,7 +6,6 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SpellCheck;
@@ -42,14 +41,11 @@ internal sealed class RemoteCSharpSpellCheckRangeProvider() : ICSharpSpellCheckR
 
         var spans = await service.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
-        using var razorSpans = new PooledArrayBuilder<SpellCheckSpan>(spans.Length);
-        foreach (var span in spans)
-        {
-            var kind = ProtocolConversions.SpellCheckSpanKindToSpellCheckableRangeKind(span.Kind);
-            razorSpans.Add(new SpellCheckSpan(span.TextSpan.Start, span.TextSpan.Length, kind));
-        }
-
-        return razorSpans.ToImmutable();
+        return spans.SelectAsArray(static span =>
+            new SpellCheckSpan(
+                span.TextSpan.Start,
+                span.TextSpan.Length,
+                ProtocolConversions.SpellCheckSpanKindToSpellCheckableRangeKind(span.Kind)));
     }
 
     private readonly record struct SpellCheckSpan(int StartIndex, int Length, VSInternalSpellCheckableRangeKind Kind);

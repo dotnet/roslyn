@@ -64,7 +64,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
             .TryInvokeAsync<IRemoteGoToDefinitionService, RemoteResponse<LspLocation[]?>>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken) =>
-                    service.GetDefinitionAsync(solutionInfo, razorDocument.Id, position, cancellationToken),
+                    service.GetDefinitionsAsync(solutionInfo, razorDocument.Id, position, cancellationToken),
                 cancellationToken)
             .ConfigureAwait(false);
 

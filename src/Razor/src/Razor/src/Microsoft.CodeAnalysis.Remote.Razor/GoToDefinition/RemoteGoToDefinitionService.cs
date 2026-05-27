@@ -53,7 +53,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             cancellationToken);
     }
 
-    public ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionAsync(
+    public ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionsAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
@@ -61,10 +61,10 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetDefinitionAsync(context, position, cancellationToken),
+            context => GetDefinitionsAsync(context, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionAsync(
+    private async ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionsAsync(
         RemoteDocumentContext context,
         Position position,
         CancellationToken cancellationToken)

@@ -48,7 +48,7 @@ internal sealed class RemoteFoldingRangeService(in ServiceArgs args) : RazorDocu
 
         var lineFoldingOnly = _clientCapabilitiesService.ClientCapabilities.TextDocument?.FoldingRange?.LineFoldingOnly ?? false;
         var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
-        var csharpRanges = await FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, generatedDocument, lineFoldingOnly: lineFoldingOnly, cancellationToken).ConfigureAwait(false);
+        var csharpRanges = await FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, generatedDocument, lineFoldingOnly, cancellationToken).ConfigureAwait(false);
 
         var convertedHtml = htmlRanges.SelectAsArray(RemoteFoldingRange.ToLspFoldingRange);
 
