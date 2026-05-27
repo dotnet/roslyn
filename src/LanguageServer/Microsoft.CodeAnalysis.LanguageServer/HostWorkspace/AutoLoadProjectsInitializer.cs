@@ -25,6 +25,7 @@ internal sealed class AutoLoadProjectsInitializer(
     ServerConfiguration serverConfiguration,
     IGlobalOptionService globalOptionService) : ILspService, IOnInitialized
 {
+    private static readonly EnumerationOptions s_recursiveEnumerationOptions = new() { RecurseSubdirectories = true, IgnoreInaccessible = true };
     private readonly ILogger _logger = loggerFactory.CreateLogger<AutoLoadProjectsInitializer>();
 
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
@@ -91,7 +92,7 @@ internal sealed class AutoLoadProjectsInitializer(
             _logger.LogTrace("Searching for projects to load in workspace folder: {FolderUri}", folder.DocumentUri);
             if (TryGetFolderPath(folder, _logger, out var folderPath))
             {
-                projectFiles.AddRange(Directory.EnumerateFiles(folderPath, "*.csproj", SearchOption.AllDirectories));
+                projectFiles.AddRange(Directory.EnumerateFiles(folderPath, "*.csproj", s_recursiveEnumerationOptions));
             }
         }
 
