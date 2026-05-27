@@ -150,6 +150,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("safe public extern C();", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("public safe extern C();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("extern safe public C();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
+    [InlineData("public safe extern partial C();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword, SyntaxKind.PartialKeyword)]
     public void SafeModifier_Constructor(string source, params SyntaxKind[] expectedModifiers)
     {
         UsingDeclaration(source);
@@ -418,7 +419,30 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeModifier_Constructor_AfterExternAmbiguousWithReturnType()
+    public void SafeModifier_Constructor_BeforeName()
+    {
+        UsingDeclaration("public safe C();");
+
+        N(SyntaxKind.MethodDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "safe");
+            }
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void SafeModifier_Constructor_AfterExtern()
     {
         UsingDeclaration("public extern safe C();");
 
@@ -435,6 +459,36 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
             {
                 N(SyntaxKind.OpenParenToken);
                 N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void SafeModifier_Constructor_BeforePartial()
+    {
+        UsingDeclaration("public safe partial C();", options: null,
+            // (1,13): error CS1525: Invalid expression term 'partial'
+            // public safe partial C();
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 13),
+            // (1,13): error CS1003: Syntax error, ',' expected
+            // public safe partial C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 13));
+
+        N(SyntaxKind.FieldDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "safe");
+                }
+                M(SyntaxKind.VariableDeclarator);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
             }
             N(SyntaxKind.SemicolonToken);
         }

@@ -12057,7 +12057,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
-    public void SafeModifier_Declarations_SafeOnly(bool allowUnsafe)
+    public void SafeModifier_Declarations_SafeOnly(bool allowUnsafe, bool updatedRules)
     {
         var source = """
             #pragma warning disable CS0067, CS8321 // unused event, unused local function
@@ -12085,7 +12085,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
             // (4,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe public void M1() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
@@ -12224,6 +12224,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 }
             }
             """;
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe)).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe)).VerifyEmitDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe)).VerifyEmitDiagnostics();
 
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // (4,12): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
