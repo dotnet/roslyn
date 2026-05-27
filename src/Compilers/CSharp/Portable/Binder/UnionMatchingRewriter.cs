@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new BoundBinaryPattern(
                         node.Syntax, disjunction: true,
-                        left: node.Update(node.Value, node.ConstantValue, isUnionMatching: false, node.InputType, node.InputType),
+                        left: node.Update(node.Value, node.ConstantValue, isUnionMatching: false, node.InputType, node.InputType).MakeCompilerGenerated(),
                         right: RewritePatternWithUnionMatchingToPropertyPattern(underlyingValueMatching),
                         inputType: node.InputType,
                         narrowedType: node.InputType)
@@ -197,18 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitNegatedPattern(BoundNegatedPattern node)
         {
+            Debug.Assert(!node.IsUnionMatching);
             BoundPattern negated = RewritePatternWithUnionMatchingToPropertyPattern((BoundPattern)this.Visit(node.Negated));
-            TypeSymbol? inputType = node.InputType;
-            TypeSymbol? narrowedType = node.NarrowedType;
-
-            if (node.IsUnionMatching)
-            {
-                return CreatePatternWithUnionMatching(
-                    (NamedTypeSymbol)node.InputType,
-                    node.Update(negated, isUnionMatching: false, inputType: ObjectType, narrowedType));
-            }
-
-            return node.Update(negated, isUnionMatching: false, inputType, narrowedType);
+            return node.Update(negated, node.InputType, node.NarrowedType);
         }
 
         public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
