@@ -1574,6 +1574,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
+            }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 permitted: ReservedAttributes.NullableContextAttribute
                     | ReservedAttributes.NullablePublicOnlyAttribute
@@ -1628,10 +1632,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
-            }
-            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
-            {
-                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {

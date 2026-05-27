@@ -350,6 +350,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt!.Location);
+            }
             else if (ReportExplicitUseOfReservedAttributes(
                 in arguments,
                 permitted: ReservedAttributes.DynamicAttribute
@@ -376,10 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
                 diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt!.Location);
-            }
-            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
-            {
-                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt!.Location);
             }
         }
 
