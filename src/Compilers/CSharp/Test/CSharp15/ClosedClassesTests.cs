@@ -806,14 +806,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             [IsClosedType] public delegate void D(); // 15
             """;
 
-        var IsClosedTypeAttributeAllowingAllTargets = """
+        var isClosedTypeAttributeAllowingAllTargets = """
             namespace System.Runtime.CompilerServices
             {
                 public sealed class IsClosedTypeAttribute : Attribute { }
             }
             """;
 
-        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeAllowingAllTargets], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, isClosedTypeAttributeAllowingAllTargets], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (4,12): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
             // [assembly: IsClosedType] // 1
