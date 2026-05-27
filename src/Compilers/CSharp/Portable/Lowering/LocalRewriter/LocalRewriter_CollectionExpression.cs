@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionType is ArrayTypeSymbol arrayType)
             {
-                Debug.Assert(node.Elements.All(e => e is BoundExpression or BoundCollectionExpressionSpreadElement));
+                Debug.Assert(node.Elements.All(e => e is BoundExpression or BoundKeyValuePairElement or BoundCollectionExpressionSpreadElement));
                 return createArray(node, arrayType, targetsReadOnlyCollection: false);
             }
 
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression fieldValue = kind switch
                     {
                         // fieldValue = e1;
-                        SynthesizedReadOnlyListKind.SingleElement => this.VisitExpression((BoundExpression)elements.Single()),
+                        SynthesizedReadOnlyListKind.SingleElement => VisitAndRewriteCollectionElementExpression(elements.Single(), allowSpreadElement: false),
                         // fieldValue = new ElementType[] { e1, ..., eN };
                         SynthesizedReadOnlyListKind.Array => createArray(node, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType)),
                         // fieldValue = new List<ElementType> { e1, ..., eN };
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool asReadOnlySpan)
         {
             Debug.Assert(elements.Length > 0);
-            Debug.Assert(elements.All(e => e is BoundExpression or BoundKeyValuePairConversion));
+            Debug.Assert(elements.All(e => e is BoundExpression or BoundKeyValuePairElement));
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(_compilation.Assembly.RuntimeSupportsInlineArrayTypes);
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .WellKnownType(asReadOnlySpan ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T)
                     .Construct([elementType]);
                 var constructor = spanRefConstructor.AsMember(spanType);
-                var element = VisitAndRewriteCollectionElementExpression((BoundExpression)elements[0], allowSpreadElement: false);
+                var element = VisitAndRewriteCollectionElementExpression(elements[0], allowSpreadElement: false);
                 var temp = _factory.StoreToTemp(element, out var assignment);
                 _additionalLocals.Add(temp.LocalSymbol);
                 var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKindExtensions.StrictIn : RefKind.Ref]);
@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ...
             for (int i = 0; i < arrayLength; i++)
             {
-                var element = VisitAndRewriteCollectionElementExpression((BoundExpression)elements[i], allowSpreadElement: false);
+                var element = VisitAndRewriteCollectionElementExpression(elements[i], allowSpreadElement: false);
                 var call = _factory.Call(null, elementRef, inlineArrayLocal, _factory.Literal(i), useStrictArgumentRefKinds: true);
                 var assignment = new BoundAssignmentOperator(syntax, call, element, type: call.Type) { WasCompilerGenerated = true };
                 sideEffects.Add(assignment);
@@ -771,13 +771,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && spreadElement.IteratorBody is BoundExpressionStatement expressionStatement)
             {
                 var spreadElementConversion = expressionStatement.Expression is BoundConversion { Conversion: var actualConversion } ? actualConversion : Conversion.Identity;
+                var spreadElementIsKeyValuePairConversion = expressionStatement.Expression is BoundKeyValuePairConversion;
                 // Allow implicit reference conversion only if we target readonly collection types like
                 // ReadOnlySpan, IEnumerable, IReadOnlyList etc. Cause otherwise user may get an array with different
                 // actual underlying array type which may lead to unexpected behavior, e.g. an exception
                 // when trying to insert an element of the base type
-                var spreadElementHasCompatibleConversion = targetsReadOnlyCollection
+                var spreadElementHasCompatibleConversion = !spreadElementIsKeyValuePairConversion && (targetsReadOnlyCollection
                     ? spreadElementConversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference
-                    : spreadElementConversion.Kind is ConversionKind.Identity;
+                    : spreadElementConversion.Kind is ConversionKind.Identity);
                 var spreadTypeOriginalDefinition = spreadExpression.Type!.OriginalDefinition;
 
                 if (spreadElementHasCompatibleConversion
@@ -1085,7 +1086,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Cannot use CopyTo when spread element has non-identity conversion to target element type.
             // Could do a covariant conversion of ReadOnlySpan in future: https://github.com/dotnet/roslyn/issues/71106
-            if (spreadElement.IteratorBody is not BoundExpressionStatement expressionStatement || expressionStatement.Expression is BoundConversion { ConversionKind: not ConversionKind.Identity })
+            if (spreadElement.IteratorBody is not BoundExpressionStatement expressionStatement
+                || expressionStatement.Expression is BoundConversion { ConversionKind: not ConversionKind.Identity }
+                || expressionStatement.Expression is BoundKeyValuePairConversion)
                 return null;
 
             if (_factory.WellKnownMethod(WellKnownMember.System_Span_T__Slice_Int_Int, isOptional: true) is not { } spanSliceMethod)
