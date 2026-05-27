@@ -95,7 +95,6 @@ internal class TestHistoryManager
         var totalTests = runForThisStage.TotalTests;
 
         Dictionary<string, TimeSpan> testInfos = new();
-        var duplicateCount = 0;
 
         // Get runtimes for all tests.
         var timer = new Stopwatch();
@@ -113,26 +112,24 @@ internal class TestHistoryManager
                 }
 
                 var testName = CleanTestName(testResult.AutomatedTestName);
+                var duration = TimeSpan.FromMilliseconds(testResult.DurationInMs);
 
-                if (!testInfos.TryAdd(testName, TimeSpan.FromMilliseconds(testResult.DurationInMs)))
+                // CleanTestName strips parameterized arguments, so multiple AzDO results
+                // (one per parameter combination) map to the same base method name. We need
+                // to sum their durations because vstest runs every variant when filtered by
+                // the base method name.
+                if (testInfos.TryGetValue(testName, out var existing))
                 {
-                    // We can get duplicate tests if a test file is included in multiple assemblies (e.g. analyzer codestyle tests).
-                    // This is fine, we'll just use capture one of the run times since it is the same test being run in both cases and unlikely to have different run times.
-                    //
-                    // Another case that can happen is if a test is incorrectly authored to have the same name and namespace as a test in another assembly.  For example
-                    // a test that applies to both VB and C#, but the tests in both the C# and VB assembly accidentally use the C# namespace.
-                    // It may have a different run time, but ADO does not let us differentiate by assembly name, so we just have to pick one.
-                    duplicateCount++;
+                    testInfos[testName] = existing + duration;
+                }
+                else
+                {
+                    testInfos[testName] = duration;
                 }
             }
         }
 
         timer.Stop();
-
-        if (duplicateCount > 0)
-        {
-            Logger.Log($"Found {duplicateCount} duplicate tests in run {runForThisStage.Name}.");
-        }
 
         var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.TotalMilliseconds));
         ConsoleUtil.WriteLine($"Retrieved {testInfos.Keys.Count} tests from AzureDevops in {timer.Elapsed}.  Total runtime of all tests is {totalTestRuntime}");

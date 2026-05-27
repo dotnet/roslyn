@@ -112,8 +112,10 @@ namespace RunTests
             TestMethodInfo WithTestExecutionTime(TestMethodInfo methodInfo)
             {
                 // Match by fully qualified test method name to azure devops historical data.
-                // Note for combinatorial tests, azure devops helpfully groups all sub-runs under a top level method (with combined test run times) with the same fully qualified method name
-                // that we get during test discovery.  Since we only filter by the single method name (and not individual combinatorial runs) we do want the combined execution time.
+                // Note for combinatorial tests, CleanTestName in TestHistoryManager strips
+                // parameter arguments and sums run times for all variants under the base
+                // method name.  Since we only filter by the single method name (and not
+                // individual combinatorial runs) we do want the combined execution time.
                 if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var executionTime))
                 {
                     matchedRemoteTests.Add(methodInfo.FullyQualifiedName);
