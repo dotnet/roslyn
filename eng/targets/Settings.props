@@ -26,6 +26,13 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
     <UseSharedCompilation>true</UseSharedCompilation>
+    <!-- Local Windows Arm64 full-MSBuild builds currently fail when Arcade tasks use the external x64 .NET task host. -->
+    <_RoslynNativeOSArchitecture>$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</_RoslynNativeOSArchitecture>
+    <RoslynUseInProcBuildTasks Condition="'$(RoslynUseInProcBuildTasks)' == '' and
+                                           '$(ContinuousIntegrationBuild)' != 'true' and
+                                           '$(OfficialBuild)' != 'true' and
+                                           '$(MSBuildRuntimeType)' == 'Full' and
+                                           '$(_RoslynNativeOSArchitecture)' == 'Arm64'">true</RoslynUseInProcBuildTasks>
 
     <Features>strict</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
