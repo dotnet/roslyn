@@ -30,7 +30,7 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
             return;
         }
 
-        if (textDocumentIdentifier?.DocumentUri.ParsedUri is not Uri uri)
+        if (textDocumentIdentifier?.DocumentUri.GetSystemUri() is not Uri uri)
         {
             // Can't do anything without a uri
             return;

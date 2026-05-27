@@ -5,12 +5,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -91,6 +91,6 @@ internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBro
 
         var documentSnapshot = SnapshotManager.GetSnapshot(razorDocument);
 
-        return new RemoteDocumentContext(razorDocument.CreateSystemUri(), documentSnapshot);
+        return new RemoteDocumentContext(razorDocument.GetURI(), documentSnapshot);
     }
 }

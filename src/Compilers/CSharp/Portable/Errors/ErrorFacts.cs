@@ -2593,6 +2593,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly
                 or ErrorCode.ERR_UnderspecifiedClosedSubtype
                 or ErrorCode.ERR_ClosedExplicitlyAbstract
+                or ErrorCode.ERR_MissingUnionCaseTypes
+                or ErrorCode.ERR_MissingUnionValueProperty
+                or ErrorCode.ERR_MemberProviderInUnionDeclaration
                 or ErrorCode.ERR_SafeModifierUnsupportedTarget
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                     => false,

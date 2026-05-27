@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -53,7 +54,7 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
-        return _documentSymbolService.GetDocumentSymbols(context.Snapshot.FileKind, context.Uri, csharpDocument, csharpSymbols);
+        return _documentSymbolService.GetDocumentSymbols(context.Snapshot.FileKind, context.Uri.GetRequiredSystemUri(), csharpDocument, csharpSymbols);
     }
 
     private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols)

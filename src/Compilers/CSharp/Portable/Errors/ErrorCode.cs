@@ -2492,6 +2492,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnderspecifiedClosedSubtype = 9383,
         ERR_ClosedExplicitlyAbstract = 9384,
 
+        ERR_MissingUnionCaseTypes = 9385,
+        ERR_MissingUnionValueProperty = 9386,
+        ERR_MemberProviderInUnionDeclaration = 9387,
+
         ERR_SafeModifierUnsupportedTarget = 9385,
         ERR_ExternMemberRequiresUnsafeOrSafe = 9386,
 

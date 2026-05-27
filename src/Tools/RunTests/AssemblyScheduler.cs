@@ -18,15 +18,6 @@ namespace RunTests
 {
     internal sealed class AssemblyScheduler
     {
-        /// <summary>
-        /// We attempt to partition our tests into work items that execute in under 2 minutes 30s.  This is a derived limit based on a goal of running all tests
-        /// in under 5 minutes.  However because of overhead in setting up the test run, e.g.
-        ///   1.  Test discovery.
-        ///   2.  Downloading assets to the helix machine.
-        ///   3.  Setting up the test host for each assembly.
-        ///   
-        /// </summary>
-        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(60 * 10);
 
         /// <summary>
         /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
@@ -71,7 +62,7 @@ namespace RunTests
             var workItems = BuildWorkItems(
                 orderedTypeInfos,
                 getWeightFunc: static test => test.ExecutionTime.TotalSeconds,
-                limit: s_maxExecutionTime.TotalSeconds);
+                limit: HelixTestRunner.WorkItemScheduleTime.TotalSeconds);
             LogWorkItems(workItems);
             return workItems;
         }
@@ -79,12 +70,12 @@ namespace RunTests
         private static void LogLongTests(ImmutableDictionary<string, TimeSpan> testHistory)
         {
             var longTests = testHistory
-                .Where(kvp => kvp.Value > s_maxExecutionTime)
+                .Where(kvp => kvp.Value > HelixTestRunner.WorkItemScheduleTime)
                 .OrderBy(kvp => kvp.Key)
                 .ToList();
             if (longTests.Count > 0)
             {
-                ConsoleUtil.Warning($"There are {longTests.Count} tests have execution times greater than the maximum execution time of {s_maxExecutionTime}");
+                ConsoleUtil.Warning($"There are {longTests.Count} tests have execution times greater than the maximum execution time of {HelixTestRunner.WorkItemScheduleTime:hh\\:mm\\:ss}.  These tests will be scheduled in their own individual work items and may indicate tests that should be optimized or removed if they are no longer providing value.");
                 foreach (var (test, time) in longTests)
                 {
                     ConsoleUtil.WriteLine($"\t{test} - {time:hh\\:mm\\:ss}");

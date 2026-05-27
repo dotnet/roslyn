@@ -136,8 +136,8 @@ internal class RenameService(
     private RenameFile GetRenameFileEdit(string oldFilePath, string newFilePath)
         => new()
         {
-            OldDocumentUri = new(LspFactory.CreateFilePathUri(oldFilePath, _languageServerFeatureOptions)),
-            NewDocumentUri = new(LspFactory.CreateFilePathUri(newFilePath, _languageServerFeatureOptions)),
+            OldDocumentUri = LspFactory.CreateFilePathUri(oldFilePath, _languageServerFeatureOptions),
+            NewDocumentUri = LspFactory.CreateFilePathUri(newFilePath, _languageServerFeatureOptions),
         };
 
     private static string MakeNewPath(string originalPath, string newName)

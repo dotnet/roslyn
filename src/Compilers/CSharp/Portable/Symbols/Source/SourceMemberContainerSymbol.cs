@@ -2074,6 +2074,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, ctor.GetFirstLocation());
                     }
                 }
+
+                if (GetMemberProviderInterfaceForDefinition() is not null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MemberProviderInUnionDeclaration, location);
+                }
+            }
+            else if (IsUnionType)
+            {
+                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null) is null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
+                }
+
+                if (Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(this) is null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MissingUnionValueProperty, location);
+                }
             }
 
             return;
