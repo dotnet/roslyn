@@ -41,6 +41,37 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
         EOF();
     }
 
+    [Fact]
+    public void SafeModifier_Method_Async()
+    {
+        UsingDeclaration("public safe async(int i);");
+
+        N(SyntaxKind.MethodDeclaration);
+        {
+            N(SyntaxKind.PublicKeyword);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "safe");
+            }
+            N(SyntaxKind.IdentifierToken, "async");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Parameter);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "i");
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
     [Theory]
     [InlineData("safe public extern int P { get; }", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("public safe extern int P { get; }", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
