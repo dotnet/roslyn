@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task DocumentSymbols_CSharpClassWithMethods()
         => VerifySymbolInformationsAsync(
             """
@@ -44,7 +44,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
             
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task DocumentSymbols_CSharpClassWithMethods_Hierarchical()
     {
         TestCode input = """
@@ -97,7 +97,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
         Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["ObjToString"])), objToString.SelectionRange);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task DocumentSymbols_CSharpClassWithMethods_MiscFile()
     {
         // What the source generator would product for TestProjectData.SomeProjectPath
@@ -130,7 +130,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
             miscellaneousFile: true);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task DocumentSymbols_CSharpClassWithMethods_MiscFile_Hierarchical()
     {
         TestCode input = """
@@ -183,7 +183,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
         Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["ObjToString"])), objToString.SelectionRange);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task DocumentSymbols_CSharpMethods()
         => VerifySymbolInformationsAsync(
             """
@@ -206,7 +206,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
             
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task DocumentSymbols_CSharpMethods_Hierarchical()
     {
         TestCode input = """

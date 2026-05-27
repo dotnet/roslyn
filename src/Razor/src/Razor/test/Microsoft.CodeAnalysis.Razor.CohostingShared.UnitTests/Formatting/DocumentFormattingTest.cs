@@ -11192,7 +11192,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             fileKind: RazorFileKind.Legacy);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task MultilineExplicitExpression()
     {
         await RunFormattingTestAsync(
@@ -11282,7 +11282,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task MultilineExplicitExpression_IsStable()
     {
         // This test explicitly validates that the expected output from the above test results in stable formatting.

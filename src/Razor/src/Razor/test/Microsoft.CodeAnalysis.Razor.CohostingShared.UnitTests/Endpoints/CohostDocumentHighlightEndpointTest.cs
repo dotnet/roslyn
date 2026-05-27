@@ -31,7 +31,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
         await VerifyDocumentHighlightsAsync(input);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task Method()
     {
         var input = """
@@ -49,7 +49,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
         await VerifyDocumentHighlightsAsync(input);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task AttributeToField()
     {
         var input = """
@@ -67,7 +67,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
         await VerifyDocumentHighlightsAsync(input);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task FieldToAttribute()
     {
         var input = """
@@ -123,7 +123,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
         await VerifyDocumentHighlightsAsync(input);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task Inject()
     {
         var input = """

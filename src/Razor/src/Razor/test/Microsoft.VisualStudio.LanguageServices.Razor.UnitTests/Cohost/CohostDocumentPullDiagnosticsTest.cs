@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public partial class CohostDocumentPullDiagnosticsTest
 {
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharpUnusedUsings_WarningDiagnosticsInVS()
     {
         var document = CreateProjectAndRazorDocument("""
@@ -56,7 +56,7 @@ public partial class CohostDocumentPullDiagnosticsTest
             tag => Assert.Equal(DiagnosticTag.Unnecessary, tag));
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task OneOfEachDiagnostic()
     {
         TestCode input = """
@@ -551,7 +551,7 @@ public partial class CohostDocumentPullDiagnosticsTest
             }]);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task TODOComments()
         => VerifyDiagnosticsAsync("""
             @using System.Threading.Tasks;

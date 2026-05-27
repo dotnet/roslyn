@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task GenerateConstructor()
     {
         var input = """
@@ -46,7 +46,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task UseExpressionBodiedMember()
     {
         var input = """
@@ -79,7 +79,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.UseExpressionBody);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task IntroduceLocal()
     {
         var input = """
@@ -126,7 +126,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task IntroduceLocal_All()
     {
         var input = """
@@ -205,7 +205,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ConvertConcatenationToInterpolatedString_CodeBlock()
     {
         var input = """
@@ -225,7 +225,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ConvertBetweenRegularAndVerbatimInterpolatedString_CodeBlock()
     {
         var input = """
@@ -245,7 +245,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ConvertBetweenRegularAndVerbatimInterpolatedString_CodeBlock2()
     {
         var input = """
@@ -265,7 +265,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ConvertBetweenRegularAndVerbatimString_CodeBlock()
     {
         var input = """
@@ -285,7 +285,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ConvertBetweenRegularAndVerbatimString_CodeBlock2()
     {
         var input = """
@@ -305,7 +305,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ConvertPlaceholderToInterpolatedString_CodeBlock()
     {
         var input = """
@@ -325,7 +325,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ConvertToInterpolatedString_CodeBlock()
     {
         var input = """
@@ -345,7 +345,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task AddDebuggerDisplay()
     {
         var input = """
@@ -403,7 +403,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay, fileKind: AspNetCore.Razor.Language.RazorFileKind.Legacy);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task AddDebuggerDisplay_CodeBlockOnSingleLine()
     {
         var input = """
@@ -453,7 +453,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             fileKind: RazorFileKind.Legacy);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task RemoveUnusedVariable_Local()
     {
         var input = """

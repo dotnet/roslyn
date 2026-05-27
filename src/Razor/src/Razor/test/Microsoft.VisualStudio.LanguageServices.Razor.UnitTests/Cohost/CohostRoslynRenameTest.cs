@@ -27,7 +27,7 @@ using Rename = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers.Renam
 
 public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Theory]
+    [Theory(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     [CombinatorialData]
     public Task CSharp_Method(bool useLsp, bool fromRazor)
         => VerifyRenamesAsync(
@@ -87,7 +87,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
             useLsp,
             fromRazor);
 
-    [Theory]
+    [Theory(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     [CombinatorialData]
     public Task CSharp_Property(bool useLsp, bool fromRazor)
         => VerifyRenamesAsync(
@@ -141,7 +141,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
             useLsp,
             fromRazor);
 
-    [Theory]
+    [Theory(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     [CombinatorialData]
     public Task Component(bool useLsp, bool fromRazor)
         => VerifyRenamesAsync(

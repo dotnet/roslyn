@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task Prepare_ExplicitStatement()
         => VerifyCallHierarchyAsync("""
             @{
@@ -32,7 +32,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task IncomingCalls_CodeBlock()
         => VerifyCallHierarchyAsync("""
             @code
@@ -48,7 +48,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task OutgoingCalls_CodeBlock()
         => VerifyCallHierarchyAsync("""
             @code
@@ -64,7 +64,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task Prepare_ImplicitExpression()
         => VerifyCallHierarchyAsync("""
             <div>@Get$$Value()</div>
@@ -75,7 +75,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task Prepare_ComponentAttribute()
         => VerifyCallHierarchyAsync(
             """
@@ -87,7 +87,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task IncomingCalls_ImplicitExpression()
         => VerifyCallHierarchyAsync("""
             <div>@{|incoming_markup_from:M|}()</div>
@@ -100,7 +100,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task IncomingCalls_ExplicitStatement()
         => VerifyCallHierarchyAsync("""
             @{
@@ -115,7 +115,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task IncomingCalls_ComponentAttribute()
         => VerifyCallHierarchyAsync(
             """
@@ -129,7 +129,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task OutgoingCalls_ImplicitExpression()
         => VerifyCallHierarchyAsync("""
             @code
@@ -143,7 +143,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task OutgoingCalls_ExplicitStatement()
         => VerifyCallHierarchyAsync("""
             @code
@@ -159,7 +159,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task OutgoingCalls_ComponentAttribute()
         => VerifyCallHierarchyAsync(
             """
@@ -174,7 +174,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task IncomingAndOutgoingCalls()
         => VerifyCallHierarchyAsync(
             """

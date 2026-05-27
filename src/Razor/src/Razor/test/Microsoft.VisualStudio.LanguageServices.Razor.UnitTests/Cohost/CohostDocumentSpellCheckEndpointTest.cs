@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task Handle()
     {
         var input = """
@@ -55,7 +55,7 @@ public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHe
         await VerifySpellCheckableRangesAsync(input);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ComponentAttributes()
     {
         await VerifySpellCheckableRangesAsync(

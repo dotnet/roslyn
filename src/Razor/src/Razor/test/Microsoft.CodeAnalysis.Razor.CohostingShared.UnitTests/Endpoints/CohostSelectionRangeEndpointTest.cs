@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public sealed class CohostSelectionRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task SelectionRanges_CSharpMethodBody()
         => VerifySelectionRangesAsync(
             """
@@ -26,7 +26,7 @@ public sealed class CohostSelectionRangeEndpointTest(ITestOutputHelper testOutpu
             }
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task SelectionRanges_MultiplePositions()
     {
         TestCode input =

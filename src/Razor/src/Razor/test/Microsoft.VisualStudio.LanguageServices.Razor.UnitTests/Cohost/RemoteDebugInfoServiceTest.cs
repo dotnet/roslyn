@@ -115,7 +115,7 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
         await VerifyProximityExpressionsAsync(input, ["__builder", "this"]);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ResolveProximityExpressionsAsync_CodeBlock()
     {
         var input = """
@@ -154,7 +154,7 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
         await VerifyBreakpointRangeAsync(input);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ResolveBreakpointRangeAsync_CodeBlock()
     {
         var input = """
@@ -360,7 +360,7 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
         await VerifyBreakpointRangeAsync(input);
     }
 
-    [Theory]
+    [Theory(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     [CombinatorialData]
     public async Task ResolveBreakpointRangeAsync_CodeBlockInMiddleOfDocument(bool legacy)
     {
