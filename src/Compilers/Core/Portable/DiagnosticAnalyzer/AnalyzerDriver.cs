@@ -1134,7 +1134,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         // If cancellation is requested, still wait for suppression tasks to unwind so
                         // pooled state owned by those tasks is returned before the caller observes completion.
-                        Task.WaitAll(tasks.ToArray(), CancellationToken.None);
+                        try
+                        {
+                            Task.WaitAll(tasks.ToArray(), CancellationToken.None);
+                        }
+                        catch (AggregateException ex) when (ex.InnerExceptions.All(static e => e is OperationCanceledException))
+                        {
+                            throw new OperationCanceledException(cancellationToken);
+                        }
                     }
                     finally
                     {
