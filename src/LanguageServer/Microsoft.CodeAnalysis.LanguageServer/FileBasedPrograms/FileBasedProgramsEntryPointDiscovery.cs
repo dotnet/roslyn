@@ -317,20 +317,18 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             // The DirectoryEnumerator uses IgnoreInaccessible = true, so it will silently skip
             // directories/files which we don't have permission to access during enumeration.
             using var currentDirectoryItems = TemporaryArray<CsFileInfo>.Empty;
-            using (var enumerator = new DirectoryEnumerator(directory))
+            using var enumerator = new DirectoryEnumerator(directory);
+            while (enumerator.MoveNext())
             {
-                while (enumerator.MoveNext())
+                var fileInfo = enumerator.Current;
+                if (fileInfo.Kind == CsFileKind.Csproj)
                 {
-                    var fileInfo = enumerator.Current;
-                    if (fileInfo.Kind == CsFileKind.Csproj)
-                    {
-                        // Found a csproj. Return without visiting any of the files.
-                        directoriesContainingCsprojBuilder.Add(directory);
-                        return;
-                    }
-
-                    currentDirectoryItems.Add(fileInfo);
+                    // Found a csproj. Return without visiting any of the files.
+                    directoriesContainingCsprojBuilder.Add(directory);
+                    return;
                 }
+
+                currentDirectoryItems.Add(fileInfo);
             }
 
             // Did not find a csproj. Continue searching this subtree for entry points.
