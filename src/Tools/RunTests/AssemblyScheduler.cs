@@ -33,6 +33,13 @@ namespace RunTests
         /// </summary>
         private static readonly int s_maxMethodCount = 500;
 
+        /// <summary>
+        /// When scheduling whole assemblies onto helix work items, we try to ensure each work item contains at least
+        /// this many assemblies so that the in-process test runner can parallelize test execution across assemblies.
+        /// Work items with fewer than this many assemblies will be merged together (up to this limit) where possible.
+        /// </summary>
+        private const int s_targetAssembliesPerWorkItem = 4;
+
         public static ImmutableArray<HelixWorkItem> Schedule(
             IEnumerable<string> assemblyFilePaths,
             ImmutableDictionary<string, TimeSpan> testHistory)
@@ -110,8 +117,95 @@ namespace RunTests
                     useWeightForEstimatedExecutionTime: true);
             }
 
+            // Many work items end up with only a single assembly because that assembly's weight already meets or
+            // exceeds the limit.  However the in-process test runner can run multiple assemblies in parallel, so a
+            // work item with only one assembly does not parallelize internally.  Combine work items that have fewer
+            // than s_targetAssembliesPerWorkItem assemblies, up to that limit, to take better advantage of the
+            // available parallelism on the helix machine.
+            workItems = CombineSmallWorkItems(workItems, s_targetAssembliesPerWorkItem);
+
             LogWorkItems(workItems);
             return workItems;
+        }
+
+        private static ImmutableArray<HelixWorkItem> CombineSmallWorkItems(ImmutableArray<HelixWorkItem> workItems, int targetAssembliesPerWorkItem)
+        {
+            // Separate work items that already have the target number of assemblies (or more) from the rest.
+            // The "full" items are kept as-is; the "small" items are repacked greedily into groups whose combined
+            // assembly count does not exceed the target.
+            var fullItems = new List<HelixWorkItem>();
+            var smallItems = new List<HelixWorkItem>();
+            foreach (var workItem in workItems)
+            {
+                if (workItem.AssemblyFilePaths.Length >= targetAssembliesPerWorkItem)
+                {
+                    fullItems.Add(workItem);
+                }
+                else
+                {
+                    smallItems.Add(workItem);
+                }
+            }
+
+            if (smallItems.Count == 0)
+            {
+                return workItems;
+            }
+
+            // Pack the small items, preferring to combine the largest with the smallest so we don't accidentally
+            // overflow the target.  Order by assembly count descending so we place the biggest items first.
+            var combinedSmallItems = new List<List<HelixWorkItem>>();
+            foreach (var item in smallItems.OrderByDescending(w => w.AssemblyFilePaths.Length))
+            {
+                var placed = false;
+                foreach (var group in combinedSmallItems)
+                {
+                    var groupAssemblyCount = group.Sum(w => w.AssemblyFilePaths.Length);
+                    if (groupAssemblyCount + item.AssemblyFilePaths.Length <= targetAssembliesPerWorkItem)
+                    {
+                        group.Add(item);
+                        placed = true;
+                        break;
+                    }
+                }
+
+                if (!placed)
+                {
+                    combinedSmallItems.Add([item]);
+                }
+            }
+
+            var merged = ImmutableArray.CreateBuilder<HelixWorkItem>(fullItems.Count + combinedSmallItems.Count);
+            var nextId = 0;
+            foreach (var workItem in fullItems)
+            {
+                merged.Add(WithId(workItem, nextId++));
+            }
+
+            foreach (var group in combinedSmallItems)
+            {
+                if (group.Count == 1)
+                {
+                    merged.Add(WithId(group[0], nextId++));
+                    continue;
+                }
+
+                var assemblies = group.SelectMany(w => w.AssemblyFilePaths).Distinct().Order().ToImmutableArray();
+                var testMethodNames = group.SelectMany(w => w.TestMethodNames).ToImmutableArray();
+                var hasExecutionTime = group.All(w => w.EstimatedExecutionTime is not null);
+                TimeSpan? estimatedExecutionTime = hasExecutionTime
+                    ? TimeSpan.FromSeconds(group.Sum(w => w.EstimatedExecutionTime!.Value.TotalSeconds))
+                    : null;
+                merged.Add(new HelixWorkItem(nextId++, assemblies, testMethodNames, estimatedExecutionTime));
+            }
+
+            ConsoleUtil.WriteLine($"Combined {smallItems.Count} small work items (< {targetAssembliesPerWorkItem} assemblies) into {combinedSmallItems.Count} merged work items; {fullItems.Count} work items already met the target.");
+            return merged.MoveToImmutable();
+
+            static HelixWorkItem WithId(HelixWorkItem item, int newId)
+                => newId == item.Id
+                    ? item
+                    : new HelixWorkItem(newId, item.AssemblyFilePaths, item.TestMethodNames, item.EstimatedExecutionTime);
         }
 
         private static void LogLongTests(ImmutableDictionary<string, TimeSpan> testHistory)
