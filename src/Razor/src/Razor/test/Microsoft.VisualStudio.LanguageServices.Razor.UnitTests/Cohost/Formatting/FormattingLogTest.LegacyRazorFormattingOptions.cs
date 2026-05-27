@@ -1,19 +1,46 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Settings;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
+
+public partial class FormattingLogTest
 {
-    /// <summary>
-    /// Wrapper for CSharpSyntaxFormattingOptions for Razor external access.
-    /// </summary>
+    // These types support legacy formatting logs, and can be deleted once the VS stable release uses CSharpSyntaxFormattingOptions directly
+
+    private readonly record struct LegacyRazorFormattingOptions
+    {
+        public bool InsertSpaces { get; init; } = true;
+        public int TabSize { get; init; } = 4;
+        public bool CodeBlockBraceOnNextLine { get; init; }
+        public AttributeIndentStyle AttributeIndentStyle { get; init; } = AttributeIndentStyle.AlignWithFirst;
+        public RazorCSharpSyntaxFormattingOptions? CSharpSyntaxFormattingOptions { get; init; }
+        public bool FromPaste { get; init; }
+
+        public LegacyRazorFormattingOptions()
+        {
+        }
+
+        public RazorFormattingOptions ToRazorFormattingOptions()
+            => new()
+            {
+                InsertSpaces = InsertSpaces,
+                TabSize = TabSize,
+                CodeBlockBraceOnNextLine = CodeBlockBraceOnNextLine,
+                AttributeIndentStyle = AttributeIndentStyle,
+                CSharpSyntaxFormattingOptions = CSharpSyntaxFormattingOptions?.ToCSharpSyntaxFormattingOptions(),
+                FromPaste = FromPaste,
+            };
+    }
+
     [DataContract]
-    internal sealed record class RazorCSharpSyntaxFormattingOptions(
+    private sealed record class RazorCSharpSyntaxFormattingOptions(
         [property: DataMember] RazorSpacePlacement Spacing,
         [property: DataMember] RazorBinaryOperatorSpacingOptions SpacingAroundBinaryOperator,
         [property: DataMember] RazorNewLinePlacement NewLines,
