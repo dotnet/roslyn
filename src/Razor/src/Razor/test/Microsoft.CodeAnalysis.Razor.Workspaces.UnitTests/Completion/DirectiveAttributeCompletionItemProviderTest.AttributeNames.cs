@@ -34,7 +34,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
 
         var codeDocument = GetCodeDocument(string.Empty);
         _defaultTagHelperContext = codeDocument.GetRequiredTagHelperContext();
-        _defaultRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
+        _defaultRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false);
     }
 
     private RazorCodeDocument GetCodeDocument(string content)
@@ -73,7 +73,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
     public void GetCompletionItems_OnDirectiveAttributeName_bind_VsCode_ReturnsEmptyCommitCharacters()
     {
         // Arrange
-        var vsCodeOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: true);
+        var vsCodeOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: true);
         var context = CreateRazorCompletionContext("<input @$$  />") with
         {
             Options = vsCodeOptions
@@ -285,7 +285,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
     public void GetAttributeCompletions_WithNoAutoQuotesOption_ReturnsNonQuotedSnippet()
     {
         // Arrange
-        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: false, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
+        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: false, CommitElementsWithSpace: true, IsVsCode: false);
         var context = GetDefaultDirectivateAttributeCompletionContext("@") with
         {
             Options = noAutoQuotesRazorCompletionOptions
@@ -302,7 +302,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
     public void GetAttributeCompletions_WithNoSnippetsOption_ReturnsNoSnippets()
     {
         // Arrange
-        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
+        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false);
         var context = GetDefaultDirectivateAttributeCompletionContext("@") with
         {
             UseSnippets = false,
@@ -320,7 +320,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
     public void GetAttributeCompletions_ExistingAttributeWithValue_ReturnsNoSnippets()
     {
         // Arrange
-        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
+        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false);
         var context = GetDefaultDirectivateAttributeCompletionContext("@") with
         {
             UseSnippets = false,

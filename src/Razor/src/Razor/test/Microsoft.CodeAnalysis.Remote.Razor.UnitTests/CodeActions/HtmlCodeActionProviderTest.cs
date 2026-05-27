@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -25,6 +23,7 @@ using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Moq;
 using Roslyn.LanguageServer.Protocol;
 using Xunit;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -38,10 +37,10 @@ public class HtmlCodeActionProviderTest
         TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
 
         var documentPath = TestProjectData.SomeProjectComponentFile1.FilePath;
-        var documentUri = new Uri(documentPath);
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(documentUri) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = documentUri },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -71,10 +70,10 @@ public class HtmlCodeActionProviderTest
         TestFileMarkupParser.GetPositionAndSpan(contents, out contents, out var cursorPosition, out var span);
 
         var documentPath = TestProjectData.SomeProjectComponentFile1.FilePath;
-        var documentUri = new Uri(documentPath);
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = new(documentUri) },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = documentUri },
             Range = LspFactory.DefaultRange,
             Context = new VSInternalCodeActionContext()
         };
@@ -89,7 +88,7 @@ public class HtmlCodeActionProviderTest
             {
                 Assert.IsType<RemoteDocumentSnapshot>(snapshot);
                 var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();
-                textDocumentEdit.TextDocument.DocumentUri = new(documentPath);
+                textDocumentEdit.TextDocument.DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
                 textDocumentEdit.Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")];
             })
             .Returns(Task.CompletedTask);
@@ -108,7 +107,7 @@ public class HtmlCodeActionProviderTest
                         new() {
                             TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                DocumentUri = new(new Uri(documentPath + ".html")),
+                                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath + ".html"),
                             },
                             Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                         }
@@ -125,7 +124,7 @@ public class HtmlCodeActionProviderTest
         Assert.NotNull(action.Edit);
         var documentEdits = action.Edit.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(documentEdits);
-        Assert.Equal(documentUri, documentEdits[0].TextDocument.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(documentUri, documentEdits[0].TextDocument.DocumentUri);
 
         var text = SourceText.From(contents);
         var changed = text.WithChanges(documentEdits[0].Edits.Select(e => text.GetTextChange((TextEdit)e)));

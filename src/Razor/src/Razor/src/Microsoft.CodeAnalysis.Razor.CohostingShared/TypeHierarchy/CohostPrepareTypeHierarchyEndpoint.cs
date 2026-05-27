@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
@@ -69,7 +70,7 @@ internal sealed class CohostPrepareTypeHierarchyEndpoint(
 
     private static TypeHierarchyItem WrapRazorItem(TypeHierarchyItem item, TextDocumentIdentifier textDocument)
     {
-        var uri = item.Uri.GetRequiredSystemUri();
+        var uri = item.Uri;
         return uri.GetDocumentFilePathFromUri().IsRazorFilePath()
             ? RazorTypeHierarchyResolveData.Wrap(item, textDocument.WithUri(uri))
             : item;

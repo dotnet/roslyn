@@ -39,6 +39,9 @@ internal class CohostInlayHintEndpoint(
             {
                 Method = Methods.TextDocumentInlayHintName,
                 RegisterOptions = new InlayHintRegistrationOptions()
+                {
+                    ResolveProvider = true
+                }
             }];
         }
 

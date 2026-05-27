@@ -45,7 +45,7 @@ internal sealed class CohostRangeFormattingEndpoint(
 
     public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
-        if (clientCapabilities.TextDocument?.Formatting?.DynamicRegistration is true)
+        if (clientCapabilities.TextDocument?.RangeFormatting?.DynamicRegistration is true)
         {
             return [new Registration()
             {

@@ -18,31 +18,43 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A generator state that has been initialized but produced no results
         /// </summary>
-        public static readonly GeneratorState Empty = new GeneratorState(ImmutableArray<GeneratedSyntaxTree>.Empty,
+        public static readonly GeneratorState Empty = new GeneratorState(postInitTrees: ImmutableArray<GeneratedSyntaxTree>.Empty,
                                                                          ImmutableArray<SyntaxInputNode>.Empty,
                                                                          ImmutableArray<IIncrementalGeneratorOutputNode>.Empty,
-                                                                         ImmutableArray<GeneratedSyntaxTree>.Empty,
+                                                                         preCompilationTrees: ImmutableArray<GeneratedSyntaxTree>.Empty,
+                                                                         generatedTrees: ImmutableArray<GeneratedSyntaxTree>.Empty,
                                                                          ImmutableArray<Diagnostic>.Empty,
                                                                          ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                                                                          ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                                                                          ImmutableDictionary<string, object>.Empty,
                                                                          exception: null,
-                                                                         elapsedTime: TimeSpan.Zero);
+                                                                         elapsedTime: TimeSpan.Zero,
+                                                                         preCompilationFailed: false);
 
         /// <summary>
         /// Creates a new generator state that contains information, constant trees and an execution pipeline
         /// </summary>
         public GeneratorState(ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<SyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
-            : this(postInitTrees,
+            : this(postInitTrees, inputNodes, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new generator state that contains information, constant trees (including pre-compilation) and an execution pipeline
+        /// </summary>
+        public GeneratorState(ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<SyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> preCompilationTrees)
+            : this(postInitTrees: postInitTrees,
                    inputNodes,
                    outputNodes,
-                   ImmutableArray<GeneratedSyntaxTree>.Empty,
+                   preCompilationTrees: preCompilationTrees,
+                   generatedTrees: ImmutableArray<GeneratedSyntaxTree>.Empty,
                    ImmutableArray<Diagnostic>.Empty,
                    ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                    ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                    ImmutableDictionary<string, object>.Empty,
                    exception: null,
-                   elapsedTime: TimeSpan.Zero)
+                   elapsedTime: TimeSpan.Zero,
+                   preCompilationFailed: false)
         {
         }
 
@@ -50,18 +62,21 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<GeneratedSyntaxTree> postInitTrees,
             ImmutableArray<SyntaxInputNode> inputNodes,
             ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes,
+            ImmutableArray<GeneratedSyntaxTree> preCompilationTrees,
             ImmutableArray<GeneratedSyntaxTree> generatedTrees,
             ImmutableArray<Diagnostic> diagnostics,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> executedSteps,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
             ImmutableDictionary<string, object> hostOutputs,
             Exception? exception,
-            TimeSpan elapsedTime)
+            TimeSpan elapsedTime,
+            bool preCompilationFailed)
         {
             this.Initialized = true;
             this.PostInitTrees = postInitTrees;
             this.InputNodes = inputNodes;
             this.OutputNodes = outputNodes;
+            this.PreCompilationTrees = preCompilationTrees;
             this.GeneratedTrees = generatedTrees;
             this.Diagnostics = diagnostics;
             this.ExecutedSteps = executedSteps;
@@ -69,6 +84,23 @@ namespace Microsoft.CodeAnalysis
             this.HostOutputs = hostOutputs;
             this.Exception = exception;
             this.ElapsedTime = elapsedTime;
+            this.PreCompilationFailed = preCompilationFailed;
+        }
+
+        public GeneratorState WithPreCompilationTrees(ImmutableArray<GeneratedSyntaxTree> preCompilationTrees)
+        {
+            return new GeneratorState(postInitTrees: this.PostInitTrees,
+                                      this.InputNodes,
+                                      this.OutputNodes,
+                                      preCompilationTrees: preCompilationTrees,
+                                      generatedTrees: this.GeneratedTrees,
+                                      this.Diagnostics,
+                                      this.ExecutedSteps,
+                                      this.OutputSteps,
+                                      this.HostOutputs,
+                                      exception: null,
+                                      elapsedTime: this.ElapsedTime,
+                                      preCompilationFailed: false);
         }
 
         public GeneratorState WithResults(ImmutableArray<GeneratedSyntaxTree> generatedTrees,
@@ -78,32 +110,38 @@ namespace Microsoft.CodeAnalysis
                                           ImmutableDictionary<string, object> hostOutputs,
                                           TimeSpan elapsedTime)
         {
-            return new GeneratorState(this.PostInitTrees,
+            return new GeneratorState(postInitTrees: this.PostInitTrees,
                                       this.InputNodes,
                                       this.OutputNodes,
-                                      generatedTrees,
+                                      preCompilationTrees: this.PreCompilationTrees,
+                                      generatedTrees: generatedTrees,
                                       diagnostics,
                                       executedSteps,
                                       outputSteps,
                                       hostOutputs,
                                       exception: null,
-                                      elapsedTime);
+                                      elapsedTime,
+                                      preCompilationFailed: false);
         }
 
-        public GeneratorState WithError(Exception exception, Diagnostic error, TimeSpan elapsedTime)
+        public GeneratorState WithError(Exception exception, Diagnostic error, TimeSpan elapsedTime, GeneratorRunPhase phase)
         {
-            return new GeneratorState(this.PostInitTrees,
+            return new GeneratorState(postInitTrees: this.PostInitTrees,
                                       this.InputNodes,
                                       this.OutputNodes,
-                                      ImmutableArray<GeneratedSyntaxTree>.Empty,
+                                      // Preserve pre-comp trees only when the standard phase failed: those trees were
+                                      // already added to the compilation other generators observed, so dropping them
+                                      // would leave this generator's state inconsistent with what those generators saw.
+                                      preCompilationTrees: phase == GeneratorRunPhase.Standard ? this.PreCompilationTrees : ImmutableArray<GeneratedSyntaxTree>.Empty,
+                                      generatedTrees: ImmutableArray<GeneratedSyntaxTree>.Empty,
                                       ImmutableArray.Create(error),
                                       ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                                       ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                                       ImmutableDictionary<string, object>.Empty,
                                       exception,
-                                      elapsedTime);
+                                      elapsedTime,
+                                      preCompilationFailed: phase == GeneratorRunPhase.PreCompilation);
         }
-
         internal bool Initialized { get; }
 
         internal ImmutableArray<GeneratedSyntaxTree> PostInitTrees { get; }
@@ -113,6 +151,8 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableArray<IIncrementalGeneratorOutputNode> OutputNodes { get; }
 
         internal ImmutableArray<GeneratedSyntaxTree> GeneratedTrees { get; }
+
+        internal ImmutableArray<GeneratedSyntaxTree> PreCompilationTrees { get; }
 
         internal Exception? Exception { get; }
 
@@ -126,6 +166,13 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableDictionary<string, object> HostOutputs { get; }
 
-        internal bool RequiresPostInitReparse(ParseOptions parseOptions) => PostInitTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
+        /// <summary>
+        /// True iff this generator's most recent pre-compilation evaluation threw.
+        /// </summary>
+        internal bool PreCompilationFailed { get; }
+
+        internal bool RequiresInputTreeReparse(ParseOptions parseOptions)
+            => PostInitTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions)
+            || PreCompilationTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
     }
 }
