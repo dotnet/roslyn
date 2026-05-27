@@ -1537,6 +1537,11 @@
         <target state="translated">'#!' 必須是檔案第一行的第一個字元</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberSafeDifference">
+        <source>Both partial member declarations must be safe or neither may be safe</source>
+        <target state="new">Both partial member declarations must be safe or neither may be safe</target>
+        <note>'safe' is a keyword</note>
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">請勿在來源中使用 'RequiresUnsafeAttribute': 請改用 'unsafe' 修飾詞。</target>

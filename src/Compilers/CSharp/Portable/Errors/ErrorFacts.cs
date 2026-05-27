@@ -2598,6 +2598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_MemberProviderInUnionDeclaration
                 or ErrorCode.ERR_SafeModifierUnsupportedTarget
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
+                or ErrorCode.ERR_PartialMemberSafeDifference
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

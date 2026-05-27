@@ -1537,6 +1537,11 @@
         <target state="translated">#! musí být první znaky na prvním řádku souboru.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberSafeDifference">
+        <source>Both partial member declarations must be safe or neither may be safe</source>
+        <target state="new">Both partial member declarations must be safe or neither may be safe</target>
+        <note>'safe' is a keyword</note>
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">Nepoužívejte RequiresUnsafeAttribute ve zdrojovém kódu; místo toho použijte modifikátor unsafe.</target>

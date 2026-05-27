@@ -12065,6 +12065,59 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(19, 9));
     }
 
+    [Fact]
+    public void SafeModifier_Declarations_Partial()
+    {
+        var source = """
+            partial class C
+            {
+                public partial void M1();
+                public safe partial void M1() { }
+
+                public safe partial void M2();
+                public partial void M2() { }
+
+                public partial void M3();
+                public safe extern partial void M3();
+
+                public partial int P1 { get; }
+                public safe partial int P1 => 0;
+
+                public partial C();
+                safe public partial C() { }
+
+                public partial event System.Action E1;
+                public safe partial event System.Action E1 { add { } remove { } }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (4,30): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public safe partial void M1() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M1").WithLocation(4, 30),
+            // (6,12): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     public safe partial void M2();
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 12),
+            // (7,25): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public partial void M2() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M2").WithLocation(7, 25),
+            // (9,25): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
+            //     public partial void M3();
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "M3").WithLocation(9, 25),
+            // (10,37): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public safe extern partial void M3();
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M3").WithLocation(10, 37),
+            // (13,29): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public safe partial int P1 => 0;
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "P1").WithLocation(13, 29),
+            // (16,25): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     safe public partial C() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "C").WithLocation(16, 25),
+            // (19,45): error CS9390: Both partial member declarations must be safe or neither may be safe
+            //     public safe partial event System.Action E1 { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "E1").WithLocation(19, 45));
+    }
+
     [Theory, CombinatorialData]
     public void SafeModifier_Declarations_ExternOnly(bool allowUnsafe)
     {

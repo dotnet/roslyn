@@ -1537,6 +1537,11 @@
         <target state="translated">'#!'는 파일의 첫 번째 줄에 있는 첫 번째 문자여야 함</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberSafeDifference">
+        <source>Both partial member declarations must be safe or neither may be safe</source>
+        <target state="new">Both partial member declarations must be safe or neither may be safe</target>
+        <note>'safe' is a keyword</note>
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">소스에서 'RequiresUnsafeAttribute'를 사용하지 마세요. 대신 'unsafe' 한정자를 사용하세요.</target>

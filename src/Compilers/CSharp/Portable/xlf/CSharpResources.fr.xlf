@@ -1537,6 +1537,11 @@
         <target state="translated">« #! » doivent être les premiers caractères de la première ligne du fichier</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberSafeDifference">
+        <source>Both partial member declarations must be safe or neither may be safe</source>
+        <target state="new">Both partial member declarations must be safe or neither may be safe</target>
+        <note>'safe' is a keyword</note>
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
         <target state="translated">N’utilisez pas « RequiresUnsafeAttribute » dans le code source; utilisez plutôt le modificateur « unsafe ».</target>
