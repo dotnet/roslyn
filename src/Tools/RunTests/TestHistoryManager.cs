@@ -25,9 +25,13 @@ internal class TestHistoryManager
 
     /// <summary>
     /// Looks up the last passing test run for the current build and stage to estimate execution times for each
-    /// tests. The dictionary is indexed by test full name.
+    /// tests. The dictionary is indexed by test full name and contains the body duration and theory instance count.
+    ///
+    /// Note: the duration returned is the sum of body execution times (DurationInMs) as reported by xUnit.
+    /// In xUnit v2, DurationInMs does NOT include IAsyncLifetime.InitializeAsync or DisposeAsync time.
+    /// The caller is responsible for adjusting the duration based on the HasAsyncLifetime flag from test discovery.
     /// </summary>
-    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
+    public static async Task<ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
@@ -52,7 +56,7 @@ internal class TestHistoryManager
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
             ConsoleUtil.Warning($"Missing required options to lookup test history, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
+            return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
         }
 
         var credentials = new Microsoft.VisualStudio.Services.Common.VssBasicCredential(string.Empty, accessToken);
@@ -78,7 +82,7 @@ internal class TestHistoryManager
         {
             // If this is a new branch we may not have any historical data for it.
             ConsoleUtil.Warning($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
+            return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
         }
 
         using var testClient = connection.GetClient<TestResultsHttpClient>();
@@ -87,14 +91,14 @@ internal class TestHistoryManager
         {
             // If this is a new stage, historical runs will not have any data for it.
             ConsoleUtil.Warning($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
+            return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
         }
 
         ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {phaseName}");
 
         var totalTests = runForThisStage.TotalTests;
 
-        Dictionary<string, TimeSpan> testInfos = new();
+        Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testInfos = new();
 
         // Get runtimes for all tests.
         var timer = new Stopwatch();
@@ -116,22 +120,22 @@ internal class TestHistoryManager
 
                 // CleanTestName strips parameterized arguments, so multiple AzDO results
                 // (one per parameter combination) map to the same base method name. We need
-                // to sum their durations because vstest runs every variant when filtered by
-                // the base method name.
+                // to sum their durations and count theory instances because vstest runs every instance
+                // when filtered by the base method name.
                 if (testInfos.TryGetValue(testName, out var existing))
                 {
-                    testInfos[testName] = existing + duration;
+                    testInfos[testName] = (existing.Duration + duration, existing.TestTheoryInstances + 1);
                 }
                 else
                 {
-                    testInfos[testName] = duration;
+                    testInfos[testName] = (duration, 1);
                 }
             }
         }
 
         timer.Stop();
 
-        var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.TotalMilliseconds));
+        var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.Duration.TotalMilliseconds));
         ConsoleUtil.WriteLine($"Retrieved {testInfos.Keys.Count} tests from AzureDevops in {timer.Elapsed}.  Total runtime of all tests is {totalTestRuntime}");
         return testInfos.ToImmutableDictionary();
     }
