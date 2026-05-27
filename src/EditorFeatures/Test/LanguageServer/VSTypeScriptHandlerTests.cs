@@ -28,8 +28,7 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     {
     }
 
-    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures
-        .AddParts(typeof(TestWorkspaceRegistrationService));
+    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures;
 
     [Fact]
     public async Task TestRoslynTypeScriptHandlerInvoked()

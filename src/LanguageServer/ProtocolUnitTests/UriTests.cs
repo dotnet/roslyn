@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
@@ -27,7 +28,10 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     {
     }
 
-    protected override TestComposition Composition => base.Composition.AddParts(typeof(CustomResolveHandler), typeof(LanguageSpecificHandler));
+    protected override TestComposition Composition => base.Composition.AddParts(
+        typeof(CustomResolveHandler),
+        typeof(LanguageSpecificHandler),
+        typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
 
     [ConditionalTheory(typeof(WindowsOnly), Reason = "Uses Windows paths and Unicode encoding differs across platforms")]
     [CombinatorialData]
