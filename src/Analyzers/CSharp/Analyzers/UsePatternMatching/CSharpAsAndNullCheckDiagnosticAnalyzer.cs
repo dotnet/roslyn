@@ -245,6 +245,15 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
                         if (rightType.Type is null or { NullableAnnotation: NullableAnnotation.Annotated })
                             return;
                     }
+                    else if (identifierName.Parent is ArgumentSyntax argument &&
+                        argument.GetRefKind() is RefKind.Out or RefKind.Ref)
+                    {
+                        // Same issue if `s` is passed as an `out`/`ref` argument to a parameter of nullable type.
+                        // The callee can store null back into `s`, which would now give a nullable warning.
+                        var parameter = argument.DetermineParameter(semanticModel, allowUncertainCandidates: true, allowParams: true, cancellationToken);
+                        if (parameter?.Type.NullableAnnotation == NullableAnnotation.Annotated)
+                            return;
+                    }
                 }
             }
         }

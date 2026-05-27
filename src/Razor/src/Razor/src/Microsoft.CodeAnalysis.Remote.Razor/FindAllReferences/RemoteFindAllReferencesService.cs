@@ -127,7 +127,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 }
             }
 
-            location.DocumentUri = new(mappedUri);
+            location.DocumentUri = mappedUri.CreateDocumentUriFromSystemUri();
             location.Range = mappedRange.ToRange();
 
             mappedResults.Add(result);

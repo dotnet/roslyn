@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override Binder VisitFieldDeclaration(FieldDeclarationSyntax parent)
             {
-                return VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers, isFieldDeclaration: true);
+                return VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
             }
 
             public override Binder VisitEventDeclaration(EventDeclarationSyntax parent)
@@ -803,6 +803,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override Binder VisitStructDeclaration(StructDeclarationSyntax node)
+            {
+                return VisitTypeDeclarationCore(node);
+            }
+
+            public override Binder VisitUnionDeclaration(UnionDeclarationSyntax node)
             {
                 return VisitTypeDeclarationCore(node);
             }

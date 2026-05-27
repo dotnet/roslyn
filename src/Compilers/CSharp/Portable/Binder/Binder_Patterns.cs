@@ -2163,7 +2163,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol? unionType = null;
                 BoundPattern boundPattern = BindPattern(pattern, ref unionType, memberType, permitDesignations, hasErrors, diagnostics, out bool patternHasUnionMatching);
                 hasUnionMatching |= patternHasUnionMatching;
-                builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
+                var subpattern = new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern);
+
+                if (subpattern is { Member: { Receiver: null, Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property }, IsLengthOrCount: false } &&
+                    inputType is NamedTypeSymbol { IsUnionType: true } inputUnionType &&
+                    Binder.IsUnionTypeValueProperty(inputUnionType, property))
+                {
+                    // https://github.com/dotnet/roslyn/issues/82636: The condition above matches the logic in DecisionDagBuilder.MakeTestsAndBindingsForRecursivePattern
+                    //                                                and, at the moment, it doesn't accept qualified names for the value property. However, it probably should.
+                    //                                                Once that is changed, this place should be updated to match the new logic.
+                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, subpattern.Member.Syntax); // Since new exhaustiveness rules will be used by DecisionDagBuilder.
+                }
+
+                builder.Add(subpattern);
             }
 
             return builder.ToImmutableAndFree();

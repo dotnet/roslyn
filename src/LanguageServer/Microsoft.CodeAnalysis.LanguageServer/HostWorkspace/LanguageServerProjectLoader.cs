@@ -159,29 +159,41 @@ internal abstract class LanguageServerProjectLoader
 
         // TODO: support configuration switching
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(
-            knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
-            globalMSBuildProperties: AdditionalProperties,
-            binaryLogPathProvider: _binLogPathProvider,
-            loggerFactory: LoggerFactory);
-
-        var toastErrorReporter = new ToastErrorReporter();
-
         try
         {
-            var projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
-                source: projectsToLoadOrReload,
-                produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
-                {
-                    var (@this, toastErrorReporter, buildHostProcessManager) = args;
-                    var projectRestorePath = await @this.ReloadProjectAsync(
-                        projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+            ImmutableArray<string> projectsThatNeedRestore;
 
-                    if (projectRestorePath is not null)
-                        produceItem(projectRestorePath);
-                },
-                args: (@this: this, toastErrorReporter, buildHostProcessManager),
-                cancellationToken).ConfigureAwait(false);
+            // Disposing of this BuildHostProcessManager will shut down any processes; so be explicit about the scope so we don't hold onto it longer than
+            // needed.
+            await using (var buildHostProcessManager = new BuildHostProcessManager(
+                knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+                globalMSBuildProperties: AdditionalProperties,
+                binaryLogPathProvider: _binLogPathProvider,
+                loggerFactory: LoggerFactory))
+            {
+                var toastErrorReporter = new ToastErrorReporter();
+
+                projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
+                    source: projectsToLoadOrReload,
+                    produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
+                    {
+                        var (@this, toastErrorReporter, buildHostProcessManager) = args;
+                        try
+                        {
+                            var projectRestorePath = await @this.ReloadProjectAsync(
+                                projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
+
+                            if (projectRestorePath is not null)
+                                produceItem(projectRestorePath);
+                        }
+                        finally
+                        {
+                            projectToLoad.ProgressTracker?.OnItemProcessed();
+                        }
+                    },
+                    args: (@this: this, toastErrorReporter, buildHostProcessManager),
+                    cancellationToken).ConfigureAwait(false);
+            }
 
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
@@ -383,7 +395,7 @@ internal abstract class LanguageServerProjectLoader
 
             var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
             loadedProject.NeedsReload += (_, _) =>
-                _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false });
+                _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false, ProgressTracker = null });
             return (loadedProject, alreadyExists: false);
         }
 
@@ -457,7 +469,7 @@ internal abstract class LanguageServerProjectLoader
     /// <summary>
     /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
     /// </summary>
-    protected async Task BeginLoadingProjectAsync(string projectPath, string? projectGuid)
+    protected async Task BeginLoadingProjectAsync(string projectPath, string? projectGuid, WorkDoneProgressTracker? progressTracker = null)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -468,7 +480,7 @@ internal abstract class LanguageServerProjectLoader
             }
 
             _loadedProjects.Add(projectPath, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []));
-            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true));
+            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true, ProgressTracker: progressTracker));
         }
     }
 
@@ -555,6 +567,67 @@ internal abstract class LanguageServerProjectLoader
             }
 
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Reports percentage progress via <see cref="LSP.WorkDoneProgress"/> as items are processed,
+    /// coalescing updates from parallel callers. Disposing sends the final 100% notification.
+    /// </summary>
+    internal sealed class WorkDoneProgressTracker : IAsyncDisposable
+    {
+        private readonly IProgress<LSP.WorkDoneProgress> _reporter;
+        private readonly int _totalItems;
+        private readonly AsyncBatchingWorkQueue _progressQueue;
+        private int _itemsProcessed;
+        private int _lastReportedPercentage = -1;
+
+        public WorkDoneProgressTracker(IProgress<LSP.WorkDoneProgress> reporter, int totalItems, IAsynchronousOperationListener? listener = null)
+        {
+            _reporter = reporter;
+            _totalItems = totalItems;
+            _progressQueue = new AsyncBatchingWorkQueue(
+                TimeSpan.Zero,
+                ReportProgressAsync,
+                listener ?? AsynchronousOperationListenerProvider.NullListener,
+                CancellationToken.None);
+        }
+
+        public void OnItemProcessed()
+        {
+            Interlocked.Increment(ref _itemsProcessed);
+            _progressQueue.AddWork();
+        }
+
+        private ValueTask ReportProgressAsync(CancellationToken cancellationToken)
+        {
+            var processed = Volatile.Read(ref _itemsProcessed);
+            var percentage = processed * 100 / _totalItems;
+            percentage = Math.Min(percentage, 99);
+
+            if (percentage > _lastReportedPercentage)
+            {
+                _lastReportedPercentage = percentage;
+                _reporter.Report(new LSP.WorkDoneProgressReport
+                {
+                    Percentage = percentage,
+                });
+            }
+
+            return ValueTask.CompletedTask;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
+                await _progressQueue.WaitUntilCurrentBatchCompletesAsync();
+                _reporter.Report(new LSP.WorkDoneProgressReport { Percentage = 100 });
+            }
+            finally
+            {
+                _progressQueue.Dispose();
+            }
         }
     }
 }

@@ -254,6 +254,55 @@ Items need to be included in your csproj files by using the `AdditionalFiles` It
 <ItemGroup>
 ```
 
+### Pre-compilation source generation
+
+> Note: this is an experimental API and requires suppressing diagnostic `RSEXPERIMENTAL007` to use.
+
+**User scenario:** As a generator author I want to produce source from non-compilation inputs (e.g. additional files, parse options) and have that source be visible to compilation-dependent code in the same generator (or in other generators), so that downstream code can call `compilation.GetTypeByMetadataName(...)` and find the types I just emitted.
+
+**Solution:** Use `RegisterPreCompilationSourceOutput`. It runs in a new phase that executes *before* the standard `RegisterSourceOutput` phase, and its emitted source is added to the compilation that the standard phase observes. Because the phase runs before the compilation is fully built, the callback can only consume non-compilation providers (additional files, parse options, analyzer config options); attempting to reach `CompilationProvider` or `SyntaxProvider` from a pre-compilation pipeline throws at runtime.
+
+**Example:**
+
+```csharp
+[Generator]
+public class ProtoGenerator : IIncrementalGenerator
+{
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+        // Pre-compilation phase: read .proto files and emit C# types.
+        // The emitted source becomes part of the compilation that the standard
+        // phase below sees, so compilation.GetTypeByMetadataName("MyProto.Message")
+        // will find the generated type.
+        var protoFiles = context.AdditionalTextsProvider
+            .Where(static (f) => f.Path.EndsWith(".proto"));
+
+        context.RegisterPreCompilationSourceOutput(protoFiles, static (ctx, file) =>
+        {
+            var types = ParseProtoFile(file.GetText()!.ToString());
+            ctx.AddSource($"{Path.GetFileName(file.Path)}.g.cs", GenerateTypes(types));
+        });
+
+        // Standard phase: the compilation now contains the generated proto types,
+        // so we can look them up symbolically and emit code that depends on them.
+        context.RegisterSourceOutput(context.CompilationProvider, static (ctx, compilation) =>
+        {
+            var messageType = compilation.GetTypeByMetadataName("MyProto.Message");
+            if (messageType is not null)
+            {
+                ctx.AddSource("Serializers.g.cs", GenerateSerializer(messageType));
+            }
+        });
+    }
+}
+```
+
+**When to use this over `RegisterPostInitializationOutput`:** post-init runs even earlier, but takes no inputs at all; it is for emitting fixed source like marker attributes. If your generator needs to react to additional files, parse options, or analyzer config and have the result visible to downstream compilation-dependent code, pre-compilation is the right fit.
+
+**When to use this over `RegisterSourceOutput`:** standard `RegisterSourceOutput` always runs *after* the compilation is built and cannot contribute source back into the compilation seen by other generators. Use pre-compilation when you specifically need that cross-generator visibility, e.g. one generator emits domain types from additional files and another generator (or a later pipeline in the same generator) needs to consume those types via `CompilationProvider`.
+
+**Diagnostics:** `PreCompilationSourceProductionContext` intentionally does **not** include `ReportDiagnostic`. Pre-compilation is an early phase focused purely on producing source; diagnostic reporting should be done in a separate analyzer (see *Issue Diagnostics* below).
+
 ### Augment user code
 
 **User scenario:** As a generator author I want to be able to inspect and augment a user's code with new functionality.

@@ -47,8 +47,8 @@ public class CohostApplyRenameEditEndpointTest(ITestOutputHelper testOutputHelpe
             Files = [
                 new FileRename
                 {
-                    OldUri = new(FileUri(oldName)),
-                    NewUri = new(FileUri(newName)),
+                    OldUri = FileUri(oldName),
+                    NewUri = FileUri(newName),
                 }
             ]
         };
@@ -116,8 +116,8 @@ public class CohostApplyRenameEditEndpointTest(ITestOutputHelper testOutputHelpe
             Files = [
                 new FileRename
                 {
-                    OldUri = new(FileUri(oldName)),
-                    NewUri = new(FileUri(newName)),
+                    OldUri = FileUri(oldName),
+                    NewUri = FileUri(newName),
                 }
             ]
         };
@@ -184,8 +184,8 @@ public class CohostApplyRenameEditEndpointTest(ITestOutputHelper testOutputHelpe
             Files = [
                 new FileRename
                 {
-                    OldUri = new(FileUri(oldName)),
-                    NewUri = new(FileUri(newName)),
+                    OldUri = FileUri(oldName),
+                    NewUri = FileUri(newName),
                 }
             ]
         };

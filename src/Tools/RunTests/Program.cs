@@ -39,6 +39,14 @@ namespace RunTests
             ConsoleUtil.WriteLine(string.Join(Environment.NewLine, dotnetResult.OutputLines));
             ConsoleUtil.WriteLine(ConsoleColor.Red, string.Join(Environment.NewLine, dotnetResult.ErrorLines));
 
+            if (options.UseHelix)
+            {
+                var assemblyFilePaths = options.AssemblyListFilePath is { } assemblyListFilePath
+                    ? GetAssemblyFilePaths(assemblyListFilePath)
+                    : GetAssemblyFilePaths(options);
+                return await HelixTestRunner.RunAsync(options, assemblyFilePaths);
+            }
+
             if (options.CollectDumps)
             {
                 if (!DumpUtil.IsAdministrator())
@@ -122,13 +130,6 @@ namespace RunTests
             var assemblyFilePaths = options.AssemblyListFilePath is { } assemblyListFilePath
                 ? GetAssemblyFilePaths(assemblyListFilePath)
                 : GetAssemblyFilePaths(options);
-            if (options.UseHelix)
-            {
-                return await HelixTestRunner.RunAsync(
-                    options,
-                    assemblyFilePaths,
-                    cancellationToken);
-            }
 
             var testExecutor = new ProcessTestExecutor();
             var testRunner = new TestRunner(options, testExecutor);
