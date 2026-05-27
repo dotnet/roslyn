@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -68,15 +67,16 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
 
         var inSnippetContext = InSnippetContext(owner, context.Options);
 
-        // Compute the replacement range for directive attribute items. This covers from after the '@'
-        // through the end of the parameter name (if present) or the attribute name. This is needed
-        // because InsertText includes the colon and parameter (e.g., "bind-Value:after") but the
-        // editor's word-boundary heuristic stops at ':' causing duplication.
+        // Compute the replacement range for directive attribute items. This covers the full
+        // attribute name (including '@') through the end of the parameter name (if present).
+        // We include '@' in the range because the TextEdit replaces the entire attribute name,
+        // and including it allows the edit range to match the HTML provider's range — enabling
+        // the optimizer to promote a common EditRange across all items.
         LinePositionSpan? replacementRange = null;
         if (isAttributeRequest && attributeNameLocation.Length > 0)
         {
             var sourceText = context.CodeDocument.Source.Text;
-            var spanStart = attributeNameLocation.Start + 1; // skip '@'
+            var spanStart = attributeNameLocation.Start;
             var spanEnd = parameterNameLocation.Length > 0
                 ? parameterNameLocation.End
                 : attributeNameLocation.End;
@@ -190,9 +190,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         var isIndexer = completionContext.SelectedAttributeName.EndsWith(Ellipsis, StringComparison.Ordinal);
         var descriptionInfo = BoundAttributeDescriptionInfo.From(attribute, isIndexer, attribute.Parent.TypeName);
 
-        var tagHelper = attribute.Parent;
-
-        if (!TryAddAttributeCompletion(attribute.Name, descriptionInfo, tagHelper, completionContext, attributeCompletions) &&
+        if (!TryAddAttributeCompletion(attribute.Name, descriptionInfo, completionContext, attributeCompletions) &&
             attribute.Parameters.Length > 0)
         {
             // This attribute has parameters and the base attribute name (@bind) is already satisfied. We need to check if there are any valid
@@ -203,7 +201,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
                 if (!completionContext.AlreadySatisfiesParameter(parameter, attribute))
                 {
                     // This bound attribute parameter has not had a completion entry added for it, re-represent the base attribute name in the completion list
-                    AddAttributeCompletion(attribute.Name, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+                    AddAttributeCompletion(attribute.Name, descriptionInfo, attributeCompletions);
                     break;
                 }
             }
@@ -212,7 +210,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         if (!attribute.IndexerNamePrefix.IsNullOrEmpty())
         {
             TryAddAttributeCompletion(
-                attribute.IndexerNamePrefix + Ellipsis, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+                attribute.IndexerNamePrefix + Ellipsis, descriptionInfo, completionContext, attributeCompletions);
         }
     }
 
@@ -258,8 +256,6 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
             DirectiveAttributeCompletionContext completionContext,
             Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         {
-            var tagHelper = attribute.Parent;
-
             foreach (var parameter in parameters)
             {
                 if (completionContext.AlreadySatisfiesParameter(parameter, attribute))
@@ -275,8 +271,6 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
                 AddParameterCompletion(
                     displayName,
                     descriptionInfo: BoundAttributeDescriptionInfo.From(parameter),
-                    tagHelper,
-                    completionContext,
                     attributeCompletions);
             }
         }
@@ -288,6 +282,9 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
     {
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
 
+        // VS Code handles commit characters separately upstream, so we don't send any.
+        var suppressCommitCharacters = completionContext.Options.IsVsCode;
+
         foreach (var (displayText, (kind, descriptions, commitCharacters)) in attributeCompletions)
         {
             var isIndexer = displayText.EndsWith(Ellipsis, StringComparison.Ordinal);
@@ -296,11 +293,15 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
 
             var insertText = ComputeInsertText(displayText, isIndexer, isSnippet, autoInsertAttributeQuotes);
 
+            var itemCommitCharacters = suppressCommitCharacters
+                ? ImmutableArray<RazorCommitCharacter>.Empty
+                : commitCharacters;
+
             Debug.Assert(kind is RazorCompletionItemKind.DirectiveAttribute or RazorCompletionItemKind.DirectiveAttributeParameter);
 
             var razorCompletionItem = kind == RazorCompletionItemKind.DirectiveAttribute
-                ? RazorCompletionItem.CreateDirectiveAttribute(displayText, insertText, descriptionInfo: new(descriptions), commitCharacters, isSnippet, completionContext.ReplacementRange)
-                : RazorCompletionItem.CreateDirectiveAttributeParameter(displayText, insertText, descriptionInfo: new(descriptions), commitCharacters, isSnippet, completionContext.ReplacementRange);
+                ? RazorCompletionItem.CreateDirectiveAttribute(displayText, insertText, descriptionInfo: new(descriptions), itemCommitCharacters, isSnippet, completionContext.ReplacementRange)
+                : RazorCompletionItem.CreateDirectiveAttributeParameter(displayText, insertText, descriptionInfo: new(descriptions), itemCommitCharacters, isSnippet, completionContext.ReplacementRange);
 
             completionItems.Add(razorCompletionItem);
         }
@@ -310,52 +311,30 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
 
     private static string ComputeInsertText(string displayText, bool isIndexer, bool isSnippet, bool autoInsertAttributeQuotes)
     {
-        var originalInsertText = displayText.AsMemory();
-
-        // Strip off the @ from the insertion text. This change is here to align the insertion text with the
-        // completion hooks into VS and VSCode. Basically, completion triggers when `@` is typed so we don't
-        // want to insert `@bind` because `@` already exists.
-        var insertText = originalInsertText.Span.StartsWith('@')
-            ? originalInsertText[1..]
-            : originalInsertText;
-
-        // Indexer attribute, we don't want to insert with the triple dot.
+        // Indexer attribute: strip the trailing ellipsis (e.g., "@bind-Value..." → "@bind-Value")
         if (isIndexer)
         {
-            Debug.Assert(insertText.Span.EndsWith(Ellipsis, StringComparison.Ordinal));
-            return insertText[..^3].ToString();
+            Debug.Assert(displayText.EndsWith(Ellipsis, StringComparison.Ordinal));
+            return displayText[..^3];
         }
 
+        // Snippet: append ="$0" or =$0 suffix (e.g., "@bind-Visible" → "@bind-Visible=\"$0\"")
         if (isSnippet)
         {
             var suffixText = autoInsertAttributeQuotes
                 ? QuotedAttributeValueSnippetSuffix
                 : UnquotedAttributeValueSnippetSuffix;
 
-            // We are trying for snippet text only for non-indexer attributes, e.g. *not* something like "@bind-..."
-            return string.Create(
-                length: insertText.Length + suffixText.Length,
-                state: (insertText, suffixText),
-                static (destination, state) =>
-                {
-                    var (insertText, suffixText) = state;
-
-                    insertText.Span.CopyTo(destination);
-                    suffixText.AsSpan().CopyTo(destination[insertText.Length..]);
-                });
+            return displayText + suffixText;
         }
 
-        // Don't create another string unnecessarily, even though ReadOnlySpan.ToString() special-cases
-        // the string to avoid allocation.
-        return insertText.Span == originalInsertText.Span
-            ? displayText
-            : insertText.ToString();
+        // Simple case: InsertText == DisplayText — no allocation needed.
+        return displayText;
     }
 
     private static bool TryAddAttributeCompletion(
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        TagHelperDescriptor tagHelper,
         DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
     {
@@ -367,34 +346,28 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
             return false;
         }
 
-        AddAttributeCompletion(attributeName, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+        AddAttributeCompletion(attributeName, descriptionInfo, attributeCompletions);
         return true;
     }
 
     private static void AddAttributeCompletion(
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        TagHelperDescriptor tagHelper,
-        DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         => AddCompletion(RazorCompletionItemKind.DirectiveAttribute,
-            attributeName, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+            attributeName, descriptionInfo, attributeCompletions);
 
     private static void AddParameterCompletion(
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        TagHelperDescriptor tagHelper,
-        DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
         => AddCompletion(RazorCompletionItemKind.DirectiveAttributeParameter,
-            attributeName, descriptionInfo, tagHelper, completionContext, attributeCompletions);
+            attributeName, descriptionInfo, attributeCompletions);
 
     private static void AddCompletion(
         RazorCompletionItemKind kind,
         string attributeName,
         BoundAttributeDescriptionInfo descriptionInfo,
-        TagHelperDescriptor tagHelper,
-        DirectiveAttributeCompletionContext completionContext,
         Dictionary<string, AttributeCompletionDetails> attributeCompletions)
     {
         ImmutableArray<BoundAttributeDescriptionInfo> descriptions;
@@ -418,14 +391,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         // Verify not an indexer attribute, as those don't commit with standard chars
         if (!attributeName.EndsWith(Ellipsis, StringComparison.Ordinal))
         {
-            // We always add "=" as a commit character in Visual Studio.
-            var useEqualsCommit = !completionContext.Options.UseVsCodeCompletionCommitCharacters ||
-                                  commitCharacters.Any(static c => c.Character == "=");
-
-            var useSpaceCommit = commitCharacters.Any(static c => c.Character == " ") ||
-                                 tagHelper.BoundAttributes.Any(static a => a.IsBooleanProperty);
-
-            commitCharacters = DefaultCommitCharacters.Get(useEqualsCommit, useSpaceCommit, completionContext.UseSnippets);
+            commitCharacters = Completion.DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
         }
 
         attributeCompletions[attributeName] = new(kind, descriptions, commitCharacters);

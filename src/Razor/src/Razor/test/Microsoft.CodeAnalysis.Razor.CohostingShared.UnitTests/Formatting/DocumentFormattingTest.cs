@@ -1099,6 +1099,356 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public async Task Section_Scripts_ThreeScriptTags()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                <script>
+                    var data = null;
+                    var allocationMoveTemplateFn = null;
+                    var allocationTableTemplateFn = null;
+                    var manufactureOrderInfoTemplateFn = null;
+                    var selectionsJsonTemplateFn = null;
+                
+                    function getAllocationMoveTemplate() {
+                        if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                        var sourceEl = document.getElementById('allocationMoveTemplate');
+                        if (!sourceEl || typeof Handlebars === 'undefined') {
+                            return null;
+                        }
+                
+                        allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                        return allocationMoveTemplateFn;
+                    }
+                
+                </script>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                        var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                        var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    public async Task Section_Scripts_ThreeScriptTags_HtmlFormatterDoesNothing()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+                
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+                
+                </script>
+                }
+                """,
+            expected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                        var data = null;
+                            var allocationMoveTemplateFn = null;
+                            var allocationTableTemplateFn = null;
+                                var manufactureOrderInfoTemplateFn = null;
+                            var selectionsJsonTemplateFn = null;
+                
+                            function getAllocationMoveTemplate() {
+                                if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                                var sourceEl = document.getElementById('allocationMoveTemplate');
+                                if (!sourceEl || typeof Handlebars === 'undefined') {
+                                    return null;
+                                }
+                
+                                allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                                return allocationMoveTemplateFn;
+                            }
+                
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: true);
+    }
+
+    [Fact]
+    public async Task Section_Scripts_ThreeScriptTags_Expanded()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                    </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                    <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @section Scripts {
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                <script>
+                    var data = null;
+                    var allocationMoveTemplateFn = null;
+                    var allocationTableTemplateFn = null;
+                    var manufactureOrderInfoTemplateFn = null;
+                    var selectionsJsonTemplateFn = null;
+                
+                    function getAllocationMoveTemplate() {
+                        if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                        var sourceEl = document.getElementById('allocationMoveTemplate');
+                        if (!sourceEl || typeof Handlebars === 'undefined') {
+                            return null;
+                        }
+                
+                        allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                        return allocationMoveTemplateFn;
+                    }
+                
+                </script>
+                ~
+                """,
+            expected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                    </script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                    </script>
+                    <script>
+                        var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                        var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+                
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+                
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    public async Task Section_Scripts_ThreeScriptTags_HtmlFormatterDoesNothing_Expanded()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                    </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                    <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
+                """,
+            htmlFormatted: """
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+                
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+                
+                </script>
+                """,
+            expected: """
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+                
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+                
+                </script>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: true);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/10796")]
     public async Task Section_BraceOnNextLine_AtColumnZero()
     {
@@ -11647,6 +11997,34 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </div>
                 """);
     }
+
+    [Fact]
+    public Task PreTag_SingleLine_DoesNotLeakIgnoreState()
+        => RunFormattingTestAsync(
+            input: """
+                <section>
+                    <pre>keep</pre>
+                <div>
+                <span>text</span>
+                </div>
+                </section>
+                """,
+            htmlFormatted: """
+                <section>
+                    <pre>keep</pre>
+                    <div>
+                        <span>text</span>
+                    </div>
+                </section>
+                """,
+            expected: """
+                <section>
+                    <pre>keep</pre>
+                    <div>
+                        <span>text</span>
+                    </div>
+                </section>
+                """);
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/11777")]

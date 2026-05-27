@@ -8307,4 +8307,34 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnionConstructorCallsDefaultConstructor" xml:space="preserve">
     <value>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</value>
   </data>
+  <data name="IDS_FeatureStaticMembersInInterfaces" xml:space="preserve">
+    <value>static members in interfaces</value>
+  </data>
+  <data name="IDS_FeatureClosedClasses" xml:space="preserve">
+    <value>closed classes</value>
+  </data>
+  <data name="ERR_ClosedTypeNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'closed'.</value>
+  </data>
+  <data name="ERR_ClosedSealedStatic" xml:space="preserve">
+    <value>'{0}': a closed type cannot be sealed or static</value>
+  </data>
+  <data name="ERR_ClosedBaseTypeBaseFromOtherAssembly" xml:space="preserve">
+    <value>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</value>
+  </data>
+  <data name="ERR_UnderspecifiedClosedSubtype" xml:space="preserve">
+    <value>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</value>
+  </data>
+  <data name="ERR_ClosedExplicitlyAbstract" xml:space="preserve">
+    <value>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</value>
+  </data>
+  <data name="ERR_MissingUnionCaseTypes" xml:space="preserve">
+    <value>A union type must have at least one union creation member.</value>
+  </data>
+  <data name="ERR_MissingUnionValueProperty" xml:space="preserve">
+    <value>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</value>
+  </data>
+  <data name="ERR_MemberProviderInUnionDeclaration" xml:space="preserve">
+    <value>A 'union' declaration cannot use a union member provider interface.</value>
+  </data>
 </root>

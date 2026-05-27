@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -46,7 +45,10 @@ internal sealed class CohostSignatureHelpEndpoint(
             {
                 Method = Methods.TextDocumentSignatureHelpName,
                 RegisterOptions = new SignatureHelpRegistrationOptions()
-                    .EnableSignatureHelp()
+                {
+                    TriggerCharacters = ["(", ",", "<"],
+                    RetriggerCharacters = [">", ")"]
+                }
             }];
         }
 

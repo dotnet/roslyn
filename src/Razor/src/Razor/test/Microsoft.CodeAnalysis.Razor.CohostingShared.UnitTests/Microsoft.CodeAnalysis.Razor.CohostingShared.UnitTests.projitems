@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -30,8 +30,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToComponentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCssTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateEventHandlerTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionProviderTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionResolverTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\PromoteUsingDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\RemoveUnnecessaryDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\SimplifyFullyQualifiedComponentTests.cs" />
@@ -62,6 +60,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostPrepareRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSelectionRangeEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensEndpointTestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensFullEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSignatureHelpEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostTypeHierarchyEndpointTest.cs" />
@@ -82,6 +82,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ProjectAvailabilityTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetCompletionItemResolveProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetResolveProvider.cs" />
   </ItemGroup>
 </Project>

@@ -132,13 +132,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<IMethodHandler>(new InitializedHandler());
         AddService<IOnInitialized>(this);
         AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
-
-        // In all VS cases, we already have a misc workspace.  Specifically
-        // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
-        // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
-        // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
-        if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-            AddLazyService<ILspMiscellaneousFilesWorkspaceProvider>(lspServices => lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProviderFactory>().CreateLspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices));
+        AddService<HostServices>(hostServices);
 
         return baseServiceMap.ToFrozenDictionary(
             keySelector: kvp => kvp.Key,

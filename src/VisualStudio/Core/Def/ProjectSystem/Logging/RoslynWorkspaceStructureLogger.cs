@@ -7,17 +7,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell.FileDialog;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Logging;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.FileDialog;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
@@ -25,11 +24,8 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Logging;
 
-internal static class RoslynWorkspaceStructureLogger
+internal sealed class RoslynWorkspaceStructureLogger(IServiceProvider serviceProvider, IThreadingContext threadingContext) : WorkspaceStructureLogger
 {
-    private static int s_NextCompilationId;
-    private static readonly ConditionalWeakTable<Compilation, StrongBox<int>> s_CompilationIds = new();
-
     public static void ShowSaveDialogAndLog(IServiceProvider serviceProvider)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
@@ -90,125 +86,31 @@ internal static class RoslynWorkspaceStructureLogger
 
         try
         {
-            var document = new XDocument();
-            var workspaceElement = new XElement("workspace");
-            workspaceElement.SetAttributeValue("kind", workspace.Kind);
-            document.Add(workspaceElement);
-
-            var projectsProcessed = 0;
-
-            foreach (var project in solution.GetProjectDependencyGraph().GetTopologicallySortedProjects(cancellationToken).Select(solution.GetProject))
+            var progress = new Progress<(int current, int total)>(value =>
             {
-                if (project is null)
-                    continue;
-
-                // Dump basic project attributes
-                var projectElement = new XElement("project");
-                workspaceElement.Add(projectElement);
-
-                projectElement.SetAttributeValue("id", SanitizePath(project.Id.ToString()));
-                projectElement.SetAttributeValue("name", project.Name);
-                projectElement.SetAttributeValue("assemblyName", project.AssemblyName);
-                projectElement.SetAttributeValue("language", project.Language);
-                projectElement.SetAttributeValue("path", SanitizePath(project.FilePath ?? "(none)"));
-                projectElement.SetAttributeValue("outputPath", SanitizePath(project.OutputFilePath ?? "(none)"));
-
-                var hasSuccessfullyLoaded = await project.HasSuccessfullyLoadedAsync(cancellationToken);
-                projectElement.SetAttributeValue("hasSuccessfullyLoaded", hasSuccessfullyLoaded);
-
-                // Dump MSBuild <Reference> nodes
-                var msbuildReferencesElement = CreateMsBuildReferencesElement(project);
-                if (msbuildReferencesElement != null)
-                    projectElement.Add(msbuildReferencesElement);
-
-                // Dump DTE references
-                var dteReferencesElement = await CreateDteReferencesElementAsync(serviceProvider, threadingContext, project);
-                if (dteReferencesElement != null)
-                    projectElement.Add(dteReferencesElement);
-
-                // Dump the actual metadata references in the workspace
-                var workspaceReferencesElement = new XElement("workspaceReferences");
-                projectElement.Add(workspaceReferencesElement);
-
-                foreach (var metadataReference in project.MetadataReferences)
-                {
-                    workspaceReferencesElement.Add(CreateElementForPortableExecutableReference(metadataReference));
-                }
-
-                // Dump project references in the workspace
-                foreach (var projectReference in project.AllProjectReferences)
-                {
-                    var referenceElement = new XElement("projectReference", new XAttribute("id", SanitizePath(projectReference.ProjectId.ToString())));
-
-                    if (!project.ProjectReferences.Contains(projectReference))
-                        referenceElement.SetAttributeValue("missingInSolution", "true");
-
-                    workspaceReferencesElement.Add(referenceElement);
-                }
-
-                projectElement.Add(new XElement("workspaceDocuments", await CreateElementsForDocumentCollectionAsync(project.Documents, "document", cancellationToken)));
-                projectElement.Add(new XElement("workspaceAdditionalDocuments", await CreateElementsForDocumentCollectionAsync(project.AdditionalDocuments, "additionalDocuments", cancellationToken)));
-
-                projectElement.Add(new XElement("workspaceAnalyzerConfigDocuments", await CreateElementsForDocumentCollectionAsync(project.AnalyzerConfigDocuments, "analyzerConfigDocument", cancellationToken)));
-
-                // Dump source generated documents
-                var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken);
-                projectElement.Add(new XElement("workspaceSourceGeneratedDocuments", CreateElementsForSourceGeneratedDocuments(sourceGeneratedDocuments)));
-
-                // Dump generator diagnostics
-                var generatorDiagnosticsElement = new XElement("generatorDiagnostics");
-                projectElement.Add(generatorDiagnosticsElement);
-
-                foreach (var diagnostic in await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken))
-                {
-                    generatorDiagnosticsElement.Add(CreateElementForDiagnostic(diagnostic));
-                }
-
-                // Dump references from the compilation; this should match the workspace but can help rule out
-                // cross-language reference bugs or other issues like that
-                var compilation = await project.GetCompilationAsync(cancellationToken);
-
-                if (compilation != null)
-                {
-                    var compilationReferencesElement = new XElement("compilationReferences");
-                    projectElement.Add(compilationReferencesElement);
-
-                    foreach (var reference in compilation.References)
-                    {
-                        compilationReferencesElement.Add(CreateElementForPortableExecutableReference(reference));
-                    }
-
-                    projectElement.Add(CreateElementForCompilation(compilation));
-
-                    // Dump all diagnostics
-                    var diagnosticsElement = new XElement("diagnostics");
-                    projectElement.Add(diagnosticsElement);
-
-                    foreach (var diagnostic in compilation.GetDiagnostics(cancellationToken))
-                    {
-                        diagnosticsElement.Add(CreateElementForDiagnostic(diagnostic));
-                    }
-                }
-
-                projectsProcessed++;
                 session.Progress.Report(new ThreadedWaitDialogProgressData(
                     ServicesVSResources.Logging_Roslyn_Workspace_structure,
                     progressText: null,
                     statusBarText: null,
                     isCancelable: true,
-                    currentStep: projectsProcessed,
-                    totalSteps: solution.ProjectIds.Count));
-            }
+                    currentStep: value.current,
+                    totalSteps: value.total));
+            });
+
+            var workspaceStructureLogger = new RoslynWorkspaceStructureLogger(serviceProvider, threadingContext);
+            var document = await workspaceStructureLogger.BuildWorkspaceStructureAsync(
+                solution,
+                workspace.Kind,
+                progress,
+                cancellationToken);
 
             File.Delete(path);
 
             using (var zipFile = ZipFile.Open(path, ZipArchiveMode.Create))
             {
                 var zipFileEntry = zipFile.CreateEntry("Workspace.xml", CompressionLevel.Fastest);
-                using (var stream = zipFileEntry.Open())
-                {
-                    document.Save(stream);
-                }
+                using var stream = zipFileEntry.Open();
+                document.Save(stream);
             }
         }
         catch (OperationCanceledException)
@@ -217,26 +119,9 @@ internal static class RoslynWorkspaceStructureLogger
         }
     }
 
-    private static XElement? CreateMsBuildReferencesElement(Project project)
+    protected override async Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
     {
-        if (project.FilePath == null)
-            return null;
-
-        var msbuildProject = XDocument.Load(project.FilePath);
-        var msbuildNamespace = XNamespace.Get("http://schemas.microsoft.com/developer/msbuild/2003");
-
-        var msbuildReferencesElement = new XElement("msbuildReferences");
-
-        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ProjectReference"));
-        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "Reference"));
-        msbuildReferencesElement.Add(msbuildProject.Descendants(msbuildNamespace + "ReferencePath"));
-
-        return msbuildReferencesElement;
-    }
-
-    private static async Task<XElement?> CreateDteReferencesElementAsync(IServiceProvider serviceProvider, IThreadingContext threadingContext, Project project)
-    {
-        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(SDTE));
 
@@ -259,9 +144,11 @@ internal static class RoslynWorkspaceStructureLogger
         }
 
         if (langProjProject == null)
-            return null;
+            return [];
 
+        var elements = new List<XElement>();
         var dteReferences = new XElement("dteReferences");
+        elements.Add(dteReferences);
 
         foreach (var reference in langProjProject.References.Cast<VSLangProj.Reference>())
         {
@@ -272,138 +159,21 @@ internal static class RoslynWorkspaceStructureLogger
             else
             {
                 dteReferences.Add(new XElement("metadataReference",
-                    reference.Path != null ? new XAttribute("path", SanitizePath(reference.Path)) : null,
+                    new XAttribute("path", SanitizePath(reference.Path)),
                     new XAttribute("name", reference.Name)));
             }
         }
 
-        return dteReferences;
-    }
-
-    private static string SanitizePath(string s)
-    {
-        return ReplacePathComponent(s, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "%USERPROFILE%");
-    }
-
-    /// <summary>
-    /// Equivalent to string.Replace, but uses OrdinalIgnoreCase for matching.
-    /// </summary>
-    private static string ReplacePathComponent(string s, string oldValue, string newValue)
-    {
-        while (true)
+        if (langProjProject is VSLangProj140.VSProject3 langProjProject3)
         {
-            var index = s.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);
-            if (index == -1)
-                return s;
+            var dteAnalyzerReferences = new XElement("dteAnalyzerReferences");
+            elements.Add(dteAnalyzerReferences);
 
-            s = s.Substring(0, index) + newValue + s.Substring(index + oldValue.Length);
-        }
-    }
-
-    private static XElement CreateElementForPortableExecutableReference(MetadataReference reference)
-    {
-        var aliasesAttribute = new XAttribute("aliases", string.Join(",", reference.Properties.Aliases));
-
-        if (reference is CompilationReference compilationReference)
-        {
-            return new XElement("compilationReference",
-                aliasesAttribute,
-                CreateElementForCompilation(compilationReference.Compilation));
-        }
-        else if (reference is PortableExecutableReference portableExecutableReference)
-        {
-            return new XElement("peReference",
-                new XAttribute("file", SanitizePath(portableExecutableReference.FilePath ?? "(none)")),
-                new XAttribute("display", SanitizePath(portableExecutableReference.Display ?? "(none)")),
-                aliasesAttribute);
-        }
-        else
-        {
-            return new XElement("metadataReference", new XAttribute("display", SanitizePath(reference.Display ?? "(none)")));
-        }
-    }
-
-    private static XElement CreateElementForCompilation(Compilation compilation)
-    {
-        StrongBox<int> compilationId;
-        if (!s_CompilationIds.TryGetValue(compilation, out compilationId))
-        {
-            compilationId = new StrongBox<int>(s_NextCompilationId++);
-            s_CompilationIds.Add(compilation, compilationId);
-        }
-
-        var namespaces = new Queue<INamespaceSymbol>();
-        var typesElement = new XElement("types");
-
-        namespaces.Enqueue(compilation.Assembly.GlobalNamespace);
-
-        while (namespaces.Count > 0)
-        {
-            var @ns = namespaces.Dequeue();
-
-            foreach (var type in @ns.GetTypeMembers())
+            foreach (var analyzerPath in langProjProject3.AnalyzerReferences.Cast<string>())
             {
-                typesElement.Add(new XElement("type", new XAttribute("name", type.ToDisplayString())));
+                dteAnalyzerReferences.Add(new XElement("analyzerReference",
+                    new XAttribute("path", SanitizePath(analyzerPath))));
             }
-
-            foreach (var childNamespace in @ns.GetNamespaceMembers())
-            {
-                namespaces.Enqueue(childNamespace);
-            }
-        }
-
-        return new XElement("compilation",
-            new XAttribute("objectId", compilationId.Value),
-            new XAttribute("assemblyIdentity", compilation.Assembly.Identity.ToString()),
-            typesElement);
-    }
-
-    private static XElement CreateElementForDiagnostic(Diagnostic diagnostic)
-        => new("diagnostic",
-            new XAttribute("id", diagnostic.Id),
-            new XAttribute("severity", diagnostic.Severity.ToString()),
-            new XAttribute("path", SanitizePath(diagnostic.Location.GetLineSpan().Path ?? "(none)")),
-            diagnostic.GetMessage());
-
-    private static IEnumerable<XElement> CreateElementsForSourceGeneratedDocuments(IEnumerable<SourceGeneratedDocument> documents)
-    {
-        var elements = new List<XElement>();
-
-        foreach (var document in documents)
-        {
-            var identity = document.Identity;
-            var element = new XElement("sourceGeneratedDocument",
-                new XAttribute("hintName", document.HintName),
-                new XAttribute("path", SanitizePath(document.FilePath ?? "(none)")),
-                new XAttribute("generatorType", identity.Generator.TypeName),
-                new XAttribute("generatorAssembly", identity.Generator.AssemblyName),
-                new XAttribute("generatorAssemblyVersion", identity.Generator.AssemblyVersion.ToString()),
-                new XAttribute("generatorAssemblyPath", SanitizePath(identity.Generator.AssemblyPath ?? "(none)")));
-
-            elements.Add(element);
-        }
-
-        return elements;
-    }
-
-    public static async Task<IEnumerable<XElement>> CreateElementsForDocumentCollectionAsync(IEnumerable<TextDocument> documents, string elementName, CancellationToken cancellationToken)
-    {
-        var elements = new List<XElement>();
-
-        foreach (var document in documents)
-        {
-            var documentElement = new XElement(elementName, new XAttribute("path", SanitizePath(document.FilePath ?? "(none)")));
-
-            var clientName = document.DocumentServiceProvider.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName;
-            if (clientName != null)
-                documentElement.SetAttributeValue("clientName", clientName);
-
-            var loadDiagnostic = await document.State.GetFailedToLoadExceptionMessageAsync(cancellationToken);
-
-            if (loadDiagnostic != null)
-                documentElement.Add(new XElement("loadDiagnostic", loadDiagnostic));
-
-            elements.Add(documentElement);
         }
 
         return elements;

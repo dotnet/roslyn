@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
 {
-    internal static readonly ImmutableArray<RazorCommitCharacter> SingleLineDirectiveCommitCharacters = RazorCommitCharacter.CreateArray([" "]);
-    internal static readonly ImmutableArray<RazorCommitCharacter> BlockDirectiveCommitCharacters = RazorCommitCharacter.CreateArray([" ", "{"]);
+    internal static ImmutableArray<RazorCommitCharacter> SingleLineDirectiveCommitCharacters => DefaultCommitCharacters.GetDirectiveCommitCharacters(isBlock: false);
+    internal static ImmutableArray<RazorCommitCharacter> BlockDirectiveCommitCharacters => DefaultCommitCharacters.GetDirectiveCommitCharacters(isBlock: true);
 
     // internal for testing
     internal static readonly ImmutableArray<DirectiveDescriptor> MvcDefaultDirectives = [

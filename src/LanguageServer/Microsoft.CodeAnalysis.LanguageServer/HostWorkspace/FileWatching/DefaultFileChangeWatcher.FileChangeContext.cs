@@ -29,7 +29,7 @@ internal sealed partial class DefaultFileChangeWatcher
 
         /// <summary>
         /// A map from a file path to the number of times <see cref="EnqueueWatchingFile(string)"/> was called for that file path, and the IDisposable for the
-        /// return from <see cref="DefaultFileChangeWatcher.AcquireDirectoryWatch(WatchedDirectory, FileChangeContext)"/> when it was called for the first time.
+        /// return from <see cref="DefaultFileChangeWatcher.AcquireDirectoryWatch"/> when it was called for the first time.
         /// </summary>
         private readonly Dictionary<string, (int count, IDisposable directoryWatch)> _explicitlyWatchedFiles = new(s_pathStringComparer);
 
@@ -44,7 +44,7 @@ internal sealed partial class DefaultFileChangeWatcher
             // could get notified immediatly after the directory is watched.
             _watchedDirectoriesWatches = new List<IDisposable>(_watchedDirectories.Length);
             foreach (var watchedDirectory in _watchedDirectories)
-                _watchedDirectoriesWatches.Add(_owner.AcquireDirectoryWatch(watchedDirectory, this));
+                _watchedDirectoriesWatches.Add(_owner.AcquireDirectoryWatch(watchedDirectory, this, includeSubdirectories: true));
         }
 
         public event EventHandler<string>? FileChanged;
@@ -68,7 +68,10 @@ internal sealed partial class DefaultFileChangeWatcher
                 else
                 {
                     var extension = Path.GetExtension(filePath);
-                    var directoryWatchToken = _owner.AcquireDirectoryWatch(new WatchedDirectory(parentDirectory, extensionFilters: string.IsNullOrEmpty(extension) ? [] : [extension]), this);
+                    var directoryWatchToken = _owner.AcquireDirectoryWatch(
+                        new WatchedDirectory(parentDirectory, extensionFilters: string.IsNullOrEmpty(extension) ? [] : [extension]),
+                        this,
+                        includeSubdirectories: false);
                     countAndWatcher = (count: 1, directoryWatchToken);
                     _explicitlyWatchedFiles.Add(filePath, countAndWatcher);
                 }

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
@@ -62,13 +61,13 @@ internal sealed class CohostCodeActionsResolveEndpoint(
 
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(CodeAction request)
     {
-        var resolveParams = CodeActionResolveService.GetRazorCodeActionResolutionParams(request);
+        var resolveParams = RazorCodeActionResolutionParams.Unwrap(request);
         return resolveParams.TextDocument;
     }
 
     protected override async Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var resolveParams = CodeActionResolveService.GetRazorCodeActionResolutionParams(request);
+        var resolveParams = RazorCodeActionResolutionParams.Unwrap(request);
 
         var resolvedDelegatedCodeAction = resolveParams.Language switch
         {
