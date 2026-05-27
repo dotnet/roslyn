@@ -3825,7 +3825,7 @@ class Program
         System.Console.Write(Test6(new S1(""11"")));
         System.Console.Write(Test6(null));
     }
- 
+
     static int Test5(S1 u)
     {
         if (u is not int x)
@@ -3835,7 +3835,7 @@ class Program
 
         return x;
     }   
- 
+
     static int Test6(S1 u)
     {
         if (u is not not not int x)

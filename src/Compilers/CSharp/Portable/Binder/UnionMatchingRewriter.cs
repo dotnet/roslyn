@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// 
     /// A pattern 'unionTypeInstance is int^' is transformed to 'unionTypeInstance is { Value: int }'.
     /// 
-    /// A pattern 'unionTypeInstance is not^(int or string)' is transformed to 'unionTypeInstance is { Value: not (int or string) }'.
-    ///
     /// A pattern 'unionTypeInstance is int^ or string^' is transformed to 'unionTypeInstance is { Value: int } or { Value: string }'.
     ///
     /// A pattern 'unionTypeInstance is int^ and 15 or string^' is transformed to 'unionTypeInstance is { Value: int and 15 } or { Value: string }'.
