@@ -1181,6 +1181,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     concurrent: _concurrent);
             }
 
+            public void Free()
+            {
+                Free(ref _compilationStartActionsImmutable, ref _compilationStartActionsBuilder);
+                Free(ref _compilationEndActionsImmutable, ref _compilationEndActionsBuilder);
+                Free(ref _compilationActionsImmutable, ref _compilationActionsBuilder);
+                Free(ref _syntaxTreeActionsImmutable, ref _syntaxTreeActionsBuilder);
+                Free(ref _additionalFileActionsImmutable, ref _additionalFileActionsBuilder);
+                Free(ref _semanticModelActionsImmutable, ref _semanticModelActionsBuilder);
+                Free(ref _symbolActionsImmutable, ref _symbolActionsBuilder);
+                Free(ref _symbolStartActionsImmutable, ref _symbolStartActionsBuilder);
+                Free(ref _symbolEndActionsImmutable, ref _symbolEndActionsBuilder);
+                Free(ref _codeBlockStartActionsImmutable, ref _codeBlockStartActionsBuilder);
+                Free(ref _codeBlockEndActionsImmutable, ref _codeBlockEndActionsBuilder);
+                Free(ref _codeBlockActionsImmutable, ref _codeBlockActionsBuilder);
+                Free(ref _operationBlockStartActionsImmutable, ref _operationBlockStartActionsBuilder);
+                Free(ref _operationBlockEndActionsImmutable, ref _operationBlockEndActionsBuilder);
+                Free(ref _operationBlockActionsImmutable, ref _operationBlockActionsBuilder);
+                Free(ref _syntaxNodeActionsImmutable, ref _syntaxNodeActionsBuilder);
+                Free(ref _operationActionsImmutable, ref _operationActionsBuilder);
+            }
+
             private static ImmutableArray<T> ToImmutableAndFree<T>(
                 ref ImmutableArray<T> immutable,
                 ref ArrayBuilder<T>? builder)
@@ -1193,6 +1214,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 immutable = default;
 
                 return result;
+            }
+
+            private static void Free<T>(
+                ref ImmutableArray<T> immutable,
+                ref ArrayBuilder<T>? builder)
+            {
+                builder?.Free();
+                builder = null;
+                immutable = default;
             }
         }
     }

@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis
                                         // instead we'll hold onto it, and throw the exception when a downstream node actually
                                         // attempts to read the value
                                         _syntaxExceptions[currentNode] = ufe;
+                                        syntaxInputBuilders[i].builder.Free();
                                         syntaxInputBuilders.RemoveAt(i);
                                         i--;
                                     }

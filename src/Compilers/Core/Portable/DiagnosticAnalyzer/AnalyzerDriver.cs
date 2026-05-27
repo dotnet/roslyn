@@ -2098,6 +2098,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             finally
             {
+                allAnalyzerActions.Free();
                 unsuppressedAnalyzersBuilder.Free();
             }
         }
