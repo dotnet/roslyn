@@ -12,10 +12,6 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 // - Params-collections: requires collection-builder plumbing that is not specific to Razor-generated source.
 // - Partial properties: requires a multi-part partial type/member setup that is not a natural Razor-authored surface.
 // - Collection expression better conversion from expression: semantic conversion refinement rather than a distinct Razor syntax surface.
-// - Ref Struct Interfaces/`allows ref struct` constraint: the current test reference set reports CS9240
-//   (target runtime doesn't support by-ref-like generics), so this sweep documents the feature but does
-//   not keep a permanently failing executable case.
-
 public sealed class CSharp13LanguageFeaturesIntegrationTest_Legacy : IntegrationTestBase
 {
     private const string DefaultLegacyFileName = "TestView.cshtml";
@@ -198,6 +194,27 @@ public sealed class CSharp13LanguageFeaturesIntegrationTest_Legacy : Integration
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-13.0/ref-struct-interfaces.md")]
+    public void RefStructInterfacesAndAllowsRefStructConstraint()
+    {
+        var generated = CompileToCSharp("""
+            @inherits global::LegacyTemplateBase
+            
+            @functions {
+                public interface IValue<TSelf>
+                    where TSelf : IValue<TSelf>, allows ref struct
+                {
+                }
+            }
+            """,
+            path: DefaultLegacyFileName);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/csharplang/issues/7706")]
     public void OverloadResolutionPriority()
     {
@@ -240,4 +257,3 @@ public sealed class CSharp13LanguageFeaturesIntegrationTest_Legacy : Integration
     }
 
 }
-

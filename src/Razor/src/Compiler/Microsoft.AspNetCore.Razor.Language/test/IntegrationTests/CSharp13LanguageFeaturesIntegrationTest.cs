@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,9 +11,6 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 // - Params-collections: requires collection-builder plumbing that is not specific to Razor-generated source.
 // - Partial properties: requires a multi-part partial type/member setup that is not a natural Razor-authored surface.
 // - Collection expression better conversion from expression: semantic conversion refinement rather than a distinct Razor syntax surface.
-// - Ref Struct Interfaces/`allows ref struct` constraint: the current test reference set reports CS9240
-//   (target runtime doesn't support by-ref-like generics), so this sweep documents the feature but does
-//   not keep a permanently failing executable case.
 
 public sealed class CSharp13LanguageFeaturesIntegrationTest()
     : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
@@ -149,6 +147,26 @@ public sealed class CSharp13LanguageFeaturesIntegrationTest()
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/csharplang/blob/main/proposals/csharp-13.0/ref-struct-interfaces.md")]
+    public void RefStructInterfacesAndAllowsRefStructConstraint()
+    {
+        var generated = CompileToCSharp("""
+            @code {
+                public interface IValue<TSelf>
+                    where TSelf : IValue<TSelf>, allows ref struct
+                {
+                }
+            }
+            """,
+            Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 45));
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+            Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 45));
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/csharplang/issues/7706")]
     public void OverloadResolutionPriority()
     {
@@ -187,4 +205,3 @@ public sealed class CSharp13LanguageFeaturesIntegrationTest()
     }
 
 }
-

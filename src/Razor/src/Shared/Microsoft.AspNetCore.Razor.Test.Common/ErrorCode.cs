@@ -48,4 +48,5 @@ public enum ErrorCode
     WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode = 8669,
     ERR_FeatureNotAvailableInVersion10 = 8936,
     ERR_IllegalAtSequence = 9008,
+    ERR_RuntimeDoesNotSupportByRefLikeGenerics = 9240,
 }
