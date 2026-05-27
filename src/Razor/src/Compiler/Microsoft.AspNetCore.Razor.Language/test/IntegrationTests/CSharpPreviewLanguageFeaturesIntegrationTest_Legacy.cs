@@ -61,6 +61,15 @@ public sealed class CSharpPreviewLanguageFeaturesIntegrationTest_Legacy : Integr
             
             @{
                 System.Collections.Generic.List<string> values = [with(capacity: 32), "a", "b", "c"];
+                _ = values.Count;
+            }
+
+            <p>@(CountValues([with(capacity: 32), "d", "e"]))</p>
+            <p>@CountValues([with(capacity: 32), "f", "g"])</p>
+
+            @functions {
+                private static int CountValues(System.Collections.Generic.List<string> values)
+                    => values.Count;
             }
             """,
             path: DefaultLegacyFileName);

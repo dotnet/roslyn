@@ -18,16 +18,48 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line (1,3)-(3,1) "x:\dir\subdir\Test\TestComponent.razor"
+#line (1,3)-(4,1) "x:\dir\subdir\Test\TestComponent.razor"
 
     System.Collections.Generic.List<string> values = [with(capacity: 32), "a", "b", "c"];
+    _ = values.Count;
 
 #line default
 #line hidden
 #nullable disable
 
+            __builder.OpenElement(0, "p");
+#nullable restore
+#line (6,6)-(6,49) 24 "x:\dir\subdir\Test\TestComponent.razor"
+__builder.AddContent(1, CountValues([with(capacity: 32), "d", "e"])
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __builder.CloseElement();
+            __builder.AddMarkupContent(2, "\r\n");
+            __builder.OpenElement(3, "p");
+#nullable restore
+#line (7,5)-(7,48) 24 "x:\dir\subdir\Test\TestComponent.razor"
+__builder.AddContent(4, CountValues([with(capacity: 32), "f", "g"])
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __builder.CloseElement();
         }
         #pragma warning restore 1998
+#nullable restore
+#line (9,8)-(12,1) "x:\dir\subdir\Test\TestComponent.razor"
+
+    private static int CountValues(System.Collections.Generic.List<string> values)
+        => values.Count;
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

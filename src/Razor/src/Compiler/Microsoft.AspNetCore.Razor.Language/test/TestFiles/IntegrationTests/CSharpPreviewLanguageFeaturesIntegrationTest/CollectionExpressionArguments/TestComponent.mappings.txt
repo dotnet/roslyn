@@ -1,9 +1,32 @@
-﻿Source Location: (2:0,2 [93] x:\dir\subdir\Test\TestComponent.razor)
+﻿Source Location: (2:0,2 [116] x:\dir\subdir\Test\TestComponent.razor)
 |
     System.Collections.Generic.List<string> values = [with(capacity: 32), "a", "b", "c"];
+    _ = values.Count;
 |
-Generated Location: (733:21,0 [93] )
+Generated Location: (733:21,0 [116] )
 |
     System.Collections.Generic.List<string> values = [with(capacity: 32), "a", "b", "c"];
+    _ = values.Count;
+|
+
+Source Location: (128:5,5 [43] x:\dir\subdir\Test\TestComponent.razor)
+|CountValues([with(capacity: 32), "d", "e"])|
+Generated Location: (1052:32,24 [43] )
+|CountValues([with(capacity: 32), "d", "e"])|
+
+Source Location: (182:6,4 [43] x:\dir\subdir\Test\TestComponent.razor)
+|CountValues([with(capacity: 32), "f", "g"])|
+Generated Location: (1405:43,24 [43] )
+|CountValues([with(capacity: 32), "f", "g"])|
+
+Source Location: (240:8,7 [112] x:\dir\subdir\Test\TestComponent.razor)
+|
+    private static int CountValues(System.Collections.Generic.List<string> values)
+        => values.Count;
+|
+Generated Location: (1684:54,0 [112] )
+|
+    private static int CountValues(System.Collections.Generic.List<string> values)
+        => values.Count;
 |
 
