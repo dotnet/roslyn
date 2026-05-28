@@ -52,7 +52,7 @@ jobs:
     - task: CmdLine@2
       displayName: Run Unit Tests
       inputs:
-        ${{ if ne(parameters.helixApiAccessToken, '') }}:
+        ${{ if ne(variables['System.TeamProject'], 'public') }}:
           script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --testConfiguration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} --helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }}
         ${{ else }}:
           script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --testConfiguration ${{ parameters.configuration }} --helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }}

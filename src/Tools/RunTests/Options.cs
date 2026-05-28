@@ -20,6 +20,31 @@ namespace RunTests
     internal class Options
     {
         /// <summary>
+        /// The list of compiler test assembly include patterns used when --testCompilerOnly is specified.
+        /// </summary>
+        internal static readonly string[] CompilerTestAssemblyPatterns = new[]
+        {
+            @"^Microsoft\.CodeAnalysis\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$",
+            @"^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$",
+            @"^Microsoft\.Build\.Tasks\.CodeAnalysis\.UnitTests$",
+        };
+
+        /// <summary>
         /// Use HTML output files.
         /// </summary>
         public bool IncludeHtml { get; set; }
@@ -90,31 +115,6 @@ namespace RunTests
         /// Populated from --env:KEY=VALUE command line arguments.
         /// </summary>
         public Dictionary<string, string> EnvironmentVariables { get; set; } = new();
-
-        /// <summary>
-        /// The list of compiler test assembly include patterns used when --testCompilerOnly is specified.
-        /// </summary>
-        internal static readonly string[] CompilerTestAssemblyPatterns = new[]
-        {
-            @"^Microsoft\.CodeAnalysis\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$",
-            @"^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$",
-            @"^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$",
-            @"^Microsoft\.Build\.Tasks\.CodeAnalysis\.UnitTests$",
-        };
 
         public Options(
             string dotnetFilePath,
