@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -70,7 +70,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
 
     protected void AssertCSharpDocumentMatchesBaseline(RazorCodeDocument codeDocument, bool verifyLinePragmas = true, [CallerMemberName] string testName = "")
     {
-        var implDocument = codeDocument.GetRequiredCSharpDocument();
+        var implDocument = codeDocument.GetRequiredImplCSharpDocument();
         AssertCSharpHalfMatchesBaseline(codeDocument, implDocument, ".codegen.cs", ".diagnostics.txt", ".mappings.txt", testName);
 
         // When the decl phase has split the document, also assert the decl half against
@@ -171,7 +171,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
 
     protected void AssertLinePragmas(RazorCodeDocument codeDocument)
     {
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetImplCSharpDocument();
         Assert.NotNull(csharpDocument);
         var linePragmas = csharpDocument.LinePragmas;
         var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree() ?? codeDocument.GetRequiredSyntaxTree();

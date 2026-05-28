@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </para>
 /// <para>
 /// The split affects only the generated C# (<c>GetDeclCSharpDocument()</c> gives the decl half;
-/// <see cref="RazorCodeDocument.GetCSharpDocument"/> still returns whatever the final lowering
+/// <see cref="RazorCodeDocument.GetImplCSharpDocument"/> still returns whatever the final lowering
 /// phase produces, which becomes the impl half in <see cref="DefaultRazorCSharpLoweringPhase"/>).
 /// The original <see cref="DocumentIntermediateNode"/> is left untouched -- the decl synthetic
 /// spine shares children with the original by reference rather than mutating it -- so callers

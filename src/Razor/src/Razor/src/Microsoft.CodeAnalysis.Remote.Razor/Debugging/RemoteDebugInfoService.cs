@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
@@ -34,7 +34,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
     public async ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RemoteDocumentContext context, LinePositionSpan span, CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
 
         if (!_documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, span, out var mappedSpan))
         {
@@ -45,7 +45,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
         var result = await ExternalAccess.Razor.Cohost.Handlers.ValidateBreakableRange.GetBreakableRangeAsync(generatedDocument, mappedSpan, cancellationToken).ConfigureAwait(false);
         if (result is { } csharpSpan &&
-            _documentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), csharpSpan, MappingBehavior.Inclusive, out var hostSpan))
+            _documentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredImplCSharpDocument(), csharpSpan, MappingBehavior.Inclusive, out var hostSpan))
         {
             return hostSpan;
         }
@@ -79,7 +79,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         var projectedRange = csharpText.GetLinePositionSpan(csharpBreakpointSpan);
 
         // Inclusive mapping means we are lenient to portions of the breakpoint that might be outside of use code in the Razor file
-        if (!_documentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), projectedRange, MappingBehavior.Inclusive, out var hostDocumentRange))
+        if (!_documentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredImplCSharpDocument(), projectedRange, MappingBehavior.Inclusive, out var hostDocumentRange))
         {
             return null;
         }
@@ -118,7 +118,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         var sourceText = codeDocument.Source.Text;
         var hostDocumentIndex = sourceText.GetPosition(hostDocumentPosition);
         var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
 
         // We want to find a position that maps to C# on the same line as the original request, but we might have to skip over
         // some Razor/HTML nodes to find valid C#.

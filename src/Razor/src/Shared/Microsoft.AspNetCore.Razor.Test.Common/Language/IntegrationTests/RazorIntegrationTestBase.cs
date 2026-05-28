@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -267,9 +267,9 @@ public class RazorIntegrationTestBase
             {
                 // Result of generating declarations
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
-                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+                Assert.Empty(codeDocument.GetRequiredImplCSharpDocument().Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetRequiredImplCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -280,8 +280,8 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
-                RazorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredImplCSharpDocument().Text.ToString(),
+                RazorDiagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
 
@@ -297,13 +297,13 @@ public class RazorIntegrationTestBase
             {
                 // Result of generating definition
                 codeDocument = projectEngine.Process(item);
-                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+                Assert.Empty(codeDocument.GetRequiredImplCSharpDocument().Diagnostics);
 
                 // Replace the 'declaration' syntax tree(s). When the document is splittable,
                 // the decl phase emits a separate decl C# document; both partial halves must
                 // make it into the compilation so observers see the full type.
                 AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
-                var implTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
+                var implTree = Parse(codeDocument.GetRequiredImplCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(implTree);
                 if (codeDocument.GetDeclCSharpDocument() is { } declDocument)
                 {
@@ -318,9 +318,9 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                Code = codeDocument.GetRequiredImplCSharpDocument().Text.ToString(),
                 DeclCode = codeDocument.GetDeclCSharpDocument()?.Text.ToString(),
-                RazorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
+                RazorDiagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
         }
@@ -346,9 +346,9 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                Code = codeDocument.GetRequiredImplCSharpDocument().Text.ToString(),
                 DeclCode = codeDocument.GetDeclCSharpDocument()?.Text.ToString(),
-                RazorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
+                RazorDiagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
         }

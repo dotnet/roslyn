@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
@@ -39,7 +39,7 @@ internal static class IDocumentMappingServiceExtensions
         var languageKind = codeDocument.GetLanguageKind(razorIndex, rightAssociative: false);
         if (languageKind is RazorLanguageKind.CSharp)
         {
-            if (service.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredCSharpDocument(), razorIndex, out Position? mappedPosition, out _))
+            if (service.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredImplCSharpDocument(), razorIndex, out Position? mappedPosition, out _))
             {
                 // For C# locations, we attempt to return the corresponding position
                 // within the projected document

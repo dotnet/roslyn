@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -314,7 +314,7 @@ internal class ComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) 
 
     private static bool IsTagUnknown(BaseMarkupStartTagSyntax startTag, RazorCodeActionContext context)
     {
-        foreach (var diagnostic in context.CodeDocument.GetRequiredCSharpDocument().Diagnostics)
+        foreach (var diagnostic in context.CodeDocument.GetRequiredImplCSharpDocument().Diagnostics)
         {
             // Check that the diagnostic is to do with our start tag
             if (!(diagnostic.Span.AbsoluteIndex > startTag.Span.End

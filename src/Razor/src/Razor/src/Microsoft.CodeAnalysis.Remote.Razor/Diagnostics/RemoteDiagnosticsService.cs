@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -110,7 +110,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
         // First, RZ diagnostics. Yes, CSharpDocument.Documents are the Razor diagnostics. Don't ask.
-        var razorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics;
+        var razorDiagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics;
         var convertedDiagnostics = RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot);
         diagnostics.AddRange(convertedDiagnostics);
 

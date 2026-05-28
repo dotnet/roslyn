@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -81,12 +81,12 @@ internal class RazorFormattingService : IRazorFormattingService
         //
         // To defeat that, we simply don't do range formatting if there are diagnostics.
 
-        // Despite what it looks like, codeDocument.GetCSharpDocument().Diagnostics is actually the
+        // Despite what it looks like, codeDocument.GetImplCSharpDocument().Diagnostics is actually the
         // Razor diagnostics, not the C# diagnostics 🤦‍
         var sourceText = codeDocument.Source.Text;
         if (range is { } span)
         {
-            if (codeDocument.GetRequiredCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && span.OverlapsWith(sourceText.GetLinePositionSpan(d.Span))))
+            if (codeDocument.GetRequiredImplCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && span.OverlapsWith(sourceText.GetLinePositionSpan(d.Span))))
             {
                 return [];
             }

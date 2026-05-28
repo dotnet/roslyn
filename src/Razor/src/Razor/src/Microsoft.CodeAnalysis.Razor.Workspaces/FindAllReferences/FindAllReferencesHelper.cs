@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
@@ -40,7 +40,7 @@ internal static class FindAllReferencesHelper
         {
             var codeDoc = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
             var line = codeDoc.Source.Text.Lines[lineNumber];
-            var csharpDocument = codeDoc.GetRequiredCSharpDocument();
+            var csharpDocument = codeDoc.GetRequiredImplCSharpDocument();
             if (!documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, line.Start, out _, out _) ||
                 !documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, line.End, out _, out _))
             {

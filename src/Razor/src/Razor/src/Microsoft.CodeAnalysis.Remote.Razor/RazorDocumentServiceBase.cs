@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -31,7 +31,7 @@ internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBro
             // Sometimes Html can actually be mapped to C#, like for example component attributes, which map to
             // C# properties, even though they appear entirely in a Html context. Since remapping is pretty cheap
             // it's easier to just try mapping, and see what happens, rather than checking for specific syntax nodes.
-            if (DocumentMappingService.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredCSharpDocument(), positionInfo.HostDocumentIndex, out Position? csharpPosition, out _))
+            if (DocumentMappingService.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredImplCSharpDocument(), positionInfo.HostDocumentIndex, out Position? csharpPosition, out _))
             {
                 // We're just gonna pretend this mapped perfectly normally onto C#. Moving this logic to the actual position info
                 // calculating code is possible, but could have untold effects, so opt-in is better (for now?)

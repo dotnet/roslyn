@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -33,11 +33,11 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
         if (codeDocument.GetDeclCSharpDocument() is not null &&
             TryWriteImplDocument(documentNode, codeDocument, cancellationToken, out var implDocument))
         {
-            return codeDocument.WithCSharpDocument(implDocument);
+            return codeDocument.WithImplCSharpDocument(implDocument);
         }
 
         var csharpDocument = RazorCSharpDocumentWriter.Write(documentNode, codeDocument, cancellationToken: cancellationToken);
-        return codeDocument.WithCSharpDocument(csharpDocument);
+        return codeDocument.WithImplCSharpDocument(csharpDocument);
     }
 
     private static bool TryWriteImplDocument(

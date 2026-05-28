@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -91,7 +91,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var codeGen = projectEngine.Process(sourceItem, cancellationToken);
 
-                    var result = new SourceGeneratorText(codeGen.GetRequiredCSharpDocument().Text);
+                    var result = new SourceGeneratorText(codeGen.GetRequiredImplCSharpDocument().Text);
 
                     RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
 
@@ -334,7 +334,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (
                         hintName: GetIdentifierFromPath(filePath),
                         codeDocument: document.CodeDocument,
-                        csharpDocument: document.CodeDocument.GetRequiredCSharpDocument(),
+                        csharpDocument: document.CodeDocument.GetRequiredImplCSharpDocument(),
                         declCSharpDocument: document.CodeDocument.GetDeclCSharpDocument());
                 })
                 .WithLambdaComparer(static (a, b) =>

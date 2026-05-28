@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -557,7 +557,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
     private bool TryGetOriginalDiagnosticRange(LspDiagnostic diagnostic, RazorCodeDocument codeDocument, [NotNullWhen(true)] out LspRange? originalRange)
     {
         if (!_documentMappingService.TryMapToRazorDocumentRange(
-            codeDocument.GetRequiredCSharpDocument(),
+            codeDocument.GetRequiredImplCSharpDocument(),
             diagnostic.Range,
             MappingBehavior.Inferred,
             out originalRange))

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
@@ -48,7 +48,7 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
         }
 
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetImplCSharpDocument();
         if (csharpDocument is null)
         {
             return null;
