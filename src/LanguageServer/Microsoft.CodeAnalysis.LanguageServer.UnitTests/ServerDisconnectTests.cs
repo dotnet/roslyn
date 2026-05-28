@@ -38,7 +38,7 @@ public sealed class ServerDisconnectTests(ITestOutputHelper testOutputHelper) : 
     [Fact]
     public async Task ServerExitsOnExitNotificationWithoutClosingTransport()
     {
-        // Verify that the server terminates after it recieves the exit notification, even if the client
+        // Verify that the server terminates after it receives the exit notification, even if the client
         // never closes its end of the transport.
         var server = await CreateLanguageServerAsync();
 
