@@ -277,10 +277,16 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
         => _projectSystemProject.RemoveAdditionalFile(filePath);
 
     public void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null)
-        => _projectSystemProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
+    {
+        // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
+        // The contract is retained because the project system still calls this method.
+    }
 
     public void RemoveDynamicFile(string filePath)
-        => _projectSystemProject.RemoveDynamicSourceFile(filePath);
+    {
+        // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
+        // The contract is retained because the project system still calls this method.
+    }
 
     public void ReorderSourceFiles(IEnumerable<string>? filePaths)
         => _projectSystemProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());

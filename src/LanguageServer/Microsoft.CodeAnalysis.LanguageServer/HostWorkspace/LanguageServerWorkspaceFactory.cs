@@ -31,7 +31,6 @@ internal sealed class LanguageServerWorkspaceFactory : IHostWorkspaceProvider
     public LanguageServerWorkspaceFactory(
         HostServicesProvider hostServicesProvider,
         IFileChangeWatcher fileChangeWatcher,
-        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ProjectTargetFrameworkManager projectTargetFrameworkManager,
         ExtensionAssemblyManager extensionManager,
         [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
@@ -71,7 +70,6 @@ internal sealed class LanguageServerWorkspaceFactory : IHostWorkspaceProvider
         miscellaneousFilesWorkspace.ProjectSystemProjectFactory = MiscellaneousFilesWorkspaceProjectFactory;
 
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
-            DynamicFileInfoProviders: [.. dynamicFileInfoProviders],
             AnalyzerAssemblyRedirectors: [.. assemblyRedirectors]);
 
         TargetFrameworkManager = projectTargetFrameworkManager;
