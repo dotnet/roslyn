@@ -1062,7 +1062,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: expressionSyntax);
                     _ = binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: expressionSyntax);
                 }
-                return binder.CreateConversion(expressionElement, elementConversion, elementType, diagnostics);
+                return binder.CreateConversion(
+                    expressionSyntax,
+                    expressionElement,
+                    elementConversion,
+                    isCast: false,
+                    conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
+                    destination: elementType,
+                    diagnostics);
             }
         }
 
@@ -1718,7 +1726,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics);
                         },
                         (elementType, elementConversion, elementKeyValueTypes),
-                        @this._diagnostics);
+                        @this._diagnostics,
+                        itemSyntax: element.Expression.Syntax);
                 }
             }
 
