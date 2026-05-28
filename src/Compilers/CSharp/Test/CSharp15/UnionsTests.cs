@@ -6907,6 +6907,311 @@ class Program
                 );
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void UnionMatching_51_Direct_Value_Matching(bool field)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2
+{
+    public S2(S1 s1)
+    {
+        S1 = s1;
+    }
+
+    public S1 S1" + (field ? ";" : " { get; }") + @"
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S2(new S1(10))));
+        System.Console.Write(Test1(new S2(default(S1))));
+        System.Console.Write(Test1(new S2(new S1(""11""))));
+        System.Console.Write(Test1(new S2(new S1(0))));
+        System.Console.Write(Test1(new S2(new S1(null))));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S2(new S1(10))));
+        System.Console.Write(Test2(new S2(default(S1))));
+        System.Console.Write(Test2(new S2(new S1(""11""))));
+        System.Console.Write(Test2(new S2(new S1(0))));
+        System.Console.Write(Test2(new S2(new S1(11))));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S2(new S1(11))));
+        System.Console.Write(Test3(new S2(default(S1))));
+        System.Console.Write(Test3(new S2(new S1(""11""))));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S2(new S1(11))));
+        System.Console.Write(Test4(new S2(default(S1))));
+        System.Console.Write(Test4(new S2(new S1(""11""))));
+    }
+
+    static bool Test1(S2 u)
+    {
+#line 41
+        return u is { S1.Value: 10 };
+    }   
+
+    static bool Test2(S2 u)
+    {
+#line 46
+        return u is { S1.Value: 10 or 11 };
+    }   
+
+    static bool Test3(S2 u)
+    {
+#line 51
+        return u is { S1.Value: ""11"" and ['1', '1'] };
+    }   
+
+    static bool Test4(S2 u)
+    {
+#line 56
+        return u is { S1.Value: null };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (41,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is { S1.Value: 10 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(41, 26),
+                // (46,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is { S1.Value: 10 or 11 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(46, 26),
+                // (51,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is { S1.Value: "11" and ['1', '1'] };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(51, 26),
+                // (56,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is { S1.Value: null };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(56, 26)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionMatching_52_Direct_Value_Matching(bool field)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2
+{
+    public S2(S1? s1)
+    {
+        S1 = s1;
+    }
+
+    public S1? S1" + (field ? ";" : " { get; }") + @"
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S2(new S1(10))));
+        System.Console.Write(Test1(new S2(default(S1))));
+        System.Console.Write(Test1(new S2(new S1(""11""))));
+        System.Console.Write(Test1(new S2(new S1(0))));
+        System.Console.Write(Test1(new S2(null)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S2(new S1(10))));
+        System.Console.Write(Test2(new S2(default(S1))));
+        System.Console.Write(Test2(new S2(new S1(""11""))));
+        System.Console.Write(Test2(new S2(new S1(0))));
+        System.Console.Write(Test2(new S2(new S1(11))));
+        System.Console.Write(Test2(new S2(null)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S2(new S1(11))));
+        System.Console.Write(Test3(new S2(default(S1))));
+        System.Console.Write(Test3(new S2(new S1(""11""))));
+        System.Console.Write(Test3(new S2(null)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S2(new S1(11))));
+        System.Console.Write(Test4(new S2(default(S1))));
+        System.Console.Write(Test4(new S2(new S1(""11""))));
+        System.Console.Write(Test4(new S2(null)));
+    }
+
+    static bool Test1(S2 u)
+    {
+#line 41
+        return u is { S1.Value: 10 };
+    }   
+
+    static bool Test2(S2 u)
+    {
+#line 46
+        return u is { S1.Value: 10 or 11 };
+    }   
+
+    static bool Test3(S2 u)
+    {
+#line 51
+        return u is { S1.Value: ""11"" and ['1', '1'] };
+    }   
+
+    static bool Test4(S2 u)
+    {
+#line 56
+        return u is { S1.Value: null };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrueFalse FalseFalseTrueFalse FalseTrueFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (41,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is { S1.Value: 10 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(41, 26),
+                // (46,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is { S1.Value: 10 or 11 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(46, 26),
+                // (51,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is { S1.Value: "11" and ['1', '1'] };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(51, 26),
+                // (56,26): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return u is { S1.Value: null };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(56, 26)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionMatching_53_Direct_Value_Matching(bool field)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2
+{
+    public S2(S1 s1)
+    {
+        S1 = s1;
+    }
+
+    public S1 S1" + (field ? ";" : " { get; }") + @"
+}
+
+class Program
+{
+    static bool Test1(S2 u)
+    {
+#line 100
+        return u is { S1.Value: 10 };
+    }   
+
+    static bool Test2(S2 u)
+    {
+#line 200 // No longer equivalent to code in Test1.
+        return u is { S1: { Value: 10 } };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (200,29): error CS0117: 'object' does not contain a definition for 'Value'
+                //         return u is { S1: { Value: 10 } };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Value").WithArguments("object", "Value").WithLocation(200, 29)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_54_Direct_Value_Matching()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(null));
+    }
+
+    static bool Test1(object u)
+    {
+#line 100
+        return u is S1 { Value.P: 10 };
+    }   
+
+    static bool Test2(object u)
+    {
+#line 200
+        return u is S1 { Value.P: long };
+    }   
+}
+
+static class Ext
+{
+    extension (object o)
+    {
+        public object P => o;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
         [Fact]
         public void PatternWrongType_TypePattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_Out_UnionType_In()
         {
@@ -8968,7 +9273,7 @@ class Program
         }
 
         [Fact]
-        public void PatternWrongType_Direct_Value_Matching()
+        public void PatternWrongType_Direct_Value_Matching_01()
         {
             var src1 = @"
 [System.Runtime.CompilerServices.Union]
@@ -9001,41 +9306,250 @@ class Program
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
 
-            // https://github.com/dotnet/roslyn/issues/82636: Should we report errors for patterns of wrong type against Value property? Yes, but this is low in priority and can be done post merge.
-            comp.VerifyDiagnostics();
+            var expected = new[] {
+                // (100,30): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
+                //         _ = u is S1 { Value: long };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(100, 30),
+                // (200,30): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is S1 { Value: 1 };
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(200, 30),
+                // (200,30): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         _ = u is S1 { Value: 1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool").WithLocation(200, 30),
+                // (200,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = u is S1 { Value: 1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(200, 30)
+                };
+
+            comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularNext);
 
-            // https://github.com/dotnet/roslyn/issues/82636: Should we report errors for patterns of wrong type against Value property? Yes, but this is low in priority and can be done post merge.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (6,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = u is S1 { Value: System.IComparable };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(6, 23),
-                // (7,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = u is S1 { Value: bool };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(7, 23),
-                // (8,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = u is S1 { Value: string };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(8, 23),
-                // (9,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = u is S1 { Value: object };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(9, 23),
-                // (100,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = u is S1 { Value: long };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 23),
-                // (102,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = u is S1 { Value: true };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(102, 23),
-                // (200,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = u is S1 { Value: 1 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 23),
-                // (201,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = u is S1 { Value: "a" };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(201, 23)
-                );
+                [
+                    ..expected,
+                    // (6,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is S1 { Value: System.IComparable };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(6, 23),
+                    // (7,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is S1 { Value: bool };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(7, 23),
+                    // (8,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is S1 { Value: string };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(8, 23),
+                    // (9,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is S1 { Value: object };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(9, 23),
+                    // (100,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is S1 { Value: long };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 23),
+                    // (102,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is S1 { Value: true };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(102, 23),
+                    // (200,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is S1 { Value: 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 23),
+                    // (201,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is S1 { Value: "a" };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(201, 23)
+                ]);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PatternWrongType_Direct_Value_Matching_02(bool field)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(bool x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2
+{
+    public S2(S1 s1)
+    {
+        S1 = s1;
+    }
+
+    public S1 S1" + (field ? ";" : " { get; }") + @"
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Test4(S2 u)
+    {
+        _ = u is { S1.Value: System.IComparable };
+        _ = u is { S1.Value: bool };
+        _ = u is { S1.Value: string };
+        _ = u is { S1.Value: object };
+#line 100
+        _ = u is { S1.Value: long };
+
+        _ = u is { S1.Value: true };
+#line 200
+        _ = u is { S1.Value: 1 };
+        _ = u is { S1.Value: ""a"" };
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+
+            var expected = new[] {
+                // (100,30): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
+                //         _ = u is { S1.Value: long };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(100, 30),
+                // (200,30): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is { S1.Value: 1 };
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(200, 30),
+                // (200,30): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         _ = u is { S1.Value: 1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool").WithLocation(200, 30),
+                // (200,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = u is { S1.Value: 1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(200, 30)
+                };
+
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularNext);
+
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                [
+                    ..expected,
+                    // (6,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: System.IComparable };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(6, 23),
+                    // (7,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: bool };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(7, 23),
+                    // (8,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: string };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(8, 23),
+                    // (9,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: object };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(9, 23),
+                    // (100,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: long };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 23),
+                    // (102,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: true };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(102, 23),
+                    // (200,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 23),
+                    // (201,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: "a" };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(201, 23)
+                ]);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PatternWrongType_Direct_Value_Matching_03(bool field)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(bool x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+struct S2
+{
+    public S2(S1? s1)
+    {
+        S1 = s1;
+    }
+
+    public S1? S1" + (field ? ";" : " { get; }") + @"
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Test4(S2 u)
+    {
+        _ = u is { S1.Value: System.IComparable };
+        _ = u is { S1.Value: bool };
+        _ = u is { S1.Value: string };
+        _ = u is { S1.Value: object };
+#line 100
+        _ = u is { S1.Value: long };
+
+        _ = u is { S1.Value: true };
+#line 200
+        _ = u is { S1.Value: 1 };
+        _ = u is { S1.Value: ""a"" };
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+
+            var expected = new[] {
+                // (100,30): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
+                //         _ = u is { S1.Value: long };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(100, 30),
+                // (200,30): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is { S1.Value: 1 };
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(200, 30),
+                // (200,30): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         _ = u is { S1.Value: 1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool").WithLocation(200, 30),
+                // (200,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = u is { S1.Value: 1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(200, 30)
+                };
+
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularNext);
+
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                [
+                    ..expected,
+                    // (6,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: System.IComparable };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(6, 23),
+                    // (7,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: bool };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(7, 23),
+                    // (8,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: string };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(8, 23),
+                    // (9,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: object };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(9, 23),
+                    // (100,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: long };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 23),
+                    // (102,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: true };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(102, 23),
+                    // (200,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 23),
+                    // (201,23): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = u is { S1.Value: "a" };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(201, 23)
+                ]);
         }
 
         [Fact]
@@ -10269,9 +10783,613 @@ class Program
                 ]);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void Exhaustiveness_16_Direct_Value_Matching(bool field)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+#nullable enable
+    public S1(string? x) { _value = x; }
+#nullable disable
+    public object Value => _value;
+}
+
+struct S2
+{
+    public S2(S1 s1)
+    {
+        S1 = s1;
+    }
+
+    public S1 S1" + (field ? ";" : " { get; }") + @"
+}
+
+class Program
+{
+    static int Test1(S2 u)
+    {
+#line 100
+        return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+    } 
+
+    static int Test2(S2 u)
+    {
+#line 200
+        return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+    } 
+
+    static int Test3(S2 u)
+    {
+#line 300
+        return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+    } 
+
+    static int Test4(S2 u)
+    {
+#line 400
+        return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+    }   
+
+    static int Test5(S2 u)
+    {
+#nullable enable
+#line 500
+        return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+#nullable disable
+    }   
+
+    static int Test6(S2 u)
+    {
+#line 600
+        return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
+    }   
+
+    static int Test7(S2 u)
+    {
+#line 700
+        return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
+    }   
+
+    static int Test8(S2 u)
+    {
+#line 800
+        return u switch { { S1.Value: int } => 1 };
+    }   
+
+    static int Test9(S2 u)
+    {
+#line 900
+        return u switch { { S1.Value: not int } => 1 };
+    }   
+
+    static int Test10(S2 u)
+    {
+#line 1000
+        return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
+    }   
+
+    static int Test11(S2 u)
+    {
+#line 1100
+        return u switch { { S1.Value: not null } => 1 };
+    } 
+
+    static int Test11_5(S2 u)
+    {
+#nullable enable
+#line 1150
+        return u switch { { S1.Value: not null } => 1 };
+#nullable disable
+    } 
+
+    static int Test12(S2 u)
+    {
+#line 1200
+        return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
+    } 
+
+    static int Test13(S2 u)
+    {
+#line 1300
+        return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
+    } 
+
+    static int Test14(S2 u)
+    {
+#line 1400
+        return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
+    } 
+
+    static int Test15(S2 u)
+    {
+#line 1500
+        return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            var expected = new[]
+            {
+                // (100,90): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 90),
+                // (200,88): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 88),
+                // (300,88): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 88),
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(500, 18),
+                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: string }' is not covered.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: string }").WithLocation(600, 18),
+                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: string }' is not covered.
+                //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: string }").WithLocation(700, 18),
+                // (800,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: string }' is not covered.
+                //         return u switch { { S1.Value: int } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: string }").WithLocation(800, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: int }' is not covered.
+                //         return u switch { { S1.Value: not int } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: int }").WithLocation(900, 18),
+                // (1000,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: int }' is not covered.
+                //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: int }").WithLocation(1000, 18),
+                // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
+                //         return u switch { { S1.Value: not null } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(1150, 18),
+                // (1200,68): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 68),
+                // (1300,68): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 68),
+                // (1400,63): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1400, 63)
+            };
+
+            CompileAndVerify(comp).VerifyDiagnostics(expected);
+
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp).VerifyDiagnostics(expected);
+
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                [
+                    ..expected,
+                    // (100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 32),
+                    // (100,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 56),
+                    // (100,83): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 83),
+                    // (200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 32),
+                    // (200,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 56),
+                    // (200,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 81),
+                    // (300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 32),
+                    // (300,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 57),
+                    // (300,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 81),
+                    // (400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 32),
+                    // (400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 56),
+                    // (500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 32),
+                    // (500,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 56),
+                    // (600,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 32),
+                    // (600,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 56),
+                    // (700,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 32),
+                    // (700,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 57),
+                    // (800,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(800, 32),
+                    // (900,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(900, 32),
+                    // (1000,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 32),
+                    // (1000,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 57),
+                    // (1100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1100, 32),
+                    // (1150,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1150, 32),
+                    // (1200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 32),
+                    // (1200,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 57),
+                    // (1300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 32),
+                    // (1300,61): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 61),
+                    // (1400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 32),
+                    // (1400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 56),
+                    // (1500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 32),
+                    // (1500,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 57)
+                ]);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Exhaustiveness_17_Direct_Value_Matching(bool field)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+#nullable enable
+    public S1(string? x) { _value = x; }
+#nullable disable
+    public object Value => _value;
+}
+
+struct S2
+{
+    public S2(S1? s1)
+    {
+        S1 = s1;
+    }
+
+    public S1? S1" + (field ? ";" : " { get; }") + @"
+}
+
+class Program
+{
+    static int Test1(S2 u)
+    {
+#line 100
+        return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+    } 
+
+    static int Test2(S2 u)
+    {
+#line 200
+        return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+    } 
+
+    static int Test3(S2 u)
+    {
+#line 300
+        return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+    } 
+
+    static int Test4(S2 u)
+    {
+#line 400
+        return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+    }   
+
+    static int Test5(S2 u)
+    {
+#nullable enable
+#line 500
+        return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+#nullable disable
+    }   
+
+    static int Test6(S2 u)
+    {
+#line 600
+        return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
+    }   
+
+    static int Test7(S2 u)
+    {
+#line 700
+        return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
+    }   
+
+    static int Test8(S2 u)
+    {
+#line 800
+        return u switch { { S1.Value: int } => 1 };
+    }   
+
+    static int Test9(S2 u)
+    {
+#line 900
+        return u switch { { S1.Value: not int } => 1 };
+    }   
+
+    static int Test10(S2 u)
+    {
+#line 1000
+        return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
+    }   
+
+    static int Test11(S2 u)
+    {
+#line 1100
+        return u switch { { S1.Value: not null } => 1 };
+    } 
+
+    static int Test11_5(S2 u)
+    {
+#nullable enable
+#line 1150
+        return u switch { { S1.Value: not null } => 1 };
+#nullable disable
+    } 
+
+    static int Test12(S2 u)
+    {
+#line 1200
+        return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
+    } 
+
+    static int Test13(S2 u)
+    {
+#line 1300
+        return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
+    } 
+
+    static int Test14(S2 u)
+    {
+#line 1400
+        return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
+    } 
+
+    static int Test15(S2 u)
+    {
+#line 1500
+        return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
+    } 
+
+    static int Test16(S2 u)
+    {
+#nullable enable
+#line 1600
+        return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+#nullable disable
+    } 
+
+    static int Test17(S2 u)
+    {
+#nullable enable
+#line 1700
+        return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+#nullable disable
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            var expected = new[]
+            {
+                // (100,90): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 90),
+                // (200,88): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 88),
+                // (300,88): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 88),
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(500, 18),
+                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: string }' is not covered.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: string }").WithLocation(600, 18),
+                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: string }' is not covered.
+                //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: string }").WithLocation(700, 18),
+                // (800,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: string }' is not covered.
+                //         return u switch { { S1.Value: int } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: string }").WithLocation(800, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: int }' is not covered.
+                //         return u switch { { S1.Value: not int } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: int }").WithLocation(900, 18),
+                // (1000,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ S1: int }' is not covered.
+                //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ S1: int }").WithLocation(1000, 18),
+                // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
+                //         return u switch { { S1.Value: not null } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(1150, 18),
+                // (1200,68): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 68),
+                // (1300,68): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 68),
+                // (1400,63): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1400, 63),
+                // (1600,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(1600, 18),
+                // (1600,90): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1600, 90),
+                // (1700,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ S1: null }' is not covered.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ S1: null }").WithLocation(1700, 18),
+                // (1700,88): hidden CS9335: The pattern is redundant.
+                //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(1700, 88)
+            };
+
+            CompileAndVerify(comp).VerifyDiagnostics(expected);
+
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp).VerifyDiagnostics(expected);
+
+            comp = CreateCompilation([src, UnionAttributeSource], parseOptions: TestOptions.Regular14);
+            comp.VerifyDiagnostics(
+                [
+                    ..expected,
+                    // (100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 32),
+                    // (100,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 56),
+                    // (100,83): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(100, 83),
+                    // (200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 32),
+                    // (200,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 56),
+                    // (200,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(200, 81),
+                    // (300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 32),
+                    // (300,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 57),
+                    // (300,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(300, 81),
+                    // (400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 32),
+                    // (400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(400, 56),
+                    // (500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 32),
+                    // (500,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(500, 56),
+                    // (600,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 32),
+                    // (600,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(600, 56),
+                    // (700,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 32),
+                    // (700,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(700, 57),
+                    // (800,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(800, 32),
+                    // (900,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(900, 32),
+                    // (1000,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 32),
+                    // (1000,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: not int } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1000, 57),
+                    // (1100,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1100, 32),
+                    // (1150,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1150, 32),
+                    // (1200,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 32),
+                    // (1200,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: not null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1200, 57),
+                    // (1300,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 32),
+                    // (1300,61): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: not null } => 3, { S1.Value: null } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1300, 61),
+                    // (1400,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 32),
+                    // (1400,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: { } } => 1, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1400, 56),
+                    // (1500,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 32),
+                    // (1500,57): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: null } => 3, { S1.Value: var x } => 1 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1500, 57),
+                    // (1600,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1600, 32),
+                    // (1600,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1600, 56),
+                    // (1600,83): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: string } => 2, { S1.Value: null } => 3 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1600, 83),
+                    // (1700,32): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1700, 32),
+                    // (1700,56): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1700, 56),
+                    // (1700,81): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         return u switch { { S1.Value: int } => 1, { S1.Value: null } => 3, { S1.Value: string } => 2 };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Value").WithArguments("unions").WithLocation(1700, 81)
+                ]);
+        }
+
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/83666")]
-        public void Exhaustiveness_16()
+        public void Exhaustiveness_18()
         {
             var src = @"
 #nullable enable
@@ -30432,8 +31550,104 @@ struct S1
 ");
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_79_HasValue_Struct_Direct_Value_Matching(bool field)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool HasValue => _value != null;
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S2(new S1(1))));
+        System.Console.Write(Test1(new S2(new S1())));
+        System.Console.Write(Test2(new S2(new S1(2))));
+        System.Console.Write(Test2(new S2(new S1())));
+    }
+
+    static bool Test1(S2 u)
+    {
+        return u is { S1.Value: null };
+    }   
+
+    static bool Test2(S2 u)
+    {
+        return u is { S1.Value: not null };
+    }   
+}
+
+struct S2
+{
+    public S2(S1 s1)
+    {
+        S1 = s1;
+    }
+
+    public S1 S1" + (field ? ";" : " { get; }") + @"
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseTrueTrueFalse").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_80_HasValue_Struct_Direct_Value_Matching(bool field)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool HasValue => _value != null;
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S2(new S1(1))));
+        System.Console.Write(Test1(new S2(new S1())));
+        System.Console.Write(Test1(new S2(null)));
+        System.Console.Write(Test2(new S2(new S1(2))));
+        System.Console.Write(Test2(new S2(new S1())));
+        System.Console.Write(Test2(new S2(null)));
+    }
+
+    static bool Test1(S2 u)
+    {
+        return u is { S1.Value: null };
+    }   
+
+    static bool Test2(S2 u)
+    {
+        return u is { S1.Value: not null };
+    }   
+}
+
+struct S2
+{
+    public S2(S1? s1)
+    {
+        S1 = s1;
+    }
+
+    public S1? S1" + (field ? ";" : " { get; }") + @"
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseTrueFalseFalse").VerifyDiagnostics();
+        }
+
         [Fact]
-        public void NonBoxingUnionMatching_79_TryGetValue_Direct_Value_Matching()
+        public void NonBoxingUnionMatching_81_TryGetValue_Direct_Value_Matching()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -30511,8 +31725,194 @@ struct S1
             CompileAndVerify(comp, expectedOutput: "TryGetValue(string) TryGetValue(int) True; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) False; TryGetValue(string) True; TryGetValue(string) False").VerifyDiagnostics();
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_82_TryGetValue_Direct_Value_Matching(bool field)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    public bool TryGetValue(out string x)
+    {
+        System.Console.Write(""TryGetValue(string) "");
+        x = _value as string;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S2(new S1(1)), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(1)), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(1)), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1()), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1()), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1()), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(""a"")), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(""a"")), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(""a"")), 3)));
+    }
+
+    static bool Test1((S2, int) u)
+    {
+        return u is ({ S1.Value: string }, 2) or ({ S1.Value: int }, 1);
+    }   
+}
+
+struct S2
+{
+    public S2(S1 s1)
+    {
+        S1 = s1;
+    }
+
+    public S1 S1" + (field ? ";" : " { get; }") + @"
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TryGetValue(string) TryGetValue(int) True; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) False; TryGetValue(string) True; TryGetValue(string) False").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_83_TryGetValue_Direct_Value_Matching(bool field)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    public bool TryGetValue(out string x)
+    {
+        System.Console.Write(""TryGetValue(string) "");
+        x = _value as string;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S2(new S1(1)), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(1)), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(1)), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1()), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1()), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1()), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(""a"")), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(""a"")), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(new S1(""a"")), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(null), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(null), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S2(null), 3)));
+    }
+
+    static bool Test1((S2, int) u)
+    {
+        return u is ({ S1.Value: string }, 2) or ({ S1.Value: int }, 1);
+    }   
+}
+
+struct S2
+{
+    public S2(S1? s1)
+    {
+        S1 = s1;
+    }
+
+    public S1? S1" + (field ? ";" : " { get; }") + @"
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TryGetValue(string) TryGetValue(int) True; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) False; TryGetValue(string) True; TryGetValue(string) False; False; False; False").VerifyDiagnostics();
+        }
+
         [Fact]
-        public void NonBoxingUnionMatching_80()
+        public void NonBoxingUnionMatching_84()
         {
             var src = @"
 class C1;
