@@ -17,9 +17,6 @@
     <EmbeddedResource Include="TestFiles\**\*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />

@@ -33,7 +33,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
@@ -87,7 +86,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.Example" />
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities" />
