@@ -10228,7 +10228,7 @@ partial class Program
                 // (1,1): error CS8802: Only one compilation unit can have top-level statements. 'Startup.cs' also has top-level statements.
                 // System.Console.Write(1);
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithArguments("Startup.cs").WithLocation(1, 1)
-            );
+                );
         }
     }
 }
