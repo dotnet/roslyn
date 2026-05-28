@@ -2978,28 +2978,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundExpression expressionElement:
                             {
+                                var expressionSyntax = expressionElement.Syntax;
                                 var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
-                                if (!elementConversion.Exists)
+                                if (elementConversion.Exists)
                                 {
-                                    GenerateImplicitConversionError(diagnostics, expressionElement.Syntax, elementConversion, expressionElement, elementType);
+                                    continue;
+                                }
+                                else if (expressionElement.Type is { } &&
+                                    keyValueTypes is (var keyType, var valueType) &&
+                                    ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
+                                {
+                                    generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementKeyType, keyType, ref useSiteInfo, ref reportedErrors);
+                                    generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementValueType, valueType, ref useSiteInfo, ref reportedErrors);
+                                }
+                                else
+                                {
+                                    GenerateImplicitConversionError(diagnostics, expressionSyntax, elementConversion, expressionElement, elementType);
                                     reportedErrors = true;
                                 }
                             }
                             break;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             {
+                                var expressionSyntax = spreadElement.Expression.Syntax;
                                 var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
                                 if (enumeratorInfo is null)
                                 {
-                                    Error(diagnostics, ErrorCode.ERR_NoImplicitConv, spreadElement.Expression.Syntax, spreadElement.Expression.Display, elementType);
+                                    Error(diagnostics, ErrorCode.ERR_NoImplicitConv, expressionSyntax, spreadElement.Expression.Display, elementType);
                                     reportedErrors = true;
                                 }
                                 else
                                 {
                                     var elementConversion = Conversions.GetCollectionExpressionSpreadElementConversion(spreadElement.Syntax, elementType, enumeratorInfo, ref useSiteInfo);
-                                    if (!elementConversion.Exists)
+                                    if (elementConversion.Exists)
                                     {
-                                        GenerateImplicitConversionError(diagnostics, Compilation, spreadElement.Expression.Syntax, elementConversion, enumeratorInfo.ElementType, elementType);
+                                        continue;
+                                    }
+                                    else if (keyValueTypes is (var keyType, var valueType) &&
+                                        ConversionsBase.IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
+                                    {
+                                        generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, itemKeyType, keyType, ref useSiteInfo, ref reportedErrors);
+                                        generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, itemValueType, valueType, ref useSiteInfo, ref reportedErrors);
+                                    }
+                                    else
+                                    {
+                                        GenerateImplicitConversionError(diagnostics, Compilation, expressionSyntax, elementConversion, enumeratorInfo.ElementType, elementType);
                                         reportedErrors = true;
                                     }
                                 }
@@ -3045,6 +3068,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!elementConversion.Exists)
                 {
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, elementConversion, expression, targetType);
+                    reportedErrors = true;
+                }
+            }
+
+            void generateImplicitConversionFromTypeError(
+                BindingDiagnosticBag diagnostics,
+                SyntaxNode syntax,
+                TypeSymbol sourceType,
+                TypeSymbol targetType,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                ref bool reportedErrors)
+            {
+                Conversion elementConversion = Conversions.ClassifyImplicitConversionFromType(sourceType, targetType, ref useSiteInfo);
+                if (!elementConversion.Exists)
+                {
+                    GenerateImplicitConversionError(diagnostics, Compilation, syntax, elementConversion, sourceType, targetType);
                     reportedErrors = true;
                 }
             }
