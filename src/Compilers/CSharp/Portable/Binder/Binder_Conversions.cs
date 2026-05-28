@@ -935,7 +935,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return converter.Convert();
         }
 
-#nullable enable
         private static BoundNode ConvertKeyValuePairElement(
             Binder binder,
             BoundKeyValuePairElement keyValuePairElement,
@@ -1066,7 +1065,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return binder.CreateConversion(expressionElement, elementConversion, elementType, diagnostics);
             }
         }
-#nullable disable
 
         private readonly struct CollectionExpressionConverter(
             Binder binder,
@@ -1183,7 +1181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // From this point out, all the remaining collection types end up converting all their elements
                 // to their actual element type and passing those along.
 
-                var elements = BindElements(elementType);
+                ImmutableArray<BoundNode> elements = collectionTypeKind == CollectionExpressionTypeKind.DictionaryInterface
+                    ? default
+                    : BindElements(elementType);
 
                 return collectionTypeKind switch
                 {
@@ -1222,8 +1222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, _diagnostics, syntax: syntax);
                 var setMethod = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, _diagnostics, syntax: syntax);
                 setMethod = (MethodSymbol?)setMethod?.SymbolAsMember(dictionaryType);
-                _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, _diagnostics, syntax: syntax);
-                _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, _diagnostics, syntax: syntax);
 
                 if (targetNamedType.OriginalDefinition.Equals(_binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV), TypeCompareKind.ConsiderEverything))
                 {
@@ -1249,6 +1247,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 static BoundExpression bindDictionaryConstructorConstruction(ref readonly CollectionExpressionConverter @this, SyntaxNode syntax, NamedTypeSymbol dictionaryType)
                 {
+                    // The dictionary-expressions proposal (see ConvertCollectionExpression in the
+                    // features/dictionary-expressions-old branch) routes this through
+                    // BindInterfaceTargetCollectionMethodGroup / BindInterfaceTargetCollectionArguments,
+                    // which synthesizes a method group for the Dictionary<K, V> constructor overloads and
+                    // produces missing-member diagnostics for each. That machinery (the
+                    // CollectionArgumentsSignatureOnlyMethodSymbol "addSignature" mechanism) has not been
+                    // ported yet, so for now we bind the parameterless constructor directly via the normal
+                    // class-creation path.
                     var withElement = @this._node.WithElement;
                     var analyzedArguments = withElement is null
                         ? AnalyzedArguments.GetInstance()
@@ -1271,47 +1277,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly ImmutableArray<BoundNode> BindDictionaryInterfaceElements(TypeSymbol elementType)
             {
                 var elements = _node.Elements;
-                var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
-
                 var elementConversions = _conversion.UnderlyingConversions;
                 var elementKeyValueTypes = ConversionsBase.TryGetCollectionKeyValuePairTypes(_binder.Compilation, elementType);
 
                 Debug.Assert(elements.Length == elementConversions.Length);
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
-                for (int i = 0; i < elements.Length; i++)
+                var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
+                int conversionIndex = 0;
+                foreach (var element in elements)
                 {
-                    var element = elements[i];
-                    var elementConversion = elementConversions[i];
+                    var elementConversion = elementConversions[conversionIndex++];
                     BoundNode convertedElement;
                     switch (element)
                     {
                         case BoundCollectionExpressionSpreadElement spreadElement:
-                            convertedElement = bindSpreadElement(in this, spreadElement, elementType, elementConversion, elementKeyValueTypes);
+                            convertedElement = _binder.BindCollectionExpressionSpreadElement(
+                                (SpreadElementSyntax)spreadElement.Syntax,
+                                spreadElement,
+                                implicitReceiver: null,
+                                static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
+                                {
+                                    return convertItem(
+                                        binder,
+                                        syntax,
+                                        item,
+                                        arg.elementConversion,
+                                        arg.elementType,
+                                        arg.elementKeyValueTypes,
+                                        diagnostics);
+                                },
+                                (elementType, elementConversion, elementKeyValueTypes),
+                                _diagnostics);
                             break;
                         case BoundKeyValuePairElement keyValuePairElement:
-                            convertedElement = ConvertKeyValuePairElement(
+                            convertedElement = convertKeyValuePair(
                                 _binder,
                                 keyValuePairElement,
                                 elementConversion,
                                 elementType,
                                 elementKeyValueTypes,
-                                useIndexer: true,
-                                implicitReceiver: null,
-                                collectionInitializerAddMethodBinder: null,
                                 _diagnostics);
                             break;
                         case BoundExpression expressionElement:
-                            convertedElement = ConvertCollectionExpressionItem(
+                            convertedElement = convertItem(
                                 _binder,
                                 expressionElement.Syntax,
                                 expressionElement,
                                 elementConversion,
                                 elementType,
                                 elementKeyValueTypes,
-                                useIndexer: true,
-                                implicitReceiver: null,
-                                collectionInitializerAddMethodBinder: null,
                                 _diagnostics);
                             break;
                         default:
@@ -1324,34 +1339,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return builder.ToImmutableAndFree();
 
-                static BoundCollectionExpressionSpreadElement bindSpreadElement(
-                    ref readonly CollectionExpressionConverter @this,
-                    BoundCollectionExpressionSpreadElement element,
-                    TypeSymbol elementType,
+                // Dictionary-interface element conversion uses the indexer set method for assignment;
+                // no implicit receiver or add-method binder is needed.
+                static BoundNode convertKeyValuePair(
+                    Binder binder,
+                    BoundKeyValuePairElement keyValuePairElement,
                     Conversion elementConversion,
-                    (TypeSymbol Key, TypeSymbol Value)? elementKeyValueTypes)
-                {
-                    return @this._binder.BindCollectionExpressionSpreadElement(
-                        (SpreadElementSyntax)element.Syntax,
-                        element,
-                        implicitReceiver: null,
-                        static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
-                        {
-                            return ConvertCollectionExpressionItem(
-                                binder,
-                                syntax,
-                                item,
-                                arg.elementConversion,
-                                arg.elementType,
-                                arg.elementKeyValueTypes,
-                                useIndexer: true,
-                                implicitReceiver,
-                                collectionInitializerAddMethodBinder: null,
-                                diagnostics);
-                        },
-                        (elementType, elementConversion, elementKeyValueTypes),
-                        @this._diagnostics);
-                }
+                    TypeSymbol elementType,
+                    (TypeSymbol Key, TypeSymbol Value)? elementKeyValueTypes,
+                    BindingDiagnosticBag diagnostics)
+                    => ConvertKeyValuePairElement(binder, keyValuePairElement, elementConversion, elementType, elementKeyValueTypes, useIndexer: true, implicitReceiver: null, collectionInitializerAddMethodBinder: null, diagnostics);
+
+                static BoundExpression convertItem(
+                    Binder binder,
+                    SyntaxNode expressionSyntax,
+                    BoundExpression expressionElement,
+                    Conversion elementConversion,
+                    TypeSymbol elementType,
+                    (TypeSymbol Key, TypeSymbol Value)? elementKeyValueTypes,
+                    BindingDiagnosticBag diagnostics)
+                    => ConvertCollectionExpressionItem(binder, expressionSyntax, expressionElement, elementConversion, elementType, elementKeyValueTypes, useIndexer: true, implicitReceiver: null, collectionInitializerAddMethodBinder: null, diagnostics);
             }
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionImplementsIEnumerableType(MethodSymbol? constructor, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol elementType)
