@@ -47,10 +47,10 @@ internal sealed class DevKitProjectLoadingServiceContributor(
             async (moniker, options, innerServiceBroker, cancellationToken) =>
             {
                 var workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
-                var targetFrameworkmanager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
+                var targetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
                 var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
                 var projectInitializationHandler = new ProjectInitializationHandler(clientLanguageServerManager, innerServiceBroker, loggerFactory);
-                var service = new WorkspaceProjectFactoryService(workspaceFactory, targetFrameworkmanager, projectInitializationHandler, loggerFactory);
+                var service = new WorkspaceProjectFactoryService(workspaceFactory, targetFrameworkManager, projectInitializationHandler, loggerFactory);
                 await service.InitializeAsync(cancellationToken);
                 return service;
             });

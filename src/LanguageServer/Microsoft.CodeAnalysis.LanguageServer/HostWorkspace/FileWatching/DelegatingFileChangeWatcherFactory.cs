@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(DelegatingFileChangeWatcher)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DelegateFileChangeWatcherFactory(
+internal sealed class DelegatingFileChangeWatcherFactory(
     ILoggerFactory loggerFactory,
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider) : ILspServiceFactory
 {
