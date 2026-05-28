@@ -2698,6 +2698,65 @@ class A: IA, ITuple
             CompileAndVerify(compilation, expectedOutput: "5 6");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83906")]
+        public void TupleTypeDeclarationPattern_01()
+        {
+            var source = """
+class Program
+{
+    static void Main()
+    {
+        M1((1, 2));
+        M2((3, 4));
+        M3((5, 6));
+    }
+
+    static void M1(object o)
+    {
+        if (o is (int, int) tuple1)
+        {
+            System.Console.WriteLine($"M1 tuple type: {tuple1.Item1} {tuple1.Item2}");
+        }
+
+        if (o is System.ValueTuple<int, int> tuple2)
+        {
+            System.Console.WriteLine($"M1 value tuple: {tuple2.Item1} {tuple2.Item2}");
+        }
+    }
+
+    static void M2((int, int) o)
+    {
+        if (o is (int, int) tuple1)
+        {
+            System.Console.WriteLine($"M2 tuple type: {tuple1.Item1} {tuple1.Item2}");
+        }
+
+        if (o is System.ValueTuple<int, int> tuple2)
+        {
+            System.Console.WriteLine($"M2 value tuple: {tuple2.Item1} {tuple2.Item2}");
+        }
+    }
+
+    static void M3((int, int) o)
+    {
+        if (o is (int x, int y) tuple)
+        {
+            System.Console.WriteLine($"M3 recursive: {x} {y} {tuple.Item1} {tuple.Item2}");
+        }
+    }
+}
+""";
+            var compilation = CreatePatternCompilation(source);
+            CompileAndVerify(compilation, expectedOutput: """
+                M1 tuple type: 1 2
+                M1 value tuple: 1 2
+                M2 tuple type: 3 4
+                M2 value tuple: 3 4
+                M3 recursive: 5 6 5 6
+                """)
+                .VerifyDiagnostics();
+        }
+
         [Fact]
         public void ShortTuplePattern_01()
         {

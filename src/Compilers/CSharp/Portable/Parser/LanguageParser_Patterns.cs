@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Given tk, the type of the current token, does this look like the type of a pattern?
         /// </summary>
-        private bool LooksLikeTypeOfPattern()
+        private bool LooksLikeTypeOfPattern(bool inSwitchArmPattern)
         {
             var tk = CurrentToken.Kind;
             if (SyntaxFacts.IsPredefinedType(tk))
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-            if (LooksLikeTupleArrayType())
+            if (LooksLikeTupleArrayTypeOrTupleTypeDeclaration(inSwitchArmPattern))
             {
                 return true;
             }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
             TypeSyntax? type = null;
-            if (LooksLikeTypeOfPattern())
+            if (LooksLikeTypeOfPattern(inSwitchArmPattern))
             {
                 type = this.ParseType(
                     afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
@@ -497,13 +497,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool LooksLikeTupleArrayType()
+        private bool LooksLikeTupleArrayTypeOrTupleTypeDeclaration(bool inSwitchArmPattern)
         {
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
                 return false;
 
-            using var _ = GetDisposableResetPoint(resetOnDispose: true);
-            return ScanType(forPattern: true) != ScanTypeFlags.NotType;
+            using var resetPoint = GetDisposableResetPoint(resetOnDispose: true);
+            if (ScanType(forPattern: true) != ScanTypeFlags.NotType)
+                return true;
+
+            resetPoint.Reset();
+            return scanTupleTypeWithoutElementNames() && IsValidPatternDesignation(inSwitchArmPattern);
+
+            bool scanTupleTypeWithoutElementNames()
+            {
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken);
+                this.EatToken();
+
+                if (!scanTupleElementTypeWithoutName())
+                    return false;
+
+                if (this.CurrentToken.Kind != SyntaxKind.CommaToken)
+                    return false;
+
+                do
+                {
+                    this.EatToken();
+                    if (!scanTupleElementTypeWithoutName())
+                        return false;
+                }
+                while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
+
+                if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
+                    return false;
+
+                this.EatToken();
+                return true;
+
+                bool scanTupleElementTypeWithoutName()
+                {
+                    if (ScanType(out _) == ScanTypeFlags.NotType)
+                        return false;
+
+                    return !IsTrueIdentifier();
+                }
+            }
         }
 
         private PropertyPatternClauseSyntax ParsePropertyPatternClause()
