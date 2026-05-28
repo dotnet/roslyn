@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     """);
             }
             var comp = (CSharpCompilation)verifier.Compilation;
-            string constructMethod = typeName == "Dictionary" ? "System.Collections.Generic.Dictionary<K, V>..ctor()" : "null";
+            string constructMethod = "System.Collections.Generic.Dictionary<K, V>..ctor()";
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 $$"""
                 ICollectionExpressionOperation (3 elements, ConstructMethod: {{constructMethod}}) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}<K, V>) (Syntax: '[k:v, e, ..s]')
@@ -1382,21 +1382,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    // (6,16): error CS1729: 'Dictionary<K, V>' does not contain a constructor that takes 0 arguments
                     //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16));
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[").WithArguments("System.Collections.Generic.Dictionary<K, V>", "0").WithLocation(6, 16));
             }
             else
             {
@@ -1407,15 +1407,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 16),
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                     //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16));
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 16),
+                    // (6,16): error CS1729: 'Dictionary<K, V>' does not contain a constructor that takes 0 arguments
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[").WithArguments("System.Collections.Generic.Dictionary<K, V>", "0").WithLocation(6, 16));
             }
 
             comp = CreateCompilation(source);
@@ -1426,12 +1426,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    // (6,16): error CS1729: 'Dictionary<K, V>' does not contain a constructor that takes 0 arguments
                     //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS1501: No overload for method '<signature>' takes 0 arguments
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_BadArgCount, $"[{element}]").WithArguments("<signature>", "0").WithLocation(6, 16));
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[").WithArguments("System.Collections.Generic.Dictionary<K, V>", "0").WithLocation(6, 16));
             }
             else
             {
@@ -1439,12 +1436,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    // (6,16): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Dictionary<K, V>.Dictionary(IEqualityComparer<K>)'
                     //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Program.<signature>(IEqualityComparer<K>?)'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, $"[{element}]").WithArguments("comparer", "Program.<signature>(System.Collections.Generic.IEqualityComparer<K>?)").WithLocation(6, 16));
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[").WithArguments("comparer", "System.Collections.Generic.Dictionary<K, V>.Dictionary(System.Collections.Generic.IEqualityComparer<K>)").WithLocation(6, 16));
             }
 
             comp = CreateCompilation(source);
@@ -1772,7 +1766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Int64, System.Object>) (Syntax: '[x:y]')
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.Int64, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Int64, System.Object>) (Syntax: '[x:y]')
                   Elements(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'x:y')
                 """);
@@ -1807,7 +1801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[x]')
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.Object, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[x]')
                   Elements(1):
                       IOperation:  (OperationKind.None, Type: System.Collections.Generic.KeyValuePair<System.Object, System.Object>) (Syntax: 'x')
                 """);
@@ -1842,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[..y]')
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.Object, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[..y]')
                   Elements(1):
                       ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.Int32, System.String>) (OperationKind.Spread, Type: null) (Syntax: '..y')
                         Operand:
@@ -5505,6 +5499,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (3 elements, ConstructMethod: MyDictionary<K, V>..ctor([System.Collections.Generic.IEqualityComparer<K> comparer = null])) (OperationKind.CollectionExpression, Type: MyDictionary<K, V>) (Syntax: '[with(null) ... :v, e, ..s]')
+                  ConstructArguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: comparer) (OperationKind.Argument, Type: null) (Syntax: 'null')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEqualityComparer<K>, Constant: null, IsImplicit) (Syntax: 'null')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                          Operand:
+                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Elements(3):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'k:v')
                       IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Collections.Generic.KeyValuePair<K, V>) (Syntax: 'e')
