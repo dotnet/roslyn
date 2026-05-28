@@ -1167,11 +1167,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return TryConvertCollectionExpressionImplementsIEnumerableType(constructor, collectionTypeKind, elementType);
 
                 if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface ||
-                    hasSpreadElements)
+                    (hasSpreadElements && collectionTypeKind is not CollectionExpressionTypeKind.DictionaryInterface))
                 {
                     // Verify the existence of the List<T> members that may be used in lowering, even
                     // though not all will be used for any particular collection expression. Checking all
                     // gives a consistent behavior, regardless of collection expression elements.
+                    // DictionaryInterface targets are excluded: their spreads lower into a Dictionary<K, V>
+                    // via set_Item (see PopulateDictionary), never through List<T>, so the relevant
+                    // well-known members are checked in TryConvertCollectionExpressionDictionaryInterfaceType.
                     _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, _diagnostics, syntax: syntax);
                     _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, _diagnostics, syntax: syntax);
                     _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, _diagnostics, syntax: syntax);
