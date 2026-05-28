@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 
 namespace BuildBoss;
 
@@ -32,9 +32,11 @@ internal sealed class GeneratedFilesCheckerUtil : ICheckerUtil
             };
 
             using var process = Process.Start(startInfo);
-            var output = process.StandardOutput.ReadToEnd();
-            var error = process.StandardError.ReadToEnd();
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
             process.WaitForExit();
+            var output = outputTask.Result;
+            var error = errorTask.Result;
 
             if (process.ExitCode != 0)
             {
@@ -54,7 +56,7 @@ internal sealed class GeneratedFilesCheckerUtil : ICheckerUtil
         }
         catch (Exception ex)
         {
-            textWriter.WriteLine($"Error running git status: {ex.Message}");
+            textWriter.WriteLine($"Error running git status: {ex}");
             return false;
         }
     }
