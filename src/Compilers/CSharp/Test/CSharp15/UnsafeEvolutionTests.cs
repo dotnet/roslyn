@@ -10382,7 +10382,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (7,44): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public safe static extern partial void M1();
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M1").WithLocation(7, 44),
-            // (7,44): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (7,44): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe static extern partial void M1();
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M1").WithLocation(7, 44),
             // (9,32): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
@@ -10394,7 +10394,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (13,45): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public safe extern partial event Action E1;
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "E1").WithLocation(13, 45),
-            // (13,45): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (13,45): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe extern partial event Action E1;
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "E1").WithLocation(13, 45),
             // (15,33): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
@@ -10406,7 +10406,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (19,32): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public safe extern partial C();
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "C").WithLocation(19, 32),
-            // (19,32): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (19,32): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe extern partial C();
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "C").WithLocation(19, 32));
     }
@@ -12160,34 +12160,34 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // (4,30): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (4,30): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe partial void M1() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M1").WithLocation(4, 30),
             // (6,12): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     public safe partial void M2();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 12),
-            // (7,25): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (7,25): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public partial void M2() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M2").WithLocation(7, 25),
             // (9,25): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
             //     public partial void M3();
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "M3").WithLocation(9, 25),
-            // (10,37): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (10,37): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe extern partial void M3();
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M3").WithLocation(10, 37),
-            // (13,29): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (13,29): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe partial int P1 => 0;
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "P1").WithLocation(13, 29),
-            // (13,35): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (13,35): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe partial int P1 => 0;
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "0").WithLocation(13, 35),
-            // (16,25): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (16,25): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     safe public partial C() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "C").WithLocation(16, 25),
-            // (19,45): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (19,45): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe partial event System.Action E1 { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "E1").WithLocation(19, 45),
-            // (22,34): error CS9390: Both partial member declarations must be safe or neither may be safe
+            // (22,34): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public partial int P2 { safe get => 0; }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "get").WithLocation(22, 34));
     }

@@ -1538,9 +1538,9 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberSafeDifference">
-        <source>Both partial member declarations must be safe or neither may be safe</source>
-        <target state="new">Both partial member declarations must be safe or neither may be safe</target>
-        <note>'safe' is a keyword</note>
+        <source>Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</source>
+        <target state="new">Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</target>
+        <note>'safe' is a keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
