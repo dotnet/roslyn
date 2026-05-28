@@ -119,21 +119,23 @@ namespace Microsoft.CodeAnalysis
                                         // instead we'll hold onto it, and throw the exception when a downstream node actually
                                         // attempts to read the value
                                         _syntaxExceptions[currentNode] = ufe;
-                                        syntaxInputBuilders[i].builder.Free();
+                                        var builder = syntaxInputBuilders[i].builder;
                                         syntaxInputBuilders.RemoveAt(i);
+                                        builder.Free();
                                         i--;
                                     }
                                 }
                             }
 
                             // save the updated inputs
-                            foreach ((var node, ISyntaxInputBuilder builder) in syntaxInputBuilders)
+                            while (syntaxInputBuilders.Count > 0)
                             {
+                                var index = syntaxInputBuilders.Count - 1;
+                                (var node, ISyntaxInputBuilder builder) = syntaxInputBuilders[index];
+                                syntaxInputBuilders.RemoveAt(index);
                                 builder.SaveStateAndFree(_tableBuilder);
                                 Debug.Assert(_tableBuilder.Contains(node));
                             }
-
-                            syntaxInputBuilders.Clear();
                         }
                     }
                     finally

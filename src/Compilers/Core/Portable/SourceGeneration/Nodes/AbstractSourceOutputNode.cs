@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis
                 return previousTable;
             }
 
-            var tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, equalityComparer: null);
-            var tableBuilderFreed = false;
+            NodeStateTable<TOutput>.Builder? tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, equalityComparer: null);
             try
             {
                 foreach (var entry in sourceTable)
@@ -82,14 +81,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var newTable = tableBuilder.ToImmutableAndFree();
-                tableBuilderFreed = true;
+                tableBuilder = null;
                 this.LogTables(stepName, s_tableType, previousTable, newTable, sourceTable);
                 return newTable;
             }
             finally
             {
-                if (!tableBuilderFreed)
-                    tableBuilder.Free();
+                tableBuilder?.Free();
             }
         }
 

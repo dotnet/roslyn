@@ -243,16 +243,12 @@ namespace Microsoft.CodeAnalysis
             // run the actual generation
             using var timer = CodeAnalysisEventSource.Log.CreateGeneratorDriverRunTimer();
             var state = _state;
-            var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
-            var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
-            var syntaxInputNodes = ArrayBuilder<SyntaxInputNode>.GetInstance();
-            var stateBuilderFreed = false;
-            var constantSourcesBuilderFreed = false;
-            var syntaxInputNodesFreed = false;
+            ArrayBuilder<GeneratorState>? stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
+            ArrayBuilder<SyntaxTree>? constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
+            ArrayBuilder<SyntaxInputNode>? syntaxInputNodes = ArrayBuilder<SyntaxInputNode>.GetInstance();
 
             try
             {
-
                 for (int i = 0; i < state.IncrementalGenerators.Length; i++)
                 {
                     var generator = state.IncrementalGenerators[i];
@@ -340,10 +336,10 @@ namespace Microsoft.CodeAnalysis
                     compilation = compilation.AddSyntaxTrees(constantSourcesBuilder);
                 }
                 constantSourcesBuilder.Free();
-                constantSourcesBuilderFreed = true;
+                constantSourcesBuilder = null;
 
                 var driverStateBuilder = new DriverStateTable.Builder(_state, compilation, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
-                syntaxInputNodesFreed = true;
+                syntaxInputNodes = null;
 
                 // Pre-compilation pass: evaluate pre-compilation output nodes for all generators
                 // and add their sources to the compilation before standard output nodes execute.
@@ -439,19 +435,14 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: driverStateBuilder.SyntaxStore.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
-                stateBuilderFreed = true;
+                stateBuilder = null;
                 return state;
             }
             finally
             {
-                if (!stateBuilderFreed)
-                    stateBuilder.Free();
-
-                if (!constantSourcesBuilderFreed)
-                    constantSourcesBuilder.Free();
-
-                if (!syntaxInputNodesFreed)
-                    syntaxInputNodes.Free();
+                stateBuilder?.Free();
+                constantSourcesBuilder?.Free();
+                syntaxInputNodes?.Free();
             }
 
             static bool handleGeneratorException(Compilation compilation, CommonMessageProvider messageProvider, ISourceGenerator sourceGenerator, Exception e, bool isInit)

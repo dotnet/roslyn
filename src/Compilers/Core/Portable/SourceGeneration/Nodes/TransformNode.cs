@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis
             // - Modified: perform transform and do element wise comparison with previous results
 
             var totalEntryItemCount = sourceTable.GetTotalEntryItemCount();
-            var tableBuilder = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
-            var tableBuilderFreed = false;
+            NodeStateTable<TOutput>.Builder? tableBuilder = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
             try
             {
@@ -100,14 +99,13 @@ namespace Microsoft.CodeAnalysis
                 // Can't assert anything about the count of items.  _func may have produced a different amount of items if
                 // it's not a 1:1 function.
                 var newTable = tableBuilder.ToImmutableAndFree();
-                tableBuilderFreed = true;
+                tableBuilder = null;
                 this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
                 return newTable;
             }
             finally
             {
-                if (!tableBuilderFreed)
-                    tableBuilder.Free();
+                tableBuilder?.Free();
             }
         }
 
