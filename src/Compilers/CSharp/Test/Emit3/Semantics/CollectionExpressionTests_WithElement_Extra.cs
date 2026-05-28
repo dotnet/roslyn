@@ -6994,12 +6994,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 }
                 """;
         var comp = CreateCompilation(source);
-        // https://github.com/dotnet/roslyn/issues/81860
-        // Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
         comp.VerifyEmitDiagnostics(
             // (17,45): warning CS8620: Argument of type 'IEqualityComparer<K>' cannot be used for parameter 'comparer' of type 'IEqualityComparer<K?>' in 'Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)' due to differences in the nullability of reference types.
             //         if (b) return new Dictionary<K?, V>(c3);
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c3").WithArguments("System.Collections.Generic.IEqualityComparer<K>", "System.Collections.Generic.IEqualityComparer<K?>", "comparer", "Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)").WithLocation(17, 45));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c3").WithArguments("System.Collections.Generic.IEqualityComparer<K>", "System.Collections.Generic.IEqualityComparer<K?>", "comparer", "Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)").WithLocation(17, 45),
+            // (18,22): warning CS8620: Argument of type 'IEqualityComparer<K>' cannot be used for parameter 'comparer' of type 'IEqualityComparer<K?>' in 'Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)' due to differences in the nullability of reference types.
+            //         return [with(c3)];
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c3").WithArguments("System.Collections.Generic.IEqualityComparer<K>", "System.Collections.Generic.IEqualityComparer<K?>", "comparer", "Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)").WithLocation(18, 22));
     }
 
     [Theory]
@@ -7176,12 +7177,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (11,22): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<K>?'
+                // (11,22): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<K>'
                 //         return [with(c), k:v, x];
-                Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<K>?").WithLocation(11, 22),
-                // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<K>").WithLocation(11, 22),
+                // (15,22): error CS1739: The best overload for 'Dictionary' does not have a parameter named 'capacity'
                 //         return [with(capacity: c), k:v, x];
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("Dictionary", "capacity").WithLocation(15, 22));
         }
 
         string sourceC = $$"""
@@ -7316,12 +7317,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (11,16): error CS1501: No overload for method '<signature>' takes 2 arguments
+                // (11,17): error CS1729: 'Dictionary<K, V>' does not contain a constructor that takes 2 arguments
                 //         return [with(c, e), k:v, x];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c, e), k:v, x]").WithArguments("<signature>", "2").WithLocation(11, 16),
-                // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<K, V>", "2").WithLocation(11, 17),
+                // (15,22): error CS1739: The best overload for 'Dictionary' does not have a parameter named 'capacity'
                 //         return [with(capacity: c, comparer: e), k:v, x];
-                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("Dictionary", "capacity").WithLocation(15, 22));
         }
 
         string sourceE = $$"""
@@ -7340,12 +7341,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         comp = CreateCompilation(sourceE);
         comp.VerifyEmitDiagnostics(
-            // (6,22): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>' to 'System.Collections.Generic.IEqualityComparer<K>?'
+            // (6,22): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>' to 'System.Collections.Generic.IEqualityComparer<K>'
             //         return [with(c), k:v];
-            Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>", "System.Collections.Generic.IEqualityComparer<K>?").WithLocation(6, 22),
-            // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+            Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>", "System.Collections.Generic.IEqualityComparer<K>").WithLocation(6, 22),
+            // (10,22): error CS1739: The best overload for 'Dictionary' does not have a parameter named 'collection'
             //         return [with(collection: c), k:v];
-            Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("Dictionary", "collection").WithLocation(10, 22));
     }
 
 
@@ -7381,15 +7382,18 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     // (10,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<K>?'
                     //         c = [with(capacity)];
                     Diagnostic(ErrorCode.ERR_BadArgType, "capacity").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<K>?").WithLocation(10, 19),
-                    // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                    // (12,14): error CS1729: 'Dictionary<K, V>' does not contain a constructor that takes 2 arguments
                     //         c = [with(capacity, comparer)];
-                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<K, V>", "2").WithLocation(12, 14));
                 break;
             case "System.Collections.Generic.IDictionary<K, V>":
                 comp.VerifyEmitDiagnostics(
-                    // (9,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.<signature>(IEqualityComparer<K>?)' and 'Program.<signature>(int)'
+                    // (9,14): error CS0121: The call is ambiguous between the following methods or properties: 'System.Collections.Generic.Dictionary<K, V>.Dictionary(System.Collections.Generic.IEqualityComparer<K>?)' and 'System.Collections.Generic.Dictionary<K, V>.Dictionary(int)'
                     //         c = [with(default)];
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "[with(default)]").WithArguments("Program.<signature>(System.Collections.Generic.IEqualityComparer<K>?)", "Program.<signature>(int)").WithLocation(9, 13));
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "with").WithArguments("System.Collections.Generic.Dictionary<K, V>.Dictionary(System.Collections.Generic.IEqualityComparer<K>?)", "System.Collections.Generic.Dictionary<K, V>.Dictionary(int)").WithLocation(9, 14),
+                    // (9,19): error CS8716: There is no target type for the default literal.
+                    //         c = [with(default)];
+                    Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 19));
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(typeName);
@@ -7513,9 +7517,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (interfaceType == "IReadOnlyDictionary")
         {
             comp.VerifyDiagnostics(
-                // (10,16): error CS1501: No overload for method '<signature>' takes 2 arguments
+                // (10,17): error CS1729: 'Dictionary<K, V>' does not contain a constructor that takes 2 arguments
                 //         return [with(1, c), e];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "[with(1, c), e]").WithArguments("<signature>", "2").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<K, V>", "2").WithLocation(10, 17));
         }
         else
         {
@@ -7606,15 +7610,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                         // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                         //         c = [];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
-                        // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'capacity' of 'Program.<signature>(int)'
-                        //         c = [];
-                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("capacity", "Program.<signature>(int)").WithLocation(7, 13),
                         // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                         //         c = [with()];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
-                        // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'capacity' of 'Program.<signature>(int)'
+                        // (8,14): error CS7036: There is no argument given that corresponds to the required parameter 'capacity' of 'List<int>.List(int)'
                         //         c = [with()];
-                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[with()]").WithArguments("capacity", "Program.<signature>(int)").WithLocation(8, 13),
+                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with").WithArguments("capacity", "System.Collections.Generic.List<int>.List(int)").WithLocation(8, 14),
                         // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                         //         c = [with(i)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13));
@@ -7630,9 +7631,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                         // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                         //         c = [with(i)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13),
-                        // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        // (9,14): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
                         //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i)]").WithArguments("<signature>", "1").WithLocation(9, 13));
+                        Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1").WithLocation(9, 14));
                     break;
                 default:
                     comp.VerifyEmitDiagnostics();
@@ -7644,6 +7645,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             switch ((WellKnownMember)missingMember)
             {
                 case WellKnownMember.System_Collections_Generic_List_T__ctor:
+                case WellKnownMember.System_Collections_Generic_List_T__ctorInt32:
                     comp.VerifyEmitDiagnostics(
                         // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                         //         c = [];
@@ -7653,13 +7655,16 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
                         // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                         //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13));
+                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13),
+                        // (9,14): error CS9357: 'with(...)' element for a read-only interface must be empty if present
+                        //         c = [with(i)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(9, 14));
                     break;
                 default:
                     comp.VerifyEmitDiagnostics(
-                        // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        // (9,14): error CS9357: 'with(...)' element for a read-only interface must be empty if present
                         //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i)]").WithArguments("<signature>", "1").WithLocation(9, 13));
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(9, 14));
                     break;
             }
         }
@@ -7708,36 +7713,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                         // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
-                        // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        // (7,13): error CS1729: 'Dictionary<int, string>' does not contain a constructor that takes 0 arguments
                         //         c = [];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
-                        // (7,13): error CS1501: No overload for method '<signature>' takes 0 arguments
-                        //         c = [];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[]").WithArguments("<signature>", "0").WithLocation(7, 13),
+                        Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[").WithArguments("System.Collections.Generic.Dictionary<int, string>", "0").WithLocation(7, 13),
                         // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with()];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
-                        // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        // (8,14): error CS1729: 'Dictionary<int, string>' does not contain a constructor that takes 0 arguments
                         //         c = [with()];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
-                        // (8,13): error CS1501: No overload for method '<signature>' takes 0 arguments
-                        //         c = [with()];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with()]").WithArguments("<signature>", "0").WithLocation(8, 13),
-                        // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                        //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                        Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<int, string>", "0").WithLocation(8, 14),
                         // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(i)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
                         // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(e)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
-                        // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                        //         c = [with(e)];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
-                        // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                        //         c = [with(i, e)];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
                         // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(i, e)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13));
@@ -7774,9 +7764,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                         // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(i)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
-                        // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>?'
+                        // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>'
                         //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>?").WithLocation(9, 19),
+                        Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>").WithLocation(9, 19),
                         // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(e)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
@@ -7801,9 +7791,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                         // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(i, e)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
-                        // (11,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        // (11,14): error CS1729: 'Dictionary<int, string>' does not contain a constructor that takes 2 arguments
                         //         c = [with(i, e)];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i, e)]").WithArguments("<signature>", "2").WithLocation(11, 13));
+                        Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<int, string>", "2").WithLocation(11, 14));
                     break;
                 default:
                     comp.VerifyEmitDiagnostics();
@@ -7819,45 +7809,30 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                         // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
-                        // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Dictionary<int, string>.Dictionary(IEqualityComparer<int>)'
                         //         c = [];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
-                        // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Program.<signature>(IEqualityComparer<int>?)'
-                        //         c = [];
-                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("comparer", "Program.<signature>(System.Collections.Generic.IEqualityComparer<int>?)").WithLocation(7, 13),
+                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[").WithArguments("comparer", "System.Collections.Generic.Dictionary<int, string>.Dictionary(System.Collections.Generic.IEqualityComparer<int>)").WithLocation(7, 13),
                         // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with()];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
-                        // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        // (8,14): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Dictionary<int, string>.Dictionary(IEqualityComparer<int>)'
                         //         c = [with()];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
-                        // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Program.<signature>(IEqualityComparer<int>?)'
-                        //         c = [with()];
-                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[with()]").WithArguments("comparer", "Program.<signature>(System.Collections.Generic.IEqualityComparer<int>?)").WithLocation(8, 13),
+                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with").WithArguments("comparer", "System.Collections.Generic.Dictionary<int, string>.Dictionary(System.Collections.Generic.IEqualityComparer<int>)").WithLocation(8, 14),
                         // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(i)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
-                        // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>'
                         //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
-                        // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>?'
-                        //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>?").WithLocation(9, 19),
-                        // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                        //         c = [with(e)];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                        Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>").WithLocation(9, 19),
                         // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(e)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
                         // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(i, e)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
-                        // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                        // (11,14): error CS1729: 'Dictionary<int, string>' does not contain a constructor that takes 2 arguments
                         //         c = [with(i, e)];
-                        Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
-                        // (11,13): error CS1501: No overload for method '<signature>' takes 2 arguments
-                        //         c = [with(i, e)];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i, e)]").WithArguments("<signature>", "2").WithLocation(11, 13));
+                        Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<int, string>", "2").WithLocation(11, 14));
                     break;
                 case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K:
                     comp.VerifyEmitDiagnostics(
@@ -7870,30 +7845,30 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                         // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(i)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
-                        // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        // (9,14): error CS1729: 'Dictionary<int, string>' does not contain a constructor that takes 1 arguments
                         //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i)]").WithArguments("<signature>", "1").WithLocation(9, 13),
+                        Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<int, string>", "1").WithLocation(9, 14),
                         // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(e)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
-                        // (10,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        // (10,14): error CS1729: 'Dictionary<int, string>' does not contain a constructor that takes 1 arguments
                         //         c = [with(e)];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(e)]").WithArguments("<signature>", "1").WithLocation(10, 13),
+                        Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<int, string>", "1").WithLocation(10, 14),
                         // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                         //         c = [with(i, e)];
                         Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
-                        // (11,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        // (11,14): error CS1729: 'Dictionary<int, string>' does not contain a constructor that takes 2 arguments
                         //         c = [with(i, e)];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i, e)]").WithArguments("<signature>", "2").WithLocation(11, 13));
+                        Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<int, string>", "2").WithLocation(11, 14));
                     break;
                 default:
                     comp.VerifyEmitDiagnostics(
-                        // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>?'
+                        // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>'
                         //         c = [with(i)];
-                        Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>?").WithLocation(9, 19),
-                        // (11,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>").WithLocation(9, 19),
+                        // (11,14): error CS1729: 'Dictionary<int, string>' does not contain a constructor that takes 2 arguments
                         //         c = [with(i, e)];
-                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i, e)]").WithArguments("<signature>", "2").WithLocation(11, 13));
+                        Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.Dictionary<int, string>", "2").WithLocation(11, 14));
                     break;
             }
         }
