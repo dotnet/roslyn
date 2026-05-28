@@ -3810,8 +3810,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
+                            Debug.Assert(firstFilePath is not null);
                             Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements,
-                                singleDecl.NameLocation, firstFilePath!);
+                                singleDecl.NameLocation, firstFilePath);
                         }
 
                         builder.Add(new SynthesizedSimpleProgramEntryPointSymbol(this, singleDecl, diagnostics));
