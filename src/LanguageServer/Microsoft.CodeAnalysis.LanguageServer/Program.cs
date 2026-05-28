@@ -225,11 +225,25 @@ static RootCommand CreateCommand()
         DefaultValueFactory = _ => false,
     };
 
-    var autoLoadProjectsOption = new Option<bool>("--autoLoadProjects")
+    var autoLoadProjectsOption = new Option<int?>("--autoLoadProjects")
     {
-        Description = "The server should automatically discover and load projects based on the workspace folders",
+        Description = $"The server should automatically discover and load projects based on the workspace folders. " +
+                      $"Optionally accepts an integer specifying the maximum number of projects to auto-load; " +
+                      $"if no value is supplied, defaults to a server-recommended limit.",
         Required = false,
-        DefaultValueFactory = _ => false,
+        Arity = ArgumentArity.ZeroOrOne,
+        CustomParser = argumentResult =>
+        {
+            // Flag specified with no value, use an internal default
+            if (argumentResult.Tokens.Count == 0)
+                return 500;
+
+            if (int.TryParse(argumentResult.Tokens[0].Value, out var value))
+                return value;
+
+            argumentResult.AddError($"Invalid integer value '{argumentResult.Tokens[0].Value}' for --autoLoadProjects.");
+            return null;
+        },
     };
 
     var sourceGeneratorExecutionOption = new Option<SourceGeneratorExecutionPreference>("--sourceGeneratorExecutionPreference")
