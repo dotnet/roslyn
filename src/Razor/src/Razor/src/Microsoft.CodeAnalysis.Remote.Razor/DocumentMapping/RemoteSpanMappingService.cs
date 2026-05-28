@@ -41,7 +41,14 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
 
     private async ValueTask<RemoteExcerptResult?> TryExcerptAsync(Solution solution, DocumentId generatedDocumentId, TextSpan span, RazorExcerptMode mode, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken)
     {
-        if (await TryGetRazorDocumentForGeneratedDocumentIdAsync(generatedDocumentId, solution, cancellationToken).ConfigureAwait(false) is not var (generatedDocument, razorDocument))
+        var generatedDocument = await solution.GetSourceGeneratedDocumentAsync(generatedDocumentId, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return null;
+        }
+
+        var razorDocument = await TryGetRazorDocumentForGeneratedDocumentAsync(generatedDocument, cancellationToken).ConfigureAwait(false);
+        if (razorDocument is null)
         {
             return null;
         }
@@ -83,7 +90,14 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
 
     private async ValueTask<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Solution solution, DocumentId generatedDocumentId, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
-        if (await TryGetRazorDocumentForGeneratedDocumentIdAsync(generatedDocumentId, solution, cancellationToken).ConfigureAwait(false) is not var (generatedDocument, razorDocument))
+        var generatedDocument = await solution.GetSourceGeneratedDocumentAsync(generatedDocumentId, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return [];
+        }
+
+        var razorDocument = await TryGetRazorDocumentForGeneratedDocumentAsync(generatedDocument, cancellationToken).ConfigureAwait(false);
+        if (razorDocument is null)
         {
             return [];
         }
@@ -183,7 +197,8 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
     {
         try
         {
-            if (await TryGetRazorDocumentForGeneratedDocumentIdAsync(generatedDocumentId, solution, cancellationToken).ConfigureAwait(false) is not var (_, razorDocument))
+            var razorDocument = await TryGetRazorDocumentForGeneratedDocumentIdAsync(generatedDocumentId, solution, cancellationToken).ConfigureAwait(false);
+            if (razorDocument is null)
             {
                 return [];
             }
@@ -210,7 +225,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         }
     }
 
-    private async Task<(SourceGeneratedDocument Generated, TextDocument Razor)?> TryGetRazorDocumentForGeneratedDocumentIdAsync(DocumentId generatedDocumentId, Solution solution, CancellationToken cancellationToken)
+    private async Task<TextDocument?> TryGetRazorDocumentForGeneratedDocumentIdAsync(DocumentId generatedDocumentId, Solution solution, CancellationToken cancellationToken)
     {
         var generatedDocument = await solution.GetSourceGeneratedDocumentAsync(generatedDocumentId, cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
@@ -218,13 +233,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
             return null;
         }
 
-        var razorDocument = await TryGetRazorDocumentForGeneratedDocumentAsync(generatedDocument, cancellationToken).ConfigureAwait(false);
-        if (razorDocument is null)
-        {
-            return null;
-        }
-
-        return (generatedDocument, razorDocument);
+        return await TryGetRazorDocumentForGeneratedDocumentAsync(generatedDocument, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<TextDocument?> TryGetRazorDocumentForGeneratedDocumentAsync(SourceGeneratedDocument generatedDocument, CancellationToken cancellationToken)
