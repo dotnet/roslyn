@@ -30,7 +30,7 @@ internal sealed class AutoLoadProjectsInitializer(
 
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        if (!serverConfiguration.AutoLoadProjects)
+        if (serverConfiguration.AutoLoadProjects is not int projectAutoLoadMaximum)
         {
             return;
         }
@@ -97,6 +97,26 @@ internal sealed class AutoLoadProjectsInitializer(
         }
 
         _logger.LogInformation("Discovered {count} projects to auto load", projectFiles.Count);
+
+        if (projectFiles.Count > projectAutoLoadMaximum)
+        {
+            _logger.LogWarning("Number of projects exceeds the auto-load maximum of {ProjectAutoLoadMaximum}", projectAutoLoadMaximum);
+
+            // We're going to trim the project count down a bit; rather than trimming arbitrarily let's try to first trim out tests on the rationale that some repos can have a
+            // lot of test projects, but it's better to get the core projects loaded rather than the test projects (that then don't have functional references).
+            projectFiles.RemoveAll(f =>
+            {
+                var fileComponents = f.Split(Path.DirectorySeparatorChar);
+                return fileComponents.Contains("test", StringComparer.OrdinalIgnoreCase) ||
+                    fileComponents.Contains("tests", StringComparer.OrdinalIgnoreCase);
+            });
+
+            if (projectFiles.Count > projectAutoLoadMaximum)
+            {
+                _logger.LogWarning("Even after trimming test projects, number of projects still exceeds the auto-load maximum. Trimming to first {ProjectAutoLoadMaximum} projects.", projectAutoLoadMaximum);
+                projectFiles.RemoveRange(projectAutoLoadMaximum, projectFiles.Count - projectAutoLoadMaximum);
+            }
+        }
 
         await StartAndReportProgressAsync(
             (reporter) => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable(), reporter),
