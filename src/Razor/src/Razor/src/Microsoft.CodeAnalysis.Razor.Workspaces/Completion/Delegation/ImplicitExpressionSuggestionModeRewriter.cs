@@ -32,11 +32,6 @@ internal class ImplicitExpressionSuggestionModeRewriter : IDelegatedCSharpComple
         Position projectedPosition,
         RazorCompletionOptions completionOptions)
     {
-        if (!completionList.SuggestionMode)
-        {
-            return completionList;
-        }
-
         // The cursor is positioned right after the last typed character.  For example, in @h|
         // the host document index points at the character after 'h', which is typically the
         // start of the next token (e.g., '<' in '</div>').  To find the token the user is
@@ -49,6 +44,24 @@ internal class ImplicitExpressionSuggestionModeRewriter : IDelegatedCSharpComple
         var owner = codeDocument
             .GetRequiredSyntaxRoot()
             .FindInnermostNode(hostDocumentIndex - 1);
+
+        // Check if cursor is at the @ transition itself (no identifier typed yet).
+        // At @|, FindInnermostNode returns the CSharpTransitionSyntax whose parent is the implicit expression.
+        // We clear commit characters to prevent characters like '{' from committing (the user may
+        // intend @{ for a code block). We also mark the list incomplete so the client re-queries on the
+        // next keystroke — otherwise the client would filter locally and keep empty commit characters even
+        // after an identifier is typed (e.g., @ba), when normal commit behavior should be restored.
+        if (owner is CSharpTransitionSyntax { Parent: CSharpImplicitExpressionSyntax })
+        {
+            completionList.IsIncomplete = true;
+            ClearCommitCharacters(completionList);
+            return completionList;
+        }
+
+        if (!completionList.SuggestionMode)
+        {
+            return completionList;
+        }
 
         var implicitExpression = owner is { Parent: CSharpCodeBlockSyntax { Parent: CSharpImplicitExpressionBodySyntax { Parent: CSharpImplicitExpressionSyntax expr } } }
             ? expr
@@ -91,5 +104,26 @@ internal class ImplicitExpressionSuggestionModeRewriter : IDelegatedCSharpComple
         }
 
         return depth > 0;
+    }
+
+    /// <summary>
+    /// Clears all commit characters from the completion list to prevent unwanted commits
+    /// at the @ transition position. This is necessary for VS Code (which ignores SuggestionMode)
+    /// and also prevents commit characters from firing in VS IDE.
+    /// </summary>
+    private static void ClearCommitCharacters(RazorVSInternalCompletionList completionList)
+    {
+        completionList.CommitCharacters = null;
+
+        if (completionList.ItemDefaults is { } itemDefaults)
+        {
+            itemDefaults.CommitCharacters = null;
+        }
+
+        foreach (var item in completionList.Items)
+        {
+            item.CommitCharacters = null;
+            item.VsCommitCharacters = null;
+        }
     }
 }
