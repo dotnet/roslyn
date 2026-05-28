@@ -10215,7 +10215,7 @@ partial class Program
             var src1 = @"System.Console.Write(1);";
             var src2 = @"System.Console.Write(2);";
 
-            var comp = CreateCompilation(new[] { Parse(src1, filename: "Program.cs"), Parse(src2, filename: "Startup.cs") });
+            var comp = CreateCompilation([Parse(src1, filename: "Program.cs"), Parse(src2, filename: "Startup.cs")]);
 
             comp.VerifyDiagnostics(
                 // (1,1): error CS8802: Only one compilation unit can have top-level statements. 'Program.cs' also has top-level statements.
