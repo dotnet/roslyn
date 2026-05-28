@@ -23,27 +23,33 @@ namespace Microsoft.CodeAnalysis
 
         private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
-        private readonly IEqualityComparer<T> _inputComparer;
         private readonly IEqualityComparer<T>? _comparer;
         private readonly ObjectPool<PooledHashSet<T>>? _hashSetPool;
         private readonly string? _name;
 
         public InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, IEqualityComparer<T>? inputComparer = null)
-            : this(getInput, registerOutput: null, inputComparer: inputComparer, comparer: null)
+            : this(getInput, registerOutput: null, CreateHashSetPool(inputComparer), comparer: null)
         {
         }
 
-        private InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, Action<IIncrementalGeneratorOutputNode>? registerOutput, IEqualityComparer<T>? inputComparer = null, IEqualityComparer<T>? comparer = null, string? name = null)
+        private InputNode(
+            Func<DriverStateTable.Builder, ImmutableArray<T>> getInput,
+            Action<IIncrementalGeneratorOutputNode>? registerOutput,
+            ObjectPool<PooledHashSet<T>>? hashSetPool,
+            IEqualityComparer<T>? comparer = null,
+            string? name = null)
         {
             _getInput = getInput;
             _comparer = comparer;
-            _inputComparer = inputComparer ?? EqualityComparer<T>.Default;
             _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable());
-            _hashSetPool = _inputComparer == EqualityComparer<T>.Default
-                ? null
-                : PooledHashSet<T>.CreatePool(_inputComparer);
+            _hashSetPool = hashSetPool;
             _name = name;
         }
+
+        private static ObjectPool<PooledHashSet<T>>? CreateHashSetPool(IEqualityComparer<T>? inputComparer)
+            => inputComparer is null || inputComparer == EqualityComparer<T>.Default
+                ? null
+                : PooledHashSet<T>.CreatePool(inputComparer);
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
         {
@@ -133,36 +139,30 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<T> getNewInputItems(ImmutableArray<T> inputs, NodeStateTable<T> previous)
             {
                 var previousItemsSet = getPooledHashSet(previous.Count);
-                try
+                foreach (var (item, _, _, _) in previous)
                 {
-                    foreach (var (item, _, _, _) in previous)
-                    {
-                        previousItemsSet.Add(item);
-                    }
-
-                    var builder = ArrayBuilder<T>.GetInstance();
-                    foreach (var item in inputs)
-                    {
-                        if (!previousItemsSet.Contains(item))
-                        {
-                            builder.Add(item);
-                        }
-                    }
-
-                    return builder.ToImmutableAndFree();
+                    previousItemsSet.Add(item);
                 }
-                finally
+
+                var builder = ArrayBuilder<T>.GetInstance();
+                foreach (var item in inputs)
                 {
-                    previousItemsSet.Free();
+                    if (!previousItemsSet.Contains(item))
+                    {
+                        builder.Add(item);
+                    }
                 }
+
+                previousItemsSet.Free();
+                return builder.ToImmutableAndFree();
             }
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, _registerOutput, _inputComparer, comparer, _name);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, _registerOutput, _hashSetPool, comparer, _name);
 
-        public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new InputNode<T>(_getInput, _registerOutput, _inputComparer, _comparer, name);
+        public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new InputNode<T>(_getInput, _registerOutput, _hashSetPool, _comparer, name);
 
-        public InputNode<T> WithRegisterOutput(Action<IIncrementalGeneratorOutputNode> registerOutput) => new InputNode<T>(_getInput, registerOutput, _inputComparer, _comparer, _name);
+        public InputNode<T> WithRegisterOutput(Action<IIncrementalGeneratorOutputNode> registerOutput) => new InputNode<T>(_getInput, registerOutput, _hashSetPool, _comparer, _name);
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
 
