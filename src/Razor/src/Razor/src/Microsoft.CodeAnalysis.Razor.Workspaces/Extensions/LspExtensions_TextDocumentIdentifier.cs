@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 namespace Roslyn.LanguageServer.Protocol;
 
 internal static partial class LspExtensions
@@ -12,23 +11,22 @@ internal static partial class LspExtensions
             : null;
 
     /// <summary>
-    /// Returns a copy of the passed in <see cref="TextDocumentIdentifier"/> with the passed in <see cref="Uri"/>.
+    /// Returns a copy of the passed in <see cref="TextDocumentIdentifier"/> with the passed in <see cref="DocumentUri"/>.
     /// </summary>
-    public static TextDocumentIdentifier WithUri(this TextDocumentIdentifier textDocumentIdentifier, Uri uri)
+    public static TextDocumentIdentifier WithUri(this TextDocumentIdentifier textDocumentIdentifier, DocumentUri uri)
     {
-        var documentUri = new DocumentUri(uri);
         if (textDocumentIdentifier is VSTextDocumentIdentifier vsTdi)
         {
             return new VSTextDocumentIdentifier
             {
-                DocumentUri = documentUri,
+                DocumentUri = uri,
                 ProjectContext = vsTdi.ProjectContext
             };
         }
 
         return new TextDocumentIdentifier
         {
-            DocumentUri = documentUri
+            DocumentUri = uri
         };
     }
 }

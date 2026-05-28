@@ -31,6 +31,13 @@ namespace RunTests
             Logger.LogWarning(message);
         }
 
+        internal static void Error(string message)
+        {
+            Console.Write("##vso[task.logissue type=error]");
+            Console.WriteLine(message);
+            Logger.Log($"ERROR: {message}");
+        }
+
         internal static void WriteLine(string message)
         {
             Console.WriteLine(message);

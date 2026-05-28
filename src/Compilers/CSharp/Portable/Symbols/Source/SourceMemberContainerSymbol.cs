@@ -2069,10 +2069,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var ctor in InstanceConstructors)
                 {
-                    if (ctor.ParameterCount == 1 && ctor is not SynthesizedUnionCtor)
+                    if (ctor.DeclaredAccessibility == Accessibility.Public && ctor.ParameterCount == 1 && ctor is not SynthesizedUnionCtor)
                     {
                         diagnostics.Add(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, ctor.GetFirstLocation());
                     }
+                }
+
+                if (GetMemberProviderInterfaceForDefinition() is not null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MemberProviderInUnionDeclaration, location);
+                }
+            }
+            else if (IsUnionType)
+            {
+                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null) is null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
+                }
+
+                if (Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(this) is null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MissingUnionValueProperty, location);
                 }
             }
 
