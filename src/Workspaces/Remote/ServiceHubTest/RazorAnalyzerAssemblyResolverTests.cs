@@ -1,25 +1,24 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 #if NET
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Text;
-using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests;
+namespace Microsoft.CodeAnalysis.Remote.UnitTests;
 
 public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 {
@@ -34,12 +33,12 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         // show up as unexpected additions and the assertion in Dispose fails.
         TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.CSharp", typeof(CSharpCompilation).TypeHandle);
         TestHelpers.EnsureAssemblyLoaded("Basic.Reference.Assemblies.NetStandard20", typeof(NetStandard20).TypeHandle);
-        TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.ExternalAccess.Razor.Features", typeof(RazorAnalyzerAssemblyResolver).TypeHandle);
+        TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.Remote.ServiceHub", typeof(RazorAnalyzerAssemblyResolver).TypeHandle);
         TestHelpers.EnsureAssemblyLoaded("Microsoft.CodeAnalysis.Test.Utilities", typeof(AssertEx).TypeHandle);
         TestHelpers.EnsureAssemblyLoaded("xunit.assert", typeof(Assert).TypeHandle);
         TestHelpers.EnsureAssemblyLoaded("System.Threading.Tasks.Parallel", typeof(System.Threading.Tasks.Parallel).TypeHandle);
 
-        InitialAssemblies = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
+        InitialAssemblies = AssemblyLoadContext.GetLoadContext(GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
     }
 
     public void Dispose()
@@ -48,14 +47,14 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 
         // This test should not be loading any of the razor assemblies into the test assembly load context. That
         // would indicate a bug in our product code where it was incorrectly using the default load context.
-        // 
-        // Note: if this test fails due to a normal test assembly, like xunit.assert, being loaded after the 
+        //
+        // Note: if this test fails due to a normal test assembly, like xunit.assert, being loaded after the
         // snapshot, then add that assembly to the list of assemblies loaded in the constructor above.
-        var count = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
+        var count = AssemblyLoadContext.GetLoadContext(GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
         AssertEx.SetEqual(InitialAssemblies, count);
     }
 
-    private void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")
+    private static void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")
     {
         _ = Directory.CreateDirectory(directory);
         foreach (var simpleName in RazorAnalyzerAssemblyResolver.RazorAssemblyNames)
@@ -91,9 +90,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         var compilerLoadContext = new AssemblyLoadContext("Compiler", isCollectible: true);
         var currentLoadContext = new AssemblyLoadContext("Current", isCollectible: true);
         var loader = new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], compilerLoadContext);
-#pragma warning disable 612 
         var resolver = CreateResolver();
-#pragma warning restore 612 
         action(resolver, loader, currentLoadContext);
 
         Assert.Empty(currentLoadContext.Assemblies);
@@ -101,8 +98,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         compilerLoadContext.Unload();
     }
 
-    [Obsolete]
-    internal static RazorAnalyzerAssemblyResolver CreateResolver() => new RazorAnalyzerAssemblyResolver();
+    internal static RazorAnalyzerAssemblyResolver CreateResolver() => new();
 
     /// <summary>
     /// When running in Visual Studio the razor generator will be redirected to the razor language
@@ -175,14 +171,13 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         var serviceHubFolder = Path.Combine(dir, RazorAnalyzerAssemblyResolver.ServiceHubCoreFolderName);
         CreateRazorAssemblies(serviceHubFolder);
 
-        coreTest(dir, serviceHubFolder);
-        coreTest(dir + Path.DirectorySeparatorChar, serviceHubFolder);
-        coreTest(serviceHubFolder, serviceHubFolder);
-        coreTest(serviceHubFolder + Path.DirectorySeparatorChar, serviceHubFolder);
+        CoreTest(dir, serviceHubFolder);
+        CoreTest(dir + Path.DirectorySeparatorChar, serviceHubFolder);
+        CoreTest(serviceHubFolder, serviceHubFolder);
+        CoreTest(serviceHubFolder + Path.DirectorySeparatorChar, serviceHubFolder);
 
-        void coreTest(string loadDir, string serviceHubDir)
+        void CoreTest(string loadDir, string serviceHubDir)
         {
-            var name = Path.GetFileName(loadDir.AsSpan());
             RunWithLoader((resolver, loader, currentLoadContext) =>
             {
                 var assembly1 = resolver.Resolve(
@@ -197,7 +192,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
                     serviceHubFolder);
                 Assert.NotNull(assembly1);
                 Assert.Same(assembly1, assembly2);
-                Assert.Equal(serviceHubFolder, Path.GetDirectoryName(assembly1.Location));
+                Assert.Equal(serviceHubDir, Path.GetDirectoryName(assembly1.Location));
             });
         }
     }

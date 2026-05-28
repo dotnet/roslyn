@@ -38,6 +38,7 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\ProcessTelemetry\AbstractWorkspaceTelemetryService.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\Shared\*.cs" LinkBase="Services\ProcessTelemetry" />
     <Compile Include="..\..\..\Compilers\Shared\ThrowingTraceListener.cs" Link="Host\ThrowingTraceListener.cs" />
+    <Compile Include="..\..\..\Razor\src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\ExternalAccess\Razor\RazorAnalyzerAssemblyResolver.cs" Link="ExternalAccess\Razor\RazorAnalyzerAssemblyResolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />
