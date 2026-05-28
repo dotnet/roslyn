@@ -49,6 +49,8 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     /// </summary>
     private static readonly AsyncLocal<bool> s_suppressClassLevelValidation = new();
 
+    private static readonly TimeSpan s_asyncCleanupTimeout = TimeSpan.FromSeconds(5);
+
     private PoolTrackingContext? _context;
 #endif
 
@@ -82,6 +84,11 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
 
         var context = _context;
         _context = null;
+
+        if (LeakReason is null && !s_suppressClassLevelValidation.Value)
+        {
+            context?.WaitForOutstandingObjectsToBeFreed(s_asyncCleanupTimeout);
+        }
 
         PoolTracker.StopTracking();
 

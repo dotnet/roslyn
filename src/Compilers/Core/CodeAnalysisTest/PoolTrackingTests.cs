@@ -48,6 +48,36 @@ public class PoolTrackingTests
     }
 
     [Fact]
+    public async Task WaitForOutstandingObjectsToBeFreed_SeesAsyncFree()
+    {
+        PoolTracker.StartTracking(out var context);
+        var builder = ArrayBuilder<int>.GetInstance();
+        var task = Task.Run(async () =>
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            builder.Free();
+        });
+
+        Assert.True(context.HasLeaks);
+        Assert.True(context.WaitForOutstandingObjectsToBeFreed(TimeSpan.FromSeconds(5)));
+        PoolTracker.StopTracking();
+        await task;
+        Assert.False(context.HasLeaks);
+    }
+
+    [Fact]
+    public void WaitForOutstandingObjectsToBeFreed_TimesOutForLeak()
+    {
+        PoolTracker.StartTracking(out var context);
+        var builder = ArrayBuilder<int>.GetInstance();
+
+        Assert.False(context.WaitForOutstandingObjectsToBeFreed(TimeSpan.Zero));
+        PoolTracker.StopTracking();
+        Assert.True(context.HasLeaks);
+        builder.Free();
+    }
+
+    [Fact]
     public void TrackingFlowsIntoParallelFor()
     {
         PoolTracker.StartTracking(out var context);

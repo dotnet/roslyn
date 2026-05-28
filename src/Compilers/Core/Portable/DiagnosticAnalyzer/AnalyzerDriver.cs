@@ -332,12 +332,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Task? _lazyPrimaryTask;
 
         /// <summary>
-        /// The underlying driver task before the public completion continuation is applied.
-        /// This lets cleanup callers wait for analyzer processing to unwind even when <see cref="WhenCompletedTask"/> is canceled.
-        /// </summary>
-        private Task? _lazyPrimaryTaskCore;
-
-        /// <summary>
         /// Number of worker tasks processing compilation events and executing analyzer actions.
         /// </summary>
         private readonly int _workerCount = Environment.ProcessorCount;
@@ -460,7 +454,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     // Set primaryTask to be a cancelled task.
                     _lazyPrimaryTask = Task.FromCanceled(new CancellationToken(canceled: true));
-                    _lazyPrimaryTaskCore = _lazyPrimaryTask;
 
                     // Try to set the DiagnosticQueue to be complete.
                     this.DiagnosticQueue.TryComplete();
@@ -661,14 +654,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     await ExecutePrimaryAnalysisTaskAsync(analysisScope, usingPrePopulatedEventQueue: true, cancellationToken).ConfigureAwait(false);
 
                     _lazyPrimaryTask = Task.FromResult(true);
-                    _lazyPrimaryTaskCore = _lazyPrimaryTask;
                 }
             }
             finally
             {
                 // Set primaryTask to be a cancelled task.
                 _lazyPrimaryTask ??= Task.FromCanceled(new CancellationToken(canceled: true));
-                _lazyPrimaryTaskCore ??= _lazyPrimaryTask;
             }
         }
 
@@ -693,8 +684,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         this.DiagnosticQueue.TryComplete();
                     });
 
-                    _lazyPrimaryTaskCore = ExecutePrimaryAnalysisTaskAsync(analysisScope, usingPrePopulatedEventQueue, cancellationToken);
-                    _lazyPrimaryTask = _lazyPrimaryTaskCore
+                    _lazyPrimaryTask = ExecutePrimaryAnalysisTaskAsync(analysisScope, usingPrePopulatedEventQueue, cancellationToken)
                         .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                 }
             }
@@ -704,7 +694,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // Set primaryTask to be a cancelled task.
                     _lazyPrimaryTask = Task.FromCanceled(new CancellationToken(canceled: true));
-                    _lazyPrimaryTaskCore = _lazyPrimaryTask;
 
                     // Try to set the DiagnosticQueue to be complete.
                     this.DiagnosticQueue.TryComplete();
@@ -1132,16 +1121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             }
                         }
 
-                        // If cancellation is requested, still wait for suppression tasks to unwind so
-                        // pooled state owned by those tasks is returned before the caller observes completion.
-                        try
-                        {
-                            Task.WaitAll(tasks.ToArray(), CancellationToken.None);
-                        }
-                        catch (AggregateException ex) when (ex.InnerExceptions.All(static e => e is OperationCanceledException))
-                        {
-                            throw new OperationCanceledException(cancellationToken);
-                        }
+                        Task.WaitAll(tasks.ToArray(), cancellationToken);
                     }
                     finally
                     {
@@ -1474,16 +1454,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Debug.Assert(_lazyPrimaryTask != null);
                 return _lazyPrimaryTask;
-            }
-        }
-
-        /// <inheritdoc cref="_lazyPrimaryTaskCore" />
-        internal Task WhenCompletedTaskCore
-        {
-            get
-            {
-                Debug.Assert(_lazyPrimaryTaskCore != null);
-                return _lazyPrimaryTaskCore;
             }
         }
 
