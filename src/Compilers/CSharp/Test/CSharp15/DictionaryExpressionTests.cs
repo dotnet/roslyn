@@ -5540,13 +5540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (12,50): error CS0122: 'MyDictionary<K, V>.MyDictionary()' is inaccessible due to its protection level
                 //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
-                Diagnostic(ErrorCode.ERR_BadAccess, "[default:default]").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(12, 50),
-                // (12,51): error CS8716: There is no target type for the default literal.
-                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(12, 51),
-                // (12,59): error CS8716: There is no target type for the default literal.
-                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(12, 59));
+                Diagnostic(ErrorCode.ERR_BadAccess, "[default:default]").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(12, 50));
         }
 
         [Fact]
