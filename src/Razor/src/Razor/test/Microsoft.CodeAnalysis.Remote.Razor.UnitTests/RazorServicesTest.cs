@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Xml;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Roslyn.Test.Utilities;
 using Xunit;
