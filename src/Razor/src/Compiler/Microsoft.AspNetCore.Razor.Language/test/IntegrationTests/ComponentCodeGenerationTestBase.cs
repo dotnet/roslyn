@@ -2175,8 +2175,8 @@ namespace Test
 
         CompileToAssembly(generated);
 
-        Assert.DoesNotContain("AddAttribute", generated.AllCode);
-        Assert.Contains("AddComponentParameter", generated.AllCode);
+        Assert.DoesNotContain("AddAttribute", generated.Code);
+        Assert.Contains("AddComponentParameter", generated.Code);
     }
 
     [Fact]
@@ -9498,7 +9498,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        Assert.Contains("DynamicallyAccessedMembers", generated.AllCode);
+        Assert.Contains("DynamicallyAccessedMembers", generated.Code);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/11718")]
@@ -9540,7 +9540,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, expectedDiagnostics);
 
-        Assert.Contains("DynamicallyAccessedMembers", generated.AllCode);
+        Assert.Contains("DynamicallyAccessedMembers", generated.Code);
     }
 
     #endregion

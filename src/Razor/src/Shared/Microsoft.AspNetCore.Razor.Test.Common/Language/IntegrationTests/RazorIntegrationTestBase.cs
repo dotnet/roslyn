@@ -493,10 +493,6 @@ public class RazorIntegrationTestBase
         // Code (the impl half) and DeclCode must end up in the C# compilation as separate
         // syntax trees so the partial class halves rejoin and observers see the full type.
         public string? DeclCode { get; set; }
-        // Convenience for assertions that need to look across both halves of a split
-        // generated component (e.g. ``Assert.Contains("AddComponentParameter", AllCode)``).
-        // For non-split documents this is identical to <see cref="Code"/>.
-        public string AllCode => DeclCode is null ? Code : Code + DeclCode;
         public required IEnumerable<RazorDiagnostic> RazorDiagnostics { get; set; }
         public CSharpParseOptions? ParseOptions { get; set; }
     }
