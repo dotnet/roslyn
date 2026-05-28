@@ -4830,7 +4830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var scope = receiverScope;
                     foreach (var element in expr.Elements)
                     {
-                        if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
+                        if (TryGetCollectionExpressionElementValEscape(expr, element, out var elementSafeContext))
                         {
                             scope = scope.Intersect(elementSafeContext);
                         }
@@ -4842,7 +4842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool TryGetCollectionExpressionElementValEscape(BoundNode element, out SafeContext safeContext)
+        private bool TryGetCollectionExpressionElementValEscape(BoundCollectionExpression expr, BoundNode element, out SafeContext safeContext)
         {
             if (element is BoundCollectionElementInitializer colElement)
             {
@@ -4875,7 +4875,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (element is BoundKeyValuePairElement keyValuePairElement)
             {
-                safeContext = GetValEscape(keyValuePairElement.Key).Intersect(GetValEscape(keyValuePairElement.Value));
+                if (expr.IndexerSetMethod is { } indexerSetMethod)
+                {
+                    // The key and value are stored into the collection via an invocation of the indexer's set
+                    // accessor. If that accessor captures a ref to one of its arguments into the receiver (for
+                    // example, via an `[UnscopedRef] in` key parameter on a ref struct), then the collection's
+                    // safe-context is narrowed to the safe-context of that argument.
+                    Debug.Assert(expr.Placeholder is { });
+                    safeContext = GetInvocationEscapeToReceiver(
+                        MethodInvocationInfo.FromCallParts(
+                            indexerSetMethod,
+                            expr.Placeholder,
+                            [keyValuePairElement.Key, keyValuePairElement.Value],
+                            ThreeState.False));
+                }
+                else
+                {
+                    safeContext = GetValEscape(keyValuePairElement.Key).Intersect(GetValEscape(keyValuePairElement.Value));
+                }
+
                 return true;
             }
 

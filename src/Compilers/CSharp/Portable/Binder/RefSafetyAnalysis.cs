@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     using var _3 = new PlaceholderRegion(this, spreadPlaceholders);
 
-                    if (TryGetCollectionExpressionElementValEscape(element, out var spreadEscape))
+                    if (TryGetCollectionExpressionElementValEscape(node, element, out var spreadEscape))
                     {
                         elementsScope = elementsScope.Intersect(spreadEscape);
                     }
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(element is BoundCollectionElementInitializer or BoundExpression or BoundKeyValuePairElement, $"Unexpected collection expression element {element}");
 
-                    if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
+                    if (TryGetCollectionExpressionElementValEscape(node, element, out var elementSafeContext))
                     {
                         elementsScope = elementsScope.Intersect(elementSafeContext);
                     }

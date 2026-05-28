@@ -1693,9 +1693,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (18,16): error CS8352: Cannot use variable 'd' in this context because it may expose referenced variables outside of their declaration scope
                 //         return d;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "d").WithArguments("d").WithLocation(18, 16),
-                // (22,16): error CS9203: A collection expression of type 'MyDictionary<K, V>' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [k:v];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[k:v]").WithArguments("MyDictionary<K, V>").WithLocation(22, 16),
                 // (27,16): error CS8352: Cannot use variable 'd' in this context because it may expose referenced variables outside of their declaration scope
                 //         return d;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "d").WithArguments("d").WithLocation(27, 16));
