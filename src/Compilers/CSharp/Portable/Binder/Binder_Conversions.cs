@@ -1219,7 +1219,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder.GenerateImplicitConversionError(_diagnostics, _binder.Compilation, syntax, dictionaryConversion, dictionaryType, _targetType);
                 }
 
+                // Verify the existence of the Dictionary<K, V> ctors that may be used by with(...) overload resolution
+                // and lowering, even though not all will be used for any particular collection expression. Checking all
+                // gives a consistent behavior, regardless of collection expression elements / arguments. Per the
+                // dictionary-expressions proposal, only the mutable IDictionary<K, V> target offers the capacity-based
+                // ctors; the read-only and base-interface targets only offer the () and (IEqualityComparer<K>) ctors.
+                bool isIDictionary = targetNamedType.OriginalDefinition.Equals(
+                    _binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV),
+                    TypeCompareKind.ConsiderEverything);
+
                 _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, _diagnostics, syntax: syntax);
+                _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K, _diagnostics, syntax: syntax);
+                if (isIDictionary)
+                {
+                    _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32, _diagnostics, syntax: syntax);
+                    _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K, _diagnostics, syntax: syntax);
+                }
                 var setMethod = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, _diagnostics, syntax: syntax);
                 setMethod = (MethodSymbol?)setMethod?.SymbolAsMember(dictionaryType);
 
@@ -1228,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor, _diagnostics, syntax: syntax);
                 }
 
-                var collectionCreation = bindDictionaryConstructorConstruction(in this, syntax, dictionaryType);
+                var collectionCreation = bindDictionaryConstructorConstruction(in this, syntax, dictionaryType, isIDictionary);
                 if (collectionCreation.HasErrors)
                 {
                     return null;
@@ -1245,28 +1260,68 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation: collectionCreation,
                     indexerSetMethod: setMethod);
 
-                static BoundExpression bindDictionaryConstructorConstruction(ref readonly CollectionExpressionConverter @this, SyntaxNode syntax, NamedTypeSymbol dictionaryType)
+                static BoundExpression bindDictionaryConstructorConstruction(ref readonly CollectionExpressionConverter @this, SyntaxNode syntax, NamedTypeSymbol dictionaryType, bool isIDictionary)
                 {
-                    // The dictionary-expressions proposal (see ConvertCollectionExpression in the
-                    // features/dictionary-expressions-old branch) routes this through
-                    // BindInterfaceTargetCollectionMethodGroup / BindInterfaceTargetCollectionArguments,
-                    // which synthesizes a method group for the Dictionary<K, V> constructor overloads and
-                    // produces missing-member diagnostics for each. That machinery (the
-                    // CollectionArgumentsSignatureOnlyMethodSymbol "addSignature" mechanism) has not been
-                    // ported yet, so for now we bind the parameterless constructor directly via the normal
-                    // class-creation path.
+                    // Mirrors bindCollectionArrayInterfaceConstruction in TryConvertCollectionExpressionArrayInterfaceType:
+                    // we form a subset of the Dictionary<K, V> instance constructors that with(...) is allowed to bind to,
+                    // and run overload resolution against just that subset. Any user-authored with(...) arguments are
+                    // applied to the underlying mutable Dictionary<K, V>; for IReadOnlyDictionary targets the LocalRewriter
+                    // additionally wraps the result in a ReadOnlyDictionary<K, V>.
+                    //
+                    // Per the dictionary-expressions proposal (mirrored from
+                    // https://github.com/dotnet/csharplang/blob/main/proposals/dictionary-expressions.md and
+                    // collection-expression-arguments.md), the allowed overloads are:
+                    //   - IDictionary<K, V>:        (), (IEqualityComparer<K>), (int capacity), (int capacity, IEqualityComparer<K>)
+                    //   - IReadOnlyDictionary<K, V> and base interfaces: (), (IEqualityComparer<K>)
                     var withElement = @this._node.WithElement;
+                    var withSyntax = withElement?.Syntax ?? syntax;
+
+                    // Don't need to report diagnostics here. Our caller will have already done this.
+                    var compilation = @this._binder.Compilation;
+                    var ctor = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor);
+                    var ctorComparer = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K);
+                    var ctorInt32 = isIDictionary
+                        ? (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32)
+                        : null;
+                    var ctorInt32Comparer = isIDictionary
+                        ? (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K)
+                        : null;
+
+                    var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
+                    candidateConstructorsBuilder.AddIfNotNull(ctor?.AsMember(dictionaryType));
+                    candidateConstructorsBuilder.AddIfNotNull(ctorComparer?.AsMember(dictionaryType));
+                    candidateConstructorsBuilder.AddIfNotNull(ctorInt32?.AsMember(dictionaryType));
+                    candidateConstructorsBuilder.AddIfNotNull(ctorInt32Comparer?.AsMember(dictionaryType));
+                    var candidateConstructors = candidateConstructorsBuilder.ToImmutableAndFree();
+
                     var analyzedArguments = withElement is null
                         ? AnalyzedArguments.GetInstance()
                         : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
-                    var collectionCreation = @this._binder.BindClassCreationExpression(
-                        syntax,
-                        dictionaryType.Name,
-                        syntax,
-                        dictionaryType,
-                        analyzedArguments,
-                        @this._diagnostics);
+                    var useSiteInfo = @this._binder.GetNewCompoundUseSiteInfo(@this._diagnostics);
+
+                    BoundExpression collectionCreation;
+                    if (@this._binder.TryPerformOverloadResolutionWithConstructorSubset(
+                            dictionaryType,
+                            ref candidateConstructors,
+                            candidateConstructors,
+                            analyzedArguments,
+                            dictionaryType.Name,
+                            withSyntax.GetFirstToken().GetLocation(),
+                            suppressResultDiagnostics: false,
+                            @this._diagnostics,
+                            out var memberResolutionResult,
+                            ref useSiteInfo,
+                            isParamsModifierValidation: false))
+                    {
+                        collectionCreation = @this._binder.BindClassCreationExpressionContinued(
+                            withSyntax, withSyntax, dictionaryType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
+                    }
+                    else
+                    {
+                        collectionCreation = @this._binder.CreateBadClassCreationExpression(
+                            withSyntax, withSyntax, dictionaryType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
+                    }
 
                     collectionCreation.WasCompilerGenerated = withElement is null;
                     analyzedArguments.Free();
