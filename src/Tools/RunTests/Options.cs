@@ -154,7 +154,8 @@ namespace RunTests
             // High-level test category flags (previously handled by build.ps1/build.sh)
             string? testFramework = null;
             string? testSet = null;
-            var environmentVariables = new Dictionary<string, string>();
+            var environmentVariables = new Dictionary<string, string>(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
             var optionSet = new OptionSet()
             {
@@ -294,6 +295,26 @@ namespace RunTests
                 if (timeout is not null)
                 {
                     ConsoleUtil.WriteLine("--timeout is not supported with --helix. Timeout is managed by the helix infrastructure.");
+                    return null;
+                }
+
+                if (includeHtml)
+                {
+                    ConsoleUtil.WriteLine("--html is not supported with --helix.");
+                    return null;
+                }
+            }
+            else
+            {
+                if (helixApiAccessToken is not null)
+                {
+                    ConsoleUtil.WriteLine("--helixApiAccessToken is not supported without --helix.");
+                    return null;
+                }
+
+                if (helixQueueName != "Windows.10.Amd64.Open")
+                {
+                    ConsoleUtil.WriteLine("--helixQueueName is not supported without --helix.");
                     return null;
                 }
             }

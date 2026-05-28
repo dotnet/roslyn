@@ -67,10 +67,6 @@ param (
   [switch]$testIOperation,
   [switch]$testUsedAssemblies,
   [switch]$testRuntimeAsync,
-  [switch]$sequential,
-  [switch]$helix,
-  [string]$helixQueueName = "",
-  [string]$helixApiAccessToken = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -195,11 +191,6 @@ function Process-Arguments() {
   $anyUnit = $testDesktop -or $testCoreClr
   if ($anyUnit -and $testVsi) {
     Write-Host "Cannot combine unit and VSI testing"
-    exit 1
-  }
-
-  if ($testVsi -and $helix) {
-    Write-Host "Cannot run integration tests on Helix"
     exit 1
   }
 
@@ -359,27 +350,6 @@ function GetIbcDropName() {
     return $drop.Name
 }
 
-function GetCompilerTestAssembliesIncludePaths() {
-  $assemblies = " --include '^Microsoft\.CodeAnalysis\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
-  $assemblies += " --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
-  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
-  return $assemblies
-}
-
 # Core function for running our unit / integration tests tests
 function TestUsingRunTests() {
 
@@ -423,19 +393,19 @@ function TestUsingRunTests() {
   $dotnetExe = Join-Path $dotnet "dotnet.exe"
   $args += " --dotnet `"$dotnetExe`""
   $args += " --logs `"$LogDir`""
-  $args += " --configuration $configuration"
+  $args += " --testConfiguration $configuration"
 
   if ($testCoreClr) {
-    $args += " --runtime core"
+    $args += " --testFramework:core"
     $timeout = 90
     if ($testCompilerOnly) {
-      $args += GetCompilerTestAssembliesIncludePaths
+      $args += " --testSet:compiler"
     } else {
       $args += " --include '\.UnitTests'"
     }
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
-    $args += " --runtime framework"
+    $args += " --testFramework:desktop"
     $timeout = 90
 
     if ($testRuntimeAsync) {
@@ -444,7 +414,7 @@ function TestUsingRunTests() {
     }
 
     if ($testCompilerOnly) {
-      $args += GetCompilerTestAssembliesIncludePaths
+      $args += " --testSet:compiler"
     } else {
       $args += " --include '\.UnitTests'"
     }
@@ -455,8 +425,7 @@ function TestUsingRunTests() {
 
   } elseif ($testVsi) {
     $timeout = 220
-    $args += " --runtime both"
-    $args += " --sequential"
+    $args += " --testFramework:both"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
@@ -470,30 +439,13 @@ function TestUsingRunTests() {
   }
 
   if ($collectDumps) {
-    $procdumpFilePath = Ensure-ProcDump
-    $args += " --procdumppath $procDumpFilePath"
     $args += " --collectdumps";
   }
 
-  $args += " --arch $testArch"
+  $args += " --testPlatform $testArch"
 
-  if ($sequential) {
-    $args += " --sequential"
-  }
-
-  if ($helix) {
-    $args += " --helix"
-  }
-  elseif ($timeout -gt 0) {
+  if ($timeout -gt 0) {
     $args += " --timeout $timeout"
-  }
-
-  if ($helixQueueName) {
-    $args += " --helixQueueName $helixQueueName"
-  }
-
-  if ($helixApiAccessToken) {
-    $args += " --helixApiAccessToken $helixApiAccessToken"
   }
 
   try {
@@ -505,8 +457,7 @@ function TestUsingRunTests() {
       Remove-Item env:\ROSLYN_TEST_CI
     }
 
-    # Note: remember to update TestRunner when using new environment variables
-    # (they need to be transferred over to the Helix machines that run the tests)
+    # Note: remember to update Options.cs when using new environment variables
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
@@ -689,27 +640,6 @@ function Deploy-VsixViaTool() {
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
 # the procdump binaries (both 32 and 64 bit)
-function Ensure-ProcDump() {
-
-  # Jenkins images default to having procdump installed in the root.  Use that if available to avoid
-  # an unnecessary download.
-  if (Test-Path "C:\SysInternals\procdump.exe") {
-    return "C:\SysInternals"
-  }
-
-  $outDir = Join-Path $ToolsDir "ProcDump"
-  $filePath = Join-Path $outDir "procdump.exe"
-  if (-not (Test-Path $filePath)) {
-    Remove-Item -Re $filePath -ErrorAction SilentlyContinue
-    Create-Directory $outDir
-    $zipFilePath = Join-Path $toolsDir "procdump.zip"
-    Invoke-WebRequest "https://download.sysinternals.com/files/Procdump.zip" -UseBasicParsing -outfile $zipFilePath | Out-Null
-    Unzip $zipFilePath $outDir
-  }
-
-  return $filePath
-}
-
 # Setup the CI machine for running our integration tests.
 function Setup-IntegrationTestRun() {
   $processesToStopOnExit += "devenv"
