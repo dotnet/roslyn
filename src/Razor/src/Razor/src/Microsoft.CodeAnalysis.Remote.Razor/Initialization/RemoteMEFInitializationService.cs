@@ -7,7 +7,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.ServiceHub.Framework;
 using static Microsoft.CodeAnalysis.Remote.Razor.RazorBrokeredServiceBase;

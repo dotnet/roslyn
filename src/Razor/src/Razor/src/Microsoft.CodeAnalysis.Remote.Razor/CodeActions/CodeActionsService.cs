@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-    using System.Text.Json;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -211,7 +211,7 @@ internal sealed class CodeActionsService(
         return csharpText.GetRange(TextSpan.FromBounds(classDeclaration.Identifier.SpanStart, baseType.Type.Span.End));
     }
 
-    private RazorVSInternalCodeAction[] ExtractCSharpCodeActionNamesFromData(RazorVSInternalCodeAction[] codeActions)
+    private static RazorVSInternalCodeAction[] ExtractCSharpCodeActionNamesFromData(RazorVSInternalCodeAction[] codeActions)
     {
         using var actions = new PooledArrayBuilder<RazorVSInternalCodeAction>();
 
@@ -332,5 +332,4 @@ internal sealed class CodeActionsService(
 
         return codeActions.ToImmutableOrderedByAndClear(static r => r.Order);
     }
-
 }
