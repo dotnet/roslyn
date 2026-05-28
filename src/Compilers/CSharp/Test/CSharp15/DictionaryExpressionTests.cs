@@ -5767,15 +5767,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (17,9): error CS0411: The type arguments for method 'Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F([with(null)], x);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)").WithLocation(17, 9),
-                // (18,24): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
-                //         F<int, string>([with(null)], x);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[with(null)]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(18, 24),
                 // (18,38): error CS1503: Argument 2: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'params MyDictionary<int, string>'
                 //         F<int, string>([with(null)], x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "System.Collections.Generic.KeyValuePair<int, string>", "params MyDictionary<int, string>").WithLocation(18, 38),
-                // (19,11): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
-                //         F([with(null)], [x]);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[with(null)]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(19, 11),
                 // (19,25): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
                 //         F([with(null)], [x]);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(19, 25),
