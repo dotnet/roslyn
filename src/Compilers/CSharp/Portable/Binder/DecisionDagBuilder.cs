@@ -996,29 +996,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundPattern pattern = subpattern.Pattern;
                     BoundDagTemp currentInput = input;
 
-                    if (subpattern.Member is { Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property } &&
-                        input.Type is NamedTypeSymbol { IsUnionType: true } unionType &&
-                        Binder.IsUnionTypeValueProperty(unionType, property))
+                    if (subpattern.Member is { Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property, Receiver: var receiver } member)
                     {
-                        // This sub-pattern is a union matching 
+                        Debug.Assert(subpattern is { IsLengthOrCount: false });
 
-                        Debug.Assert(subpattern is { Member.Receiver: null, IsLengthOrCount: false }); // This is the shape created by UnionMatchingRewriter.
-
-                        // https://github.com/dotnet/roslyn/issues/82636: Since direct property access can be a qualified name, we probably should recognize that case as well.
-                        //                                                Once changed, the logic in BindPropertyPatternClause should be aligned as well.
-                        if (subpattern is { Member.Receiver: null, IsLengthOrCount: false })
+                        if ((receiver is null ? input.Type : receiver.Type.StrippedType()) is NamedTypeSymbol { IsUnionType: true } unionType &&
+                            Binder.IsUnionTypeValueProperty(unionType, property))
                         {
-                            tests.Add(MakeTestsAndBindings(new TestInputOutputInfo(input, subpattern.Member), pattern, output: out _, bindings));
+                            // This sub-pattern is a union matching 
+
+                            if (!tryMakeTestsForSubpatternMemberReceiver(subpattern, member, ref currentInput))
+                            {
+                                continue;
+                            }
+
+                            tests.Add(MakeTestsAndBindings(new TestInputOutputInfo(currentInput, member), pattern, output: out _, bindings));
                             continue;
                         }
                     }
 
-                    if (!tryMakeTestsForSubpatternMember(subpattern.Member, ref currentInput, subpattern.IsLengthOrCount))
-                    {
-                        Debug.Assert(recursive.HasAnyErrors);
-                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
-                    }
-                    else
+                    if (tryMakeTestsForSubpatternMember(subpattern, subpattern.Member, ref currentInput, subpattern.IsLengthOrCount))
                     {
                         tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
                     }
@@ -1036,16 +1033,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Tests.AndSequence.Create(tests);
 
-            bool tryMakeTestsForSubpatternMember([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input, bool isLengthOrCount)
+            bool tryMakeTestsForSubpatternMemberReceiver(BoundPropertySubpattern subpattern, BoundPropertySubpatternMember member, ref BoundDagTemp input)
+            {
+                if (member.Receiver is { } receiver)
+                {
+                    // int doesn't have a property, so isLengthOrCount could never be true
+                    if (tryMakeTestsForSubpatternMember(subpattern, receiver, ref input, isLengthOrCount: false))
+                    {
+                        // If this is not the first member, add null test, unwrap nullables, and continue.
+                        input = (BoundDagTemp)MakeConvertToType((TestInputOutputInfo)input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            bool tryMakeTestsForSubpatternMember(BoundPropertySubpattern subpattern, [NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input, bool isLengthOrCount)
             {
                 if (member is null)
-                    return false;
-
-                // int doesn't have a property, so isLengthOrCount could never be true
-                if (tryMakeTestsForSubpatternMember(member.Receiver, ref input, isLengthOrCount: false))
                 {
-                    // If this is not the first member, add null test, unwrap nullables, and continue.
-                    input = (BoundDagTemp)MakeConvertToType((TestInputOutputInfo)input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
+                    Debug.Assert(subpattern.HasAnyErrors);
+                    tests.Add(new Tests.One(new BoundDagTypeTest(subpattern.Syntax, ErrorType(), input, hasErrors: true)));
+                    return false;
+                }
+
+                if (!tryMakeTestsForSubpatternMemberReceiver(subpattern, member, ref input))
+                {
+                    return false;
                 }
 
                 BoundDagEvaluation evaluation;
@@ -1066,6 +1084,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
                     default:
+                        Debug.Assert(subpattern.HasAnyErrors);
+                        tests.Add(new Tests.One(new BoundDagTypeTest(subpattern.Syntax, ErrorType(), input, hasErrors: true)));
                         return false;
                 }
 

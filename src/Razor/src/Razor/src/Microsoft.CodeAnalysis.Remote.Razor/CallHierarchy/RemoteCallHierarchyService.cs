@@ -218,7 +218,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
             Kind = item.Kind,
             Tags = item.Tags,
             Detail = item.Detail,
-            Uri = new(mappedDocumentUri),
+            Uri = mappedDocumentUri.CreateDocumentUriFromSystemUri(),
             Range = mappedRange,
             SelectionRange = mappedSelectionRange,
             Data = item.Data,

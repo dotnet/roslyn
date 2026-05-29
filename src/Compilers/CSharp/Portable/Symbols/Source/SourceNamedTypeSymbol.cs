@@ -1806,7 +1806,7 @@ next:;
             {
                 AddSynthesizedAttribute(
                     ref attributes,
-                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor));
+                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor));
             }
 
             // Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta

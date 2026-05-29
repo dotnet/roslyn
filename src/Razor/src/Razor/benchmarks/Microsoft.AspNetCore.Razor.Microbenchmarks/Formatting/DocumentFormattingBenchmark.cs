@@ -42,7 +42,7 @@ public class DocumentFormattingBenchmark
     private const string DocumentRelativePath = "DocumentFormattingBenchmark.cshtml";
     private const string RootNamespace = "Benchmark";
 
-    private static readonly Uri s_documentUri = new(DocumentFilePath);
+    private static readonly DocumentUri s_documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(DocumentFilePath);
     private static readonly AnalyzerFileReference s_razorSourceGeneratorReference = new(
         typeof(RazorSourceGenerator).Assembly.Location,
         AnalyzerAssemblyLoader.Instance);

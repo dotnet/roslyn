@@ -127,7 +127,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     {
         return new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = new(uri) }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri.CreateDocumentUriFromSystemUri() }
         };
     }
 

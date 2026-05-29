@@ -52,7 +52,7 @@ internal sealed partial class RemoteDocumentSymbolService(in ServiceArgs args) :
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
-        return _documentSymbolService.GetDocumentSymbols(context.Snapshot.FileKind, context.Uri, csharpDocument, csharpSymbols);
+        return _documentSymbolService.GetDocumentSymbols(context.Snapshot.FileKind, context.Uri.GetRequiredSystemUri(), csharpDocument, csharpSymbols);
     }
 
     private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols)

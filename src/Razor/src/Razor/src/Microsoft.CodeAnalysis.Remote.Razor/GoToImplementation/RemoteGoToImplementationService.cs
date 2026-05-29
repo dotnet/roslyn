@@ -96,7 +96,7 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
                 .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
                 .ConfigureAwait(false);
 
-            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri, mappedRange);
+            var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri.CreateDocumentUriFromSystemUri(), mappedRange);
 
             mappedLocations.Add(mappedLocation);
         }

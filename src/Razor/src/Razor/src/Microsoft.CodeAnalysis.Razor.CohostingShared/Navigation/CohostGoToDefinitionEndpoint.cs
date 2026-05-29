@@ -98,11 +98,11 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
         if (result.TryGetFirst(out var singleLocation))
         {
-            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri.GetRequiredSystemUri()), singleLocation.Range.ToLinePositionSpan());
+            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri.GetRequiredSystemUri()).CreateDocumentUriFromSystemUri(), singleLocation.Range.ToLinePositionSpan());
         }
         else if (result.TryGetSecond(out var multipleLocations))
         {
-            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri.GetRequiredSystemUri()), l.Range.ToLinePositionSpan()));
+            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri.GetRequiredSystemUri()).CreateDocumentUriFromSystemUri(), l.Range.ToLinePositionSpan()));
         }
         else if (result.TryGetThird(out var documentLinks))
         {
@@ -112,7 +112,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
             {
                 if (documentLink.DocumentTarget is DocumentUri target)
                 {
-                    builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target.GetRequiredSystemUri()), documentLink.Range.ToLinePositionSpan()));
+                    builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target.GetRequiredSystemUri()).CreateDocumentUriFromSystemUri(), documentLink.Range.ToLinePositionSpan()));
                 }
             }
 

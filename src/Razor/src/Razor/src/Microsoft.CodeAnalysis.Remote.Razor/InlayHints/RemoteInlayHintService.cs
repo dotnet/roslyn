@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol.InlayHints;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -59,7 +60,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var textDocument = inlayHintParams.TextDocument.WithUri(generatedDocument.CreateSystemUri());
+        var textDocument = inlayHintParams.TextDocument.WithUri(generatedDocument.GetURI());
 
         using var inlayHintsBuilder = new PooledArrayBuilder<InlayHint>();
         var razorSourceText = codeDocument.Source.Text;
