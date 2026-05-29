@@ -6564,7 +6564,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
             [
-                 // (2,12): error CS9362: 'C.Length.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // (2,12): error CS9362: 'C.Length.get' must be used in an unsafe context because it is marked as 'unsafe'
                 // _ = c is { Length: 0 };
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "Length:").WithArguments("C.Length.get").WithLocation(2, 12),
                 // (3,10): error CS9362: 'C.Length.get' must be used in an unsafe context because it is marked as 'unsafe'
@@ -12093,6 +12093,50 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (13,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     safe extern ~C();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(13, 5));
+    }
+
+    [Theory, CombinatorialData]
+    public void SafeModifier_Declarations_Interface(bool allowUnsafe)
+    {
+        var source = """
+            interface I1
+            {
+                safe void M();
+                safe int P { get; set; }
+                safe event System.Action E;
+                int A { safe get; set; }
+            }
+            interface I2 : I1
+            {
+                safe void I1.M() { }
+                safe int I1.P { get => 0; set { } }
+                safe event System.Action I1.E { add { } remove { } }
+                int I1.A { safe get => 0; set { } }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(),
+            targetFramework: TargetFramework.Net100)
+            .VerifyDiagnostics(
+            // (3,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe void M();
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(3, 5),
+            // (4,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
+            // (5,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
+            // (10,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe void I1.M() { }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
+            // (11,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe int I1.P { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(11, 5),
+            // (12,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe event System.Action I1.E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 5));
     }
 
     [Theory, CombinatorialData]

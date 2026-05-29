@@ -177,6 +177,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Theory]
+    [InlineData("safe public C();", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
     [InlineData("safe public extern C();", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("public safe extern C();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("extern safe public C();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
