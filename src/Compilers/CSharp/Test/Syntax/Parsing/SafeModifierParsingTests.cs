@@ -205,33 +205,6 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Theory]
-    [InlineData("safe ~C();", SyntaxKind.SafeKeyword)]
-    [InlineData("safe extern ~C();", SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
-    [InlineData("extern safe ~C();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
-    public void Destructor(string source, params SyntaxKind[] expectedModifiers)
-    {
-        UsingDeclaration(source);
-
-        N(SyntaxKind.ConstructorDeclaration);
-        {
-            foreach (var expectedModifier in expectedModifiers)
-            {
-                N(expectedModifier);
-            }
-
-            N(SyntaxKind.TildeToken);
-            N(SyntaxKind.IdentifierToken, "C");
-            N(SyntaxKind.ParameterList);
-            {
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.CloseParenToken);
-            }
-            N(SyntaxKind.SemicolonToken);
-        }
-        EOF();
-    }
-
-    [Theory]
     [InlineData("safe static extern void Local();", SyntaxKind.SafeKeyword, SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("static safe extern void Local();", SyntaxKind.StaticKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("static extern safe void Local();", SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
@@ -373,6 +346,71 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
             }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Destructor_ExternSafe_Before()
+    {
+        UsingDeclaration("extern safe ~C();", TestOptions.Regular14,
+            // (1,1): error CS1073: Unexpected token '~'
+            // extern safe ~C();
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "extern safe").WithArguments("~").WithLocation(1, 1),
+            // (1,13): error CS1519: Invalid token '~' in a member declaration
+            // extern safe ~C();
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "~").WithArguments("~").WithLocation(1, 13));
+
+        N(SyntaxKind.IncompleteMember);
+        {
+            N(SyntaxKind.ExternKeyword);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "safe");
+            }
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void Destructor_ExternSafe_After(
+        [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+    {
+        UsingDeclaration("extern safe ~C();", TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.DestructorDeclaration);
+        {
+            N(SyntaxKind.ExternKeyword);
+            N(SyntaxKind.SafeKeyword);
+            N(SyntaxKind.TildeToken);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Destructor_SafeExtern()
+    {
+        UsingDeclaration("safe extern ~C();");
+
+        N(SyntaxKind.DestructorDeclaration);
+        {
+            N(SyntaxKind.SafeKeyword);
+            N(SyntaxKind.ExternKeyword);
+            N(SyntaxKind.TildeToken);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
         }
         EOF();
     }
