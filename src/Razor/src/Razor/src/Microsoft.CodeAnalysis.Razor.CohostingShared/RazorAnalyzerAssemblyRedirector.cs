@@ -7,15 +7,15 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Reflection;
-using IRazorAnalyzerAssemblyRedirector = Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorAnalyzerAssemblyRedirector.IRazorAnalyzerAssemblyRedirector;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 
 namespace Microsoft.VisualStudio.Razor;
 
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
-[Export(typeof(IRazorAnalyzerAssemblyRedirector))]
+[Export(typeof(IAnalyzerAssemblyRedirector))]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal sealed class RazorAnalyzerAssemblyRedirector : IRazorAnalyzerAssemblyRedirector
+internal sealed class RazorAnalyzerAssemblyRedirector : IAnalyzerAssemblyRedirector
 {
     private readonly FrozenDictionary<string, string> _compilerAssemblyMap;
 

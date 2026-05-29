@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -148,7 +148,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
                     {
                     }
                     """)],
-            codeActionName: RazorPredefinedCodeFixProviderNames.AddImport,
+            codeActionName: PredefinedCodeFixProviderNames.AddImport,
             codeActionIndex: 0);
     }
 
@@ -177,7 +177,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
                     {
                     }
                     """)],
-            codeActionName: RazorPredefinedCodeFixProviderNames.AddImport,
+            codeActionName: PredefinedCodeFixProviderNames.AddImport,
             codeActionIndex: 1);
     }
 
@@ -199,7 +199,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.AddImport);
     }
 
     [Fact]
@@ -227,7 +227,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.AddImport,
+            PredefinedCodeFixProviderNames.AddImport,
             fileKind: RazorFileKind.Legacy,
             makeDiagnosticsRequest: true);
     }
@@ -257,7 +257,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.AddImport,
+            PredefinedCodeFixProviderNames.AddImport,
             fileKind: RazorFileKind.Legacy,
             addDefaultImports: false,
             makeDiagnosticsRequest: true);
@@ -288,7 +288,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.AddImport,
+            PredefinedCodeFixProviderNames.AddImport,
             fileKind: RazorFileKind.Legacy,
             addDefaultImports: false,
             makeDiagnosticsRequest: true);
@@ -312,7 +312,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.AddImport);
     }
 
     [Fact]
@@ -339,6 +339,6 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.AddImport);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.AddImport);
     }
 }

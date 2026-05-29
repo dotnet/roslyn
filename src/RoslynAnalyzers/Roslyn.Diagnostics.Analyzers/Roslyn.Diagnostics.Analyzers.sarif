@@ -172,7 +172,7 @@
         "RS0065": {
           "id": "RS0065",
           "shortDescription": "Invalid parameter type in IRemoteJsonService method",
-          "fullDescription": "Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.",
+          "fullDescription": "Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorSolutionWrapper or DocumentId as they are not JSON serializable.",
           "defaultLevel": "error",
           "properties": {
             "category": "RoslynDiagnosticsReliability",

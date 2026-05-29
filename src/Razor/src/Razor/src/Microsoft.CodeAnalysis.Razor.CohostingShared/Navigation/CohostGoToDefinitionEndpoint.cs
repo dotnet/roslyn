@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
@@ -64,7 +64,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
             .TryInvokeAsync<IRemoteGoToDefinitionService, RemoteResponse<LspLocation[]?>>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken) =>
-                    service.GetDefinitionAsync(solutionInfo, razorDocument.Id, position, cancellationToken),
+                    service.GetDefinitionsAsync(solutionInfo, razorDocument.Id, position, cancellationToken),
                 cancellationToken)
             .ConfigureAwait(false);
 

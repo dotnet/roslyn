@@ -40,9 +40,6 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
-      <Private>true</Private>
-    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -154,9 +151,6 @@
     </ProjectReference>
     <ProjectReference Update="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <Private>true</Private>
-    </ProjectReference>
-    <ProjectReference Update="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Update="..\..\..\..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj">
