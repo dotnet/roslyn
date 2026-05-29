@@ -132,8 +132,9 @@ namespace RunTests
             Architecture = architecture;
         }
 
-        internal static Options? Parse(string[] args)
+        internal static Options? Parse(string[] args, out bool helpShown)
         {
+            helpShown = false;
             string? dotnetFilePath = null;
             var platform = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
             var includeHtml = false;
@@ -155,29 +156,31 @@ namespace RunTests
             string? testFramework = null;
             string? testSet = null;
             string? testKind = null;
+            var showHelp = false;
             var environmentVariables = new Dictionary<string, string>(
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
             var optionSet = new OptionSet()
             {
+                { "h|help|?", "Show this help message and exit", o => showHelp = o is object },
                 { "dotnet=", "Path to dotnet", s => dotnetFilePath = s },
                 { "testConfiguration=", "Configuration to test: Debug or Release", s => configuration = s },
-                { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", s => includeFilter.Add(s) },
-                { "exclude=", "Expression for excluding unit test dlls: default is empty", s => excludeFilter.Add(s) },
+                { "include=", "Regex for including unit test dlls (can be specified multiple times). Default: .*UnitTests.*", s => includeFilter.Add(s) },
+                { "exclude=", "Regex for excluding unit test dlls (can be specified multiple times)", s => excludeFilter.Add(s) },
                 { "testPlatform=", "Architecture to test on: x86, x64 or arm64", s => platform = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", s => testFilter = s },
-                { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
+                { "timeout=", "Minute timeout to limit the tests to (default: 90, not supported with --helix)", (int i) => timeout = i },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", s => resultFileDirectory = s },
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
 
-                { "artifactspath=", "Path to the artifacts directory", s => artifactsPath = s },
-                { "collectdumps", "Whether or not to gather dumps on timeouts and crashes (process executor only)", o => collectDumps = o is object },
+                { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
+                { "collectdumps", "Gather dumps on timeouts and crashes (process executor only, not supported with --helix)", o => collectDumps = o is object },
                 { "testFramework:", "Test framework to run: core, desktop, or both", s => testFramework = s },
-                { "testSet:", "Test set to run: compiler", s => testSet = s },
+                { "testSet:", "Test set to run: compiler (restricts to compiler test assemblies)", s => testSet = s },
                 { "testKind:", "Test kind to run: ioperation, runtimeasync, usedassemblies", s => testKind = s },
                 { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
                     if (o is object)
@@ -205,6 +208,19 @@ namespace RunTests
             {
                 ConsoleUtil.WriteLine($"Error parsing command line arguments: {e.Message}");
                 optionSet.WriteOptionDescriptions(Console.Out);
+                return null;
+            }
+
+            if (showHelp)
+            {
+                ConsoleUtil.WriteLine("Usage: RunTests [OPTIONS]");
+                ConsoleUtil.WriteLine();
+                ConsoleUtil.WriteLine("Discovers and runs test assemblies from the artifacts/bin directory.");
+                ConsoleUtil.WriteLine("Test assemblies are matched by --include/--exclude regex patterns against project folder names.");
+                ConsoleUtil.WriteLine();
+                ConsoleUtil.WriteLine("Options:");
+                optionSet.WriteOptionDescriptions(Console.Out);
+                helpShown = true;
                 return null;
             }
 

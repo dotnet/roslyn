@@ -28,10 +28,10 @@ namespace RunTests
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
-            var options = Options.Parse(args);
+            var options = Options.Parse(args, out var helpShown);
             if (options == null)
             {
-                return ExitFailure;
+                return helpShown ? ExitSuccess : ExitFailure;
             }
 
             ConsoleUtil.WriteLine($"Running '{options.DotnetFilePath} --version'..");
