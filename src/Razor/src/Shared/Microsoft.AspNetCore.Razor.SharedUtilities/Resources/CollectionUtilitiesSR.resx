@@ -144,8 +144,6 @@
   <data name="0_1_must_not_be_equal_to_2" xml:space="preserve">
     <value>{0} ('{1}') must not be equal to '{2}'.</value>
   </data>
-  
-  
   <data name="Destination_is_too_short" xml:space="preserve">
     <value>Destination is too short.</value>
   </data>
@@ -164,19 +162,12 @@
   <data name="This_program_location_is_thought_to_be_unreachable" xml:space="preserve">
     <value>This program location is thought to be unreachable.</value>
   </data>
-  
-  
-  
-  
-  
   <data name="The_value_cannot_be_an_empty_string" xml:space="preserve">
     <value>The value cannot be an empty string.</value>
   </data>
   <data name="The_value_cannot_be_an_empty_string_composed_entirely_of_whitespace" xml:space="preserve">
     <value>The value cannot be an empty string or composed entirely of whitespace.</value>
   </data>
-  
-  
   <data name="Contains_no_elements" xml:space="preserve">
     <value>Contains no elements</value>
   </data>
