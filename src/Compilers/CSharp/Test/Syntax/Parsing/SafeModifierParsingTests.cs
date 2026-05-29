@@ -16,7 +16,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("public safe extern void M();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("public extern safe void M();", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
     [InlineData("extern safe public void M();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
-    public void SafeModifier_Method(string source, params SyntaxKind[] expectedModifiers)
+    public void Method(string source, params SyntaxKind[] expectedModifiers)
     {
         UsingDeclaration(source, TestOptions.RegularPreview);
 
@@ -43,7 +43,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeModifier_Method_Async_Before()
+    public void Method_Async_Before()
     {
         UsingDeclaration("public safe async(int i);", TestOptions.Regular14);
 
@@ -74,7 +74,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Theory, CombinatorialData]
-    public void SafeModifier_Method_Async_After(
+    public void Method_Async_After(
         [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
     {
         UsingDeclaration("public safe async(int i);", TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -106,7 +106,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("safe public extern int P { get; }", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("public safe extern int P { get; }", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("public extern safe int P { get; }", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
-    public void SafeModifier_Property(string source, params SyntaxKind[] expectedModifiers)
+    public void Property(string source, params SyntaxKind[] expectedModifiers)
     {
         UsingDeclaration(source, TestOptions.RegularPreview);
 
@@ -140,7 +140,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("safe public static extern event System.Action E;", SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("public static safe extern event System.Action E;", SyntaxKind.PublicKeyword, SyntaxKind.StaticKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("public extern safe static event System.Action E;", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.StaticKeyword)]
-    public void SafeModifier_Event(string source, params SyntaxKind[] expectedModifiers)
+    public void Event(string source, params SyntaxKind[] expectedModifiers)
     {
         UsingDeclaration(source, TestOptions.RegularPreview);
 
@@ -182,7 +182,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("public safe extern C();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("extern safe public C();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
     [InlineData("public safe extern partial C();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword, SyntaxKind.PartialKeyword)]
-    public void SafeModifier_Constructor(string source, params SyntaxKind[] expectedModifiers)
+    public void Constructor(string source, params SyntaxKind[] expectedModifiers)
     {
         UsingDeclaration(source, TestOptions.RegularPreview);
 
@@ -208,7 +208,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("safe static extern void Local();", SyntaxKind.SafeKeyword, SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("static safe extern void Local();", SyntaxKind.StaticKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
     [InlineData("static extern safe void Local();", SyntaxKind.StaticKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
-    public void SafeModifier_LocalFunction(string localFunction, params SyntaxKind[] expectedModifiers)
+    public void LocalFunction(string localFunction, params SyntaxKind[] expectedModifiers)
     {
         UsingTree($$"""
             class C
@@ -285,7 +285,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("safe public interface I { }", SyntaxKind.InterfaceDeclaration)]
     [InlineData("safe public enum E { }", SyntaxKind.EnumDeclaration)]
     [InlineData("safe public delegate void D();", SyntaxKind.DelegateDeclaration)]
-    public void SafeModifier_OtherMemberKinds(string source, SyntaxKind declarationKind)
+    public void OtherMemberKinds(string source, SyntaxKind declarationKind)
     {
         var declaration = SyntaxFactory.ParseMemberDeclaration(source, options: TestOptions.RegularPreview);
         Assert.NotNull(declaration);
@@ -306,7 +306,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeIdentifier_Destructor_Before()
+    public void Destructor_Before()
     {
         UsingDeclaration("safe ~C() { }", TestOptions.Regular14,
             // (1,1): error CS1073: Unexpected token '~'
@@ -327,7 +327,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Theory, CombinatorialData]
-    public void SafeIdentifier_Destructor_After(
+    public void Destructor_After(
         [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
     {
         UsingDeclaration("safe ~C() { }", TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -352,7 +352,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeModifier_PropertyAccessor()
+    public void PropertyAccessor()
     {
         UsingDeclaration("public int P { safe get; set; }", TestOptions.RegularPreview);
 
@@ -388,7 +388,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("public int P { private safe get; set; }", 0, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
     [InlineData("public int P { safe private get; set; }", 0, SyntaxKind.SafeKeyword, SyntaxKind.PrivateKeyword)]
     [InlineData("public int P { get; private safe set; }", 1, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
-    public void SafeModifier_PropertyAccessor_WithOtherModifiers(string source, int accessorIndex, params SyntaxKind[] expectedModifiers)
+    public void PropertyAccessor_WithOtherModifiers(string source, int accessorIndex, params SyntaxKind[] expectedModifiers)
     {
         var declaration = Assert.IsType<PropertyDeclarationSyntax>(SyntaxFactory.ParseMemberDeclaration(source, options: TestOptions.RegularPreview));
         declaration.GetDiagnostics().Verify();
@@ -403,7 +403,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeModifier_EventAccessor()
+    public void EventAccessor()
     {
         UsingDeclaration("public event EHandler E { safe add { } remove { } }", TestOptions.RegularPreview);
 
@@ -445,7 +445,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeIdentifier_ParameterType()
+    public void ParameterType()
     {
         UsingDeclaration("public void M(safe x);", TestOptions.RegularPreview);
 
@@ -476,7 +476,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeModifier_Constructor_BeforeName_Before()
+    public void Constructor_BeforeName_Before()
     {
         UsingDeclaration("public safe C();", TestOptions.Regular14);
 
@@ -499,7 +499,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Theory, CombinatorialData]
-    public void SafeModifier_Constructor_BeforeName_After(
+    public void Constructor_BeforeName_After(
         [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
     {
         UsingDeclaration("public safe C();", TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -520,7 +520,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeModifier_Constructor_AfterExtern_Before()
+    public void Constructor_AfterExtern_Before()
     {
         UsingDeclaration("public extern safe C();", TestOptions.Regular14);
 
@@ -544,7 +544,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Theory, CombinatorialData]
-    public void SafeModifier_Constructor_AfterExtern_After(
+    public void Constructor_AfterExtern_After(
         [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
     {
         UsingDeclaration("public extern safe C();", TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -566,7 +566,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeModifier_Constructor_BeforePartial_Before()
+    public void Constructor_BeforePartial_Before()
     {
         UsingDeclaration("public safe partial C();", TestOptions.Regular14,
             // (1,13): error CS1525: Invalid expression term 'partial'
@@ -596,7 +596,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Theory, CombinatorialData]
-    public void SafeModifier_Constructor_BeforePartial_After(
+    public void Constructor_BeforePartial_After(
         [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
     {
         UsingDeclaration("public safe partial C();", TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -618,7 +618,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
-    public void SafeIdentifier_InvocationExpression()
+    public void InvocationExpression()
     {
         UsingTree("""
             class C
