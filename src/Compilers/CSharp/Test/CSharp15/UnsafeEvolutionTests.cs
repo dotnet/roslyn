@@ -11972,7 +11972,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void SafeIdentifier_ReturnType()
+    public void SafeModifier_ReturnType()
     {
         var source = """
             class safe { }
@@ -11981,11 +11981,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 safe M1() => new safe();
                 public safe M2() => new safe();
+                @safe M3() => new safe();
             }
             """;
 
-        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
-        comp.VerifyEmitDiagnostics(
+        var comp = CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        comp.VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
             // (1,7): warning CS8981: The type name 'safe' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // class safe { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "safe").WithArguments("safe").WithLocation(1, 7));
@@ -11995,6 +12000,36 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         Assert.Equal(type, containingType.GetMember<MethodSymbol>("M1").ReturnType);
         Assert.Equal(type, containingType.GetMember<MethodSymbol>("M2").ReturnType);
+        Assert.Equal(type, containingType.GetMember<MethodSymbol>("M3").ReturnType);
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,7): warning CS8981: The type name 'safe' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            // class safe { }
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "safe").WithArguments("safe").WithLocation(1, 7),
+            // (5,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe M1() => new safe();
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
+            // (5,10): error CS1520: Method must have a return type
+            //     safe M1() => new safe();
+            Diagnostic(ErrorCode.ERR_MemberNeedsType, "M1").WithLocation(5, 10),
+            // (6,12): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     public safe M2() => new safe();
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 12),
+            // (6,17): error CS1520: Method must have a return type
+            //     public safe M2() => new safe();
+            Diagnostic(ErrorCode.ERR_MemberNeedsType, "M2").WithLocation(6, 17)
+        };
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -12013,6 +12048,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     safe static extern void Local();
                 }
                 safe public extern int A { safe get; set; }
+                safe extern ~C();
             }
             """;
 
@@ -12053,7 +12089,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 5),
             // (12,32): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     safe public extern int A { safe get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 32));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 32),
+            // (13,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     safe extern ~C();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(13, 5));
     }
 
     [Theory, CombinatorialData]
@@ -12082,6 +12121,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 }
                 public int P2 { safe get; set; }
                 public string this[string s] { safe get => s; set { } }
+                safe ~C() { }
             }
             """;
 
@@ -12127,7 +12167,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("safe").WithLocation(16, 31),
             // (19,9): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //         safe void Local() { }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(19, 9));
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(19, 9),
+            // (23,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe ~C() { }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(23, 5));
     }
 
     [Fact]
@@ -12206,6 +12249,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public extern C(int x);
                 public static extern C operator +(C x, C y);
                 public static extern explicit operator int(C c);
+                extern ~C();
             }
 
             public class Program
@@ -12257,87 +12301,53 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (10,19): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
             //     public static extern explicit operator int(C c);
             Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(10, 19),
-            // (24,16): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
+            // (11,5): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
+            //     extern ~C();
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(11, 5),
+            // (25,16): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
             //         static extern void Local();
-            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(24, 16));
+            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(25, 16));
     }
 
-    [Fact]
-    public void SafeModifier_Extern_InvalidUse()
+    [Theory, CombinatorialData]
+    public void SafeModifier_Extern_SafeUnsafe(bool updatedRules)
     {
         var source = """
             #pragma warning disable CS0067, CS0626, CS0824, CS8321 // unused event, extern without attributes, extern constructor, unused local function
             public class C
             {
-                safe public extern void M1();
-                safe unsafe public extern void M2();
-                public extern void M3();
-                safe public extern int P1 { get; set; }
-                safe unsafe public extern int P2 { get; set; }
-                safe public static extern event System.Action E1;
-                safe unsafe public static extern event System.Action E2;
-                safe public extern C(int x);
-                safe unsafe public extern C(string s);
-                public extern C(double d);
+                safe unsafe public extern void M1();
+                safe unsafe public extern int P1 { get; set; }
+                public safe extern int P2 { safe unsafe get; set; }
+                safe unsafe public static extern event System.Action E1;
+                safe unsafe public extern C(int x);
+                safe unsafe extern ~C();
                 public void Locals()
                 {
-                    safe static extern void Local1();
-                    safe unsafe static extern void Local2();
-                    static extern void Local3();
+                    safe unsafe static extern void Local1();
                 }
-                public extern int P3 { safe get; set; }
-                public extern int P4 { safe unsafe get; set; }
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
+            // (4,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe unsafe public extern void M1();
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
             // (5,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //     safe unsafe public extern void M2();
+            //     safe unsafe public extern int P1 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,12): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
-            //     public extern void M3();
-            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(6, 12),
+            // (7,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe unsafe public static extern event System.Action E1;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
             // (8,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //     safe unsafe public extern int P2 { get; set; }
+            //     safe unsafe public extern C(int x);
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (10,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //     safe unsafe public static extern event System.Action E2;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (12,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //     safe unsafe public extern C(string s);
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 5),
-            // (13,12): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
-            //     public extern C(double d);
-            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(13, 12),
-            // (17,9): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //         safe unsafe static extern void Local2();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(17, 9),
-            // (18,16): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
-            //         static extern void Local3();
-            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(18, 16),
-            // (20,12): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
-            //     public extern int P3 { safe get; set; }
-            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(20, 12),
-            // (21,12): error CS9389: Extern member must be marked 'unsafe' or 'safe'.
-            //     public extern int P4 { safe unsafe get; set; }
-            Diagnostic(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, "extern").WithLocation(21, 12));
-
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (5,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //     safe unsafe public extern void M2();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (8,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //     safe unsafe public extern int P2 { get; set; }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (10,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //     safe unsafe public static extern event System.Action E2;
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (12,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //     safe unsafe public extern C(string s);
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 5),
-            // (17,9): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
-            //         safe unsafe static extern void Local2();
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(17, 9));
+            // (9,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //     safe unsafe extern ~C();
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
+            // (12,9): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            //         safe unsafe static extern void Local1();
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 9));
     }
 
     [Fact]

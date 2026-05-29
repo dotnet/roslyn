@@ -1475,13 +1475,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 return;
                             }
+
+                            modTok = ConvertToKeyword(this.EatToken());
                         }
-                        else if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        else if (!parseAsModifier(MessageID.IDS_FeatureUnsafeEvolution, out modTok))
                         {
                             return;
                         }
 
-                        modTok = ConvertToKeyword(this.EatToken());
                         break;
 
                     default:
