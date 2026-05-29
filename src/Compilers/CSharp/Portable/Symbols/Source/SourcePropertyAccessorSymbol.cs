@@ -256,8 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExplicitInterfaceImplementation = property.IsExplicitInterfaceImplementation;
             var declarationModifiers = MakeModifiers(containingType, modifiers, isExplicitInterfaceImplementation, hasAnyBody, location, diagnostics, out modifierErrors);
 
-            // Include some modifiers from the containing property, but not the accessibility modifiers.
-            declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
+            // Include some modifiers from the containing property, but not modifiers which the accessor can specify itself.
+            declarationModifiers |= propertyModifiers & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe);
             if ((declarationModifiers & DeclarationModifiers.Private) != 0)
             {
                 // Private accessors cannot be virtual.
@@ -273,9 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (declarationModifiers, flags);
         }
 #nullable disable
-
-        private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
-            propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe);
 
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
