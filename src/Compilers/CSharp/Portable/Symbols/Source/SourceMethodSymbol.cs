@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Whether the method has a 'safe' modifier.
-        /// For event accessors, this includes the containing member's unsafe modifier.
+        /// For event accessors, this includes the containing member's safe modifier.
         /// </summary>
         protected abstract bool HasSafeModifier { get; }
 
