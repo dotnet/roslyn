@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
             if (!explicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
@@ -592,6 +592,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern;
+            }
+
+            if ((allowedModifiers & DeclarationModifiers.Extern) != 0)
+            {
+                allowedModifiers |= DeclarationModifiers.Safe;
             }
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,

@@ -12137,9 +12137,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (11,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     safe int I1.P { get => 0; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(11, 5),
-            // (12,5): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
+            // (12,33): error CS0106: The modifier 'safe' is not valid for this item
             //     safe event System.Action I1.E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 5),
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("safe").WithLocation(12, 33),
             // (13,21): error CS9388: The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.
             //     int I1.A { safe get => 0; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "get").WithLocation(13, 21));

@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             if (!isExplicitInterfaceImplementation)
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern;
+            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern | DeclarationModifiers.Safe;
 
             if (containingType.IsStructType())
             {
