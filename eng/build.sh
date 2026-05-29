@@ -25,11 +25,11 @@ usage()
   echo "  --help                     Print help and exit"
   echo ""
   echo "Test actions:"
-  echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
-  echo "  --testMono                 Run unit tests on Mono"
-  echo "  --testCompilerOnly         Run only the compiler unit tests"
-  echo "  --testIOperation           Run unit tests with the IOperation test hook"
-  echo "  --testRuntimeAsync         Run unit tests with runtime async validation enabled"
+  echo "  --testFramework <value>    Test framework to run: core, desktop, or both (short: --test, -t implies core)"
+  echo "  --testMono                 Run unit tests on Mono (deprecated, will be removed in .NET 11)"
+  echo "  --testPlatform <value>     Architecture to test on: x86, x64 or arm64 (default: x64)"
+  echo "  --testSet <value>          Test set to run: compiler"
+  echo "  --testKind <value>         Test kind: ioperation, runtimeasync, usedassemblies"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
@@ -65,19 +65,16 @@ rebuild=false
 pack=false
 sign=false
 publish=false
-test_core_clr=false
+test_framework=""
 test_mono=false
-test_ioperation=false
-test_runtime_async=false
-test_compiler_only=false
+test_platform="x64"
+test_set=""
+test_kind=""
 
 configuration="Debug"
 verbosity='minimal'
 binary_log=false
 ci=false
-helix=false
-helix_queue_name=""
-helix_api_access_token=""
 bootstrap=false
 run_analyzers=false
 skip_documentation=false
@@ -136,36 +133,30 @@ while [[ $# > 0 ]]; do
     --sign)
       sign=true
       ;;
-    --testcoreclr|--test|-t)
-      test_core_clr=true
+    --testframework)
+      test_framework=$2
+      shift
+      ;;
+    --test|-t)
+      test_framework="core"
       ;;
     --testmono)
       test_mono=true
       ;;
-    --testcompileronly)
-      test_compiler_only=true
+    --testplatform)
+      test_platform=$2
+      shift
       ;;
-    --testioperation)
-      test_ioperation=true
+    --testset)
+      test_set=$2
+      shift
       ;;
-    --testruntimeasync)
-      test_runtime_async=true
+    --testkind)
+      test_kind=$2
+      shift
       ;;
     --ci)
       ci=true
-      ;;
-    --helix)
-      helix=true
-      ;;
-    --helixqueuename)
-      helix_queue_name=$2
-      args="$args $1"
-      shift
-      ;;
-    --helixapiaccesstoken)
-      helix_api_access_token=$2
-      args="$args $1"
-      shift
       ;;
     --bootstrap)
       bootstrap=true
@@ -268,22 +259,6 @@ function BuildSolution {
     ulimit -n 6500 || echo "Cannot change ulimit"
   fi
 
-  if [[ "$test_ioperation" == true ]]; then
-    export ROSLYN_TEST_IOPERATION="true"
-
-    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
-      test_core_clr=true
-    fi
-  fi
-
-  if [[ "$test_runtime_async" == true ]]; then
-    export DOTNET_RuntimeAsync="1"
-
-    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
-      test_core_clr=true
-    fi
-  fi
-
   local test=false
   local test_runtime=""
   local mono_tool=""
@@ -351,30 +326,8 @@ function BuildSolution {
     ${properties[@]+"${properties[@]}"}
 }
 
-function GetCompilerTestAssembliesIncludePaths {
-  assemblies="--include '^Microsoft\.CodeAnalysis\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
-  assemblies+=" --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.Build\.Tasks\.CodeAnalysis\.UnitTests$'"
-  echo "$assemblies"
-}
-
 install=false
-if [[ "$restore" == true || "$test_core_clr" == true ]]; then
+if [[ "$restore" == true || -n "$test_framework" ]]; then
   install=true
 fi
 InitializeDotNetCli $install
@@ -393,28 +346,28 @@ if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mon
   BuildSolution
 fi
 
-if [[ "$test_core_clr" == true ]]; then
-  runtests_args=""
+if [[ -n "$test_framework" ]]; then
+  runtests_args="--testFramework:$test_framework"
+  runtests_args="$runtests_args --testConfiguration $configuration"
+  runtests_args="$runtests_args --logs ${log_dir}"
+  runtests_args="$runtests_args --dotnet ${_InitializeDotNetCli}/dotnet"
+  runtests_args="$runtests_args --testPlatform $test_platform"
 
-  if [[ "$test_compiler_only" == true ]]; then
-    runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
+  if [[ -n "$test_set" ]]; then
+    runtests_args="$runtests_args --testSet:$test_set"
   fi
 
-  if [[ -n "$helix_queue_name" ]]; then
-    runtests_args="$runtests_args --helixQueueName $helix_queue_name"
+  if [[ -n "$test_kind" ]]; then
+    runtests_args="$runtests_args --testKind:$test_kind"
   fi
 
-  if [[ -n "$helix_api_access_token" ]]; then
-    runtests_args="$runtests_args --helixApiAccessToken $helix_api_access_token"
-  fi
-
-  if [[ "$helix" == true ]]; then
-    runtests_args="$runtests_args --helix"
-  fi
-
-  if [[ "$ci" != true ]]; then
+  if [[ "$ci" == true ]]; then
+    runtests_args="$runtests_args --ci"
+    runtests_args="$runtests_args --timeout 90"
+  else
     runtests_args="$runtests_args --html"
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net10.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net10.0/RunTests.dll" $runtests_args
 fi
 ExitWithExitCode 0

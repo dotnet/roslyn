@@ -11,8 +11,8 @@
 #   - publish
 #
 # Each of these phases has a separate command which can be executed independently. For instance
-# it's fine to call `build.ps1 -build -testDesktop` followed by repeated calls to
-# `.\build.ps1 -testDesktop`.
+# it's fine to call `build.ps1 -build -testFramework desktop` followed by repeated calls to
+# `.\build.ps1 -testFramework desktop`.
 
 [CmdletBinding(PositionalBinding=$false)]
 param (
@@ -59,14 +59,11 @@ param (
   [string]$officialVisualStudioDropAccessToken = "",
 
   # Test actions
-  [string]$testArch = "x64",
+  [string]$testPlatform = "x64",
   [switch]$testVsi,
-  [switch][Alias('test')]$testDesktop,
-  [switch]$testCoreClr,
-  [switch]$testCompilerOnly = $false,
-  [switch]$testIOperation,
-  [switch]$testUsedAssemblies,
-  [switch]$testRuntimeAsync,
+  [string]$testFramework = "",
+  [string]$testSet = "",
+  [string]$testKind = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -92,14 +89,11 @@ function Print-Usage() {
   Write-Host "  -help                     Print help and exit"
   Write-Host ""
   Write-Host "Test actions"
-  Write-Host "  -testArch                 Maps to --arch parameter of dotnet test"
-  Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
-  Write-Host "  -testCoreClr              Run CoreClr unit tests"
-  Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
+  Write-Host "  -testFramework <value>    Test framework to run: core, desktop, or both"
+  Write-Host "  -testPlatform <value>     Architecture to test on: x86, x64 or arm64 (default: x64)"
+  Write-Host "  -testSet <value>          Test set to run: compiler"
+  Write-Host "  -testKind <value>         Test kind: ioperation, runtimeasync, usedassemblies"
   Write-Host "  -testVsi                  Run all integration tests"
-  Write-Host "  -testIOperation           Run extra checks to validate IOperations"
-  Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
-  Write-Host "  -testRuntimeAsync         Run tests with runtime async validation enabled (see DOTNET_RuntimeAsync in codebase)"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -134,7 +128,7 @@ function Print-Usage() {
 #
 # In this function it's okay to use two arguments to extend the effect of another. For
 # example it's okay to look at $testVsi and infer $runAnalyzers. It's not okay though to infer
-# $build based on say $testDesktop. It's possible the developer wanted only for testing
+# $build based on say $testFramework. It's possible the developer wanted only for testing
 # to execute, not any build.
 function Process-Arguments() {
   function OfficialBuildOnly([string]$argName) {
@@ -164,7 +158,9 @@ function Process-Arguments() {
   if ($officialBuildId) {
     $script:useGlobalNuGetCache = $false
     $script:collectDumps = $true
-    $script:testDesktop = ![System.Boolean]::Parse($officialSkipTests)
+    if (![System.Boolean]::Parse($officialSkipTests)) {
+      $script:testFramework = "desktop"
+    }
     $script:buildTests = !([System.Boolean]::Parse($officialSkipTests))
     $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
   } else {
@@ -188,7 +184,7 @@ function Process-Arguments() {
     $script:bootstrap = $true
   }
 
-  $anyUnit = $testDesktop -or $testCoreClr
+  $anyUnit = $testFramework -ne ""
   if ($anyUnit -and $testVsi) {
     Write-Host "Cannot combine unit and VSI testing"
     exit 1
@@ -370,20 +366,7 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_CI = "true"
   }
 
-  if ($testIOperation) {
-    $env:ROSLYN_TEST_IOPERATION = "true"
-  }
-
-  if ($testUsedAssemblies) {
-    $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
-  }
-
-  if ($testRuntimeAsync) {
-    $env:DOTNET_RuntimeAsync = 1
-  }
-
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net10.0"
-  $timeout = 0;
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -394,37 +377,11 @@ function TestUsingRunTests() {
   $args += " --dotnet `"$dotnetExe`""
   $args += " --logs `"$LogDir`""
   $args += " --testConfiguration $configuration"
+  $args += " --testPlatform $testPlatform"
 
-  if ($testCoreClr) {
-    $args += " --testFramework:core"
-    $timeout = 90
-    if ($testCompilerOnly) {
-      $args += " --testSet:compiler"
-    } else {
-      $args += " --include '\.UnitTests'"
-    }
-  }
-  elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
-    $args += " --testFramework:desktop"
-    $timeout = 90
-
-    if ($testRuntimeAsync) {
-      Write-Host "Cannot run desktop tests with runtime async validation enabled."
-      ExitWithExitCode 1
-    }
-
-    if ($testCompilerOnly) {
-      $args += " --testSet:compiler"
-    } else {
-      $args += " --include '\.UnitTests'"
-    }
-
-    if ($testArch -ne "x86") {
-      $args += " --exclude '\.InteractiveHost'"
-    }
-
+  if ($testFramework) {
+    $args += " --testFramework:$testFramework"
   } elseif ($testVsi) {
-    $timeout = 220
     $args += " --testFramework:both"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
@@ -432,6 +389,14 @@ function TestUsingRunTests() {
     if ($lspEditor) {
       $args += " --testfilter Editor=LanguageServerProtocol"
     }
+  }
+
+  if ($testSet) {
+    $args += " --testSet:$testSet"
+  }
+
+  if ($testKind) {
+    $args += " --testKind:$testKind"
   }
 
   if (-not $ci -and -not $testVsi) {
@@ -442,10 +407,9 @@ function TestUsingRunTests() {
     $args += " --collectdumps";
   }
 
-  $args += " --testPlatform $testArch"
-
-  if ($timeout -gt 0) {
-    $args += " --timeout $timeout"
+  if ($ci) {
+    $args += " --ci"
+    $args += " --timeout 90"
   }
 
   try {
@@ -455,19 +419,6 @@ function TestUsingRunTests() {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($ci) {
       Remove-Item env:\ROSLYN_TEST_CI
-    }
-
-    # Note: remember to update Options.cs when using new environment variables
-    if ($testIOperation) {
-      Remove-Item env:\ROSLYN_TEST_IOPERATION
-    }
-
-    if ($testUsedAssemblies) {
-      Remove-Item env:\ROSLYN_TEST_USEDASSEMBLIES
-    }
-
-    if ($testRuntimeAsync) {
-      Remove-Item env:\DOTNET_RuntimeAsync
     }
 
     if ($testVsi) {
@@ -752,7 +703,7 @@ try {
 
   try
   {
-    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr -or $testRuntimeAsync) {
+    if ($testFramework -or $testVsi) {
       TestUsingRunTests
     }
   }

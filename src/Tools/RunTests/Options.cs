@@ -135,7 +135,7 @@ namespace RunTests
         internal static Options? Parse(string[] args)
         {
             string? dotnetFilePath = null;
-            var architecture = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
+            var platform = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
             var includeHtml = false;
             var testRuntime = TestRuntime.Both;
             var configuration = "Debug";
@@ -154,6 +154,7 @@ namespace RunTests
             // High-level test category flags (previously handled by build.ps1/build.sh)
             string? testFramework = null;
             string? testSet = null;
+            string? testKind = null;
             var environmentVariables = new Dictionary<string, string>(
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
@@ -163,7 +164,7 @@ namespace RunTests
                 { "testConfiguration=", "Configuration to test: Debug or Release", s => configuration = s },
                 { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", s => includeFilter.Add(s) },
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", s => excludeFilter.Add(s) },
-                { "testPlatform=", "Architecture to test on: x86, x64 or arm64", s => architecture = s },
+                { "testPlatform=", "Architecture to test on: x86, x64 or arm64", s => platform = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
@@ -177,6 +178,7 @@ namespace RunTests
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes (process executor only)", o => collectDumps = o is object },
                 { "testFramework:", "Test framework to run: core, desktop, or both", s => testFramework = s },
                 { "testSet:", "Test set to run: compiler", s => testSet = s },
+                { "testKind:", "Test kind to run: ioperation, runtimeasync, usedassemblies", s => testKind = s },
                 { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
                     if (o is object)
                         environmentVariables["ROSLYN_TEST_CI"] = "true";
@@ -226,6 +228,27 @@ namespace RunTests
                 return null;
             }
 
+            if (testKind is not null)
+            {
+                if (string.Equals(testKind, "ioperation", StringComparison.OrdinalIgnoreCase))
+                {
+                    environmentVariables["ROSLYN_TEST_IOPERATION"] = "true";
+                }
+                else if (string.Equals(testKind, "runtimeasync", StringComparison.OrdinalIgnoreCase))
+                {
+                    environmentVariables["DOTNET_RuntimeAsync"] = "1";
+                }
+                else if (string.Equals(testKind, "usedassemblies", StringComparison.OrdinalIgnoreCase))
+                {
+                    environmentVariables["ROSLYN_TEST_USEDASSEMBLIES"] = "true";
+                }
+                else
+                {
+                    ConsoleUtil.WriteLine($"Invalid --testKind value '{testKind}'. Must be 'ioperation', 'runtimeasync', or 'usedassemblies'.");
+                    return null;
+                }
+            }
+
             if (testDesktop || testCoreClr || testBoth)
             {
                 if (testDesktop && environmentVariables.ContainsKey("DOTNET_RuntimeAsync"))
@@ -252,7 +275,7 @@ namespace RunTests
                 }
 
                 // Desktop x64 excludes InteractiveHost tests
-                if (testDesktop && architecture != "x86")
+                if (testDesktop && platform != "x86")
                 {
                     excludeFilter.Add(@"\.InteractiveHost");
                 }
@@ -302,6 +325,12 @@ namespace RunTests
                     ConsoleUtil.WriteLine("--html is not supported with --helix.");
                     return null;
                 }
+
+                if (testFilter is not null)
+                {
+                    ConsoleUtil.WriteLine("--testfilter is not supported with --helix.");
+                    return null;
+                }
             }
             else
             {
@@ -326,7 +355,7 @@ namespace RunTests
                 configuration: configuration,
                 testResultsDirectory: resultFileDirectory,
                 logFilesDirectory: logFileDirectory,
-                architecture: architecture)
+                architecture: platform)
             {
                 TestRuntime = testRuntime,
                 IncludeFilter = includeFilter,
