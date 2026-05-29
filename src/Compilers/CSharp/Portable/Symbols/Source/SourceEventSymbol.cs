@@ -882,22 +882,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            var modifiers = MemberSyntax?.Modifiers ?? default;
-            var unsafeOrExternLocation = modifiers.GetUnsafeOrExternLocation(location);
-
             if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
             {
-                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, unsafeOrExternLocation);
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, this.GetModifierLocation(SyntaxKind.ExternKeyword, location));
             }
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, unsafeOrExternLocation, modifyCompilation: true);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, this.GetModifierLocation(SyntaxKind.UnsafeKeyword, location), modifyCompilation: true);
             }
 
             if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, modifiers.GetSafeLocation(location));
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, this.GetModifierLocation(SyntaxKind.SafeKeyword, location));
             }
 
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();

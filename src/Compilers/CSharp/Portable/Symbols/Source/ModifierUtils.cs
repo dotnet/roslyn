@@ -621,23 +621,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Gets the location of the <c>unsafe</c> keyword (preferred) or <c>extern</c> keyword from the given modifiers,
-        /// falling back to <paramref name="fallback"/> if neither is found.
-        /// Used for diagnostics related to <see cref="CallerUnsafeMode.Explicit"/>.
-        /// </summary>
-        internal static Location GetUnsafeOrExternLocation(this SyntaxTokenList modifiers, Location fallback)
+#nullable enable
+        internal static Location GetModifierLocation(this Symbol symbol, SyntaxKind kind, Location? fallback = null)
         {
-            var keyword = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword) is { } unsafeKeyword && unsafeKeyword != default
-                ? unsafeKeyword
-                : modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
-            return keyword != default ? keyword.GetLocation() : fallback;
-        }
-
-        internal static Location GetSafeLocation(this SyntaxTokenList modifiers, Location fallback)
-        {
-            var keyword = modifiers.FirstOrDefault(SyntaxKind.SafeKeyword);
-            return keyword != default ? keyword.GetLocation() : fallback;
+            var modifiers = symbol.GetNonNullSyntaxNode() switch
+            {
+                MemberDeclarationSyntax member => member.Modifiers,
+                LocalFunctionStatementSyntax localFunc => localFunc.Modifiers,
+                VariableDeclaratorSyntax declarator => (declarator.Parent?.Parent as MemberDeclarationSyntax)?.Modifiers ?? default,
+                _ => default,
+            };
+            var keyword = modifiers.FirstOrDefault(kind);
+            return keyword != default ? keyword.GetLocation() : (fallback ?? symbol.GetFirstLocation());
         }
     }
 }

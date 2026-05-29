@@ -132,22 +132,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
-            var location = Syntax.Identifier.GetLocation();
-            var unsafeOrExternLocation = Syntax.Modifiers.GetUnsafeOrExternLocation(location);
 
             if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
             {
-                addTo.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, unsafeOrExternLocation);
+                addTo.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, this.GetModifierLocation(SyntaxKind.ExternKeyword));
             }
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                compilation.EnsureRequiresUnsafeAttributeExists(addTo, unsafeOrExternLocation, modifyCompilation: false);
+                compilation.EnsureRequiresUnsafeAttributeExists(addTo, this.GetModifierLocation(SyntaxKind.UnsafeKeyword), modifyCompilation: false);
             }
 
             if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
-                addTo.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, Syntax.Modifiers.GetSafeLocation(location));
+                addTo.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, this.GetModifierLocation(SyntaxKind.SafeKeyword));
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
@@ -166,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
                 compilation.HasEntryPointSignature(this, diagnostics).IsCandidate)
             {
-                addTo.Add(ErrorCode.WRN_MainIgnored, location, this);
+                addTo.Add(ErrorCode.WRN_MainIgnored, Syntax.Identifier.GetLocation(), this);
             }
 
             addTo.AddRangeAndFree(diagnostics);
