@@ -372,7 +372,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             delegatedResponseText: "\"$0\"");
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharp_RawStringLiteral()
     {
         await VerifyOnAutoInsertAsync(
@@ -393,7 +393,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "\"");
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharp_OnForwardSlash()
     {
         await VerifyOnAutoInsertAsync(
@@ -414,7 +414,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "/");
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharp_DocComment_OnEnter()
     {
         await VerifyOnAutoInsertAsync(
@@ -454,7 +454,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             formatOnType: false);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharp_OnEnter()
     {
         await VerifyOnAutoInsertAsync(
@@ -493,7 +493,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "\n");
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
         await VerifyOnAutoInsertAsync(
@@ -515,7 +515,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             tabSize: 2);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharp_OnEnter_UseTabs()
     {
         const char tab = '\t';

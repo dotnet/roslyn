@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -165,7 +165,7 @@ internal partial class CSharpFormattingPass
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
             private readonly IDocumentMappingService _documentMappingService = documentMappingService;
-            private readonly RazorCSharpDocument _csharpDocument = codeDocument.GetCSharpDocument().AssumeNotNull();
+            private readonly RazorCSharpDocument _csharpDocument = codeDocument.GetImplCSharpDocument().AssumeNotNull();
 
             private TextLine _currentLine;
             private int _currentFirstNonWhitespacePosition;
@@ -198,7 +198,7 @@ internal partial class CSharpFormattingPass
                 using var _ = StringBuilderPool.GetPooledObject(out var additionalLinesBuilder);
 
                 var root = _codeDocument.GetRequiredSyntaxRoot();
-                var sourceMappings = _codeDocument.GetRequiredCSharpDocument().SourceMappingsSortedByOriginal;
+                var sourceMappings = _codeDocument.GetRequiredImplCSharpDocument().SourceMappingsSortedByOriginal;
                 var iMapping = 0;
                 foreach (var line in _sourceText.Lines)
                 {

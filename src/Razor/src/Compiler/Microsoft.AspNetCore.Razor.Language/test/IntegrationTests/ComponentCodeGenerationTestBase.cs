@@ -516,7 +516,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Items1=items1 Items2=items2 Items3=items3>
@@ -594,7 +594,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=item1 Items2=items2>
@@ -737,7 +737,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -814,7 +814,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -5980,6 +5980,11 @@ namespace AnotherTest
         CompileToAssembly(generated, [
                 // (1,31): warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
                 //     public partial class TestComponent : BaseComponent<string?>
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31),
+                // PROTOTYPE: duplicate diagnostic. The partial class header is emitted in
+                // both the decl and impl halves, so per-syntactic-occurrence diagnostics
+                // fire twice. Should be deduped before merging to main (e.g. by reporting
+                // class-header diagnostics on one half only).
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode, "?").WithLocation(1, 31)
             ]);
     }

@@ -28,15 +28,6 @@ Selected
             , 2, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => Selected = __value, Selected)), 3, () => Selected);
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    string[] Selected { get; set; } = Array.Empty<string>();
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

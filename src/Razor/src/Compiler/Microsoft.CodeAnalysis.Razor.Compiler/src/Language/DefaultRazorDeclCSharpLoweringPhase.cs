@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </para>
 /// <para>
 /// The split affects only the generated C# (<c>GetDeclCSharpDocument()</c> gives the decl half;
-/// <see cref="RazorCodeDocument.GetCSharpDocument"/> still returns whatever the final lowering
+/// <see cref="RazorCodeDocument.GetImplCSharpDocument"/> still returns whatever the final lowering
 /// phase produces, which becomes the impl half in <see cref="DefaultRazorCSharpLoweringPhase"/>).
 /// The original <see cref="DocumentIntermediateNode"/> is left untouched -- the decl synthetic
 /// spine shares children with the original by reference rather than mutating it -- so callers
@@ -88,9 +88,9 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
         //   - renderMethod
         //   - any IsSynthesizedHelper node (compiler plumbing)
         //   - IsGenericTyped namespaces (type-inference helpers)
-        var declDocNode = CloneContainer(documentNode);
-        var declNamespace = CloneContainer(primaryNamespace);
-        var declClass = CloneContainer(primaryClass);
+        var declDocNode = RazorCSharpDocumentWriter.CloneContainer(documentNode);
+        var declNamespace = RazorCSharpDocumentWriter.CloneContainer(primaryNamespace);
+        var declClass = RazorCSharpDocumentWriter.CloneContainer(primaryClass);
 
         foreach (var classChild in primaryClass.Children)
         {
@@ -138,38 +138,4 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
 
         return codeDocument.WithDeclCSharpDocument(declDocument);
     }
-
-    private static DocumentIntermediateNode CloneContainer(DocumentIntermediateNode node)
-        => new()
-        {
-            DocumentKind = node.DocumentKind,
-            Options = node.Options,
-            Target = node.Target,
-            Source = node.Source,
-            IsImported = node.IsImported,
-        };
-
-    private static NamespaceDeclarationIntermediateNode CloneContainer(NamespaceDeclarationIntermediateNode node)
-        => new()
-        {
-            Name = node.Name,
-            IsPrimaryNamespace = node.IsPrimaryNamespace,
-            IsGenericTyped = node.IsGenericTyped,
-            Source = node.Source,
-            IsImported = node.IsImported,
-        };
-
-    private static ClassDeclarationIntermediateNode CloneContainer(ClassDeclarationIntermediateNode node)
-        => new()
-        {
-            Name = node.Name,
-            BaseType = node.BaseType,
-            Modifiers = node.Modifiers,
-            Interfaces = node.Interfaces,
-            TypeParameters = node.TypeParameters,
-            IsPrimaryClass = node.IsPrimaryClass,
-            NullableContext = node.NullableContext,
-            Source = node.Source,
-            IsImported = node.IsImported,
-        };
 }

@@ -1,4 +1,4 @@
-﻿
+
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -33,7 +33,7 @@ internal sealed partial class CSharpFormattingPass(
         // Process changes from previous passes
         var changedText = context.SourceText.WithChanges(changes);
         var changedContext = await context.WithTextAsync(changedText, cancellationToken).ConfigureAwait(false);
-        context.Logger?.LogObject("SourceMappings", changedContext.CodeDocument.GetRequiredCSharpDocument().SourceMappingsSortedByGenerated);
+        context.Logger?.LogObject("SourceMappings", changedContext.CodeDocument.GetRequiredImplCSharpDocument().SourceMappingsSortedByGenerated);
 
         var csharpSyntaxTrue = await changedContext.CurrentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var csharpSyntaxRoot = await csharpSyntaxTrue.GetRootAsync(cancellationToken).ConfigureAwait(false);

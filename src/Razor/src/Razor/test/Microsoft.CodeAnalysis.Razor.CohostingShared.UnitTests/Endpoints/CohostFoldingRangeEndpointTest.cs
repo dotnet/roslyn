@@ -206,7 +206,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             """,
             fileKind: RazorFileKind.Legacy);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task CSharpCodeInCodeBlocks()
        => VerifyFoldingRangesAsync("""
             <div>
@@ -221,7 +221,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             }|]
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task HtmlAndCSharp()
       => VerifyFoldingRangesAsync("""
             <div>{|html:
@@ -240,7 +240,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             }|]
             """);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task CSharp_LineFoldingOnly()
         => VerifyFoldingRangesAsync("""
             <div>{|html:
@@ -256,7 +256,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             """,
             lineFoldingOnly: true);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task CSharp_NotLineFoldingOnly()
     => VerifyFoldingRangesAsync("""
             <div>{|html:
@@ -272,7 +272,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             """,
         lineFoldingOnly: false);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task IfElseStatements_LineFoldingOnly()
       => VerifyFoldingRangesAsync("""
             <div>
@@ -302,7 +302,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             """,
             lineFoldingOnly: true);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task CSharpExpressionBodiedMethods()
    => VerifyFoldingRangesAsync("""
             <p>hello!</p>

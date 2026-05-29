@@ -64,15 +64,6 @@ false
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    bool Foo { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

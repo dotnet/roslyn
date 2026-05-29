@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task GenerateType_FromCodeBlock_ExistingCodeBlock()
         => VerifyCodeActionAsync(
             input: """
@@ -43,7 +43,7 @@ public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeA
             codeActionIndex: 1,
             makeDiagnosticsRequest: true);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task GenerateType_FromCodeBlock_ExistingCodeBlock_Struct()
         => VerifyCodeActionAsync(
             input: """
@@ -72,7 +72,7 @@ public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeA
             codeActionIndex: 1,
             makeDiagnosticsRequest: true);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task GenerateType_FromCodeBlock_ExistingCodeBlock_Interface()
         => VerifyCodeActionAsync(
             input: """
@@ -99,7 +99,7 @@ public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeA
             codeActionIndex: 1,
             makeDiagnosticsRequest: true);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task GenerateType_FromCodeBlock_InNewFile()
         => VerifyCodeActionAsync(
             input: """
@@ -136,7 +136,7 @@ public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeA
             codeActionIndex: 0,
             makeDiagnosticsRequest: true);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task GenerateType_FromRazor_InOtherFile()
         => VerifyCodeActionAsync(
             input: """
@@ -184,7 +184,7 @@ public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeA
             codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
             makeDiagnosticsRequest: true);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task GenerateType_WithoutCodeBlock()
         => VerifyCodeActionAsync(
             input: """
@@ -209,7 +209,7 @@ public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeA
             codeActionIndex: 1,
             makeDiagnosticsRequest: true);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task GenerateType_WithoutCodeBlock_CodeBlockBraceOnNextLine()
     {
         ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });

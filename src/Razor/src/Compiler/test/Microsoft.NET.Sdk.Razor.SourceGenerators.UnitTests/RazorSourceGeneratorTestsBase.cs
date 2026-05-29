@@ -444,6 +444,7 @@ internal static class Extensions
 
     public static GeneratorRunResult VerifyPageOutput(this GeneratorRunResult result, params string[] expectedOutput)
     {
+        Assert.Null(result.Exception);
         if (expectedOutput.Length == 1 && string.IsNullOrWhiteSpace(expectedOutput[0]))
         {
             Assert.Fail(GenerateExpectedPageOutput(result));
@@ -460,6 +461,22 @@ internal static class Extensions
 
         return result;
     }
+
+    /// <summary>
+    /// For component documents, the source generator now emits two files per <c>.razor</c>:
+    /// the impl (e.g. <c>Foo_razor.g.cs</c>) and the decl (e.g. <c>Foo_razor.g.cs.decl.g.cs</c>).
+    /// Returns just the impl results so existing tests can keep asserting on the primary
+    /// output without caring about the decl half.
+    /// </summary>
+    public static IEnumerable<GeneratedSourceResult> ImplGeneratedSources(this GeneratorRunResult result)
+        => result.GeneratedSources.Where(s => !s.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal));
+
+    /// <summary>
+    /// Returns just the decl results -- one per splittable component document, none for
+    /// non-components or documents whose primary method body is being suppressed.
+    /// </summary>
+    public static IEnumerable<GeneratedSourceResult> DeclGeneratedSources(this GeneratorRunResult result)
+        => result.GeneratedSources.Where(s => s.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal));
 
     private static string CreateBaselineDirectory(string testPath, string testName, string suffix)
     {

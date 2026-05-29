@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -120,7 +120,7 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = codeDocument.GetRequiredCSharpDocument();
+        var generatedDocument = codeDocument.GetRequiredImplCSharpDocument();
 
         // Get a list of precise ranges for the C# code embedded in the Razor document.
         if (!TryGetSortedCSharpRanges(codeDocument, razorSpan, out var csharpRanges))
@@ -224,7 +224,7 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var sourceText = codeDocument.Source.Text;
         var textSpan = sourceText.GetTextSpan(razorRange);
-        var csharpDoc = codeDocument.GetRequiredCSharpDocument();
+        var csharpDoc = codeDocument.GetRequiredImplCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
         foreach (var mapping in csharpDoc.SourceMappingsSortedByOriginal)

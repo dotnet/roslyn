@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -261,19 +261,19 @@ public sealed partial class RazorCodeDocument
         return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, value, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
     }
 
-    internal bool TryGetCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
+    internal bool TryGetImplCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
     {
         result = _csharpDocument;
         return result is not null;
     }
 
-    internal RazorCSharpDocument? GetCSharpDocument()
+    internal RazorCSharpDocument? GetImplCSharpDocument()
         => _csharpDocument;
 
-    internal RazorCSharpDocument GetRequiredCSharpDocument()
+    internal RazorCSharpDocument GetRequiredImplCSharpDocument()
         => _csharpDocument.AssumeNotNull();
 
-    internal RazorCodeDocument WithCSharpDocument(RazorCSharpDocument value)
+    internal RazorCodeDocument WithImplCSharpDocument(RazorCSharpDocument value)
     {
         Debug.Assert(value is not null);
         if (ReferenceEquals(value, _csharpDocument))

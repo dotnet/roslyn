@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -83,7 +83,7 @@ internal class SpellCheckService(
 
     private void AddCSharpSpellCheckRanges(ref PooledArrayBuilder<SpellCheckRange> ranges, ImmutableArray<SpellCheckRange> csharpRanges, RazorCodeDocument codeDocument)
     {
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
 
         foreach (var range in csharpRanges)
         {

@@ -25,61 +25,6 @@ using Microsoft.AspNetCore.Components.Rendering
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    void MyMethod(RenderTreeBuilder __builder)
-    {
-
-#line default
-#line hidden
-#nullable disable
-
-        __builder.OpenElement(0, "ul");
-#nullable restore
-#line (6,1)-(6,13) "x:\dir\subdir\Test\TestComponent.cshtml"
-            
-
-#line default
-#line hidden
-#nullable disable
-
-#nullable restore
-#line (6,14)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-for (var i = 0; i < 100; i++)
-            {
-
-#line default
-#line hidden
-#nullable disable
-
-        __builder.OpenElement(1, "li");
-#nullable restore
-#line (9,22)-(9,23) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
-__builder.AddContent(2, i
-
-#line default
-#line hidden
-#nullable disable
-        );
-        __builder.CloseElement();
-#nullable restore
-#line (11,1)-(12,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-            }
-
-#line default
-#line hidden
-#nullable disable
-
-        __builder.CloseElement();
-#nullable restore
-#line (13,1)-(14,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

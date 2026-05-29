@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -2026,7 +2026,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
             csharpSource.Text,
             sourceMappings.OrderByAsArray(s => s.GeneratedSpan.AbsoluteIndex));
 
-        codeDocument = codeDocument.WithCSharpDocument(csharpDocument);
+        codeDocument = codeDocument.WithImplCSharpDocument(csharpDocument);
         var snapshot = TestDocumentSnapshot.Create(razorPath, codeDocument);
 
         var responseTextChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(

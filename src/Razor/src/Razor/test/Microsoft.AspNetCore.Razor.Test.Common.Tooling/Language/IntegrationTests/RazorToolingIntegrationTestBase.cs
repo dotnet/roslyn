@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -189,9 +189,9 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 // Result of generating declarations
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
-                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+                Assert.Empty(codeDocument.GetRequiredImplCSharpDocument().Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetRequiredImplCSharpDocument().Text, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -202,8 +202,8 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
-                Diagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredImplCSharpDocument().Text.ToString(),
+                Diagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics,
             };
 
             // Result of doing 'temp' compilation
@@ -218,10 +218,10 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 // Result of generating definition
                 codeDocument = projectEngine.Process(item);
-                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+                Assert.Empty(codeDocument.GetRequiredImplCSharpDocument().Diagnostics);
 
                 // Replace the 'declaration' syntax tree
-                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetRequiredImplCSharpDocument().Text, path: item.FilePath);
                 AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
@@ -232,8 +232,8 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
-                Diagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredImplCSharpDocument().Text.ToString(),
+                Diagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics,
             };
         }
         else
@@ -251,8 +251,8 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
-                Diagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredImplCSharpDocument().Text.ToString(),
+                Diagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics,
             };
         }
     }

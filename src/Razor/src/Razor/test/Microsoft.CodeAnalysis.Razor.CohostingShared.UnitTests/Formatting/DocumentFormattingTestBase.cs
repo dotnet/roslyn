@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -50,7 +50,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
             //var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
             //var snapshot = snapshotManager.GetSnapshot(document);
             //var codeDocument = await snapshot.GetGeneratedOutputAsync(DisposalToken);
-            //var csharpDocument = codeDocument.GetCSharpDocument();
+            //var csharpDocument = codeDocument.GetImplCSharpDocument();
             //Assert.False(csharpDocument.Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, csharpDocument.Diagnostics));
         }
 

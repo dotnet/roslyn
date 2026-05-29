@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -44,7 +44,7 @@ public abstract class DocumentExcerptServiceTestBase(ITestOutputHelper testOutpu
     {
         var output = await primary.GetGeneratedOutputAsync(cancellationToken);
 
-        foreach (var mapping in output.GetRequiredCSharpDocument().SourceMappingsSortedByOriginal)
+        foreach (var mapping in output.GetRequiredImplCSharpDocument().SourceMappingsSortedByOriginal)
         {
             if (mapping.OriginalSpan.AbsoluteIndex <= primarySpan.Start &&
                 (mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length) >= primarySpan.End)

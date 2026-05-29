@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
@@ -59,7 +59,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
             return Response.NoFurtherHandling;
         }
 
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
         if (DocumentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, index, out var mappedPosition, out _))
         {
             var generatedDocument = await context.Snapshot

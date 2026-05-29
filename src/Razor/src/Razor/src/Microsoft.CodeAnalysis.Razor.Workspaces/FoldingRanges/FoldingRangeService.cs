@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -32,7 +32,7 @@ internal partial class FoldingRangeService(
         // but we will at least have one per html range so can avoid some initial resizing of the backing data store.
         mappedRanges.SetCapacityIfLarger(htmlRanges.Length);
 
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
 
         foreach (var foldingRange in csharpRanges)
         {

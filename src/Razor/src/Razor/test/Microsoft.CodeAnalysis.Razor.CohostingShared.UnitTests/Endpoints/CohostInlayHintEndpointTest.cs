@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [RoslynConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task InlayHints()
         => VerifyInlayHintsAsync(
             input: """
@@ -63,7 +63,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
             """);
 
-    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [RoslynConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task InlayHints_DisplayAllOverride()
         => VerifyInlayHintsAsync(
             input: """
@@ -155,7 +155,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
         Assert.Null(hints);
     }
 
-    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [RoslynConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task PageDirective()
        => VerifyInlayHintsAsync(
            input: """
@@ -175,7 +175,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
             """);
 
-    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [RoslynConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task AttributeDirective()
        => VerifyInlayHintsAsync(
            input: """

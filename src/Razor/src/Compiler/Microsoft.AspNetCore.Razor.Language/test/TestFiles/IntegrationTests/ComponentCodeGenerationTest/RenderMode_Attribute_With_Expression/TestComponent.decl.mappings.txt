@@ -1,0 +1,15 @@
+﻿Source Location: (83:2,1 [135] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+    {
+        public string Extra {get;set;}
+    }
+|
+Generated Location: (557:18,0 [135] )
+|
+    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+    {
+        public string Extra {get;set;}
+    }
+|
+

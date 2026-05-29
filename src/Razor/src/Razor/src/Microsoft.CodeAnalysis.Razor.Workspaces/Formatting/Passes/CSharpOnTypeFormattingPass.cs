@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -53,7 +53,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         if (changes.Length == 0)
         {
-            if (!_documentMappingSerivce.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
+            if (!_documentMappingSerivce.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredImplCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
                 _logger.LogWarning($"Failed to map to projected position for document {context.OriginalSnapshot.FilePath}.");
                 return [];
@@ -273,7 +273,7 @@ internal sealed class CSharpOnTypeFormattingPass(
     private static ImmutableArray<TextChange> CleanupDocument(FormattingContext context, LinePositionSpan spanAfterFormatting)
     {
         var text = context.SourceText;
-        var csharpDocument = context.CodeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = context.CodeDocument.GetRequiredImplCSharpDocument();
 
         using var changes = new PooledArrayBuilder<TextChange>();
         foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
@@ -552,7 +552,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         // 2. The indentation due to Razor and HTML constructs
 
         var text = context.SourceText;
-        var csharpDocument = context.CodeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = context.CodeDocument.GetRequiredImplCSharpDocument();
 
         // To help with figuring out the correct indentation, first we will need the indentation
         // that the C# formatter wants to apply in the following locations,
@@ -1146,7 +1146,7 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         var documentText = codeDocument.Source.Text.ToString();
         var lastIndex = 0;
-        foreach (var mapping in codeDocument.GetRequiredCSharpDocument().SourceMappingsSortedByOriginal)
+        foreach (var mapping in codeDocument.GetRequiredImplCSharpDocument().SourceMappingsSortedByOriginal)
         {
             var originalStart = mapping.OriginalSpan.AbsoluteIndex;
             var originalEnd = originalStart + mapping.OriginalSpan.Length;

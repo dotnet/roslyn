@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
@@ -72,7 +72,7 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
             return null;
         }
 
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
         var selectionRanges = new SelectionRange[csharpSelectionRanges.Length];
         for (var i = 0; i < csharpSelectionRanges.Length; i++)
         {

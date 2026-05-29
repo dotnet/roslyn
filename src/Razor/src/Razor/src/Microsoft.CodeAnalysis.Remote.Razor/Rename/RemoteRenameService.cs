@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -144,7 +144,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return RemoteResponse<LspRange?>.NoFurtherHandling;
         }
 
-        if (!DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), csharpRange, out var mappedRange))
+        if (!DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredImplCSharpDocument(), csharpRange, out var mappedRange))
         {
             return RemoteResponse<LspRange?>.NoFurtherHandling;
         }

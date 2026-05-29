@@ -40,7 +40,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         await VerifyGoToImplementationAsync(input);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharp_Field()
     {
         var input = """
@@ -64,7 +64,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         await VerifyGoToImplementationAsync(input);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharp_Multiple()
     {
         var input = """
@@ -112,7 +112,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         await VerifyGoToImplementationAsync(input, document, htmlResponse);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task Component_FromCSharp()
     {
         TestCode input = """

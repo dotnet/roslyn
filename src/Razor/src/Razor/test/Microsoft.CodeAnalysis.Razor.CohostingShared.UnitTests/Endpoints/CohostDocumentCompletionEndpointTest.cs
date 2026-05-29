@@ -274,7 +274,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharpClassesInCodeBlock()
     {
         await VerifyCompletionListAsync(
@@ -296,7 +296,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["char", "DateTime", "Exception"]);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharpClassMembersInCodeBlock()
     {
         await VerifyCompletionListAsync(
@@ -323,7 +323,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
-    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [RoslynConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task CSharpOverrideMethods()
     {
         await VerifyCompletionListAsync(

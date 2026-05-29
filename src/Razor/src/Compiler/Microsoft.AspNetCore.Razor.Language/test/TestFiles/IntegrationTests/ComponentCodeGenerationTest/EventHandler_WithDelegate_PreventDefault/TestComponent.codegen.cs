@@ -45,17 +45,6 @@ ShouldPreventDefault()
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    void OnFocus(FocusEventArgs e) { }
-
-    bool ShouldPreventDefault() { return false; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591
