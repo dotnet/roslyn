@@ -984,7 +984,7 @@ done:
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, this.GetModifierLocation(SyntaxKind.UnsafeKeyword, _location), modifyCompilation: true);
             }
 
-            if (AssociatedSymbol is null && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
+            if (AssociatedSymbol is not SourceEventSymbol && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
                 diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, this.GetModifierLocation(SyntaxKind.SafeKeyword, _location));
             }
