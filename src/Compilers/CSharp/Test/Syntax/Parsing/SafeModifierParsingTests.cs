@@ -18,7 +18,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("extern safe public void M();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.PublicKeyword)]
     public void Method(string source, params SyntaxKind[] expectedModifiers)
     {
-        UsingDeclaration(source, TestOptions.RegularPreview);
+        UsingDeclaration(source);
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -108,7 +108,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("public extern safe int P { get; }", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
     public void Property(string source, params SyntaxKind[] expectedModifiers)
     {
-        UsingDeclaration(source, TestOptions.RegularPreview);
+        UsingDeclaration(source);
 
         N(SyntaxKind.PropertyDeclaration);
         {
@@ -142,7 +142,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("public extern safe static event System.Action E;", SyntaxKind.PublicKeyword, SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword, SyntaxKind.StaticKeyword)]
     public void Event(string source, params SyntaxKind[] expectedModifiers)
     {
-        UsingDeclaration(source, TestOptions.RegularPreview);
+        UsingDeclaration(source);
 
         N(SyntaxKind.EventFieldDeclaration);
         {
@@ -184,7 +184,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("public safe extern partial C();", SyntaxKind.PublicKeyword, SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword, SyntaxKind.PartialKeyword)]
     public void Constructor(string source, params SyntaxKind[] expectedModifiers)
     {
-        UsingDeclaration(source, TestOptions.RegularPreview);
+        UsingDeclaration(source);
 
         N(SyntaxKind.ConstructorDeclaration);
         {
@@ -193,6 +193,33 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
                 N(expectedModifier);
             }
 
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Theory]
+    [InlineData("safe ~C();", SyntaxKind.SafeKeyword)]
+    [InlineData("safe extern ~C();", SyntaxKind.SafeKeyword, SyntaxKind.ExternKeyword)]
+    [InlineData("extern safe ~C();", SyntaxKind.ExternKeyword, SyntaxKind.SafeKeyword)]
+    public void Destructor(string source, params SyntaxKind[] expectedModifiers)
+    {
+        UsingDeclaration(source);
+
+        N(SyntaxKind.ConstructorDeclaration);
+        {
+            foreach (var expectedModifier in expectedModifiers)
+            {
+                N(expectedModifier);
+            }
+
+            N(SyntaxKind.TildeToken);
             N(SyntaxKind.IdentifierToken, "C");
             N(SyntaxKind.ParameterList);
             {
@@ -218,8 +245,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
                     {{localFunction}}
                 }
             }
-            """,
-            TestOptions.RegularPreview);
+            """);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -287,7 +313,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("safe public delegate void D();", SyntaxKind.DelegateDeclaration)]
     public void OtherMemberKinds(string source, SyntaxKind declarationKind)
     {
-        var declaration = SyntaxFactory.ParseMemberDeclaration(source, options: TestOptions.RegularPreview);
+        var declaration = SyntaxFactory.ParseMemberDeclaration(source);
         Assert.NotNull(declaration);
         declaration.GetDiagnostics().Verify();
         Assert.Equal(declarationKind, declaration.Kind());
@@ -354,7 +380,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void PropertyAccessor()
     {
-        UsingDeclaration("public int P { safe get; set; }", TestOptions.RegularPreview);
+        UsingDeclaration("public int P { safe get; set; }");
 
         N(SyntaxKind.PropertyDeclaration);
         {
@@ -390,7 +416,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("public int P { get; private safe set; }", 1, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
     public void PropertyAccessor_WithOtherModifiers(string source, int accessorIndex, params SyntaxKind[] expectedModifiers)
     {
-        var declaration = Assert.IsType<PropertyDeclarationSyntax>(SyntaxFactory.ParseMemberDeclaration(source, options: TestOptions.RegularPreview));
+        var declaration = Assert.IsType<PropertyDeclarationSyntax>(SyntaxFactory.ParseMemberDeclaration(source));
         declaration.GetDiagnostics().Verify();
 
         var modifiers = declaration.AccessorList!.Accessors[accessorIndex].Modifiers;
@@ -405,7 +431,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void EventAccessor()
     {
-        UsingDeclaration("public event EHandler E { safe add { } remove { } }", TestOptions.RegularPreview);
+        UsingDeclaration("public event EHandler E { safe add { } remove { } }");
 
         N(SyntaxKind.EventDeclaration);
         {
@@ -447,7 +473,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void ParameterType()
     {
-        UsingDeclaration("public void M(safe x);", TestOptions.RegularPreview);
+        UsingDeclaration("public void M(safe x);");
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -628,8 +654,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
                     safe();
                 }
             }
-            """,
-            TestOptions.RegularPreview);
+            """);
 
         N(SyntaxKind.CompilationUnit);
         {
