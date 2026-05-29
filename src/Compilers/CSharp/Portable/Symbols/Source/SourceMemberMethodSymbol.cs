@@ -726,6 +726,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
+        private SyntaxTokenList Modifiers
+        {
+            get
+            {
+                return SyntaxNode switch
+                {
+                    BaseMethodDeclarationSyntax method => method.Modifiers,
+                    AccessorDeclarationSyntax accessor => accessor.Modifiers,
+                    _ => default,
+                };
+            }
+        }
+
         internal (BlockSyntax blockBody, ArrowExpressionClauseSyntax arrowBody) Bodies
         {
             get
@@ -976,17 +989,21 @@ done:
 
             if (ContainingModule.UseUpdatedMemorySafetyRules && AssociatedSymbol is null && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
             {
-                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, this.GetModifierLocation(SyntaxKind.ExternKeyword, _location));
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, _location));
             }
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, this.GetModifierLocation(SyntaxKind.UnsafeKeyword, _location), modifyCompilation: true);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                    Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, _location),
+                    modifyCompilation: true);
             }
 
             if (AssociatedSymbol is not SourceEventSymbol && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, this.GetModifierLocation(SyntaxKind.SafeKeyword, _location));
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, _location));
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

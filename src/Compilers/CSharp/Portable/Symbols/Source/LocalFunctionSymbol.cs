@@ -135,17 +135,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
             {
-                addTo.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, this.GetModifierLocation(SyntaxKind.ExternKeyword));
+                addTo.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, Syntax.Identifier.GetLocation()));
             }
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                compilation.EnsureRequiresUnsafeAttributeExists(addTo, this.GetModifierLocation(SyntaxKind.UnsafeKeyword), modifyCompilation: false);
+                compilation.EnsureRequiresUnsafeAttributeExists(addTo,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, Syntax.Identifier.GetLocation()),
+                    modifyCompilation: false);
             }
 
             if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
-                addTo.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, this.GetModifierLocation(SyntaxKind.SafeKeyword));
+                addTo.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, Syntax.Identifier.GetLocation()));
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);

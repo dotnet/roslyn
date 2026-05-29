@@ -862,6 +862,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        private MemberDeclarationSyntax? Syntax
+            => CSharpSyntaxNode as MemberDeclarationSyntax;
+#nullable disable
+
         internal SyntaxTree SyntaxTree
         {
             get
@@ -1047,17 +1052,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
             {
-                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe, this.GetModifierLocation(SyntaxKind.ExternKeyword));
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, GetFirstLocation()));
             }
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, this.GetModifierLocation(SyntaxKind.UnsafeKeyword), modifyCompilation: true);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.UnsafeKeyword, GetFirstLocation()),
+                    modifyCompilation: true);
             }
 
             if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
             {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget, this.GetModifierLocation(SyntaxKind.SafeKeyword));
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);

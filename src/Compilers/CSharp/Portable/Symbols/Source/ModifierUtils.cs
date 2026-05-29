@@ -621,18 +621,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable enable
-        internal static Location GetModifierLocation(this Symbol symbol, SyntaxKind kind, Location? fallback = null)
+        internal static Location GetModifierLocation(this SyntaxTokenList modifiers, SyntaxKind kind, Location fallback)
+            => GetModifierLocation((SyntaxTokenList?)modifiers, kind, fallback);
+
+        internal static Location GetModifierLocation(this SyntaxTokenList? modifiers, SyntaxKind kind, Location fallback)
         {
-            var modifiers = symbol.GetNonNullSyntaxNode() switch
-            {
-                MemberDeclarationSyntax member => member.Modifiers,
-                LocalFunctionStatementSyntax localFunc => localFunc.Modifiers,
-                VariableDeclaratorSyntax declarator => (declarator.Parent?.Parent as MemberDeclarationSyntax)?.Modifiers ?? default,
-                _ => default,
-            };
-            var keyword = modifiers.FirstOrDefault(kind);
-            return keyword != default ? keyword.GetLocation() : (fallback ?? symbol.GetFirstLocation());
+            var keyword = (modifiers ?? default).FirstOrDefault(kind);
+            return keyword != default ? keyword.GetLocation() : fallback;
         }
     }
 }
