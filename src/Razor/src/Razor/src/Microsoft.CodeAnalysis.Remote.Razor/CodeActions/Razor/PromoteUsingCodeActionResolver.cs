@@ -44,7 +44,7 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
         var file = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var folder = Path.GetDirectoryName(file).AssumeNotNull();
         var importsFile = Path.GetFullPath(Path.Combine(folder, "..", importsFileName));
-        var importFileUri = new DocumentUri(LspFactory.CreateFilePathUri(importsFile));
+        var importFileUri = LspFactory.CreateFilePathUri(importsFile);
 
         using var edits = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
 
@@ -78,7 +78,7 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
 
         edits.Add(new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri },
             Edits = [LspFactory.CreateTextEdit(removeRange, string.Empty)]
         });
 

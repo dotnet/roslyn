@@ -1979,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsClosed)
             {
                 // Ensure necessary attributes are present
-                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor, diagnostics, GetFirstLocation());
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor, diagnostics, GetFirstLocation());
                 _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, GetFirstLocation());
             }
 
@@ -2073,6 +2073,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, ctor.GetFirstLocation());
                     }
+                }
+
+                if (GetMemberProviderInterfaceForDefinition() is not null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MemberProviderInUnionDeclaration, location);
+                }
+            }
+            else if (IsUnionType)
+            {
+                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null) is null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
+                }
+
+                if (Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(this) is null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MissingUnionValueProperty, location);
                 }
             }
 
