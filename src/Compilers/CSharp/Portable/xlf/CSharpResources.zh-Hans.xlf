@@ -978,9 +978,9 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternMemberRequiresUnsafeOrSafe">
-        <source>Extern member must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Extern member must be marked 'unsafe' or 'safe'.</target>
-        <note>'unsafe' and 'safe' should not be localized.</note>
+        <source>'extern' member must be marked 'unsafe' or 'safe'.</source>
+        <target state="new">'extern' member must be marked 'unsafe' or 'safe'.</target>
+        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
@@ -2493,8 +2493,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.</source>
-        <target state="new">The 'safe' modifier may only be used on extern members that are not marked 'unsafe'.</target>
+        <source>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</source>
+        <target state="new">The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
