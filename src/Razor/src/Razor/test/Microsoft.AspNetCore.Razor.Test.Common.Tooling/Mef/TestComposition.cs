@@ -45,6 +45,7 @@ public sealed partial class TestComposition
 #endif
 
     private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
+    private static readonly Dictionary<CacheKey, CompositionConfiguration> s_configurationCache = [];
 
     private readonly struct CacheKey : IEquatable<CacheKey>
     {
@@ -107,12 +108,14 @@ public sealed partial class TestComposition
     public readonly ImmutableHashSet<Type> Parts;
 
     private readonly Lazy<IExportProviderFactory> _exportProviderFactory;
+    private readonly CacheKey _cacheKey;
 
     private TestComposition(ImmutableHashSet<Assembly> assemblies, ImmutableHashSet<Type> parts, ImmutableHashSet<Type> excludedPartTypes)
     {
         Assemblies = assemblies;
         Parts = parts;
         ExcludedPartTypes = excludedPartTypes;
+        _cacheKey = new CacheKey(assemblies, parts, excludedPartTypes);
 
         _exportProviderFactory = new Lazy<IExportProviderFactory>(GetOrCreateFactory);
     }
@@ -124,29 +127,52 @@ public sealed partial class TestComposition
 
     private IExportProviderFactory GetOrCreateFactory()
     {
-        var key = new CacheKey(Assemblies, Parts, ExcludedPartTypes);
-
         lock (s_factoryCache)
         {
-            if (s_factoryCache.TryGetValue(key, out var existing))
+            if (s_factoryCache.TryGetValue(_cacheKey, out var existing))
             {
                 return existing;
             }
         }
 
-        var newFactory = ExportProviderCache.CreateExportProviderFactory(GetCatalog());
+        var newFactory = ExportProviderCache.CreateExportProviderFactory(GetOrCreateConfiguration());
 
         lock (s_factoryCache)
         {
-            if (s_factoryCache.TryGetValue(key, out var existing))
+            if (s_factoryCache.TryGetValue(_cacheKey, out var existing))
             {
                 return existing;
             }
 
-            s_factoryCache.Add(key, newFactory);
+            s_factoryCache.Add(_cacheKey, newFactory);
         }
 
         return newFactory;
+    }
+
+    private CompositionConfiguration GetOrCreateConfiguration()
+    {
+        lock (s_configurationCache)
+        {
+            if (s_configurationCache.TryGetValue(_cacheKey, out var existing))
+            {
+                return existing;
+            }
+        }
+
+        var newConfiguration = ExportProviderCache.CreateCompositionConfiguration(GetCatalog());
+
+        lock (s_configurationCache)
+        {
+            if (s_configurationCache.TryGetValue(_cacheKey, out var existing))
+            {
+                return existing;
+            }
+
+            s_configurationCache.Add(_cacheKey, newConfiguration);
+        }
+
+        return newConfiguration;
     }
 
     private ComposableCatalog GetCatalog()
@@ -230,7 +256,7 @@ public sealed partial class TestComposition
     /// <returns>All composition error messages.</returns>
     public IEnumerable<string> GetCompositionErrors()
     {
-        var configuration = CompositionConfiguration.Create(GetCatalog());
+        var configuration = GetOrCreateConfiguration();
 
         foreach (var errorGroup in configuration.CompositionErrors)
         {

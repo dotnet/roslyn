@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,9 +34,47 @@ internal sealed class RemoteWorkspaceProvider : IWorkspaceProvider
     /// </summary>
     public static class TestAccessor
     {
+        private static readonly SemaphoreSlim s_initializeGate = new(initialCount: 1, maxCount: 1);
+        private static Func<string, TraceSource, CancellationToken, Task<string?>> s_initializeRemoteExportProviderBuilderAsync = RemoteExportProviderBuilder.InitializeAsync;
+        private static bool s_initialized;
+        private static string? s_errorMessages;
+
         public static async Task<string?> InitializeRemoteExportProviderBuilderAsync(string localSettingsDirectory, TraceSource traceLogger, CancellationToken cancellationToken)
         {
-            return await RemoteExportProviderBuilder.InitializeAsync(localSettingsDirectory, traceLogger, cancellationToken).ConfigureAwait(false);
+            if (Volatile.Read(ref s_initialized))
+            {
+                return s_errorMessages;
+            }
+
+            await s_initializeGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                if (Volatile.Read(ref s_initialized))
+                {
+                    return s_errorMessages;
+                }
+
+                s_errorMessages = await s_initializeRemoteExportProviderBuilderAsync(localSettingsDirectory, traceLogger, cancellationToken).ConfigureAwait(false);
+                Volatile.Write(ref s_initialized, true);
+
+                return s_errorMessages;
+            }
+            finally
+            {
+                s_initializeGate.Release();
+            }
+        }
+
+        public static void SetInitializeRemoteExportProviderBuilder(Func<string, TraceSource, CancellationToken, Task<string?>> initializeAsync)
+        {
+            s_initializeRemoteExportProviderBuilderAsync = initializeAsync;
+        }
+
+        public static void ResetInitializeRemoteExportProviderBuilder()
+        {
+            s_initializeRemoteExportProviderBuilderAsync = RemoteExportProviderBuilder.InitializeAsync;
+            s_errorMessages = null;
+            Volatile.Write(ref s_initialized, false);
         }
     }
 }
