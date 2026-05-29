@@ -628,8 +628,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override bool HasSafeModifier => (this.DeclarationModifiers & DeclarationModifiers.Safe) != 0;
-
         public sealed override bool IsSealed
         {
             get
