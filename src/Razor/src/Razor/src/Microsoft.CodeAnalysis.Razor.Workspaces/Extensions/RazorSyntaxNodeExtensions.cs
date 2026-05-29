@@ -307,19 +307,6 @@ internal static class RazorSyntaxNodeExtensions
         return node;
     }
 
-    public static bool ExistsOnTarget(this SyntaxNode node, SyntaxNode target)
-    {
-        // TODO: This looks like a potential allocation hotspot and performance bottleneck.
-
-        var nodeString = node.RemoveEmptyNewLines().ToString();
-        var matchingNode = target.DescendantNodesAndSelf()
-            // Empty new lines can affect our comparison so we remove them since they're insignificant.
-            .Where(n => n.RemoveEmptyNewLines().ToString() == nodeString)
-            .FirstOrDefault();
-
-        return matchingNode is not null;
-    }
-
     public static bool IsCSharpNode(this SyntaxNode node, [NotNullWhen(true)] out CSharpCodeBlockSyntax? csharpCodeBlock)
     {
         csharpCodeBlock = null;

@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -260,27 +259,6 @@ internal static class SyntaxNodeExtensions
     public static string GetContent<TNode>(this TNode node) where TNode : SyntaxNode
     {
         return node.Green.ToString();
-    }
-
-    public static SyntaxNode RemoveEmptyNewLines(this SyntaxNode node)
-    {
-        if (node is MarkupTextLiteralSyntax markupTextLiteral)
-        {
-            var literalTokens = markupTextLiteral.LiteralTokens;
-            using var literalTokensWithoutLines = new PooledArrayBuilder<SyntaxToken>(literalTokens.Count);
-
-            foreach (var token in literalTokens)
-            {
-                if (token.Kind != SyntaxKind.NewLine)
-                {
-                    literalTokensWithoutLines.Add(token);
-                }
-            }
-
-            return markupTextLiteral.WithLiteralTokens(literalTokensWithoutLines.ToList());
-        }
-
-        return node;
     }
 
     private sealed class DiagnosticSyntaxWalker(List<RazorDiagnostic> diagnostics) : SyntaxWalker
