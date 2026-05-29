@@ -235,7 +235,6 @@ namespace RunTests
                 }
 
                 testRuntime = testBoth ? TestRuntime.Both : testDesktop ? TestRuntime.Framework : TestRuntime.Core;
-                timeout ??= 90;
 
                 if (testCompilerOnly)
                 {
@@ -306,6 +305,8 @@ namespace RunTests
             }
             else
             {
+                timeout ??= 90;
+
                 if (helixApiAccessToken is not null)
                 {
                     ConsoleUtil.WriteLine("--helixApiAccessToken is not supported without --helix.");

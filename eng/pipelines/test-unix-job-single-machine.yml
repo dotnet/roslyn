@@ -56,7 +56,7 @@ jobs:
 
     - task: CmdLine@2
       inputs:
-        script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --testConfiguration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+        script: dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" ${{ parameters.testArguments }}
       displayName: Test
 
     - template: publish-logs.yml
