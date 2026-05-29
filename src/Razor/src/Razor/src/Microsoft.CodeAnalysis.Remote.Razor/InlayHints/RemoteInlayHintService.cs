@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 using Microsoft.CodeAnalysis.Razor;
@@ -32,7 +31,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
     private readonly InlayHintCacheProvider _cacheProvider = args.ExportProvider.GetExportedValue<InlayHintCacheProvider>();
     private readonly IRazorEditService _razorEditService = args.ExportProvider.GetExportedValue<IRazorEditService>();
 
-    public ValueTask<InlayHint[]?> GetInlayHintsAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken)
+    public ValueTask<InlayHint[]?> GetInlayHintsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
@@ -119,7 +118,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
         return inlayHintsBuilder.ToArray();
     }
 
-    public ValueTask<InlayHint> ResolveHintAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHint inlayHint, CancellationToken cancellationToken)
+    public ValueTask<InlayHint> ResolveHintAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHint inlayHint, CancellationToken cancellationToken)
        => RunServiceAsync(
             solutionInfo,
             razorDocumentId,

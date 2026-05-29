@@ -357,11 +357,8 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         var razorDocumentAfterRename = solution.GetAdditionalDocument(razorDocument.Id).AssumeNotNull();
         var razorText = await razorDocumentAfterRename.GetTextAsync(DisposalToken);
 
-        foreach (var change in changes)
-        {
-            Assert.Equal(razorDocument.FilePath, change.FilePath);
-            razorText = razorText.WithChanges(change.TextChanges);
-        }
+        Assert.All(changes, change => Assert.Equal(razorDocument.FilePath, change.MappedFilePath));
+        razorText = razorText.WithChanges(changes.Select(change => change.TextChange));
 
         AssertEx.EqualOrDiff(expectedRazorFile, razorText.ToString());
     }

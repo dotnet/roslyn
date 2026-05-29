@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,7 +18,7 @@ public class RazorSemanticTokensLegendServiceTest(ITestOutputHelper testOutput) 
         var clientCapabilitiesService = new TestClientCapabilitiesService(new VSInternalClientCapabilities());
         var service = new TestRazorSemanticTokensLegendService(clientCapabilitiesService);
 
-        var expected = Math.Pow(2, RazorSemanticTokensAccessor.GetTokenModifiers().Length);
+        var expected = Math.Pow(2, SemanticTokensSchema.TokenModifiers.Length);
 
         Assert.Equal(expected, service.TokenModifiers.RazorCodeModifier);
     }

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -32,7 +31,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
     public ValueTask<RemoteResponse<Hover?>> GetHoverAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         CancellationToken cancellationToken)

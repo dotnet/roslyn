@@ -41,9 +41,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)OnAutoInsert\CohostOnAutoInsertTriggerCharacterProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorAnalyzerAssemblyRedirector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorConfigurationChangedServiceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorMiscellaneousProjectInfoService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentExcerptService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentSpanMappingService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratorLocator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\CohostPrepareRenameEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorStartupServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\CohostRenameEndpoint.cs" />

@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -41,7 +40,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
     public ValueTask<RemoteResponse<WorkspaceEdit?>> GetRenameEditAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         string newName,
@@ -97,7 +96,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
     }
 
     public ValueTask<RemoteResponse<LspRange?>> GetPrepareRenameRangeAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         CancellationToken cancellationToken)
@@ -164,7 +163,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
     }
 
     public ValueTask<WorkspaceEdit?> GetFileRenameEditAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         RenameFilesParams fileRenameRequest,
         CancellationToken cancellationToken)
         => RunServiceAsync(

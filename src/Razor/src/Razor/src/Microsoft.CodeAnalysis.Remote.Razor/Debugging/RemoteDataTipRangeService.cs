@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -24,7 +23,7 @@ internal sealed class RemoteDataTipRangeService(in ServiceArgs args) : RazorDocu
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
     public ValueTask<RemoteResponse<VSInternalDataTip?>> GetDataTipRangeAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         CancellationToken cancellationToken)

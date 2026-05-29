@@ -149,8 +149,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xaml" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics" />

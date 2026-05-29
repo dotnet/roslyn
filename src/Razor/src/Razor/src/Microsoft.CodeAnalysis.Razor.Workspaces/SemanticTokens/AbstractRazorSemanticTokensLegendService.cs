@@ -5,7 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
@@ -25,7 +25,7 @@ internal abstract class AbstractRazorSemanticTokensLegendService(IClientCapabili
     {
         using var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
-        builder.AddRange(RazorSemanticTokensAccessor.GetTokenTypes(supportsVsExtensions));
+        builder.AddRange(SemanticTokensSchema.GetSchema(supportsVsExtensions).AllTokenTypes);
 
         foreach (var razorTokenType in GetStaticFieldValues(typeof(SemanticTokenTypes)))
         {
@@ -39,7 +39,7 @@ internal abstract class AbstractRazorSemanticTokensLegendService(IClientCapabili
     {
         using var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
-        builder.AddRange(RazorSemanticTokensAccessor.GetTokenModifiers());
+        builder.AddRange(SemanticTokensSchema.TokenModifiers);
 
         foreach (var razorModifier in GetStaticFieldValues(typeof(SemanticTokenModifiers)))
         {

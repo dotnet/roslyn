@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
@@ -54,7 +53,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
     }
 
     public ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionsAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         CancellationToken cancellationToken)

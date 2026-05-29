@@ -12,8 +12,8 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -93,7 +93,7 @@ public class DocumentFormattingBenchmark
         {
             InsertSpaces = false,
             TabSize = 4,
-            CSharpSyntaxFormattingOptions = RazorCSharpSyntaxFormattingOptions.Default,
+            CSharpSyntaxFormattingOptions = CSharpSyntaxFormattingOptions.Default,
         };
 
         var changeCount = FormatDocumentCore();

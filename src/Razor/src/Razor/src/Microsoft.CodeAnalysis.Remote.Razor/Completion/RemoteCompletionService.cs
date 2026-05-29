@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
@@ -52,7 +51,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     private readonly IClientSettingsManager _clientSettingsManager = args.ExportProvider.GetExportedValue<IClientSettingsManager>();
 
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         VSInternalCompletionContext completionContext,
         Position position,
@@ -135,7 +134,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     public ValueTask<CompletionResponse> GetCompletionAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
@@ -400,7 +399,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     public ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         VSInternalCompletionItem request,
         CancellationToken cancellationToken)
