@@ -376,6 +376,46 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArray15,
         System_Runtime_CompilerServices_InlineArray16,
 
+        // The IFunc types must be ordered by arity, as we do arithmetic on them.
+        System_IFunc_T,
+        System_IFunc_T2,
+        System_IFunc_T3,
+        System_IFunc_T4,
+        System_IFunc_T5,
+        System_IFunc_T6,
+        System_IFunc_T7,
+        System_IFunc_T8,
+        System_IFunc_T9,
+        System_IFunc_T10,
+        System_IFunc_T11,
+        System_IFunc_T12,
+        System_IFunc_T13,
+        System_IFunc_T14,
+        System_IFunc_T15,
+        System_IFunc_T16,
+        System_IFunc_T17,
+        System_IFunc_TMax = System_IFunc_T17,
+
+        // The IAction types must be ordered by arity, as we do arithmetic on them.
+        System_IAction,
+        System_IAction_T,
+        System_IAction_T2,
+        System_IAction_T3,
+        System_IAction_T4,
+        System_IAction_T5,
+        System_IAction_T6,
+        System_IAction_T7,
+        System_IAction_T8,
+        System_IAction_T9,
+        System_IAction_T10,
+        System_IAction_T11,
+        System_IAction_T12,
+        System_IAction_T13,
+        System_IAction_T14,
+        System_IAction_T15,
+        System_IAction_T16,
+        System_IAction_TMax = System_IAction_T16,
+
         NextAvailable,
         // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
     }
@@ -737,6 +777,42 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.InlineArray14`1",
             "System.Runtime.CompilerServices.InlineArray15`1",
             "System.Runtime.CompilerServices.InlineArray16`1",
+
+            "System.IFunc`1",
+            "System.IFunc`2",
+            "System.IFunc`3",
+            "System.IFunc`4",
+            "System.IFunc`5",
+            "System.IFunc`6",
+            "System.IFunc`7",
+            "System.IFunc`8",
+            "System.IFunc`9",
+            "System.IFunc`10",
+            "System.IFunc`11",
+            "System.IFunc`12",
+            "System.IFunc`13",
+            "System.IFunc`14",
+            "System.IFunc`15",
+            "System.IFunc`16",
+            "System.IFunc`17",
+
+            "System.IAction",
+            "System.IAction`1",
+            "System.IAction`2",
+            "System.IAction`3",
+            "System.IAction`4",
+            "System.IAction`5",
+            "System.IAction`6",
+            "System.IAction`7",
+            "System.IAction`8",
+            "System.IAction`9",
+            "System.IAction`10",
+            "System.IAction`11",
+            "System.IAction`12",
+            "System.IAction`13",
+            "System.IAction`14",
+            "System.IAction`15",
+            "System.IAction`16",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -869,6 +945,38 @@ namespace Microsoft.CodeAnalysis
 
             return (invokeArgumentCount <= WellKnownType.System_Action_TMax - WellKnownType.System_Action) ?
                 (WellKnownType)((int)WellKnownType.System_Action + invokeArgumentCount) :
+                WellKnownType.Unknown;
+        }
+
+        /// <summary>
+        /// True for the well-known function-interface types (<c>System.IFunc&lt;...&gt;</c> and
+        /// <c>System.IAction&lt;...&gt;</c>) used by the ref struct closures feature.
+        /// </summary>
+        public static bool IsFunctionInterfaceType(this WellKnownType typeId)
+        {
+            return (typeId >= WellKnownType.System_IFunc_T && typeId <= WellKnownType.System_IFunc_TMax) ||
+                (typeId >= WellKnownType.System_IAction && typeId <= WellKnownType.System_IAction_TMax);
+        }
+
+        // returns WellKnownType.Unknown if given arity isn't available:
+        internal static WellKnownType GetWellKnownFunctionInterface(int invokeArgumentCount)
+        {
+            Debug.Assert(invokeArgumentCount >= 0);
+
+            // System.IFunc`N has N-1 parameters (the last type argument is the return type),
+            // so System_IFunc_T (IFunc`1) corresponds to zero invoke arguments.
+            return (invokeArgumentCount <= WellKnownType.System_IFunc_TMax - WellKnownType.System_IFunc_T) ?
+                (WellKnownType)((int)WellKnownType.System_IFunc_T + invokeArgumentCount) :
+                WellKnownType.Unknown;
+        }
+
+        // returns WellKnownType.Unknown if given arity isn't available:
+        internal static WellKnownType GetWellKnownActionInterface(int invokeArgumentCount)
+        {
+            Debug.Assert(invokeArgumentCount >= 0);
+
+            return (invokeArgumentCount <= WellKnownType.System_IAction_TMax - WellKnownType.System_IAction) ?
+                (WellKnownType)((int)WellKnownType.System_IAction + invokeArgumentCount) :
                 WellKnownType.Unknown;
         }
     }

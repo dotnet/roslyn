@@ -61,6 +61,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             """;
 
         [Fact]
+        public void WellKnownFunctionInterfaceTypesAreRecognized()
+        {
+            var comp = CreateCompilation(FunctionInterfacesDefinition, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics();
+
+            assertResolves(WellKnownType.System_IAction, "System.IAction");
+            assertResolves(WellKnownType.System_IAction_T, "System.IAction<T>");
+            assertResolves(WellKnownType.System_IFunc_T, "System.IFunc<TResult>");
+            assertResolves(WellKnownType.System_IFunc_T2, "System.IFunc<T, TResult>");
+
+            Assert.True(WellKnownType.System_IFunc_T.IsFunctionInterfaceType());
+            Assert.True(WellKnownType.System_IFunc_TMax.IsFunctionInterfaceType());
+            Assert.True(WellKnownType.System_IAction.IsFunctionInterfaceType());
+            Assert.True(WellKnownType.System_IAction_TMax.IsFunctionInterfaceType());
+            Assert.False(WellKnownType.System_Func_T.IsFunctionInterfaceType());
+            Assert.False(WellKnownType.System_Action.IsFunctionInterfaceType());
+
+            // IFunc`N has N-1 parameters; IAction`N has N parameters.
+            Assert.Equal(WellKnownType.System_IFunc_T, WellKnownTypes.GetWellKnownFunctionInterface(invokeArgumentCount: 0));
+            Assert.Equal(WellKnownType.System_IFunc_T2, WellKnownTypes.GetWellKnownFunctionInterface(invokeArgumentCount: 1));
+            Assert.Equal(WellKnownType.System_IAction, WellKnownTypes.GetWellKnownActionInterface(invokeArgumentCount: 0));
+            Assert.Equal(WellKnownType.System_IAction_T, WellKnownTypes.GetWellKnownActionInterface(invokeArgumentCount: 1));
+
+            void assertResolves(WellKnownType wellKnownType, string expectedDisplay)
+            {
+                var symbol = comp.GetWellKnownType(wellKnownType);
+                Assert.False(symbol.IsErrorType());
+                Assert.Equal(expectedDisplay, symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
         public void SpecExample()
         {
             var source = """

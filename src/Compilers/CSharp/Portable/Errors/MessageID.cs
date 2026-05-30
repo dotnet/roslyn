@@ -307,6 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12857,
 
         IDS_FeatureCollectionExpressionArguments = MessageBase + 12858,
+
+        IDS_FeatureRefStructClosures = MessageBase + 12859,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -488,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 case MessageID.IDS_FeatureCollectionExpressionArguments:
+                case MessageID.IDS_FeatureRefStructClosures:
                     return LanguageVersion.Preview;
 
                 // C# 14.0 features.

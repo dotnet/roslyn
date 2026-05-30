@@ -3007,6 +3007,11 @@
         <target state="translated">parametry tylko do odczytu ref</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefStructClosures">
+        <source>ref struct closures</source>
+        <target state="new">ref struct closures</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRefStructInterfaces">
         <source>ref struct interfaces</source>
         <target state="translated">interfejsy struktury ref</target>

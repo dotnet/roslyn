@@ -668,6 +668,40 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray14:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray15:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray16:
+                    case WellKnownType.System_IFunc_T:
+                    case WellKnownType.System_IFunc_T2:
+                    case WellKnownType.System_IFunc_T3:
+                    case WellKnownType.System_IFunc_T4:
+                    case WellKnownType.System_IFunc_T5:
+                    case WellKnownType.System_IFunc_T6:
+                    case WellKnownType.System_IFunc_T7:
+                    case WellKnownType.System_IFunc_T8:
+                    case WellKnownType.System_IFunc_T9:
+                    case WellKnownType.System_IFunc_T10:
+                    case WellKnownType.System_IFunc_T11:
+                    case WellKnownType.System_IFunc_T12:
+                    case WellKnownType.System_IFunc_T13:
+                    case WellKnownType.System_IFunc_T14:
+                    case WellKnownType.System_IFunc_T15:
+                    case WellKnownType.System_IFunc_T16:
+                    case WellKnownType.System_IFunc_T17:
+                    case WellKnownType.System_IAction:
+                    case WellKnownType.System_IAction_T:
+                    case WellKnownType.System_IAction_T2:
+                    case WellKnownType.System_IAction_T3:
+                    case WellKnownType.System_IAction_T4:
+                    case WellKnownType.System_IAction_T5:
+                    case WellKnownType.System_IAction_T6:
+                    case WellKnownType.System_IAction_T7:
+                    case WellKnownType.System_IAction_T8:
+                    case WellKnownType.System_IAction_T9:
+                    case WellKnownType.System_IAction_T10:
+                    case WellKnownType.System_IAction_T11:
+                    case WellKnownType.System_IAction_T12:
+                    case WellKnownType.System_IAction_T13:
+                    case WellKnownType.System_IAction_T14:
+                    case WellKnownType.System_IAction_T15:
+                    case WellKnownType.System_IAction_T16:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:

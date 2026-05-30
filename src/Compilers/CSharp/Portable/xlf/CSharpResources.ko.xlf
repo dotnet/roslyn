@@ -3007,6 +3007,11 @@
         <target state="translated">ref readonly 매개 변수</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefStructClosures">
+        <source>ref struct closures</source>
+        <target state="new">ref struct closures</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRefStructInterfaces">
         <source>ref struct interfaces</source>
         <target state="translated">ref 구조체 인터페이스</target>
