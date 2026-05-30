@@ -94,7 +94,6 @@ internal abstract class AbstractBuildHost :
             }
 
             _buildManager = new ProjectBuildManager(_knownCommandLineParserLanguages, _globalMSBuildProperties, logger);
-            _buildManager.StartBatchBuild(_globalMSBuildProperties);
         }
     }
 
@@ -196,7 +195,7 @@ internal abstract class AbstractBuildHost :
 
     public async Task ShutdownAsync()
     {
-        _buildManager?.EndBatchBuild();
+        _buildManager?.Dispose();
 
         _server.Shutdown();
     }
