@@ -531,7 +531,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
             internal closed class C { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
         verifyReference(comp1.ToMetadataReference());
         verifyReference(comp1.EmitToImageReference());
@@ -3270,10 +3270,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
@@ -3329,10 +3329,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp2.VerifyEmitDiagnostics();
 
@@ -3394,10 +3394,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
