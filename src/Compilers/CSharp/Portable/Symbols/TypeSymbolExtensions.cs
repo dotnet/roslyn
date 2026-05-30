@@ -475,6 +475,109 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If <paramref name="type"/> is one of the well-known <em>function-interface</em> types
+        /// recognized for ref struct closures (<c>System.IFunc&lt;...&gt;</c>, <c>System.IAction</c>, or
+        /// <c>System.IAction&lt;...&gt;</c>), returns that constructed interface; otherwise returns null.
+        /// See <see href="https://github.com/dotnet/csharplang/issues/10209"/>.
+        /// </summary>
+        public static NamedTypeSymbol? GetFunctionInterfaceType(this TypeSymbol? type, CSharpCompilation compilation)
+        {
+            if (type is not NamedTypeSymbol { IsInterface: true } namedType)
+            {
+                return null;
+            }
+
+            NamedTypeSymbol definition = namedType.OriginalDefinition;
+            int arity = definition.Arity;
+
+            WellKnownType candidate;
+            switch (definition.Name)
+            {
+                case "IFunc" when arity >= 1:
+                    // System.IFunc`N has N-1 invocation parameters (the last type argument is the return type).
+                    candidate = WellKnownTypes.GetWellKnownFunctionInterface(arity - 1);
+                    break;
+                case "IAction":
+                    candidate = WellKnownTypes.GetWellKnownActionInterface(arity);
+                    break;
+                default:
+                    return null;
+            }
+
+            if (!candidate.IsFunctionInterfaceType())
+            {
+                return null;
+            }
+
+            NamedTypeSymbol wellKnownType = compilation.GetWellKnownType(candidate);
+            if (wellKnownType.IsErrorType() || !ReferenceEquals(wellKnownType.OriginalDefinition, definition))
+            {
+                return null;
+            }
+
+            return namedType;
+        }
+
+        /// <summary>
+        /// Returns the <c>Invoke</c> method of a well-known <em>function-interface</em> type, or null
+        /// if <paramref name="type"/> is not a recognized function-interface or does not declare a
+        /// single ordinary <c>Invoke</c> method.
+        /// </summary>
+        public static MethodSymbol? GetFunctionInterfaceInvokeMethod(this TypeSymbol? type, CSharpCompilation compilation)
+        {
+            NamedTypeSymbol? functionInterface = type.GetFunctionInterfaceType(compilation);
+            if (functionInterface is null)
+            {
+                return null;
+            }
+
+            MethodSymbol? invokeMethod = null;
+            foreach (Symbol member in functionInterface.GetMembers(WellKnownMemberNames.DelegateInvokeName))
+            {
+                if (member is MethodSymbol { MethodKind: MethodKind.Ordinary } method)
+                {
+                    if (invokeMethod is not null)
+                    {
+                        // Ambiguous Invoke; not a usable function-interface.
+                        return null;
+                    }
+
+                    invokeMethod = method;
+                }
+            }
+
+            return invokeMethod;
+        }
+
+        /// <summary>
+        /// If <paramref name="typeParameter"/> is a <em>function-interface</em> type parameter for ref
+        /// struct closures — that is, it permits ref struct types (<c>allows ref struct</c>) and has an
+        /// effective constraint that is a well-known function-interface — returns that constructed
+        /// interface and its <c>Invoke</c> method; otherwise returns null.
+        /// </summary>
+        public static NamedTypeSymbol? GetFunctionInterfaceConstraint(this TypeParameterSymbol typeParameter, CSharpCompilation compilation, out MethodSymbol? invokeMethod)
+        {
+            invokeMethod = null;
+
+            if (!typeParameter.AllowsRefLikeType)
+            {
+                return null;
+            }
+
+            foreach (TypeWithAnnotations constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+            {
+                MethodSymbol? candidateInvoke = constraintType.Type.GetFunctionInterfaceInvokeMethod(compilation);
+                if (candidateInvoke is not null)
+                {
+                    invokeMethod = candidateInvoke;
+                    return (NamedTypeSymbol)constraintType.Type;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Returns true if the type is constructed from a generic type named "System.Linq.Expressions.Expression"
         /// with one type parameter.
         /// </summary>

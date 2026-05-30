@@ -93,6 +93,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void FunctionInterfaceConstraintIsRecognized()
+        {
+            var source = """
+                class Program
+                {
+                    static void F0<T>(T t) where T : System.IAction, allows ref struct { }
+                    static void F1<T>(T t) where T : System.IAction<int>, allows ref struct { }
+                    static void G0<T>(T t) where T : System.IFunc<bool>, allows ref struct { }
+                    static void G1<T>(T t) where T : System.IFunc<int, bool>, allows ref struct { }
+
+                    // Not a function-interface: missing 'allows ref struct'.
+                    static void H0<T>(T t) where T : System.IFunc<int, bool> { }
+                    // Not a function-interface: a delegate, not one of the well-known interfaces.
+                    static void H1<T>(T t) where T : allows ref struct { }
+                    // Not a function-interface: a user interface of the same shape.
+                    static void H2<T>(T t) where T : INotAFunc<int>, allows ref struct { }
+                }
+
+                interface INotAFunc<T> where T : allows ref struct
+                {
+                    bool Invoke(T arg);
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { source, FunctionInterfacesDefinition },
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics();
+
+            var program = comp.GlobalNamespace.GetTypeMember("Program");
+
+            assertFunctionInterface("F0", "System.IAction", "void System.IAction.Invoke()");
+            assertFunctionInterface("F1", "System.IAction<System.Int32>", "void System.IAction<System.Int32>.Invoke(System.Int32 arg)");
+            assertFunctionInterface("G0", "System.IFunc<System.Boolean>", "System.Boolean System.IFunc<System.Boolean>.Invoke()");
+            assertFunctionInterface("G1", "System.IFunc<System.Int32, System.Boolean>", "System.Boolean System.IFunc<System.Int32, System.Boolean>.Invoke(System.Int32 arg)");
+
+            assertNotFunctionInterface("H0");
+            assertNotFunctionInterface("H1");
+            assertNotFunctionInterface("H2");
+
+            void assertFunctionInterface(string methodName, string expectedInterface, string expectedInvoke)
+            {
+                var typeParameter = (TypeParameterSymbol)((MethodSymbol)program.GetMember(methodName)).TypeParameters.Single();
+                var functionInterface = typeParameter.GetFunctionInterfaceConstraint(comp, out var invokeMethod);
+                Assert.NotNull(functionInterface);
+                Assert.Equal(expectedInterface, functionInterface.ToTestDisplayString());
+                Assert.NotNull(invokeMethod);
+                Assert.Equal(expectedInvoke, invokeMethod.ToTestDisplayString());
+            }
+
+            void assertNotFunctionInterface(string methodName)
+            {
+                var typeParameter = (TypeParameterSymbol)((MethodSymbol)program.GetMember(methodName)).TypeParameters.Single();
+                Assert.Null(typeParameter.GetFunctionInterfaceConstraint(comp, out var invokeMethod));
+                Assert.Null(invokeMethod);
+            }
+        }
+
+        [Fact]
         public void SpecExample()
         {
             var source = """
