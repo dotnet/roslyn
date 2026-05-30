@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor.DocumentExcerpt;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
@@ -14,15 +13,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Razor.CohostingShared;
 
 #pragma warning disable RS0030 // Do not use banned APIs
-[ExportWorkspaceService(typeof(ISourceGeneratedDocumentExcerptService)), Shared]
+[Export(typeof(IRazorSourceGeneratedDocumentExcerptService))]
+[Shared]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal sealed class RazorSourceGeneratedDocumentExcerptService(IRemoteServiceInvoker remoteServiceInvoker) : ISourceGeneratedDocumentExcerptService
+internal sealed class RazorSourceGeneratedDocumentExcerptService(IRemoteServiceInvoker remoteServiceInvoker) : IRazorSourceGeneratedDocumentExcerptService
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-
-    public bool CanExcerpt(SourceGeneratedDocument document)
-        => document.IsRazorSourceGeneratedDocument();
 
     public async Task<ExcerptResult?> TryExcerptAsync(SourceGeneratedDocument document, TextSpan span, ExcerptMode mode, ClassificationOptions options, CancellationToken cancellationToken)
     {

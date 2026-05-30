@@ -7,22 +7,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.CohostingShared;
 
 #pragma warning disable RS0030 // Do not use banned APIs
-[ExportWorkspaceService(typeof(ISourceGeneratedDocumentSpanMappingService)), Shared]
+[Export(typeof(IRazorSourceGeneratedDocumentSpanMappingService))]
+[Shared]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal sealed class RazorSourceGeneratedDocumentSpanMappingService(IRemoteServiceInvoker remoteServiceInvoker) : ISourceGeneratedDocumentSpanMappingService
+internal sealed class RazorSourceGeneratedDocumentSpanMappingService(IRemoteServiceInvoker remoteServiceInvoker) : IRazorSourceGeneratedDocumentSpanMappingService
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-
-    public bool CanMapSpans(SourceGeneratedDocument document)
-        => document.IsRazorSourceGeneratedDocument();
 
     public async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
     {
