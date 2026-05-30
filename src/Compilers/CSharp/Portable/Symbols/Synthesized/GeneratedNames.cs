@@ -493,6 +493,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>c__RefStructClosure" + index;
         }
 
+        internal static string MakeRefStructClosureCaptureFieldName(string variableName, int index)
+        {
+            return "<" + variableName + ">__capture" + index;
+        }
+
         internal static string AsyncBuilderFieldName()
         {
             // Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on this name.

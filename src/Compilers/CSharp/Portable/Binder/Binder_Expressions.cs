@@ -2045,6 +2045,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Not expecting symbol from constructed method.
                     Debug.Assert(!symbol.ContainingSymbol.Equals(containingMethod));
 
+                    // Ref struct closures (csharplang#10209) implement the function interface as a
+                    // ref struct that can safely hold refs and ref-struct values, so capture of ref
+                    // locals/parameters and ref-struct-typed variables is permitted.
+                    if (containingMethod is LambdaSymbol { IsRefStructClosure: true })
+                    {
+                        return false;
+                    }
+
                     // Captured in a lambda.
                     return (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) && !IsInsideNameof; // false in EE evaluation method
                 }

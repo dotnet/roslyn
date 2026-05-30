@@ -26,8 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly ModuleSymbol _containingModule;
         private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
-        private readonly ImmutableArray<Symbol> _members;
         private readonly SynthesizedRefStructClosureInvokeMethod _invokeMethod;
+        private ImmutableArray<Symbol> _members;
+        private ImmutableArray<SynthesizedRefStructClosureCaptureField> _captureFields;
 
         internal SynthesizedRefStructClosureTypeSymbol(
             SourceModuleSymbol containingModule,
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _invokeMethod = new SynthesizedRefStructClosureInvokeMethod(this, interfaceInvokeMethod);
             _members = ImmutableArray.Create<Symbol>(_invokeMethod);
+            _captureFields = ImmutableArray<SynthesizedRefStructClosureCaptureField>.Empty;
         }
 
         /// <summary>
@@ -56,6 +58,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The synthesized <c>Invoke</c> method holding the lowered lambda body.
         /// </summary>
         internal SynthesizedRefStructClosureInvokeMethod InvokeMethod => _invokeMethod;
+
+        /// <summary>
+        /// The ref fields representing variables captured by the lambda. Empty until
+        /// <see cref="SetCaptures"/> is called during closure conversion.
+        /// </summary>
+        internal ImmutableArray<SynthesizedRefStructClosureCaptureField> CaptureFields => _captureFields;
+
+        /// <summary>
+        /// Adds capture fields to the closure type. Must be called at most once, before the
+        /// closure type's members are emitted. Each entry maps a captured outer symbol to the
+        /// synthesized ref field that backs it inside the closure.
+        /// </summary>
+        internal void SetCaptures(ImmutableArray<SynthesizedRefStructClosureCaptureField> captureFields)
+        {
+            Debug.Assert(_captureFields.IsEmpty);
+            if (captureFields.IsEmpty)
+            {
+                return;
+            }
+
+            _captureFields = captureFields;
+            var builder = ArrayBuilder<Symbol>.GetInstance(captureFields.Length + 1);
+            builder.Add(_invokeMethod);
+            builder.AddRange(captureFields);
+            _members = builder.ToImmutableAndFree();
+        }
 
         public override int Arity => 0;
 

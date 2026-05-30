@@ -852,7 +852,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind, refCustomModifiers);
+                bool isRefStructClosure = delegateType.GetFunctionInterfaceInvokeMethod(compilation) is not null;
+                lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind, refCustomModifiers, isRefStructClosure);
                 lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder), inExpressionTree ? BinderFlags.InExpressionTree : BinderFlags.None);
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
@@ -928,7 +929,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
-            ImmutableArray<CustomModifier> refCustomModifiers)
+            ImmutableArray<CustomModifier> refCustomModifiers,
+            bool isRefStructClosure = false)
             => new LambdaSymbol(
                 Binder,
                 Binder.Compilation,
@@ -938,7 +940,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 refKind,
                 refCustomModifiers,
-                returnType);
+                returnType,
+                isRefStructClosure);
 
         internal LambdaSymbol CreateLambdaSymbol(NamedTypeSymbol delegateType, Symbol containingSymbol)
         {

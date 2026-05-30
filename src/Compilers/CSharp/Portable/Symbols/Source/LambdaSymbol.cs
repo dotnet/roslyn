@@ -26,6 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
         private readonly bool _isStatic;
+        /// <summary>
+        /// True when this lambda is bound for conversion to a function-interface target
+        /// (csharplang#10209 ref struct closures). Allows capturing ref locals/parameters and
+        /// ref-struct-typed locals/parameters, since the synthesized closure is itself a ref
+        /// struct that can safely hold such references.
+        /// </summary>
+        private readonly bool _isRefStructClosure;
         private readonly DiagnosticBag _declarationDiagnostics;
         private readonly HashSet<AssemblySymbol> _declarationDependencies;
 
@@ -49,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
             ImmutableArray<CustomModifier> refCustomModifiers,
-            TypeWithAnnotations returnType) :
+            TypeWithAnnotations returnType,
+            bool isRefStructClosure = false) :
             base(unboundLambda.Syntax.GetReference())
         {
             Debug.Assert(syntaxReferenceOpt is not null);
@@ -68,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             _isStatic = unboundLambda.IsStatic;
+            _isRefStructClosure = isRefStructClosure;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds);
             _declarationDiagnostics = new DiagnosticBag();
@@ -107,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override bool IsStatic => _isStatic;
+
+        /// <summary>
+        /// True when this lambda is converted to a ref struct closure target (csharplang#10209).
+        /// </summary>
+        internal bool IsRefStructClosure => _isRefStructClosure;
 
         public override bool IsAsync
         {

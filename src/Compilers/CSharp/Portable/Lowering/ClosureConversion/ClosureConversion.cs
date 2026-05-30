@@ -1626,56 +1626,101 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Lowers a lambda that converts to a ref struct closure type (csharplang#10209).
-        /// The lambda body becomes the synthesized closure's <c>Invoke</c> method body and the
-        /// conversion is replaced by a value of the closure type. For the no-capture case the
-        /// closure has no fields, so the value is simply <c>default</c>.
+        /// The lambda body becomes the synthesized closure's <c>Invoke</c> method body. Variables
+        /// captured by the lambda are stored as ref fields on the closure, initialized at the
+        /// conversion site from the originals. The conversion is replaced by a constructor-like
+        /// sequence that yields the populated closure value (or <c>default</c> when there are no
+        /// captures).
         /// </summary>
         private BoundNode RewriteRefStructClosureConversion(BoundLambda node, SynthesizedRefStructClosureTypeSymbol closureType)
         {
             var invokeMethod = closureType.InvokeMethod;
 
-            // Register the closure type so its members are emitted as an additional top-level type.
+            // 1. Find captures by walking the (already-lowered) lambda body.
+            var (capturedLocals, capturedParameters) = RefStructClosureCaptureAnalyzer.Analyze(node);
+
+            // 2. Synthesize a ref field for each captured variable.
+            var fieldsBuilder = ArrayBuilder<SynthesizedRefStructClosureCaptureField>.GetInstance(capturedLocals.Length + capturedParameters.Length);
+            var localToField = new Dictionary<LocalSymbol, SynthesizedRefStructClosureCaptureField>();
+            var parameterToField = new Dictionary<ParameterSymbol, SynthesizedRefStructClosureCaptureField>();
+            int id = 0;
+            foreach (var local in capturedLocals)
+            {
+                var field = new SynthesizedRefStructClosureCaptureField(
+                    closureType,
+                    GeneratedNames.MakeRefStructClosureCaptureFieldName(local.Name, id++),
+                    local.TypeWithAnnotations,
+                    RefKind.Ref);
+                fieldsBuilder.Add(field);
+                localToField.Add(local, field);
+            }
+            foreach (var parameter in capturedParameters)
+            {
+                var field = new SynthesizedRefStructClosureCaptureField(
+                    closureType,
+                    GeneratedNames.MakeRefStructClosureCaptureFieldName(parameter.Name, id++),
+                    parameter.TypeWithAnnotations,
+                    RefKind.Ref);
+                fieldsBuilder.Add(field);
+                parameterToField.Add(parameter, field);
+            }
+            var captureFields = fieldsBuilder.ToImmutableAndFree();
+            closureType.SetCaptures(captureFields);
+
+            // 3. Register the closure type so its members are emitted as an additional top-level type.
             CompilationState.ModuleBuilderOpt.AddSynthesizedRefStructClosureType(closureType);
 
-            // Map the lambda parameters onto the Invoke method parameters.
-            foreach (var parameter in node.Symbol.Parameters)
+            // 4. Map lambda parameters to the Invoke method's parameters and rewrite the body.
+            var lambdaParameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
+            for (int i = 0; i < node.Symbol.Parameters.Length; i++)
             {
-                _parameterMap.Add(parameter, invokeMethod.Parameters[parameter.Ordinal]);
+                lambdaParameterMap.Add(node.Symbol.Parameters[i], invokeMethod.Parameters[i]);
             }
 
-            // Rewrite the lambda body as the Invoke method's body.
-            var oldMethod = _currentMethod;
-            var oldFrameThis = _currentFrameThis;
-            var oldTypeParameters = _currentTypeParameters;
-            var oldInnermostFramePointer = _innermostFramePointer;
-            var oldTypeMap = _currentLambdaBodyTypeMap;
-            var oldAddedStatements = _addedStatements;
-            var oldAddedLocals = _addedLocals;
-            _addedStatements = null;
-            _addedLocals = null;
+            var rewriter = new RefStructClosureBodyRewriter(
+                invokeMethod.ThisParameter,
+                lambdaParameterMap,
+                localToField,
+                parameterToField);
+            var rewrittenBody = (BoundStatement)rewriter.Visit(node.Body);
+            invokeMethod.SetLoweredBody(rewrittenBody);
 
-            _currentMethod = invokeMethod;
-
-            // No-capture closure: the body behaves like a static lambda (no frame pointer).
-            _innermostFramePointer = _currentFrameThis = null;
-            _currentTypeParameters = invokeMethod.TypeParameters;
-            _currentLambdaBodyTypeMap = TypeMap.Empty;
-
-            var body = AddStatementsIfNeeded((BoundStatement)VisitBlock((BoundBlock)node.Body));
-            CheckLocalsDefined(body);
-            invokeMethod.SetLoweredBody(body);
-
-            _currentMethod = oldMethod;
-            _currentFrameThis = oldFrameThis;
-            _currentTypeParameters = oldTypeParameters;
-            _innermostFramePointer = oldInnermostFramePointer;
-            _currentLambdaBodyTypeMap = oldTypeMap;
-            _addedLocals = oldAddedLocals;
-            _addedStatements = oldAddedStatements;
-
-            // The closure has no captured fields, so its value is default.
+            // 5. Build the closure value expression at the conversion site.
             var F = new SyntheticBoundNodeFactory(_currentMethod, node.Syntax, CompilationState, Diagnostics);
-            return F.Default(closureType);
+            if (captureFields.IsEmpty)
+            {
+                return F.Default(closureType);
+            }
+
+            // Closure tmp = default;
+            // tmp.field_i = ref <capturedOriginal_i>;   // for each capture
+            // tmp
+            var tempLocal = F.SynthesizedLocal(closureType);
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(captureFields.Length + 1);
+            sideEffects.Add(F.AssignmentExpression(F.Local(tempLocal), F.Default(closureType)));
+
+            foreach (var local in capturedLocals)
+            {
+                var field = localToField[local];
+                sideEffects.Add(F.AssignmentExpression(
+                    F.Field(F.Local(tempLocal), field),
+                    new BoundLocal(node.Syntax, local, constantValueOpt: null, type: local.Type) { WasCompilerGenerated = true },
+                    isRef: true));
+            }
+            foreach (var parameter in capturedParameters)
+            {
+                var field = parameterToField[parameter];
+                sideEffects.Add(F.AssignmentExpression(
+                    F.Field(F.Local(tempLocal), field),
+                    F.Parameter(parameter),
+                    isRef: true));
+            }
+
+            var result = F.Sequence(
+                ImmutableArray.Create(tempLocal),
+                sideEffects.ToImmutableAndFree(),
+                F.Local(tempLocal));
+            return result;
         }
 
         private BoundNode RewriteLambdaConversion(BoundLambda node)

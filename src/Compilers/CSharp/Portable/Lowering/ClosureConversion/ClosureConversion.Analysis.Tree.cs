@@ -440,8 +440,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
 
+                public override BoundNode VisitConversion(BoundConversion node)
+                {
+                    // Ref struct closure conversions (csharplang#10209) bypass the normal closure
+                    // analysis pipeline; their captures are handled separately by
+                    // ClosureConversion.RewriteRefStructClosureConversion. Skip the contained
+                    // BoundLambda entirely so its body does not contribute captures to the
+                    // enclosing method's display class.
+                    if (node.ConversionKind == ConversionKind.AnonymousFunction &&
+                        node.Type is SynthesizedRefStructClosureTypeSymbol)
+                    {
+                        return null;
+                    }
+
+                    return base.VisitConversion(node);
+                }
+
                 public override BoundNode VisitLambda(BoundLambda node)
                 {
+                    // Lambdas converted to ref struct closure types (csharplang#10209) are
+                    // handled outside of the normal closure analysis pipeline: they are
+                    // intercepted in ClosureConversion.VisitConversion and their captures are
+                    // analyzed separately. Do not record them as nested functions here, since
+                    // doing so would cause their captured variables to be hoisted into the
+                    // enclosing method's display class.
+                    if (node.Type is SynthesizedRefStructClosureTypeSymbol)
+                    {
+                        return null;
+                    }
+
                     var oldInExpressionTree = _inExpressionTree;
                     _inExpressionTree |= node.Type.IsExpressionTree();
 
