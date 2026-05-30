@@ -645,9 +645,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((TypeParameterSymbol)target.Type).GetFunctionInterfaceConstraint(_compilation, out _) is { } functionInterface)
             {
                 // The lambda is being matched against a method type parameter constrained to a
-                // well-known function-interface (ref struct closures, csharplang#10209). Fix the
-                // type parameter to that function-interface so the lambda can convert to it.
-                AddBound(TypeWithAnnotations.Create(functionInterface), _exactBounds, target);
+                // well-known function-interface (ref struct closures, csharplang#10209). Synthesize a
+                // ref struct closure type implementing that interface and fix the type parameter to it.
+                var closureType = _compilation.RefStructClosureTypeManager.GetOrCreateClosureType(
+                    (UnboundLambda)argument, functionInterface);
+                AddBound(TypeWithAnnotations.Create(closureType), _exactBounds, target);
             }
             else if (argument.Kind == BoundKind.UnconvertedCollectionExpression)
             {

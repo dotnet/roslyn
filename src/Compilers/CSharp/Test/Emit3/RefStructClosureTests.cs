@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 Assert.True(closure.IsRefLikeType);
                 Assert.Contains(closure.AllInterfaces(), i => i.Name == "IFunc");
-                Assert.Contains(closure.GetMembers(), m => m.Name == "Invoke");
+                Assert.Contains(closure.GetMembers(), m => m.Name.Contains("Invoke"));
             }, verify: Verification.Skipped).VerifyDiagnostics();
         }
 

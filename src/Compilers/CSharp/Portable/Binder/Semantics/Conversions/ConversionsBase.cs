@@ -1638,6 +1638,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, compilation, isTargetExpressionTree: false);
             }
+            else if (type is SynthesizedRefStructClosureTypeSymbol closureType)
+            {
+                // A lambda converted to a synthesized ref struct closure type (csharplang#10209) is
+                // compatible if it is compatible with the function interface the closure implements.
+                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, closureType.FunctionInterface, compilation, isTargetExpressionTree: false);
+            }
 
             return LambdaConversionResult.BadTargetType;
         }

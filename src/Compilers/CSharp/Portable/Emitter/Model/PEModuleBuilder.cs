@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedPrivateImplementationDetailsType _lazyPrivateImplementationDetailsClass;
         private readonly ConcurrentDictionary<int, NamedTypeSymbol> _inlineArrayTypes = new ConcurrentDictionary<int, NamedTypeSymbol>();
         private readonly NamedTypeSymbol[] _readOnlyListTypes = new NamedTypeSymbol[(int)SynthesizedReadOnlyListKind.List + 1];
+        private readonly ConcurrentDictionary<NamedTypeSymbol, bool> _refStructClosureTypes = new ConcurrentDictionary<NamedTypeSymbol, bool>(Symbols.SymbolEqualityComparer.ConsiderEverything);
 
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
@@ -2123,6 +2124,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 (@this: this, factory));
         }
 
+        internal void AddSynthesizedRefStructClosureType(NamedTypeSymbol closureType)
+        {
+            Debug.Assert(closureType is Symbols.SynthesizedRefStructClosureTypeSymbol);
+            _refStructClosureTypes.TryAdd(closureType, true);
+        }
+
         internal NamedTypeSymbol EnsureReadOnlyListTypeExists(SyntaxNode syntaxNode, SynthesizedReadOnlyListKind kind, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntaxNode is { });
@@ -2238,9 +2245,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             ImmutableArray<NamedTypeSymbol> prepend = [];
 
-            if (_inlineArrayTypes.Count != 0 || _readOnlyListTypes.Any(t => t is not null))
+            if (_inlineArrayTypes.Count != 0 || _readOnlyListTypes.Any(t => t is not null) || !_refStructClosureTypes.IsEmpty)
             {
-                ArrayBuilder<NamedTypeSymbol> builder = ArrayBuilder<NamedTypeSymbol>.GetInstance(_inlineArrayTypes.Count + _readOnlyListTypes.Length);
+                ArrayBuilder<NamedTypeSymbol> builder = ArrayBuilder<NamedTypeSymbol>.GetInstance(_inlineArrayTypes.Count + _readOnlyListTypes.Length + _refStructClosureTypes.Count);
                 builder.AddRange(_inlineArrayTypes.Values);
                 foreach (var type in _readOnlyListTypes)
                 {
@@ -2249,6 +2256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         builder.Add(type);
                     }
                 }
+
+                builder.AddRange(_refStructClosureTypes.Keys);
 
                 builder.Sort(static (a, b) => StringComparer.Ordinal.Compare(a.MetadataName, b.MetadataName));
 

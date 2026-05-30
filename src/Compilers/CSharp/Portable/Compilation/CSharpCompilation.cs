@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private AnonymousTypeManager? _lazyAnonymousTypeManager;
 
+        private RefStructClosureTypeManager? _lazyRefStructClosureTypeManager;
+
         private NamespaceSymbol? _lazyGlobalNamespace;
 
         private BuiltInOperators? _lazyBuiltInOperators;
@@ -235,6 +237,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return AnonymousTypeManager;
+            }
+        }
+
+        /// <summary>
+        /// Manages synthesized ref struct closure types for the "ref struct closures for lambdas"
+        /// feature (csharplang#10209).
+        /// </summary>
+        internal RefStructClosureTypeManager RefStructClosureTypeManager
+        {
+            get
+            {
+                return InterlockedOperations.Initialize(ref _lazyRefStructClosureTypeManager, static self => new RefStructClosureTypeManager(self), this);
             }
         }
 

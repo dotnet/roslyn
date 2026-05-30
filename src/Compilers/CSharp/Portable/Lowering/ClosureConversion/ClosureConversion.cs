@@ -1397,6 +1397,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.ConversionKind != ConversionKind.MethodGroup);
             if (conversion.ConversionKind == ConversionKind.AnonymousFunction)
             {
+                if (conversion.Type is SynthesizedRefStructClosureTypeSymbol closureType)
+                {
+                    return RewriteRefStructClosureConversion((BoundLambda)conversion.Operand, closureType);
+                }
+
                 var result = (BoundExpression)RewriteLambdaConversion((BoundLambda)conversion.Operand);
 
                 if (_inExpressionLambda && conversion.ExplicitCastInCode)
@@ -1617,6 +1622,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method,
                     body,
                     CompilationState.CurrentImportChain));
+        }
+
+        /// <summary>
+        /// Lowers a lambda that converts to a ref struct closure type (csharplang#10209).
+        /// The lambda body becomes the synthesized closure's <c>Invoke</c> method body and the
+        /// conversion is replaced by a value of the closure type. For the no-capture case the
+        /// closure has no fields, so the value is simply <c>default</c>.
+        /// </summary>
+        private BoundNode RewriteRefStructClosureConversion(BoundLambda node, SynthesizedRefStructClosureTypeSymbol closureType)
+        {
+            var invokeMethod = closureType.InvokeMethod;
+
+            // Register the closure type so its members are emitted as an additional top-level type.
+            CompilationState.ModuleBuilderOpt.AddSynthesizedRefStructClosureType(closureType);
+
+            // Map the lambda parameters onto the Invoke method parameters.
+            foreach (var parameter in node.Symbol.Parameters)
+            {
+                _parameterMap.Add(parameter, invokeMethod.Parameters[parameter.Ordinal]);
+            }
+
+            // Rewrite the lambda body as the Invoke method's body.
+            var oldMethod = _currentMethod;
+            var oldFrameThis = _currentFrameThis;
+            var oldTypeParameters = _currentTypeParameters;
+            var oldInnermostFramePointer = _innermostFramePointer;
+            var oldTypeMap = _currentLambdaBodyTypeMap;
+            var oldAddedStatements = _addedStatements;
+            var oldAddedLocals = _addedLocals;
+            _addedStatements = null;
+            _addedLocals = null;
+
+            _currentMethod = invokeMethod;
+
+            // No-capture closure: the body behaves like a static lambda (no frame pointer).
+            _innermostFramePointer = _currentFrameThis = null;
+            _currentTypeParameters = invokeMethod.TypeParameters;
+            _currentLambdaBodyTypeMap = TypeMap.Empty;
+
+            var body = AddStatementsIfNeeded((BoundStatement)VisitBlock((BoundBlock)node.Body));
+            CheckLocalsDefined(body);
+            invokeMethod.SetLoweredBody(body);
+
+            _currentMethod = oldMethod;
+            _currentFrameThis = oldFrameThis;
+            _currentTypeParameters = oldTypeParameters;
+            _innermostFramePointer = oldInnermostFramePointer;
+            _currentLambdaBodyTypeMap = oldTypeMap;
+            _addedLocals = oldAddedLocals;
+            _addedStatements = oldAddedStatements;
+
+            // The closure has no captured fields, so its value is default.
+            var F = new SyntheticBoundNodeFactory(_currentMethod, node.Syntax, CompilationState, Diagnostics);
+            return F.Default(closureType);
         }
 
         private BoundNode RewriteLambdaConversion(BoundLambda node)

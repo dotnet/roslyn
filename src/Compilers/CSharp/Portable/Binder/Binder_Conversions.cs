@@ -2700,16 +2700,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-            var isFunctionInterface = destination.GetFunctionInterfaceInvokeMethod(Compilation) is not null;
+
+            // For ref struct closures (csharplang#10209) the destination is a synthesized closure
+            // type implementing a function interface; bind the lambda against that interface.
+            NamedTypeSymbol bindingTarget = destination is SynthesizedRefStructClosureTypeSymbol closureType
+                ? closureType.FunctionInterface
+                : (NamedTypeSymbol)destination;
+
+            var isFunctionInterface = bindingTarget.GetFunctionInterfaceInvokeMethod(Compilation) is not null;
             if (isFunctionInterface)
             {
                 CheckFeatureAvailability(unboundLambda.Syntax, MessageID.IDS_FeatureRefStructClosures, diagnostics);
             }
 
-            var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _)).WithInAnonymousFunctionConversion();
+            var boundLambda = unboundLambda.Bind(bindingTarget, isExpressionTree: bindingTarget.IsGenericOrNonGenericExpressionType(out _)).WithInAnonymousFunctionConversion();
             diagnostics.AddRange(boundLambda.Diagnostics);
 
-            CheckParameterModifierMismatchMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
+            CheckParameterModifierMismatchMethodConversion(syntax, boundLambda.Symbol, bindingTarget, invokedAsExtensionMethod: false, diagnostics);
             if (!isFunctionInterface)
             {
                 CheckLambdaConversion((LambdaSymbol)boundLambda.Symbol, destination, diagnostics);

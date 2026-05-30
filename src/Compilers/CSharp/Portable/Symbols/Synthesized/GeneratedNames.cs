@@ -486,6 +486,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (generation > 0) ? name + CommonGeneratedNames.GenerationSeparator + generation : name;
         }
 
+        internal static string MakeRefStructClosureTypeName(int index)
+        {
+            // Ref struct closure types (csharplang#10209) are synthesized when a lambda is converted
+            // to a function-interface-constrained type parameter. The name must contain "Closure".
+            return "<>c__RefStructClosure" + index;
+        }
+
         internal static string AsyncBuilderFieldName()
         {
             // Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on this name.
