@@ -3289,7 +3289,13 @@ outerDefault:
             TypeSymbol y;
 
             if (node.Kind == BoundKind.UnboundLambda &&
-                (object)(d = (t.GetDelegateType() ?? t.GetFunctionInterfaceType(Compilation))) != null &&
+                (object)(d = (t.GetDelegateType()
+                              ?? t.GetFunctionInterfaceType(Compilation)
+                              // Ref struct closures (csharplang#10209): the synthesized closure
+                              // type acts like its implemented function interface for the purpose
+                              // of "exactly matches" so that lambda→delegate and lambda→closure
+                              // overloads are considered equal during betterness analysis.
+                              ?? (t as SynthesizedRefStructClosureTypeSymbol)?.FunctionInterface)) != null &&
                 (object)(invoke = (d.DelegateInvokeMethod ?? d.GetFunctionInterfaceInvokeMethod(Compilation))) != null &&
                 !(y = invoke.ReturnType).IsVoidType())
             {
