@@ -361,6 +361,158 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void CaptureMultipleLocals()
+        {
+            // Verifies that several distinct captures are wired independently and that
+            // each ref field points back to the right enclosing local.
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        int a = 1;
+                        int b = 2;
+                        int c = 3;
+                        Run(() => { a *= 10; b *= 100; c *= 1000; });
+                        Console.Write(a);
+                        Console.Write('|');
+                        Console.Write(b);
+                        Console.Write('|');
+                        Console.Write(c);
+                    }
+
+                    static void Run<TAction>(TAction action)
+                        where TAction : IAction, allows ref struct
+                    {
+                        action.Invoke();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { source, FunctionInterfacesDefinition },
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "10|200|3000" : null,
+                verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CaptureSeesEnclosingMutationsBetweenInvocations()
+        {
+            // Constructs the closure once, then mutates the captured local in the enclosing
+            // method between invocations. Each invoke must observe the latest value because
+            // the closure holds a ref, not a copy.
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        TwoCalls(() => Console.Write(x), ref x);
+                    }
+
+                    static void TwoCalls<TAction>(TAction action, ref int x)
+                        where TAction : IAction, allows ref struct
+                    {
+                        action.Invoke();
+                        x = 42;
+                        action.Invoke();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { source, FunctionInterfacesDefinition },
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "142" : null,
+                verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ClosureConstructionPreservesEvaluationOrder()
+        {
+            // The closure-construction sequence appears in the middle of an argument list
+            // with side-effecting siblings. Arguments must evaluate strictly left-to-right:
+            // before(), then capture-the-locals-and-build-closure, then after(), then call.
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static int Note(string s) { Console.Write(s); return 0; }
+
+                    static void Main()
+                    {
+                        int sum = 0;
+                        Apply(Note("[before]"), x => { sum += x; Console.Write("[invoke:"); Console.Write(sum); Console.Write(']'); }, Note("[after]"));
+                    }
+
+                    static void Apply<TAction>(int a, TAction action, int b)
+                        where TAction : IAction<int>, allows ref struct
+                    {
+                        Console.Write("[call]");
+                        action.Invoke(5);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { source, FunctionInterfacesDefinition },
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "[before][after][call][invoke:5]" : null,
+                verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CaptureParameterByRef()
+        {
+            // Captures an outer method parameter (not a local). Mutations inside the lambda
+            // must propagate back to the parameter slot in the enclosing method.
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        int n = 10;
+                        Bump(n);
+                    }
+
+                    static void Bump(int n)
+                    {
+                        Run(() => n += 5);
+                        Console.Write(n);
+                    }
+
+                    static void Run<TAction>(TAction action)
+                        where TAction : IAction, allows ref struct
+                    {
+                        action.Invoke();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                new[] { source, FunctionInterfacesDefinition },
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "15" : null,
+                verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TypeInference_FromLambdaReturnAndParameters()
         {
             // TFunc itself must be inferred (fixed) to the synthesized ref struct type.
