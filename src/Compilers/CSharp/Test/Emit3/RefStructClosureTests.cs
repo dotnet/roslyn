@@ -449,9 +449,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { source, FunctionInterfacesDefinition },
                 targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyDiagnostics(
-                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(System.Func<int, int>)' and 'Program.M<TFunc>(TFunc)'
+                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(System.Func<int, int>)' and 'Program.M<TFunc>(TFunc)'
                 //         M(x => x);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(System.Func<int, int>)", "Program.M<TFunc>(TFunc)").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(System.Func<int, int>)", "Program.M<TFunc>(TFunc)").WithLocation(7, 9));
         }
 
         [Fact]

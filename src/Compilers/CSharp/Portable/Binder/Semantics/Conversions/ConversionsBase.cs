@@ -1475,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: anonymous function F provided:
 
             var delegateType = (NamedTypeSymbol)type;
-            var invokeMethod = delegateType.DelegateInvokeMethod;
+            var invokeMethod = delegateType.DelegateInvokeMethod ?? delegateType.GetFunctionInterfaceInvokeMethod(compilation);
 
             if (invokeMethod is null || invokeMethod.HasUseSiteError)
             {
@@ -1633,6 +1633,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (type.IsExpressionTree())
             {
                 return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type, compilation);
+            }
+            else if (type.GetFunctionInterfaceInvokeMethod(compilation) is not null)
+            {
+                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, compilation, isTargetExpressionTree: false);
             }
 
             return LambdaConversionResult.BadTargetType;

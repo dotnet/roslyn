@@ -639,6 +639,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExplicitParameterTypeInference(argument, target, ref useSiteInfo);
                 ExplicitReturnTypeInference(argument, target, ref useSiteInfo);
             }
+            else if (argument.Kind == BoundKind.UnboundLambda &&
+                _compilation is { } &&
+                IsUnfixedTypeParameter(target) &&
+                ((TypeParameterSymbol)target.Type).GetFunctionInterfaceConstraint(_compilation, out _) is { } functionInterface)
+            {
+                // The lambda is being matched against a method type parameter constrained to a
+                // well-known function-interface (ref struct closures, csharplang#10209). Fix the
+                // type parameter to that function-interface so the lambda can convert to it.
+                AddBound(TypeWithAnnotations.Create(functionInterface), _exactBounds, target);
+            }
             else if (argument.Kind == BoundKind.UnconvertedCollectionExpression)
             {
                 MakeCollectionExpressionTypeInferences(binder, (BoundUnconvertedCollectionExpression)argument, target, kind, ref useSiteInfo);

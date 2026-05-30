@@ -3289,8 +3289,8 @@ outerDefault:
             TypeSymbol y;
 
             if (node.Kind == BoundKind.UnboundLambda &&
-                (object)(d = t.GetDelegateType()) != null &&
-                (object)(invoke = d.DelegateInvokeMethod) != null &&
+                (object)(d = (t.GetDelegateType() ?? t.GetFunctionInterfaceType(Compilation))) != null &&
+                (object)(invoke = (d.DelegateInvokeMethod ?? d.GetFunctionInterfaceInvokeMethod(Compilation))) != null &&
                 !(y = invoke.ReturnType).IsVoidType())
             {
                 BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);

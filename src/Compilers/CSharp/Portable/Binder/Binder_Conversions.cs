@@ -2700,11 +2700,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
+            var isFunctionInterface = destination.GetFunctionInterfaceInvokeMethod(Compilation) is not null;
+            if (isFunctionInterface)
+            {
+                CheckFeatureAvailability(unboundLambda.Syntax, MessageID.IDS_FeatureRefStructClosures, diagnostics);
+            }
+
             var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _)).WithInAnonymousFunctionConversion();
             diagnostics.AddRange(boundLambda.Diagnostics);
 
             CheckParameterModifierMismatchMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
-            CheckLambdaConversion((LambdaSymbol)boundLambda.Symbol, destination, diagnostics);
+            if (!isFunctionInterface)
+            {
+                CheckLambdaConversion((LambdaSymbol)boundLambda.Symbol, destination, diagnostics);
+            }
             return new BoundConversion(
                 syntax,
                 boundLambda,

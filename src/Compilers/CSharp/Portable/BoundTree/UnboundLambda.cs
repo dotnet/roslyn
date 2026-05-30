@@ -669,9 +669,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static MethodSymbol? DelegateInvokeMethod(NamedTypeSymbol? delegateType)
+        private static MethodSymbol? DelegateInvokeMethod(NamedTypeSymbol? delegateType, CSharpCompilation? compilation)
         {
-            return delegateType.GetDelegateType()?.DelegateInvokeMethod;
+            return delegateType.GetDelegateType()?.DelegateInvokeMethod
+                ?? (compilation is null ? null : delegateType.GetFunctionInterfaceInvokeMethod(compilation));
         }
 
         private static TypeWithAnnotations DelegateReturnTypeWithAnnotations(MethodSymbol? invokeMethod, out RefKind refKind, out ImmutableArray<CustomModifier> refCustomModifiers)
@@ -817,7 +818,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(Binder.ContainingMemberOrLambda is { });
 
-            var invokeMethod = DelegateInvokeMethod(delegateType);
+            var compilation = Binder.Compilation;
+            var invokeMethod = DelegateInvokeMethod(delegateType, compilation);
             var returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out RefKind refKind, out ImmutableArray<CustomModifier> refCustomModifiers);
 
             LambdaSymbol lambdaSymbol;
@@ -825,8 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock block;
 
             var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, _unboundLambda.WithDependencies);
-            var compilation = Binder.Compilation;
-            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
+            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync, compilation);
 
             // When binding for real (not for return inference), there is still a good chance
             // we could reuse a body of a lambda previous bound for return type inference.
@@ -941,9 +942,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal LambdaSymbol CreateLambdaSymbol(NamedTypeSymbol delegateType, Symbol containingSymbol)
         {
-            var invokeMethod = DelegateInvokeMethod(delegateType);
+            var invokeMethod = DelegateInvokeMethod(delegateType, Binder.Compilation);
             var returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out RefKind refKind, out ImmutableArray<CustomModifier> refCustomModifiers);
-            ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds, out _);
+            ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, Binder.Compilation, out var parameterTypes, out var parameterRefKinds, out _);
             return CreateLambdaSymbol(containingSymbol, returnType, parameterTypes, parameterRefKinds, refKind, refCustomModifiers);
         }
 
@@ -1062,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType)
         {
-            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
+            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync, Binder.Compilation);
 
             BoundLambda? result;
             if (!_returnInferenceCache!.TryGetValue(cacheKey, out result))
@@ -1132,9 +1133,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value;
             }
 
-            public static ReturnInferenceCacheKey Create(NamedTypeSymbol? delegateType, bool isAsync)
+            public static ReturnInferenceCacheKey Create(NamedTypeSymbol? delegateType, bool isAsync, CSharpCompilation? compilation)
             {
-                GetFields(delegateType, isAsync, out var parameterTypes, out var parameterRefKinds, out var taskLikeReturnTypeOpt);
+                GetFields(delegateType, isAsync, compilation, out var parameterTypes, out var parameterRefKinds, out var taskLikeReturnTypeOpt);
                 if (parameterTypes.IsEmpty && parameterRefKinds.IsEmpty && taskLikeReturnTypeOpt is null)
                 {
                     return Empty;
@@ -1145,6 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static void GetFields(
                 NamedTypeSymbol? delegateType,
                 bool isAsync,
+                CSharpCompilation? compilation,
                 out ImmutableArray<TypeWithAnnotations> parameterTypes,
                 out ImmutableArray<RefKind> parameterRefKinds,
                 out NamedTypeSymbol? taskLikeReturnTypeOpt)
@@ -1154,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
                 parameterRefKinds = ImmutableArray<RefKind>.Empty;
                 taskLikeReturnTypeOpt = null;
-                MethodSymbol? invoke = DelegateInvokeMethod(delegateType);
+                MethodSymbol? invoke = DelegateInvokeMethod(delegateType, compilation);
                 if (invoke is not null)
                 {
                     int parameterCount = invoke.ParameterCount;
@@ -1245,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lambda is null)
                     return null;
                 var delegateType = (NamedTypeSymbol?)lambda.Type;
-                ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds, out _);
+                ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, Binder.Compilation, out var parameterTypes, out var parameterRefKinds, out _);
                 return ReallyBindForErrorRecovery(delegateType, lambda.InferredReturnType, parameterTypes, parameterRefKinds);
             }
         }
@@ -1263,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!returnType.HasType)
             {
                 Debug.Assert(!inferredReturnType.IsExplicitType);
-                var invokeMethod = DelegateInvokeMethod(delegateType);
+                var invokeMethod = DelegateInvokeMethod(delegateType, Binder.Compilation);
                 returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out refKind, out refCustomModifiers);
                 if (!returnType.HasType || returnType.Type.ContainsTypeParameter())
                 {
