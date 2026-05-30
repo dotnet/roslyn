@@ -282,14 +282,15 @@ namespace RunTests
 
             var sysInternalsPath = @"C:\SysInternals\procdump.exe";
             if (File.Exists(sysInternalsPath))
-                return @"C:\SysInternals";
+                return sysInternalsPath;
 
             var repoRoot = Path.GetDirectoryName(artifactsDirectory);
             if (repoRoot is not null)
             {
                 var toolsPath = Path.Combine(repoRoot, ".tools", "ProcDump", "procdump.exe");
                 if (File.Exists(toolsPath))
-                    return Path.GetDirectoryName(toolsPath);
+                    return toolsPath;
+            }
             }
 
             return null;

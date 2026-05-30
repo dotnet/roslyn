@@ -409,7 +409,8 @@ function TestUsingRunTests() {
 
   if ($ci) {
     $args += " --ci"
-    $args += " --timeout 90"
+    $timeoutMinutes = if ($testVsi) { 220 } else { 90 }
+    $args += " --timeout $timeoutMinutes"
   }
 
   try {
