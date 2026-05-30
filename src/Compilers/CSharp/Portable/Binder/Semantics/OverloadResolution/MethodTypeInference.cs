@@ -485,7 +485,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _fixedResults[i] = (TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(_constructedContainingTypeOfMethod, _methodTypeParameters[i].Name, 0, null, false)), false);
             }
 
+            // Ref struct closures (csharplang#10209) inferred during phase 1 may carry an embedded
+            // function interface that referenced not-yet-fixed method type parameters (for example
+            // IFunc<int, TResult>). Now that everything is fixed, re-synthesize each such closure
+            // with the substituted interface so it has its final form.
+            ResubstituteRefStructClosureTypes();
+
             return GetInferredTypeArguments(out inferredFromFunctionType);
+        }
+
+        private void ResubstituteRefStructClosureTypes()
+        {
+            if (_compilation is null)
+            {
+                return;
+            }
+
+            TypeMap? typeMap = null;
+            for (int i = 0; i < _methodTypeParameters.Length; i++)
+            {
+                if (_fixedResults[i].Type.Type is not SynthesizedRefStructClosureTypeSymbol closure ||
+                    closure.OriginatingLambda is null)
+                {
+                    continue;
+                }
+
+                typeMap ??= new TypeMap(
+                    _constructedContainingTypeOfMethod,
+                    _methodTypeParameters,
+                    _methodTypeParameters.SelectAsArray(
+                        static (tp, idx, self) => self.IsUnfixed(idx) ? TypeWithAnnotations.Create(tp) : self._fixedResults[idx].Type,
+                        this));
+
+                var substitutedInterface = (NamedTypeSymbol)typeMap.SubstituteType(closure.FunctionInterface).Type;
+                if (substitutedInterface.Equals(closure.FunctionInterface, TypeCompareKind.ConsiderEverything))
+                {
+                    continue;
+                }
+
+                var resubstitutedClosure = _compilation.RefStructClosureTypeManager.GetOrCreateClosureType(
+                    closure.OriginatingLambda,
+                    substitutedInterface);
+                _fixedResults[i] = (TypeWithAnnotations.Create(resubstitutedClosure), _fixedResults[i].FromFunctionType);
+            }
         }
 
         private bool ValidIndex(int index)
@@ -560,7 +602,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol GetFixedDelegateOrFunctionPointer(TypeSymbol delegateOrFunctionPointerType)
         {
             Debug.Assert((object)delegateOrFunctionPointerType != null);
-            Debug.Assert(delegateOrFunctionPointerType.IsDelegateType() || delegateOrFunctionPointerType is FunctionPointerTypeSymbol);
+            Debug.Assert(delegateOrFunctionPointerType.IsDelegateType() ||
+                delegateOrFunctionPointerType is FunctionPointerTypeSymbol ||
+                // Ref struct closures (csharplang#10209): a function interface used as the
+                // delegate-like target during inference.
+                (delegateOrFunctionPointerType is NamedTypeSymbol { IsInterface: true } namedInterface &&
+                    _compilation is { } compInterface &&
+                    namedInterface.GetFunctionInterfaceInvokeMethod(compInterface) is not null));
 
             // We have a delegate where the input types use no unfixed parameters.  Create
             // a substitution context; we can substitute unfixed parameters for themselves
@@ -573,6 +621,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this);
             TypeMap typeMap = new TypeMap(_constructedContainingTypeOfMethod, _methodTypeParameters, fixedArguments);
             return typeMap.SubstituteType(delegateOrFunctionPointerType).Type;
+        }
+
+        /// <summary>
+        /// Returns the "effective" delegate-like target type used by type inference, accounting
+        /// for ref struct closures (csharplang#10209). For a regular delegate type this returns
+        /// the delegate itself; for a method type parameter whose constraint is a well-known
+        /// function interface (System.IFunc/IAction), it returns that function interface so the
+        /// interface's Invoke method participates in parameter, return, input, and output
+        /// inference like a delegate does.
+        /// </summary>
+        private NamedTypeSymbol? GetEffectiveDelegateOrFunctionInterfaceType(TypeSymbol formalParameterType)
+        {
+            if (formalParameterType.GetDelegateType() is { } delegateType)
+            {
+                return delegateType;
+            }
+
+            if (formalParameterType is TypeParameterSymbol typeParameter &&
+                _compilation is { } compilation)
+            {
+                return typeParameter.GetFunctionInterfaceConstraint(compilation, out _);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the Invoke method of the effective delegate-or-function-interface type, or
+        /// null if there is none. Mirrors <see cref="GetEffectiveDelegateOrFunctionInterfaceType"/>.
+        /// </summary>
+        private MethodSymbol? GetEffectiveDelegateOrFunctionInterfaceInvokeMethod(TypeSymbol formalParameterType)
+        {
+            if (formalParameterType.GetDelegateType() is { } delegateType)
+            {
+                return delegateType.DelegateInvokeMethod;
+            }
+
+            if (formalParameterType is TypeParameterSymbol typeParameter &&
+                _compilation is { } compilation)
+            {
+                typeParameter.GetFunctionInterfaceConstraint(compilation, out var invoke);
+                return invoke;
+            }
+
+            return null;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -650,6 +743,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var closureType = _compilation.RefStructClosureTypeManager.GetOrCreateClosureType(
                     (UnboundLambda)argument, functionInterface);
                 AddBound(TypeWithAnnotations.Create(closureType), _exactBounds, target);
+
+                // Also perform explicit parameter and return type inference against the function
+                // interface so type parameters appearing in the interface's invoke signature
+                // (e.g. TResult in IFunc<T, TResult>) can be inferred from the lambda.
+                ExplicitParameterTypeInference(argument, TypeWithAnnotations.Create(functionInterface), ref useSiteInfo);
+                ExplicitReturnTypeInference(argument, TypeWithAnnotations.Create(functionInterface), ref useSiteInfo);
             }
             else if (argument.Kind == BoundKind.UnconvertedCollectionExpression)
             {
@@ -1019,26 +1118,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // Input types
         //
-        private static bool DoesInputTypeContain(BoundExpression argument, TypeSymbol formalParameterType, TypeParameterSymbol typeParameter)
+        private bool DoesInputTypeContain(BoundExpression argument, TypeSymbol formalParameterType, TypeParameterSymbol typeParameter)
         {
             // SPEC: If E is a method group or an anonymous function and T is a delegate
             // SPEC: type or expression tree type then all the parameter types of T are
             // SPEC: input types of E with type T.
 
             var delegateOrFunctionPointerType = formalParameterType.GetDelegateOrFunctionPointerType();
-            if ((object)delegateOrFunctionPointerType == null)
+            ImmutableArray<ParameterSymbol> parameters;
+            bool isFunctionPointer;
+            if (delegateOrFunctionPointerType is not null)
             {
-                return false; // No input types.
+                isFunctionPointer = delegateOrFunctionPointerType.IsFunctionPointer();
+                if ((isFunctionPointer && argument.Kind != BoundKind.UnconvertedAddressOfOperator) ||
+                    (!isFunctionPointer && argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup)))
+                {
+                    return false;
+                }
+                parameters = delegateOrFunctionPointerType.DelegateOrFunctionPointerParameters();
+            }
+            else if (argument.Kind == BoundKind.UnboundLambda &&
+                     GetEffectiveDelegateOrFunctionInterfaceInvokeMethod(formalParameterType) is { } invokeMethod)
+            {
+                // Function-interface-constrained type parameter (ref struct closures,
+                // csharplang#10209): the interface's invoke parameters act as input types.
+                parameters = invokeMethod.Parameters;
+            }
+            else
+            {
+                return false;
             }
 
-            var isFunctionPointer = delegateOrFunctionPointerType.IsFunctionPointer();
-            if ((isFunctionPointer && argument.Kind != BoundKind.UnconvertedAddressOfOperator) ||
-                (!isFunctionPointer && argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup)))
-            {
-                return false; // No input types.
-            }
-
-            var parameters = delegateOrFunctionPointerType.DelegateOrFunctionPointerParameters();
             if (parameters.IsDefaultOrEmpty)
             {
                 return false;
@@ -1074,7 +1184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // Output types
         //
-        private static bool DoesOutputTypeContain(BoundExpression argument, TypeSymbol formalParameterType,
+        private bool DoesOutputTypeContain(BoundExpression argument, TypeSymbol formalParameterType,
             TypeParameterSymbol typeParameter)
         {
             // SPEC: If E is a method group or an anonymous function and T is a delegate
@@ -1082,26 +1192,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: of E with type T.
 
             var delegateOrFunctionPointerType = formalParameterType.GetDelegateOrFunctionPointerType();
-            if ((object)delegateOrFunctionPointerType == null)
+            MethodSymbol? method;
+            if (delegateOrFunctionPointerType is not null)
+            {
+                var isFunctionPointer = delegateOrFunctionPointerType.IsFunctionPointer();
+                if ((isFunctionPointer && argument.Kind != BoundKind.UnconvertedAddressOfOperator) ||
+                    (!isFunctionPointer && argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup)))
+                {
+                    return false;
+                }
+
+                method = delegateOrFunctionPointerType switch
+                {
+                    NamedTypeSymbol n => n.DelegateInvokeMethod,
+                    FunctionPointerTypeSymbol f => f.Signature,
+                    _ => throw ExceptionUtilities.UnexpectedValue(delegateOrFunctionPointerType)
+                };
+            }
+            else if (argument.Kind == BoundKind.UnboundLambda)
+            {
+                // Function-interface-constrained type parameter (ref struct closures,
+                // csharplang#10209): the interface's invoke return type is an output type.
+                method = GetEffectiveDelegateOrFunctionInterfaceInvokeMethod(formalParameterType);
+            }
+            else
             {
                 return false;
             }
 
-            var isFunctionPointer = delegateOrFunctionPointerType.IsFunctionPointer();
-            if ((isFunctionPointer && argument.Kind != BoundKind.UnconvertedAddressOfOperator) ||
-                (!isFunctionPointer && argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup)))
-            {
-                return false;
-            }
-
-            MethodSymbol method = delegateOrFunctionPointerType switch
-            {
-                NamedTypeSymbol n => n.DelegateInvokeMethod,
-                FunctionPointerTypeSymbol f => f.Signature,
-                _ => throw ExceptionUtilities.UnexpectedValue(delegateOrFunctionPointerType)
-            };
-
-            if ((object)method == null || method.HasUseSiteError)
+            if ((object?)method == null || method.HasUseSiteError)
             {
                 return false;
             }
@@ -1419,23 +1538,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   T is a delegate type or expression tree with return type Tb
             // SPEC:   then a lower bound inference is made from U to Tb.
 
-            var delegateType = target.Type.GetDelegateType();
-            if ((object)delegateType == null)
+            NamedTypeSymbol? delegateOrInterfaceType = target.Type.GetDelegateType();
+            MethodSymbol? invokeMethod;
+            if (delegateOrInterfaceType is not null)
+            {
+                invokeMethod = delegateOrInterfaceType.DelegateInvokeMethod;
+            }
+            else
+            {
+                // Function-interface-constrained type parameter (ref struct closures,
+                // csharplang#10209): treat the function interface as the delegate-like target.
+                delegateOrInterfaceType = GetEffectiveDelegateOrFunctionInterfaceType(target.Type);
+                if (delegateOrInterfaceType is null)
+                {
+                    return false;
+                }
+                invokeMethod = GetEffectiveDelegateOrFunctionInterfaceInvokeMethod(target.Type);
+            }
+
+            if (invokeMethod is null || invokeMethod.HasUseSiteError)
             {
                 return false;
             }
 
-            // cannot be hit, because an invalid delegate does not have an unfixed return type
-            // this will be checked earlier.
-            Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
-                         "This method should only be called for valid delegate types.");
-            var returnType = delegateType.DelegateInvokeMethod.ReturnTypeWithAnnotations;
+            var returnType = invokeMethod.ReturnTypeWithAnnotations;
             if (!returnType.HasType || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
             }
 
-            var inferredReturnType = InferReturnType(source, delegateType, ref useSiteInfo);
+            var inferredReturnType = InferReturnType(source, delegateOrInterfaceType, ref useSiteInfo);
             if (!inferredReturnType.HasType)
             {
                 return false;
@@ -1581,12 +1713,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var delegateType = target.Type.GetDelegateType();
-            if (delegateType is null)
+            ImmutableArray<ParameterSymbol> delegateParameters;
+            if (delegateType is not null)
+            {
+                delegateParameters = delegateType.DelegateParameters();
+            }
+            else if (GetEffectiveDelegateOrFunctionInterfaceInvokeMethod(target.Type) is { } invokeMethod)
+            {
+                delegateParameters = invokeMethod.Parameters;
+            }
+            else
             {
                 return;
             }
-
-            var delegateParameters = delegateType.DelegateParameters();
             if (delegateParameters.IsDefault)
             {
                 return;
@@ -1633,7 +1772,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var delegateInvokeMethod = target.Type.GetDelegateType()?.DelegateInvokeMethod();
+            var delegateInvokeMethod = target.Type.GetDelegateType()?.DelegateInvokeMethod()
+                ?? GetEffectiveDelegateOrFunctionInterfaceInvokeMethod(target.Type);
             if (delegateInvokeMethod is null)
             {
                 return;
@@ -3076,10 +3216,14 @@ OuterBreak:
         private TypeWithAnnotations InferReturnType(BoundExpression source, NamedTypeSymbol target, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)target != null);
-            Debug.Assert(target.IsDelegateType());
-            Debug.Assert((object)target.DelegateInvokeMethod != null && !target.DelegateInvokeMethod.HasUseSiteError,
-                         "This method should only be called for legal delegate types.");
-            Debug.Assert(!target.DelegateInvokeMethod.ReturnsVoid);
+
+            MethodSymbol? invokeMethod = target.IsDelegateType()
+                ? target.DelegateInvokeMethod
+                : (_compilation is { } comp ? target.GetFunctionInterfaceInvokeMethod(comp) : null);
+
+            Debug.Assert(invokeMethod is not null && !invokeMethod.HasUseSiteError,
+                         "This method should only be called for legal delegate or function interface types.");
+            Debug.Assert(!invokeMethod.ReturnsVoid);
 
             // We should not be computing the inferred return type unless we are converting
             // to a delegate type where all the input types are fixed.
@@ -3116,7 +3260,7 @@ OuterBreak:
                 // will fail, or we will infer a nonapplicable method. Either way, there
                 // is no change to the semantics of overload resolution.
 
-                var originalDelegateParameters = target.DelegateParameters();
+                var originalDelegateParameters = invokeMethod.Parameters;
                 if (originalDelegateParameters.IsDefault)
                 {
                     return default;
@@ -3129,7 +3273,10 @@ OuterBreak:
             }
 
             var fixedDelegate = (NamedTypeSymbol)GetFixedDelegateOrFunctionPointer(target);
-            var fixedDelegateParameters = fixedDelegate.DelegateParameters();
+            var fixedInvokeMethod = fixedDelegate.IsDelegateType()
+                ? fixedDelegate.DelegateInvokeMethod
+                : (_compilation is { } comp2 ? fixedDelegate.GetFunctionInterfaceInvokeMethod(comp2) : null);
+            var fixedDelegateParameters = fixedInvokeMethod?.Parameters ?? ImmutableArray<ParameterSymbol>.Empty;
             // Optimization:
             // Similarly, if we have an entirely fixed delegate and an explicitly typed
             // anonymous function, then the parameter types had better be identical.

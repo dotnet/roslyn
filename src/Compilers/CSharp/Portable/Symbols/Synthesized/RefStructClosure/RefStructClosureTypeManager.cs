@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (SourceModuleSymbol)_compilation.SourceModule,
                 GeneratedNames.MakeRefStructClosureTypeName(Interlocked.Increment(ref _nameCounter) - 1),
                 functionInterface,
-                interfaceInvoke!);
+                interfaceInvoke!,
+                originatingLambda: lambda);
 
             return _cache.GetOrAdd((lambda, functionInterface), created);
         }

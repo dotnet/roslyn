@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ModuleSymbol _containingModule;
         private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
         private readonly SynthesizedRefStructClosureInvokeMethod _invokeMethod;
+        private readonly UnboundLambda? _originatingLambda;
         private ImmutableArray<Symbol> _members;
         private ImmutableArray<SynthesizedRefStructClosureCaptureField> _captureFields;
 
@@ -34,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceModuleSymbol containingModule,
             string name,
             NamedTypeSymbol functionInterface,
-            MethodSymbol interfaceInvokeMethod)
+            MethodSymbol interfaceInvokeMethod,
+            UnboundLambda? originatingLambda = null)
         {
             Debug.Assert(functionInterface.IsInterface);
             Debug.Assert((object)interfaceInvokeMethod.ContainingType == functionInterface ||
@@ -43,11 +45,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingModule = containingModule;
             Name = name;
             _interfaces = ImmutableArray.Create(functionInterface);
+            _originatingLambda = originatingLambda;
 
             _invokeMethod = new SynthesizedRefStructClosureInvokeMethod(this, interfaceInvokeMethod);
             _members = ImmutableArray.Create<Symbol>(_invokeMethod);
             _captureFields = ImmutableArray<SynthesizedRefStructClosureCaptureField>.Empty;
         }
+
+        /// <summary>
+        /// The unbound lambda that this closure type was synthesized for, if any. Used by type
+        /// inference to re-create the closure type after substitution of outer method type
+        /// parameters that appear in the embedded function interface.
+        /// </summary>
+        internal UnboundLambda? OriginatingLambda => _originatingLambda;
 
         /// <summary>
         /// The single function interface this closure implements (e.g. <c>IFunc&lt;int, int&gt;</c>).
