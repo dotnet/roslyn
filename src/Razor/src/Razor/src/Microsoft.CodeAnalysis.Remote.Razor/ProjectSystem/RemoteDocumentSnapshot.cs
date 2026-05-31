@@ -19,6 +19,8 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 
     private RazorCodeDocument? _codeDocument;
     private SourceGeneratedDocument? _generatedDocument;
+    private SourceGeneratedDocument? _declGeneratedDocument;
+    private bool _declGeneratedDocumentInitialized;
 
     public RemoteDocumentSnapshot(TextDocument textDocument, RemoteProjectSnapshot projectSnapshot)
     {
@@ -94,6 +96,24 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 
         var generatedDocument = await ProjectSnapshot.GetRequiredGeneratedDocumentAsync(this, cancellationToken).ConfigureAwait(false);
         return InterlockedOperations.Initialize(ref _generatedDocument, generatedDocument);
+    }
+
+    /// <summary>
+    /// Returns the decl-half generated document for this Razor document, or <see langword="null"/> when the
+    /// source generator did not emit a decl-half for it. Caches the (possibly null) result.
+    /// </summary>
+    public async ValueTask<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentAsync(CancellationToken cancellationToken)
+    {
+        if (Volatile.Read(ref _declGeneratedDocumentInitialized))
+        {
+            return _declGeneratedDocument;
+        }
+
+        var declDocument = await ProjectSnapshot.TryGetDeclGeneratedDocumentAsync(this, cancellationToken).ConfigureAwait(false);
+
+        _declGeneratedDocument = declDocument;
+        Volatile.Write(ref _declGeneratedDocumentInitialized, true);
+        return declDocument;
     }
 
     public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)

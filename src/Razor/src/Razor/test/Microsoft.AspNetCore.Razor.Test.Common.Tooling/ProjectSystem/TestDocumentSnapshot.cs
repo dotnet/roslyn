@@ -53,6 +53,9 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
         return new(CSharpSyntaxTree.ParseText(_codeDocument.GetCSharpSourceText(), cancellationToken: cancellationToken));
     }
 
+    public ValueTask<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentAsync(CancellationToken cancellationToken)
+        => new(default(SourceGeneratedDocument));
+
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
     {
         result = _codeDocument;
