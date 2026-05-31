@@ -17,4 +17,15 @@ internal interface ICSharpSemanticTokensProvider
         ImmutableArray<LinePositionSpan> csharpSpans,
         Guid correlationId,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns semantic tokens for the decl-half generated C# document, or <see langword="null"/>
+    /// if the document has no decl half (e.g. legacy <c>.cshtml</c>) or if the underlying request
+    /// could not be satisfied.
+    /// </summary>
+    Task<int[]?> GetDeclCSharpSemanticTokensResponseAsync(
+        DocumentContext documentContext,
+        ImmutableArray<LinePositionSpan> csharpSpans,
+        Guid correlationId,
+        CancellationToken cancellationToken);
 }

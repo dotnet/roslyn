@@ -50,4 +50,31 @@ internal class RemoteCSharpSemanticTokensProvider(
 
         return data;
     }
+
+    public async Task<int[]?> GetDeclCSharpSemanticTokensResponseAsync(DocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, Guid correlationId, CancellationToken cancellationToken)
+    {
+        var declGeneratedDocument = await documentContext.Snapshot
+            .TryGetDeclGeneratedDocumentAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (declGeneratedDocument is null)
+        {
+            return null;
+        }
+
+        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName,
+            Constants.ExternalAccessServerName,
+            TelemetryThresholds.SemanticTokensSubLSPTelemetryThreshold,
+            correlationId);
+
+        var data = await SemanticTokensRange
+            .GetSemanticTokensAsync(
+                declGeneratedDocument,
+                csharpRanges,
+                supportsVisualStudioExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        return data;
+    }
 }
