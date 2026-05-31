@@ -247,6 +247,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
     {
         return composition
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingService))
+            .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingServiceWrapper))
             .AddParts(typeof(ExportableRemoteServiceInvoker));
     }
 

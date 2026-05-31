@@ -46,6 +46,7 @@ public class CohostRoslynGoToDefTest(ITestOutputHelper testOutputHelper) : Cohos
     {
         return composition
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingService))
+            .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingServiceWrapper))
             .AddParts(typeof(ExportableRemoteServiceInvoker));
     }
 

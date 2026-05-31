@@ -670,6 +670,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
     {
         return composition
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingService))
+            .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingServiceWrapper))
             .AddParts(typeof(ExportableRemoteServiceInvoker));
     }
 
