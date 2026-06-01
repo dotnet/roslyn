@@ -4,12 +4,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.SpellCheck;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed partial class RemoteSpellCheckService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteSpellCheckService
+internal sealed class RemoteSpellCheckService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteSpellCheckService
 {
     internal sealed class Factory : FactoryBase<IRemoteSpellCheckService>
     {

@@ -3,7 +3,6 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.SpellCheck;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 

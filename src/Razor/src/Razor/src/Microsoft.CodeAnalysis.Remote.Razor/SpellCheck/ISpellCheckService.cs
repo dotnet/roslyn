@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.SpellCheck;
+namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
 internal interface ISpellCheckService
 {

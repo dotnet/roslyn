@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.SpellCheck;
+namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
 internal class SpellCheckService(
     ICSharpSpellCheckRangeProvider csharpSpellCheckService,
