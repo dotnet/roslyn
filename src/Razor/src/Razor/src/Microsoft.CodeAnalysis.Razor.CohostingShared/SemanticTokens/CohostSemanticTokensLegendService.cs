@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
 
 [Export(typeof(ISemanticTokensLegendService))]
 [method: ImportingConstructor]
-internal sealed class AbstractRazorSemanticTokensLegendService(IClientCapabilitiesService clientCapabilitiesService) : ISemanticTokensLegendService
+internal sealed class CohostSemanticTokensLegendService(IClientCapabilitiesService clientCapabilitiesService) : ISemanticTokensLegendService
 {
     private static readonly SemanticTokenModifiers s_modifiers = ConstructTokenModifiers();
 
