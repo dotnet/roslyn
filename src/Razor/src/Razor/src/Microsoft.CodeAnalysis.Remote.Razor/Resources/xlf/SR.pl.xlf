@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Unsupported_type_0">
         <source>Unsupported type: '{0}'.</source>
-        <target state="new">Unsupported type: '{0}'.</target>
+        <target state="translated">Nieobsługiwany typ: „{0}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_attributes">
