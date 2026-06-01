@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -28,7 +29,9 @@ using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 /// Contains several methods for mapping and filtering Razor and C# diagnostics. It allows for
 /// translating code diagnostics from one representation into another, such as from C# to Razor.
 /// </summary>
-internal class RazorTranslateDiagnosticsService(IDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
+[Export(typeof(RazorTranslateDiagnosticsService)), Shared]
+[method: ImportingConstructor]
+internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorTranslateDiagnosticsService>();
