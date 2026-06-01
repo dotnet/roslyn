@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 internal static class TaskListDiagnosticProvider
 {

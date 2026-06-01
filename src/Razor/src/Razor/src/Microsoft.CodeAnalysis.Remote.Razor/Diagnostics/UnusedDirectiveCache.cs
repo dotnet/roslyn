@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 internal static class UnusedDirectiveCache
 {

@@ -5,11 +5,12 @@
 
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 using Xunit;
+using LspDiagnosticSeverity = Roslyn.LanguageServer.Protocol.DiagnosticSeverity;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 public class RazorDiagnosticHelperTest
 {
@@ -27,14 +28,14 @@ public class RazorDiagnosticHelperTest
         Assert.Equal(razorDiagnostic.Id, diagnostic.Code);
         Assert.Equal(razorDiagnostic.GetMessage(CultureInfo.InvariantCulture), diagnostic.Message);
         Assert.Null(diagnostic.Range);
-        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal(LspDiagnosticSeverity.Error, diagnostic.Severity);
     }
 
     [Fact]
     public void ConvertSeverity_ErrorReturnsError()
     {
         // Arrange
-        var expectedSeverity = DiagnosticSeverity.Error;
+        var expectedSeverity = LspDiagnosticSeverity.Error;
 
         // Act
         var severity = RazorDiagnosticHelper.ConvertSeverity(RazorDiagnosticSeverity.Error);
@@ -47,7 +48,7 @@ public class RazorDiagnosticHelperTest
     public void ConvertSeverity_WarningReturnsWarning()
     {
         // Arrange
-        var expectedSeverity = DiagnosticSeverity.Warning;
+        var expectedSeverity = LspDiagnosticSeverity.Warning;
 
         // Act
         var severity = RazorDiagnosticHelper.ConvertSeverity(RazorDiagnosticSeverity.Warning);

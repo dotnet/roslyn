@@ -4,13 +4,13 @@
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test.Diagnostics;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 public class TaskListDiagnosticProviderTest(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {

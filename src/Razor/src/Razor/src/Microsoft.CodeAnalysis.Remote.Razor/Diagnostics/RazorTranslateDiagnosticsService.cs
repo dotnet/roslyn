@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 using RazorDiagnosticFactory = AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
