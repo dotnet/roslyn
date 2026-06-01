@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Text;
 
@@ -54,7 +55,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     internal async Task<LspDiagnostic[]> TranslateAsync(
         RazorLanguageKind diagnosticKind,
         LspDiagnostic[] diagnostics,
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
@@ -103,7 +104,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     internal LspDiagnostic[] MapDiagnostics(
         RazorLanguageKind languageKind,
         LspDiagnostic[] diagnostics,
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument)
     {
         var projects = RazorDiagnosticHelper.GetProjectInformation(documentSnapshot);
