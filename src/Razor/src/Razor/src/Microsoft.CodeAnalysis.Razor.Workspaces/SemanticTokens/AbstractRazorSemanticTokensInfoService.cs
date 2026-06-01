@@ -120,28 +120,60 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = codeDocument.GetRequiredImplCSharpDocument();
-
-        // Get a list of precise ranges for the C# code embedded in the Razor document.
-        if (!TryGetSortedCSharpRanges(codeDocument, razorSpan, out var csharpRanges))
+        // Impl pass
+        var implGeneratedDocument = codeDocument.GetRequiredImplCSharpDocument();
+        if (TryGetSortedCSharpRanges(codeDocument, implGeneratedDocument, razorSpan, out var implRanges))
         {
-            // There's no C# in the range.
-            return true;
+            _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, decl half: false, and the server thinks there are {implGeneratedDocument.Text.Lines.Count} lines of C#");
+
+            var implResponse = await _csharpSemanticTokensProvider
+                .GetCSharpSemanticTokensResponseAsync(documentContext, implRanges, correlationId, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!ProcessCSharpResponse(ranges, codeDocument, implGeneratedDocument, implResponse, razorSpan, colorBackground))
+            {
+                return false;
+            }
         }
 
-        _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, and the server thinks there are {codeDocument.GetCSharpSourceText().Lines.Count} lines of C#");
+        // Run a second pass against the decl-half generated document, if there is one. For an
+        // @code / @functions block the impl half only contains BuildRenderTree and an invocation,
+        // while the full method bodies (and therefore most C# tokens) live in the decl half.
+        if (codeDocument.GetDeclCSharpDocument() is { } declGeneratedDocument &&
+            TryGetSortedCSharpRanges(codeDocument, declGeneratedDocument, razorSpan, out var declRanges))
+        {
+            _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, decl half: true, and the server thinks there are {declGeneratedDocument.Text.Lines.Count} lines of C#");
 
-        var csharpResponse = await _csharpSemanticTokensProvider.GetCSharpSemanticTokensResponseAsync(documentContext, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
+            var declResponse = await _csharpSemanticTokensProvider
+                .GetDeclCSharpSemanticTokensResponseAsync(documentContext, declRanges, correlationId, cancellationToken)
+                .ConfigureAwait(false);
 
+            if (!ProcessCSharpResponse(ranges, codeDocument, declGeneratedDocument, declResponse, razorSpan, colorBackground))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool ProcessCSharpResponse(
+        List<SemanticRange> ranges,
+        RazorCodeDocument codeDocument,
+        RazorCSharpDocument generatedDocument,
+        int[]? csharpResponse,
+        LinePositionSpan razorSpan,
+        bool colorBackground)
+    {
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
-        // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
+        // Unrecoverable, return false to indicate no change. We've already queued up a refresh request in
         // the server call that will cause us to retry in a bit.
         if (csharpResponse is null)
         {
             return false;
         }
 
-        ranges.SetCapacityIfLarger(csharpResponse.Length / TokenSize);
+        ranges.SetCapacityIfLarger(ranges.Count + (csharpResponse.Length / TokenSize));
 
         var textClassification = _semanticTokensLegendService.TokenTypes.MarkupTextLiteral;
         var razorSource = codeDocument.Source.Text;
@@ -218,13 +250,12 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
     }
 
     // Internal for testing only
-    internal static bool TryGetSortedCSharpRanges(RazorCodeDocument codeDocument, LinePositionSpan razorRange, out ImmutableArray<LinePositionSpan> ranges)
+    internal static bool TryGetSortedCSharpRanges(RazorCodeDocument codeDocument, RazorCSharpDocument csharpDoc, LinePositionSpan razorRange, out ImmutableArray<LinePositionSpan> ranges)
     {
         using var _ = ArrayBuilderPool<LinePositionSpan>.GetPooledObject(out var csharpRanges);
-        var csharpSourceText = codeDocument.GetCSharpSourceText();
+        var csharpSourceText = csharpDoc.Text;
         var sourceText = codeDocument.Source.Text;
         var textSpan = sourceText.GetTextSpan(razorRange);
-        var csharpDoc = codeDocument.GetRequiredImplCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
         foreach (var mapping in csharpDoc.SourceMappingsSortedByOriginal)
@@ -253,6 +284,11 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
         ranges = csharpRanges.ToImmutableAndClear();
         return true;
     }
+
+    // Convenience overload that uses the impl-half generated document. Kept so existing callers
+    // (and tests) don't need to thread a RazorCSharpDocument through.
+    internal static bool TryGetSortedCSharpRanges(RazorCodeDocument codeDocument, LinePositionSpan razorRange, out ImmutableArray<LinePositionSpan> ranges)
+        => TryGetSortedCSharpRanges(codeDocument, codeDocument.GetRequiredImplCSharpDocument(), razorRange, out ranges);
 
     private static int CompareLinePositionSpans(LinePositionSpan span1, LinePositionSpan span2)
     {

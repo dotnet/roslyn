@@ -149,6 +149,19 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
         return await generatorResult.GetRequiredSourceGeneratedDocumentForRazorFilePathAsync(documentSnapshot.FilePath, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Returns the decl-half source generated document for the document, or <see langword="null"/> when the
+    /// source generator did not emit a decl-half for it.
+    /// </summary>
+    internal async Task<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    {
+        var generatorResult = await GeneratorRunResult.CreateAsync(throwIfNotFound: true, _project, cancellationToken).ConfigureAwait(false);
+
+        Assumed.False(generatorResult.IsDefault);
+
+        return await generatorResult.TryGetDeclSourceGeneratedDocumentForRazorFilePathAsync(documentSnapshot.FilePath, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<RazorCodeDocument?> TryGetCodeDocumentForGeneratedDocumentAsync(RazorGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
     {
         Debug.Assert(identity.DocumentId.ProjectId == _project.Id, "Generated document does not belong to this project.");

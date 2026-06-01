@@ -45,6 +45,24 @@ internal readonly record struct GeneratorRunResult(RazorGeneratorResult Generato
             ?? throw new InvalidOperationException(SR.FormatCouldnt_get_the_source_generated_document_for_hint_name(hintName));
     }
 
+    /// <summary>
+    /// Returns the decl-half source generated document for the given Razor file, or <see langword="null"/>
+    /// if the source generator did not emit a decl document for it (e.g. .cshtml files, or components
+    /// whose primary method body is suppressed).
+    /// </summary>
+    public async Task<SourceGeneratedDocument?> TryGetDeclSourceGeneratedDocumentForRazorFilePathAsync(string filePath, CancellationToken cancellationToken)
+    {
+        var implHintName = GeneratorResult.GetHintName(filePath);
+        if (implHintName is null)
+        {
+            return null;
+        }
+
+        var declHintName = RazorSourceGenerator.GetDeclIdentifierFromHintName(implHintName);
+
+        return await Project.TryGetSourceGeneratedDocumentFromHintNameAsync(declHintName, cancellationToken).ConfigureAwait(false);
+    }
+
     public static async Task<GeneratorRunResult> CreateAsync(bool throwIfNotFound, Project project, CancellationToken cancellationToken)
     {
         var result = await project.GetSourceGeneratorRunResultAsync(cancellationToken).ConfigureAwait(false);
