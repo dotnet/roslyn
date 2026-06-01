@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis
 
                     // get a builder for each input node
                     var syntaxInputBuilders = ArrayBuilder<(SyntaxInputNode node, ISyntaxInputBuilder builder)>.GetInstance(_syntaxInputNodes.Length);
+                    var freedBuilderCount = 0;
                     try
                     {
                         foreach (var node in _syntaxInputNodes)
@@ -128,10 +129,9 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             // save the updated inputs
-                            while (syntaxInputBuilders.Count > 0)
+                            while (freedBuilderCount < syntaxInputBuilders.Count)
                             {
-                                (var node, ISyntaxInputBuilder builder) = syntaxInputBuilders[0];
-                                syntaxInputBuilders.RemoveAt(0);
+                                (var node, ISyntaxInputBuilder builder) = syntaxInputBuilders[freedBuilderCount++];
                                 builder.SaveStateAndFree(_tableBuilder);
                                 Debug.Assert(_tableBuilder.Contains(node));
                             }
@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis
                     }
                     finally
                     {
-                        foreach ((_, ISyntaxInputBuilder builder) in syntaxInputBuilders)
+                        while (freedBuilderCount < syntaxInputBuilders.Count)
                         {
-                            builder.FreeUnderlying();
+                            syntaxInputBuilders[freedBuilderCount++].builder.FreeUnderlying();
                         }
 
                         syntaxInputBuilders.Free();
