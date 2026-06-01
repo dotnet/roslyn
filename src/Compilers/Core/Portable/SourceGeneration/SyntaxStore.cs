@@ -130,9 +130,8 @@ namespace Microsoft.CodeAnalysis
                             // save the updated inputs
                             while (syntaxInputBuilders.Count > 0)
                             {
-                                var index = syntaxInputBuilders.Count - 1;
-                                (var node, ISyntaxInputBuilder builder) = syntaxInputBuilders[index];
-                                syntaxInputBuilders.RemoveAt(index);
+                                (var node, ISyntaxInputBuilder builder) = syntaxInputBuilders[0];
+                                syntaxInputBuilders.RemoveAt(0);
                                 builder.SaveStateAndFree(_tableBuilder);
                                 Debug.Assert(_tableBuilder.Contains(node));
                             }
