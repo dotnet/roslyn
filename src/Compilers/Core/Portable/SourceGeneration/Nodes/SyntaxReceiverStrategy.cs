@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis
 
             private bool TrackIncrementalSteps => _nodeStateTable.TrackIncrementalSteps;
 
-            public void SaveState(StateTableStore.Builder tables)
+            public void SaveStateAndFree(StateTableStore.Builder tables)
             {
                 _nodeStateTable.AddEntry(_receiver, EntryState.Modified, lastElapsedTime, TrackIncrementalSteps ? System.Collections.Immutable.ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default, EntryState.Modified);
-                tables.SetTable(_key, _nodeStateTable.ToImmutable());
+                tables.SetTable(_key, _nodeStateTable.ToImmutableAndFree());
             }
 
             public void FreeUnderlying()

@@ -128,9 +128,11 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             // save the updated inputs
-                            foreach ((var node, ISyntaxInputBuilder builder) in syntaxInputBuilders)
+                            while (syntaxInputBuilders.Count > 0)
                             {
-                                builder.SaveState(_tableBuilder);
+                                (var node, ISyntaxInputBuilder builder) = syntaxInputBuilders[0];
+                                syntaxInputBuilders.RemoveAt(0);
+                                builder.SaveStateAndFree(_tableBuilder);
                                 Debug.Assert(_tableBuilder.Contains(node));
                             }
                         }

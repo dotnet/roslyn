@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis
                 _transformTable = table.GetStateTableOrEmpty<T>(_key).ToBuilder(_name, trackIncrementalSteps, _comparer);
             }
 
-            public void SaveState(StateTableStore.Builder tables)
+            public void SaveStateAndFree(StateTableStore.Builder tables)
             {
-                tables.SetTable(_owner._filterKey, _filterTable.ToImmutable());
-                tables.SetTable(_key, _transformTable.ToImmutable());
+                tables.SetTable(_owner._filterKey, _filterTable.ToImmutableAndFree());
+                tables.SetTable(_key, _transformTable.ToImmutableAndFree());
             }
 
             public void FreeUnderlying()
