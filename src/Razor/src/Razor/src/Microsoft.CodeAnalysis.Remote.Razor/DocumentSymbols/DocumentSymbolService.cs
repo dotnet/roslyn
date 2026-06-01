@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
+namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentSymbols;
 
 internal class DocumentSymbolService(IDocumentMappingService documentMappingService) : IDocumentSymbolService
 {

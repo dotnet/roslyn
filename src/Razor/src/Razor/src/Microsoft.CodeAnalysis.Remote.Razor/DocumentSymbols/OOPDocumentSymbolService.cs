@@ -3,7 +3,6 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentSymbols;
 

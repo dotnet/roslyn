@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
+namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentSymbols;
 
 internal interface IDocumentSymbolService
 {
