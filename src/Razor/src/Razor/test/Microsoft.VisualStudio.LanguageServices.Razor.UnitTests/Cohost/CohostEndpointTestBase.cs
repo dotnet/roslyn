@@ -5,7 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -40,7 +40,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         _filePathService = new VisualStudioFilePathService();
 
-        _semanticTokensLegendService = TestRazorSemanticTokensLegendService.GetInstance(supportsVSExtensions: true);
+        _semanticTokensLegendService = new CohostSemanticTokensLegendService(new TestClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true }));
     }
 
     private protected override IClientSettingsManager CreateClientSettingsManager() => new ClientSettingsManager([], null, null);
