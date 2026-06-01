@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Rename;
@@ -33,7 +34,7 @@ internal sealed class RenameService(
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
 
     public async Task<RenameResult> TryGetRazorRenameEditsAsync(
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         DocumentPositionInfo positionInfo,
         string newName,
         ISolutionQueryOperations solutionQueryOperations,
@@ -92,7 +93,7 @@ internal sealed class RenameService(
     }
 
     public bool TryGetRazorFileRenameEdit(
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         string newName,
         [NotNullWhen(true)] out WorkspaceEdit? workspaceEdit)
     {
