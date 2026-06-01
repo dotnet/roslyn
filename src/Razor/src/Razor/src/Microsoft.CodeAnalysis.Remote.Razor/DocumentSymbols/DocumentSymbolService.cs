@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Composition;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -9,7 +10,9 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentSymbols;
 
-internal class DocumentSymbolService(IDocumentMappingService documentMappingService) : IDocumentSymbolService
+[Export(typeof(IDocumentSymbolService)), Shared]
+[method: ImportingConstructor]
+internal sealed class DocumentSymbolService(IDocumentMappingService documentMappingService) : IDocumentSymbolService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
