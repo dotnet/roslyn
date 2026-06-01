@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -25,6 +24,6 @@ internal class ExportableRemoteServiceInvoker : IRemoteServiceInvoker
         _remoteServiceInvoker = remoteServiceInvoker;
     }
 
-    public ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
+    public ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
         => _remoteServiceInvoker.AssumeNotNull().TryInvokeAsync(solution, invocation, cancellationToken, callerFilePath, callerMemberName);
 }

@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
@@ -21,12 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DevKit.EditAndContinue;
 /// Registers and proffers the <see cref="ManagedHotReloadLanguageService"/> brokered service
 /// into the Dev Kit <see cref="GlobalBrokeredServiceContainer"/> when the service broker is initialized.
 /// </summary>
-[Export(typeof(IServiceBrokerInitializer))]
+[ExportCSharpVisualBasicStatelessLspService(typeof(DevKitHotReloadServiceContributor)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DevKitHotReloadServiceContributor(
     ManagedHotReloadLanguageServiceFactory factory,
-    SolutionSnapshotRegistry solutionSnapshotRegistry) : IServiceBrokerInitializer
+    SolutionSnapshotRegistry solutionSnapshotRegistry) : IServiceBrokerInitializer, ILspService
 {
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
     {

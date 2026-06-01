@@ -7,14 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Hover;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.Hover?>;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -31,7 +31,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
     public ValueTask<RemoteResponse<Hover?>> GetHoverAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         CancellationToken cancellationToken)
@@ -68,14 +68,14 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
                 .GetGeneratedDocumentAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            var csharpHover = await ExternalHandlers.Hover
-                .GetHoverAsync(
-                    generatedDocument,
-                    positionInfo.Position.ToLinePosition(),
-                    clientCapabilities.SupportsVisualStudioExtensions(),
-                    clientCapabilities.SupportsMarkdown(),
-                    cancellationToken)
-                .ConfigureAwait(false);
+            var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+            var csharpHover = await HoverHandler.GetHoverAsync(
+                generatedDocument,
+                positionInfo.Position.ToLinePosition(),
+                globalOptions,
+                clientCapabilities.SupportsVisualStudioExtensions(),
+                clientCapabilities.SupportsMarkdown(),
+                cancellationToken).ConfigureAwait(false);
 
             // Roslyn couldn't provide a hover, so we're done.
             if (csharpHover is null)

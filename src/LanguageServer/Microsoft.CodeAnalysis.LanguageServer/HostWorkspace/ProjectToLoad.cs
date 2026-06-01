@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// <summary>
 /// The project path (and the guid if it came from a solution) of the project to load.
 /// </summary>
-internal sealed record ProjectToLoad(string Path, string? ProjectGuid, bool ReportTelemetry)
+internal sealed record ProjectToLoad(string Path, string? ProjectGuid, bool ReportTelemetry, LanguageServerProjectLoader.WorkDoneProgressTracker? ProgressTracker = null)
 {
     public static IEqualityComparer<ProjectToLoad> Comparer = new ProjectToLoadComparer();
 
