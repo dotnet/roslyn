@@ -64,6 +64,14 @@ internal static class PRTagger
                 continue;
             }
 
+            // The dotnet/razor repo is archived for main-line development (servicing branches
+            // still insert into VS), so we no longer create insertion-tracking issues there.
+            if (product is Razor)
+            {
+                logger.LogInformation("Skipping PR tagging for archived repo: {ProductName}", product.Name);
+                continue;
+            }
+
             var gitHubRepoName = product.RepoHttpBaseUrl.Split('/').Last();
             var buildsAndCommitsToTag = await GetVSBuildsAndCommitsAsync(
                 gitHubRepoName,
