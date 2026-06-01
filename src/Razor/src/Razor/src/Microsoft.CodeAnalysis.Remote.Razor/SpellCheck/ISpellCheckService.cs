@@ -3,11 +3,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
 internal interface ISpellCheckService
 {
-    Task<int[]> GetSpellCheckRangeTriplesAsync(DocumentContext documentContext, CancellationToken cancellationToken);
+    Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken);
 }
