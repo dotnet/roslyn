@@ -63,7 +63,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)InlayHints\CohostInlayHintEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlayHints\CohostInlayHintResolveEndpoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorCohostStartupService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\IRazorSemanticTokensRefreshQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\RazorSemanticTokensRefreshQueueWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensEndpointBase.cs" />
