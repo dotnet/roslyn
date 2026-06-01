@@ -83,7 +83,4 @@
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetResolveProvider.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Diagnostics\" />
-  </ItemGroup>
 </Project>
