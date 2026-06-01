@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using Xunit;
 using Xunit.Sdk;
+using Microsoft.CodeAnalysis;
 
 #if DEBUG
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -41,6 +42,12 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     /// When applied at the method level, this also suppresses validation from a class-level attribute.
     /// </summary>
     public string? LeakReason { get; set; }
+
+    /// <summary>
+    /// When set to <see langword="true"/>, waits briefly for outstanding objects to be freed before reporting leaks.
+    /// Command-line tests need this because the analyzer driver has a background task which <see cref="CommonCompiler.Run"/> doesn't always wait for.
+    /// </summary>
+    public bool WaitForOutstandingObjectsToBeFreed { get; set; }
 
 #if DEBUG
     /// <summary>
@@ -85,7 +92,7 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
         var context = _context;
         _context = null;
 
-        if (LeakReason is null && !s_suppressClassLevelValidation.Value)
+        if (LeakReason is null && !s_suppressClassLevelValidation.Value && WaitForOutstandingObjectsToBeFreed)
         {
             context?.WaitForOutstandingObjectsToBeFreed(s_asyncCleanupTimeout);
         }
