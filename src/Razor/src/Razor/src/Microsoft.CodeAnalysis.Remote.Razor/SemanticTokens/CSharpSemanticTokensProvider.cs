@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 [Export(typeof(ICSharpSemanticTokensProvider)), Shared]
 [method: ImportingConstructor]
-internal class RemoteCSharpSemanticTokensProvider(
+internal sealed class CSharpSemanticTokensProvider(
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter) : ICSharpSemanticTokensProvider
 {
