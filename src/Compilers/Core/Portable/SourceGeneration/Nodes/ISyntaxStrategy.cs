@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     {
         void VisitTree(Lazy<SyntaxNode> root, EntryState state, Lazy<SemanticModel>? model, CancellationToken cancellationToken);
 
-        void SaveStateAndFree(StateTableStore.Builder tableStoreBuilder);
+        void SaveState(StateTableStore.Builder tableStoreBuilder);
 
         void FreeUnderlying();
     }

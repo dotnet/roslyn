@@ -516,13 +516,23 @@ namespace Microsoft.CodeAnalysis
                 };
             }
 
+            public NodeStateTable<T> ToImmutable()
+                => ToImmutable(free: false);
+
             public NodeStateTable<T> ToImmutableAndFree()
+                => ToImmutable(free: true);
+
+            private NodeStateTable<T> ToImmutable(bool free)
             {
                 Debug.Assert(!TrackIncrementalSteps || _states.Count == _steps.Count);
 
                 if (_states.Count == 0)
                 {
-                    Free();
+                    if (free)
+                    {
+                        Free();
+                    }
+
                     return NodeStateTable<T>.Empty;
                 }
 
@@ -539,18 +549,21 @@ namespace Microsoft.CodeAnalysis
                 if (_states.Count == _previous.Count && _states.SequenceEqual(_previous._states, (e1, e2) => e1.Matches(e2, _equalityComparer)))
                 {
                     finalStates = _previous._states;
-                    _states.Free();
+                    if (free)
+                    {
+                        _states.Free();
+                    }
                 }
                 else
                 {
                     // Important to use ToImmutableAndFree so that we will MoveToImmutable when the requested capacity
                     // equals the count.
-                    finalStates = _states.ToImmutableAndFree();
+                    finalStates = free ? _states.ToImmutableAndFree() : _states.ToImmutable();
                 }
 
                 return new NodeStateTable<T>(
                     finalStates,
-                    TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
+                    TrackIncrementalSteps ? (free ? _steps.ToImmutableAndFree() : _steps.ToImmutable()) : default,
                     hasTrackedSteps: TrackIncrementalSteps,
                     isCached: finalStates.All(static s => s.IsCached) && _previous.GetTotalEntryItemCount() == finalStates.Sum(static s => s.Count));
             }
