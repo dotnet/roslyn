@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,7 +14,9 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
-internal class SpellCheckService(
+[Export(typeof(ISpellCheckService)), Shared]
+[method: ImportingConstructor]
+internal sealed class SpellCheckService(
     ICSharpSpellCheckRangeProvider csharpSpellCheckService,
     IDocumentMappingService documentMappingService) : ISpellCheckService
 {
