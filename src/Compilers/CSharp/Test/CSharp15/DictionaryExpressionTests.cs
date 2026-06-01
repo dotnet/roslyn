@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             """;
 
-        public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
+        public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp14, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
         [Theory]
         [MemberData(nameof(LanguageVersions))]
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 IDictionary<int, string> d = [1:"one"];
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (2,30): error CS9174: Cannot initialize type 'IDictionary<int, string>' with a collection expression because the type is not constructible.
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 d = [..y];
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (3,5): error CS9174: Cannot initialize type 'IDictionary<int, string>' with a collection expression because the type is not constructible.
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var x = [1:"one"];
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (1,9): error CS9176: There is no target type for the collection expression.
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void LanguageVersionDiagnostics_05(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeExtensionAdd)
         {
             string sourceA = """
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 includeExtensionAdd ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionAdd)
+            if (languageVersion == LanguageVersion.CSharp14 && !includeExtensionAdd)
             {
                 comp.VerifyEmitDiagnostics(
                     // (6,37): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     //         Dictionary<int, string> d = [1:"one"];
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(6, 39));
             }
-            else if (languageVersion == LanguageVersion.CSharp13)
+            else if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (6,38): error CS9500: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void BreakingChange_DictionaryAdd_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeExtensionAdd)
         {
             string sourceA = """
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 includeExtensionAdd ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionAdd)
+            if (languageVersion == LanguageVersion.CSharp14 && !includeExtensionAdd)
             {
                 comp.VerifyEmitDiagnostics(
                     // (9,13): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             var verifier = CompileAndVerify(comp, expectedOutput: "[2:two], [3:three], ");
             verifier.VerifyDiagnostics();
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 verifier.VerifyIL("Program.Main", """
                     {
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void BreakingChange_DictionaryAdd_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeAdd)
         {
             string sourceA = $$"""
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13 && !includeAdd)
+            if (languageVersion == LanguageVersion.CSharp14 && !includeAdd)
             {
                 comp.VerifyEmitDiagnostics(
                     // (9,13): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             var verifier = CompileAndVerify(comp, expectedOutput: "[2:two], [3:three], ");
             verifier.VerifyDiagnostics();
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 verifier.VerifyIL("Program.Main", """
                     {
@@ -884,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Dictionary_Params(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             [CombinatorialValues("Dictionary", "IDictionary", "IReadOnlyDictionary")] string typeName)
         {
             string source = $$"""
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [source, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 if (typeName == "Dictionary")
                 {
@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'Program.Params<K, V>(params MyDictionary<K, V>)'
@@ -3018,7 +3018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Dictionary(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool includeExtensionAdd)
         {
             string sourceA = """
@@ -3050,7 +3050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, includeExtensionAdd ? sourceB : "", s_collectionExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 if (includeExtensionAdd)
                 {
@@ -3146,7 +3146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Params_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues(
                 "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>",
                 "System.Collections.Generic.KeyValuePair<K, V>[]",
@@ -3251,7 +3251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Params_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues("ReadOnlySpan", "Span")] string typeName)
         {
             string source = $$"""
@@ -3283,7 +3283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Params_03(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues("IReadOnlyDictionary", "Dictionary")] string typeName)
         {
             string source = $$"""
@@ -3304,7 +3304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 if (typeName == "Dictionary")
                 {
@@ -3345,7 +3345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Span(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -3370,7 +3370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net80);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (11,55): error CS9500: Collection expression type 'ReadOnlySpan<KeyValuePair<int, string>>' does not support key-value pair elements.
@@ -3579,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_CustomType(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useCollectionBuilder)
         {
             string sourceA = useCollectionBuilder ?
@@ -3644,7 +3644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 options: TestOptions.ReleaseExe,
                 references: [refA],
                 targetFramework: TargetFramework.Net80);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (11,15): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int, string>>' does not support key-value pair elements.
@@ -3706,7 +3706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_AddObject(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useDynamic)
         {
             string parameterType = useDynamic ? "dynamic" : "object";
@@ -3755,7 +3755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references: [refA],
                 options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net80);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (15,17): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int, string>>' does not support key-value pair elements.
@@ -3878,7 +3878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_AddUserDefinedConversion(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string sourceA = """
                 using System.Collections;
@@ -3930,7 +3930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 references: [refA],
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (15,17): error CS9500: Collection expression type 'MyCollection<int, string>' does not support key-value pair elements.
@@ -4049,7 +4049,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_AddOverloads(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool includeAddT)
         {
             string sourceA = $$"""
@@ -4096,7 +4096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 references: [refA],
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (15,17): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int, string>>' does not support key-value pair elements.
@@ -4304,7 +4304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net80);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 var verifier = CompileAndVerify(
                     comp,
