@@ -12113,6 +12113,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 safe event System.Action I1.E { add { } remove { } }
                 int I1.A { safe get => 0; set { } }
             }
+            #pragma warning disable CS0626 // extern without attributes
+            interface I3 : I1
+            {
+                safe extern void I1.M();
+                safe extern int I1.P { get; set; }
+                safe extern event System.Action I1.E;
+                int I1.A { safe extern get; safe extern set; }
+            }
+            interface I4 : I1
+            {
+                safe extern int I1.A { safe get; safe set; }
+            }
             """;
 
         CreateCompilation(source,
@@ -12142,7 +12154,28 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("safe").WithLocation(12, 33),
             // (13,16): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
             //     int I1.A { safe get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(13, 16));
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(13, 16),
+            // (20,40): error CS0106: The modifier 'extern' is not valid for this item
+            //     safe extern event System.Action I1.E;
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("extern").WithLocation(20, 40),
+            // (20,40): error CS0106: The modifier 'safe' is not valid for this item
+            //     safe extern event System.Action I1.E;
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("safe").WithLocation(20, 40),
+            // (20,40): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+            //     safe extern event System.Action I1.E;
+            Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "E").WithLocation(20, 40),
+            // (21,28): error CS0106: The modifier 'extern' is not valid for this item
+            //     int I1.A { safe extern get; safe extern set; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("extern").WithLocation(21, 28),
+            // (21,45): error CS0106: The modifier 'extern' is not valid for this item
+            //     int I1.A { safe extern get; safe extern set; }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(21, 45),
+            // (21,16): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            //     int I1.A { safe extern get; safe extern set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 16),
+            // (21,33): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            //     int I1.A { safe extern get; safe extern set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 33));
     }
 
     [Theory, CombinatorialData]
