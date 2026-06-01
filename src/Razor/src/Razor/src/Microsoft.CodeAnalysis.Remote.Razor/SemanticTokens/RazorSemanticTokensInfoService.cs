@@ -342,7 +342,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
             Debug.Assert(destination.Length == TokenSize);
 
             // Due to the fact that Razor ranges can supersede C# ranges, we can end up with C# whitespace ranges we've
-            // added, that we not don't want after further processing, so check for that, and skip emitting those ranges.
+            // added, that we no longer want after further processing, so check for that, and skip emitting those ranges.
             if (currentRange.IsCSharpWhitespace)
             {
                 // If the previous range is on the same line, and from Razor, then we don't want to emit this.
@@ -410,7 +410,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
             if (!sourceText.TryGetAbsoluteIndex(currentRange.StartLine, currentRange.StartCharacter, out var startPosition) ||
                 !sourceText.TryGetAbsoluteIndex(currentRange.EndLine, currentRange.EndCharacter, out var endPosition))
             {
-                throw new ArgumentOutOfRangeException($"Range: All or part of {currentRange} was outside the bounds of the document.");
+                throw new InvalidOperationException($"All or part of {currentRange} was outside the bounds of the document.");
             }
 
             var length = endPosition - startPosition;
