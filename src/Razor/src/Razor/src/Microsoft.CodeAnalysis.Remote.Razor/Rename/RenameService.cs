@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -20,7 +21,9 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Rename;
 
-internal class RenameService(
+[Export(typeof(IRenameService)), Shared]
+[method: ImportingConstructor]
+internal sealed class RenameService(
     IRazorComponentSearchEngine componentSearchEngine,
     IFileSystem fileSystem,
     LanguageServerFeatureOptions languageServerFeatureOptions) : IRenameService
