@@ -24,11 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ImmutableArray<TypeUnionValueSet.CaseInfo> AdjustedTypesInUnion()
             {
                 var builder = ArrayBuilder<TypeUnionValueSet.CaseInfo>.GetInstance();
+                var setBuilder = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
                 foreach (var caseType in _unionType.UnionCaseTypes)
                 {
-                    ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType.StrippedType(), builder);
+                    ClosedClassTypeUnionValueSetFactory.ExpandClosedSubtypes(caseType.StrippedType(), builder, setBuilder);
                 }
 
+                setBuilder.Free();
                 return builder.ToImmutableAndFree();
             }
 

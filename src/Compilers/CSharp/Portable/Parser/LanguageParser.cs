@@ -1964,10 +1964,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
-                    case SyntaxKind.UnionKeyword:
                         Debug.Assert(name is not null);
                         return syntaxFactory.StructDeclaration(
-                            keyword.Kind is SyntaxKind.UnionKeyword ? SyntaxKind.UnionDeclaration : SyntaxKind.StructDeclaration,
+                            attributes,
+                            modifiersList,
+                            keyword,
+                            name,
+                            typeParameters,
+                            paramList,
+                            baseList,
+                            constraintsList,
+                            openBrace,
+                            membersList,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.UnionKeyword:
+                        Debug.Assert(name is not null);
+                        return syntaxFactory.UnionDeclaration(
                             attributes,
                             modifiersList,
                             keyword,

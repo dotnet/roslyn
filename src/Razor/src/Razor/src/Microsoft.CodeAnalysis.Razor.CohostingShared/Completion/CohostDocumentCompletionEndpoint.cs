@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
@@ -134,7 +134,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             SnippetsSupported: true, // always true in non-legacy Razor, always false in legacy Razor
             AutoInsertAttributeQuotes: clientSettings.AdvancedSettings.AutoInsertAttributeQuotes,
             CommitElementsWithSpace: clientSettings.AdvancedSettings.CommitElementsWithSpace,
-            UseVsCodeCompletionCommitCharacters: !_clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions);
+            IsVsCode: !_clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions);
 
         _logger.LogDebug($"Calling OOP to get completion items at {request.Position} invoked by typing '{request.Context?.TriggerCharacter}'");
 

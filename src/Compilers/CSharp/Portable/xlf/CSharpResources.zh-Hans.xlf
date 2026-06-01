@@ -529,22 +529,22 @@
       </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
-        <target state="new">'{0}': cannot use a closed type '{1}' from another assembly as a base type.</target>
+        <target state="translated">“{0}”: 无法使用其他程序集中的闭合类型”{1}”作为基类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedExplicitlyAbstract">
         <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
-        <target state="new">'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</target>
+        <target state="translated">“{0}”: 闭合类型不能标记为抽象，因为它始终隐式为抽象。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedSealedStatic">
         <source>'{0}': a closed type cannot be sealed or static</source>
-        <target state="new">'{0}': a closed type cannot be sealed or static</target>
+        <target state="translated">“{0}”: 闭合类型不能是密封或静态类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedTypeNameDisallowed">
         <source>Types and aliases cannot be named 'closed'.</source>
-        <target state="new">Types and aliases cannot be named 'closed'.</target>
+        <target state="translated">类型和别名不能命名为 "closed"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
@@ -1500,6 +1500,21 @@
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">“Experimental” 属性的 diagnosticId 参数必须是有效的标识符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MemberProviderInUnionDeclaration">
+        <source>A 'union' declaration cannot use a union member provider interface.</source>
+        <target state="translated">'union' 声明不能使用联合成员提供程序接口。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionCaseTypes">
+        <source>A union type must have at least one union creation member.</source>
+        <target state="translated">联合类型必须至少包含一个联合创建成员。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionValueProperty">
+        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
+        <target state="translated">联合成员提供程序类型必须具有类型为 'object?' 或 'object' 的公共实例 'Value' 属性。属性必须具有 get 访问器。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -2709,7 +2724,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedClosedSubtype">
         <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
-        <target state="new">'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</target>
+        <target state="translated">“{0}”: 由于基类型是闭合类型，类型参数“{1}”必须在基类型“{2}”中被引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
@@ -2934,7 +2949,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureClosedClasses">
         <source>closed classes</source>
-        <target state="new">closed classes</target>
+        <target state="translated">闭合类</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
@@ -3154,7 +3169,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
         <source>static members in interfaces</source>
-        <target state="new">static members in interfaces</target>
+        <target state="translated">接口中的静态成员</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">

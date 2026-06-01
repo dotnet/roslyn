@@ -4,12 +4,11 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol.Folding;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteFoldingRangeService
 {
-    ValueTask<ImmutableArray<RemoteFoldingRange>> GetFoldingRangesAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, ImmutableArray<RemoteFoldingRange> htmlRanges, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<RemoteFoldingRange>> GetFoldingRangesAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, ImmutableArray<RemoteFoldingRange> htmlRanges, CancellationToken cancellationToken);
 }

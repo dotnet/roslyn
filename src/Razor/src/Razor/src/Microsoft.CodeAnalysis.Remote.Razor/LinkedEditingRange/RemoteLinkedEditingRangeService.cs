@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.LinkedEditingRange;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -20,7 +19,7 @@ internal sealed class RemoteLinkedEditingRangeService(in ServiceArgs args) : Raz
     }
 
     public ValueTask<LinePositionSpan[]?> GetRangesAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         LinePosition linePosition,
         CancellationToken cancellationToken)

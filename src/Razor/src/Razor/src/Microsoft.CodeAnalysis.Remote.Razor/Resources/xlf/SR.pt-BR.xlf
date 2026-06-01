@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
-        <target state="new">Create component from tag</target>
+        <target state="translated">Criar componente a partir da marca</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_does_not_belong_to_this_project">
@@ -39,27 +39,27 @@
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
-        <target state="new">Extract block to code behind</target>
+        <target state="translated">Extrair o bloco para codificar atrás</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_Component_Title">
         <source>Extract element to new component</source>
-        <target state="new">Extract element to new component</target>
+        <target state="translated">Extrair elemento para o novo componente</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_Css_Title">
         <source>Extract to {0}.css</source>
-        <target state="new">Extract to {0}.css</target>
+        <target state="translated">Extrair para {0}.css</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
         <source>Generate Async Event Handler '{0}'</source>
-        <target state="new">Generate Async Event Handler '{0}'</target>
+        <target state="translated">Gerar Manipulador de Eventos Assíncronos '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Event_Handler_Title">
         <source>Generate Event Handler '{0}'</source>
-        <target state="new">Generate Event Handler '{0}'</target>
+        <target state="translated">Gerar manipulador de eventos '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_run_result_did_not_contain_a_code_document">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Promote_using_directive_to">
         <source>Promote using directive to {0}</source>
-        <target state="new">Promote using directive to {0}</target>
+        <target state="translated">Promover usando diretivas para {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Razor_source_generator_did_not_produce_a_host_output">
@@ -104,27 +104,32 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_directives">
         <source>Remove unnecessary directives</source>
-        <target state="new">Remove unnecessary directives</target>
+        <target state="translated">Remover diretivas desnecessárias</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_Fully_Qualified_Component_Title">
         <source>Simplify fully qualified component</source>
-        <target state="new">Simplify fully qualified component</target>
+        <target state="translated">Simplifique o componente totalmente qualificado</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
         <source>Simplify tag to self-closing</source>
-        <target state="new">Simplify tag to self-closing</target>
+        <target state="translated">Simplificar a tag para autoconclusiva</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_And_Consolidate_Usings_Title">
         <source>Sort and consolidate usings</source>
-        <target state="new">Sort and consolidate usings</target>
+        <target state="translated">Classificar e consolidar usos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported type: '{0}'.</source>
+        <target state="new">Unsupported type: '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
-        <target state="new">Wrap attributes</target>
+        <target state="translated">Empacotar características</target>
         <note />
       </trans-unit>
     </body>

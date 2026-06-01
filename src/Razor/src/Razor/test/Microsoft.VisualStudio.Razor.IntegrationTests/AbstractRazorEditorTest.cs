@@ -156,7 +156,6 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
 
         AppDomain.CurrentDomain.AssemblyLoad += CurrentDomain_AssemblyLoad;
 
-        var localAppData = Environment.GetEnvironmentVariable("LocalAppData");
         Assembly? assembly = null;
         try
         {
@@ -179,11 +178,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
             throw new NotImplementedException($"Integration test did not load extension");
         }
 
-        if (!assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
-        {
-            var version = assembly.GetName().Version;
-            throw new NotImplementedException($"Integration test not running against Experimental Extension assembly: {assembly.Location} version: {version}");
-        }
+        var version = assembly.GetName().Version;
+        Logger.LogInformation($"#### Razor extension assembly loaded from '{assembly.Location}' version: {version}");
 
         void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
         {

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -277,8 +279,8 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         return builder.Build(solution).GetAdditionalDocument(documentId).AssumeNotNull();
     }
 
-    protected static Uri FileUri(string projectRelativeFileName)
-        => new(FilePath(projectRelativeFileName));
+    private protected static DocumentUri FileUri(string projectRelativeFileName)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(FilePath(projectRelativeFileName));
 
     protected static string FilePath(string projectRelativeFileName)
         => Path.GetFullPath(Path.Combine(TestProjectData.SomeProjectPath, projectRelativeFileName));

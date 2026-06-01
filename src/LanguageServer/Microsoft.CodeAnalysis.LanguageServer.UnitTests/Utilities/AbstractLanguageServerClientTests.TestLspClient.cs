@@ -228,11 +228,37 @@ public partial class AbstractLanguageServerClientTests
             Assert.Null(workspaceEdit.Changes);
             Assert.Null(workspaceEdit.ChangeAnnotations);
 
-            // Currently we only support applying TextDocumentEdits
-            var textDocumentEdits = (TextDocumentEdit[]?)workspaceEdit.DocumentChanges?.Value;
-            Assert.NotNull(textDocumentEdits);
+            var documentChanges = workspaceEdit.DocumentChanges;
+            Assert.NotNull(documentChanges);
 
-            foreach (var documentEdit in textDocumentEdits)
+            if (documentChanges.Value.TryGetFirst(out var textDocumentEdits))
+            {
+                foreach (var textDocumentEdit in textDocumentEdits)
+                    ApplyTextDocumentEdit(textDocumentEdit);
+
+                return;
+            }
+
+            var resourceDocumentChanges = documentChanges.Value.Second;
+            foreach (var documentChange in resourceDocumentChanges)
+            {
+                switch (documentChange.Value)
+                {
+                    case CreateFile createFile:
+                        _documents.Add(createFile.DocumentUri, SourceText.From(string.Empty));
+                        break;
+                    case TextDocumentEdit textDocumentEdit:
+                        ApplyTextDocumentEdit(textDocumentEdit);
+                        break;
+                    default:
+                        Assert.Fail($"Unsupported workspace edit change: {documentChange.Value?.GetType().Name}");
+                        break;
+                }
+            }
+
+            return;
+
+            void ApplyTextDocumentEdit(TextDocumentEdit documentEdit)
             {
                 var uri = documentEdit.TextDocument.DocumentUri;
                 var document = _documents[uri];
