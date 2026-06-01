@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
+namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 internal interface ICSharpSemanticTokensProvider
 {

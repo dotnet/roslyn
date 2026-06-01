@@ -7,9 +7,10 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
+namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 
 internal sealed class SemanticTokensVisitor : SyntaxWalker
 {
