@@ -15,8 +15,8 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
@@ -45,7 +45,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorSemanticTokensInfoService>();
 
     public async Task<int[]?> GetSemanticTokensAsync(
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         LinePositionSpan span,
         bool colorBackground,
         Guid correlationId,
@@ -67,7 +67,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
     }
 
     private async Task<int[]?> GetSemanticTokensAsync(
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         LinePositionSpan span,
         Guid correlationId,
         bool colorBackground,
@@ -117,7 +117,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
     private async Task<bool> AddCSharpSemanticRangesAsync(
         List<SemanticRange> ranges,
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         RazorCodeDocument codeDocument,
         LinePositionSpan razorSpan,
         bool colorBackground,
