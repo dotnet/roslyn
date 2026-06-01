@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -20,11 +21,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
-internal abstract partial class AbstractRazorSemanticTokensInfoService(
+[Export(typeof(IRazorSemanticTokensInfoService)), Shared]
+[method: ImportingConstructor]
+internal sealed partial class RazorSemanticTokensInfoService(
     IDocumentMappingService documentMappingService,
     ISemanticTokensLegendService semanticTokensLegendService,
     ICSharpSemanticTokensProvider csharpSemanticTokensProvider,
-    ILogger logger)
+    ILoggerFactory loggerFactory)
     : IRazorSemanticTokensInfoService
 {
     private const int TokenSize = 5;
@@ -39,7 +42,7 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly ICSharpSemanticTokensProvider _csharpSemanticTokensProvider = csharpSemanticTokensProvider;
-    private readonly ILogger _logger = logger;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorSemanticTokensInfoService>();
 
     public async Task<int[]?> GetSemanticTokensAsync(
         DocumentContext documentContext,
@@ -112,8 +115,7 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
         return ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
     }
 
-    // Virtual for benchmarks
-    protected virtual async Task<bool> AddCSharpSemanticRangesAsync(
+    private async Task<bool> AddCSharpSemanticRangesAsync(
         List<SemanticRange> ranges,
         DocumentContext documentContext,
         RazorCodeDocument codeDocument,
