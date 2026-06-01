@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.VisualStudio.IntegrationTestService</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\IntegrationTestAssemblyResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntegrationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntegrationTestServiceCommands.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IntegrationTestServicePackage.cs" />
