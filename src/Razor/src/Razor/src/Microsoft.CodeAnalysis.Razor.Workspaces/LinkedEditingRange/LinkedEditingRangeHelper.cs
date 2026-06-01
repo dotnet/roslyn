@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
-
 namespace Microsoft.CodeAnalysis.Razor.LinkedEditingRange;
 
+using SyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
+using SourceLocation = Microsoft.AspNetCore.Razor.Language.SourceLocation;
 internal static class LinkedEditingRangeHelper
 {
     // The regex below excludes characters that can never be valid in a TagHelper name.
@@ -43,8 +43,8 @@ internal static class LinkedEditingRangeHelper
     private static bool TryGetNearestMarkupNameTokens(
         RazorSyntaxTree syntaxTree,
         SourceLocation location,
-        out RazorSyntaxToken startTagNameToken,
-        out RazorSyntaxToken endTagNameToken)
+        out SyntaxToken startTagNameToken,
+        out SyntaxToken endTagNameToken)
     {
         var owner = syntaxTree.Root.FindInnermostNode(location.AbsoluteIndex);
         var element = owner?.FirstAncestorOrSelf<MarkupSyntaxNode>(

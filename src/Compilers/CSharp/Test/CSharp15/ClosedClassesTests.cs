@@ -33,16 +33,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
             closed class C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (1,14): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // closed class C { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("closed classes").WithLocation(1, 14));
 
-        comp = CreateCompilation([source, ClosedAttributeDefinition], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
-        comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
     }
 
@@ -55,11 +55,11 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (1,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ClosedAttribute..ctor'
+            // (1,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsClosedTypeAttribute..ctor'
             // public closed class C { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.ClosedAttribute", ".ctor").WithLocation(1, 21));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute", ".ctor").WithLocation(1, 21));
 
-        var comp2 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp2.VerifyEmitDiagnostics();
     }
 
@@ -73,14 +73,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net100);
         comp1.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute);
         comp1.VerifyEmitDiagnostics(
-            // (1,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ClosedAttribute..ctor'
+            // (1,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsClosedTypeAttribute..ctor'
             // public closed class C { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.ClosedAttribute", ".ctor").WithLocation(1, 21),
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute", ".ctor").WithLocation(1, 21),
             // (1,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
             // public closed class C { }
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(1, 21));
 
-        var comp2 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp2.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor);
         comp2.VerifyEmitDiagnostics(
             // (1,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
@@ -95,14 +95,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             closed class C { }
             """;
 
-        var verifier = CompileAndVerify([source, ClosedAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyTypeIL("C", """
             .class private auto ansi abstract beforefieldinit C
                 extends [System.Runtime]System.Object
             {
-                .custom instance void System.Runtime.CompilerServices.ClosedAttribute::.ctor() = (
+                .custom instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Methods
@@ -127,7 +127,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         {
             var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(classC.IsClosed);
-            // ClosedAttribute is filtered out of source and metadata symbols.
+            // IsClosedTypeAttribute is filtered out of source and metadata symbols.
             Assert.Empty(classC.GetAttributes());
 
             var ctor = classC.Constructors.Single();
@@ -148,14 +148,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify([source, ClosedAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyTypeIL("C", """
             .class private auto ansi abstract beforefieldinit C
                 extends [System.Runtime]System.Object
             {
-                .custom instance void System.Runtime.CompilerServices.ClosedAttribute::.ctor() = (
+                .custom instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::.ctor() = (
                     01 00 00 00
                 )
                 // Methods
@@ -208,7 +208,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             sealed closed class C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (1,21): error CS9381: 'C': a closed type cannot be sealed or static
             // sealed closed class C { }
@@ -227,7 +227,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             static closed class C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (1,21): error CS9381: 'C': a closed type cannot be sealed or static
             // static closed class C { }
@@ -246,7 +246,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             abstract closed class C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (1,23): error CS9384: 'C': a closed type cannot be marked abstract because it is always implicitly abstract.
             // abstract closed class C { }
@@ -268,7 +268,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             new C(); // 1
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS0144: Cannot create an instance of the abstract type or interface 'C'
             // new C(); // 1
@@ -278,7 +278,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.IsAbstract);
         Assert.True(classC.IsClosed);
 
-        var referenceComp = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var referenceComp = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verifyReference(referenceComp.ToMetadataReference());
         verifyReference(referenceComp.EmitToImageReference());
 
@@ -316,7 +316,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (8,7): error CS0534: 'D' does not implement inherited abstract member 'Base.M()'
             // class D : C { }
@@ -342,7 +342,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (5,7): error CS0534: 'D' does not implement inherited abstract member 'C.M()'
             // class D : C { }
@@ -370,7 +370,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (1,18): error CS0106: The modifier 'closed' is not valid for this item
             // closed interface I { } // 1
@@ -411,7 +411,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var source1 = """
             public closed class C { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
         verifyReference(comp1.ToMetadataReference());
         verifyReference(comp1.EmitToImageReference());
@@ -436,7 +436,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var source1 = """
             public closed class C { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], options: TestOptions.DebugModule, targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], options: TestOptions.DebugModule, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
 
         var source2 = """
@@ -456,7 +456,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var source1 = """
             public closed class C { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
         verifyReference(comp1.ToMetadataReference());
         verifyReference(comp1.EmitToImageReference());
@@ -480,7 +480,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             public closed class C { }
             public class D : C { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
         verifyReference(comp1.ToMetadataReference());
         verifyReference(comp1.EmitToImageReference());
@@ -503,7 +503,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             public closed class C { }
             public closed class D : C { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
         verifyReference(comp1.ToMetadataReference());
         verifyReference(comp1.EmitToImageReference());
@@ -524,7 +524,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     [Fact]
     public void CompilerFeatureRequired_NonClosedContainingType()
     {
-        // Constructor has CompilerFeatureRequired("ClosedClasses") yet containing type lacks ClosedAttribute
+        // Constructor has CompilerFeatureRequired("ClosedClasses") yet containing type lacks IsClosedTypeAttribute
         var il = """
             .assembly extern System.Runtime { .ver 10:0:0:0 .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A) }
 
@@ -571,7 +571,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             public class D2<T> : C<T[]> { }
             public unsafe class D3<T> : C<T*[]> where T : unmanaged { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
@@ -586,7 +586,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             public closed class C { }
             public class D<T> : C { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (2,14): error CS9383: 'D<T>': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             // public class D<T> : C { }
@@ -608,7 +608,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 public class D : C<U> { }
             }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
@@ -628,7 +628,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 public class D : C { }
             }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (5,18): error CS9383: 'Outer<T>.D': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             //     public class D : C { }
@@ -647,7 +647,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D : C { }
             class E<T> : D { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
@@ -666,7 +666,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 class D<U4, U5, U6> : C<U1, U2, U4, U6> { }
             }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (4,11): error CS9383: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U5' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
             //     class D<U4, U5, U6> : C<U1, U2, U4, U6> { }
@@ -690,7 +690,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             public closed class E { }
             closed class F<T> : E { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (5,14): error CS9383: 'F<T>': The type parameter 'T' must be referenced in the base type 'E' because the base type is closed.
             // closed class F<T> : E { }
@@ -713,7 +713,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var source1 = """
             public closed class C { }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
 
         var source2 = """
             Public Class D
@@ -734,7 +734,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 public C(int i) { }
             }
             """;
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
 
         var source2 = """
             Public Class D
@@ -779,137 +779,137 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
-    public void ClosedAttributeExplicitUsage()
+    public void IsClosedTypeAttributeExplicitUsage()
     {
         var source1 = """
             #pragma warning disable CS0067 // The event is never used
             using System.Runtime.CompilerServices;
 
-            [assembly: Closed] // 1
-            [module: Closed] // 2
+            [assembly: IsClosedType] // 1
+            [module: IsClosedType] // 2
 
-            [Closed] public class C // 3
+            [IsClosedType] public class C // 3
             {
-                [Closed] public C() { } // 4
-                [Closed] public void M() { } // 5
-                [Closed] public string P { get; set; } // 6
-                [Closed] public string F; // 7
-                [Closed] public event System.Action E; // 8
+                [IsClosedType] public C() { } // 4
+                [IsClosedType] public void M() { } // 5
+                [IsClosedType] public string P { get; set; } // 6
+                [IsClosedType] public string F; // 7
+                [IsClosedType] public event System.Action E; // 8
 
-                public void M1([Closed] int param) { } // 9
-                [return: Closed] public int M2() => 0; // 10
-                public void M3<[Closed] T>() { } // 11
+                public void M1([IsClosedType] int param) { } // 9
+                [return: IsClosedType] public int M2() => 0; // 10
+                public void M3<[IsClosedType] T>() { } // 11
             }
-            [Closed] public struct S { } // 12
-            [Closed] public enum E { } // 13
-            [Closed] public interface I { } // 14
-            [Closed] public delegate void D(); // 15
+            [IsClosedType] public struct S { } // 12
+            [IsClosedType] public enum E { } // 13
+            [IsClosedType] public interface I { } // 14
+            [IsClosedType] public delegate void D(); // 15
             """;
 
-        var closedAttributeAllowingAllTargets = """
+        var isClosedTypeAttributeAllowingAllTargets = """
             namespace System.Runtime.CompilerServices
             {
-                public sealed class ClosedAttribute : Attribute { }
+                public sealed class IsClosedTypeAttribute : Attribute { }
             }
             """;
 
-        var comp1 = CreateCompilation([source1, closedAttributeAllowingAllTargets], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, isClosedTypeAttributeAllowingAllTargets], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (4,12): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            // [assembly: Closed] // 1
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(4, 12),
-            // (5,10): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            // [module: Closed] // 2
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(5, 10),
-            // (7,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            // [Closed] public class C // 3
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(7, 2),
-            // (9,6): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            //     [Closed] public C() { } // 4
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(9, 6),
-            // (10,6): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            //     [Closed] public void M() { } // 5
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(10, 6),
-            // (11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            //     [Closed] public string P { get; set; } // 6
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(11, 6),
-            // (12,6): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            //     [Closed] public string F; // 7
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(12, 6),
-            // (13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            //     [Closed] public event System.Action E; // 8
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(13, 6),
-            // (15,21): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            //     public void M1([Closed] int param) { } // 9
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(15, 21),
-            // (16,14): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            //     [return: Closed] public int M2() => 0; // 10
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(16, 14),
-            // (17,21): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            //     public void M3<[Closed] T>() { } // 11
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(17, 21),
-            // (19,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            // [Closed] public struct S { } // 12
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(19, 2),
-            // (20,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            // [Closed] public enum E { } // 13
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(20, 2),
-            // (21,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            // [Closed] public interface I { } // 14
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(21, 2),
-            // (22,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            // [Closed] public delegate void D(); // 15
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(22, 2));
+            // (4,12): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            // [assembly: IsClosedType] // 1
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(4, 12),
+            // (5,10): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            // [module: IsClosedType] // 2
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(5, 10),
+            // (7,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            // [IsClosedType] public class C // 3
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(7, 2),
+            // (9,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            //     [IsClosedType] public C() { } // 4
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(9, 6),
+            // (10,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            //     [IsClosedType] public void M() { } // 5
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(10, 6),
+            // (11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            //     [IsClosedType] public string P { get; set; } // 6
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(11, 6),
+            // (12,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            //     [IsClosedType] public string F; // 7
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(12, 6),
+            // (13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            //     [IsClosedType] public event System.Action E; // 8
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(13, 6),
+            // (15,21): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            //     public void M1([IsClosedType] int param) { } // 9
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(15, 21),
+            // (16,14): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            //     [return: IsClosedType] public int M2() => 0; // 10
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(16, 14),
+            // (17,21): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            //     public void M3<[IsClosedType] T>() { } // 11
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(17, 21),
+            // (19,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            // [IsClosedType] public struct S { } // 12
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(19, 2),
+            // (20,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            // [IsClosedType] public enum E { } // 13
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(20, 2),
+            // (21,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            // [IsClosedType] public interface I { } // 14
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(21, 2),
+            // (22,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            // [IsClosedType] public delegate void D(); // 15
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(22, 2));
 
         // Note: ERR_AttributeOnBadSymbolType causes well-known attribute decoding to be skipped.
         // So, ERR_ExplicitReservedAttr is only reported for the class attribute in this case.
-        comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (4,12): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            // [assembly: Closed] // 1
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(4, 12),
-            // (5,10): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            // [module: Closed] // 2
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(5, 10),
-            // (7,2): error CS8335: Do not use 'System.Runtime.CompilerServices.ClosedAttribute'. This is reserved for compiler usage.
-            // [Closed] public class C // 3
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "Closed").WithArguments("System.Runtime.CompilerServices.ClosedAttribute").WithLocation(7, 2),
-            // (9,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            //     [Closed] public C() { } // 4
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(9, 6),
-            // (10,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            //     [Closed] public void M() { } // 5
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(10, 6),
-            // (11,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            //     [Closed] public string P { get; set; } // 6
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(11, 6),
-            // (12,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            //     [Closed] public string F; // 7
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(12, 6),
-            // (13,6): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            //     [Closed] public event System.Action E; // 8
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(13, 6),
-            // (15,21): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            //     public void M1([Closed] int param) { } // 9
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(15, 21),
-            // (16,14): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            //     [return: Closed] public int M2() => 0; // 10
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(16, 14),
-            // (17,21): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            //     public void M3<[Closed] T>() { } // 11
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(17, 21),
-            // (19,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            // [Closed] public struct S { } // 12
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(19, 2),
-            // (20,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            // [Closed] public enum E { } // 13
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(20, 2),
-            // (21,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            // [Closed] public interface I { } // 14
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(21, 2),
-            // (22,2): error CS0592: Attribute 'Closed' is not valid on this declaration type. It is only valid on 'class' declarations.
-            // [Closed] public delegate void D(); // 15
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Closed").WithArguments("Closed", "class").WithLocation(22, 2));
+            // (4,12): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [assembly: IsClosedType] // 1
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(4, 12),
+            // (5,10): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [module: IsClosedType] // 2
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(5, 10),
+            // (7,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsClosedTypeAttribute'. This is reserved for compiler usage.
+            // [IsClosedType] public class C // 3
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsClosedType").WithArguments("System.Runtime.CompilerServices.IsClosedTypeAttribute").WithLocation(7, 2),
+            // (9,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [IsClosedType] public C() { } // 4
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(9, 6),
+            // (10,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [IsClosedType] public void M() { } // 5
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(10, 6),
+            // (11,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [IsClosedType] public string P { get; set; } // 6
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(11, 6),
+            // (12,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [IsClosedType] public string F; // 7
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(12, 6),
+            // (13,6): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [IsClosedType] public event System.Action E; // 8
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(13, 6),
+            // (15,21): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     public void M1([IsClosedType] int param) { } // 9
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(15, 21),
+            // (16,14): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     [return: IsClosedType] public int M2() => 0; // 10
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(16, 14),
+            // (17,21): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            //     public void M3<[IsClosedType] T>() { } // 11
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(17, 21),
+            // (19,2): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [IsClosedType] public struct S { } // 12
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(19, 2),
+            // (20,2): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [IsClosedType] public enum E { } // 13
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(20, 2),
+            // (21,2): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [IsClosedType] public interface I { } // 14
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(21, 2),
+            // (22,2): error CS0592: Attribute 'IsClosedType' is not valid on this declaration type. It is only valid on 'class' declarations.
+            // [IsClosedType] public delegate void D(); // 15
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "IsClosedType").WithArguments("IsClosedType", "class").WithLocation(22, 2));
     }
 
     [Fact]
@@ -922,7 +922,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 public required string P { get; set; }
             }
             """;
-        var verifier = CompileAndVerify([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         verifyUse(verifier.Compilation.ToMetadataReference());
@@ -937,7 +937,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // Get attributes from metadata without doing any filtering
             AssertEx.SetEqual([
                     "System.Runtime.CompilerServices.RequiredMemberAttribute",
-                    "System.Runtime.CompilerServices.ClosedAttribute"
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
                 ],
                 GetAttributeStrings(peModule.GetCustomAttributesForToken(classC.Handle)));
             AssertEx.SetEqual([
@@ -1000,7 +1000,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, symbolValidator: verifyMetadataSymbols, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         void verifyMetadataSymbols(ModuleSymbol module)
@@ -1011,7 +1011,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // Get attributes from metadata without doing any filtering
             AssertEx.SetEqual([
                     "System.Runtime.CompilerServices.RequiredMemberAttribute",
-                    "System.Runtime.CompilerServices.ClosedAttribute"
+                    "System.Runtime.CompilerServices.IsClosedTypeAttribute"
                 ],
                 GetAttributeStrings(peModule.GetCustomAttributesForToken(classC.Handle)));
 
@@ -1039,7 +1039,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var verifier = CompileAndVerify([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped);
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
         static void verify(ModuleSymbol module)
@@ -1074,7 +1074,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var sourceComp = CreateCompilation(
-            [source, ClosedAttributeDefinition, CompilerFeatureRequiredAttribute],
+            [source, IsClosedTypeAttributeDefinition, CompilerFeatureRequiredAttribute],
             references: [dependencyV1.ToMetadataReference()],
             targetFramework: TargetFramework.Standard);
         sourceComp.VerifyEmitDiagnostics();
@@ -1109,7 +1109,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C<int> { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         verify(comp);
@@ -1153,7 +1153,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2<U> : C<ImmutableArray<U>> { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         verify(comp);
@@ -1198,7 +1198,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (3,14): error CS0146: Circular base type dependency involving 'D<T>' and 'C<T>'
             // closed class C<T> : D<T>
@@ -1224,7 +1224,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D1<U1> : C<U1, int> { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         verify(comp);
@@ -1275,7 +1275,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
     }
 
@@ -1306,7 +1306,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { public int Value; }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (6,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2{ Value: 0 }' is not covered.
             //         return c switch
@@ -1341,7 +1341,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { public int Value; }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (11,25): hidden CS9335: The pattern is redundant.
             //             D2 { Value: < 1 } => 4,
@@ -1372,7 +1372,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
             //         return c switch
@@ -1410,7 +1410,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class F2 : D2 { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
             //         return c switch
@@ -1449,7 +1449,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class F2 : D2 { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
     }
 
@@ -1495,7 +1495,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Container.E1' is not covered.
             //         return c switch
@@ -1550,7 +1550,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (1,21): error CS8652: The feature 'closed classes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // public closed class C
@@ -1559,28 +1559,28 @@ public sealed class ClosedClassesTests : CSharpTestBase
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp0.VerifyEmitDiagnostics();
 
-        var comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
 
-        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18));
 
-        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net100);
+        comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (113,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //             C => 3,
             Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(113, 13));
 
-        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net100);
+        comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
             // (113,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //             C => 3,
@@ -1624,10 +1624,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp0.VerifyDiagnostics();
 
-        var comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.ToMetadataReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp1.VerifyDiagnostics(
             // (7,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //             D1 => 1,
@@ -1642,7 +1642,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             //             C2 => 2,
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C2").WithArguments("unions").WithLocation(17, 13));
 
-        comp1 = CreateCompilation([source2, ClosedAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
+        comp1 = CreateCompilation([source2, IsClosedTypeAttributeDefinition], references: [comp0.EmitToImageReference()], parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Net100);
         comp1.VerifyDiagnostics(
             // (7,13): error CS8652: The feature 'unions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //             D1 => 1,
@@ -1698,7 +1698,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class F2 : D2 { }
             """;
 
-        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (16,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
             //         return u switch
@@ -1740,7 +1740,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class F1 : D1 { }
             """;
 
-        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
             //         return u switch
@@ -1778,7 +1778,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             closed class C2;
             """;
 
-        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
             //         return u switch
@@ -1844,7 +1844,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
             //         => u switch
@@ -1886,7 +1886,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     .custom instance void [mscorlib]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
         01 00 00 00 00
     )
-    .custom instance void System.Runtime.CompilerServices.ClosedAttribute::.ctor() = (
+    .custom instance void System.Runtime.CompilerServices.IsClosedTypeAttribute::.ctor() = (
         01 00 00 00
     )
     .custom instance void System.Runtime.CompilerServices.UnionAttribute::.ctor() = (
@@ -1956,7 +1956,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 }
 
-.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ClosedAttribute
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsClosedTypeAttribute
     extends [mscorlib]System.Attribute
 {
     .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
@@ -2123,7 +2123,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         // https://github.com/dotnet/roslyn/issues/83617: The pattern `int` suggested for line 300 is invalid. A pattern like `D2` or `D2 and int` should be suggested instead.
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'string'.
             //             string => 2,
@@ -2172,7 +2172,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2<V> : C<V>;
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
     }
 
@@ -2209,7 +2209,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2<U> : C<ImmutableArray<U>> { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C<T>' is not covered.
             //         return item switch
@@ -2258,7 +2258,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class E2<V> : D2<ImmutableArray<V>> { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<T>' is not covered.
             //         return item switch
@@ -2300,7 +2300,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class E2<V> : D2<ImmutableArray<V>> { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C<T>' is not covered.
             //         return item switch
@@ -2364,7 +2364,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (100,11): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
             //         c switch
@@ -2432,7 +2432,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
             //         return c switch
@@ -2442,7 +2442,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Empty(subtypes);
 
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp2.VerifyEmitDiagnostics(
             // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
@@ -2487,7 +2487,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (9,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //             C => 3,
@@ -2536,7 +2536,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
 
         VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
@@ -2601,7 +2601,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
 
         VerifyDecisionDagDump<SwitchExpressionSyntax>(comp, """
@@ -2679,7 +2679,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (10,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
             //             _ => 4,
@@ -2747,10 +2747,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -2811,10 +2811,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
@@ -2871,7 +2871,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
             //         return c switch
@@ -2881,7 +2881,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,13): error CS0122: 'D2' is inaccessible due to its protection level
@@ -2943,10 +2943,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3021,10 +3021,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
@@ -3086,10 +3086,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
@@ -3151,10 +3151,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp2);
 
@@ -3217,10 +3217,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3277,10 +3277,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3337,10 +3337,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3398,7 +3398,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,14): error CS0452: The type 'U2' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
             // public class D2<U2> : C<U2> where U2 : struct;
@@ -3414,7 +3414,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["D1<T>", "D2<T>"], subtypes.ToTestDisplayStrings());
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (200,16): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U2' in the generic type or method 'D2<U2>'
@@ -3475,10 +3475,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3557,10 +3557,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -3640,7 +3640,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U1' in the generic type or method 'D1<U1, U2>'
             // public class D2<V1> : D1<int, V1> where V1 : class;
@@ -3716,7 +3716,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,19): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'U<T1>'
             //     public U<int> u = null!;
@@ -3785,7 +3785,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,19): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'U<T1>'
             //     public U<int> u = null!;
@@ -3852,7 +3852,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,19): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'U<T1>'
             //     public U<int> u = null!;
@@ -3919,7 +3919,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,19): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'U<T1>'
             //     public U<int> u = null!;
@@ -3987,10 +3987,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4060,10 +4060,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4126,7 +4126,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X>' is not covered.
             //         => c switch
@@ -4136,7 +4136,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["D1<T>"], subtypes.ToTestDisplayStrings());
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X>' is not covered.
@@ -4199,14 +4199,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], subtypes.ToTestDisplayStrings());
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
@@ -4273,14 +4273,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
         Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
         Assert.Equal(["Container.D1<T>", "D2<T>", "D3", "D4"], subtypes.ToTestDisplayStrings());
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
@@ -4345,10 +4345,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4417,10 +4417,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4505,10 +4505,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4595,10 +4595,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4718,10 +4718,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source1, source2, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         verify(comp);
 
-        var comp0 = CreateCompilation([source1, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         verify(comp);
 
@@ -4777,7 +4777,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             closed partial class C1;
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
 
         var c1 = comp.GetMember<NamedTypeSymbol>("C1");
@@ -4796,7 +4796,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             partial class C2;
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics();
 
         var c1 = comp.GetMember<NamedTypeSymbol>("C1");
@@ -4821,7 +4821,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             closed partial class C3;
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
             // (1,24): error CS9384: 'C1': a closed type cannot be marked abstract because it is always implicitly abstract.
             // abstract partial class C1;

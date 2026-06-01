@@ -295,7 +295,13 @@ extends:
         # Authenticate with service connections to be able to publish packages to external nuget feeds.
         - task: NuGetAuthenticate@1
           inputs:
-            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/dotnet-core-internal-tooling
+
+        # Authenticate to DevDiv engineering feed via WIF service connection
+        - task: NuGetAuthenticate@1
+          inputs:
+            azureDevOpsServiceConnection: devdiv-engineering-feed-r-wif
+            feedUrl: https://devdiv.pkgs.visualstudio.com/_packaging/Engineering/nuget/v3/index.json
 
         # Needed for SBOM tool
         - task: UseDotNet@2
