@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -34,7 +33,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
         args.ExportProvider.GetExportedValue<LanguageServerFeatureOptions>();
 
     public ValueTask<WorkspaceEdit?> GetNewNestedFileWorkspaceEditAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         NestedFileKind fileKind,
         CancellationToken cancellationToken)
