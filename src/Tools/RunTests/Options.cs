@@ -81,6 +81,21 @@ namespace RunTests
         public bool UseHelix { get; set; }
 
         /// <summary>
+        /// Whether Helix work items should invoke RunTests instead of vstest directly.
+        /// </summary>
+        public bool UseRunTestsOnHelix { get; set; }
+
+        /// <summary>
+        /// Whether this invocation is running inside a Helix work item.
+        /// </summary>
+        public bool UseHelixWorkItem { get; set; }
+
+        /// <summary>
+        /// Response file containing the assemblies to run when <see cref="UseHelixWorkItem" /> is <see langword="true" />.
+        /// </summary>
+        public string? AssemblyListFilePath { get; set; }
+
+        /// <summary>
         /// Name of the Helix queue to run tests on (only valid when <see cref="UseHelix" /> is <see langword="true" />).
         /// </summary>
         public string? HelixQueueName { get; set; }
@@ -145,8 +160,11 @@ namespace RunTests
             var excludeFilter = new List<string>();
             var sequential = false;
             var helix = false;
+            var useRunTestsOnHelix = false;
+            var helixWorkItem = false;
             var helixQueueName = "Windows.10.Amd64.Open";
             string? helixApiAccessToken = null;
+            string? assemblyListFilePath = null;
             string? testFilter = null;
             int? timeout = null;
             string? resultFileDirectory = null;
@@ -171,6 +189,9 @@ namespace RunTests
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
+                { "useRunTestsOnHelix", "Run tests inside Helix work items using RunTests", o => useRunTestsOnHelix = o is object },
+                { "helixWorkItem", "Run as a Helix work item", o => helixWorkItem = o is object },
+                { "assemblyList=", "Response file containing assemblies to test", s => assemblyListFilePath = s },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", s => testFilter = s },
@@ -205,6 +226,24 @@ namespace RunTests
                 includeFilter.Add(".*UnitTests.*");
             }
 
+            if (helix && helixWorkItem)
+            {
+                ConsoleUtil.WriteLine("Cannot specify both --helix and --helixWorkItem");
+                return null;
+            }
+
+            if (useRunTestsOnHelix && !helix)
+            {
+                ConsoleUtil.WriteLine("--useRunTestsOnHelix requires --helix");
+                return null;
+            }
+
+            if (helixWorkItem && string.IsNullOrEmpty(assemblyListFilePath))
+            {
+                ConsoleUtil.WriteLine("--helixWorkItem requires --assemblyList");
+                return null;
+            }
+
             artifactsPath ??= TryGetArtifactsPath();
             if (artifactsPath is null || !Directory.Exists(artifactsPath))
             {
@@ -212,7 +251,7 @@ namespace RunTests
                 return null;
             }
 
-            resultFileDirectory ??= helix
+            resultFileDirectory ??= helix || helixWorkItem
                 ? "."
                 : Path.Combine(artifactsPath, "TestResults", configuration);
 
@@ -246,6 +285,9 @@ namespace RunTests
                 CollectDumps = collectDumps,
                 Sequential = sequential,
                 UseHelix = helix,
+                UseRunTestsOnHelix = useRunTestsOnHelix,
+                UseHelixWorkItem = helixWorkItem,
+                AssemblyListFilePath = assemblyListFilePath,
                 HelixQueueName = helixQueueName,
                 HelixApiAccessToken = helixApiAccessToken,
                 IncludeHtml = includeHtml,

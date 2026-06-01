@@ -48,9 +48,9 @@ jobs:
       inputs:
         filePath: eng/build.ps1
         ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps        
+          arguments: -ci -helix -useRunTestsOnHelix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps
         ${{ else }}:
-          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
+          arguments: -ci -helix -useRunTestsOnHelix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 

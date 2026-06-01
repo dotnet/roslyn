@@ -31,6 +31,11 @@ namespace RunTests
 
             fileContentsBuilder.AppendLine($@"/Platform:{options.Architecture}");
             fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={xmlResultsFilePath}");
+            if (options.UseHelixWorkItem)
+            {
+                fileContentsBuilder.AppendLine($@"/Logger:console;verbosity=detailed");
+            }
+
             if (htmlResultsFilePath != null)
             {
                 fileContentsBuilder.AppendLine($@"/Logger:html;LogFileName={htmlResultsFilePath}");
@@ -52,7 +57,7 @@ namespace RunTests
             //
             // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
             // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
-            var timeout = options.UseHelix ? "15minutes" : "25minutes";
+            var timeout = options.UseHelixWorkItem ? "15minutes" : "25minutes";
             fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout={timeout};DumpType=full");
 
             // Specifies the results directory - this is where dumps from the blame options will get published.
@@ -105,7 +110,9 @@ namespace RunTests
 
         public static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
         {
-            var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
+            var fileName = options.UseHelixWorkItem && suffix == "xml"
+                ? $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test-results.xml"
+                : $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             return Path.Combine(options.TestResultsDirectory, fileName);
         }
 
@@ -206,7 +213,7 @@ namespace RunTests
                 string getRspDirectory()
                 {
                     // There is no artifacts directory on Helix, just use the current directory
-                    if (options.UseHelix)
+                    if (options.UseHelix || options.UseHelixWorkItem)
                     {
                         return Directory.GetCurrentDirectory();
                     }
