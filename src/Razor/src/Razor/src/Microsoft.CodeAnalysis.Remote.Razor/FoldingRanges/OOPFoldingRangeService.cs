@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.FoldingRanges;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;

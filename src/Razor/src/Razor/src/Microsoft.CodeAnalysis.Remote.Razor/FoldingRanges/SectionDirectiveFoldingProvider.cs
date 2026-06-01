@@ -6,7 +6,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
-namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
+namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
 internal class SectionDirectiveFoldingProvider : AbstractSyntaxNodeFoldingProvider<RazorDirectiveSyntax>
 {

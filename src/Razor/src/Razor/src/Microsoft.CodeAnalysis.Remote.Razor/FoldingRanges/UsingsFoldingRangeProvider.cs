@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
+namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
 internal class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
 {

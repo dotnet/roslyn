@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
+namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
 internal partial class FoldingRangeService(
     IDocumentMappingService documentMappingService,

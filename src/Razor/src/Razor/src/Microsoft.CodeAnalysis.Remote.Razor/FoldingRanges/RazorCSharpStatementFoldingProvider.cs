@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
-namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
+namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
 internal class RazorCSharpStatementFoldingProvider : AbstractSyntaxNodeFoldingProvider<CSharpStatementSyntax>
 {
