@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
-internal class SectionDirectiveFoldingProvider : AbstractSyntaxNodeFoldingProvider<RazorDirectiveSyntax>
+[Shared]
+[Export(typeof(IRazorFoldingRangeProvider))]
+internal sealed class SectionDirectiveFoldingProvider : AbstractSyntaxNodeFoldingProvider<RazorDirectiveSyntax>
 {
     protected override string GetCollapsedText(RazorDirectiveSyntax node)
     {

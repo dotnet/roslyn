@@ -3,13 +3,16 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
-internal class RazorCSharpStatementKeywordFoldingProvider : AbstractSyntaxNodeFoldingProvider<CSharpCodeBlockSyntax>
+[Shared]
+[Export(typeof(IRazorFoldingRangeProvider))]
+internal sealed class RazorCSharpStatementKeywordFoldingProvider : AbstractSyntaxNodeFoldingProvider<CSharpCodeBlockSyntax>
 {
     protected override string GetCollapsedText(CSharpCodeBlockSyntax node)
     {
