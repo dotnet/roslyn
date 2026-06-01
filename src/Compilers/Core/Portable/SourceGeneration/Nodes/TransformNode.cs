@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
             // - Modified: perform transform and do element wise comparison with previous results
 
             var totalEntryItemCount = sourceTable.GetTotalEntryItemCount();
-            NodeStateTable<TOutput>.Builder? tableBuilder = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
+            var tableBuilder = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
             try
             {

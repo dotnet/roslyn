@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
                 return previousTable;
             }
 
-            NodeStateTable<TOutput>.Builder? tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, equalityComparer: null);
+            var tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, equalityComparer: null);
             try
             {
                 foreach (var entry in sourceTable)

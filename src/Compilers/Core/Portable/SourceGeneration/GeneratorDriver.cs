@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
-            DiagnosticBag? diagnosticsBag = DiagnosticBag.GetInstance();
+            var diagnosticsBag = DiagnosticBag.GetInstance();
             ArrayBuilder<SyntaxTree>? trees = null;
             try
             {
@@ -243,9 +243,9 @@ namespace Microsoft.CodeAnalysis
             // run the actual generation
             using var timer = CodeAnalysisEventSource.Log.CreateGeneratorDriverRunTimer();
             var state = _state;
-            ArrayBuilder<GeneratorState>? stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
-            ArrayBuilder<SyntaxTree>? constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
-            ArrayBuilder<SyntaxInputNode>? syntaxInputNodes = ArrayBuilder<SyntaxInputNode>.GetInstance();
+            var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
+            var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
+            var syntaxInputNodes = ArrayBuilder<SyntaxInputNode>.GetInstance();
 
             try
             {
