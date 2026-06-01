@@ -340,7 +340,7 @@ public static partial class IncrementalValueSourceExtensions
           └───────────┘            .│                 └────►│ Result3 ├───────┤  .            └────────────┘
              3 items               .│                       │         │       │  .               6 items
        [Item1, Item2, Item3]       .│ selector(Item3)       └─────────┘       │  .     [Result1, Result2, Result3, 
-                                   .└─────────────────┐                       │  .      Result4, Result5, Result6 ]
+                                   .└─────────────────┐                       │  .      Result4, Result5, Result6]
                                    .                  │     ┌─────────┐       │  .
                                    .                  │     │         │       │  .
                                    .                  ├────►│ Result4 ├───────┤  .
