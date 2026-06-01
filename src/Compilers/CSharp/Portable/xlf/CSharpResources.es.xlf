@@ -1502,6 +1502,21 @@
         <target state="translated">El argumento diagnosticId del atributo "Experimental" debe ser un identificador válido.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberProviderInUnionDeclaration">
+        <source>A 'union' declaration cannot use a union member provider interface.</source>
+        <target state="translated">Una declaración "union" no puede utilizar una interfaz de proveedor de miembros de unión.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionCaseTypes">
+        <source>A union type must have at least one union creation member.</source>
+        <target state="translated">Un tipo de unión debe tener al menos un miembro de creación de unión.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionValueProperty">
+        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
+        <target state="translated">Un tipo de proveedor de miembro de unión debe tener una propiedad "Value" de instancia pública de tipo "object?" o "object". La propiedad debe tener un descriptor de acceso get.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">'{0}' no contiene una definición para '{1}' y no se encontró ningún método de extensión accesible '{1}' aceptando un primer argumento de tipo '{0}' (¿pretendía iterar por la colección asincrónica con 'await foreach' en su lugar?)</target>

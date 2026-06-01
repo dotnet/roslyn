@@ -417,6 +417,7 @@ function TestUsingRunTests() {
   }
 
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net10.0"
+  $timeout = 0;
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -431,7 +432,7 @@ function TestUsingRunTests() {
 
   if ($testCoreClr) {
     $args += " --runtime core"
-    $args += " --timeout 90"
+    $timeout = 90
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
@@ -440,7 +441,7 @@ function TestUsingRunTests() {
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --runtime framework"
-    $args += " --timeout 90"
+    $timeout = 90
 
     if ($testRuntimeAsync) {
       Write-Host "Cannot run desktop tests with runtime async validation enabled."
@@ -458,7 +459,7 @@ function TestUsingRunTests() {
     }
 
   } elseif ($testVsi) {
-    $args += " --timeout 220"
+    $timeout = 220
     $args += " --runtime both"
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
@@ -499,6 +500,9 @@ function TestUsingRunTests() {
 
   if ($helix) {
     $args += " --helix"
+  }
+  elseif ($timeout -gt 0) {
+    $args += " --timeout $timeout"
   }
 
   if ($helixQueueName) {

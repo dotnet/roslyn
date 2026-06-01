@@ -5,6 +5,9 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
+- name: testRunName
+  type: string
+  default: ''
 
 steps:
   - task: PowerShell@2
@@ -37,6 +40,15 @@ steps:
       targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
     continueOnError: true
     condition: always()
+
+  - task: PublishTestResults@2
+    displayName: Publish xUnit Test Results
+    inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
+        mergeTestResults: true
+        testRunTitle: ${{ parameters.testRunName }}
+    condition: and(always(), ne('${{ parameters.testRunName }}', ''))
 
   - task: PublishPipelineArtifact@1
     displayName: Publish Logs
