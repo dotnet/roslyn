@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
 [Export(typeof(ICSharpSpellCheckRangeProvider)), Shared]
 [method: ImportingConstructor]
-internal sealed class RemoteCSharpSpellCheckRangeProvider() : ICSharpSpellCheckRangeProvider
+internal sealed class CSharpSpellCheckRangeProvider() : ICSharpSpellCheckRangeProvider
 {
     public async Task<ImmutableArray<SpellCheckRange>> GetCSharpSpellCheckRangesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
