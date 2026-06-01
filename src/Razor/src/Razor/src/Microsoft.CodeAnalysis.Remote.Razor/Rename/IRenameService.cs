@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.Rename;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Rename;
 
 internal interface IRenameService
 {

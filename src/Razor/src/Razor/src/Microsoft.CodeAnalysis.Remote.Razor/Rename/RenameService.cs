@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.CodeAnalysis.Razor.Rename;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Rename;
 
 internal class RenameService(
     IRazorComponentSearchEngine componentSearchEngine,
