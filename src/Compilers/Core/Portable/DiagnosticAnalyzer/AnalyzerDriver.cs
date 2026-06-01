@@ -2064,11 +2064,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 var unsuppressedAnalyzers = unsuppressedAnalyzersBuilder.ToImmutableHashSet();
-                return (allAnalyzerActions.ToAnalyzerActionsAndFree(), unsuppressedAnalyzers);
+                return (allAnalyzerActions.ToAnalyzerActionsAndFreeUnderlyingIfNeeded(), unsuppressedAnalyzers);
             }
             finally
             {
-                allAnalyzerActions.Free();
+                allAnalyzerActions.FreeUnderlyingIfNeeded();
                 unsuppressedAnalyzersBuilder.Free();
             }
         }

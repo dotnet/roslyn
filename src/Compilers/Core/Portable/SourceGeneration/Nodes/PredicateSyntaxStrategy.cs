@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                 tables.SetTable(_key, _transformTable.ToImmutableAndFree());
             }
 
-            public void Free()
+            public void FreeUnderlying()
             {
                 _filterTable.Free();
                 _transformTable.Free();

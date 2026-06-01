@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
                 tables.SetTable(_key, _nodeStateTable.ToImmutableAndFree());
             }
 
-            public void Free()
+            public void FreeUnderlying()
             {
                 _nodeStateTable.Free();
             }

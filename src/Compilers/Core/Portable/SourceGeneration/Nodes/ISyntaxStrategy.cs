@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis
 
         void SaveStateAndFree(StateTableStore.Builder tableStoreBuilder);
 
-        void Free();
+        void FreeUnderlying();
     }
 }

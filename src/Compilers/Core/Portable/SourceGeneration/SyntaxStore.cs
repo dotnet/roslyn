@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
                                         _syntaxExceptions[currentNode] = ufe;
                                         var builder = syntaxInputBuilders[i].builder;
                                         syntaxInputBuilders.RemoveAt(i);
-                                        builder.Free();
+                                        builder.FreeUnderlying();
                                         i--;
                                     }
                                 }
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         foreach ((_, ISyntaxInputBuilder builder) in syntaxInputBuilders)
                         {
-                            builder.Free();
+                            builder.FreeUnderlying();
                         }
 
                         syntaxInputBuilders.Free();

@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// Creates an <see cref="AnalyzerActions"/> from the accumulated actions.
             /// This method should be called once after all Append operations are complete.
             /// </summary>
-            public AnalyzerActions ToAnalyzerActionsAndFree()
+            public AnalyzerActions ToAnalyzerActionsAndFreeUnderlyingIfNeeded()
             {
                 return new AnalyzerActions(
                     compilationStartActions: ToImmutableAndFree(ref _compilationStartActionsImmutable, ref _compilationStartActionsBuilder),
@@ -1181,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     concurrent: _concurrent);
             }
 
-            public void Free()
+            public void FreeUnderlyingIfNeeded()
             {
                 Free(ref _compilationStartActionsBuilder);
                 Free(ref _compilationEndActionsBuilder);
