@@ -63,10 +63,6 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-#if NET
-                itemsSet.EnsureCapacity(inputItems.Length);
-#endif
-
                 foreach (var item in inputItems)
                 {
                     var added = itemsSet.Add(item);
