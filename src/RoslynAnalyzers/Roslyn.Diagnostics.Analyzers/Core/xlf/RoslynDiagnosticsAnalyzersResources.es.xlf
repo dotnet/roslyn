@@ -259,7 +259,7 @@
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterDescription">
         <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorSolutionWrapper or DocumentId as they are not JSON serializable.</source>
-        <target state="new">Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorSolutionWrapper or DocumentId as they are not JSON serializable.</target>
+        <target state="translated">Los métodos de las interfaces que heredan de IRemoteJsonService no deben tener parámetros de tipo RazorSolutionWrapper o DocumentId, ya que no son serializables con JSON.</target>
         <note>{Locked="IRemoteJsonService"}{Locked="RazorSolutionWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterMessage">
