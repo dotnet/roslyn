@@ -38,7 +38,8 @@ internal static class PRTagger
             logger: logger,
             buildNumber: vsBuild,
             maxFetchingVsBuildNumber: maxFetchingVSBuildNumber,
-            buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
+            buildQueryOrder: BuildQueryOrder.FinishTimeDescending,
+            branchName: "refs/heads/main").ConfigureAwait(false);
 
         if (builds is null)
         {

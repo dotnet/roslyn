@@ -49,7 +49,7 @@ internal sealed class AzDOConnection : IDisposable
         PipelinesHttpClient = Connection.GetClient<PipelinesHttpClient>();
     }
 
-    public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string? buildNumber = null, ILogger? logger = null, int? maxFetchingVsBuildNumber = null, BuildResult? resultsFilter = null, BuildQueryOrder? buildQueryOrder = null)
+    public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string? buildNumber = null, ILogger? logger = null, int? maxFetchingVsBuildNumber = null, BuildResult? resultsFilter = null, BuildQueryOrder? buildQueryOrder = null, string? branchName = null)
     {
         try
         {
@@ -58,6 +58,7 @@ internal sealed class AzDOConnection : IDisposable
                 buildDefinition.Project.Id,
                 definitions: [buildDefinition.Id],
                 buildNumber: buildNumber,
+                branchName: branchName,
                 resultFilter: resultsFilter,
                 queryOrder: buildQueryOrder,
                 top: maxFetchingVsBuildNumber);
