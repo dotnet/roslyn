@@ -28,11 +28,6 @@ internal class RemoteCSharpSemanticTokensProvider(
 
     public async Task<int[]?> GetCSharpSemanticTokensResponseAsync(DocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, Guid correlationId, CancellationToken cancellationToken)
     {
-        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName,
-            Constants.ExternalAccessServerName,
-            TelemetryThresholds.SemanticTokensSubLSPTelemetryThreshold,
-            correlationId);
-
         // We have a razor document, lets find the generated C# document
         Debug.Assert(documentContext is RemoteDocumentContext, "This method only works on document snapshots created in the OOP process");
         var snapshot = (RemoteDocumentSnapshot)documentContext.Snapshot;
@@ -40,15 +35,7 @@ internal class RemoteCSharpSemanticTokensProvider(
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var data = await SemanticTokensRange
-            .GetSemanticTokensAsync(
-                generatedDocument,
-                csharpRanges,
-                supportsVisualStudioExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        return data;
+        return await GetSemanticTokensAsync(generatedDocument, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<int[]?> GetDeclCSharpSemanticTokensResponseAsync(DocumentContext documentContext, ImmutableArray<LinePositionSpan> csharpRanges, Guid correlationId, CancellationToken cancellationToken)
@@ -62,19 +49,22 @@ internal class RemoteCSharpSemanticTokensProvider(
             return null;
         }
 
+        return await GetSemanticTokensAsync(declGeneratedDocument, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<int[]?> GetSemanticTokensAsync(Document generatedDocument, ImmutableArray<LinePositionSpan> csharpRanges, Guid correlationId, CancellationToken cancellationToken)
+    {
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName,
             Constants.ExternalAccessServerName,
             TelemetryThresholds.SemanticTokensSubLSPTelemetryThreshold,
             correlationId);
 
-        var data = await SemanticTokensRange
+        return await SemanticTokensRange
             .GetSemanticTokensAsync(
-                declGeneratedDocument,
+                generatedDocument,
                 csharpRanges,
                 supportsVisualStudioExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
                 cancellationToken)
             .ConfigureAwait(false);
-
-        return data;
     }
 }

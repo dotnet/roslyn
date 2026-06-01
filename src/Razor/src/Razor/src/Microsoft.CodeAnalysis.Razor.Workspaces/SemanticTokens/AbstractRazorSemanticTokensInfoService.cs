@@ -120,27 +120,35 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = codeDocument.GetRequiredImplCSharpDocument();
-
-        var implOk = await AddCSharpSemanticRangesForDocumentAsync(
-            ranges, documentContext, codeDocument, generatedDocument, isDeclHalf: false,
-            razorSpan, colorBackground, correlationId, cancellationToken).ConfigureAwait(false);
-
-        if (!implOk)
+        // Impl pass
+        var implGeneratedDocument = codeDocument.GetRequiredImplCSharpDocument();
+        if (TryGetSortedCSharpRanges(codeDocument, implGeneratedDocument, razorSpan, out var implRanges))
         {
-            return false;
+            _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, decl half: false, and the server thinks there are {implGeneratedDocument.Text.Lines.Count} lines of C#");
+
+            var implResponse = await _csharpSemanticTokensProvider
+                .GetCSharpSemanticTokensResponseAsync(documentContext, implRanges, correlationId, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!ProcessCSharpResponse(ranges, codeDocument, implGeneratedDocument, implResponse, razorSpan, colorBackground))
+            {
+                return false;
+            }
         }
 
         // Run a second pass against the decl-half generated document, if there is one. For an
         // @code / @functions block the impl half only contains BuildRenderTree and an invocation,
         // while the full method bodies (and therefore most C# tokens) live in the decl half.
-        if (codeDocument.GetDeclCSharpDocument() is { } declGeneratedDocument)
+        if (codeDocument.GetDeclCSharpDocument() is { } declGeneratedDocument &&
+            TryGetSortedCSharpRanges(codeDocument, declGeneratedDocument, razorSpan, out var declRanges))
         {
-            var declOk = await AddCSharpSemanticRangesForDocumentAsync(
-                ranges, documentContext, codeDocument, declGeneratedDocument, isDeclHalf: true,
-                razorSpan, colorBackground, correlationId, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, decl half: true, and the server thinks there are {declGeneratedDocument.Text.Lines.Count} lines of C#");
 
-            if (!declOk)
+            var declResponse = await _csharpSemanticTokensProvider
+                .GetDeclCSharpSemanticTokensResponseAsync(documentContext, declRanges, correlationId, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!ProcessCSharpResponse(ranges, codeDocument, declGeneratedDocument, declResponse, razorSpan, colorBackground))
             {
                 return false;
             }
@@ -149,32 +157,16 @@ internal abstract partial class AbstractRazorSemanticTokensInfoService(
         return true;
     }
 
-    private async Task<bool> AddCSharpSemanticRangesForDocumentAsync(
+    private bool ProcessCSharpResponse(
         List<SemanticRange> ranges,
-        DocumentContext documentContext,
         RazorCodeDocument codeDocument,
         RazorCSharpDocument generatedDocument,
-        bool isDeclHalf,
+        int[]? csharpResponse,
         LinePositionSpan razorSpan,
-        bool colorBackground,
-        Guid correlationId,
-        CancellationToken cancellationToken)
+        bool colorBackground)
     {
-        // Get a list of precise ranges for the C# code embedded in the Razor document.
-        if (!TryGetSortedCSharpRanges(codeDocument, generatedDocument, razorSpan, out var csharpRanges))
-        {
-            // There's no C# in the range for this half.
-            return true;
-        }
-
-        _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, decl half: {isDeclHalf}, and the server thinks there are {generatedDocument.Text.Lines.Count} lines of C#");
-
-        var csharpResponse = isDeclHalf
-            ? await _csharpSemanticTokensProvider.GetDeclCSharpSemanticTokensResponseAsync(documentContext, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false)
-            : await _csharpSemanticTokensProvider.GetCSharpSemanticTokensResponseAsync(documentContext, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
-
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
-        // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
+        // Unrecoverable, return false to indicate no change. We've already queued up a refresh request in
         // the server call that will cause us to retry in a bit.
         if (csharpResponse is null)
         {
