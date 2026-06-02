@@ -17,6 +17,11 @@
         <target state="translated">프로젝트 또는 디렉터리 {0}을(를) 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CouldNotFindRefFile">
+        <source>Could not find file '{0}'.</source>
+        <target state="new">Could not find file '{0}'.</target>
+        <note>{0} is the file path.</note>
+      </trans-unit>
       <trans-unit id="DirectiveError">
         <source>error</source>
         <target state="translated">오류</target>
@@ -39,13 +44,13 @@
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingEntry">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</source>
-        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 속성의 각 항목은 '='로 구분된 두 부분으로 구성되어야 합니다. '{0}' 항목이 잘못되었습니다.</target>
-        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="="}</note>
+        <target state="needs-review-translation">'FileBasedProgramsItemMapping' MSBuild 속성의 각 항목은 '='로 구분된 두 부분으로 구성되어야 합니다. '{0}' 항목이 잘못되었습니다.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'='"}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingExtension">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</source>
-        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 속성의 각 항목은 '.'로 시작하는 비어 있지 않은 파일 확장명에 매핑되어야 합니다. '{0}' 항목의 확장명 '{1}'이(가) 잘못되었습니다.</target>
-        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="."}</note>
+        <target state="needs-review-translation">'FileBasedProgramsItemMapping' MSBuild 속성의 각 항목은 '.'로 시작하는 비어 있지 않은 파일 확장명에 매핑되어야 합니다. '{0}' 항목의 확장명 '{1}'이(가) 잘못되었습니다.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'.'"}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingItemType">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
@@ -56,6 +61,11 @@
         <source>The '#:project' directive is invalid: {0}</source>
         <target state="translated">'#:p roject' 지시문이 잘못되었습니다. {0}</target>
         <note>{0} is the inner error message.</note>
+      </trans-unit>
+      <trans-unit id="InvalidRefDirective">
+        <source>The '#:ref' directive is invalid: {0}</source>
+        <target state="new">The '#:ref' directive is invalid: {0}</target>
+        <note>{Locked="#:ref"}{0} is the inner error message.</note>
       </trans-unit>
       <trans-unit id="MissingDirectiveName">
         <source>Missing name of '{0}'.</source>
