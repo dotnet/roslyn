@@ -1,13 +1,11 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.Extensions.Logging;
@@ -18,7 +16,7 @@ using StreamJsonRpc;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
+namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
 
 public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelper testOutputHelper) : IDisposable
 {
@@ -31,53 +29,44 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         TempRoot.Dispose();
     }
 
-    private protected async Task<TestLspClient> CreateCSharpLanguageServerAsync(
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markupCode,
-        bool includeDevKitComponents,
-        ClientCapabilities? clientCapabilities = null,
-        bool debugLsp = false)
+    private protected async Task<TestLspClient> CreateLanguageServerAsync(
+        LspWorkspaceContent workspaceContent,
+        LspServerLaunchOptions launchOptions,
+        ClientCapabilities? clientCapabilities = null)
     {
-        string code;
-        int? cursorPosition;
-        ImmutableDictionary<string, ImmutableArray<TextSpan>> spans;
-        TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
-
-        // Write project file
         var projectDirectory = TempRoot.CreateDirectory();
-        var projectPath = Path.Combine(projectDirectory.Path, "Project.csproj");
+        var annotatedLocations = new Dictionary<string, IList<LSP.Location>>();
 
-        // To ensure our TargetFramework is buildable in each test environment we are
-        // setting it to match the $(NetVSCode) version.
-        await File.WriteAllTextAsync(projectPath, $"""
-            <Project Sdk="Microsoft.NET.Sdk">
-              <PropertyGroup>
-                <OutputType>Library</OutputType>
-                <TargetFramework>net8.0</TargetFramework>
-              </PropertyGroup>
-            </Project>
-            """);
+        foreach (var (relativePath, file) in workspaceContent.Files)
+        {
+            var filePath = GetFullPath(projectDirectory.Path, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+            await File.WriteAllTextAsync(filePath, file.Content);
 
-        // Write code file
-        var codePath = Path.Combine(projectDirectory.Path, "Code.cs");
-        await File.WriteAllTextAsync(codePath, code);
+            if (Path.GetExtension(relativePath).Equals(".cs", StringComparison.OrdinalIgnoreCase))
+            {
+                var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+                var text = SourceText.From(file.Content);
 
-        var codeUri = ProtocolConversions.CreateAbsoluteDocumentUri(codePath);
-        var text = SourceText.From(code);
-        Dictionary<DocumentUri, SourceText> files = new() { [codeUri] = text };
-        var annotatedLocations = GetAnnotatedLocations(codeUri, text, spans);
+                AddAnnotatedLocations(annotatedLocations, GetAnnotatedLocations(documentUri, text, file.MarkupSpans));
+            }
+        }
 
         // Create server and open the project
         var lspClient = await TestLspClient.CreateAsync(
             clientCapabilities ?? new ClientCapabilities(),
             ExtensionLogsDirectory.Path,
-            includeDevKitComponents,
-            debugLsp,
+            launchOptions,
             LoggerFactory,
-            documents: files,
+            workspaceContent,
+            projectDirectory.Path,
             locations: annotatedLocations);
 
-        // Perform restore
-        ProcessUtilities.Run("dotnet", $"restore --project {projectPath}");
+        if (workspaceContent.ShouldRestore)
+        {
+            foreach (var projectPath in workspaceContent.Files.Keys.Where(static path => PathUtilities.GetExtension(path) == ".csproj"))
+                ProcessUtilities.Run("dotnet", $"restore --project \"{GetFullPath(projectDirectory.Path, projectPath)}\"");
+        }
 
         lspClient.AddClientLocalRpcTarget(new WorkDoneProgressTarget());
 
@@ -86,13 +75,41 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         lspClient.AddClientLocalRpcTarget(ProjectInitializationHandler.ProjectInitializationCompleteName, () => projectInitialized.SetResult());
 
 #pragma warning disable RS0030 // Do not use banned APIs
-        await lspClient.OpenProjectsAsync([new(projectPath)]);
+        if (workspaceContent.LoadPath is not null)
+        {
+            var fullLoadPath = GetFullPath(projectDirectory.Path, workspaceContent.LoadPath);
+            switch (PathUtilities.GetExtension(workspaceContent.LoadPath))
+            {
+                case ".sln":
+                case ".slnx":
+                    await lspClient.OpenSolutionAsync(ProtocolConversions.CreateAbsoluteDocumentUri(fullLoadPath));
+                    break;
+                case ".csproj":
+                    await lspClient.OpenProjectsAsync([ProtocolConversions.CreateAbsoluteDocumentUri(fullLoadPath)]);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unsupported load path extension: {PathUtilities.GetExtension(workspaceContent.LoadPath)}");
+            }
+        }
 #pragma warning restore RS0030 // Do not use banned APIs
 
         // Wait for initialization
         await projectInitialized.Task;
 
         return lspClient;
+
+        static string GetFullPath(string workspaceRootPath, string relativePath)
+            => PathUtilities.CombinePathsUnchecked(workspaceRootPath, relativePath);
+
+        static void AddAnnotatedLocations(Dictionary<string, IList<LSP.Location>> locations, Dictionary<string, IList<LSP.Location>> locationsToAdd)
+        {
+            foreach (var (name, newLocations) in locationsToAdd)
+            {
+                var locationsForName = locations.GetValueOrDefault(name, []);
+                locationsForName.AddRange(newLocations);
+                locations[name] = [.. locationsForName.Distinct()];
+            }
+        }
     }
 
     private class WorkDoneProgressTarget

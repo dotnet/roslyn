@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,7 +8,7 @@ using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Services;
+namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.CodeActions;
 
 public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
@@ -25,7 +25,8 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
                 }
             }
             """;
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
+        var workspaceContent = LspTestWorkspaces.SimpleProject.WithCSharp(markup);
+        await using var testLspServer = await CreateLanguageServerAsync(workspaceContent, new() { IncludeDevKitComponents = includeDevKitComponents });
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
         await TestCodeActionAsync(testLspServer, caretLocation, "Extract base class...", """
@@ -55,7 +56,8 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
                 }
             }
             """;
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
+        var workspaceContent = LspTestWorkspaces.SimpleProject.WithCSharp(markup);
+        await using var testLspServer = await CreateLanguageServerAsync(workspaceContent, new() { IncludeDevKitComponents = includeDevKitComponents });
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
         await TestCodeActionAsync(testLspServer, caretLocation, "Extract interface...", """
@@ -87,7 +89,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
 
         testLspClient.ApplyWorkspaceEdit(resolvedCodeAction.Edit);
 
-        var updatedCode = testLspClient.GetDocumentText(caretLocation.DocumentUri);
+        var updatedCode = testLspClient.GetFileText("Code.cs");
 
         AssertEx.Equal(expected, updatedCode);
     }

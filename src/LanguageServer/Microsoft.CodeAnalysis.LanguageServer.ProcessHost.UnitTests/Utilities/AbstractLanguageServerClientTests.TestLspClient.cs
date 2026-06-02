@@ -1,10 +1,12 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
@@ -12,20 +14,21 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
+namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
 
 public partial class AbstractLanguageServerClientTests
 {
-    internal sealed class TestLspClient : ILspClient, IAsyncDisposable
+    internal sealed class TestLspClient : IAsyncDisposable
     {
         internal const int TimeOutMsNewProcess = 60_000;
 
         private int _disposed = 0;
 
         private readonly Process _process;
-        private readonly Dictionary<DocumentUri, SourceText> _documents;
+        private readonly string _workspaceRootPath;
         private readonly Dictionary<string, IList<LSP.Location>> _locations;
         private readonly ILoggerFactory _loggerFactory;
+        private LspWorkspaceContent _workspaceContent;
 
         private readonly JsonRpc _clientRpc;
 
@@ -34,10 +37,10 @@ public partial class AbstractLanguageServerClientTests
         internal static async Task<TestLspClient> CreateAsync(
             ClientCapabilities clientCapabilities,
             string extensionLogsPath,
-            bool includeDevKitComponents,
-            bool debugLsp,
+            LspServerLaunchOptions launchOptions,
             ILoggerFactory loggerFactory,
-            Dictionary<DocumentUri, SourceText>? documents = null,
+            LspWorkspaceContent workspaceContent,
+            string workspaceRootPath,
             Dictionary<string, IList<LSP.Location>>? locations = null)
         {
             var pipeName = CreateNewPipeName();
@@ -46,7 +49,7 @@ public partial class AbstractLanguageServerClientTests
             // Create the pipe server - the LSP server process will connect to this as a client.
             var pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
 
-            var processStartInfo = CreateLspStartInfo(fullPipePath, extensionLogsPath, includeDevKitComponents, debugLsp);
+            var processStartInfo = CreateLspStartInfo(fullPipePath, extensionLogsPath, launchOptions);
 
             var process = Process.Start(processStartInfo);
             Assert.NotNull(process);
@@ -55,7 +58,7 @@ public partial class AbstractLanguageServerClientTests
             using var cts = new CancellationTokenSource(TimeOutMsNewProcess);
             await pipeServer.WaitForConnectionAsync(cts.Token);
 
-            var lspClient = new TestLspClient(process, pipeServer, documents ?? [], locations ?? [], loggerFactory);
+            var lspClient = new TestLspClient(process, pipeServer, workspaceContent, workspaceRootPath, locations ?? [], loggerFactory);
 
             // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
             if (process.HasExited)
@@ -86,7 +89,7 @@ public partial class AbstractLanguageServerClientTests
                     : Path.Combine(Path.GetTempPath(), pipeName + ".sock");
             }
 
-            static ProcessStartInfo CreateLspStartInfo(string pipeName, string extensionLogsPath, bool includeDevKitComponents, bool debugLsp)
+            static ProcessStartInfo CreateLspStartInfo(string pipeName, string extensionLogsPath, LspServerLaunchOptions launchOptions)
             {
                 var processStartInfo = new ProcessStartInfo()
                 {
@@ -109,13 +112,18 @@ public partial class AbstractLanguageServerClientTests
                 processStartInfo.ArgumentList.Add("--extensionLogDirectory");
                 processStartInfo.ArgumentList.Add(extensionLogsPath);
 
-                if (includeDevKitComponents)
+                if (launchOptions.AutoLoadProjects)
+                {
+                    processStartInfo.ArgumentList.Add("--autoLoadProjects");
+                }
+
+                if (launchOptions.IncludeDevKitComponents)
                 {
                     processStartInfo.ArgumentList.Add("--devKitDependencyPath");
                     processStartInfo.ArgumentList.Add(TestPaths.GetDevKitExtensionPath());
                 }
 
-                if (debugLsp)
+                if (launchOptions.DebugLsp)
                 {
                     processStartInfo.ArgumentList.Add("--debug");
                 }
@@ -131,10 +139,18 @@ public partial class AbstractLanguageServerClientTests
         }
 
         internal ServerCapabilities ServerCapabilities => _serverCapabilities ?? throw new InvalidOperationException("Initialize has not been called");
+        internal LspWorkspaceContent WorkspaceContent => _workspaceContent;
 
-        private TestLspClient(Process process, Stream pipeStream, Dictionary<DocumentUri, SourceText> documents, Dictionary<string, IList<LSP.Location>> locations, ILoggerFactory loggerFactory)
+        private TestLspClient(
+            Process process,
+            Stream pipeStream,
+            LspWorkspaceContent workspaceContent,
+            string workspaceRootPath,
+            Dictionary<string, IList<LSP.Location>> locations,
+            ILoggerFactory loggerFactory)
         {
-            _documents = documents;
+            _workspaceContent = workspaceContent;
+            _workspaceRootPath = Path.GetFullPath(workspaceRootPath);
             _locations = locations;
             _loggerFactory = loggerFactory;
             _process = process;
@@ -220,6 +236,18 @@ public partial class AbstractLanguageServerClientTests
             _clientRpc.AddLocalRpcMethod(methodName, handler);
         }
 
+        public Task<InitializeResult?> Initialize(ClientCapabilities clientCapabilities)
+            => ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
+
+        public Task Initialized()
+            => ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
+
+        public Task OpenProjectsAsync(DocumentUri[] projects)
+            => ExecuteNotificationAsync<OpenProjectHandler.NotificationParams>(OpenProjectHandler.OpenProjectName, new() { Projects = projects });
+
+        public Task OpenSolutionAsync(DocumentUri solution)
+            => ExecuteNotificationAsync<OpenSolutionHandler.NotificationParams>(OpenSolutionHandler.OpenSolutionName, new() { Solution = solution });
+
         public void ApplyWorkspaceEdit(WorkspaceEdit? workspaceEdit)
         {
             Assert.NotNull(workspaceEdit);
@@ -245,7 +273,7 @@ public partial class AbstractLanguageServerClientTests
                 switch (documentChange.Value)
                 {
                     case CreateFile createFile:
-                        _documents.Add(createFile.DocumentUri, SourceText.From(string.Empty));
+                        _workspaceContent = _workspaceContent.WithFile(GetRelativePath(createFile.DocumentUri), string.Empty);
                         break;
                     case TextDocumentEdit textDocumentEdit:
                         ApplyTextDocumentEdit(textDocumentEdit);
@@ -261,7 +289,8 @@ public partial class AbstractLanguageServerClientTests
             void ApplyTextDocumentEdit(TextDocumentEdit documentEdit)
             {
                 var uri = documentEdit.TextDocument.DocumentUri;
-                var document = _documents[uri];
+                var relativePath = GetRelativePath(uri);
+                var document = SourceText.From(_workspaceContent.GetFileText(relativePath));
 
                 var changes = documentEdit.Edits
                     .Select(edit => edit.Value)
@@ -269,13 +298,24 @@ public partial class AbstractLanguageServerClientTests
                     .SelectAsArray(edit => ProtocolConversions.TextEditToTextChange(edit, document));
 
                 var updatedDocument = document.WithChanges(changes);
-                _documents[uri] = updatedDocument;
+                _workspaceContent = _workspaceContent.WithFile(relativePath, updatedDocument.ToString());
             }
         }
 
-        public string GetDocumentText(DocumentUri uri) => _documents[uri].ToString();
+        public string GetFileText(string path) => _workspaceContent.GetFileText(path);
 
         public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
+
+        private string GetRelativePath(DocumentUri documentUri)
+        {
+            var localPath = Path.GetFullPath(documentUri.GetRequiredParsedUri().LocalPath);
+            var relativePath = PathUtilities.GetRelativePath(_workspaceRootPath, localPath);
+
+            Assert.False(PathUtilities.IsAbsolute(relativePath), $"Document URI is not under the workspace root: {documentUri}");
+            Assert.DoesNotContain("..", relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar));
+
+            return LspWorkspaceContent.NormalizePath(relativePath);
+        }
 
         public async ValueTask DisposeAsync()
         {

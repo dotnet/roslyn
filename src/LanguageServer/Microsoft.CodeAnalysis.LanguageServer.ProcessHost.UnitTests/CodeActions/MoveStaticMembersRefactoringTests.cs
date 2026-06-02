@@ -7,7 +7,7 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Services;
+namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.CodeActions;
 
 public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
@@ -22,7 +22,8 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
                 public static int {|caret:Foo|}() => 1;
             }
             """;
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
+        var workspaceContent = LspTestWorkspaces.SimpleProject.WithCSharp(markup);
+        await using var testLspServer = await CreateLanguageServerAsync(workspaceContent, new() { IncludeDevKitComponents = includeDevKitComponents });
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
         var codeActionResults = await testLspServer.RunGetCodeActionsAsync(CreateCodeActionParams(caretLocation));
@@ -44,7 +45,8 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
                 public static int Baz() => 3;
             }
             """;
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents, new ClientCapabilities
+        var workspaceContent = LspTestWorkspaces.SimpleProject.WithCSharp(markup);
+        await using var testLspServer = await CreateLanguageServerAsync(workspaceContent, new() { IncludeDevKitComponents = includeDevKitComponents }, new ClientCapabilities
         {
             Workspace = new WorkspaceClientCapabilities
             {
@@ -67,10 +69,8 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
             {
                 public static int Baz() => 3;
             }
-            """, testLspServer.GetDocumentText(selectionLocation.DocumentUri));
+            """, testLspServer.GetFileText("Code.cs"));
 
-        var helperUri = ProtocolConversions.CreateAbsoluteDocumentUri(
-            Path.Combine(Path.GetDirectoryName(selectionLocation.DocumentUri.GetRequiredParsedUri().LocalPath)!, "AHelpers.cs"));
         AssertEx.Equal("""
             internal static class AHelpers
             {
@@ -78,6 +78,6 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
                 public static int Bar() => 2;
                 public static int Foo() => 1;
             }
-            """, testLspServer.GetDocumentText(helperUri));
+            """, testLspServer.GetFileText("AHelpers.cs"));
     }
 }
