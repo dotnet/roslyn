@@ -4609,7 +4609,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
     {
         // Attempt to exhaust a type parameter constrained to closed type.
         // This scenario isn't supported by the exhaustiveness check.
-        // https://github.com/dotnet/roslyn/issues/83617: Confirm whether we want to allow exhausting such type parameters via subtypes.
         var source1 = """
             public closed class E;
             public sealed class F1 : E;
