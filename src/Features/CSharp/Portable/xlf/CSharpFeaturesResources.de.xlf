@@ -32,6 +32,11 @@
         <target state="translated">Fügt einen NuGet-Paketverweis hinzu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adds_a_file_based_app_reference">
+        <source>References another file-based app as a library.</source>
+        <target state="new">References another file-based app as a library.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adds_a_file_reference">
         <source>Adds a file reference.</source>
         <target state="translated">Fügt einen Dateiverweis hinzu.</target>
@@ -281,6 +286,11 @@
         <source>path</source>
         <target state="translated">Pfad</target>
         <note>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</note>
+      </trans-unit>
+      <trans-unit id="Ref_directive_file_path">
+        <source>path</source>
+        <target state="new">path</target>
+        <note>'path' is a placeholder for a file path in a directive like '#:ref path'.</note>
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
