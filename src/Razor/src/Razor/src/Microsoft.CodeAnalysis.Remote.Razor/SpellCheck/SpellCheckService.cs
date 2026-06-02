@@ -2,24 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.SpellCheck;
+namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
-internal class SpellCheckService(
+[Export(typeof(ISpellCheckService)), Shared]
+[method: ImportingConstructor]
+internal sealed class SpellCheckService(
     ICSharpSpellCheckRangeProvider csharpSpellCheckService,
     IDocumentMappingService documentMappingService) : ISpellCheckService
 {
     private readonly ICSharpSpellCheckRangeProvider _csharpSpellCheckService = csharpSpellCheckService;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    public async Task<int[]> GetSpellCheckRangeTriplesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
+    public async Task<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
         using var builder = new PooledArrayBuilder<SpellCheckRange>();
 
