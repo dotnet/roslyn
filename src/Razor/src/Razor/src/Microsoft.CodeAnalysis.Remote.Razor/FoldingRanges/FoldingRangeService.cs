@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,11 +13,13 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
+namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
-internal partial class FoldingRangeService(
+[Export(typeof(IFoldingRangeService)), Shared]
+[method: ImportingConstructor]
+internal sealed class FoldingRangeService(
     IDocumentMappingService documentMappingService,
-    IEnumerable<IRazorFoldingRangeProvider> foldingRangeProviders,
+    [ImportMany] IEnumerable<IRazorFoldingRangeProvider> foldingRangeProviders,
     ILoggerFactory loggerFactory)
     : IFoldingRangeService
 {

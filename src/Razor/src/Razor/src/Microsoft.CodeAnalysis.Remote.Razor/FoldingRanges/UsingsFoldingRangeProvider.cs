@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Composition;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
+namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
-internal class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
+[Shared]
+[Export(typeof(IRazorFoldingRangeProvider))]
+internal sealed class UsingsFoldingRangeProvider : IRazorFoldingRangeProvider
 {
     public ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument)
     {

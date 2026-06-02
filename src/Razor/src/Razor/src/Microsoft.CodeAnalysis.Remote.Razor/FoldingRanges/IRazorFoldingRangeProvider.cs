@@ -4,7 +4,7 @@
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.FoldingRanges;
+namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
 internal interface IRazorFoldingRangeProvider
 {
