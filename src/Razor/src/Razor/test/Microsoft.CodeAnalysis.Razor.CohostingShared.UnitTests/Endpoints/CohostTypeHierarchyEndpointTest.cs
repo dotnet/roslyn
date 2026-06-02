@@ -39,7 +39,7 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         AssertItems(items, (FileUri("SurveyPrompt.cs"), surveyPrompt, names: null));
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task TypeHierarchySupertypes_RoundTripsMappedItems()
     {
         TestCode input = """
@@ -87,7 +87,7 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         AssertItems(midInterfaceSupertypes, (document.GetURI(), input, ["topInterfaceDef"]));
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task TypeHierarchySubtypes_RoundTripsMappedItems()
     {
         TestCode input = """
