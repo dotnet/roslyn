@@ -4646,6 +4646,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         E => 3,
                     };
                 }
+
+                int M4<X>(X x) where X : E
+                {
+                    return x switch
+                    {
+                        X => 1,
+                    };
+                }
             }
             """;
 
@@ -4721,6 +4729,15 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         E => 3,
                     };
                 }
+
+                int M4<X>(U<X> x) where X : E
+                {
+                    return x switch
+                    {
+                        X => 1,
+                        int => 2,
+                    };
+                }
             }
             """;
 
@@ -4744,7 +4761,11 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
                 // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             E => 3,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
+                // TODO2: this result seems unexpected. Is a type test failing to rule out the effective base type?
+                // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return x switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18));
 
             var classE = comp.GetMember<NamedTypeSymbol>("E");
             Assert.True(classE.TryGetClosedSubtypes(out var subtypes));
