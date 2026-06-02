@@ -13,4 +13,5 @@ internal enum CompilerFeatureRequiredFeatures
     RefStructs = 1 << 0,
     RequiredMembers = 1 << 1,
     UserDefinedCompoundAssignmentOperators = 1 << 2,
+    ClosedClasses = 1 << 3,
 }

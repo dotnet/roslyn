@@ -13,9 +13,15 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ExtensionMessageHandlerShutdown)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(ExtensionMessageHandlerShutdown)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ExtensionMessageHandlerShutdownFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new ExtensionMessageHandlerShutdown(lspServices.GetRequiredService<LspWorkspaceRegistrationService>());
+}
+
 internal class ExtensionMessageHandlerShutdown(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : IOnServerShutdown, ILspService
 {
     public virtual async Task ShutdownAsync()

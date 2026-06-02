@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 

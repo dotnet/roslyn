@@ -5,23 +5,25 @@
 using System.Collections.Concurrent;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+[ExportCSharpVisualBasicLspServiceFactory(typeof(ProjectTargetFrameworkManager)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ProjectTargetFrameworkManagerFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new ProjectTargetFrameworkManager();
+}
 
 /// <summary>
 /// Keeps track of which project uses what TFM.
 /// </summary>
-[Export, Shared]
-internal sealed class ProjectTargetFrameworkManager
+internal sealed class ProjectTargetFrameworkManager() : ILspService
 {
     private readonly ConcurrentDictionary<ProjectId, string?> _projectToTargetFrameworkIdentifer = new();
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ProjectTargetFrameworkManager()
-    {
-    }
-
     public void UpdateIdentifierForProject(ProjectId projectId, string? identifier)
     {
         _ = _projectToTargetFrameworkIdentifer.AddOrUpdate(projectId, identifier, (project, oldIdentifier) => identifier);

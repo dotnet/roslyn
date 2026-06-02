@@ -665,6 +665,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declarationKind = node.Kind() switch
             {
                 SyntaxKind.StructDeclaration => DeclarationKind.Struct,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
+            };
+
+            return VisitTypeDeclaration(node, declarationKind);
+        }
+
+        public override SingleNamespaceOrTypeDeclaration VisitUnionDeclaration(UnionDeclarationSyntax node)
+        {
+            var declarationKind = node.Kind() switch
+            {
                 SyntaxKind.UnionDeclaration => DeclarationKind.Union,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
             };
@@ -715,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ParameterList != null &&
                 node is RecordDeclarationSyntax or
                         ClassDeclarationSyntax or
-                        StructDeclarationSyntax { RawKind: not (int)SyntaxKind.UnionDeclaration };
+                        StructDeclarationSyntax;
 
             if (hasPrimaryCtor)
             {
@@ -731,9 +741,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if (node is StructDeclarationSyntax { RawKind: (int)SyntaxKind.UnionDeclaration })
+            else if (node.Kind() is SyntaxKind.UnionDeclaration)
             {
-                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers; // https://github.com/dotnet/roslyn/issues/82636: Add test coverage
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
             var memberNames = GetNonTypeMemberNames(
@@ -771,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (node.Kind() is SyntaxKind.UnionDeclaration)
             {
-                MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation()); // https://github.com/dotnet/roslyn/issues/82636: Add test coverage, manual tree creation is needed
+                MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
@@ -1124,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
-                case SyntaxKind.UnionDeclaration: // https://github.com/dotnet/roslyn/issues/82636: Add test coverage
+                case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:

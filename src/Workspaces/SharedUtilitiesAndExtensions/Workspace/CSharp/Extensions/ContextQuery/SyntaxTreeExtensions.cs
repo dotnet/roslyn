@@ -604,8 +604,15 @@ internal static partial class SyntaxTreeExtensions
             if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                 return true;
 
-            if (container is VariableDeclarationSyntax && modifierTokens.Contains(SyntaxKind.FileKeyword))
-                return true;
+            if (container is VariableDeclarationSyntax)
+            {
+                if (modifierTokens.Contains(SyntaxKind.FileKeyword))
+                    return true;
+#if !OLDER_ROSLYN
+                if (modifierTokens.Contains(SyntaxKind.ClosedKeyword))
+                    return true;
+#endif
+            }
         }
 
         return false;

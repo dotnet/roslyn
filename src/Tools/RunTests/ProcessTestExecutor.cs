@@ -7,9 +7,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace RunTests
 {
@@ -180,8 +183,14 @@ namespace RunTests
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
 
+                var exitCode = xunitProcessResult.ExitCode;
+                if (exitCode != 0)
+                {
+                    CheckForCrashes(resultsFilePath, workItemInfo.DisplayName, options.TestResultsDirectory);
+                }
+
                 var testResultInfo = new TestResultInfo(
-                    exitCode: xunitProcessResult.ExitCode,
+                    exitCode: exitCode,
                     resultsFilePath: resultsFilePath,
                     htmlResultsFilePath: htmlResultsFilePath,
                     elapsed: span,
@@ -210,6 +219,132 @@ namespace RunTests
             catch (Exception ex)
             {
                 throw new Exception($"Unable to run {workItemInfo.DisplayName} with {options.DotnetFilePath}. {ex}");
+            }
+        }
+
+        /// <summary>
+        /// When vstest detects a test host crash or hang (via the /Blame option), it collects
+        /// a dump file but the test runner may not produce a clear failure in the xunit results
+        /// XML. This means AzDO's PublishTestResults task won't surface the crash as a failed
+        /// test. This method scans for dump files, logs the crash info to the console, and
+        /// writes a standalone synthetic xunit results XML so the failure is visible in AzDO.
+        /// </summary>
+        private static void CheckForCrashes(string? resultsFilePath, string displayName, string testResultsDirectory)
+        {
+            var (dumpFiles, crashingTest, isHang) = detectDumpFiles();
+            if (dumpFiles.Length == 0)
+            {
+                return;
+            }
+
+            Logger.Log($"Detected dump files for {displayName}: {string.Join(", ", dumpFiles)}");
+            ConsoleUtil.WriteLine(ConsoleColor.Red, $"Test host crash/hang detected for {displayName}");
+            foreach (var dump in dumpFiles)
+            {
+                ConsoleUtil.WriteLine(ConsoleColor.Red, $"  Dump: {dump}");
+            }
+
+            if (crashingTest is string test)
+            {
+                ConsoleUtil.WriteLine(ConsoleColor.Red, $"  Test running at time of crash: {test}");
+            }
+
+            if (resultsFilePath != null)
+            {
+                writeSyntheticFailure(resultsFilePath, dumpFiles, crashingTest, isHang);
+            }
+
+            (string[] DumpFiles, string? CrashingTest, bool IsHang) detectDumpFiles()
+            {
+                if (!Directory.Exists(testResultsDirectory))
+                {
+                    return ([], null, false);
+                }
+
+                var dumpFiles = Directory.GetFiles(testResultsDirectory, "*.dmp", SearchOption.AllDirectories);
+                if (dumpFiles.Length == 0)
+                {
+                    return ([], null, false);
+                }
+
+                var isHang = dumpFiles.Any(f => Path.GetFileName(f).Contains("hangdump", StringComparison.OrdinalIgnoreCase));
+                string? crashingTest = null;
+
+                var dumpDirectories = dumpFiles.Select(Path.GetDirectoryName).Distinct();
+                foreach (var dir in dumpDirectories)
+                {
+                    if (dir == null) continue;
+                    var sequenceFiles = Directory.GetFiles(dir, "Sequence_*.xml", SearchOption.TopDirectoryOnly);
+                    if (sequenceFiles.Length > 0)
+                    {
+                        crashingTest = getLastTestFromSequenceFile(sequenceFiles[0]);
+                        if (crashingTest != null)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                return (dumpFiles, crashingTest, isHang);
+            }
+
+            static string? getLastTestFromSequenceFile(string sequenceFilePath)
+            {
+                try
+                {
+                    var doc = XDocument.Load(sequenceFilePath);
+                    var tests = doc.Descendants("Test");
+                    var incomplete = tests.Where(t => t.Attribute("Completed")?.Value == "False");
+                    var target = incomplete.FirstOrDefault() ?? tests.LastOrDefault();
+                    return target?.Attribute("Name")?.Value;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            void writeSyntheticFailure(string resultsFilePath, string[] dumpFiles, string? crashingTest, bool isHang)
+            {
+                try
+                {
+                    var failureType = isHang ? "HANG" : "CRASH";
+                    var testName = crashingTest ?? "Unknown";
+                    var dumpFileNames = string.Join(", ", dumpFiles.Select(Path.GetFileName));
+                    var dumpFilePaths = string.Join("\n", dumpFiles);
+
+                    var escapedWorkItemName = SecurityElement.Escape(displayName);
+                    var escapedTestName = SecurityElement.Escape(testName);
+                    var escapedDumpFileNames = SecurityElement.Escape(dumpFileNames);
+                    var escapedDumpFilePaths = SecurityElement.Escape(dumpFilePaths);
+
+                    var syntheticPath = Path.Combine(
+                        Path.GetDirectoryName(resultsFilePath)!,
+                        Path.GetFileNameWithoutExtension(resultsFilePath) + "_synthetic_failure.xml");
+
+                    var xml = $"""
+                        <?xml version="1.0" encoding="utf-8"?>
+                        <assemblies>
+                          <assembly name="{escapedWorkItemName}" total="1" passed="0" failed="1" skipped="0">
+                            <collection name="Crash/Hang Detection" total="1" passed="0" failed="1" skipped="0">
+                              <test name="[{failureType}] {escapedTestName}" type="RunTests.{failureType}Detection" method="{escapedTestName}" time="0" result="Fail">
+                                <failure exception-type="TestHost{failureType}Exception">
+                                  <message>Test host {failureType.ToLower()} detected. Test running at time of {failureType.ToLower()}: {escapedTestName}. Dump files: {escapedDumpFileNames}</message>
+                                  <stack-trace>Dump files collected:
+                        {escapedDumpFilePaths}</stack-trace>
+                                </failure>
+                              </test>
+                            </collection>
+                          </assembly>
+                        </assemblies>
+                        """;
+
+                    File.WriteAllText(syntheticPath, xml);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Warning: Failed to write synthetic test failure: {ex.Message}");
+                }
             }
         }
     }

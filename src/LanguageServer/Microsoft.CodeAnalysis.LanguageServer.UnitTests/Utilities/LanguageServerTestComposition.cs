@@ -24,12 +24,11 @@ internal sealed class LanguageServerTestComposition
             SessionId: null,
             ExtensionAssemblyPaths: extensionPaths ?? [],
             DevKitDependencyPath: devKitDependencyPath,
-            RazorDesignTimePath: null,
             CSharpDesignTimePath: null,
             ExtensionLogDirectory: string.Empty,
             ServerPipeName: null,
             UseStdIo: false,
-            AutoLoadProjects: false,
+            AutoLoadProjects: null,
             SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
             ClientProcessId: null);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);

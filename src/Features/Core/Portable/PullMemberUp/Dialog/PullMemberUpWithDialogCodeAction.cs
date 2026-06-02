@@ -29,6 +29,9 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider
 
         public override string Title => FeaturesResources.Pull_members_up_to_base_type;
 
+        internal override bool IsOptionServiceAvailable()
+            => _service is not null;
+
         public override object GetOptions(CancellationToken cancellationToken)
         {
             return _service.GetPullMemberUpOptions(_document, _selectedMembers);

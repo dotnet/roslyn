@@ -7,14 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Text;
-using EAConstants = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Constants;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -34,7 +33,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
     private readonly IClientSettingsManager _clientSettingsManager = args.ExportProvider.GetExportedValue<IClientSettingsManager>();
 
     public ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         LspDiagnostic[] csharpDiagnostics,
         LspDiagnostic[] htmlDiagnostics,
@@ -77,7 +76,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
 
         foreach (var diagnostic in allDiagnostics)
         {
-            if (diagnostic.Code is { Value: EAConstants.DiagnosticIds.IDE0005_gen })
+            if (diagnostic.Code is { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen })
             {
                 var absoluteIndex = sourceText.GetRequiredAbsoluteIndex(diagnostic.Range.Start.Line, diagnostic.Range.Start.Character);
                 var token = tree.Root.FindToken(absoluteIndex);
@@ -132,7 +131,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
                 diagnostics.Add(new LspDiagnostic
                 {
                     // We log the same as Roslyn does, so we can have only one post-report cleanup pass, above.
-                    Code = EAConstants.DiagnosticIds.IDE0005_gen,
+                    Code = RemoveUnnecessaryImportsConstants.IDE0005_gen,
                     Message = SR.AddTagHelper_directive_is_unnecessary,
                     Source = LanguageServerConstants.RazorDiagnosticSource,
                     Range = sourceText.GetRange(directive.SpanWithoutTrailingNewLines(sourceText)),
@@ -150,7 +149,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
     }
 
     public ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         LspDiagnostic[] csharpTaskItems,
         CancellationToken cancellationToken)

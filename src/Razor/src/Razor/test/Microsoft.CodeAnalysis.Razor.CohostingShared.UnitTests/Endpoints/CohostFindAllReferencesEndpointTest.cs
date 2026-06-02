@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -233,7 +233,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
             t =>
             {
                 var location = GetLocation(t);
-                Assert.Equal(surveyPromptDocument.CreateUri(), location.DocumentUri.GetRequiredParsedUri());
+                Assert.Equal(surveyPromptDocument.GetURI(), location.DocumentUri);
                 var text = SourceText.From(surveyPrompt.Text);
                 var range = text.GetRange(surveyPrompt.Spans[0]);
                 Assert.Equal(range, location.Range);
@@ -241,7 +241,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
             t =>
             {
                 var location = GetLocation(t);
-                Assert.Equal(componentDocument.CreateUri(), location.DocumentUri.GetRequiredParsedUri());
+                Assert.Equal(componentDocument.GetURI(), location.DocumentUri);
                 var text = SourceText.From(component.Text);
                 var range = text.GetRange(component.Spans[0]);
                 Assert.Equal(range, location.Range);
@@ -258,7 +258,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
         var totalSpans = input.Spans.Length + additionalFiles.Sum(f => f.testCode.TryGetNamedSpans("", out var spans) ? spans.Length : 0);
         Assert.Equal(totalSpans, results.Length);
 
-        var razorDocumentUri = document.CreateUri();
+        var razorDocumentUri = document.GetURI();
 
         foreach (var result in results)
         {
@@ -280,14 +280,14 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
         {
             var location = GetLocation(result);
             string matchedText;
-            if (razorDocumentUri.Equals(location.DocumentUri.GetRequiredParsedUri()))
+            if (razorDocumentUri.Equals(location.DocumentUri))
             {
                 matchedText = inputText.Lines[location.Range.Start.Line].ToString();
                 Assert.Single(input.Spans, s => inputText.GetRange(s).Equals(location.Range));
             }
             else
             {
-                var (fileName, testCode) = Assert.Single(additionalFiles, f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.DocumentUri.GetRequiredParsedUri().AbsolutePath));
+                var (fileName, testCode) = Assert.Single(additionalFiles, f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.DocumentUri.GetRequiredSystemUri().AbsolutePath));
                 var text = SourceText.From(testCode.Text);
                 matchedText = text.Lines[location.Range.Start.Line].ToString();
                 Assert.Single(testCode.Spans, s => text.GetRange(s).Equals(location.Range));

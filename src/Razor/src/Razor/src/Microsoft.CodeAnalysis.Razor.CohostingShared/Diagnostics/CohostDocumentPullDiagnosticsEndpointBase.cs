@@ -7,13 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -116,13 +115,13 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
 
         using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correletionId);
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
-        var diagnostics = await ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        var diagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
         return [.. diagnostics];
     }
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
     {
-        var diagnosticsParams = CreateHtmlParams(razorDocument.CreateUri());
+        var diagnosticsParams = CreateHtmlParams(razorDocument.CreateSystemUri());
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, TResponse>(
             razorDocument,

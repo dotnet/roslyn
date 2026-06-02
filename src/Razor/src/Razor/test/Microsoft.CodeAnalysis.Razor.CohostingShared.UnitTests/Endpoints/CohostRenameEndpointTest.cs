@@ -1,13 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Testing;
@@ -1462,9 +1461,9 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         string newName,
         string expected,
         RazorFileKind? fileKind = null,
-        Uri? newFileUri = null,
+        DocumentUri? newFileUri = null,
         (string fileName, string contents)[]? additionalFiles = null,
-        (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+        (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         TestFileMarkupParser.GetPosition(input, out var source, out var cursorPosition);
         var document = CreateProjectAndRazorDocument(source, fileKind, additionalFiles: additionalFiles);
@@ -1481,7 +1480,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         var renameParams = new RenameParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
             NewName = newName,
         };
 
@@ -1495,8 +1494,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         Assert.NotNull(result);
 
-        var documentUri = newFileUri ?? document.CreateUri();
-        var expectedChanges = (additionalExpectedFiles ?? []).Concat([(documentUri, expected)]);
+        var documentUri = newFileUri is null ? document.GetURI() : newFileUri;
+        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (e.fileUri, e.contents)).Concat([(documentUri, expected)]);
         await result.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 }

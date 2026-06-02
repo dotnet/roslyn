@@ -15,7 +15,7 @@ public abstract partial class TagHelperCollection
 
         public static readonly ChecksumSetPool Default = new(Policy.Instance, DefaultPoolSize);
 
-        private ChecksumSetPool(PooledObjectPolicy policy, Optional<int> poolSize)
+        private ChecksumSetPool(PooledObjectPolicy policy, Opt<int> poolSize)
             : base(policy, poolSize)
         {
         }

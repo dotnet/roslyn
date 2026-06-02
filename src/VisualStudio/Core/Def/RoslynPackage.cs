@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
@@ -89,7 +90,7 @@ internal sealed class RoslynPackage : AbstractPackage
                 (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProject(s, e),
                 (s, e) => ComponentModel.GetService<SyncNamespacesCommandHandler>().OnSyncNamespacesForSelectedProjectStatus(s, e));
 
-            _menuCommandService.AddCommand(VSConstants.VSStd2K, VisualStudioDiagnosticAnalyzerService.RunCodeAnalysisForSelectedProjectCommandId,
+            _menuCommandService.AddCommand(VSConstants.VSStd2K, VisualStudioDiagnosticAnalyzerService.ECMD_RUNFXCOPSEL,
                 (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProject(s, e),
                 (s, e) => ComponentModel.GetService<VisualStudioDiagnosticAnalyzerService>().OnRunCodeAnalysisForSelectedProjectStatus(s, e));
             _menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RunCodeAnalysisForProject,
@@ -122,11 +123,12 @@ internal sealed class RoslynPackage : AbstractPackage
 
         var hotReloadFactory = ComponentModel.GetService<ManagedHotReloadLanguageServiceFactory>();
         var solutionSnapshotProvider = ComponentModel.GetService<ISolutionSnapshotProvider>();
+        var hostWorkspaceProvider = ComponentModel.GetService<IHostWorkspaceProvider>();
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
             (_, _, serviceBroker, _) =>
             {
-                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider);
+                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider);
                 return ValueTask.FromResult<object?>(service);
             });
     }

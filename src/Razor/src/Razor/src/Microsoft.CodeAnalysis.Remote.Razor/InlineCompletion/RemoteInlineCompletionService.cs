@@ -3,7 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -22,7 +22,7 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
 
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
-    public ValueTask<InlineCompletionRequestInfo?> GetInlineCompletionInfoAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition linePosition, CancellationToken cancellationToken)
+    public ValueTask<InlineCompletionRequestInfo?> GetInlineCompletionInfoAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, LinePosition linePosition, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
@@ -46,11 +46,11 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
 
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
         return new InlineCompletionRequestInfo(
-            GeneratedDocumentUri: generatedDocument.CreateUri(),
+            GeneratedDocumentUri: generatedDocument.CreateSystemUri(),
             Position: mappedPosition);
     }
 
-    public ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
+    public ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
