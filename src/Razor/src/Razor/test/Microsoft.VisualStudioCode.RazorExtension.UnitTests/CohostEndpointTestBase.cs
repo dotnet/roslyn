@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -29,7 +30,8 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private protected override IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected ISemanticTokensLegendService SemanticTokensLegendService => _semanticTokensLegendService.AssumeNotNull();
 
-    private protected override TestComposition LocalComposition => TestComposition.RoslynFeatures;
+    private protected override TestComposition LocalComposition => TestComposition.RoslynFeatures
+        .AddAssemblies(typeof(RazorSourceGeneratedDocumentSpanMappingService).Assembly);
 
     protected override async Task InitializeAsync()
     {
