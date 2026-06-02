@@ -2,18 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Composition;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-namespace Microsoft.CodeAnalysis.Razor.Protocol.DocumentSymbols;
+namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentSymbols;
 
-internal class DocumentSymbolService(IDocumentMappingService documentMappingService) : IDocumentSymbolService
+[Export(typeof(IDocumentSymbolService)), Shared]
+[method: ImportingConstructor]
+internal sealed class DocumentSymbolService(IDocumentMappingService documentMappingService) : IDocumentSymbolService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    public SumType<DocumentSymbol[], SymbolInformation[]>? GetDocumentSymbols(RazorFileKind fileKind, Uri razorDocumentUri, RazorCSharpDocument csharpDocument, SumType<DocumentSymbol[], SymbolInformation[]> csharpSymbols)
+    public SumType<DocumentSymbol[], SymbolInformation[]>? GetDocumentSymbols(RazorFileKind fileKind, DocumentUri razorDocumentUri, RazorCSharpDocument csharpDocument, SumType<DocumentSymbol[], SymbolInformation[]> csharpSymbols)
     {
         if (csharpSymbols.TryGetFirst(out var documentSymbols))
         {
@@ -31,13 +34,13 @@ internal class DocumentSymbolService(IDocumentMappingService documentMappingServ
                 {
                     symbolInformation.Name = RenderMethodDisplay(fileKind);
                     symbolInformation.Location.Range = LspFactory.DefaultRange;
-                    symbolInformation.Location.Uri = razorDocumentUri;
+                    symbolInformation.Location.DocumentUri = razorDocumentUri;
                     mappedSymbols.Add(symbolInformation);
                 }
                 else if (_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, symbolInformation.Location.Range, out var newRange))
                 {
                     symbolInformation.Location.Range = newRange;
-                    symbolInformation.Location.Uri = razorDocumentUri;
+                    symbolInformation.Location.DocumentUri = razorDocumentUri;
                     mappedSymbols.Add(symbolInformation);
                 }
 #pragma warning restore CS0618 // Type or member is obsolete
