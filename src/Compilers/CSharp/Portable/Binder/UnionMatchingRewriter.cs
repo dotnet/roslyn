@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             new BoundTypePattern(
                                 result.Syntax,
                                 declaredType: new BoundTypeExpression(result.Syntax, aliasOpt: null, unionType).MakeCompilerGenerated(),
-                                isExplicitNotNullTest: false, // https://github.com/dotnet/roslyn/issues/82636: Is passing 'true' going to make a difference?
+                                isExplicitNotNullTest: false,
                                 isUnionMatching: false,
                                 inputType: unionMatchingInputType,
                                 narrowedType: unionType).MakeCompilerGenerated(),

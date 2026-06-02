@@ -3,7 +3,8 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -43,7 +44,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -76,7 +77,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.UseExpressionBody);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.UseExpressionBody);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -123,7 +124,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.IntroduceVariable);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -170,7 +171,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
 
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable, childActionIndex: 1);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.IntroduceVariable, childActionIndex: 1);
     }
 
     [Fact]
@@ -188,7 +189,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
     [Fact]
@@ -202,7 +203,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             @($"hello{Environment.NewLine}world")
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -222,7 +223,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -242,7 +243,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -262,7 +263,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -282,7 +283,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -302,7 +303,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -322,7 +323,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -342,7 +343,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -371,7 +372,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
     }
 
     [Fact]
@@ -400,7 +401,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay, fileKind: AspNetCore.Razor.Language.RazorFileKind.Legacy);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay, fileKind: AspNetCore.Razor.Language.RazorFileKind.Legacy);
     }
 
     [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
@@ -423,7 +424,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay);
     }
 
     [Fact]
@@ -449,7 +450,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay,
+            PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay,
             fileKind: RazorFileKind.Legacy);
     }
 
@@ -475,7 +476,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 
     [Fact]
@@ -491,7 +492,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 
     [Fact]
@@ -505,7 +506,7 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             @{}
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 
     [Fact]
@@ -524,6 +525,6 @@ public class CSharpCodeActionTests(ITestOutputHelper testOutputHelper) : CohostC
             }
             """;
 
-        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable);
+        await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.RemoveUnusedVariable);
     }
 }

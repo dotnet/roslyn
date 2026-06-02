@@ -45,12 +45,12 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (remoteJsonService is null)
                     return;
 
-                var razorPinnedSolutionInfoWrapper = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisExternalAccessRazorRazorPinnedSolutionInfoWrapper);
+                var razorSolutionWrapper = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisRazorRemoteRazorSolutionWrapper);
                 var documentId = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDocumentId);
-                if (razorPinnedSolutionInfoWrapper is null && documentId is null)
+                if (razorSolutionWrapper is null && documentId is null)
                     return;
 
-                context.RegisterSymbolAction(context => AnalyzeSymbol(context, remoteJsonService, razorPinnedSolutionInfoWrapper, documentId), SymbolKind.NamedType);
+                context.RegisterSymbolAction(context => AnalyzeSymbol(context, remoteJsonService, razorSolutionWrapper, documentId), SymbolKind.NamedType);
             });
         }
 
