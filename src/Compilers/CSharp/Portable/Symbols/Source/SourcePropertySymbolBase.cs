@@ -862,6 +862,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        private MemberDeclarationSyntax? Syntax
+            => CSharpSyntaxNode as MemberDeclarationSyntax;
+#nullable disable
+
         internal SyntaxTree SyntaxTree
         {
             get
@@ -1019,7 +1024,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
             Location typeLocation = TypeLocation;
-            var location = GetFirstLocation();
             var compilation = DeclaringCompilation;
 
             Debug.Assert(typeLocation != null);
@@ -1046,10 +1050,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, typeLocation, modifyCompilation: true);
             }
 
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, GetFirstLocation()));
+            }
+
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                var modifiers = (CSharpSyntaxNode as MemberDeclarationSyntax)?.Modifiers ?? default;
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: true);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.UnsafeKeyword, GetFirstLocation()),
+                    modifyCompilation: true);
+            }
+
+            if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
+            {
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
@@ -1076,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
 
-                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
             }
         }
 
@@ -1717,6 +1734,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => FindAttributes(AttributeDescription.MemberNotNullWhenAttribute);
 
         internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
+
+        internal bool HasSafeModifier => (_modifiers & DeclarationModifiers.Safe) != 0;
 
         private SourceAttributeData FindAttribute(AttributeDescription attributeDescription)
             => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(attributeDescription));

@@ -15,10 +15,22 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Shared]
-[ExportCSharpVisualBasicStatelessLspService(typeof(AutoLoadProjectsInitializer))]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(AutoLoadProjectsInitializer)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AutoLoadProjectsInitializerFactory(
+    ILoggerFactory loggerFactory,
+    ServerConfiguration serverConfiguration,
+    IGlobalOptionService globalOptionService) : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new AutoLoadProjectsInitializer(
+            lspServices.GetRequiredService<LanguageServerProjectSystem>(),
+            loggerFactory,
+            serverConfiguration,
+            globalOptionService);
+}
+
 internal sealed class AutoLoadProjectsInitializer(
     LanguageServerProjectSystem projectSystem,
     ILoggerFactory loggerFactory,

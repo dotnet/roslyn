@@ -72,7 +72,7 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
 
         try
         {
-            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
+            var _ = server.GetLspServices().GetRequiredService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
             {
                 Message = $"{messagePrefix} {message}",
                 MessageType = LogLevelToMessageType(logLevel),

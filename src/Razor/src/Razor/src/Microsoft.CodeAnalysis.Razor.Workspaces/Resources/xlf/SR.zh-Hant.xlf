@@ -119,11 +119,6 @@
         <target state="translated">"重新觸發完成..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">嘗試瀏覽 '{' or '}' 除外的 RazorMetaCode。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
         <target state="translated">未知的對應行為</target>
