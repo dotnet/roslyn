@@ -28,7 +28,6 @@ public sealed partial class TestComposition
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.CSharp.Features.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.Features.dll"))
-        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"));
 
 #if NETFRAMEWORK
@@ -37,7 +36,6 @@ public sealed partial class TestComposition
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.EditorFeatures.dll"))
-        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"));
 
     public static readonly TestComposition Editor = Empty

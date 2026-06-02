@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -352,7 +352,7 @@ internal static class DelegatedCompletionHelper
     {
         // In VS Code, Roslyn does resolve via a custom command. Thats fine, but we have to modify the text edit sitting within it,
         // rather than the one LSP knows about.
-        if (resolvedCompletionItem.Command is { CommandIdentifier: Constants.CompleteComplexEditCommand, Arguments: var args })
+        if (resolvedCompletionItem.Command is { CommandIdentifier: CompletionResultFactory.CompleteComplexEditCommand, Arguments: var args })
         {
             // In LSP case, command parameters will be JsonElement objects and will need to be deserialized first
             if (args is [JsonElement textDocumentIdentifierData, JsonElement complexEditData, _, _])
@@ -388,7 +388,7 @@ internal static class DelegatedCompletionHelper
             }
             else
             {
-                logger.LogError($"Unexpected arguments for command '{Constants.CompleteComplexEditCommand}': Expected: [TextDocumentIdentifier, TextEdit, _, int], Actual: {GetArgumentTypesLogString(resolvedCompletionItem)}");
+                logger.LogError($"Unexpected arguments for command '{CompletionResultFactory.CompleteComplexEditCommand}': Expected: [TextDocumentIdentifier, TextEdit, _, int], Actual: {GetArgumentTypesLogString(resolvedCompletionItem)}");
                 Debug.Fail("Unexpected arguments for Roslyn complex edit command. Have they changed things?");
             }
         }
