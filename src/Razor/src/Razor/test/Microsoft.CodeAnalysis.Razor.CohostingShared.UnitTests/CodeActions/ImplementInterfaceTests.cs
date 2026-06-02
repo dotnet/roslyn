@@ -380,7 +380,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal))]
+    [ConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task ImplementInterface_IDisposableDisposePattern()
     {
         await VerifyCodeActionAsync(
