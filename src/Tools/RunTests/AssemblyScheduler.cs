@@ -138,7 +138,16 @@ namespace RunTests
                 // We didn't find the local type from our assembly in test run historical data.
                 // This usually occurs when tests have been added in between the last passing branch run and this PR.
                 unmatchedLocalTests.Add(methodInfo.FullyQualifiedName);
-                return methodInfo with { ExecutionTime = averageExecutionTime };
+                var fallbackExecutionTime = averageExecutionTime;
+
+                // If the test class implements IAsyncLifetime, add overhead for at least one instance
+                // to account for InitializeAsync/DisposeAsync time not captured in the average duration.
+                if (methodInfo.HasAsyncLifetime)
+                {
+                    fallbackExecutionTime += HelixTestRunner.AsyncLifetimeInstanceOverhead;
+                }
+
+                return methodInfo with { ExecutionTime = fallbackExecutionTime };
             }
 
             void WriteResults()
