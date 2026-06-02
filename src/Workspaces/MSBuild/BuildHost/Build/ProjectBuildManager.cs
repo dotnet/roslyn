@@ -300,56 +300,29 @@ internal sealed class ProjectBuildManager : IDisposable
         return projectInstance;
     }
 
-    // this lock is static because we are using the default build manager, and there is only one per process
-    private static readonly SemaphoreSlim s_buildManagerLock = new(initialCount: 1);
-
     private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, DiagnosticLog log, CancellationToken cancellationToken)
     {
-        // only allow one build to use the default build manager at a time
-        using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, requestData, log, cancellationToken).ConfigureAwait(false);
-        }
-    }
+        // MSBuild doesn't have a way to cancel a single submission, so we'll only check the token before we start. In practice this is fine --
+        // the RPC layer we use to call into the BuildHost doesn't support cancellation anyways so there's no reason to have lots of extra code.
+        cancellationToken.ThrowIfCancellationRequested();
 
-    private Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, DiagnosticLog log, CancellationToken cancellationToken)
-    {
-        var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
+        var submission = MSB.Execution.BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
 
-        // enable cancellation of build
-        CancellationTokenRegistration registration = default;
-        if (cancellationToken.CanBeCanceled)
-        {
-            registration = cancellationToken.Register(() =>
-            {
-                // Note: We only ever expect that a single submission is being built,
-                // even though we're calling CancelAllSubmissions(). If MSBuildWorkspace is
-                // ever updated to support parallel builds, we'll likely need to update this code.
-
-                taskSource.TrySetCanceled();
-                buildManager.CancelAllSubmissions();
-                registration.Dispose();
-            });
-        }
-
-        // execute build async
-        int? submissionId = null;
         try
         {
             // The SubmissionId is assigned by PendBuildRequest and is the same SubmissionId that appears on the
             // BuildEventContext of every event raised while this submission builds.
-            var submission = buildManager.PendBuildRequest(requestData);
-            submissionId = submission.SubmissionId;
             _buildLogger.RegisterLog(submission.SubmissionId, log);
 
+            var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
+
+            // Start the job
             submission.ExecuteAsync(sub =>
             {
                 // when finished
                 try
                 {
-                    _buildLogger.UnregisterLog(sub.SubmissionId);
                     var result = sub.BuildResult;
-                    registration.Dispose();
                     taskSource.TrySetResult(result);
                 }
                 catch (Exception e)
@@ -357,15 +330,13 @@ internal sealed class ProjectBuildManager : IDisposable
                     taskSource.TrySetException(e);
                 }
             }, null);
+
+            return await taskSource.Task.ConfigureAwait(false);
         }
-        catch (Exception e)
+        finally
         {
-            if (submissionId is not null)
-                _buildLogger.UnregisterLog(submissionId.Value);
-
-            taskSource.SetException(e);
+            // Ensure the log is cleaned up if it's still there no matter if we take an exceptional path or not
+            _buildLogger.TryUnregisterLog(submission.SubmissionId);
         }
-
-        return taskSource.Task;
     }
 }

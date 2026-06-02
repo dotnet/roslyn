@@ -34,8 +34,8 @@ internal sealed class MSBuildDiagnosticLogger : MSB.Framework.ILogger
     public void RegisterLog(int submissionId, DiagnosticLog log)
         => Contract.ThrowIfFalse(_logsBySubmissionId.TryAdd(submissionId, log), $"A log is already registered for submission {submissionId}.");
 
-    public void UnregisterLog(int submissionId)
-        => Contract.ThrowIfFalse(_logsBySubmissionId.TryRemove(submissionId, out _), $"No log is registered for submission {submissionId}.");
+    public bool TryUnregisterLog(int submissionId)
+        => _logsBySubmissionId.TryRemove(submissionId, out _);
 
     private void OnErrorRaised(object sender, MSB.Framework.BuildErrorEventArgs e)
         => AddLogItem(DiagnosticLogItemKind.Error, e.BuildEventContext, e.ProjectFile, e.Message, e.File, e.LineNumber, e.ColumnNumber);
