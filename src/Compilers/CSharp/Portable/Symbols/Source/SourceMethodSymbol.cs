@@ -95,11 +95,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Whether the method has an 'unsafe' modifier.
-        /// For property/event accessors, this includes the containing member's unsafe modifier.
+        /// For event accessors, this comes from the containing member's unsafe modifier
+        /// (the accessor is not allowed to have its own unsafe modifier).
         /// </summary>
         internal abstract bool HasUnsafeModifier { get; }
 
-        internal bool IntroducesUnsafeContext => HasUnsafeModifier && !ContainingModule.UseUpdatedMemorySafetyRules;
+        /// <summary>
+        /// Whether the method has a 'safe' modifier.
+        /// For event accessors, this comes from the containing member's safe modifier
+        /// (the accessor is not allowed to have its own safe modifier).
+        /// </summary>
+        protected abstract bool HasSafeModifier { get; }
+
+        internal bool IntroducesUnsafeContext
+        {
+            get
+            {
+                return (HasUnsafeModifier || AssociatedSymbol is SourcePropertySymbolBase { HasUnsafeModifier: true })
+                    && !ContainingModule.UseUpdatedMemorySafetyRules;
+            }
+        }
 
         /// <summary>
         /// Whether the method can require callers to be in an unsafe context
@@ -120,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return CallerUnsafeMode.None;
                     }
 
-                    return HasUnsafeModifier || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                    return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit)
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }
@@ -178,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
                 // type will not have been created. In this case, omit the attribute.
 
-                if (moduleBuilder.CompilationState.TryGetStateMachineType(target, out NamedTypeSymbol? stateMachineType))
+                if (moduleBuilder.CompilationState.TryGetStateMachineType(target.PartialImplementationPart ?? target, out NamedTypeSymbol? stateMachineType))
                 {
                     var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
                         TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());

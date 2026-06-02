@@ -112,6 +112,7 @@ modifier
   | 'readonly'
   | 'ref'
   | 'required'
+  | 'safe'
   | 'scoped'
   | 'sealed'
   | 'static'

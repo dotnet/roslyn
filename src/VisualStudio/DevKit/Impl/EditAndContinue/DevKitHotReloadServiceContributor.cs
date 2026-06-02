@@ -10,9 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
@@ -20,14 +22,27 @@ using Microsoft.VisualStudio.Utilities.ServiceBroker;
 namespace Microsoft.VisualStudio.LanguageServices.DevKit.EditAndContinue;
 
 /// <summary>
-/// Registers and proffers the <see cref="ManagedHotReloadLanguageService"/> brokered service
-/// into the Dev Kit <see cref="GlobalBrokeredServiceContainer"/> when the service broker is initialized.
+/// LSP service factory that constructs the per-LSP-server <see cref="DevKitHotReloadServiceContributor"/>,
+/// which proffers the <see cref="ManagedHotReloadLanguageService"/> brokered service into the Dev Kit
+/// <see cref="GlobalBrokeredServiceContainer"/> when the service broker is initialized.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(DevKitHotReloadServiceContributor)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(DevKitHotReloadServiceContributor)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DevKitHotReloadServiceContributorFactory(
+    ManagedHotReloadLanguageServiceFactory factory,
+    SolutionSnapshotRegistry solutionSnapshotRegistry) : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+    {
+        var workspaceProvider = lspServices.GetRequiredService<IHostWorkspaceProvider>();
+        return new DevKitHotReloadServiceContributor(factory, workspaceProvider, solutionSnapshotRegistry);
+    }
+}
+
 internal sealed class DevKitHotReloadServiceContributor(
     ManagedHotReloadLanguageServiceFactory factory,
+    IHostWorkspaceProvider workspaceProvider,
     SolutionSnapshotRegistry solutionSnapshotRegistry) : IServiceBrokerInitializer, ILspService
 {
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
@@ -44,7 +59,7 @@ internal sealed class DevKitHotReloadServiceContributor(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
             (moniker, options, innerServiceBroker, cancellationToken) =>
             {
-                var service = factory.Create(serviceBroker, solutionSnapshotProvider);
+                var service = factory.Create(serviceBroker, solutionSnapshotProvider, workspaceProvider);
                 return new ValueTask<object?>(service);
             });
     }

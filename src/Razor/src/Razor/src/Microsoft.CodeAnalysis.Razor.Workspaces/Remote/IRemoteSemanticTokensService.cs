@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 internal interface IRemoteSemanticTokensService
 {
     ValueTask<int[]?> GetSemanticTokensDataAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         LinePositionSpan span,
         Guid correlationId,

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
@@ -18,19 +17,19 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
     public async Task CreateProjectAndBatch()
     {
         var loggerFactory = new LoggerFactory();
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
-        using var _ = exportProvider;
+        await using var testLspServer = await CreateLanguageServerAsync(includeDevKitComponents: false);
 
-        var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-
-        var serviceBrokerInitializers = exportProvider.GetExports<IServiceBrokerInitializer>().Select(e => e.Value);
-        var serviceBrokerFactory = new ServiceBrokerFactory(serviceBrokerInitializers, exportProvider, loggerFactory);
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var serviceBrokerFactory = testLspServer.GetRequiredLspService<ServiceBrokerFactory>();
+        var projectTargetFrameworkManager = testLspServer.GetRequiredLspService<ProjectTargetFrameworkManager>();
+        var clientLanguageServerManager = testLspServer.GetRequiredLspService<IClientLanguageServerManager>();
         var container = await serviceBrokerFactory.CreateAsync(workspaceFactory.HostWorkspace);
 
         var workspaceProjectFactoryService = new WorkspaceProjectFactoryService(
             workspaceFactory,
+            projectTargetFrameworkManager,
             new ProjectInitializationHandler(
+                clientLanguageServerManager,
                 container.GetFullAccessServiceBroker(),
                 loggerFactory),
             loggerFactory);

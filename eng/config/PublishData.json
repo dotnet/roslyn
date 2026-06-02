@@ -58,7 +58,6 @@
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
     "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
-    "Microsoft.CodeAnalysis.ExternalAccess.Razor.Features": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics": "vs-impl",
     "Microsoft.CodeAnalysis.ExternalAccess.Xaml": "vs-impl",
@@ -115,7 +114,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": true,
+    "insertionCreateDraftPR": false,
     "insertionTitlePrefix": "[Main 18.9]"
   }
 }

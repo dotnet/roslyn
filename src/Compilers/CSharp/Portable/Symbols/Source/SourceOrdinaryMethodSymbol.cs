@@ -389,6 +389,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override bool IsAsync
+        {
+            get
+            {
+                return IsPartialDefinition
+                    ? this.OtherPartOfPartial?.IsAsync ?? false
+                    : HasAsyncModifier;
+            }
+        }
+
+        internal sealed override bool IsIterator
+        {
+            get
+            {
+                return IsPartialDefinition
+                    ? this.OtherPartOfPartial?.IsIterator ?? false
+                    : base.IsIterator;
+            }
+        }
+
         public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             ref var lazyDocComment = ref expandIncludes ? ref this.lazyExpandedDocComment : ref this.lazyDocComment;
@@ -522,6 +542,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (definition.HasUnsafeModifier != implementation.HasUnsafeModifier && definition.CompilationAllowsUnsafe()) // Don't cascade.
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
+            }
+
+            if (definition.HasSafeModifier != implementation.HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberSafeDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsParams() != implementation.IsParams())
@@ -779,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern;
+            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern | DeclarationModifiers.Safe;
 
             if (containingType.IsStructType())
             {
@@ -927,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (!HasAnyBody && IsAsync)
+            else if (!HasAnyBody && HasAsyncModifier)
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
             }
