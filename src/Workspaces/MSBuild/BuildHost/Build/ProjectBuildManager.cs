@@ -65,7 +65,7 @@ internal sealed class ProjectBuildManager : IDisposable
     };
     private bool _disposed;
 
-    public ProjectBuildManager(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, ILogger? msbuildLogger = null)
+    public ProjectBuildManager(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, ILogger? msbuildLogger = null, int? maxNodeCount = null)
     {
         KnownCommandLineParserLanguages = knownCommandLineParserLanguages;
 
@@ -89,10 +89,17 @@ internal sealed class ProjectBuildManager : IDisposable
             // The loggers are not inherited from the project collection, so specify both the
             // binlog logger and the _buildLogger for the build steps.
             Loggers = [.. loggers, _buildLogger],
+
             // If we have an additional logger and it's diagnostic, then we need to opt into task inputs globally, or otherwise
             // it won't get any log events. This logic matches https://github.com/dotnet/msbuild/blob/fa6710d2720dcf1230a732a8858ffe71bcdbe110/src/Build/Instance/ProjectInstance.cs#L2365-L2371
-            LogTaskInputs = msbuildLogger is not null && msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic
+            LogTaskInputs = msbuildLogger is not null && msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic,
+
+            // Disable node reuse so nodes don't live around once we're done
+            EnableNodeReuse = false
         };
+
+        if (maxNodeCount is int nodeCount)
+            buildParameters.MaxNodeCount = nodeCount;
 
         MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
     }
