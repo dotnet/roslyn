@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureClosedClasses) && input.Type is NamedTypeSymbol { IsClosed: true } closedClass)
+            if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureClosedClasses) && input.Type.TryGetEffectiveClosedClass() is { } closedClass)
             {
                 return new ClosedClassTypeUnionValueSetFactory(closedClass);
             }

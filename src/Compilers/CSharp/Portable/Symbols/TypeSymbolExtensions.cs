@@ -1576,6 +1576,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GeneratedNames.MakeFileTypeMetadataNamePrefix(identifier.DisplayFilePath, identifier.FilePathChecksumOpt);
         }
 
+        internal static NamedTypeSymbol? TryGetEffectiveClosedClass(this TypeSymbol type)
+        {
+            if (type is TypeParameterSymbol { EffectiveBaseClassNoUseSiteDiagnostics: { IsClosed: true } effectiveClosedBase })
+                return effectiveClosedBase;
+
+            if (type is NamedTypeSymbol { IsClosed: true } closedClass)
+                return closedClass;
+
+            return null;
+        }
+
         public static bool IsPointerType(this TypeSymbol type)
         {
             return type is PointerTypeSymbol;
