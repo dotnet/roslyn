@@ -4,7 +4,7 @@
 using System;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
+namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 internal readonly struct SemanticRange : IComparable<SemanticRange>
 {

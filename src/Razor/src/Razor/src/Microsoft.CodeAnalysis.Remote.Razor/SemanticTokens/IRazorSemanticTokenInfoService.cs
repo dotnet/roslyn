@@ -4,10 +4,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
+namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 
 internal interface IRazorSemanticTokensInfoService
 {
@@ -15,5 +15,5 @@ internal interface IRazorSemanticTokensInfoService
     /// Gets the int array representing the semantic tokens for the given range.
     /// </summary>
     /// <remarks>See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_semanticTokens for details about the int array</remarks>
-    Task<int[]?> GetSemanticTokensAsync(DocumentContext documentContext, LinePositionSpan range, bool colorBackground, Guid correlationId, CancellationToken cancellationToken);
+    Task<int[]?> GetSemanticTokensAsync(RemoteDocumentContext documentContext, LinePositionSpan range, bool colorBackground, Guid correlationId, CancellationToken cancellationToken);
 }

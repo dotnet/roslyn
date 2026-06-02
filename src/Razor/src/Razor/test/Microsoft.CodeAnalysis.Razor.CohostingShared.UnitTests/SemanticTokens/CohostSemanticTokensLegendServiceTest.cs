@@ -5,18 +5,19 @@ using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-public class RazorSemanticTokensLegendServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
+public class CohostSemanticTokensLegendServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [Fact]
     public void RazorModifiers_MustStartAfterRoslyn()
     {
         var clientCapabilitiesService = new TestClientCapabilitiesService(new VSInternalClientCapabilities());
-        var service = new TestRazorSemanticTokensLegendService(clientCapabilitiesService);
+        var service = new CohostSemanticTokensLegendService(clientCapabilitiesService);
 
         var expected = Math.Pow(2, SemanticTokensSchema.TokenModifiers.Length);
 
