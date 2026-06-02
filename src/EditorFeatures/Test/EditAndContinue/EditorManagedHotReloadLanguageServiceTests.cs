@@ -154,7 +154,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         var factory = workspace.GetService<ManagedHotReloadLanguageServiceFactory>();
         var serviceBroker = workspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker;
         var solutionSnapshotProvider = workspace.GetService<ISolutionSnapshotProvider>();
-        languageService = factory.Create(serviceBroker, solutionSnapshotProvider);
+        languageService = factory.Create(serviceBroker, solutionSnapshotProvider, workspace.GetService<IHostWorkspaceProvider>());
         return workspace;
     }
 
@@ -274,7 +274,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         var localFactory = localWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
         var localBroker = localWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker;
         var localSnapshotProvider = localWorkspace.GetService<ISolutionSnapshotProvider>();
-        var localService = localFactory.Create(localBroker, localSnapshotProvider);
+        var localService = localFactory.Create(localBroker, localSnapshotProvider, localWorkspace.GetService<IHostWorkspaceProvider>());
 
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
             .AddTestProject("proj", out var projectId)
