@@ -2,10 +2,6 @@
 
 Imports System.Reflection
 
-Namespace TestProject
-    Friend Class Resources
-    End Class
-End Namespace
 
 ''' <summary>
 '''   A strongly-typed resource class, for looking up localized strings, etc.
@@ -21,7 +17,7 @@ Friend Partial Class NS
     Public Shared ReadOnly Property ResourceManager As Global.System.Resources.ResourceManager
         Get
             If s_resourceManager Is Nothing Then
-                s_resourceManager = New Global.System.Resources.ResourceManager(GetType(TestProject.Resources))
+                s_resourceManager = New Global.System.Resources.ResourceManager("TestProject.Resources", GetType(NS).Assembly)
             End If
             Return s_resourceManager
         End Get

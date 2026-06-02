@@ -164,12 +164,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region,
+            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocksAndFree(blocks), region,
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
                                         anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
         }
 
-        private static ImmutableArray<BasicBlock> ToImmutableBlocks(ArrayBuilder<BasicBlockBuilder> blockBuilders)
+        private static ImmutableArray<BasicBlock> ToImmutableBlocksAndFree(ArrayBuilder<BasicBlockBuilder> blockBuilders)
         {
             var builder = ArrayBuilder<BasicBlock>.GetInstance(blockBuilders.Count);
 
@@ -193,6 +193,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 builder[blockBuilder.Ordinal].SetPredecessors(blockBuilder.ConvertPredecessorsToBranches(builder));
             }
+
+            // Free the block builders and their pooled objects.
+            foreach (BasicBlockBuilder blockBuilder in blockBuilders)
+            {
+                blockBuilder.Free();
+            }
+
+            blockBuilders.Free();
 
             return builder.ToImmutableAndFree();
 
@@ -3981,6 +3989,7 @@ oneMoreTime:
                 resourceQueue.ReverseContents();
 
                 processQueue(resourceQueue);
+                resourceQueue.Free();
             }
             else
             {
@@ -6996,8 +7005,10 @@ oneMoreTime:
 
                 case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
                     AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
-                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
-                    if (_currentInterpolatedStringHandlerArgumentContext.HasReceiver && tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
+                    // Context may be null in error scenarios (for example, indexer with no setter in object initializer)
+                    if (_currentInterpolatedStringHandlerArgumentContext != null &&
+                        _currentInterpolatedStringHandlerArgumentContext.HasReceiver &&
+                        tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
                     {
                         Debug.Assert(receiverCapture is IFlowCaptureReferenceOperation);
                         return OperationCloner.CloneOperation(receiverCapture);
@@ -7009,8 +7020,9 @@ oneMoreTime:
 
                 case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
                     AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
-                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
-                    if (tryGetArgumentOrReceiver(operation.ArgumentIndex) is IOperation argumentCapture)
+                    // Context may be null in error scenarios (for example, indexer with no setter in object initializer)
+                    if (_currentInterpolatedStringHandlerArgumentContext != null &&
+                        tryGetArgumentOrReceiver(operation.ArgumentIndex) is IOperation argumentCapture)
                     {
                         Debug.Assert(argumentCapture is IFlowCaptureReferenceOperation or IDiscardOperation);
                         return OperationCloner.CloneOperation(argumentCapture);

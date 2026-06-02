@@ -898,6 +898,10 @@ class CollectionExpressions
   static int[] X = [with()];
 }
 
+union U1(int, string)
+{
+}
+
 #line 6
 #line 2 "test.cs"
 #line default

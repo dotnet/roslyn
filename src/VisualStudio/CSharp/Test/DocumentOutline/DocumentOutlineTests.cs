@@ -60,7 +60,7 @@ public sealed class DocumentOutlineTests : DocumentOutlineTestsBase
         await using var mocks = await CreateMocksAsync(testCode);
         var response = await DocumentOutlineViewModel.DocumentSymbolsRequestAsync(
             mocks.TextBuffer, mocks.LanguageServiceBrokerCallback, mocks.FilePath, CancellationToken.None);
-        AssertEx.NotNull(response.Value);
+        Assert.NotNull(response);
 
         var model = DocumentOutlineViewModel.CreateDocumentSymbolData(response.Value.response, response.Value.snapshot);
         var uiItems = DocumentOutlineViewModel.GetDocumentSymbolItemViewModels(SortOption.Location, model);

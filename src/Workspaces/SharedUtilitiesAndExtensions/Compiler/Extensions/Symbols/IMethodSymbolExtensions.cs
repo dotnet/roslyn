@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class IMethodSymbolExtensions
 {
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
     internal static IMethodSymbol? TryGetCorrespondingExtensionBlockMethod(this IMethodSymbol methodSymbol)
     {
         if (methodSymbol is { IsStatic: true, IsImplicitlyDeclared: true, ContainingType.MightContainExtensionMethods: true })

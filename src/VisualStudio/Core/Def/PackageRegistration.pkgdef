@@ -82,3 +82,10 @@
 "IsAsyncQueryable"=dword:00000001
 "IsCacheable"=dword:00000001
 "IsFreeThreaded"=dword:00000001
+
+// CacheTag value should be changed when registration file changes
+// See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more infomation
+[$RootKey$\SettingsManifests\{6cf2e545-6109-4730-8883-cf43d7aec3e1}]
+@="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage"
+"ManifestPath"="$PackageFolder$\UnifiedSettings\roslynSettings.registration.json"
+"CacheTag"=qword:ABE9BBF01CC8B289

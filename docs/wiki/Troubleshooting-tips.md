@@ -84,3 +84,4 @@ There are three significant candidates to investigate:
   Use `/p:Features=debug-determinism` to create an additional output file that documents all the inputs to a particular compilation.  
   The file is written next to the compilation output and has a `.key` suffix.  
   Comparing those files between slow and fast runs helps detect pertinent changes (new inputs, new references, etc).  
+  See [Generate a Deterministic Key File](../compilers/Deterministic%20Inputs.md#1-generate-a-deterministic-key-file) for more details.  

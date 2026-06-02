@@ -14,9 +14,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Host.TemporaryStorageService;
 
-#if DEBUG
-#endif
-
 namespace Microsoft.CodeAnalysis.Serialization;
 
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -165,7 +162,7 @@ internal sealed class SerializableSourceText
 
     public static SerializableSourceText Deserialize(
         ObjectReader reader,
-        TemporaryStorageService storageService,
+        ITemporaryStorageServiceInternal storageService,
         ITextFactoryService textService,
         CancellationToken cancellationToken)
     {
@@ -176,11 +173,13 @@ internal sealed class SerializableSourceText
 
         if (kind == SerializationKinds.MemoryMapFile)
         {
+            // Can only get here with the TemporaryStorageService is the implementation of ITemporaryStorageServiceInternal
+            var temporaryStorageService = (TemporaryStorageService)storageService;
             var identifier = TemporaryStorageIdentifier.ReadFrom(reader);
             var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
             var encoding = reader.ReadEncoding();
             var contentHash = ImmutableCollectionsMarshal.AsImmutableArray(reader.ReadByteArray());
-            var storageHandle = storageService.GetTextHandle(identifier, checksumAlgorithm, encoding, contentHash);
+            var storageHandle = temporaryStorageService.GetTextHandle(identifier, checksumAlgorithm, encoding, contentHash);
 
             return new SerializableSourceText(storageHandle);
         }

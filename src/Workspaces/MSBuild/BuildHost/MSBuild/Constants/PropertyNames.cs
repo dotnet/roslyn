@@ -72,4 +72,5 @@ internal static class PropertyNames
     public const string WarningsAsErrors = nameof(WarningsAsErrors);
     public const string WarningsNotAsErrors = nameof(WarningsNotAsErrors);
     public const string ChecksumAlgorithm = nameof(ChecksumAlgorithm);
+    public const string PdbChecksumAlgorithm = nameof(PdbChecksumAlgorithm);
 }

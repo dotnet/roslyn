@@ -4,9 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -25,24 +24,39 @@ internal static class Extensions
     public static IEnumerable<MSB.Framework.ITaskItem> GetEditorConfigFiles(this MSB.Execution.ProjectInstance executedProject)
         => executedProject.GetItems(ItemNames.EditorConfigFiles);
 
-    public static IEnumerable<MSB.Framework.ITaskItem> GetMetadataReferences(this MSB.Execution.ProjectInstance executedProject)
-        => executedProject.GetItems(ItemNames.ReferencePath);
+    public static IEnumerable<MetadataReferenceItem> GetMetadataReferences(this MSB.Execution.ProjectInstance project)
+    {
+        foreach (var item in project.GetItems(ItemNames.ReferencePath))
+        {
+            if (item.ReferenceOutputAssemblyIsTrue())
+            {
+                yield return new(project.GetAbsolutePath(item.EvaluatedInclude), item.GetAliases());
+            }
+        }
+    }
+
+    public static string GetAbsolutePath(this MSB.Execution.ProjectInstance project, string path)
+    {
+        var baseDirectory = PathUtilities.GetDirectoryName(project.FullPath);
+        var absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory) ?? path;
+        return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
+    }
 
     public static IEnumerable<ProjectFileReference> GetProjectReferences(this MSB.Execution.ProjectInstance executedProject)
         => executedProject
             .GetItems(ItemNames.ProjectReference)
             .Select(CreateProjectFileReference);
 
-    public static ImmutableArray<PackageReference> GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
+    public static PackageReferenceItem[] GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
     {
         var packageReferenceItems = executedProject.GetItems(ItemNames.PackageReference);
-        using var _ = PooledHashSet<PackageReference>.GetInstance(out var references);
+        var references = new HashSet<PackageReferenceItem>(capacity: packageReferenceItems.Count);
 
         foreach (var item in packageReferenceItems)
         {
             var name = item.EvaluatedInclude;
             var versionRangeValue = item.GetMetadataValue(MetadataNames.Version);
-            var packageReference = new PackageReference(name, versionRangeValue);
+            var packageReference = new PackageReferenceItem(name, versionRangeValue);
             references.Add(packageReference);
         }
 
@@ -55,7 +69,7 @@ internal static class Extensions
     private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
         => new(reference.EvaluatedInclude, reference.GetAliases(), reference.ReferenceOutputAssemblyIsTrue());
 
-    public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
+    public static string[] GetAliases(this MSB.Framework.ITaskItem item)
     {
         var aliasesText = item.GetMetadata(MetadataNames.Aliases);
 
@@ -81,6 +95,9 @@ internal static class Extensions
     public static int ReadPropertyInt(this MSB.Execution.ProjectInstance executedProject, string propertyName)
         => Conversions.ToInt(executedProject.ReadPropertyString(propertyName));
 
+    public static int ReadCodePage(this MSB.Execution.ProjectInstance executedProject)
+        => executedProject.ReadPropertyInt(PropertyNames.CodePage) is >= 0 and var codePage ? codePage : 0;
+
     public static ulong ReadPropertyULong(this MSB.Execution.ProjectInstance executedProject, string propertyName)
         => Conversions.ToULong(executedProject.ReadPropertyString(propertyName));
 
@@ -90,20 +107,15 @@ internal static class Extensions
 
     public static string ReadItemsAsString(this MSB.Execution.ProjectInstance executedProject, string itemType)
     {
-        var pooledBuilder = PooledStringBuilder.GetInstance();
-        var builder = pooledBuilder.Builder;
+        var items = executedProject.GetItems(itemType);
 
-        foreach (var item in executedProject.GetItems(itemType))
-        {
-            if (builder.Length > 0)
-            {
-                builder.Append(' ');
-            }
+        if (items.Count == 0)
+            return "";
 
-            builder.Append(item.EvaluatedInclude);
-        }
+        if (items.Count == 1)
+            return items.Single().EvaluatedInclude;
 
-        return pooledBuilder.ToStringAndFree();
+        return string.Join(" ", items.Select(static i => i.EvaluatedInclude));
     }
 
     public static IEnumerable<MSB.Framework.ITaskItem> GetTaskItems(this MSB.Execution.ProjectInstance executedProject, string itemType)

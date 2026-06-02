@@ -193,7 +193,8 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         _placeholderMap.Remove(awaitableInfo.RuntimeAsyncAwaitCallPlaceholder);
 
         // if (!_tmp.IsCompleted) awaitCall
-        var ifNotCompleted = _factory.If(_factory.Not(isCompletedCall), _factory.ExpressionStatement(awaitCall));
+        var ifNotCompleted = _factory.HiddenSequencePoint(
+            _factory.If(_factory.Not(isCompletedCall), _factory.ExpressionStatement(awaitCall)));
 
         // _tmp.GetResult()
         var getResultMethod = awaitableInfo.GetResult;

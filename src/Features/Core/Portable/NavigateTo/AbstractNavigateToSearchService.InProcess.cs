@@ -9,7 +9,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -35,13 +38,58 @@ internal abstract partial class AbstractNavigateToSearchService
             (PatternMatchKind.CamelCaseSubstring, NavigateToMatchKind.CamelCaseSubstring),
             (PatternMatchKind.CamelCaseNonContiguousSubstring, NavigateToMatchKind.CamelCaseNonContiguousSubstring),
             (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy),
+
+            // LowercaseSubstring is the weakest non-fuzzy PatternMatchKind (an all-lowercase pattern found
+            // inside a candidate at a non-word-boundary, e.g. "line" in "Readline"). NavigateToMatchKind has
+            // no dedicated bucket for it, so we map it to Fuzzy as the closest available quality tier.
             (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy),
         ];
 
+    /// <summary>
+    /// Determines the name and container from a search pattern, using regex-aware splitting when
+    /// the pattern contains regex metacharacters. Also compiles a <see cref="RegexQuery"/> for
+    /// pre-filtering when the pattern is a regex. Returns <see langword="null"/> if the pattern
+    /// is detected as regex but is invalid or has no extractable literals for pre-filtering
+    /// (e.g. <c>.*</c>), since we refuse to run a regex search that can't be narrowed down.
+    /// </summary>
+    private static SearchPatternInfo? ProcessSearchPattern(string searchPattern)
+    {
+        if (RegexPatternDetector.IsRegexPattern(searchPattern))
+        {
+            var sequence = VirtualCharSequence.Create(0, searchPattern);
+            var tree = RegexParser.TryParse(sequence, RegexOptions.None);
+            if (tree is not { Diagnostics: [] })
+                return null;
+
+            var (container, name) = RegexPatternDetector.SplitOnContainerDot(searchPattern, tree);
+
+            // Reuse the already-parsed tree when the full pattern is the name (no split).
+            // When a split occurred, the name is a substring that needs its own parse.
+            var regexQuery = container is null
+                ? RegexQueryCompiler.Compile(tree)
+                : RegexQueryCompiler.Compile(name);
+
+            // Compile returns null if the regex is invalid or has no extractable literals.
+            // We only run regex search when the compiled query tree can genuinely filter
+            // documents. After optimization, None never appears as a child of Any (it poisons
+            // the disjunction) or All (it's pruned as vacuously true), and the compiler only
+            // emits Literal nodes for strings of 2+ characters (which produce real bigram
+            // checks). So a non-null result guarantees every Literal in the tree is reachable
+            // and can reject documents — the pre-filter will never degenerate to "accept
+            // everything."
+            if (regexQuery is null)
+                return null;
+
+            return new SearchPatternInfo(name, container, regexQuery);
+        }
+
+        var (patternName, containerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
+        return new SearchPatternInfo(patternName, containerOpt, RegexQuery: null);
+    }
+
     private static async ValueTask SearchSingleDocumentAsync(
         Document document,
-        string patternName,
-        string? patternContainer,
+        SearchPatternInfo patternInfo,
         DeclaredSymbolInfoKindSet kinds,
         Action<RoslynNavigateToItem> onItemFound,
         CancellationToken cancellationToken)
@@ -49,8 +97,13 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        // Get the index for the file we're searching, as well as for its linked siblings.  We'll use the latter to add
-        // the information to a symbol about all the project TFMs is can be found in.
+        // First, load the lightweight filter index to check if this document could possibly match.
+        // This avoids loading the much larger TopLevelSyntaxTreeIndex for non-matching documents.
+        var filterIndex = await NavigateToSearchIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        if (!CouldContainMatch(filterIndex, patternInfo, out var matchKinds))
+            return;
+
+        // The filter passed — now load the full index with all declared symbols.
         var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
         using var _ = ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>.GetInstance(out var linkedIndices);
 
@@ -62,16 +115,29 @@ internal abstract partial class AbstractNavigateToSearchService
         }
 
         ProcessIndex(
-            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds,
-            index, linkedIndices, onItemFound, cancellationToken);
+            DocumentKey.ToDocumentKey(document), document, patternInfo, kinds,
+            matchKinds, index, linkedIndices, onItemFound, cancellationToken);
+    }
+
+    private static bool CouldContainMatch(
+        NavigateToSearchIndex filterIndex,
+        SearchPatternInfo patternInfo,
+        out PatternMatcherKind matchKinds)
+    {
+        if (patternInfo.RegexQuery is { } regexQuery)
+            matchKinds = filterIndex.RegexQueryCheckPasses(regexQuery) ? PatternMatcherKind.Standard : PatternMatcherKind.None;
+        else
+            matchKinds = filterIndex.CouldContainNavigateToMatch(patternInfo.Name, patternInfo.Container);
+
+        return matchKinds != PatternMatcherKind.None;
     }
 
     private static void ProcessIndex(
         DocumentKey documentKey,
         Document? document,
-        string patternName,
-        string? patternContainer,
+        SearchPatternInfo patternInfo,
         DeclaredSymbolInfoKindSet kinds,
+        PatternMatcherKind matchKinds,
         TopLevelSyntaxTreeIndex index,
         ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices,
         Action<RoslynNavigateToItem> onItemFound,
@@ -80,12 +146,13 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        var containerMatcher = patternContainer != null
-            ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true)
-            : null;
+        using var nameMatcher = PatternMatcher.CreateNameMatcher(
+            patternInfo.Name, patternInfo.IsRegex, includeMatchedSpans: true, matchKinds);
+        if (nameMatcher is null)
+            return;
 
-        using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
-        using var _1 = containerMatcher;
+        using var containerMatcher = PatternMatcher.CreateContainerMatcher(
+            patternInfo.Container, patternInfo.IsRegex, includeMatchedSpans: true);
 
         foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
         {
@@ -215,6 +282,9 @@ internal abstract partial class AbstractNavigateToSearchService
             case DeclaredSymbolInfoKind.Property:
                 return NavigateToItemKind.Property;
             case DeclaredSymbolInfoKind.Struct:
+            // Tracked by https://github.com/dotnet/roslyn/issues/82607
+            // Consider having a separate NavigateToItemKind category for unions
+            case DeclaredSymbolInfoKind.Union:
                 return NavigateToItemKind.Structure;
             case DeclaredSymbolInfoKind.Operator:
                 return NavigateToItemKind.OtherSymbol;
@@ -307,6 +377,7 @@ internal abstract partial class AbstractNavigateToSearchService
                     case NavigateToItemKind.Structure:
                         lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
                         lookupTable[(int)DeclaredSymbolInfoKind.RecordStruct] = true;
+                        lookupTable[(int)DeclaredSymbolInfoKind.Union] = true;
                         break;
 
                     default:

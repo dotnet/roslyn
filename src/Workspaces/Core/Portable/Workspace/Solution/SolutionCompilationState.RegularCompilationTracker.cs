@@ -525,6 +525,15 @@ internal sealed partial class SolutionCompilationState
                                 staleCompilationWithGeneratedDocuments.ScriptCompilationInfo!.WithPreviousScriptCompilation(previousSubmissionCompilation!));
                         }
                     }
+                    else if (!referencedProject.SupportsCompilation)
+                    {
+                        if (referencedProject.OutputFilePath is { } outputPath)
+                        {
+                            var metadataService = ProjectState.LanguageServices.SolutionServices.GetRequiredService<IMetadataService>();
+                            var metadataReference = metadataService.GetReference(outputPath, new MetadataReferenceProperties(MetadataImageKind.Assembly, projectReference.Aliases, projectReference.EmbedInteropTypes));
+                            AddMetadataReference(projectReference, metadataReference);
+                        }
+                    }
                     else
                     {
                         // Not a submission.  Add as a metadata reference.

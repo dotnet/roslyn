@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckUnsafeModifier(_declarationModifiers, diagnostics);
 
+            if ((_declarationModifiers & DeclarationModifiers.Safe) != 0)
+            {
+                var safeToken = syntax.Modifiers.FirstOrDefault(SyntaxKind.SafeKeyword);
+                MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, safeToken, safeToken == default ? syntax.Identifier.GetLocation() : null);
+            }
+
             ScopeBinder = binder;
 
             binder = binder.SetOrClearUnsafeRegionIfNecessary(syntax.Modifiers);
@@ -126,6 +132,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                addTo.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, Syntax.Identifier.GetLocation()));
+            }
+
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                compilation.EnsureRequiresUnsafeAttributeExists(addTo,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, Syntax.Identifier.GetLocation()),
+                    modifyCompilation: false);
+            }
+
+            if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
+            {
+                addTo.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, Syntax.Identifier.GetLocation()));
+            }
+
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
@@ -391,7 +417,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
 
-        public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal override bool HasUnsafeModifier => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        protected override bool HasSafeModifier => (_declarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal override bool CanBeCallerUnsafe => true;
 
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 

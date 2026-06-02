@@ -149,7 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.AccessibilityMask |
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
-                DeclarationModifiers.Unsafe;
+                DeclarationModifiers.Unsafe |
+                DeclarationModifiers.Safe;
 
             if (methodKind == MethodKind.Constructor)
             {
@@ -244,6 +245,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? flags.IsNullableAnalysisEnabled
                 : ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
 
+        internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        protected sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal sealed override bool CanBeCallerUnsafe => MethodKind != MethodKind.StaticConstructor;
+
         protected override bool AllowRefOrOut
         {
             get
@@ -303,9 +308,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
 
-            if (IsUnsafe != implementation.IsUnsafe && this.CompilationAllowsUnsafe())
+            if (HasUnsafeModifier != implementation.HasUnsafeModifier && this.CompilationAllowsUnsafe())
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
+            }
+
+            if (HasSafeModifier != implementation.HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberSafeDifference, implementation.GetFirstLocation());
             }
 
             if (this.IsParams() != implementation.IsParams())

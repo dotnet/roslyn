@@ -133,7 +133,7 @@ internal abstract class AbstractAddRequiredParenthesesDiagnosticAnalyzer<
             // case if grouping didn't operate as expected.
             //
             // this is not always the case though.  `??` in particular can be quite confusing as it generally
-            // operates in teh same type domain (or the nullable extension of that type).  For example:
+            // operates in the same type domain (or the nullable extension of that type).  For example:
             //
             //      a + b ?? c
             //

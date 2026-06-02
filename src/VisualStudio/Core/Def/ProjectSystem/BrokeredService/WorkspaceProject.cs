@@ -25,7 +25,12 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public void Dispose()
     {
+        // Because this implementation needs to implement the contract for RpcMarshalable
+        // we have to implement IDisposable, so we don't have an alternative to implement
+        // at this point.
+#pragma warning disable CS0618 // Type or member is obsolete
         _project.Dispose();
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]

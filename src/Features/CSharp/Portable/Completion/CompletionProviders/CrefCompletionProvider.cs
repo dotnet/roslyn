@@ -74,10 +74,7 @@ internal sealed class CrefCompletionProvider(
             Contract.ThrowIfNull(semanticModel);
 
             context.IsExclusive = true;
-
-            var serializedOptions = ImmutableArray.Create(KeyValuePair.Create(HideAdvancedMembers, options.MemberDisplayOptions.HideAdvancedMembers.ToString()));
-
-            context.AddItems(CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions));
+            context.AddItems(CreateCompletionItems(semanticModel, symbols, token, position));
 
             // Because we took over completion entirely as an exclusive provider, we have to ensure that appropriate
             // keywords are provided ourselves.
@@ -227,7 +224,7 @@ internal sealed class CrefCompletionProvider(
     }
 
     private static IEnumerable<CompletionItem> CreateCompletionItems(
-        SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableArray<KeyValuePair<string, string>> options)
+        SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position)
     {
         using var _ = SharedPools.Default<StringBuilder>().GetPooledObject(out var builder);
 
@@ -241,23 +238,22 @@ internal sealed class CrefCompletionProvider(
 
                 // For every symbol, we create an item that uses the regular CrefFormat,
                 // which uses intrinsic type keywords
-                yield return CreateItem(semanticModel, symbol, groupCount, token, position, builder, sortText, options, CrefFormat);
-                if (TryCreateSpecialTypeItem(semanticModel, symbol, token, position, builder, options, out var item))
+                yield return CreateItem(semanticModel, symbol, groupCount, token, position, builder, sortText, CrefFormat);
+                if (TryCreateSpecialTypeItem(semanticModel, symbol, token, position, builder, out var item))
                     yield return item;
             }
         }
     }
 
     private static bool TryCreateSpecialTypeItem(
-        SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
-        ImmutableArray<KeyValuePair<string, string>> options, [NotNullWhen(true)] out CompletionItem? item)
+        SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, [NotNullWhen(true)] out CompletionItem? item)
     {
         // If the type is a SpecialType, create an additional item using 
         // its actual name (as opposed to intrinsic type keyword)
         var typeSymbol = symbol as ITypeSymbol;
         if (typeSymbol.IsSpecialType())
         {
-            item = CreateItem(semanticModel, symbol, groupCount: 1, token, position, builder, builder.ToString(), options, QualifiedCrefFormat);
+            item = CreateItem(semanticModel, symbol, groupCount: 1, token, position, builder, builder.ToString(), QualifiedCrefFormat);
             return true;
         }
 
@@ -273,7 +269,6 @@ internal sealed class CrefCompletionProvider(
         int position,
         StringBuilder builder,
         string sortText,
-        ImmutableArray<KeyValuePair<string, string>> options,
         SymbolDisplayFormat unqualifiedCrefFormat)
     {
         builder.Clear();
@@ -315,11 +310,11 @@ internal sealed class CrefCompletionProvider(
             }
         }
 
-        return CreateItemFromBuilder(symbol, position, builder, sortText, options);
+        return CreateItemFromBuilder(symbol, position, builder, sortText);
     }
 
     private static CompletionItem CreateItemFromBuilder(
-        ISymbol symbol, int position, StringBuilder builder, string sortText, ImmutableArray<KeyValuePair<string, string>> options)
+        ISymbol symbol, int position, StringBuilder builder, string sortText)
     {
         var insertionText = builder
             .Replace('<', '{')
@@ -334,7 +329,6 @@ internal sealed class CrefCompletionProvider(
             contextPosition: position,
             sortText: sortText,
             filterText: insertionText,
-            properties: options,
             rules: GetRules(insertionText));
     }
 

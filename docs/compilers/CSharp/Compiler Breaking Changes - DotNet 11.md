@@ -153,6 +153,26 @@ void M()
 
 See also https://github.com/dotnet/roslyn/issues/80954.
 
+## `nameof(this.)` in attributes is disallowed
+
+***Introduced in Visual Studio 2026 version 18.3 and .NET 10.0.200***
+
+Using `this` or `base` keyword inside `nameof` in an attribute was previously unintentionally allowed in Roslyn since C# 12
+and is [now properly disallowed](https://github.com/dotnet/roslyn/pull/81628) to match the language specification.
+This breaking change can be mitigated by removing `this.` and accessing the member without the qualifier. 
+
+See also https://github.com/dotnet/roslyn/issues/82251.
+
+```cs
+class C
+{
+    string P;
+    [System.Obsolete(nameof(this.P))] // now disallowed
+    [System.Obsolete(nameof(P))] // workaround
+    void M() { }
+}
+```
+
 ## Parsing of 'with' within a switch-expression-arm
 
 ***Introduced in Visual Studio 2026 version 18.4***
@@ -188,4 +208,59 @@ object[] items;
 items = [with(x, y), z];  // C# 14: call to with() method; C# 15: error args not supported for object[]
 items = [@with(x, y), z]; // call to with() method
 object with(object a, object b) { ... }
+```
+
+## Pointer types no longer require an unsafe context
+
+***Introduced in Visual Studio 2026 version 18.7***
+
+In a future C# version (currently in `langversion:preview`), pointer types (e.g., `int*`, `delegate*<void>`) no longer require an unsafe context.
+Only pointer indirection operations (dereference, member access via `->`, element access, etc.) require unsafe.
+This is part of the [unsafe evolution](https://github.com/dotnet/csharplang/issues/9704) feature.
+
+Because pointer types are now legal in safe contexts, overload resolution may consider candidates that were previously excluded. This can cause new ambiguity errors:
+
+```cs
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        M(x => { }); // C# 14: prints "2"; C# preview: error CS0121 (ambiguous)
+    }
+
+    static void M(F1 f) { Console.WriteLine(1); }
+    static void M(F2 f) { Console.WriteLine(2); }
+}
+
+unsafe delegate void F1(int* x);
+delegate void F2(int x);
+```
+
+Previously, the lambda `x => { }` could not convert to `F1` in a safe context because `int*` required an unsafe context, so only `M(F2)` was applicable.
+Now that `int*` is legal in safe contexts, the lambda is convertible to both delegates, producing an ambiguity error.
+
+If your code is impacted by the ambiguity change, add explicit parameter types to the lambda to disambiguate:
+
+```cs
+M((int x) => { }); // Resolves to M(F2)
+```
+
+## `safe` is a contextual keyword
+
+***Introduced in Visual Studio 2026 version 18.9***
+
+In a future C# version (currently in `langversion:preview`), `safe` is a keyword when placed as a modifier on member declarations.
+That can break cases where it was previously referring to a type.
+To mitigate the break, it is possible to use `@`.
+
+```cs
+class safe { }
+
+class C
+{
+    safe M1() => new safe(); // previously `safe` refers to a type, now it is a keyword
+    @safe M2() => new safe(); // workaround
+}
 ```

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -44,6 +45,9 @@ public abstract partial class AbstractLanguageServerProtocolTests
 {
     protected static readonly JsonSerializerOptions JsonSerializerOptions = RoslynLanguageServer.CreateJsonMessageFormatter().JsonSerializerOptions;
 
+    private protected static DocumentUri CreateAbsoluteDocumentUri(string suffix)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.CreateAbsolutePath(suffix));
+
     private protected readonly AbstractLspLogger TestOutputLspLogger;
     protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)
     {
@@ -51,8 +55,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
-        .AddParts(typeof(TestDocumentTrackingService))
-        .AddParts(typeof(TestWorkspaceRegistrationService));
+        .AddParts(typeof(TestDocumentTrackingService));
 
     private sealed class TestSpanMapperProvider : IDocumentServiceProvider
     {
@@ -63,7 +66,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     internal sealed class TestSpanMapper : ISpanMappingService
     {
         private static readonly LinePositionSpan s_mappedLinePosition = new(new LinePosition(0, 0), new LinePosition(0, 5));
-        private static readonly string s_mappedFilePath = "c:\\MappedFile_\ue25b\ud86d\udeac.cs";
+        private static readonly string s_mappedFilePath = TestHelpers.GetRootedPath("MappedFile_\ue25b\ud86d\udeac.cs");
 
         internal static readonly string GeneratedFileName = "GeneratedFile_\ue25b\ud86d\udeac.cs";
 
@@ -252,7 +255,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
         string? filterText = null,
         long resultId = 0,
         bool vsResolveTextEditOnCommit = false,
-        LSP.CompletionItemLabelDetails? labelDetails = null)
+        LSP.CompletionItemLabelDetails? labelDetails = null,
+        int matchPriority = 0)
     {
         var position = await document.GetPositionFromLinePositionAsync(
             ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -271,7 +275,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
             Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
             Preselect = preselect,
             VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
-            LabelDetails = labelDetails
+            LabelDetails = labelDetails,
+            MatchPriority = matchPriority
         };
 
         if (tags != null)
@@ -409,7 +414,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var listenerProvider = workspace.ExportProvider.GetExportedValues<MockWorkspaceEventListenerProvider>().SingleOrDefault();
         if (listenerProvider is not null)
         {
-            var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+            var lspWorkspaceRegistrationListener = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
             listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
         }
 
@@ -447,7 +452,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             generatedDocumentId,
             TestSpanMapper.GeneratedFileName,
             loader: loader,
-            filePath: $"C:\\{TestSpanMapper.GeneratedFileName}",
+            filePath: TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName),
             isGenerated: true)
             .WithDocumentServiceProvider(new TestSpanMapperProvider());
 
@@ -663,6 +668,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 {
                     Capabilities = _initializationOptions.ClientCapabilities,
                     Locale = _initializationOptions.Locale,
+                    WorkspaceFolders = _initializationOptions.WorkspaceFolders,
                 }, CancellationToken.None);
             }
 
@@ -674,7 +680,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         protected virtual RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
         {
-            var capabilitiesProvider = TestWorkspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
             var factory = TestWorkspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
 
             var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
@@ -683,7 +688,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
-            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, capabilitiesProvider, serverKind, logger, TestWorkspace.Services.HostServices);
+            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, serverKind, logger, TestWorkspace.Services.HostServices);
 
             jsonRpc.StartListening();
             return languageServer;
@@ -826,6 +831,23 @@ public abstract partial class AbstractLanguageServerProtocolTests
             return ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(LSP.Methods.TextDocumentDidCloseName, didCloseParams, CancellationToken.None);
         }
 
+        public async Task RefreshSourceGeneratorsAsync(bool forceRegeneration)
+        {
+            var refreshSourceGeneratorsParams = new RefreshSourceGeneratorsParams(forceRegeneration);
+
+            // The refresh command should trigger source generators to run in both automatic and balanced mode.
+            await this.ExecuteRequestAsync<RefreshSourceGeneratorsParams, object>(WorkspaceRefreshSourceGeneratorsHandler.MethodName, refreshSourceGeneratorsParams, CancellationToken.None);
+            await this.WaitForSourceGeneratorsAsync();
+        }
+
+        public Task<TextDocumentContentResult?> GetSourceGeneratedDocumentTextAsync(DocumentUri documentUri)
+        {
+            return ExecuteRequestAsync<TextDocumentContentParams, TextDocumentContentResult>(
+                Methods.WorkspaceTextDocumentContentName,
+                new TextDocumentContentParams { Uri = documentUri },
+                CancellationToken.None);
+        }
+
         public async Task ShutdownTestServerAsync()
         {
             await _clientRpc.InvokeAsync(LSP.Methods.ShutdownName).ConfigureAwait(false);
@@ -888,7 +910,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         internal AbstractLanguageServer<RequestContext>.TestAccessor GetServerAccessor() => _languageServer.Value.GetTestAccessor();
 
-        internal T GetRequiredLspService<T>() where T : class, ILspService => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
+        internal T GetRequiredLspService<T>() where T : class => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
 
         internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.SourceText)];
 

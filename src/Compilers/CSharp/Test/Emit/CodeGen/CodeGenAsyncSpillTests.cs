@@ -8514,10 +8514,11 @@ struct S
                 """);
         }
 
-        [Fact]
-        public void SpillAssignmentToThisStruct_02()
+        [Theory]
+        [CombinatorialData]
+        public void SpillAssignmentToThisStruct_02(bool disableRuntimeAsync)
         {
-            var source = """
+            var source = $$"""
                 using System;
                 using System.Threading.Tasks;
                 struct S : I
@@ -8543,6 +8544,7 @@ struct S
                 {
                     extension<T>(T t) where T : I
                     {
+                        {{(disableRuntimeAsync ? "[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]" : "")}}
                         public async Task M()
                         {
                             t.P = 1;
@@ -8553,30 +8555,38 @@ struct S
                 """;
 
             var expectedOutput = "0";
-            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            CompileAndVerify([source, RuntimeAsyncMethodGenerationAttributeDefinition], expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify([source, RuntimeAsyncMethodGenerationAttributeDefinition], expectedOutput: expectedOutput, options: TestOptions.DebugExe);
 
-            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
-                ILVerifyMessage = """
+                ILVerifyMessage = disableRuntimeAsync
+                    ? """
+                    [Main]: Return value missing on the stack. { Offset = 0x1f }
+                    """
+                    : """
                     [Main]: Return value missing on the stack. { Offset = 0x1f }
                     [M]: Return value missing on the stack. { Offset = 0xe }
                     """
             });
 
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Extensions.M<T>(this T)", """
-                {
-                  // Code size       15 (0xf)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  ldc.i4.1
-                  IL_0003:  constrained. "T"
-                  IL_0009:  callvirt   "void I.P.set"
-                  IL_000e:  ret
-                }
-                """);
+            if (!disableRuntimeAsync)
+            {
+
+                verifier.VerifyIL("Extensions.M<T>(this T)", """
+                    {
+                      // Code size       15 (0xf)
+                      .maxstack  2
+                      IL_0000:  ldarga.s   V_0
+                      IL_0002:  ldc.i4.1
+                      IL_0003:  constrained. "T"
+                      IL_0009:  callvirt   "void I.P.set"
+                      IL_000e:  ret
+                    }
+                    """);
+            }
         }
 
         [Fact]

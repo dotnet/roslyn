@@ -268,6 +268,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 ];
             }
 
+            if (RuntimeHostInfo.ShouldDisableTieredCompilation && Environment.GetEnvironmentVariable(RuntimeHostInfo.DotNetTieredCompilationEnvironmentName) == null)
+            {
+                var value = "0";
+                Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);
+                EnvironmentVariables =
+                [
+                    .. EnvironmentVariables ?? [],
+                    $"{RuntimeHostInfo.DotNetTieredCompilationEnvironmentName}={value}",
+                ];
+            }
+
             return base.ValidateParameters();
         }
     }

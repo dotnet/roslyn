@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim engineResult As RenameEngineResult = Nothing
             Try
                 If workspace.Documents.Where(Function(d) d.CursorPosition.HasValue).Count <> 1 Then
-                    AssertEx.Fail("The test must have a single $$ marking the symbol being renamed.")
+                    Assert.Fail("The test must have a single $$ marking the symbol being renamed.")
                 End If
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim symbol = RenameUtilities.TryGetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
                 If symbol Is Nothing Then
-                    AssertEx.Fail("The symbol touching the $$ could not be found.")
+                    Assert.Fail("The symbol touching the $$ could not be found.")
                 End If
 
                 Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, renameOptions, host)
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             If locations.Count = 0 Then
                 _failedAssert = True
-                AssertEx.Fail(String.Format("The label '{0}' was not mentioned in the test.", label))
+                Assert.Fail(String.Format("The label '{0}' was not mentioned in the test.", label))
             End If
 
             Return locations
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             ' over. So let's just suppress these so we don't lose the root cause
             If Not _failedAssert Then
                 If _unassertedRelatedLocations.Count > 0 Then
-                    AssertEx.Fail(
+                    Assert.Fail(
                         "There were additional related locations that were unasserted:" + Environment.NewLine _
                         + String.Join(Environment.NewLine,
                             From location In _unassertedRelatedLocations

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ImmutableArray<string> lazyConditionalAttributeSymbols;
             internal ObsoleteAttributeData lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             internal AttributeUsageInfo lazyAttributeUsageInfo = AttributeUsageInfo.Null;
-            internal ThreeState lazyContainsExtensionMethods;
+            internal ThreeState lazyContainsExtensions;
             internal ThreeState lazyIsByRefLike;
             internal ThreeState lazyIsReadOnly;
             internal string lazyDefaultMemberName;
@@ -150,6 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
+            internal ThreeState lazyHasUnionAttribute = ThreeState.Unknown;
+
+            internal ThreeState lazyIsClosed = ThreeState.Unknown;
+            internal ImmutableArray<NamedTypeSymbol> lazyCandidateClosedSubtypeDefinitions = default;
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
@@ -164,12 +168,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyConditionalAttributeSymbols.IsDefault &&
                     lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized &&
                     lazyAttributeUsageInfo.IsNull &&
-                    !lazyContainsExtensionMethods.HasValue() &&
+                    !lazyContainsExtensions.HasValue() &&
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue() &&
+                    !lazyHasCompilerLoweringPreserveAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
+                    !lazyHasUnionAttribute.HasValue() &&
+                    !lazyIsClosed.HasValue() &&
+                    lazyCandidateClosedSubtypeDefinitions.IsDefault &&
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
@@ -692,6 +700,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool IsUnionTypeCore
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyHasUnionAttribute.HasValue())
+                {
+                    uncommon.lazyHasUnionAttribute = ContainingPEModule.Module.FindTargetAttribute(_handle, AttributeDescription.UnionAttribute).HasValue.ToThreeState();
+                }
+
+                return uncommon.lazyHasUnionAttribute.Value();
+            }
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get
@@ -929,52 +956,85 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return ImmutableArray<CSharpAttributeData>.Empty;
             }
 
-            if (uncommon.lazyCustomAttributes.IsDefault)
+            if (RoslynImmutableInterlocked.VolatileRead(in uncommon.lazyCustomAttributes).IsDefault)
             {
-                ImmutableArray<CSharpAttributeData> loadedCustomAttributes;
-                CustomAttributeHandle requiredHandle;
+                ImmutableArray<CSharpAttributeData> loadedCustomAttributes = loadAndFilterAttributes(out var hasRequiredMembers, out var isClosed);
+
+                if (!uncommon.lazyHasRequiredMembers.HasValue())
+                {
+                    uncommon.lazyHasRequiredMembers = hasRequiredMembers.ToThreeState();
+                }
+                Debug.Assert(uncommon.lazyHasRequiredMembers.Value() == hasRequiredMembers);
+
+                if (!uncommon.lazyIsClosed.HasValue())
+                {
+                    uncommon.lazyIsClosed = isClosed.ToThreeState();
+                }
+                Debug.Assert(uncommon.lazyIsClosed.Value() == isClosed);
+
+                ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
+            }
+
+            return uncommon.lazyCustomAttributes;
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes(out bool hasRequiredMembers, out bool isClosed)
+            {
+                hasRequiredMembers = false;
+                isClosed = false;
 
                 if (IsExtension)
                 {
                     // We do not recognize any attributes on extension blocks
-                    loadedCustomAttributes = [];
-                    requiredHandle = default;
+                    return [];
                 }
-                else
+
+                var containingModule = ContainingPEModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(_handle, out var customAttributeHandles))
                 {
-                    loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
-                        Handle,
-                        out _,
-                        // Filter out [Extension]
-                        MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
-                        out _,
-                        // Filter out [Obsolete], unless it was user defined
-                        (IsRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
-                        out _,
-                        // Filter out [IsReadOnly]
-                        IsReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
-                        out _,
-                        // Filter out [IsByRefLike]
-                        IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default,
-                        out _,
-                        // Filter out [CompilerFeatureRequired]
-                        (IsRefLikeType && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
-                        out requiredHandle,
-                        // Filter out [RequiredMember]
-                        AttributeDescription.RequiredMemberAttribute);
+                    return [];
                 }
 
-                ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
+                var filterExtensionAttribute = MightContainExtensions;
+                var filterObsoleteAttribute = IsRefLikeType && ObsoleteAttributeData is null;
+                var filterIsReadOnlyAttribute = IsReadOnly;
+                var filterIsByRefLikeAttribute = IsRefLikeType;
+                var filterCompilerFeatureRequiredAttribute = filterIsByRefLikeAttribute && DeriveCompilerFeatureRequiredDiagnostic() is null;
 
-                if (!uncommon.lazyHasRequiredMembers.HasValue())
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
                 {
-                    uncommon.lazyHasRequiredMembers = (!requiredHandle.IsNil).ToThreeState();
+                    if (filterExtensionAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                        continue;
+
+                    if (filterObsoleteAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.ObsoleteAttribute))
+                        continue;
+
+                    if (filterIsReadOnlyAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsReadOnlyAttribute))
+                        continue;
+
+                    if (filterIsByRefLikeAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsByRefLikeAttribute))
+                        continue;
+
+                    if (filterCompilerFeatureRequiredAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CompilerFeatureRequiredAttribute))
+                        continue;
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.RequiredMemberAttribute))
+                    {
+                        hasRequiredMembers = true;
+                        continue;
+                    }
+
+                    if (containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsClosedTypeAttribute))
+                    {
+                        isClosed = true;
+                        continue;
+                    }
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
                 }
 
-                Debug.Assert(uncommon.lazyHasRequiredMembers.Value() != requiredHandle.IsNil);
+                return builder.ToImmutableAndClear();
             }
-
-            return uncommon.lazyCustomAttributes;
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
@@ -1134,6 +1194,154 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var hasRequiredMemberAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiredMemberAttribute);
                 uncommon.lazyHasRequiredMembers = hasRequiredMemberAttribute.ToThreeState();
                 return hasRequiredMemberAttribute;
+            }
+        }
+
+        internal sealed override bool IsClosed
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (uncommon.lazyIsClosed.HasValue())
+                {
+                    return uncommon.lazyIsClosed.Value();
+                }
+
+                var hasIsClosedTypeAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.IsClosedTypeAttribute);
+                uncommon.lazyIsClosed = hasIsClosedTypeAttribute.ToThreeState();
+                return hasIsClosedTypeAttribute;
+            }
+        }
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions
+        {
+            get
+            {
+                if (!IsClosed)
+                    return [];
+
+                var uncommon = GetUncommonProperties();
+                if (RoslynImmutableInterlocked.VolatileRead(in uncommon.lazyCandidateClosedSubtypeDefinitions).IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCandidateClosedSubtypeDefinitions, findClosedSubtypes());
+                }
+
+                return uncommon.lazyCandidateClosedSubtypeDefinitions;
+
+                ImmutableArray<NamedTypeSymbol> findClosedSubtypes()
+                {
+                    var subtypeDefinitionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                    var metadataReader = ContainingPEModule.Module.MetadataReader;
+                    var decoder = new MetadataDecoder(ContainingPEModule);
+                    var thisTypeIsGeneric = IsGenericType;
+                    try
+                    {
+                        foreach (var candidateTypeDefHandle in metadataReader.TypeDefinitions)
+                        {
+                            var typeDef = metadataReader.GetTypeDefinition(candidateTypeDefHandle);
+                            var baseTypeHandle = typeDef.BaseType;
+                            if (tryHandleTypeDefOrTypeRef(baseTypeHandle, candidateTypeDefHandle))
+                                continue;
+
+                            if (baseTypeHandle.Kind == HandleKind.TypeSpecification)
+                            {
+                                if (!thisTypeIsGeneric)
+                                    continue;
+
+                                // Dig through the TypeSpec and check the handle for the original definition.
+                                var sigReader = decoder.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)baseTypeHandle);
+                                var typeCode = sigReader.ReadSignatureTypeCode();
+                                if (typeCode != SignatureTypeCode.GenericTypeInstance)
+                                    continue;
+
+                                var elementType = sigReader.ReadSignatureTypeCode();
+                                if (elementType != SignatureTypeCode.TypeHandle)
+                                    throw new UnsupportedSignatureContent();
+
+                                var baseTypeDefinitionHandle = sigReader.ReadTypeHandle();
+                                if (tryHandleTypeDefOrTypeRef(baseTypeDefinitionHandle, candidateTypeDefHandle))
+                                    continue;
+                            }
+
+                            // Easy-outs did not work. Need to just decode a symbol and compare.
+                            var candidateSubtype = decoder.GetTypeOfToken(candidateTypeDefHandle);
+                            if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
+                                subtypeDefinitionsBuilder.Add((NamedTypeSymbol)candidateSubtype);
+                        }
+                    }
+                    catch (Exception ex) when (ex is BadImageFormatException or UnsupportedSignatureContent)
+                    {
+                        // https://github.com/dotnet/roslyn/issues/83617: It seems like we don't know what the candidate subtypes are in this case,
+                        // so, perhaps we should not allow exhausting the type via its subtypes.
+                    }
+
+                    return subtypeDefinitionsBuilder.ToImmutableAndFree();
+
+                    bool tryHandleTypeDefOrTypeRef(EntityHandle baseTypeHandle, TypeDefinitionHandle candidateTypeDefHandle)
+                    {
+                        if (baseTypeHandle.IsNil)
+                            return true;
+
+                        if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
+                        {
+                            if (baseTypeHandle == this.Handle)
+                            {
+                                var candidateSubtype = (NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle);
+                                if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
+                                {
+                                    subtypeDefinitionsBuilder.Add(candidateSubtype);
+                                }
+                            }
+
+                            return true;
+                        }
+
+                        if (baseTypeHandle.Kind == HandleKind.TypeReference)
+                        {
+                            // A TypeRef usually refers to a type in a different module, but, strictly, it is possible for it to refer to the current module.
+                            // Dig through any containing types of the TypeRef, to see if it is ultimately a reference to the current module.
+                            // In that case, we can fall through to handling it in the slow path.
+                            // Reject cases where 'this' and the candidate type, have a different ContainingType nesting depth.
+                            var originalTypeRef = metadataReader.GetTypeReference((TypeReferenceHandle)baseTypeHandle);
+                            var typeRef = originalTypeRef;
+                            NamedTypeSymbol container = this;
+                            while (typeRef.ResolutionScope.Kind == HandleKind.TypeReference)
+                            {
+                                if (container.ContainingType is null)
+                                    return true;
+
+                                typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)typeRef.ResolutionScope);
+                                container = container.ContainingType;
+                            }
+
+                            if (container.ContainingType is not null)
+                                return true;
+
+                            if (typeRef.ResolutionScope.Kind == HandleKind.ModuleReference)
+                            {
+                                // Note: module names are case insensitive. See also MetadataDecoder.LookupTopLevelTypeDefSymbol.
+                                var referencedModuleName = decoder.Module.GetModuleRefNameOrThrow((ModuleReferenceHandle)typeRef.ResolutionScope);
+                                if (!decoder.Module.Name.Equals(referencedModuleName, StringComparison.OrdinalIgnoreCase))
+                                    return true;
+                            }
+                            else if (typeRef.ResolutionScope != EntityHandle.ModuleDefinition)
+                            {
+                                return true;
+                            }
+
+                            // We have a TypeRef to a type in the same module.
+                            // Check for a difference in the simple names of the respective types.
+                            return !this.MetadataName.Equals(metadataReader.GetString(originalTypeRef.Name), StringComparison.Ordinal);
+                        }
+
+                        return false;
+                    }
+                }
             }
         }
 
@@ -1975,7 +2183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { throw ExceptionUtilities.Unreachable(); }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
@@ -1985,7 +2193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
-                if (!uncommon.lazyContainsExtensionMethods.HasValue())
+                if (!uncommon.lazyContainsExtensions.HasValue())
                 {
                     var contains = ThreeState.False;
                     // Dev11 supports extension methods defined on non-static
@@ -2003,7 +2211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             if ((object)containingAssembly != null)
                             {
                                 contains = (moduleHasExtension
-                                    && containingAssembly.MightContainExtensionMethods).ToThreeState();
+                                    && containingAssembly.MightContainExtensions).ToThreeState();
                             }
                             else
                             {
@@ -2012,10 +2220,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             break;
                     }
 
-                    uncommon.lazyContainsExtensionMethods = contains;
+                    uncommon.lazyContainsExtensions = contains;
                 }
 
-                return uncommon.lazyContainsExtensionMethods.Value();
+                return uncommon.lazyContainsExtensions.Value();
             }
         }
 

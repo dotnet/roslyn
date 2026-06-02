@@ -387,11 +387,6 @@
         <target state="translated">Nejde otevřít projekt {0}, protože přípona souboru {1} není přidružená k jazyku.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_open_project_0_because_the_language_1_is_not_supported">
-        <source>Cannot open project '{0}' because the language '{1}' is not supported.</source>
-        <target state="translated">Nejde otevřít projekt {0}, protože jazyk {1} se nepodporuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_project_file_path_colon_0">
         <source>Invalid project file path: '{0}'</source>
         <target state="translated">Neplatná cesta k souboru projektu: {0}</target>

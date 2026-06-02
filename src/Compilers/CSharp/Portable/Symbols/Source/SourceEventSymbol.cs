@@ -350,11 +350,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
-            else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.NullableAttribute
-                | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.TupleElementNamesAttribute
-                | ReservedAttributes.ExtensionMarkerAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(
+                in arguments,
+                permitted: ReservedAttributes.DynamicAttribute
+                    | ReservedAttributes.IsReadOnlyAttribute
+                    | ReservedAttributes.IsUnmanagedAttribute
+                    | ReservedAttributes.IsByRefLikeAttribute
+                    | ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute
+                    | ReservedAttributes.RequiresLocationAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute))
@@ -368,6 +376,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
                 diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt!.Location);
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt!.Location);
             }
         }
 
@@ -398,6 +410,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, containingType.GetNullableContextValue(), type));
             }
+
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
+            }
         }
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
@@ -414,6 +431,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool HasSkipLocalsInitAttribute
             => GetDecodedWellKnownAttributeData()?.HasSkipLocalsInitAttribute == true;
+
+        internal bool HasSafeModifier
+            => (_modifiers & DeclarationModifiers.Safe) != 0;
 
         public sealed override bool IsAbstract
         {
@@ -452,9 +472,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
         }
 
-        private bool IsUnsafe
+        private bool HasUnsafeModifier
         {
             get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
+        }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    return HasUnsafeModifier
+                        ? CallerUnsafeMode.Explicit
+                        : CallerUnsafeMode.None;
+                }
+
+                return Type.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+            }
         }
 
         public sealed override Accessibility DeclaredAccessibility
@@ -556,6 +592,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern;
+            }
+
+            if ((allowedModifiers & DeclarationModifiers.Extern) != 0)
+            {
+                allowedModifiers |= DeclarationModifiers.Safe;
             }
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
@@ -819,7 +860,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected TypeWithAnnotations BindEventType(Binder binder, TypeSyntax typeSyntax, BindingDiagnosticBag diagnostics)
         {
             // NOTE: no point in reporting unsafe errors in the return type - anything unsafe will either
-            // fail to be a delegate or will be (invalidly) passed as a type argument.
+            //       fail to be a delegate or will be (invalidly) passed as a type argument.
+            //       Actually, this is wrong (e.g., `Action<int*[]>` is valid): https://github.com/dotnet/roslyn/issues/81944.
             // Prevent constraint checking.
             binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressUnsafeDiagnostics, this);
 
@@ -843,6 +885,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations.NeedsNullableAttribute())
             {
                 compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, location));
+            }
+
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                    (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.UnsafeKeyword, location),
+                    modifyCompilation: true);
+            }
+
+            if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
+            {
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, location));
             }
 
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();
@@ -893,9 +954,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberStaticDifference, implementation.GetFirstLocation());
             }
 
-            if (IsUnsafe != implementation.IsUnsafe && this.CompilationAllowsUnsafe())
+            if (HasUnsafeModifier != implementation.HasUnsafeModifier && this.CompilationAllowsUnsafe())
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
+            }
+
+            if (HasSafeModifier != implementation.HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberSafeDifference, implementation.GetFirstLocation());
             }
 
             if (DeclaredAccessibility != implementation.DeclaredAccessibility

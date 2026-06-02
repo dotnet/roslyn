@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -38,15 +38,8 @@ internal sealed partial class BloomFilter
     /// ]]></summary>
     private BloomFilter(int expectedCount, double falsePositiveProbability, bool isCaseSensitive)
     {
-        var m = Math.Max(1, ComputeM(expectedCount, falsePositiveProbability));
-        var k = Math.Max(1, ComputeK(expectedCount, falsePositiveProbability));
-
-        // We must have size in even bytes, so that when we deserialize from bytes we get a bit array with the same count.
-        // The count is used by the hash functions.
-        var sizeInEvenBytes = (m + 7) & ~7;
-
-        _bitArray = new BitArray(length: sizeInEvenBytes);
-        _hashFunctionCount = k;
+        _bitArray = new BitArray(length: ComputeBitArrayLength(expectedCount, falsePositiveProbability));
+        _hashFunctionCount = Math.Max(1, ComputeK(expectedCount, falsePositiveProbability));
         _isCaseSensitive = isCaseSensitive;
     }
 
@@ -71,6 +64,16 @@ internal sealed partial class BloomFilter
         _bitArray = bitArray ?? throw new ArgumentNullException(nameof(bitArray));
         _hashFunctionCount = hashFunctionCount;
         _isCaseSensitive = isCaseSensitive;
+    }
+
+    /// <summary>
+    /// Computes the number of bits needed for a Bloom filter bit array, rounded up to an even byte boundary.
+    /// This is the canonical sizing formula used by all Bloom filter consumers (including analysis tools).
+    /// </summary>
+    internal static int ComputeBitArrayLength(int expectedCount, double falsePositiveProbability)
+    {
+        var m = Math.Max(1, ComputeM(expectedCount, falsePositiveProbability));
+        return (m + 7) & ~7;
     }
 
     // m = ceil((n * log(p)) / log(1.0 / (pow(2.0, log(2.0)))))
@@ -115,6 +118,9 @@ internal sealed partial class BloomFilter
     /// Murmur hash is public domain.  Actual code is included below as reference.
     /// </summary>
     private static int ComputeHash(string key, int seed, bool isCaseSensitive)
+        => ComputeHash(key.AsSpan(), seed, isCaseSensitive);
+
+    private static int ComputeHash(ReadOnlySpan<char> key, int seed, bool isCaseSensitive)
     {
         unchecked
         {
@@ -226,7 +232,7 @@ internal sealed partial class BloomFilter
         }
     }
 
-    private static char GetCharacter(string key, int index, bool isCaseSensitive)
+    private static char GetCharacter(ReadOnlySpan<char> key, int index, bool isCaseSensitive)
     {
         var c = key[index];
         return isCaseSensitive ? c : char.ToLowerInvariant(c);
@@ -317,6 +323,12 @@ internal sealed partial class BloomFilter
     }
 
     public void Add(string value)
+        => Add(value.AsSpan());
+
+    public void Add(char value)
+        => Add([value]);
+
+    public void Add(ReadOnlySpan<char> value)
     {
         for (var i = 0; i < _hashFunctionCount; i++)
         {
@@ -352,6 +364,28 @@ internal sealed partial class BloomFilter
         for (var i = 0; i < _hashFunctionCount; i++)
         {
             var hash = hashes[i];
+            if (!_bitArray[GetBitArrayIndexFromHash(hash)])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public bool ProbablyContains(char value)
+        => ProbablyContains([value]);
+
+    /// <remarks>
+    /// Not shared with the <see cref="ProbablyContains(string)"/> overload because that version
+    /// caches computed hashes on the heap via <see cref="BloomFilterHash"/>, which is a significant
+    /// win when the same string is checked repeatedly across many bloom filters.
+    /// </remarks>
+    public bool ProbablyContains(ReadOnlySpan<char> value)
+    {
+        for (var i = 0; i < _hashFunctionCount; i++)
+        {
+            var hash = ComputeHash(value, i, _isCaseSensitive);
             if (!_bitArray[GetBitArrayIndexFromHash(hash)])
             {
                 return false;

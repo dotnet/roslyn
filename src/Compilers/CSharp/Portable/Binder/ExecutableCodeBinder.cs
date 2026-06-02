@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_VarargsIterator, errorLocation);
             }
 
-            if (((iterator as SourceMemberMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
+            if ((iterator as SourceMethodSymbol)?.IntroducesUnsafeContext == true
                 && compilation.Options.AllowUnsafe) // Don't cascade
             {
                 MessageID.IDS_FeatureRefUnsafeInIteratorAsync.CheckFeatureAvailability(diagnostics, compilation, errorLocation);

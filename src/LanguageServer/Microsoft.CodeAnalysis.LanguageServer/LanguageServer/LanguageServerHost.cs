@@ -39,7 +39,6 @@ internal sealed class LanguageServerHost
         };
 
         var roslynLspFactory = exportProvider.GetExportedValue<ILanguageServerFactory>();
-        var capabilitiesProvider = new ServerCapabilitiesProvider(exportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>());
 
         _logger = loggerFactory.CreateLogger("LSP");
         var lspLogger = new LspServiceLogger(_logger);
@@ -48,7 +47,6 @@ internal sealed class LanguageServerHost
         _roslynLanguageServer = roslynLspFactory.Create(
             _jsonRpc,
             messageFormatter.JsonSerializerOptions,
-            capabilitiesProvider,
             WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             lspLogger,
             hostServices,
@@ -63,14 +61,20 @@ internal sealed class LanguageServerHost
         Instance = this;
     }
 
-    public async Task WaitForExitAsync()
+    public Task WaitForExitAsync()
     {
-        await _jsonRpc.Completion;
-        await _roslynLanguageServer.WaitForExitAsync();
+        // Wait until the server exits.  Once complete, we can return and proceed with shutdown.
+        // The server is responsible for cleaning up its resources and disposing of the `_jsonRpc` instance.
+        //
+        // Note - we specifically do not await `_jsonRpc.Completion` here.  This is safe (and preferred) for a few reasons:
+        //   1.  The server exiting is the only signal we need to know that we're done.  Either the client has sent an explicit `exit`, or the
+        //       server observed an unexpected disconnect which internally triggers a clean server exit.
+        //   2.  On some platforms (Unix), `_jsonRpc.Completion` will not complete until the client closes its end of the transport or sends new data
+        //       even if the `_jsonRpc` instance has been disposed of (due to a synchronous read syscall that does not observe disposal).  The server
+        //       should still shutdown regardless - we've been told to exit, so exit.
+        return _roslynLanguageServer.WaitForExitAsync();
     }
 
-    public T GetRequiredLspService<T>() where T : ILspService
-    {
-        return _roslynLanguageServer.GetLspServices().GetRequiredService<T>();
-    }
+    public ILspServices GetLspServices()
+        => _roslynLanguageServer.GetLspServices();
 }

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
@@ -14,17 +13,21 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal readonly struct ProjectInstanceReader
 {
-    private readonly ProjectCommandLineProvider _commandLineProvider;
+    private readonly ProjectCommandLineProvider? _commandLineProvider;
     public readonly MSB.Evaluation.Project? Project;
     public readonly MSB.Execution.ProjectInstance _projectInstance;
 
     private readonly string _projectDirectory;
 
+    public string Language { get; }
+
     public ProjectInstanceReader(
-        ProjectCommandLineProvider commandLineReader,
+        string language,
+        ProjectCommandLineProvider? commandLineReader,
         MSB.Execution.ProjectInstance projectInstance,
         MSB.Evaluation.Project? project)
     {
+        Language = language;
         _commandLineProvider = commandLineReader;
         _projectInstance = projectInstance;
         Project = project;
@@ -34,12 +37,9 @@ internal readonly struct ProjectInstanceReader
     public string FilePath
         => _projectInstance.FullPath;
 
-    public string Language
-        => _commandLineProvider.Language;
-
     public ProjectFileInfo CreateProjectFileInfo()
     {
-        var commandLineArgs = GetCommandLineArgs(_projectInstance);
+        var commandLineArgs = TryGetCommandLineArgs(_projectInstance);
 
         var outputFilePath = _projectInstance.ReadPropertyString(PropertyNames.TargetPath);
         if (!RoslynString.IsNullOrWhiteSpace(outputFilePath))
@@ -83,22 +83,36 @@ internal readonly struct ProjectInstanceReader
 
         var targetFrameworkVersion = _projectInstance.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
 
-        var docs = _projectInstance.GetDocuments().SelectAsArray(
-            predicate: IsNotTemporaryGeneratedFile,
-            selector: MakeDocumentFileInfo);
+        var docs = _projectInstance.GetDocuments()
+            .Where(IsNotTemporaryGeneratedFile)
+            .Select(MakeDocumentFileInfo)
+            .ToArray();
 
         var additionalDocs = _projectInstance.GetAdditionalFiles()
-            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
+            .Select(MakeNonSourceFileDocumentFileInfo)
+            .ToArray();
 
         var analyzerConfigDocs = _projectInstance.GetEditorConfigFiles()
-            .SelectAsArray(MakeNonSourceFileDocumentFileInfo);
+            .Select(MakeNonSourceFileDocumentFileInfo)
+            .ToArray();
 
         var packageReferences = _projectInstance.GetPackageReferences();
 
-        var projectCapabilities = _projectInstance.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
-        var contentFileInfo = GetContentFiles(_projectInstance);
+        // Do not pass metadata references if we have command line args that already specify them.
+        var metadataReferences = commandLineArgs.Length == 0 ? _projectInstance.GetMetadataReferences().ToArray() : [];
 
-        var fileGlobs = Project?.GetAllGlobs().SelectAsArray(GetFileGlobs) ?? [];
+        var projectCapabilities = _projectInstance.GetItems(ItemNames.ProjectCapability).Select(item => item.ToString()).ToArray();
+        var contentFileInfo = GetContentFiles(_projectInstance);
+        var codePage = _projectInstance.ReadCodePage();
+
+        var checksumAlgorithm = _projectInstance.ReadPropertyString(PropertyNames.ChecksumAlgorithm);
+        if (string.IsNullOrEmpty(checksumAlgorithm))
+        {
+            // F# uses PdbChecksumAlgorithm property name
+            checksumAlgorithm = _projectInstance.ReadPropertyString(PropertyNames.PdbChecksumAlgorithm);
+        }
+
+        var fileGlobs = Project?.GetAllGlobs().Select(GetFileGlobs).ToArray() ?? [];
 
         return new ProjectFileInfo()
         {
@@ -119,6 +133,9 @@ internal readonly struct ProjectInstanceReader
             AnalyzerConfigDocuments = analyzerConfigDocs,
             ProjectReferences = [.. _projectInstance.GetProjectReferences()],
             PackageReferences = packageReferences,
+            MetadataReferences = metadataReferences,
+            CodePage = codePage,
+            ChecksumAlgorithm = checksumAlgorithm,
             ProjectCapabilities = projectCapabilities,
             ContentFilePaths = contentFileInfo,
             FileGlobs = fileGlobs
@@ -133,18 +150,25 @@ internal readonly struct ProjectInstanceReader
         }
     }
 
-    private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
+    private static string[] GetContentFiles(MSB.Execution.ProjectInstance project)
     {
         var contentFiles = project
             .GetItems(ItemNames.Content)
-            .SelectAsArray(item => item.GetMetadataValue(MetadataNames.FullPath));
+            .Select(item => item.GetMetadataValue(MetadataNames.FullPath))
+            .ToArray();
         return contentFiles;
     }
 
-    private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
+    private string[] TryGetCommandLineArgs(MSB.Execution.ProjectInstance project)
     {
+        if (_commandLineProvider == null)
+        {
+            return [];
+        }
+
         var commandLineArgs = _commandLineProvider.GetCompilerCommandLineArgs(project)
-            .SelectAsArray(item => item.ItemSpec);
+            .Select(item => item.ItemSpec)
+            .ToArray();
 
         if (commandLineArgs.Length == 0)
         {
@@ -181,18 +205,18 @@ internal readonly struct ProjectInstanceReader
         return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated: false, folders);
     }
 
-    private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
+    private string[] GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
     {
         var linkPath = documentItem.GetMetadata(MetadataNames.Link);
         if (!RoslynString.IsNullOrEmpty(linkPath))
         {
-            return [.. PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar)];
+            return PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar);
         }
         else
         {
             var filePath = documentItem.ItemSpec;
             var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
-            var folders = relativePath == null ? [] : relativePath.Split([PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            var folders = relativePath == null ? [] : relativePath.Split([PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
             return folders;
         }
     }

@@ -3,10 +3,6 @@
 #nullable enable
 using System.Reflection;
 
-namespace TestProject
-{
-    internal static class Resources { }
-}
 namespace NS1
 {
     /// <summary>
@@ -18,7 +14,7 @@ namespace NS1
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
-        public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof(TestProject.Resources)));
+        public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager("TestProject.Resources", typeof(NS2).Assembly));
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.

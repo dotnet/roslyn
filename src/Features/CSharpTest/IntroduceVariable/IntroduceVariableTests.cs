@@ -7749,7 +7749,7 @@ class C
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44291")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/44291")]
     public Task TestIntroduceWithAmbiguousExtensionClass()
         => TestInRegularAndScriptAsync(
             """

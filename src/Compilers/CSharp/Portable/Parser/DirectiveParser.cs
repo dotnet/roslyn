@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // Always parse as a shebang directive, but report an error if not at position 0
                         if (hashPosition != 0 || hash.HasTrailingTrivia)
                         {
-                            hash = this.AddError(hash, ErrorCode.ERR_BadDirectivePlacement);
+                            hash = this.AddError(hash, ErrorCode.ERR_PPShebangNotOnFirstLine);
                         }
 
                         result = this.ParseShebangDirective(hash, this.EatToken(SyntaxKind.ExclamationToken), isActive);

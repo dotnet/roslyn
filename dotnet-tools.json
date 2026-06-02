@@ -5,13 +5,15 @@
       "version": "7.0.360304",
       "commands": [
         "dotnet-format"
-      ]
+      ],
+      "rollForward": false
     },
     "powershell": {
-      "version": "7.0.0",
+      "version": "7.6.0",
       "commands": [
         "pwsh"
-      ]
+      ],
+      "rollForward": false
     }
   }
 }

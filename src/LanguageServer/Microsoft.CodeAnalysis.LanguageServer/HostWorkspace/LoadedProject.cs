@@ -3,11 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -22,14 +17,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// </summary>
 internal sealed class LoadedProject : IDisposable
 {
-    private readonly string _projectFilePath;
-    private readonly string _projectDirectory;
+    private readonly string? _projectFilePath;
+    private readonly string? _projectDirectory;
 
     private readonly ProjectSystemProject _projectSystemProject;
     public ProjectSystemProjectFactory ProjectFactory { get; }
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
-    private readonly IFileChangeContext _sourceFileChangeContext;
-    private readonly IFileChangeContext _projectFileChangeContext;
+    private readonly IFileChangeContext? _sourceFileCreatedOrDeletedChangeContext;
+    private readonly IFileChangeContext? _projectFileChangeContext;
     private readonly IFileChangeContext _assetsFileChangeContext;
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
 
@@ -48,7 +43,6 @@ internal sealed class LoadedProject : IDisposable
 
     public LoadedProject(ProjectSystemProject projectSystemProject, ProjectSystemProjectFactory projectFactory, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
     {
-        Contract.ThrowIfNull(projectSystemProject.FilePath);
         _projectFilePath = projectSystemProject.FilePath;
 
         _projectSystemProject = projectSystemProject;
@@ -58,21 +52,28 @@ internal sealed class LoadedProject : IDisposable
 
         // We'll watch the directory for all source file changes
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
-        _projectDirectory = Path.GetDirectoryName(_projectFilePath)!;
+        _projectDirectory = Path.GetDirectoryName(_projectFilePath);
+        if (_projectDirectory is not null)
+        {
+            _sourceFileCreatedOrDeletedChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
+            _sourceFileCreatedOrDeletedChangeContext.FileChanged += SourceFileCreatedOrDeletedChangeContext_FileChanged;
+        }
 
-        _sourceFileChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
-        _sourceFileChangeContext.FileChanged += SourceFileChangeContext_FileChanged;
-
-        _projectFileChangeContext = fileWatcher.CreateContext([]);
-        _projectFileChangeContext.FileChanged += ProjectFileChangeContext_FileChanged;
-        _projectFileChangeContext.EnqueueWatchingFile(_projectFilePath);
+        if (_projectFilePath is not null)
+        {
+            _projectFileChangeContext = fileWatcher.CreateContext([]);
+            _projectFileChangeContext.FileChanged += ProjectFileChangeContext_FileChanged;
+            _projectFileChangeContext.EnqueueWatchingFile(_projectFilePath);
+        }
 
         _assetsFileChangeContext = fileWatcher.CreateContext([]);
         _assetsFileChangeContext.FileChanged += AssetsFileChangeContext_FileChanged;
     }
 
-    private void SourceFileChangeContext_FileChanged(object? sender, string filePath)
+    private void SourceFileCreatedOrDeletedChangeContext_FileChanged(object? sender, string filePath)
     {
+        Contract.ThrowIfNull(_projectDirectory);
+
         var matchers = _mostRecentFileMatchers?.Value;
         if (matchers is null)
         {
@@ -133,13 +134,13 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     public void Dispose()
     {
-        _sourceFileChangeContext.Dispose();
-        _projectFileChangeContext.Dispose();
+        _sourceFileCreatedOrDeletedChangeContext?.Dispose();
+        _projectFileChangeContext?.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask<(OutputKind OutputKind, ImmutableArray<CommandLineReference> MetadataReferences, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, bool isMiscellaneousFile, ILogger logger)
+    public async ValueTask<(OutputKind OutputKind, ImmutableArray<CommandLineReference> MetadataReferences, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, bool isMiscellaneousFile, bool hasAllInformation, ILogger logger)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -163,22 +164,35 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.GeneratedFilesOutputDirectory = newProjectInfo.GeneratedFilesOutputDirectory;
         _projectSystemProject.CompilationOutputAssemblyFilePath = newProjectInfo.IntermediateOutputFilePath;
         _projectSystemProject.DefaultNamespace = newProjectInfo.DefaultNamespace;
-        _projectSystemProject.HasAllInformation = !isMiscellaneousFile;
+        _projectSystemProject.HasAllInformation = hasAllInformation;
 
         if (newProjectInfo.TargetFrameworkIdentifier != null)
         {
             _targetFrameworkManager.UpdateIdentifierForProject(_projectSystemProject.Id, newProjectInfo.TargetFrameworkIdentifier);
         }
 
-        _optionsProcessor.SetCommandLine(newProjectInfo.CommandLineArgs);
+        _optionsProcessor.SetCommandLine([.. newProjectInfo.CommandLineArgs]);
         var commandLineArguments = _optionsProcessor.GetParsedCommandLineArguments();
 
         UpdateProjectSystemProjectCollection(
             newProjectInfo.Documents,
             _mostRecentFileInfo?.Documents,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddSourceFile(document.FilePath, folders: document.Folders),
-            document => _projectSystemProject.RemoveSourceFile(document.FilePath),
+            document =>
+            {
+                if (PathUtilities.IsAbsolute(document.FilePath))
+                    _projectSystemProject.AddSourceFile(document.FilePath, folders: [.. document.Folders]);
+                else
+                    // When the file doesn't have an absolute path, then we think it doesn't exist on disk.
+                    // e.g. it is a virtual document for an unsaved file or similar.
+                    // In this case we just put a SourceTextContainer with empty text for it and rely on the LSP's solution forking to ensure it has up to date text.
+                    _projectSystemProject.AddSourceTextContainer(SourceText.From("").Container, document.FilePath, folders: [.. document.Folders]);
+            },
+            document =>
+            {
+                Contract.ThrowIfFalse(PathUtilities.IsAbsolute(document.FilePath), "We do not expect to remove a file which is not on disk from the project.");
+                _projectSystemProject.RemoveSourceFile(document.FilePath);
+            },
             "Project {0} now has {1} source file(s). ({2} added, {3} removed.)");
 
         var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
@@ -226,7 +240,7 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.AdditionalDocuments,
             _mostRecentFileInfo?.AdditionalDocuments,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: document.Folders),
+            document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: [.. document.Folders]),
             document => _projectSystemProject.RemoveAdditionalFile(document.FilePath),
             "Project {0} now has {1} additional file(s). ({2} added, {3} removed.)");
 

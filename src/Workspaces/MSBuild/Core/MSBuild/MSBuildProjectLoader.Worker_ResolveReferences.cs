@@ -184,14 +184,8 @@ public partial class MSBuildProjectLoader
                 => new(GetProjectReferences(), GetMetadataReferences());
         }
 
-        private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, CommandLineArguments commandLineArgs, CancellationToken cancellationToken)
+        private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, IEnumerable<MetadataReference> resolvedMetadataReferences, CancellationToken cancellationToken)
         {
-            // First, gather all of the metadata references from the command-line arguments.
-            var resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
-                new WorkspaceMetadataFileReferenceResolver(
-                    metadataService: _solutionServices.GetRequiredService<IMetadataService>(),
-                    pathResolver: new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
-
             var builder = new ResolvedReferencesBuilder(resolvedMetadataReferences);
 
             var projectDirectory = PathUtilities.GetDirectoryName(projectFileInfo.FilePath);
@@ -205,7 +199,7 @@ public partial class MSBuildProjectLoader
                 if (_pathResolver.TryGetAbsoluteProjectPath(projectFileReference.Path, baseDirectory: projectDirectory, _discoveredProjectOptions.OnPathFailure, out var projectReferencePath))
                 {
                     // The easiest case is to add a reference to a project we already know about.
-                    if (TryAddReferenceToKnownProject(id, projectReferencePath, aliases, builder))
+                    if (TryAddReferenceToKnownProject(id, projectReferencePath, aliases.ToImmutableArray(), builder))
                     {
                         continue;
                     }
@@ -228,7 +222,7 @@ public partial class MSBuildProjectLoader
                         }
 
                         // Finally, we'll try to load and reference the project.
-                        if (await TryLoadAndAddReferenceAsync(id, projectReferencePath, aliases, builder, cancellationToken).ConfigureAwait(false))
+                        if (await TryLoadAndAddReferenceAsync(id, projectReferencePath, [.. aliases], builder, cancellationToken).ConfigureAwait(false))
                         {
                             continue;
                         }
@@ -250,7 +244,7 @@ public partial class MSBuildProjectLoader
 
                 // We weren't able to handle this project reference, so add it without further processing.
                 var unknownProjectId = _projectMap.GetOrCreateProjectId(projectFileReference.Path);
-                var newProjectReference = CreateProjectReference(from: id, to: unknownProjectId, aliases);
+                var newProjectReference = CreateProjectReference(from: id, to: unknownProjectId, [.. aliases]);
                 builder.AddProjectReference(newProjectReference);
             }
 

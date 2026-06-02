@@ -230,11 +230,10 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
         if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
         {
             var uiThreadOperationExecutor = _componentModel.GetService<IUIThreadOperationExecutor>();
-            // TODO(cyrusn): Can this be cancellable?
             uiThreadOperationExecutor.Execute(
-                "Intellisense",
-                defaultDescription: "",
-                allowCancellation: false,
+                ServicesVSResources.Visual_Studio,
+                defaultDescription: ServicesVSResources.Formatting_new_document,
+                allowCancellation: true,
                 showProgress: false,
                 action: c => FormatDocumentCreatedFromTemplate(pHier, pszMkDocument, c.UserCancellationToken));
         }
@@ -282,7 +281,7 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
                 out pguidCmdUI);
     }
 
-    private async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, string filePath, CancellationToken cancellationToken)
+    internal async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, string filePath, CancellationToken cancellationToken)
     {
         // A file has been created on disk which the user added from the "Add Item" dialog. We need
         // to include this in a workspace to figure out the right options it should be formatted with.
@@ -338,7 +337,10 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
                 loader: fileLoader,
                 filePath: filePath));
 
-        var addedDocument = forkedSolution.GetRequiredDocument(documentId);
+        // Call WithFrozenPartialSemantics so we don't do expensive work here. Since this could be runnnig during the creation of a new solution or project, our OOP process
+        // might not be running yet. Expecting full semantics would mean we might need to synchronize everything OOP to run generators or other semantics, and that causes
+        // UI delays.
+        var addedDocument = forkedSolution.GetRequiredDocument(documentId).WithFrozenPartialSemantics(cancellationToken);
 
         var cleanupOptions = await addedDocument.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(true);
 

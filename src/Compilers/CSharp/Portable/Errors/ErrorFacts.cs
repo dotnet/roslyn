@@ -210,6 +210,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_UnsafeMeaningless:
+                    // Warning level 11 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 11 (C# 15) and that can be reported for pre-existing code.
+                    return 11;
                 case ErrorCode.WRN_UnassignedInternalRefField:
                     // Warning level 10 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 10 (C# 14) and that can be reported for pre-existing code.
@@ -1971,7 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_NullableUnconstrainedTypeParameter
                 or ErrorCode.ERR_AnnotationDisallowedInObjectCreation
                 or ErrorCode.WRN_NullableValueTypeMayBeNull
-                or ErrorCode.ERR_NullableOptionNotAvailable
+                or ErrorCode.ERR_CompilationOptionNotAvailable
                 or ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint
                 or ErrorCode.WRN_MissingNonNullTypesContextForAnnotation
                 or ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation
@@ -2344,7 +2348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_ParamsArrayInLambdaOnly
                 or ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget
                 or ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation
-                or ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion
+                or ErrorCode.ERR_UnrecognizedAttributeVersion
                 or ErrorCode.ERR_InvalidPrimaryConstructorParameterReference
                 or ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
                 or ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase
@@ -2524,6 +2528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_OperatorMismatchOnOverride
                 or ErrorCode.ERR_BadCompoundAssignmentOpArgs
                 or ErrorCode.ERR_PPShebangInProjectBasedProgram
+                or ErrorCode.ERR_PPShebangNotOnFirstLine
                 or ErrorCode.ERR_NameofExtensionMember
                 or ErrorCode.ERR_BadExtensionUnaryOperatorSignature
                 or ErrorCode.ERR_BadExtensionIncDecSignature
@@ -2566,6 +2571,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_StructLayoutAndExtendedLayout
                 or ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                 or ErrorCode.ERR_NoAwaitOnAsyncEnumerable
+                or ErrorCode.ERR_UnsafeOperation
+                or ErrorCode.ERR_UnsafeUninitializedStackAlloc
+                or ErrorCode.ERR_UnsafeMemberOperation
+                or ErrorCode.ERR_UnsafeMemberOperationCompat
+                or ErrorCode.ERR_CallerUnsafeOverridingSafe
+                or ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe
+                or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
+                or ErrorCode.ERR_ExpressionTreeContainsUnionConversion
+                or ErrorCode.ERR_UnionDeclarationNeedsCaseTypes
+                or ErrorCode.ERR_NoImplicitConversionToObject
+                or ErrorCode.ERR_UnionMatchingWrongPattern
+                or ErrorCode.ERR_InstanceFieldInUnion
+                or ErrorCode.ERR_InstanceCtorWithOneParameterInUnion
+                or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
+                or ErrorCode.ERR_UnsafeConstructorConstraint
+                or ErrorCode.WRN_UnsafeMeaningless
+                or ErrorCode.ERR_RequiresUnsafeAttributeInSource
+                or ErrorCode.ERR_ClosedTypeNameDisallowed
+                or ErrorCode.ERR_ClosedSealedStatic
+                or ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly
+                or ErrorCode.ERR_UnderspecifiedClosedSubtype
+                or ErrorCode.ERR_ClosedExplicitlyAbstract
+                or ErrorCode.ERR_MissingUnionCaseTypes
+                or ErrorCode.ERR_MissingUnionValueProperty
+                or ErrorCode.ERR_MemberProviderInUnionDeclaration
+                or ErrorCode.ERR_SafeModifierUnsupportedTarget
+                or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
+                or ErrorCode.ERR_PartialMemberSafeDifference
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

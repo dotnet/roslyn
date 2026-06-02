@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis
         INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName);
 
         /// <summary>
-        /// Determines if the assembly might contain extension methods.
-        /// If false, the assembly does not contain extension methods.
+        /// Determines if the assembly might contain extension members or methods.
+        /// If false, the assembly does not contain extension members or methods.
         /// </summary>
         bool MightContainExtensionMethods { get; }
 

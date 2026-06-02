@@ -66,4 +66,10 @@ public sealed class SolutionServices
 
     internal IEnumerable<T> FindLanguageServices<T>(HostWorkspaceServices.MetadataFilter filter)
         => _services.FindLanguageServices<T>(filter);
+
+    /// <summary>
+    /// Returns languages that support the given language service.
+    /// </summary>
+    internal ImmutableArray<string> GetSupportedLanguages<TLanguageService>() where TLanguageService : ILanguageService
+        => SupportedLanguagesArray.WhereAsArray(language => GetLanguageServices(language).GetService<TLanguageService>() != null);
 }

@@ -834,16 +834,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute |
-                ReservedAttributes.IsReadOnlyAttribute |
-                ReservedAttributes.RequiresLocationAttribute |
-                ReservedAttributes.IsUnmanagedAttribute |
-                ReservedAttributes.IsByRefLikeAttribute |
-                ReservedAttributes.TupleElementNamesAttribute |
-                ReservedAttributes.NullableAttribute |
-                ReservedAttributes.NativeIntegerAttribute |
-                ReservedAttributes.ScopedRefAttribute |
-                ReservedAttributes.ExtensionMarkerAttribute))
+                permitted: ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.AllowNullAttribute))
@@ -1627,7 +1622,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         {
                             var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+
+                            // We create unsafe binder so caller-unsafe errors in the signature are suppressed - there is no way user could suppress them there and they will be reported at the call site anyway.
+                            var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
@@ -1686,7 +1683,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         {
                             var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+
+                            // We create unsafe binder so caller-unsafe errors in the signature are suppressed - there is no way user could suppress them there and they will be reported at the call site anyway.
+                            var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;

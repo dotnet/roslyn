@@ -6,6 +6,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -117,6 +118,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e) when (IsIoRelatedException(e)) { }
             return path;
+        }
+
+        internal static bool TryCombine(string path1, string path2, [NotNullWhen(returnValue: true)] out string? combined)
+        {
+            try
+            {
+                combined = Path.Combine(path1, path2);
+                return true;
+            }
+            catch (Exception e) when (IsIoRelatedException(e))
+            {
+                combined = null;
+                return false;
+            }
         }
 
         internal static void DeleteNoThrow(string path)

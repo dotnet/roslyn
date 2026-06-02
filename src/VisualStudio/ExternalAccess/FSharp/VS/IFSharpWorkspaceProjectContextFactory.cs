@@ -110,7 +110,9 @@ internal sealed class FSharpWorkspaceProjectContext : IFSharpWorkspaceProjectCon
     }
 
     public void Dispose()
+#pragma warning disable CS0618 // Type or member is obsolete
         => _vsProjectContext.Dispose();
+#pragma warning restore CS0618 // Type or member is obsolete
 
     public IVsLanguageServiceBuildErrorReporter2? BuildErrorReporter
         => _vsProjectContext as IVsLanguageServiceBuildErrorReporter2;

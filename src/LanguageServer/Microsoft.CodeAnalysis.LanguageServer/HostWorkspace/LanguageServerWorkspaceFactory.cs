@@ -3,36 +3,36 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(LanguageServerWorkspaceFactory)), Shared]
-internal sealed class LanguageServerWorkspaceFactory
+/// <summary>
+/// Owns the host and miscellaneous-files <see cref="LanguageServerWorkspace"/> instances and their
+/// <see cref="ProjectSystemProjectFactory"/> objects for a single LSP server. Created once per
+/// <see cref="LspServices"/> instance by <see cref="LanguageServerWorkspaceFactoryServiceFactory"/> and
+/// disposed when the LSP server shuts down.
+/// </summary>
+internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspaceProvider
 {
     private readonly ILogger _logger;
     private readonly ImmutableArray<string> _solutionLevelAnalyzerPaths;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerWorkspaceFactory(
         HostServicesProvider hostServicesProvider,
-        IFileChangeWatcher fileChangeWatcher,
-        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
-        ProjectTargetFrameworkManager projectTargetFrameworkManager,
+        ILspServices lspServices,
+        IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ExtensionAssemblyManager extensionManager,
-        [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
+        IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
         ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerWorkspaceFactory));
@@ -47,17 +47,23 @@ internal sealed class LanguageServerWorkspaceFactory
 
         // Create the workspace and set analyzer references for it
         var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.Host);
-        workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(workspace)), WorkspaceChangeKind.SolutionChanged);
+        var hostAnalyzerLoaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        var analyzerReferences = CreateSolutionLevelAnalyzerReferences(hostAnalyzerLoaderProvider);
+        workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(analyzerReferences), WorkspaceChangeKind.SolutionChanged);
 
+        var fileChangeWatcher = lspServices.GetRequiredService<IFileChangeWatcher>();
         HostProjectFactory = new ProjectSystemProjectFactory(
             workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
         workspace.ProjectSystemProjectFactory = HostProjectFactory;
 
         // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
-        // 'CreateSolutionLevelAnalyzerReferencesForWorkspace' needs to be broken out into its own service for us to be able to move this.
+        // 'CreateSolutionLevelAnalyzerReferences' needs to be broken out into its own service for us to be able to move this.
         var miscellaneousFilesWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
-        miscellaneousFilesWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(miscellaneousFilesWorkspace)), WorkspaceChangeKind.SolutionChanged);
+        Contract.ThrowIfFalse(
+            object.ReferenceEquals(hostAnalyzerLoaderProvider, miscellaneousFilesWorkspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>()),
+            "Expected same AnalyzerLoaderProvider to be used for both host and misc workspaces.");
+        miscellaneousFilesWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(analyzerReferences), WorkspaceChangeKind.SolutionChanged);
 
         MiscellaneousFilesWorkspaceProjectFactory = new ProjectSystemProjectFactory(
             miscellaneousFilesWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
@@ -66,41 +72,40 @@ internal sealed class LanguageServerWorkspaceFactory
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: [.. dynamicFileInfoProviders],
             AnalyzerAssemblyRedirectors: [.. assemblyRedirectors]);
-
-        TargetFrameworkManager = projectTargetFrameworkManager;
     }
 
     public Workspace HostWorkspace => HostProjectFactory.Workspace;
-
     public ProjectSystemProjectFactory HostProjectFactory { get; }
     public ProjectSystemProjectFactory MiscellaneousFilesWorkspaceProjectFactory { get; }
 
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
-    public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
 
-    public ImmutableArray<AnalyzerFileReference> CreateSolutionLevelAnalyzerReferencesForWorkspace(Workspace workspace)
+    Workspace IHostWorkspaceProvider.Workspace => HostWorkspace;
+
+    private ImmutableArray<AnalyzerFileReference> CreateSolutionLevelAnalyzerReferences(IAnalyzerAssemblyLoaderProvider loaderProvider)
     {
-        var references = ImmutableArray.CreateBuilder<AnalyzerFileReference>();
-        var loaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-
         // Load all analyzers into a fresh shadow copied load context.  In the future, if we want to support reloading
         // of solution-level analyzer references, we should just need to listen for changes to those analyzer paths and
         // then call back into this method to update the solution accordingly.
         var analyzerLoader = loaderProvider.CreateNewShadowCopyLoader();
+        var references = _solutionLevelAnalyzerPaths
+            .AsParallel()
+            .Where(analyzerPath =>
+            {
+                if (File.Exists(analyzerPath))
+                    return true;
 
-        foreach (var analyzerPath in _solutionLevelAnalyzerPaths)
-        {
-            if (File.Exists(analyzerPath))
-            {
-                references.Add(new AnalyzerFileReference(analyzerPath, analyzerLoader));
-                _logger.LogDebug($"Solution-level analyzer at {analyzerPath} added to workspace.");
-            }
-            else
-            {
                 _logger.LogWarning($"Solution-level analyzer at {analyzerPath} could not be found.");
-            }
-        }
+                return false;
+            })
+            .Select(analyzerPath =>
+            {
+                var reference = new AnalyzerFileReference(analyzerPath, analyzerLoader);
+                _logger.LogDebug($"Solution-level analyzer at {analyzerPath} added to workspace.");
+                return reference;
+            })
+            .ToImmutableArray();
 
-        return references.ToImmutableAndClear();
+        return references;
     }
 }

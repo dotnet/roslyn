@@ -124,4 +124,38 @@ public sealed partial class SyntaxNodeTests : TestBase
         Assert.NotNull(finalMethodDecl);
         Assert.NotEqual(finalMethodDecl, methodDecl);
     }
+
+    private static SyntaxNode GetRootForFindTokenTests()
+    {
+        var tree = SyntaxFactory.ParseSyntaxTree("Console.WriteLine()");
+        return tree.GetRoot();
+    }
+
+    #region FindTokenOnRightOfPosition
+    [Fact]
+    public void FindTokenOnRightOfPosition_AtStartOfFile_ReturnsTokenAtStartOfFile()
+    {
+        var root = GetRootForFindTokenTests();
+        var token = root.FindTokenOnRightOfPosition(0);
+        Assert.Equal("Console", token.Text);
+    }
+    #endregion FindTokenOnRightOfPosition
+
+    #region FindTokenOnLeftOfPosition
+    [Fact]
+    public void FindTokenOnLeftOfPosition_AtStartOfFile_ReturnsDefault()
+    {
+        var root = GetRootForFindTokenTests();
+        var token = root.FindTokenOnLeftOfPosition(0);
+        Assert.Equal(default, token);
+    }
+
+    [Fact]
+    public void FindTokenOnLeftOfPosition_AtEof_ReturnsLastToken()
+    {
+        var root = GetRootForFindTokenTests();
+        var token = root.FindTokenOnLeftOfPosition(root.FullSpan.End);
+        Assert.Equal(")", token.Text);
+    }
+    #endregion FindTokenOnLeftOfPosition
 }

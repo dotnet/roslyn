@@ -72,7 +72,7 @@ internal static class AddImportHelpers
                 // We added a new first-using.  Take the trivia on the existing first using
                 // And move it to the new using.
                 newImports[0] = newImports[0].WithLeadingTrivia(originalFirstUsing.GetLeadingTrivia());
-                newImports[originalFirstUsingCurrentIndex] = originalFirstUsing.WithoutLeadingTrivia();
+                newImports[originalFirstUsingCurrentIndex] = newImports[originalFirstUsingCurrentIndex].WithoutLeadingTrivia();
             }
 
             if (originalLastUsingCurrentIndex != newImports.Count - 1)
@@ -80,7 +80,7 @@ internal static class AddImportHelpers
                 // We added a new last-using.  Take the trailing trivia on the existing last using
                 // And move it to the new using.
                 newImports[^1] = newImports[^1].WithTrailingTrivia(originalLastUsing.GetTrailingTrivia());
-                newImports[originalLastUsingCurrentIndex] = originalLastUsing.WithoutTrailingTrivia();
+                newImports[originalLastUsingCurrentIndex] = newImports[originalLastUsingCurrentIndex].WithoutTrailingTrivia();
             }
 
             for (var i = 0; i < newImports.Count; i++)

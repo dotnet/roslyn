@@ -51,10 +51,11 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
 
         var dotnetRootUser = Environment.GetEnvironmentVariable("DOTNET_ROOT_USER");
 
+        var testLogPath = serverConfiguration.ExtensionLogDirectory is not null ? Path.Combine(serverConfiguration.ExtensionLogDirectory, "testLogs", "vsTestLogs.txt") : null;
         // Instantiate the test platform wrapper.
         var vsTestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsolePath, new ConsoleParameters
         {
-            LogFilePath = Path.Combine(serverConfiguration.ExtensionLogDirectory, "testLogs", "vsTestLogs.txt"),
+            LogFilePath = testLogPath,
             TraceLevel = GetTraceLevel(serverConfiguration),
             EnvironmentVariables = new()
             {

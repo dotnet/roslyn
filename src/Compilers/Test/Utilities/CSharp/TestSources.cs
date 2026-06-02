@@ -23,7 +23,7 @@ namespace System
 
         unsafe public Span(void* pointer, int length)
         {
-            this.arr = Helpers.ToArray<T>(pointer, length);
+            unsafe { this.arr = Helpers.ToArray<T>(pointer, length); }
             this.start = 0;
             this.Length = length;
         }
@@ -99,7 +99,7 @@ namespace System
 
         public Span<T> Slice(int offset, int length) => new Span<T>(this.arr, offset, length);
 
-        public Span<T> Slice(int offset) => new Span<T>(this.arr, offset, Length - offset);
+        public Span<T> Slice(int offset) => Slice(offset, Length - offset);
     }
 
     public readonly ref struct ReadOnlySpan<T>
@@ -114,7 +114,7 @@ namespace System
 
         unsafe public ReadOnlySpan(void* pointer, int length)
         {
-            this.arr = Helpers.ToArray<T>(pointer, length);
+            unsafe { this.arr = Helpers.ToArray<T>(pointer, length); }
             this.start = 0;
             this.Length = length;
         }
@@ -191,7 +191,7 @@ namespace System
 
         public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
 
-        public ReadOnlySpan<T> Slice(int offset) => new ReadOnlySpan<T>(this.arr, offset, offset - Length);
+        public ReadOnlySpan<T> Slice(int offset) => Slice(offset, Length - offset);
 
 #nullable enable
         public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) where TDerived : class?, T
@@ -213,126 +213,129 @@ namespace System
         Blue
     }
 
-    public static unsafe class Helpers
+    public static class Helpers
     {
-        public static T[] ToArray<T>(void* ptr, int count)
+        public static unsafe T[] ToArray<T>(void* ptr, int count)
         {
-            if (ptr == null)
+            unsafe
             {
-                return null;
-            }
-
-            if (typeof(T) == typeof(sbyte))
-            {
-                var arr = new sbyte[count];
-                for(int i = 0; i < count; i++)
+                if (ptr == null)
                 {
-                    arr[i] = ((sbyte*)ptr)[i];
+                    return null;
                 }
 
-                return (T[])(object)arr;
-            }
-
-            if (typeof(T) == typeof(byte))
-            {
-                var arr = new byte[count];
-                for(int i = 0; i < count; i++)
+                if (typeof(T) == typeof(sbyte))
                 {
-                    arr[i] = ((byte*)ptr)[i];
+                    var arr = new sbyte[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((sbyte*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
                 }
 
-                return (T[])(object)arr;
-            }
-
-            if (typeof(T) == typeof(short))
-            {
-                var arr = new short[count];
-                for(int i = 0; i < count; i++)
+                if (typeof(T) == typeof(byte))
                 {
-                    arr[i] = ((short*)ptr)[i];
+                    var arr = new byte[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((byte*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
                 }
 
-                return (T[])(object)arr;
-            }
-
-            if (typeof(T) == typeof(ushort))
-            {
-                var arr = new ushort[count];
-                for(int i = 0; i < count; i++)
+                if (typeof(T) == typeof(short))
                 {
-                    arr[i] = ((ushort*)ptr)[i];
+                    var arr = new short[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((short*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
                 }
 
-                return (T[])(object)arr;
-            }
-
-            if (typeof(T) == typeof(int))
-            {
-                var arr = new int[count];
-                for(int i = 0; i < count; i++)
+                if (typeof(T) == typeof(ushort))
                 {
-                    arr[i] = ((int*)ptr)[i];
+                    var arr = new ushort[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((ushort*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
                 }
 
-                return (T[])(object)arr;
-            }
-
-            if (typeof(T) == typeof(uint))
-            {
-                var arr = new uint[count];
-                for(int i = 0; i < count; i++)
+                if (typeof(T) == typeof(int))
                 {
-                    arr[i] = ((uint*)ptr)[i];
+                    var arr = new int[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((int*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
                 }
 
-                return (T[])(object)arr;
-            }
-
-            if (typeof(T) == typeof(long))
-            {
-                var arr = new long[count];
-                for(int i = 0; i < count; i++)
+                if (typeof(T) == typeof(uint))
                 {
-                    arr[i] = ((long*)ptr)[i];
+                    var arr = new uint[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((uint*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
                 }
 
-                return (T[])(object)arr;
-            }
-
-            if (typeof(T) == typeof(ulong))
-            {
-                var arr = new ulong[count];
-                for(int i = 0; i < count; i++)
+                if (typeof(T) == typeof(long))
                 {
-                    arr[i] = ((ulong*)ptr)[i];
+                    var arr = new long[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((long*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
                 }
 
-                return (T[])(object)arr;
-            }
-
-            if (typeof(T) == typeof(char))
-            {
-                var arr = new char[count];
-                for(int i = 0; i < count; i++)
+                if (typeof(T) == typeof(ulong))
                 {
-                    arr[i] = ((char*)ptr)[i];
+                    var arr = new ulong[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((ulong*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
                 }
 
-                return (T[])(object)arr;
-            }
-
-            if (typeof(T) == typeof(Color))
-            {
-                var arr = new Color[count];
-                for(int i = 0; i < count; i++)
+                if (typeof(T) == typeof(char))
                 {
-                    arr[i] = ((Color*)ptr)[i];
+                    var arr = new char[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((char*)ptr)[i];
+                    }
+
+                    return (T[])(object)arr;
                 }
 
-                return (T[])(object)arr;
-            }
+                if (typeof(T) == typeof(Color))
+                {
+                    var arr = new Color[count];
+                    for(int i = 0; i < count; i++)
+                    {
+                        arr[i] = ((Color*)ptr)[i];
+                    }
 
-            throw new Exception(""add a case for: "" + typeof(T));
+                    return (T[])(object)arr;
+                }
+
+                throw new Exception(""add a case for: "" + typeof(T));
+            }
         }
     }
 }";
@@ -572,6 +575,17 @@ namespace System
                 {
                     public ParamCollectionAttribute() { }
                 }
+            }
+            """;
+
+        public static readonly string InterceptsLocationAttribute = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+            public sealed class InterceptsLocationAttribute : Attribute
+            {
+                public InterceptsLocationAttribute(string filePath, int line, int character) { }
+                public InterceptsLocationAttribute(int version, string data) { }
             }
             """;
     }

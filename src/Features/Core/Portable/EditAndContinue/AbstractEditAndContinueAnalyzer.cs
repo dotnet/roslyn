@@ -1872,7 +1872,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         var hasAncestor = TryGetMatchingAncestor(forwardMap, deletedDeclaration, out var newAncestor);
         Debug.Assert(hasAncestor && newAncestor != null);
 
-        // the only matching ancestor is teh compilation unit:
+        // the only matching ancestor is the compilation unit:
         if (newAncestor.Parent == null)
         {
             return default;
@@ -2258,8 +2258,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 continue;
             }
 
-            var newTokensEnum = newTokens.GetEnumerator();
-            var oldTokensEnum = oldTokens.GetEnumerator();
+            using var newTokensEnum = newTokens.GetEnumerator();
+            using var oldTokensEnum = oldTokens.GetEnumerator();
 
             var lastNewToken = default(SyntaxToken);
             var lastOldStartLine = -1;

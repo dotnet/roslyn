@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -52,12 +53,14 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
     private void DotNetRestore(string solutionOrProjectFileName)
     {
-        RunDotNet($@"msbuild ""{solutionOrProjectFileName}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}");
+        var normalizedPath = solutionOrProjectFileName.Replace('\\', '/');
+        RunDotNet($@"msbuild ""{normalizedPath}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}");
     }
 
     private void DotNetBuild(string solutionOrProjectFileName, string configuration = null)
     {
-        var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
+        var normalizedPath = solutionOrProjectFileName.Replace('\\', '/');
+        var arguments = $@"msbuild ""{normalizedPath}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
 
         if (configuration != null)
         {
@@ -131,9 +134,9 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         File.Delete(projectFilePath);
         var projectDir = Path.GetDirectoryName(projectFilePath);
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
+        await using var buildHostProcessManager = new BuildHostProcessManager([LanguageNames.CSharp], ImmutableDictionary<string, string>.Empty);
 
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetCore, CancellationToken.None);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
         var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, CancellationToken.None);
         var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
@@ -302,7 +305,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
                     break;
 
                 default:
-                    Assert.True(false, $"Unexpected project: {project.Name}");
+                    Assert.Fail($"Unexpected project: {project.Name}");
                     break;
             }
         }
@@ -379,7 +382,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
                     break;
 
                 default:
-                    Assert.True(false, $"Encountered unexpected project: {project.FilePath}");
+                    Assert.Fail($"Encountered unexpected project: {project.FilePath}");
                     return;
             }
 
@@ -409,7 +412,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
             }
             else
             {
-                Assert.True(false, "OutputFilePath with expected TFM not found.");
+                Assert.Fail("OutputFilePath with expected TFM not found.");
             }
         }
     }
@@ -436,31 +439,57 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         var projects = solution.Projects.ToArray();
 
-        Assert.Equal(2, projects.Length);
+        AssertEx.SequenceEqual(
+            ["fsharplib", "csharplib(netstandard2.0)", "csharplib(netcoreapp2.0)"],
+            projects.Select(p => p.Name));
 
-        foreach (var project in projects)
+        var fsharpLib = projects[0];
+        var csharpLibStd = projects[1];
+        var csharpLibApp = projects[2];
+
+        Assert.Empty(fsharpLib.ProjectReferences);
+        Assert.Empty(fsharpLib.AllProjectReferences);
+        Assert.Contains(fsharpLib.MetadataReferences, r => r is PortableExecutableReference per && Path.GetFileName(per.FilePath) == "FSharp.Core.dll");
+
+        // enables Hot Reload to read PDB:
+        Assert.EndsWith(Path.Combine("obj", "Debug", "netstandard2.0", "fsharplib.dll"), fsharpLib.CompilationOutputInfo.AssemblyPath);
+
+        // enables Hot Reload to validate document checksums:
+        var libraryFs = fsharpLib.Documents.Single(d => Path.GetFileName(d.FilePath) == "Library.fs");
+        var text = await libraryFs.GetTextAsync();
+
+        // F# fails to build with CodePage set: https://github.com/dotnet/fsharp/issues/14693
+        // Assert.Equal(932, text.Encoding.CodePage);
+
+        Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
+        Assert.Equal(SourceHashAlgorithm.Sha1, fsharpLib.State.ChecksumAlgorithm);
+
+        AssertEx.SequenceEqual([fsharpLib.Id], csharpLibStd.ProjectReferences.Select(r => r.ProjectId));
+        AssertEx.SequenceEqual([fsharpLib.Id], csharpLibApp.ProjectReferences.Select(r => r.ProjectId));
+        AssertEx.SequenceEqual([fsharpLib.Id], csharpLibStd.AllProjectReferences.Select(r => r.ProjectId));
+        AssertEx.SequenceEqual([fsharpLib.Id], csharpLibApp.AllProjectReferences.Select(r => r.ProjectId));
+
+        // validate we can create C# compilation:
+        var compilation = await csharpLibStd.GetCompilationAsync();
+
+        // The reference is available even if the project is not built and the DLL doesn't exist on disk:
+        var reference = compilation.References.Single(r => r is PortableExecutableReference per && Path.GetFileName(per.FilePath) == "fsharplib.dll");
+
+        if (build)
         {
-            Assert.StartsWith("csharplib", project.Name);
-            Assert.Empty(project.ProjectReferences);
-
-            if (build)
-            {
-                Assert.Empty(project.AllProjectReferences);
-                Assert.Contains(project.MetadataReferences, m => m is PortableExecutableReference pe && pe.FilePath.EndsWith("fsharplib.dll"));
-            }
-            else
-            {
-                Assert.Single(project.AllProjectReferences);
-            }
+            Assert.NotNull(reference.GetManifestModuleMetadata());
+        }
+        else
+        {
+            Assert.Throws<FileNotFoundException>(reference.GetManifestModuleMetadata);
         }
     }
 
-    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/81589")]
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/81589")]
-    [CombinatorialData]
-    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp_MultiTFM(bool build)
+    public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp_MultiTFM()
     {
         CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp());
 
@@ -472,33 +501,35 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
         DotNetRestore("Solution.sln");
 
-        if (build)
-        {
-            DotNetBuild("Solution.sln", configuration: "Debug");
-        }
-
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-
         var projects = solution.Projects.ToArray();
 
-        Assert.Equal(2, projects.Length);
+        AssertEx.SequenceEqual(
+            ["fsharplib(netstandard2.0)", "fsharplib(netcoreapp2.0)", "csharplib(netstandard2.0)", "csharplib(netcoreapp2.0)"],
+            projects.Select(p => p.Name));
 
-        foreach (var project in projects)
+        var fsharpLibStd = projects[0];
+        var fsharpLibApp = projects[1];
+        var csharpLibStd = projects[2];
+        var csharpLibApp = projects[3];
+
+        foreach (var fsharpProj in new[] { fsharpLibApp, fsharpLibStd })
         {
-            Assert.StartsWith("csharplib", project.Name);
-            Assert.Empty(project.ProjectReferences);
-
-            if (build)
-            {
-                Assert.Empty(project.AllProjectReferences);
-                Assert.Contains(project.MetadataReferences, m => m is PortableExecutableReference pe && pe.FilePath.EndsWith("fsharplib.dll"));
-            }
-            else
-            {
-                Assert.Single(project.AllProjectReferences);
-            }
+            Assert.Empty(fsharpProj.ProjectReferences);
+            Assert.Empty(fsharpProj.AllProjectReferences);
+            Assert.Contains(fsharpProj.MetadataReferences, r => r is PortableExecutableReference per && Path.GetFileName(per.FilePath) == "FSharp.Core.dll");
+            Assert.Contains(fsharpProj.Documents, d => Path.GetFileName(d.FilePath) == "Library.fs");
         }
+
+        foreach (var csharpProj in new[] { csharpLibApp, csharpLibStd })
+        {
+            Assert.Contains(csharpProj.MetadataReferences, r => r is PortableExecutableReference per && Path.GetFileName(per.FilePath) == "FSharp.Core.dll");
+            Assert.Contains(csharpProj.Documents, d => Path.GetFileName(d.FilePath) == "Class1.cs");
+        }
+
+        AssertEx.SequenceEqual([fsharpLibApp.Id], csharpLibApp.ProjectReferences.Select(r => r.ProjectId));
+        AssertEx.SequenceEqual([fsharpLibStd.Id], csharpLibStd.AllProjectReferences.Select(r => r.ProjectId));
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

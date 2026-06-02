@@ -6,6 +6,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
@@ -21,6 +22,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<RequestContext>, IOnInitialized
 {
+    private static int s_clientProcessId = -1;
+    private static readonly Lazy<int> s_currentProcessId = new(static () => { using var process = Process.GetCurrentProcess(); return process.Id; });
+    public static int ServerProcessId => s_currentProcessId.Value;
+
     private readonly AbstractLspServiceProvider _lspServiceProvider;
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
     private readonly WellKnownLspServerKinds _serverKind;
@@ -29,7 +34,6 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AbstractLspServiceProvider lspServiceProvider,
         JsonRpc jsonRpc,
         JsonSerializerOptions serializerOptions,
-        ICapabilitiesProvider capabilitiesProvider,
         AbstractLspLogger logger,
         HostServices hostServices,
         ImmutableArray<string> supportedLanguages,
@@ -41,10 +45,49 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         _serverKind = serverKind;
 
         // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-        _baseServices = GetBaseServices(jsonRpc, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
+        _baseServices = GetBaseServices(jsonRpc, logger, hostServices, serverKind, supportedLanguages);
 
         // This spins up the queue and ensure the LSP is ready to start receiving requests
         Initialize();
+    }
+
+    public static bool TryRegisterClientProcessId(int clientProcessId)
+    {
+        if (s_clientProcessId != -1)
+            return false;
+
+        if (clientProcessId == ServerProcessId)
+            return false;
+
+        if (Interlocked.CompareExchange(ref s_clientProcessId, clientProcessId, -1) != -1)
+            return false;
+
+        _ = WaitForClientProcessExitAsync(s_clientProcessId);
+        return true;
+
+        static async Task WaitForClientProcessExitAsync(int clientProcessId)
+        {
+            try
+            {
+                var clientProcessExitTask = new TaskCompletionSource<bool>();
+
+                using var clientProcess = Process.GetProcessById(clientProcessId);
+                clientProcess.EnableRaisingEvents = true;
+                clientProcess.Exited += (sender, args) => clientProcessExitTask.SetResult(true);
+
+                if (!clientProcess.HasExited)
+                {
+                    // Wait for the client process to exit.
+                    await clientProcessExitTask.Task.ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                // The process didn't exist, exited, or we ran into
+                // issues checking whether the process had exited.
+                Environment.Exit(ServerExitCodes.ClientProcessExited);
+            }
+        }
     }
 
     public static SystemTextJsonFormatter CreateJsonMessageFormatter()
@@ -68,7 +111,6 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
     private FrozenDictionary<string, ImmutableArray<BaseService>> GetBaseServices(
         JsonRpc jsonRpc,
         AbstractLspLogger logger,
-        ICapabilitiesProvider capabilitiesProvider,
         HostServices hostServices,
         WellKnownLspServerKinds serverKind,
         ImmutableArray<string> supportedLanguages)
@@ -81,8 +123,6 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<IClientLanguageServerManager>(clientLanguageServerManager);
         AddService<ILspLogger>(logger);
         AddService<AbstractLspLogger>(logger);
-        AddService<ICapabilitiesProvider>(capabilitiesProvider);
-        AddLazyService<ILifeCycleManager>(lspServices => lspServices.GetRequiredService<LspServiceLifeCycleManager>());
         AddService(new ServerInfoProvider(serverKind, supportedLanguages));
         AddLazyService<AbstractRequestContextFactory<RequestContext>>(lspServices => new RequestContextFactory(lspServices));
         AddLazyService<AbstractTelemetryService>(lspServices => new TelemetryService(lspServices));
@@ -92,13 +132,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         AddService<IMethodHandler>(new InitializedHandler());
         AddService<IOnInitialized>(this);
         AddService<ILanguageInfoProvider>(new LanguageInfoProvider());
-
-        // In all VS cases, we already have a misc workspace.  Specifically
-        // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
-        // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
-        // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
-        if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-            AddLazyService<ILspMiscellaneousFilesWorkspaceProvider>(lspServices => lspServices.GetRequiredService<ILspMiscellaneousFilesWorkspaceProviderFactory>().CreateLspMiscellaneousFilesWorkspaceProvider(lspServices, hostServices));
+        AddService<HostServices>(hostServices);
 
         return baseServiceMap.ToFrozenDictionary(
             keySelector: kvp => kvp.Key,
@@ -196,13 +230,12 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
             Contract.ThrowIfNull(textDocumentIdentifier, "Failed to deserialize text document identifier property");
             uri = textDocumentIdentifier.DocumentUri;
         }
-        else if (parameters.TryGetProperty("data", out var dataToken))
+        else if (TryGetRequestDataToken(parameters, out var dataToken))
         {
             // All the LSP resolve params have the following known json structure
             // { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... }
             //
             // We can deserialize the data object using our unified DocumentResolveData.
-            //var dataToken = parameters["data"];
             var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
             Contract.ThrowIfNull(data, "Failed to document resolve data object");
             uri = data.TextDocument.DocumentUri;
@@ -218,11 +251,31 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
 
         if (!lspWorkspaceManager.TryGetLanguageForUri(uri, out language))
         {
-            Logger.LogError($"Failed to get language for {uri} with language {language}");
+            Logger.LogDebug($"Failed to get language for {uri} with language {language}");
             return false;
         }
 
         return true;
+
+        static bool TryGetRequestDataToken(JsonElement parameters, out JsonElement dataToken)
+        {
+            if (parameters.TryGetProperty("data", out dataToken))
+            {
+                return true;
+            }
+
+            // Some LSP requests like call hierarchy incoming/outgoing calls and type hierarchy
+            // subtype/supertype requests nest the same payload under item.data.
+            if (parameters.TryGetProperty("item", out var itemToken) &&
+                itemToken.ValueKind == JsonValueKind.Object &&
+                itemToken.TryGetProperty("data", out dataToken))
+            {
+                return true;
+            }
+
+            dataToken = default;
+            return false;
+        }
 
         static bool ShouldUseDefaultLanguage(string methodName)
         {

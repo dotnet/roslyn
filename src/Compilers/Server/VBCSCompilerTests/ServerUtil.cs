@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             pipeName ??= ServerUtil.GetPipeName();
             compilerServerHost ??= BuildServerController.CreateCompilerServerHost(logger);
             clientConnectionHost ??= BuildServerController.CreateClientConnectionHost(pipeName, logger);
-            keepAlive ??= TimeSpan.FromMilliseconds(-1);
+            keepAlive ??= Timeout.InfiniteTimeSpan;
 
             var listener = new TestableDiagnosticListener();
             var serverListenSource = new TaskCompletionSource<bool>();

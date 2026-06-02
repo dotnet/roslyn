@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            Assert.True(false, "Didn't return an error");
+            Assert.Fail("Didn't return an error");
         }
 
         [Fact]
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 try
                 {
                     RuleSet.LoadEffectiveRuleSetFromFile(file.Path);
-                    Assert.True(false, "Didn't throw an exception");
+                    Assert.Fail("Didn't throw an exception");
                 }
                 catch (InvalidRuleSetException e)
                 {
@@ -1112,7 +1112,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var builder = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
             CommandLineParser.ParseSeparatedStrings(arg.AsMemory(), separators, removeEmptyEntries, builder);
-            return builder.Select(x => x.ToString()).ToArray();
+            var result = builder.Select(x => x.ToString()).ToArray();
+            builder.Free();
+            return result;
         }
 
         [Fact]

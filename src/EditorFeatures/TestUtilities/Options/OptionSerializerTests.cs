@@ -70,6 +70,7 @@ public sealed class OptionSerializerTests
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
             CompletionOptionsStorage.EnterKeyBehavior,
             CompletionOptionsStorage.SnippetsBehavior,
+            CompletionOptionsStorage.ImportCompletionCommitBehavior
         };
 
         foreach (var option in options)

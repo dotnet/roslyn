@@ -4,7 +4,6 @@
 
 Imports System.Reflection
 
-
 Namespace Global.TestProject
     ''' <summary>
     '''   A strongly-typed resource class, for looking up localized strings, etc.

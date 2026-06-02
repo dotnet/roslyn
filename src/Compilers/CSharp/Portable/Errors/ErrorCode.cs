@@ -1676,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_NullableValueTypeMayBeNull = 8629,
-        ERR_NullableOptionNotAvailable = 8630,
+        ERR_CompilationOptionNotAvailable = 8630,
         WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
         WRN_MissingNonNullTypesContextForAnnotation = 8632,
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
@@ -2161,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParamsArrayInLambdaOnly = 9100,
         ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
-        ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
+        ERR_UnrecognizedAttributeVersion = 9103,
         // ERR_BadSpecialByRefUsing = 9104,
 
         ERR_InvalidPrimaryConstructorParameterReference = 9105,
@@ -2462,6 +2462,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionArgumentsMustBeEmpty = 9357,
         ERR_CollectionRefLikeElementType = 9358,
         ERR_BadCollectionArgumentsArgCount = 9359,
+
+        ERR_UnsafeOperation = 9360,
+        ERR_UnsafeUninitializedStackAlloc = 9361,
+        ERR_UnsafeMemberOperation = 9362,
+        ERR_UnsafeMemberOperationCompat = 9363,
+        ERR_CallerUnsafeOverridingSafe = 9364,
+        ERR_CallerUnsafeImplicitlyImplementingSafe = 9365,
+        ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
+
+        ERR_ExpressionTreeContainsUnionConversion = 9369,
+        ERR_UnionDeclarationNeedsCaseTypes = 9370,
+        ERR_NoImplicitConversionToObject = 9371,
+        ERR_UnionMatchingWrongPattern = 9372,
+        ERR_InstanceFieldInUnion = 9373,
+        ERR_InstanceCtorWithOneParameterInUnion = 9374,
+        ERR_UnionConstructorCallsDefaultConstructor = 9375,
+
+        ERR_UnsafeConstructorConstraint = 9376,
+        WRN_UnsafeMeaningless = 9377,
+
+        ERR_PPShebangNotOnFirstLine = 9378,
+
+        ERR_RequiresUnsafeAttributeInSource = 9379,
+
+        ERR_ClosedTypeNameDisallowed = 9380,
+        ERR_ClosedSealedStatic = 9381,
+        ERR_ClosedBaseTypeBaseFromOtherAssembly = 9382,
+        ERR_UnderspecifiedClosedSubtype = 9383,
+        ERR_ClosedExplicitlyAbstract = 9384,
+
+        ERR_MissingUnionCaseTypes = 9385,
+        ERR_MissingUnionValueProperty = 9386,
+        ERR_MemberProviderInUnionDeclaration = 9387,
+
+        ERR_SafeModifierUnsupportedTarget = 9388,
+        ERR_ExternMemberRequiresUnsafeOrSafe = 9389,
+        ERR_PartialMemberSafeDifference = 9390,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

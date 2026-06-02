@@ -594,15 +594,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private ApiName GetApiName(ISymbol symbol)
             {
                 var experimentName = getExperimentName(symbol);
+                var requiresUnsafe = getRequiresUnsafe(symbol);
 
                 return new ApiName(
-                    getApiString(_compilation, symbol, experimentName, s_publicApiFormat),
-                    getApiString(_compilation, symbol, experimentName, s_publicApiFormatWithNullability));
+                    getApiString(_compilation, symbol, experimentName, requiresUnsafe, s_publicApiFormat),
+                    getApiString(_compilation, symbol, experimentName, requiresUnsafe, s_publicApiFormatWithNullability));
 
                 static string? getExperimentName(ISymbol symbol)
                 {
                     for (var current = symbol; current is not null; current = current.ContainingSymbol)
                     {
+start:
                         foreach (var attribute in current.GetAttributes())
                         {
                             if (attribute.AttributeClass is { Name: "ExperimentalAttribute", ContainingSymbol: INamespaceSymbol { Name: nameof(System.Diagnostics.CodeAnalysis), ContainingNamespace: { Name: nameof(System.Diagnostics), ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true } } } })
@@ -611,15 +613,40 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                     return "???";
 
                                 return diagnosticId;
-
                             }
+                        }
+
+                        if (current is IMethodSymbol { AssociatedSymbol: { } associatedSymbol })
+                        {
+                            current = associatedSymbol;
+                            goto start;
                         }
                     }
 
                     return null;
                 }
 
-                static string getApiString(Compilation compilation, ISymbol symbol, string? experimentName, SymbolDisplayFormat format)
+                static bool getRequiresUnsafe(ISymbol symbol)
+                {
+                    foreach (var attribute in symbol.GetAttributes())
+                    {
+                        // https://github.com/dotnet/roslyn/issues/82546: Confirm the attribute shape in BCL API review.
+                        // https://github.com/dotnet/roslyn/issues/82791: Use the public Roslyn API when available.
+                        if (attribute.AttributeClass is { Name: "RequiresUnsafeAttribute", ContainingSymbol: INamespaceSymbol { Name: "CompilerServices", ContainingNamespace: { Name: "Runtime", ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true } } } })
+                        {
+                            return true;
+                        }
+                    }
+
+                    if (symbol is IMethodSymbol { AssociatedSymbol: { } associatedSymbol })
+                    {
+                        return getRequiresUnsafe(associatedSymbol);
+                    }
+
+                    return false;
+                }
+
+                static string getApiString(Compilation compilation, ISymbol symbol, string? experimentName, bool requiresUnsafe, SymbolDisplayFormat format)
                 {
                     string publicApiName = symbol.ToDisplayString(format);
 
@@ -659,6 +686,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     if (experimentName != null)
                     {
                         publicApiName = "[" + experimentName + "]" + publicApiName;
+                    }
+
+                    if (requiresUnsafe)
+                    {
+                        publicApiName = "[RequiresUnsafe]" + publicApiName;
                     }
 
                     return publicApiName;

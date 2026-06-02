@@ -5,8 +5,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>$(NetVS)</TargetFramework>
     <TargetArch>arm64</TargetArch>
-    <!-- This impacts alpine assets for SQLitePCLRaw.lib.e_sqlite3 which don't impact .NET Framework projects -->
-    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.App.Runtime.win-arm64" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />

@@ -387,11 +387,6 @@
         <target state="translated">無法開啟專案 '{0}'，因為副檔名 '{1}' 未與語言相關聯。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_open_project_0_because_the_language_1_is_not_supported">
-        <source>Cannot open project '{0}' because the language '{1}' is not supported.</source>
-        <target state="translated">無法開啟專案 '{0}'，因為不支援語言 '{1}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_project_file_path_colon_0">
         <source>Invalid project file path: '{0}'</source>
         <target state="translated">專案檔路徑無效: '{0}'</target>

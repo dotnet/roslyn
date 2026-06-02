@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14271,6 +14272,58 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             sourceCodeKind: SourceCodeKind.Regular,
             glyph: Glyph.ExtensionMethodPublic);
 
+    [Theory]
+    [InlineData("""public int Number => 0;""",
+                Glyph.PropertyPublic,
+                """
+                extension(TestClass testclass)
+                {
+                    public int Number()  => 0;
+                }
+                """,
+                Glyph.ExtensionMethodPublic)]
+    [InlineData("""public int Number => 0;""",
+                Glyph.PropertyPublic,
+                """public static int Number(this TestClass testclass)  => 0;""",
+                Glyph.ExtensionMethodPublic)]
+    [InlineData("""public int Number() => 0;""",
+                Glyph.MethodPublic,
+                """
+                extension(TestClass testclass)
+                {
+                    public int Number  => 0;
+                }
+                """,
+                Glyph.PropertyPublic)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/70537")]
+    internal Task TestIdenticalNameWithExtensionMembersOfDifferentKind(string member, Glyph memberGlyph, string extension, Glyph extensionGlyph)
+        => VerifyExpectedItemsAsync(
+            MakeMarkup($$"""
+            public class TestClass
+            {
+                {{member}}
+            }
+
+            public static class Extensions
+            {
+                {{extension}}
+            }
+
+            internal class Program
+            {
+                static void Main(string[] args)
+                {
+                    var t = new TestClass();
+                    var x = t.$$
+                }
+            }
+            """, LanguageVersion.CSharp14),
+            results: [
+            new ItemExpectation(Name: "Number", IsAbsent: false, Glyph: memberGlyph),
+            new ItemExpectation(Name: "Number", IsAbsent: false, Glyph: extensionGlyph),
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
+
     private static string MakeMarkup(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
         LanguageVersion languageVersion = LanguageVersion.Preview)
@@ -14330,5 +14383,52 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 class Foo2 { }
             }
             """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_01()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            class Dog { }
+            class Cat { }
+            union Pet($$)
+            """, LanguageVersionExtensions.CSharpNext), "Dog");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_02()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            class Dog { }
+            class Cat { }
+            union Pet($$)
+            """, LanguageVersionExtensions.CSharpNext), "Cat");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_03()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            class Dog { }
+            class Cat { }
+            union Pet(Dog, $$)
+            """, LanguageVersionExtensions.CSharpNext), "Cat");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_04()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            union U($$)
+            """, LanguageVersionExtensions.CSharpNext), "System");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_05()
+    {
+        // Type parameter completion in generic union parameter list
+        await VerifyItemExistsAsync(GetMarkup("""
+            union U<T1, T2>(T1, $$)
+            """, LanguageVersionExtensions.CSharpNext), "T2");
     }
 }

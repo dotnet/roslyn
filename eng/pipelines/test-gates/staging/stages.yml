@@ -1,0 +1,56 @@
+# Staging test gate registration file for Roslyn validation stages.
+# This file is referenced by the Visual Studio repository's official test gate registration.
+
+parameters:
+- name: prNumber
+  type: string
+  default: 'None'
+- name: sha
+  type: string
+  default: 'None'
+- name: EnforceLatestCommit
+  type: boolean
+  default: true
+- name: visualStudioBootstrapperURI
+  type: string
+  default: '(default)'
+- name: testCaseFilter
+  type: string
+  default: '(default)'
+- name: skipCustomRoslynDeploy
+  type: boolean
+  default: true
+- name: testsCommitHash
+  type: string
+  default: '(default)'
+- name: testsCommitFromVisualStudioBuild
+  type: boolean
+  default: false
+- name: testMachineCleanUpStrategy
+  type: string
+  default: delete
+- name: testMachineRetention
+  type: string
+  default: 1:0:0:0
+- name: roslynRepositoryAlias
+  type: string
+  default: self
+- name: testStageFilter
+  type: object
+  default: ''
+
+stages:
+- template: /eng/pipelines/test-gates/roslyn-vs-integration/stage.yml@${{parameters.roslynRepositoryAlias}}
+  parameters:
+    testStageFilter: ${{ parameters.testStageFilter }}
+    prNumber: ${{ parameters.prNumber }}
+    sha: ${{ parameters.sha }}
+    EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
+    visualStudioBootstrapperURI: ${{ parameters.visualStudioBootstrapperURI }}
+    testCaseFilter: ${{ iif(eq(parameters.testCaseFilter, '(default)'), 'TestGate=RoslynVSIntegration', iif(eq(parameters.testCaseFilter, '(all)'), '', parameters.testCaseFilter)) }}
+    skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
+    testsCommitHash: ${{ parameters.testsCommitHash }}
+    testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
+    testMachineCleanUpStrategy: ${{ parameters.testMachineCleanUpStrategy }}
+    testMachineRetention: ${{ parameters.testMachineRetention }}
+    roslynRepositoryAlias: ${{ parameters.roslynRepositoryAlias }}

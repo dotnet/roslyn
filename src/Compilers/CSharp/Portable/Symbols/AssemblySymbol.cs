@@ -310,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         internal abstract bool HasImportedFromTypeLibAttribute { get; }
 
         internal abstract bool HasPrimaryInteropAssemblyAttribute { get; }
@@ -614,13 +616,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ICollection<string> NamespaceNames { get; }
 
         /// <summary>
-        /// Returns true if this assembly might contain extension methods. If this property
-        /// returns false, there are no extension methods in this assembly.
+        /// Returns true if this assembly might contain extension members or methods. If this property
+        /// returns false, there are no extension members or methods in this assembly.
         /// </summary>
         /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
+        /// This property allows the search for extension members or methods to be narrowed quickly.
         /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
+        public abstract bool MightContainExtensions { get; }
 
         /// <summary>
         /// Gets the symbol for the pre-defined type from core library associated with this assembly.
@@ -826,33 +828,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int i = nestedTypes.Count - 1;
                 var symbol = (NamedTypeSymbol?)GetTypeByReflectionType(nestedTypes[i].AsType());
-                if (symbol is null)
+                if (symbol is not null)
                 {
-                    return null;
-                }
-
-                while (--i >= 0)
-                {
-                    int forcedArity = nestedTypes[i].GenericTypeParameters.Length - nestedTypes[i + 1].GenericTypeParameters.Length;
-                    MetadataTypeName mdName = MetadataTypeName.FromTypeName(nestedTypes[i].Name, forcedArity: forcedArity);
-
-                    symbol = symbol.LookupMetadataType(ref mdName);
-                    Debug.Assert(symbol?.IsErrorType() != true);
-
-                    if (symbol is null)
+                    while (--i >= 0)
                     {
-                        return null;
-                    }
+                        int forcedArity = nestedTypes[i].GenericTypeParameters.Length - nestedTypes[i + 1].GenericTypeParameters.Length;
+                        MetadataTypeName mdName = MetadataTypeName.FromTypeName(nestedTypes[i].Name, forcedArity: forcedArity);
 
-                    symbol = ApplyGenericArguments(symbol, genericArguments, ref typeArgumentIndex);
-                    if (symbol is null)
-                    {
-                        return null;
+                        symbol = symbol.LookupMetadataType(ref mdName);
+                        Debug.Assert(symbol?.IsErrorType() != true);
+
+                        if (symbol is null)
+                        {
+                            break;
+                        }
+
+                        symbol = ApplyGenericArguments(symbol, genericArguments, ref typeArgumentIndex);
+                        if (symbol is null)
+                        {
+                            break;
+                        }
                     }
                 }
 
                 nestedTypes.Free();
-                Debug.Assert(typeArgumentIndex == genericArguments.Length);
+                Debug.Assert(symbol is null || typeArgumentIndex == genericArguments.Length);
                 return symbol;
             }
             else
@@ -900,6 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++]);
                 if (argSymbol is null)
                 {
+                    typeArgumentSymbols.Free();
                     return null;
                 }
                 typeArgumentSymbols.Add(TypeWithAnnotations.Create(argSymbol));

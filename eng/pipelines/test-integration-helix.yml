@@ -3,6 +3,8 @@ parameters:
     type: string
   - name: queueName
     type: string
+  - name: buildQueueName
+    type: string
   - name: configuration
     type: string
     default: 'Debug'
@@ -28,7 +30,7 @@ stages:
       configuration: ${{ parameters.configuration }}
       poolParameters: 
         name: ${{ parameters.poolName }}
-        demands: ImageOverride -equals ${{ parameters.queueName }}
+        demands: ImageOverride -equals ${{ parameters.buildQueueName }}
       restoreArguments: -msbuildEngine vs
       buildArguments: -msbuildEngine vs /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj"'
 
@@ -64,6 +66,13 @@ stages:
         displayName: Rehydrate Microsoft.VisualStudio.LanguageServices.New.IntegrationTests
         inputs:
           filename: ./artifacts/bin/Microsoft.VisualStudio.LanguageServices.New.IntegrationTests/${{ parameters.configuration }}/net472/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+      - task: BatchScript@1
+        displayName: Rehydrate Microsoft.VisualStudio.Razor.IntegrationTests
+        inputs:
+          filename: ./artifacts/bin/Microsoft.VisualStudio.Razor.IntegrationTests/${{ parameters.configuration }}/net472/rehydrate.cmd
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 

@@ -40,9 +40,9 @@ internal sealed partial class DotNetSdkMSBuildInstalled : ExecutionCondition
 
         try
         {
-            buildHostProcessManager = new BuildHostProcessManager();
+            buildHostProcessManager = new BuildHostProcessManager(knownCommandLineParserLanguages: []);
 
-            var buildHost = buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetCore, CancellationToken.None).Result;
+            var buildHost = buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None).Result;
 
             return buildHost.HasUsableMSBuildAsync(solution, CancellationToken.None).Result;
         }

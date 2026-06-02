@@ -1731,16 +1731,6 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyEmitDiagnostics(
-                // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator -(C1)' and 'Extensions1.extension(C1).operator -(C1)'
-                //         _ = -c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(C1).operator -(C1)", "Extensions1.extension(C1).operator -(C1)").WithLocation(35, 13),
-                // (39,17): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1)' and 'Extensions2.extension(C1).operator -(C1)'
-                //             _ = -c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1)", "Extensions2.extension(C1).operator -(C1)").WithLocation(39, 17)
-                );
-#else
             comp.VerifyEmitDiagnostics(
                 // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator -(C1)' and 'Extensions2.extension(C1).operator -(C1)'
                 //         _ = -c1;
@@ -1749,7 +1739,6 @@ class Program
                 //             _ = -c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1)", "Extensions2.extension(C1).operator -(C1)").WithLocation(39, 17)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -4268,19 +4257,11 @@ class Program
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyDiagnostics(
-                // (26,13): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(S2).operator -(S2)' and 'Extensions1.extension(S2).operator -(S2)'
-                //         _ = -s2;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(S2).operator -(S2)", "Extensions1.extension(S2).operator -(S2)").WithLocation(26, 13)
-                );
-#else
             comp.VerifyDiagnostics(
                 // (26,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(S2).operator -(S2)' and 'Extensions2.extension(S2).operator -(S2)'
                 //         _ = -s2;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(S2).operator -(S2)", "Extensions2.extension(S2).operator -(S2)").WithLocation(26, 13)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -4290,13 +4271,8 @@ class Program
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            AssertEx.Equal("Extensions2.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
-            AssertEx.Equal("Extensions1.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#else
             AssertEx.Equal("Extensions1.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
             AssertEx.Equal("Extensions2.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#endif
         }
 
         [Theory]
@@ -7664,16 +7640,6 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyEmitDiagnostics(
-                // (35,13): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator --(C1)' and 'Extensions1.extension(C1).operator --(C1)'
-                //         _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions2.extension(C1).operator --(C1)", "Extensions1.extension(C1).operator --(C1)").WithLocation(35, 13),
-                // (39,17): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked --(C1)' and 'Extensions2.extension(C1).operator --(C1)'
-                //             _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions1.extension(C1).operator checked --(C1)", "Extensions2.extension(C1).operator --(C1)").WithLocation(39, 17)
-                );
-#else
             comp.VerifyEmitDiagnostics(
                 // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator --(C1)' and 'Extensions2.extension(C1).operator --(C1)'
                 //         _ = --c1;
@@ -7682,7 +7648,6 @@ class Program
                 //             _ = --c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions1.extension(C1).operator checked --(C1)", "Extensions2.extension(C1).operator --(C1)").WithLocation(39, 17)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -7745,17 +7710,6 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            comp.VerifyEmitDiagnostics(
-                // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(C1).operator --()' and 'Extensions1.extension(C1).operator --()'
-                //         _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions2.extension(C1).operator --()", "Extensions1.extension(C1).operator --()").WithLocation(32, 13),
-                // (36,17): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator checked --()' and 'Extensions2.extension(C1).operator --()'
-                //             _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
-                );
-#else
-            // Ordering difference is acceptable and doesn't affect determinism. It is caused by ConditionallyDeOrder
             comp.VerifyEmitDiagnostics(
                 // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator --()' and 'Extensions2.extension(C1).operator --()'
                 //         _ = --c1;
@@ -7764,7 +7718,6 @@ class Program
                 //             _ = --c1;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -10493,19 +10446,11 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            comp.VerifyDiagnostics(
-                // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(ref S2).operator ++()' and 'Extensions1.extension(ref S2).operator ++()'
-                //         ++s2;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("Extensions2.extension(ref S2).operator ++()", "Extensions1.extension(ref S2).operator ++()").WithLocation(26, 9)
-                );
-#else
             comp.VerifyDiagnostics(
                 // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(ref S2).operator ++()' and 'Extensions2.extension(ref S2).operator ++()'
                 //         ++s2;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("Extensions1.extension(ref S2).operator ++()", "Extensions2.extension(ref S2).operator ++()").WithLocation(26, 9)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -10515,13 +10460,8 @@ class Program
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            AssertEx.Equal("Extensions2.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[0].ToDisplayString());
-            AssertEx.Equal("Extensions1.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#else
             AssertEx.Equal("Extensions1.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[0].ToDisplayString());
             AssertEx.Equal("Extensions2.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#endif
         }
 
         [Fact]
@@ -10560,19 +10500,11 @@ class Program
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyDiagnostics(
-                // (26,9): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(S2).operator ++(S2)' and 'Extensions1.extension(S2).operator ++(S2)'
-                //         ++s2;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "++").WithArguments("Extensions2.extension(S2).operator ++(S2)", "Extensions1.extension(S2).operator ++(S2)").WithLocation(26, 9)
-                );
-#else
             comp.VerifyDiagnostics(
                 // (26,9): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(S2).operator ++(S2)' and 'Extensions2.extension(S2).operator ++(S2)'
                 //         ++s2;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "++").WithArguments("Extensions1.extension(S2).operator ++(S2)", "Extensions2.extension(S2).operator ++(S2)").WithLocation(26, 9)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -10582,13 +10514,8 @@ class Program
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            AssertEx.Equal("Extensions2.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
-            AssertEx.Equal("Extensions1.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#else
             AssertEx.Equal("Extensions1.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
             AssertEx.Equal("Extensions2.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#endif
         }
 
         [Theory]
@@ -13284,16 +13211,6 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyEmitDiagnostics(
-                // (35,16): error CS9339: Operator resolution is ambiguous between the following members:'Extensions2.extension(C1).operator -(C1, C1)' and 'Extensions1.extension(C1).operator -(C1, C1)'
-                //         _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(C1).operator -(C1, C1)", "Extensions1.extension(C1).operator -(C1, C1)").WithLocation(35, 16),
-                // (39,20): error CS9339: Operator resolution is ambiguous between the following members:'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
-                //             _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
-                );
-#else
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
                 //         _ = c1 - c1;
@@ -13301,8 +13218,8 @@ class Program
                 // (39,20): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
                 //             _ = c1 - c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
-              );
-#endif
+                );
+
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().Last();
@@ -23839,16 +23756,6 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyEmitDiagnostics(
-                // (35,16): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator -(C1, C1)' and 'Extensions1.extension(C1).operator -(C1, C1)'
-                //         _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions2.extension(C1).operator -(C1, C1)", "Extensions1.extension(C1).operator -(C1, C1)").WithLocation(35, 16),
-                // (39,20): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
-                //             _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
-                );
-#else
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
                 //         _ = c1 -= c1;
@@ -23857,7 +23764,6 @@ class Program
                 //             _ = c1 -= c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -23920,17 +23826,6 @@ class Program
 
             var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            comp.VerifyEmitDiagnostics(
-                // (35,16): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(C1).operator -=(C1)' and 'Extensions1.extension(C1).operator -=(C1)'
-                //         _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "-=").WithArguments("Extensions2.extension(C1).operator -=(C1)", "Extensions1.extension(C1).operator -=(C1)").WithLocation(35, 16),
-                // (39,20): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator checked -=(C1)' and 'Extensions2.extension(C1).operator -=(C1)'
-                //             _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "-=").WithArguments("Extensions1.extension(C1).operator checked -=(C1)", "Extensions2.extension(C1).operator -=(C1)").WithLocation(39, 20)
-                );
-#else
-            // Ordering difference is acceptable and doesn't affect determinism. It is caused by ConditionallyDeOrder
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator -=(C1)' and 'Extensions2.extension(C1).operator -=(C1)'
                 //         _ = c1 -= c1;
@@ -23939,7 +23834,6 @@ class Program
                 //             _ = c1 -= c1;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "-=").WithArguments("Extensions1.extension(C1).operator checked -=(C1)", "Extensions2.extension(C1).operator -=(C1)").WithLocation(39, 20)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);

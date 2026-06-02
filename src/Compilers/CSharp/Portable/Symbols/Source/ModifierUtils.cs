@@ -109,7 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected) |
                 checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers) |
                 checkFeature(DeclarationModifiers.File, MessageID.IDS_FeatureFileTypes) |
+                checkFeature(DeclarationModifiers.Closed, MessageID.IDS_FeatureClosedClasses) |
                 checkFeature(DeclarationModifiers.Async, MessageID.IDS_FeatureAsync);
+
+            if ((result & DeclarationModifiers.Safe) != 0)
+            {
+                var safeToken = modifierTokens?.FirstOrDefault(SyntaxKind.SafeKeyword) ?? default;
+                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, safeToken, safeToken == default ? errorLocation : null);
+            }
 
             return result;
 
@@ -334,6 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.PartialKeyword);
                 case DeclarationModifiers.Unsafe:
                     return SyntaxFacts.GetText(SyntaxKind.UnsafeKeyword);
+                case DeclarationModifiers.Safe:
+                    return SyntaxFacts.GetText(SyntaxKind.SafeKeyword);
                 case DeclarationModifiers.Fixed:
                     return SyntaxFacts.GetText(SyntaxKind.FixedKeyword);
                 case DeclarationModifiers.Virtual:
@@ -350,6 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.ScopedKeyword);
                 case DeclarationModifiers.File:
                     return SyntaxFacts.GetText(SyntaxKind.FileKeyword);
+                case DeclarationModifiers.Closed:
+                    return SyntaxFacts.GetText(SyntaxKind.ClosedKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -385,6 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Partial;
                 case SyntaxKind.UnsafeKeyword:
                     return DeclarationModifiers.Unsafe;
+                case SyntaxKind.SafeKeyword:
+                    return DeclarationModifiers.Safe;
                 case SyntaxKind.VirtualKeyword:
                     return DeclarationModifiers.Virtual;
                 case SyntaxKind.OverrideKeyword:
@@ -403,6 +416,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Scoped;
                 case SyntaxKind.FileKeyword:
                     return DeclarationModifiers.File;
+                case SyntaxKind.ClosedKeyword:
+                    return DeclarationModifiers.Closed;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
@@ -604,6 +619,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // i.e.: public private void Goo()
                     return false;
             }
+        }
+
+        internal static Location GetModifierLocation(this SyntaxTokenList modifiers, SyntaxKind kind, Location fallback)
+            => GetModifierLocation((SyntaxTokenList?)modifiers, kind, fallback);
+
+        internal static Location GetModifierLocation(this SyntaxTokenList? modifiers, SyntaxKind kind, Location fallback)
+        {
+            var keyword = (modifiers ?? default).FirstOrDefault(kind);
+            return keyword != default ? keyword.GetLocation() : fallback;
         }
     }
 }

@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HasAnyErrors = logicalOperator.HasAnyErrors
                 };
 
-            public static MethodInvocationInfo FromUserDefinedConversion(MethodSymbol operatorMethod, BoundExpression operand, bool hasAnyErrors)
+            public static MethodInvocationInfo FromUserDefinedOrUnionConversion(MethodSymbol operatorMethod, BoundExpression operand, bool hasAnyErrors)
                 => new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(operatorMethod),
@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MethodInfo = MethodInfo.Create(colElement.AddMethod),
                     Parameters = colElement.AddMethod.Parameters,
+                    ReceiverIsSubjectToCloning = ThreeState.False,
                     Receiver = colElement.ImplicitReceiverOpt,
                     ArgsOpt = colElement.Arguments,
                     ArgsToParamsOpt = colElement.ArgsToParamsOpt,
@@ -1866,6 +1867,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // Unsafe member access for compound assignment is checked against the accessors elsewhere.
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, eventSymbol, eventSyntax);
+
                 if (!boundEvent.IsUsableAsField)
                 {
                     // Dev10 reports this in addition to ERR_BadAccess, but we won't even reach this point if the event isn't accessible (caught by lookup).
@@ -1909,7 +1913,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckIsValidReceiverForVariable(SyntaxNode node, BoundExpression receiver, BindValueKind kind, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(receiver != null);
-            return Flags.Includes(BinderFlags.ObjectInitializerMember) && receiver.Kind == BoundKind.ObjectOrCollectionValuePlaceholder ||
+            // Binding object initializer field/property access needs object initializer specific diagnostics:
+            //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
+            //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
+            //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
+            // These only apply on the left side of an object initializer member assignment, not the RHS.
+            return (receiver.Kind == BoundKind.ObjectOrCollectionValuePlaceholder && IsObjectInitializerMemberTarget(node)) ||
                 CheckValueKind(node, receiver, kind, true, diagnostics);
         }
 
@@ -2074,6 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, node);
 
                     var setValueKind = setMethod.IsEffectivelyReadOnly ? BindValueKind.RValue : BindValueKind.Assignable;
                     if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, setValueKind, diagnostics))
@@ -2124,6 +2134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getMethod, node);
 
                     if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
                         reportUseSite(getMethod))
@@ -3929,7 +3940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Conversion:
                     Debug.Assert(expr is BoundConversion conversion &&
-                        (!conversion.Conversion.IsUserDefined ||
+                        ((!conversion.Conversion.IsUserDefined && !conversion.Conversion.IsUnion) ||
                         conversion.Conversion.Method.HasUnsupportedMetadata ||
                         conversion.Conversion.Method.RefKind == RefKind.None));
                     break;
@@ -4267,7 +4278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return CheckRefEscape(node, conversion.Operand, escapeTo, checkingReceiver, diagnostics);
                     }
 
-                    Debug.Assert(!conversion.Conversion.IsUserDefined ||
+                    Debug.Assert((!conversion.Conversion.IsUserDefined && !conversion.Conversion.IsUnion) ||
                         conversion.Conversion.Method.HasUnsupportedMetadata ||
                         conversion.Conversion.Method.RefKind == RefKind.None);
                     break;
@@ -4407,6 +4418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.ValuePlaceholder:
                 case BoundKind.CollectionBuilderElementsPlaceholder:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
 
                 case BoundKind.Local:
@@ -4615,13 +4627,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRefEscape: false);
                     }
 
-                    if (conversion.Conversion.IsUserDefined)
+                    if (conversion.Conversion is { IsUserDefined: true } or { IsUnion: true })
                     {
                         var operatorMethod = conversion.Conversion.Method;
                         Debug.Assert(operatorMethod is not null);
 
                         return GetInvocationEscapeScope(
-                            MethodInvocationInfo.FromUserDefinedConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
+                            MethodInvocationInfo.FromUserDefinedOrUnionConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
                             isRefEscape: false);
                     }
 
@@ -4726,9 +4738,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _localScopeDepth;
 
                 case BoundKind.ImplicitReceiver:
-                case BoundKind.ObjectOrCollectionValuePlaceholder:
-                    // binder uses this as a placeholder when binding members inside an object initializer
-                    // just say it does not escape anywhere, so that we do not get false errors.
                     return _localScopeDepth;
 
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
@@ -4815,19 +4824,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(expr.CollectionCreation);
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    // Restrict the collection to local scope if not empty.  Note: this is inaccurate.  What we should
-                    // be doing here is examining the arguments passed to the collection constructor (from the
-                    // `with(...)` element), intersected well as any arguments passed to `Add` methods to determine the
-                    // final safety context.  However, the latter is highly challenging as we do not know that
-                    // information until the lowering phase.  We'll need to pull out that logic to do things properly
-                    // here.
-                    //
-                    // Tracked with: https://github.com/dotnet/roslyn/issues/81520
-                    return _localScopeDepth;
+                    var receiverScope = expr.CollectionCreation is { } collectionCreation
+                        ? GetValEscape(collectionCreation)
+                        : _localScopeDepth;
+                    var scope = receiverScope;
+                    foreach (var element in expr.Elements)
+                    {
+                        if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
+                        {
+                            scope = scope.Intersect(elementSafeContext);
+                        }
+                    }
+                    return scope;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
+        }
+
+        private bool TryGetCollectionExpressionElementValEscape(BoundNode element, out SafeContext safeContext)
+        {
+            if (element is BoundCollectionElementInitializer colElement)
+            {
+                safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(colElement));
+                return true;
+            }
+
+            if (element is BoundCollectionExpressionSpreadElement spreadElement)
+            {
+                if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
+                {
+                    safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer));
+                }
+                else
+                {
+                    Debug.Assert(spreadElement.HasErrors
+                        || spreadElement.IteratorBody is null
+                        or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer });
+                    safeContext = GetValEscape(spreadElement.Expression);
+                }
+
+                return true;
+            }
+
+            if (element is BoundExpression elementExpression)
+            {
+                safeContext = GetValEscape(elementExpression);
+                return true;
+            }
+
+            Debug.Assert(element.HasErrors);
+            safeContext = default;
+            return false;
         }
 
         private SafeContext GetTupleValEscape(ImmutableArray<BoundExpression> elements)
@@ -5062,6 +5110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.ValuePlaceholder:
                 case BoundKind.CollectionBuilderElementsPlaceholder:
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
                     if (!GetPlaceholderScope((BoundValuePlaceholderBase)expr).IsConvertibleTo(escapeTo))
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
@@ -5363,14 +5412,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRefEscape: false);
                     }
 
-                    if (conversion.Conversion.IsUserDefined)
+                    if (conversion.Conversion is { IsUserDefined: true } or { IsUnion: true })
                     {
                         var operatorMethod = conversion.Conversion.Method;
                         Debug.Assert(operatorMethod is not null);
 
                         return CheckInvocationEscape(
                             conversion.Syntax,
-                            MethodInvocationInfo.FromUserDefinedConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
+                            MethodInvocationInfo.FromUserDefinedOrUnionConversion(operatorMethod, conversion.Operand, conversion.HasAnyErrors),
                             checkingReceiver,
                             escapeTo,
                             diagnostics,

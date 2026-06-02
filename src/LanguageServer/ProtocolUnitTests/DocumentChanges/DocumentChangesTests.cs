@@ -86,7 +86,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal(documentText, document.ToString());
         }
     }
@@ -104,12 +104,16 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             }
             """, mutatingLspWorkspace);
 
-        await using (testLspServer)
+        try
         {
             await DidOpen(testLspServer, locationTyped.DocumentUri);
 
             await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidOpen(testLspServer, locationTyped.DocumentUri));
             await testLspServer.AssertServerShuttingDownAsync();
+        }
+        finally
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
         }
     }
 
@@ -126,10 +130,14 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             }
             """, mutatingLspWorkspace);
 
-        await using (testLspServer)
+        try
         {
             await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidClose(testLspServer, locationTyped.DocumentUri));
             await testLspServer.AssertServerShuttingDownAsync();
+        }
+        finally
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
         }
     }
 
@@ -146,10 +154,14 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             }
             """, mutatingLspWorkspace);
 
-        await using (testLspServer)
+        try
         {
             await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidChange(testLspServer, locationTyped.DocumentUri, (0, 0, "goo")));
             await testLspServer.AssertServerShuttingDownAsync();
+        }
+        finally
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await testLspServer.DisposeAsync());
         }
     }
 
@@ -197,7 +209,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
                 class A
                 {
@@ -264,11 +276,11 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         {
             await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"), (5, 0, "        // this builds on that\r\n"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"), (5, 0, $"        // this builds on that{Environment.NewLine}"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
             class A
             {
@@ -303,7 +315,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
             class A
             {
@@ -333,11 +345,11 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         {
             await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, "        // this builds on that\r\n"), (4, 8, "// hi there"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, $"        // this builds on that{Environment.NewLine}"), (4, 8, "// hi there"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
             class A
             {
@@ -412,11 +424,11 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             await DidOpen(testLspServer, locationTyped.DocumentUri);
 
             await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"));
-            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, "        // this builds on that\r\n"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, $"        // this builds on that{Environment.NewLine}"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
             Assert.Equal("""
             class A
             {

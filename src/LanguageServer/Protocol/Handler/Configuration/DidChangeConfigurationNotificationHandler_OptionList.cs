@@ -27,6 +27,7 @@ internal sealed partial class DidChangeConfigurationNotificationHandler
         CompletionOptionsStorage.ShowNameSuggestions,
         CompletionOptionsStorage.ProvideRegexCompletions,
         CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
+        CompletionOptionsStorage.ImportCompletionCommitBehavior,
         CompletionOptionsStorage.TriggerInArgumentLists,
         QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
         MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
@@ -58,7 +59,7 @@ internal sealed partial class DidChangeConfigurationNotificationHandler
         LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
         LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
         LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms,
-        LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous,
+        LanguageServerProjectSystemOptionsStorage.EnableSemanticErrorsInMiscellaneousFiles,
         MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources,
         LspOptionsStorage.LspOrganizeImportsOnFormat,
     ];

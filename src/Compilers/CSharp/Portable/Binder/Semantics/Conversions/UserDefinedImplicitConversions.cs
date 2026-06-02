@@ -634,7 +634,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
+                case ConversionKind.Union:
                 case ConversionKind.FunctionType:
+                case ConversionKind.CollectionExpression:
 
                 // Not implicit.
                 case ConversionKind.ExplicitNumeric:
@@ -977,6 +979,75 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return UserDefinedConversionResult.NoApplicableOperators(u);
+        }
+
+        protected virtual Conversion AnalyzeImplicitUnionConversions(
+            BoundExpression sourceExpression,
+            TypeSymbol source,
+            TypeSymbol target,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
+            Debug.Assert(sourceExpression != null || (object)source != null);
+            Debug.Assert((object)target != null);
+
+            if (target.StrippedType() is not NamedTypeSymbol namedTarget || !namedTarget.IsUnionType)
+            {
+                return Conversion.NoConversion;
+            }
+
+            // SPEC: Find the set of applicable constructors
+            var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
+            computeApplicableFactorySet(sourceExpression, source, target, namedTarget, ubuild, ref useSiteInfo);
+
+            if (ubuild.Count == 0)
+            {
+                ubuild.Free();
+                return Conversion.NoConversion;
+            }
+
+            ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
+
+            // Find the most specific source type SX of the operators in U...
+            TypeSymbol sx = MostSpecificSourceTypeForImplicitUserDefinedConversion(u, source, ref useSiteInfo);
+            if ((object)sx == null || MostSpecificConversionOperator(sx, namedTarget, u) is not int best)
+            {
+                // Ambiguous.
+                return Conversion.CreateUnionConversion(UserDefinedConversionResult.Ambiguous(u));
+            }
+
+            return Conversion.CreateUnionConversion(UserDefinedConversionResult.Valid(u, best));
+
+            void computeApplicableFactorySet(
+                BoundExpression sourceExpression,
+                TypeSymbol source,
+                TypeSymbol target,
+                NamedTypeSymbol declaringType,
+                ArrayBuilder<UserDefinedConversionAnalysis> u,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                var localUseSiteInfo = useSiteInfo;
+                declaringType.ForEachUnionFactoryMethod(
+                    (factory, u) =>
+                    {
+                        TypeSymbol convertsFrom = factory.GetParameterType(0);
+                        Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref localUseSiteInfo);
+                        Conversion targetConversion = EncompassingImplicitConversion(declaringType, target, ref localUseSiteInfo);
+
+                        Debug.Assert(targetConversion.Exists && targetConversion.IsImplicit);
+                        Debug.Assert(targetConversion.IsIdentity || (targetConversion.IsNullable && targetConversion.UnderlyingConversions[0].IsIdentity));
+
+                        if (fromConversion.Exists && targetConversion.Exists)
+                        {
+                            u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt: null, factory, fromConversion, targetConversion, convertsFrom, toType: declaringType));
+                        }
+
+                        return false;
+                    },
+                    u);
+
+                useSiteInfo = localUseSiteInfo;
+            }
         }
     }
 }

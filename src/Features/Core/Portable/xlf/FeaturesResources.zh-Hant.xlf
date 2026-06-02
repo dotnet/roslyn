@@ -460,17 +460,22 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">將專案設定 '{0}' 從 '{1}' 變更為 '{2}' 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_the_application">
         <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
         <target state="translated">變更 {1} 的虛擬自訂屬性 '{0}' 需要重新啟動應用程式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit">
-        <source>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</source>
-        <target state="translated">在專案重新建置之前，於過時的專案中變更來源檔案 '{0}' 不會產生效果。</target>
+      <trans-unit id="Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2">
+        <source>Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</source>
+        <target state="translated">變更不支援熱重新載入的專案 '{1}' 中的來源檔案 '{0}' 需要重新啟動應用程式; {2}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
+      <trans-unit id="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2">
+        <source>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</source>
+        <target state="translated">在專案重新建置之前，於過時的專案 '{1}' 中變更來源檔案 '{0}' 不會產生效果; {2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application">
         <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
         <target state="translated">將包含的命名空間 '{0}' 從 '{1}' 變更為 '{2}' 需要重新啟動應用程式</target>
         <note />
@@ -1004,6 +1009,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Insufficient or invalid hexadecimal digits</source>
         <target state="translated">十六進位數字不足或無效</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
+      </trans-unit>
+      <trans-unit id="Intercepted_by_0">
+        <source>Intercepted by '{0}'.</source>
+        <target state="translated">被 '{0}' 攔截。</target>
+        <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
@@ -2590,6 +2600,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">以陳述式取代條件運算式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Represents_the_character_0_as_a_UTF_16_code_unit">
+        <source>Represents the character '{0}' as a UTF-16 code unit.</source>
+        <target state="translated">代表字元 '{0}' 做為 UTF-16 程式碼單元。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Required">
         <source>required</source>
         <target state="translated">必要項</target>
@@ -3168,6 +3183,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_does_not_support_Hot_Reload">
+        <source>{0} does not support Hot Reload.</source>
+        <target state="translated">{0} 不支援熱重新載入。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_expected">
@@ -4429,6 +4449,21 @@ When this standard format specifier is used, the formatting or parsing operation
         <source>{0} '{1}' of {2} '{3}'</source>
         <target state="translated">{0} '{1}' (共 {2} '{3}')</target>
         <note>e.g. "parameter 'T param' of method 'M'"</note>
+      </trans-unit>
+      <trans-unit id="the_content_of_the_document_is_stale">
+        <source>the content of the document is stale.</source>
+        <target state="translated">文件內容已過時。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_contains_stale_document_0">
+        <source>the project contains stale document '{0}'.</source>
+        <target state="translated">專案包含過時的文件 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="the_project_has_not_been_built">
+        <source>the project has not been built.</source>
+        <target state="translated">專案尚未建置。</target>
+        <note />
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

@@ -71,24 +71,62 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             if (source is BoundValuePlaceholder placeholder1)
             {
-                Debug.Assert(filterConversion(conversion));
+                Debug.Assert(filterConversion(conversion, result));
                 Debug.Assert(BoundNode.GetConversion(result, placeholder1) == conversion);
             }
-            else if (source.Type is not null && filterConversion(conversion))
+            else if (source.Type is not null && filterConversion(conversion, result))
             {
                 var placeholder2 = new BoundValuePlaceholder(source.Syntax, source.Type);
                 var result2 = createConversion(syntax, placeholder2, conversion, isCast, conversionGroupOpt: new ConversionGroup(conversion), InConversionGroupFlags.Unspecified, wasCompilerGenerated, destination, BindingDiagnosticBag.Discarded, hasErrors);
                 Debug.Assert(BoundNode.GetConversion(result2, placeholder2) == conversion);
             }
 
-            static bool filterConversion(Conversion conversion)
+            static bool filterConversion(Conversion conversion, BoundExpression result)
             {
-                return !conversion.IsInterpolatedString &&
-                       !conversion.IsInterpolatedStringHandler &&
-                       !conversion.IsSwitchExpression &&
-                       !conversion.IsCollectionExpression &&
-                       !(conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)) &&
-                       (!conversion.IsUserDefined || filterConversion(conversion.UserDefinedFromConversion));
+                if (conversion.IsInterpolatedString)
+                {
+                    return false;
+                }
+
+                if (conversion.IsInterpolatedStringHandler)
+                {
+                    return false;
+                }
+
+                if (conversion.IsSwitchExpression)
+                {
+                    return false;
+                }
+
+                if (conversion.IsCollectionExpression)
+                {
+                    return false;
+                }
+
+                if ((conversion.IsTupleLiteralConversion || (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion)))
+                {
+                    return false;
+                }
+
+                if (conversion.IsUserDefined && !filterConversion(conversion.UserDefinedFromConversion, result))
+                {
+                    return false;
+                }
+
+                if (conversion.IsUnion && conversion.IsValid && !filterConversion(conversion.BestUnionConversionAnalysis!.SourceConversion, result))
+                {
+                    return false;
+                }
+
+                if ((result as BoundConversion)?.ConversionGroupOpt?.Conversion.IsUnion == true &&
+                    !conversion.IsUnion &&
+                    ((BoundConversion)result).ConversionGroupOpt!.Conversion.BestUnionConversionAnalysis is { } analysis &&
+                    conversion != analysis.SourceConversion)
+                {
+                    return false;
+                }
+
+                return true;
             }
 #endif
 
@@ -274,6 +312,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
                 }
 
+                if (conversion.IsUnion)
+                {
+                    // Union conversions are likely to be represented as multiple
+                    // BoundConversion instances so a ConversionGroup is necessary.
+                    return CreateUnionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
+                }
+
                 ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
                 if (conversion.Kind == ConversionKind.DefaultLiteral)
                 {
@@ -319,6 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
                     if (conversion.Method is not null)
                     {
+                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, conversion.Method, syntax);
                         ReportUseSite(conversion.Method, diagnostics, syntax.Location);
                     }
 
@@ -451,6 +497,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics);
                         }
+                    }
+                }
+                else if (conversion.IsUnion)
+                {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnions, diagnostics);
+
+                    if (conversion.Method is { IsStatic: true } method &&
+                        (method.IsAbstract || method.IsVirtual) &&
+                        (Compilation.SourceModule != method.ContainingModule) &&
+                        !Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
                     }
                 }
                 else if (conversion.IsInlineArray)
@@ -977,6 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_targetType is NamedTypeSymbol namedType &&
                     _binder.HasParamsCollectionTypeInProgress(namedType, out NamedTypeSymbol? inProgress, out MethodSymbol? inProgressConstructor))
                 {
+                    Debug.Assert(_node.WithElement is null);
                     Debug.Assert(inProgressConstructor is not null);
                     _diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
                     return null;
@@ -1045,7 +1104,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression collectionCreation;
                     if (@this._targetType is NamedTypeSymbol namedType)
                     {
-                        var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, withElement != null, constructor);
+                        // When withElement is present, we pass null for the type so that cycle detection
+                        // (HasParamsCollectionTypeInProgress) walks past this binder. The with-element arguments
+                        // are passed directly to the constructor, so this level is not a params expansion cycle.
+                        // The inner params collection creation (if any) will push its own binder with the type
+                        // and detect cycles at that level.
+                        var binder = new ParamsCollectionTypeInProgressBinder(
+                            withElement is null ? namedType : null,
+                            @this._binder,
+                            bindingCollectionExpressionWithArguments: withElement != null,
+                            constructor);
                         collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
                     }
                     else if (@this._targetType is TypeParameterSymbol typeParameter)
@@ -1241,6 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
                     // Now perform overload resolution given only those two constructors and no others.
+                    BoundExpression result;
                     if (@this._binder.TryPerformOverloadResolutionWithConstructorSubset(
                             constructedListType,
                             ref candidateConstructors,
@@ -1254,12 +1323,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ref useSiteInfo,
                             isParamsModifierValidation: false))
                     {
-                        return @this._binder.BindClassCreationExpressionContinued(
+                        result = @this._binder.BindClassCreationExpressionContinued(
                             withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
                     }
+                    else
+                    {
+                        result = @this._binder.CreateBadClassCreationExpression(
+                            withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
+                    }
 
-                    return @this._binder.CreateBadClassCreationExpression(
-                        withSyntax, withSyntax, constructedListType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, @this._diagnostics);
+                    analyzedArguments.Free();
+                    return result;
                 }
             }
 
@@ -1569,6 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, collectionBuilderMethod, syntax);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 
             Debug.Assert(!collectionBuilderMethod.IsExtensionBlockMember());
@@ -1612,6 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (HasParamsCollectionTypeInProgress(namedType, out _, out _))
                 {
+                    Debug.Assert(!hasWithElement);
                     // We are in a cycle. Optimistically assume we have the right constructor to break the cycle
                     return true;
                 }
@@ -1701,6 +1777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = memberResolutionResult.Member;
 
                 binder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+                binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
                 ImmutableSegmentedDictionary<string, Symbol> requiredMembers = GetMembersRequiringInitialization(method);
@@ -1950,6 +2027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 else if (addMethods.Length == 1)
                                 {
                                     addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
+                                    addMethodBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, addMethods[0], syntax);
                                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
                                     Debug.Assert(!IsDisallowedExtensionInOlderLangVer(addMethods[0]));
                                 }
@@ -2426,7 +2504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination, diagnostics)
                     : GenerateConversionForAssignment(destination, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
-                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
+                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.HasUnionMatching, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
             }
             conversion.MarkUnderlyingConversionsChecked();
@@ -2464,7 +2542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
                     conversionGroup,
-                    InConversionGroupFlags.UserDefinedOperator | InConversionGroupFlags.UserDefinedErroneous,
+                    InConversionGroupFlags.UserDefinedErroneous,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination,
                     hasErrors: true)
@@ -2615,6 +2693,135 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isCast: false,
                 conversionGroupOpt: conversionGroup,
                 InConversionGroupFlags.UserDefinedFinal,
+                wasCompilerGenerated: true, // NOTE: doesn't necessarily set flag on resulting bound expression.
+                destination: destination,
+                diagnostics: diagnostics);
+
+            conversion.AssertUnderlyingConversionsCheckedRecursive();
+
+            finalConversion.ResetCompilerGenerated(source.WasCompilerGenerated);
+
+            return finalConversion;
+        }
+
+        private BoundExpression CreateUnionConversion(
+            SyntaxNode syntax,
+            BoundExpression source,
+            Conversion conversion,
+            bool isCast,
+            ConversionGroup conversionGroup,
+            TypeSymbol destination,
+            BindingDiagnosticBag diagnostics,
+            bool hasErrors)
+        {
+            Debug.Assert(conversionGroup != null);
+            Debug.Assert(conversionGroup.Conversion == conversion);
+            Debug.Assert(conversion.IsUnion);
+
+            conversion.MarkUnderlyingConversionsChecked();
+
+            if (!conversion.IsValid)
+            {
+                if (!hasErrors)
+                    GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
+
+                return new BoundConversion(
+                    syntax,
+                    BindToNaturalType(source, diagnostics),
+                    conversion,
+                    CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast,
+                    conversionGroup,
+                    InConversionGroupFlags.UnionErroneous,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: destination,
+                    hasErrors: true)
+                { WasCompilerGenerated = source.WasCompilerGenerated };
+            }
+
+            Debug.Assert(conversion.BestUnionConversionAnalysis is object); // All valid union conversions have this populated
+
+            UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
+
+            Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
+            Debug.Assert(analysis.Operator is { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
+            Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.Operator.MethodKind == MethodKind.Constructor ? analysis.Operator.ContainingType : analysis.Operator.ReturnType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
+            Debug.Assert(source.Type?.IsDynamic() != true);
+
+            // Original expression --> conversion's "from" type
+            BoundExpression convertedOperand = CreateConversion(
+                syntax: syntax,
+                source: source,
+                conversion: analysis.SourceConversion,
+                isCast: false,
+                conversionGroupOpt: conversionGroup,
+                InConversionGroupFlags.UnionSourceConversion,
+                wasCompilerGenerated: true,
+                destination: analysis.FromType,
+                diagnostics: diagnostics);
+
+            if (analysis.Operator.MethodKind == MethodKind.Constructor)
+            {
+                var analyzedArguments = AnalyzedArguments.GetInstance([convertedOperand], argumentNamesOpt: default, argumentRefKindsOpt: default);
+                var instantiatedType = analysis.Operator.ContainingType;
+
+                if (instantiatedType.IsAbstract)
+                {
+                    // Report error for new of abstract type.
+                    diagnostics.Add(ErrorCode.ERR_NoNewAbstract, syntax.Location, instantiatedType);
+                }
+
+                var candidateConstructors = ImmutableArray.Create(analysis.Operator);
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+                if (TryPerformOverloadResolutionWithConstructorSubset(
+                        instantiatedType,
+                        ref candidateConstructors,
+                        candidateConstructors,
+                        analyzedArguments,
+                        instantiatedType.Name,
+                        syntax.GetLocation(),
+                        suppressResultDiagnostics: false,
+                        diagnostics,
+                        out var memberResolutionResult,
+                        ref useSiteInfo,
+                        isParamsModifierValidation: false))
+                {
+                    BindClassCreationExpressionContinued(
+                        syntax, syntax, instantiatedType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, wasTargetTyped: false, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
+                }
+                else
+                {
+                    CreateBadClassCreationExpression(
+                        syntax, syntax, instantiatedType, analyzedArguments, initializerSyntaxOpt: null, initializerTypeOpt: null, memberResolutionResult, candidateConstructors, useSiteInfo, diagnostics);
+                }
+
+                analyzedArguments.Free();
+            }
+
+            var unionConversion = new BoundConversion(
+                    syntax,
+                    convertedOperand,
+                    conversion,
+                    @checked: CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast,
+                    conversionGroup,
+                    InConversionGroupFlags.UnionConstructor,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: analysis.ToType)
+            { WasCompilerGenerated = true };
+
+            // Conversion's "to" type --> final type
+            BoundExpression finalConversion = CreateConversion(
+                syntax: syntax,
+                source: unionConversion,
+                conversion: analysis.TargetConversion,
+                isCast: false,
+                conversionGroupOpt: conversionGroup,
+                InConversionGroupFlags.UnionFinal,
                 wasCompilerGenerated: true, // NOTE: doesn't necessarily set flag on resulting bound expression.
                 destination: destination,
                 diagnostics: diagnostics);
@@ -2893,10 +3100,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.StackAllocToPointerType:
-                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics);
+                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     stackAllocType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
                     break;
                 case ConversionKind.StackAllocToSpanType:
+                    // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
+                    // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
+                    // https://github.com/dotnet/roslyn/issues/82546: Confirm this rule with LDM.
+                    if (Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
+                        boundStackAlloc.InitializerOpt is null &&
+                        ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
+                    {
+                        ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
+                    }
+
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
                     stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
                     break;
@@ -3526,7 +3743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if ((selectedMethod.HasParameterContainingPointerType() || selectedMethod.ReturnType.ContainsPointerOrFunctionPointer())
-                && ReportUnsafeIfNotAllowed(syntax, diagnostics))
+                && ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRules.Legacy))
             {
                 return true;
             }
@@ -3537,6 +3754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, selectedMethod, syntax);
             ReportDiagnosticsIfDisallowedExtension(diagnostics, selectedMethod, syntax);
 
             // No use site errors, but there could be use site warnings.

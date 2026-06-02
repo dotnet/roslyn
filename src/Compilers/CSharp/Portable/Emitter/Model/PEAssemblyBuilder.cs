@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedNativeIntegerAttributeSymbol _lazyNativeIntegerAttribute;
         private SynthesizedEmbeddedScopedRefAttributeSymbol _lazyScopedRefAttribute;
         private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol _lazyRefSafetyRulesAttribute;
+        private SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol _lazyMemorySafetyRulesAttribute;
         private SynthesizedEmbeddedExtensionMarkerAttributeSymbol _lazyExtensionMarkerAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyRequiresUnsafeAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -112,7 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyNativeIntegerAttribute);
             builder.AddIfNotNull(_lazyScopedRefAttribute);
             builder.AddIfNotNull(_lazyRefSafetyRulesAttribute);
+            builder.AddIfNotNull(_lazyMemorySafetyRulesAttribute);
             builder.AddIfNotNull(_lazyExtensionMarkerAttribute);
+            builder.AddIfNotNull(_lazyRequiresUnsafeAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -297,6 +301,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeRefSafetyRulesAttribute(arguments);
         }
 
+        internal override SynthesizedAttributeData TrySynthesizeMemorySafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyMemorySafetyRulesAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyMemorySafetyRulesAttribute.Constructors[0],
+                    arguments,
+                    namedArguments: []);
+            }
+
+            return base.TrySynthesizeMemorySafetyRulesAttribute(arguments);
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
@@ -323,6 +341,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return base.TrySynthesizeRequiresLocationAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeRequiresUnsafeAttributeCore()
+        {
+            if ((object)_lazyRequiresUnsafeAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyRequiresUnsafeAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeRequiresUnsafeAttributeCore();
         }
 
         protected override SynthesizedAttributeData TrySynthesizeParamCollectionAttribute()
@@ -396,10 +428,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 needsAttributes |= EmbeddableAttributes.NullablePublicOnlyAttribute;
             }
 
-            if (((SourceModuleSymbol)Compilation.SourceModule).RequiresRefSafetyRulesAttribute() &&
+            var sourceModule = (SourceModuleSymbol)Compilation.SourceModule;
+
+            if (sourceModule.RequiresRefSafetyRulesAttribute() &&
                 Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.RefSafetyRulesAttribute, diagnostics, Location.None))
             {
                 needsAttributes |= EmbeddableAttributes.RefSafetyRulesAttribute;
+            }
+
+            if (sourceModule.UseUpdatedMemorySafetyRules &&
+                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.MemorySafetyRulesAttribute, diagnostics, Location.None))
+            {
+                needsAttributes |= EmbeddableAttributes.MemorySafetyRulesAttribute;
+            }
+
+            if (sourceModule.UseUpdatedMemorySafetyRules &&
+                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.RequiresUnsafeAttribute, diagnostics, Location.None))
+            {
+                needsAttributes |= EmbeddableAttributes.RequiresUnsafeAttribute;
             }
 
             if (needsAttributes == 0)
@@ -431,6 +477,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyRequiresLocationAttribute,
                     diagnostics,
                     AttributeDescription.RequiresLocationAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.RequiresUnsafeAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRequiresUnsafeAttribute,
+                    diagnostics,
+                    AttributeDescription.RequiresUnsafeAttribute,
                     createParameterlessEmbeddedAttributeSymbol);
             }
 
@@ -516,6 +571,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     CreateRefSafetyRulesAttributeSymbol);
             }
 
+            if ((needsAttributes & EmbeddableAttributes.MemorySafetyRulesAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyMemorySafetyRulesAttribute,
+                    diagnostics,
+                    AttributeDescription.MemorySafetyRulesAttribute,
+                    CreateMemorySafetyRulesAttributeSymbol);
+            }
+
             if ((needsAttributes & EmbeddableAttributes.ExtensionMarkerAttribute) != 0)
             {
                 CreateAttributeIfNeeded(
@@ -579,6 +643,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     SourceModule,
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
                     GetSpecialType(SpecialType.System_Int32, diagnostics));
+
+        private SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol CreateMemorySafetyRulesAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    systemAttributeType: GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    int32Type: GetSpecialType(SpecialType.System_Int32, diagnostics));
 
         private SynthesizedEmbeddedExtensionMarkerAttributeSymbol CreateExtensionMarkerAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
             => new SynthesizedEmbeddedExtensionMarkerAttributeSymbol(

@@ -2783,6 +2783,112 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 [ID1]C.C() -> void
                 """);
 
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_PropertyAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.Property.get -> int
+                [ID1]C.Property.set -> void
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_PropertyGetterOnlyAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:get|}; }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.Property.get -> int
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_PropertySetterOnlyAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:set|} { } }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.Property.set -> void
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_IndexerAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} int this[int index] { {|{{AddNewApiId}}:get|} => 0; {|{{AddNewApiId}}:set|} { } }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.this[int index].get -> int
+                [ID1]C.this[int index].set -> void
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_EventAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [Experimental("ID1")]
+                    {{EnabledModifierCSharp}} event EventHandler {|{{AddNewApiId}}:MyEvent|};
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [ID1]C.MyEvent -> System.EventHandler
+                """);
+
+        [Fact]
+        [WorkItem(82131, "https://github.com/dotnet/roslyn/pull/82131")]
+        public Task TestExperimentalApi_PropertyInExperimentalClassAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                [Experimental("ID1")]
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
+                }
+                """, @"", @"", """
+                [ID1]C
+                [ID1]C.C() -> void
+                [ID1]C.Property.get -> int
+                [ID1]C.Property.set -> void
+                """);
+
         [Theory]
         [InlineData("")]
         [InlineData("null")]
@@ -2829,6 +2935,155 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     },
                 },
             };
+
+            test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
+
+            await test.RunAsync();
+        }
+
+        private const string RequiresUnsafeAttributeSource = """
+            namespace System.Runtime.CompilerServices
+            {
+                internal sealed class RequiresUnsafeAttribute : Attribute { }
+            }
+            """;
+
+        [Fact]
+        public Task TestRequiresUnsafeApiOnMethodAsync()
+            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
+                using System.Runtime.CompilerServices;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [RequiresUnsafe]
+                    {{EnabledModifierCSharp}} void {|{{AddNewApiId}}:M|}() { }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [RequiresUnsafe]C.M() -> void
+                """);
+
+        [Fact]
+        public Task TestRequiresUnsafeApiOnExternMethodAsync()
+            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
+                using System.Runtime.CompilerServices;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    {{EnabledModifierCSharp}} extern void {|{{AddNewApiId}}:M1|}() { }
+                    [RequiresUnsafe]
+                    {{EnabledModifierCSharp}} extern void {|{{AddNewApiId}}:M2|}() { }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                extern C.M1() -> void
+                [RequiresUnsafe]extern C.M2() -> void
+                """);
+
+        [Fact]
+        public Task TestRequiresUnsafeApiOnPropertyAsync()
+            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
+                using System.Runtime.CompilerServices;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [RequiresUnsafe]
+                    {{EnabledModifierCSharp}} int Property { {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [RequiresUnsafe]C.Property.get -> int
+                [RequiresUnsafe]C.Property.set -> void
+                """);
+
+        [Fact]
+        public Task TestRequiresUnsafeApiOnPropertyAccessorsAsync()
+            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
+                using System.Runtime.CompilerServices;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    {{EnabledModifierCSharp}} int Property { [RequiresUnsafe] {|{{AddNewApiId}}:get|}; {|{{AddNewApiId}}:set|}; }
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                C.Property.set -> void
+                [RequiresUnsafe]C.Property.get -> int
+                """);
+
+        [Fact]
+        public Task TestRequiresUnsafeApiOnEventAsync()
+            => VerifyRequiresUnsafeAdditionalFileFixAsync($$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
+                {
+                    [RequiresUnsafe]
+                    {{EnabledModifierCSharp}} event EventHandler {|{{AddNewApiId}}:MyEvent|};
+                }
+                """, @"", @"", """
+                C
+                C.C() -> void
+                [RequiresUnsafe]C.MyEvent -> System.EventHandler
+                """);
+
+        private async Task VerifyRequiresUnsafeAdditionalFileFixAsync(string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
+        {
+            // The RequiresUnsafeAttribute is defined as internal in test source, so we need to provide
+            // internal API files and include the attribute type entries to satisfy the internal API analyzer.
+            // We put these entries in the Shipped file so they don't interfere with the Unshipped file diffs.
+            var internalApiForAttribute = """
+                System.Runtime.CompilerServices.RequiresUnsafeAttribute
+                System.Runtime.CompilerServices.RequiresUnsafeAttribute.RequiresUnsafeAttribute() -> void
+                """;
+
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, DefaultVerifier>()
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+                CompilerDiagnostics = CompilerDiagnostics.None,
+            };
+
+            test.TestState.Sources.Add(source);
+            test.TestState.Sources.Add(RequiresUnsafeAttributeSource);
+
+            if (IsInternalTest)
+            {
+                // For internal tests, ShippedFileName/UnshippedFileName are InternalAPI files.
+                // Put the RequiresUnsafeAttribute entries in the shipped file.
+                test.TestState.AdditionalFiles.Add((ShippedFileName, internalApiForAttribute));
+                test.TestState.AdditionalFiles.Add((UnshippedFileName, oldUnshippedApiText ?? ""));
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicShippedFileName, ""));
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicUnshippedFileName, ""));
+
+                test.FixedState.Sources.Add(source);
+                test.FixedState.Sources.Add(RequiresUnsafeAttributeSource);
+                test.FixedState.AdditionalFiles.Add((ShippedFileName, internalApiForAttribute));
+                test.FixedState.AdditionalFiles.Add((UnshippedFileName, newUnshippedApiText));
+                test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicShippedFileName, ""));
+                test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicUnshippedFileName, ""));
+            }
+            else
+            {
+                // For public tests, provide internal API files with the attribute entries pre-populated.
+                if (shippedApiText != null)
+                    test.TestState.AdditionalFiles.Add((ShippedFileName, shippedApiText));
+                if (oldUnshippedApiText != null)
+                    test.TestState.AdditionalFiles.Add((UnshippedFileName, oldUnshippedApiText));
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.InternalShippedFileName, internalApiForAttribute));
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.InternalUnshippedFileName, ""));
+
+                test.FixedState.Sources.Add(source);
+                test.FixedState.Sources.Add(RequiresUnsafeAttributeSource);
+                test.FixedState.AdditionalFiles.Add((ShippedFileName, shippedApiText ?? string.Empty));
+                test.FixedState.AdditionalFiles.Add((UnshippedFileName, newUnshippedApiText));
+                test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.InternalShippedFileName, internalApiForAttribute));
+                test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.InternalUnshippedFileName, ""));
+            }
 
             test.DisabledDiagnostics.AddRange(DisabledDiagnostics);
 

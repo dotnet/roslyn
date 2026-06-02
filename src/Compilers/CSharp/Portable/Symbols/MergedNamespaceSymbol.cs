@@ -290,25 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string name, int arity, LookupOptions options)
+#nullable enable
+        internal sealed override void GetAllExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
             foreach (NamespaceSymbol namespaceSymbol in _namespacesToMerge)
             {
-                namespaceSymbol.GetExtensionMethods(methods, name, arity, options);
-            }
-        }
-
-#nullable enable
-        // Overridden to avoid NamespaceSymbol.GetExtensionContainers call to GetTypeMembersUnordered. The combination of the
-        // CreateRange and OfType Linq calls in MergedNamespaceSymbol.GetTypeMembersUnordered causes a full array allocation.
-        internal sealed override void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
-        {
-            foreach (var member in GetMembersUnordered())
-            {
-                if (member is NamedTypeSymbol type)
-                {
-                    type.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
-                }
+                namespaceSymbol.GetAllExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
             }
         }
     }

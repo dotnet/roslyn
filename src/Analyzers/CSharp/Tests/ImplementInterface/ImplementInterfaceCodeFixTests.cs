@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -581,7 +582,8 @@ public sealed class ImplementInterfaceCodeFixTests
             }
             """);
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
     public Task TestMethodWhenClassBracesAreMissing2(
         [CombinatorialValues(0, 1)] int behavior)
         => new VerifyCS.Test
@@ -3056,7 +3058,7 @@ public sealed class ImplementInterfaceCodeFixTests
             }
             """, index: 1);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestImplementEventThroughExplicitMember()
         => TestInRegularAndScriptAsync(
 @"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event System.EventHandler IGoo.E { add { } remove { } } } class HasCanGoo : {|CS0535:IGoo|} { CanGoo canGoo; }",
@@ -6069,7 +6071,8 @@ class B : IGoo
             }
             """, index: 3);
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
     public Task TestDoNotImplementDisposePatternForLocallyDefinedIDisposable()
         => TestWithAllCodeStyleOptionsOffAsync(
             """
@@ -11887,5 +11890,55 @@ class Goo : [|IComparable|]
              ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
              LanguageVersion = LanguageVersion.CSharp14,
              Options = { { FormattingOptions2.NewLine, "\n" } },
+         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82787")]
+    public Task FileLevelDirective_AddUsings()
+         => new VerifyCS.Test
+         {
+             TestCode = """
+                #:property Configuration=Release
+
+                using System.Collections;
+
+                class A : {|CS0535:I|}
+                {
+                }
+
+                interface I
+                {
+                    void M(System.DateTime dt, System.IO.FileInfo f);
+                }
+                """,
+             FixedCode = """
+                #:property Configuration=Release
+
+                using System;
+                using System.Collections;
+                using System.IO;
+
+                class A : I
+                {
+                    public void M(DateTime dt, FileInfo f)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                interface I
+                {
+                    void M(System.DateTime dt, System.IO.FileInfo f);
+                }
+                """,
+             SolutionTransforms =
+             {
+                static (solution, projectId) =>
+                {
+                    var project = solution.GetProject(projectId)!;
+                    var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+                    return solution.WithProjectParseOptions(projectId,
+                        parseOptions.WithFeatures(parseOptions.Features.Append(new("FileBasedProgram", ""))));
+                },
+            },
          }.RunAsync();
 }

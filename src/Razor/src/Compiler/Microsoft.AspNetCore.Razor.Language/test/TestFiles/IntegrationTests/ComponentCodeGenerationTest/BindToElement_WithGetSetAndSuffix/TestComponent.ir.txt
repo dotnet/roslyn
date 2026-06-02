@@ -1,0 +1,26 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupElement - (0:0,0 [79] x:\dir\subdir\Test\TestComponent.cshtml) - div
+                    HtmlAttribute - (24:0,24 [12] x:\dir\subdir\Test\TestComponent.cshtml) - myvalue=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
+                            LazyIntermediateToken - (25:0,25 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
+                            IntermediateToken -  - CSharp - )
+                    HtmlAttribute - (24:0,24 [12] x:\dir\subdir\Test\TestComponent.cshtml) - myevent=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredBindSetter(callback: 
+                            IntermediateToken - (57:0,57 [12] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ValueChanged
+                            IntermediateToken -  - CSharp - , value: ParentValue)
+                            IntermediateToken -  - CSharp - , 
+                            IntermediateToken -  - CSharp - ParentValue
+                            IntermediateToken -  - CSharp - )
+            CSharpCode - (88:2,7 [144] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (88:2,7 [144] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n\n    Task ValueChanged(string value)\n    {\n        return Task.CompletedTask;\n    }\n

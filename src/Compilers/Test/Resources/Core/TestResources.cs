@@ -127,12 +127,6 @@ namespace TestResources.MetadataTests
         private static string s_manyMethodSpecs;
         public static string ManyMethodSpecs => ResourceLoader.GetOrCreateResource(ref s_manyMethodSpecs, "MetadataTests.Invalid.ManyMethodSpecs.vb");
 
-        private static byte[] s_obfuscated;
-        public static byte[] Obfuscated => ResourceLoader.GetOrCreateResource(ref s_obfuscated, "MetadataTests.Invalid.Obfuscated.dll");
-
-        private static byte[] s_obfuscated2;
-        public static byte[] Obfuscated2 => ResourceLoader.GetOrCreateResource(ref s_obfuscated2, "MetadataTests.Invalid.Obfuscated2.dll");
-
         public static class Signatures
         {
             private static byte[] s_signatureCycle2;

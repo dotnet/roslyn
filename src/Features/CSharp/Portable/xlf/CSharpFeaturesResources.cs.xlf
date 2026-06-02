@@ -32,6 +32,11 @@
         <target state="translated">Přidá odkaz na balíček NuGet.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adds_a_file_reference">
+        <source>Adds a file reference.</source>
+        <target state="translated">Přidá odkaz na soubor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adds_a_project_reference">
         <source>Adds a project reference.</source>
         <target state="translated">Přidá odkaz na projekt.</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Apply_blank_lines_between_consecutive_braces_preferences_experimental">
         <source>Apply blank lines between consecutive braces preferences (experimental)</source>
         <target state="translated">Použít prázdné řádky mezi po sobě jdoucími předvolbami složených závorek (experimentální)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_collection_expression_preferences">
+        <source>Apply collection expression preferences</source>
+        <target state="translated">Použít předvolby výrazů kolekce</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
@@ -246,6 +256,11 @@
         <source>Global 'using' directives</source>
         <target state="translated">Globální direktivy using</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Include_directive_file_path">
+        <source>path</source>
+        <target state="translated">cesta</target>
+        <note>'path' is a placeholder for a file path or glob in a directive like '#:include path'.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
@@ -516,6 +531,11 @@
         <source>fixed statement</source>
         <target state="translated">příkaz fixed</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="unsafe_block">
+        <source>unsafe block</source>
+        <target state="translated">nebezpečný blok</target>
+        <note />
       </trans-unit>
       <trans-unit id="using_declaration">
         <source>using declaration</source>

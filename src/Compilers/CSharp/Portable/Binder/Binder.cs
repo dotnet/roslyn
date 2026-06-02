@@ -78,6 +78,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual bool IsInsideNameof => NextRequired.IsInsideNameof;
 
+        internal static bool IsObjectInitializerMemberTarget(SyntaxNode node)
+        {
+            while (node.Parent is { } parent)
+            {
+                switch (parent)
+                {
+                    case AssignmentExpressionSyntax assignment:
+                        return assignment.Left == node &&
+                            assignment.Parent?.Kind() == SyntaxKind.ObjectInitializerExpression;
+
+                    case InitializerExpressionSyntax initializer
+                        when node is IdentifierNameSyntax &&
+                             initializer.Kind() == SyntaxKind.ObjectInitializerExpression:
+                        return true;
+
+                    case BracketedArgumentListSyntax:
+                        // We cut off inside the indexer argument list of an object initializer so
+                        // things like "new C().StaticProp" get standard error messages, rather than
+                        // the object initializer specific error CS1914.
+                        return false;
+
+                    case StatementSyntax:
+                        return false;
+                }
+
+                node = parent;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>

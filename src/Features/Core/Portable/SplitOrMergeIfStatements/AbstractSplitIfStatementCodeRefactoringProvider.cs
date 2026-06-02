@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -65,14 +64,19 @@ internal abstract class AbstractSplitIfStatementCodeRefactoringProvider : CodeRe
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var token = root.FindToken(tokenSpan.Start);
-        var ifOrElseIf = root.FindNode(ifOrElseIfSpan);
-
-        Debug.Assert(ifGenerator.IsIfOrElseIf(ifOrElseIf));
+        var ifOrElseIf = FindIfOrElseIf(ifOrElseIfSpan);
 
         var (left, right) = SplitBinaryExpressionChain(token, ifGenerator.GetCondition(ifOrElseIf), syntaxFacts);
 
         var newRoot = await GetChangedRootAsync(document, root, ifOrElseIf, left, right, cancellationToken).ConfigureAwait(false);
         return document.WithSyntaxRoot(newRoot);
+
+        SyntaxNode FindIfOrElseIf(TextSpan span)
+        {
+            var innerMatch = root.FindNode(span, getInnermostNodeForTie: true);
+            return innerMatch?.FirstAncestorOrSelf<SyntaxNode>(
+                node => ifGenerator.IsIfOrElseIf(node) && node.Span == span);
+        }
     }
 
     private static bool IsPartOfBinaryExpressionChain(SyntaxToken token, int syntaxKind, out SyntaxNode rootExpression)

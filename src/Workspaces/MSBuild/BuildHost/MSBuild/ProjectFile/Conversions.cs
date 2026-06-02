@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -24,7 +25,7 @@ internal static class Conversions
         }
         else
         {
-            if (int.TryParse(value, out var result))
+            if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
             {
                 return result;
             }

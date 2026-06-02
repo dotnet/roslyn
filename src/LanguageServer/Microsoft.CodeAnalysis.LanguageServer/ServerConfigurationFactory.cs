@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
@@ -43,16 +44,17 @@ internal sealed class ServerConfigurationFactory
 internal sealed record class ServerConfiguration(
     bool LaunchDebugger,
     LogConfiguration LogConfiguration,
-    string? StarredCompletionsPath,
     string? TelemetryLevel,
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
-    string? RazorDesignTimePath,
     string? CSharpDesignTimePath,
     string? ServerPipeName,
     bool UseStdIo,
-    string ExtensionLogDirectory);
+    string? ExtensionLogDirectory,
+    int? AutoLoadProjects,
+    SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference,
+    int? ClientProcessId);
 
 internal sealed class LogConfiguration
 {
@@ -60,7 +62,7 @@ internal sealed class LogConfiguration
 
     public LogConfiguration(LogLevel initialLogLevel)
     {
-        _currentLogLevel = (int)initialLogLevel;
+        _currentLogLevel = (int)(initialLogLevel);
     }
 
     public void UpdateLogLevel(LogLevel level)

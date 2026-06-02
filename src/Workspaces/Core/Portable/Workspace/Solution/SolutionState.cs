@@ -402,9 +402,6 @@ internal sealed partial class SolutionState
             CheckNotContainsProject(projectId);
 
             var languageServices = Services.GetLanguageServices(language);
-            if (languageServices == null)
-                throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
-
             if (!FallbackAnalyzerOptions.TryGetValue(language, out var fallbackAnalyzerOptions))
             {
                 fallbackAnalyzerOptions = StructuredAnalyzerConfigOptions.Empty;

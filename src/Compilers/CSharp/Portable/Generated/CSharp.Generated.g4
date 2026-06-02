@@ -97,6 +97,7 @@ event_field_declaration
 modifier
   : 'abstract'
   | 'async'
+  | 'closed'
   | 'const'
   | 'extern'
   | 'file'
@@ -111,6 +112,7 @@ modifier
   | 'readonly'
   | 'ref'
   | 'required'
+  | 'safe'
   | 'scoped'
   | 'sealed'
   | 'static'
@@ -327,6 +329,7 @@ type_declaration
   | interface_declaration
   | record_declaration
   | struct_declaration
+  | union_declaration
   ;
 
 class_declaration
@@ -347,6 +350,10 @@ record_declaration
 
 struct_declaration
   : attribute_list* modifier* 'struct' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  ;
+
+union_declaration
+  : attribute_list* modifier* 'union' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 delegate_declaration

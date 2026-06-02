@@ -113,7 +113,7 @@ public sealed class ActiveStatementsMapTests
             #line default
                 }
             }
-            """;
+            """.NormalizeLineEndings();
 
         var solution = workspace.CurrentSolution
             .AddProject("proj", "proj", LanguageNames.CSharp)

@@ -14,9 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser;
 
 internal sealed class ObjectBrowserLibraryManager(
     IServiceProvider serviceProvider,
-    IComponentModel componentModel,
-    VisualStudioWorkspace workspace) : AbstractObjectBrowserLibraryManager(
-        LanguageNames.CSharp, Guids.CSharpLibraryId, serviceProvider, componentModel, workspace)
+    IComponentModel componentModel) : AbstractObjectBrowserLibraryManager(
+        LanguageNames.CSharp, Guids.CSharpLibraryId, serviceProvider, componentModel)
 {
     internal override AbstractDescriptionBuilder CreateDescriptionBuilder(
         IVsObjectBrowserDescription3 description,

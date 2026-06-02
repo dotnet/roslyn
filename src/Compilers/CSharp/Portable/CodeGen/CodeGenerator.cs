@@ -329,7 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     && _module.Compilation.IsRuntimeAsyncEnabledIn(_method)
                     && ((InternalSpecialType)_method.ReturnType.ExtendedSpecialType) is InternalSpecialType.System_Threading_Tasks_Task or InternalSpecialType.System_Threading_Tasks_ValueTask));
 
-            if (_emitPdbSequencePoints && !_method.IsIterator && !_method.IsAsync)
+            if (_emitPdbSequencePoints &&
+                !_method.IsIterator &&
+                (!_method.IsAsync || _module.Compilation.IsRuntimeAsyncEnabledIn(_method)))
             {
                 // In debug mode user could set a breakpoint on the last "}" of the method and 
                 // expect to hit it before exiting the method.

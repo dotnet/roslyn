@@ -182,6 +182,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
         }
 
+        extension(TypeSymbol patternInputType)
+        {
+            public bool IsSubjectForUnionMatching => patternInputType.StrippedType() is NamedTypeSymbol { IsUnionType: true };
+
+            public bool IsUnionMatchingInputType([NotNullWhen(true)] out NamedTypeSymbol? unionType)
+            {
+                if (patternInputType.StrippedType() is NamedTypeSymbol { IsUnionType: true } named)
+                {
+                    unionType = named;
+                    return true;
+                }
+
+                unionType = null;
+                return false;
+            }
+        }
+
         public static TypeSymbol EnumUnderlyingTypeOrSelf(this TypeSymbol type)
         {
             return type.GetEnumUnderlyingType() ?? type;
@@ -1252,6 +1269,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_containsTypeParametersPredicate =
             (type, parameters, unused) => type.TypeKind == TypeKind.TypeParameter && parameters.Contains((TypeParameterSymbol)type);
+
+        public static bool ContainsAdditionalTypeParameter(this TypeSymbol type, HashSet<TypeParameterSymbol> allowedTypeParameters)
+        {
+            var result = type.VisitType(
+                static (type, allowedTypeParameters, isNested) => type is TypeParameterSymbol typeParameter && !allowedTypeParameters.Contains(typeParameter), allowedTypeParameters);
+            return result is object;
+        }
+
+        public static void FindTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> result)
+            => type.VisitType(s_typeParameterSymbolCollector, result, visitCustomModifiers: true);
+
+        public static void FindTypeParameters(this TypeWithAnnotations type, HashSet<TypeParameterSymbol> result)
+            => type.VisitType(
+                    type: null,
+                    typeWithAnnotationsPredicate: null,
+                    typePredicate: s_typeParameterSymbolCollector,
+                    arg: result,
+                    visitCustomModifiers: true);
+
+        public static void FindTypeParameters(this MethodSymbol method, HashSet<TypeParameterSymbol> result)
+        {
+            FindTypeParameters(method.ContainingType, result);
+
+            foreach (var typeArgument in method.TypeArgumentsWithAnnotations)
+            {
+                typeArgument.VisitType(type: null, typeWithAnnotationsPredicate: null, s_typeParameterSymbolCollector, result, visitCustomModifiers: true);
+            }
+        }
+
+        private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_typeParameterSymbolCollector = (typeSymbol, result, _) =>
+        {
+            if (typeSymbol is TypeParameterSymbol typeParameter)
+            {
+                result.Add(typeParameter);
+            }
+
+            return false;
+        };
 
         public static bool ContainsMethodTypeParameter(this TypeSymbol type)
         {

@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             // If the test has thrown an exception, or the test host has crashed, we don't want to assert here
             // or we'll hide it, so we need to do this dodgy looking thing.
-            var isInException = Marshal.GetExceptionPointers() != IntPtr.Zero;
+            var isInException = ExecutionConditionUtil.IsMonoCore ? false : Marshal.GetExceptionPointers() != IntPtr.Zero;
 
             Assert.True(isInException || _hasVerified, "No Verify call since the last AddGeneration call.");
             foreach (var disposable in _disposables)
