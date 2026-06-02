@@ -1509,17 +1509,17 @@
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
-        <target state="new">A 'union' declaration cannot use a union member provider interface.</target>
+        <target state="translated">Una declaración "union" no puede utilizar una interfaz de proveedor de miembros de unión.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionCaseTypes">
         <source>A union type must have at least one union creation member.</source>
-        <target state="new">A union type must have at least one union creation member.</target>
+        <target state="translated">Un tipo de unión debe tener al menos un miembro de creación de unión.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="new">A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</target>
+        <target state="translated">Un tipo de proveedor de miembro de unión debe tener una propiedad "Value" de instancia pública de tipo "object?" o "object". La propiedad debe tener un descriptor de acceso get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">

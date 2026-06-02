@@ -119,11 +119,6 @@
         <target state="translated">"Abschlüsse erneut auslösen..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">Es wurde versucht, einen anderen RazorMetaCode als '{' or '}' zu besuchen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
         <target state="translated">Unbekanntes Zuordnungsverhalten</target>

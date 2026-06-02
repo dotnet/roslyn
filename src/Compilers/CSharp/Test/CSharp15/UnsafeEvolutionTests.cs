@@ -5509,18 +5509,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,1): error CS9362: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe'
                 // M(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M(1, 2, 3)").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(2, 1),
-                // (3,15): error CS9362: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe'
-                // static void M(params C c) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(3, 15),
                 // (12,1): error CS9362: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe'
                 // M3(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(12, 1),
                 // (12,1): error CS9362: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe'
                 // M3(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(12, 1),
-                // (13,23): error CS9362: 'C.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe'
-                // static unsafe void M3(params C c) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.Create(System.ReadOnlySpan<int>)").WithLocation(13, 23),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -5602,18 +5596,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,1): error CS9362: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe'
                 // M1(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M1(1, 2, 3)").WithArguments("C.C()").WithLocation(2, 1),
-                // (3,16): error CS9362: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe'
-                // static void M1(params C c) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.C()").WithLocation(3, 16),
                 // (12,1): error CS9362: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe'
                 // M3(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("C.C()").WithLocation(12, 1),
                 // (12,1): error CS9362: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe'
                 // M3(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(12, 1),
-                // (13,23): error CS9362: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe'
-                // static unsafe void M3(params C c) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.C()").WithLocation(13, 23),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -5734,9 +5722,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (5,10): error CS9362: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe'
                 // M1(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(5, 10),
-                // (6,16): error CS9362: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe'
-                // static void M1(params C c) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.Add(int)").WithLocation(6, 16),
                 // (18,1): error CS9362: 'M3(params C)' must be used in an unsafe context because it is marked as 'unsafe'
                 // M3(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "M3(1, 2, 3)").WithArguments("M3(params C)").WithLocation(18, 1),
@@ -5749,9 +5734,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (18,10): error CS9362: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe'
                 // M3(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "3").WithArguments("C.Add(int)").WithLocation(18, 10),
-                // (19,23): error CS9362: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe'
-                // static unsafe void M3(params C c) { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "params C c").WithArguments("C.Add(int)").WithLocation(19, 23),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [

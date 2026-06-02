@@ -122,6 +122,16 @@
         <target state="translated">Ordenar y consolidar directivas using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unknown_RazorMetaCode">
+        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
+        <target state="new">Attempted to visit a RazorMetaCode other than '{' or '}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported type: '{0}'.</source>
+        <target state="translated">Tipo no compatible: '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
         <target state="translated">Ajustar atributos</target>

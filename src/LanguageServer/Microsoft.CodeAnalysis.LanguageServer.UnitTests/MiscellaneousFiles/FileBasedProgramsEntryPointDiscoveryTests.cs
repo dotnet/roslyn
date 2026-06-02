@@ -916,12 +916,6 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 AssertEx.SequenceEqual(uncachedResult, cachedResult, StringComparer.OrdinalIgnoreCase,
                     $"Iteration {iteration}: Cached result differs from uncached result.");
             }
-            catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
-            {
-                // Directories can randomly fail to delete etc when we are thrashing the disk.
-                // Not a big deal and not a reason to fail the test, just move on to the next iteration instead.
-                _testOutputHelper.WriteLine($"IO exception during fuzz testing: {ex.Message}");
-            }
             catch (Exception)
             {
                 // Dump reproducible test case

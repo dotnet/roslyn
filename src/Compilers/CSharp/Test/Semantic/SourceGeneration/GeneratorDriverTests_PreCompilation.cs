@@ -975,6 +975,7 @@ class C { }
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public void PreCompilation_Accessing_Compilation_Throws()
         {
             var source = @"
@@ -1010,6 +1011,7 @@ class C { }
         }
 
         [Fact]
+        [UseCulture("en-US")]
         public void PreCompilation_Using_SyntaxProvider_Throws()
         {
             var source = @"

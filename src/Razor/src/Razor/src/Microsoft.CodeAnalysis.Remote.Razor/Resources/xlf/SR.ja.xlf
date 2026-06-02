@@ -122,6 +122,16 @@
         <target state="translated">using の並べ替えと統合</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unknown_RazorMetaCode">
+        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
+        <target state="new">Attempted to visit a RazorMetaCode other than '{' or '}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported type: '{0}'.</source>
+        <target state="translated">サポートされていない型: '{0}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
         <target state="translated">属性の折り返し</target>

@@ -5,7 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.GoToDefinition;
@@ -16,7 +18,6 @@ using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.Location[]?>;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -33,18 +34,37 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
-    public ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+    private static Task<LspLocation[]?> GetDefinitionsAsync(
+        Workspace workspace,
+        Document document,
+        bool typeOnly,
+        LinePosition linePosition,
+        CancellationToken cancellationToken)
+    {
+        var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var metadataAsSourceFileService = document.Project.Solution.Services.ExportProvider.GetService<IMetadataAsSourceFileService>();
+        return AbstractGoToDefinitionHandler.GetDefinitionsAsync(
+            globalOptions,
+            metadataAsSourceFileService,
+            workspace,
+            document,
+            typeOnly,
+            linePosition,
+            cancellationToken);
+    }
+
+    public ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionsAsync(
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetDefinitionAsync(context, position, cancellationToken),
+            context => GetDefinitionsAsync(context, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionAsync(
+    private async ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionsAsync(
         RemoteDocumentContext context,
         Position position,
         CancellationToken cancellationToken)
@@ -101,14 +121,12 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var locations = await ExternalHandlers.GoToDefinition
-            .GetDefinitionsAsync(
-                _workspaceProvider.GetWorkspace(),
-                generatedDocument,
-                typeOnly: false,
-                positionInfo.Position.ToLinePosition(),
-                cancellationToken)
-            .ConfigureAwait(false);
+        var locations = await GetDefinitionsAsync(
+            _workspaceProvider.GetWorkspace(),
+            generatedDocument,
+            typeOnly: false,
+            positionInfo.Position.ToLinePosition(),
+            cancellationToken).ConfigureAwait(false);
 
         if (locations is null and not [])
         {
@@ -133,5 +151,16 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         }
 
         return Results(mappedLocations.ToArray());
+    }
+
+    internal static class TestAccessor
+    {
+        public static Task<LspLocation[]?> GetDefinitionsAsync(
+            Workspace workspace,
+            Document document,
+            bool typeOnly,
+            LinePosition linePosition,
+            CancellationToken cancellationToken)
+            => RemoteGoToDefinitionService.GetDefinitionsAsync(workspace, document, typeOnly, linePosition, cancellationToken);
     }
 }

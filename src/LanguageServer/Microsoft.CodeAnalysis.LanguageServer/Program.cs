@@ -21,7 +21,7 @@ using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 WindowsErrorReporting.SetErrorModeOnWindows();
 
-var command = CreateCommand();
+var command = LanguageServerCommandLine.CreateCommand(RunAsync);
 var invocationConfiguration = new InvocationConfiguration()
 {
     // By default, System.CommandLine will catch all exceptions, log them to the console, and return a non-zero exit code.
@@ -116,10 +116,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
     RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
-    // Create the workspace first, since right now the language server will assume there's at least one Workspace. This as a side effect creates the actual workspace
-    // object which is registered by the LspWorkspaceRegistrationEventListener.
-    var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-
     LanguageServerHost server;
     if (serverConfiguration.UseStdIo)
     {
@@ -138,6 +134,11 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         server = new LanguageServerHost(pipeClient, pipeClient, exportProvider, loggerFactory, typeRefResolver);
     }
 
+    // Eagerly resolve the workspace factory from the per-server LSP services, since right now the language server
+    // assumes there's at least one Workspace. This as a side effect creates the actual workspace object which is
+    // registered by the LspWorkspaceRegistrationEventListener.
+    var workspaceFactory = server.GetLspServices().GetRequiredService<LanguageServerWorkspaceFactory>();
+
     server.Start();
 
     logger.LogInformation("Language server initialized");
@@ -155,148 +156,4 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         // After the LSP server shutdown, report session wide telemetry
         RoslynLogger.ShutdownAndReportSessionTelemetry();
     }
-}
-
-static RootCommand CreateCommand()
-{
-    var debugOption = new Option<bool>("--debug")
-    {
-        Description = "Flag indicating if the debugger should be launched on startup.",
-        Required = false,
-        DefaultValueFactory = _ => false,
-    };
-    var brokeredServicePipeNameOption = new Option<string?>("--brokeredServicePipeName")
-    {
-        Description = "The name of the pipe used to connect to a remote process (if one exists).",
-        Required = false,
-    };
-
-    var logLevelOption = new Option<LogLevel?>("--logLevel")
-    {
-        Description = "The minimum log verbosity.",
-        Required = false,
-    };
-
-    var telemetryLevelOption = new Option<string?>("--telemetryLevel")
-    {
-        Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
-        Required = false,
-    };
-    var extensionLogDirectoryOption = new Option<string?>("--extensionLogDirectory")
-    {
-        Description = "The directory where we should write log files to",
-        Required = false,
-    };
-
-    var sessionIdOption = new Option<string?>("--sessionId")
-    {
-        Description = "Session Id to use for telemetry",
-        Required = false
-    };
-
-    var extensionAssemblyPathsOption = new Option<string[]?>("--extension")
-    {
-        Description = "Full paths of extension assemblies to load (optional).",
-        Required = false
-    };
-
-    var devKitDependencyPathOption = new Option<string?>("--devKitDependencyPath")
-    {
-        Description = "Full path to the Roslyn dependency used with DevKit (optional).",
-        Required = false
-    };
-
-    var csharpDesignTimePathOption = new Option<string?>("--csharpDesignTimePath")
-    {
-        Description = "Full path to the C# design time target path (optional).",
-        Required = false
-    };
-
-    var serverPipeNameOption = new Option<string?>("--pipe")
-    {
-        Description = "The name of the pipe the server will connect to.",
-        Required = false
-    };
-
-    var useStdIoOption = new Option<bool>("--stdio")
-    {
-        Description = "Use stdio for communication with the client.",
-        Required = false,
-        DefaultValueFactory = _ => false,
-    };
-
-    var autoLoadProjectsOption = new Option<bool>("--autoLoadProjects")
-    {
-        Description = "The server should automatically discover and load projects based on the workspace folders",
-        Required = false,
-        DefaultValueFactory = _ => false,
-    };
-
-    var sourceGeneratorExecutionOption = new Option<SourceGeneratorExecutionPreference>("--sourceGeneratorExecutionPreference")
-    {
-        Description = "Controls when source generators are executed.",
-        Required = false,
-        // Balanced mode requires additional client side support (to trigger refreshes), so by default run in automatic to ensure tool scenarios without client support run generators.
-        DefaultValueFactory = _ => SourceGeneratorExecutionPreference.Automatic,
-    };
-
-    var clientProcessIdOption = new Option<int?>("--clientProcessId")
-    {
-        Description = "The process ID of the client process. The server will terminate when the client process exits.",
-        Required = false,
-    };
-
-    var rootCommand = new RootCommand()
-    {
-        debugOption,
-        brokeredServicePipeNameOption,
-        logLevelOption,
-        telemetryLevelOption,
-        sessionIdOption,
-        extensionAssemblyPathsOption,
-        devKitDependencyPathOption,
-        csharpDesignTimePathOption,
-        extensionLogDirectoryOption,
-        serverPipeNameOption,
-        useStdIoOption,
-        autoLoadProjectsOption,
-        sourceGeneratorExecutionOption,
-        clientProcessIdOption,
-    };
-
-    rootCommand.SetAction((parseResult, cancellationToken) =>
-    {
-        var launchDebugger = parseResult.GetValue(debugOption);
-        var logLevel = parseResult.GetValue(logLevelOption);
-        var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
-        var sessionId = parseResult.GetValue(sessionIdOption);
-        var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
-        var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
-        var csharpDesignTimePath = parseResult.GetValue(csharpDesignTimePathOption);
-        var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption);
-        var serverPipeName = parseResult.GetValue(serverPipeNameOption);
-        var useStdIo = parseResult.GetValue(useStdIoOption);
-        var autoLoadProjects = parseResult.GetValue(autoLoadProjectsOption);
-        var sourceGeneratorExecutionPreference = parseResult.GetValue(sourceGeneratorExecutionOption);
-        var clientProcessId = parseResult.GetValue(clientProcessIdOption);
-
-        var serverConfiguration = new ServerConfiguration(
-            LaunchDebugger: launchDebugger,
-            LogConfiguration: new LogConfiguration(logLevel ?? LogLevel.Information),
-            TelemetryLevel: telemetryLevel,
-            SessionId: sessionId,
-            ExtensionAssemblyPaths: extensionAssemblyPaths,
-            DevKitDependencyPath: devKitDependencyPath,
-            CSharpDesignTimePath: csharpDesignTimePath,
-            ServerPipeName: serverPipeName,
-            UseStdIo: useStdIo,
-            ExtensionLogDirectory: extensionLogDirectory,
-            AutoLoadProjects: autoLoadProjects,
-            SourceGeneratorExecutionPreference: sourceGeneratorExecutionPreference,
-            ClientProcessId: clientProcessId);
-
-        return RunAsync(serverConfiguration, cancellationToken);
-    });
-
-    return rootCommand;
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -53,14 +54,14 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
 
     private protected Workspace GetHostWorkspace(TestLspServer testLspServer)
     {
-        var workspaceFactory = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        return workspaceFactory.HostWorkspace;
+        var provider = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>();
+        return provider.Workspace;
     }
 
     private protected async ValueTask<Document> AddDocumentAsync(TestLspServer testLspServer, string filePath)
     {
         // For the file-based programs, we want to put them in the real workspace via the real host service
-        var workspaceFactory = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
         var project = await workspaceFactory.HostProjectFactory.CreateAndAddToWorkspaceAsync(
             Guid.NewGuid().ToString(),
             LanguageNames.CSharp,
