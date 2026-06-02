@@ -4444,18 +4444,6 @@ class Test
                 using System.Runtime.CompilerServices;
                 using System.Threading.Tasks;
 
-                class Awaitable
-                {
-                    public Awaiter GetAwaiter() => new Awaiter();
-                }
-
-                class Awaiter : INotifyCompletion
-                {
-                    public bool IsCompleted => true;
-                    public void OnCompleted(Action continuation) => throw null;
-                    public int GetResult() => 42;
-                }
-
                 class Test
                 {
                     public static async Task<int> F(dynamic d)
@@ -4468,9 +4456,9 @@ class Test
             var comp = CreateRuntimeAsyncCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter);
             comp.VerifyEmitDiagnostics(
-                // (21,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter'
+                // (9,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter'
                 //         return await d;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "UnsafeAwaitAwaiter").WithLocation(21, 22));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "UnsafeAwaitAwaiter").WithLocation(9, 22));
         }
 
         [Fact]
@@ -4480,18 +4468,6 @@ class Test
                 using System;
                 using System.Runtime.CompilerServices;
                 using System.Threading.Tasks;
-
-                class Awaitable
-                {
-                    public Awaiter GetAwaiter() => new Awaiter();
-                }
-
-                class Awaiter : INotifyCompletion
-                {
-                    public bool IsCompleted => true;
-                    public void OnCompleted(Action continuation) => throw null;
-                    public int GetResult() => 42;
-                }
 
                 class Test
                 {
@@ -4505,9 +4481,9 @@ class Test
             var comp = CreateRuntimeAsyncCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
             comp.VerifyEmitDiagnostics(
-                // (21,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter'
+                // (9,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter'
                 //         return await d;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "AwaitAwaiter").WithLocation(21, 22));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "AwaitAwaiter").WithLocation(9, 22));
         }
 
         [Fact]
@@ -4517,18 +4493,6 @@ class Test
                 using System;
                 using System.Runtime.CompilerServices;
                 using System.Threading.Tasks;
-
-                class Awaitable
-                {
-                    public Awaiter GetAwaiter() => new Awaiter();
-                }
-
-                class Awaiter : INotifyCompletion
-                {
-                    public bool IsCompleted => true;
-                    public void OnCompleted(Action continuation) => throw null;
-                    public int GetResult() => 42;
-                }
 
                 class Test
                 {
@@ -4542,9 +4506,9 @@ class Test
             var comp = CreateRuntimeAsyncCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion);
             comp.VerifyEmitDiagnostics(
-                // (21,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.ICriticalNotifyCompletion' is not defined or imported
+                // (9,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.ICriticalNotifyCompletion' is not defined or imported
                 //         return await d;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.ICriticalNotifyCompletion").WithLocation(21, 22));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.ICriticalNotifyCompletion").WithLocation(9, 22));
         }
 
         [Fact]
@@ -4554,18 +4518,6 @@ class Test
                 using System;
                 using System.Runtime.CompilerServices;
                 using System.Threading.Tasks;
-
-                class Awaitable
-                {
-                    public Awaiter GetAwaiter() => new Awaiter();
-                }
-
-                class Awaiter : INotifyCompletion
-                {
-                    public bool IsCompleted => true;
-                    public void OnCompleted(Action continuation) => throw null;
-                    public int GetResult() => 42;
-                }
 
                 class Test
                 {
@@ -4579,9 +4531,9 @@ class Test
             var comp = CreateRuntimeAsyncCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion);
             comp.VerifyEmitDiagnostics(
-                // (21,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.INotifyCompletion' is not defined or imported
+                // (9,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.INotifyCompletion' is not defined or imported
                 //         return await d;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.INotifyCompletion").WithLocation(21, 22));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.INotifyCompletion").WithLocation(9, 22));
         }
 
         [Fact]
@@ -12433,7 +12385,7 @@ static class Test1
             );
 
             // Runtime async not turned on, so we shouldn't care about the missing member
-            comp = CreateRuntimeAsyncCompilation(code, TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(code, options: TestOptions.ReleaseDll);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
             CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         }
