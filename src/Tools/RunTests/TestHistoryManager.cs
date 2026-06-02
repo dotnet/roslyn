@@ -9,10 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.TeamFoundation.Build.WebApi;
-using Microsoft.TeamFoundation.TestManagement.WebApi;
-using Microsoft.VisualStudio.Services.TestResults.WebApi;
-using Microsoft.VisualStudio.Services.WebApi;
 
 namespace RunTests;
 
@@ -26,6 +22,8 @@ internal class TestHistoryManager
     /// <summary>
     /// Looks up the last passing test run for the current build and stage to estimate execution times for each
     /// tests. The dictionary is indexed by test full name and contains the body duration and theory instance count.
+    /// The theory instance count is sourced from the AzDO <c>subResultsCount</c> field which represents individual
+    /// theory invocations reported under a grouped test result.
     ///
     /// Note: the duration returned is the sum of body execution times (DurationInMs) as reported by xUnit.
     /// In xUnit v2, DurationInMs does NOT include IAsyncLifetime.InitializeAsync or DisposeAsync time.
@@ -59,23 +57,19 @@ internal class TestHistoryManager
             return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
         }
 
-        var credentials = new Microsoft.VisualStudio.Services.Common.VssBasicCredential(string.Empty, accessToken);
-
-        var connection = new VssConnection(new Uri(projectUri), credentials);
-
-        using var buildClient = connection.GetClient<BuildHttpClient>();
+        using var azdoClient = AzdoClient.Create(projectUri, accessToken);
 
         ConsoleUtil.WriteLine($"Getting last successful build for branch {targetBranch}");
         var adoBranch = targetBranch.StartsWith("refs/heads/", StringComparison.OrdinalIgnoreCase)
             ? targetBranch
             : $"refs/heads/{targetBranch}";
-        var lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(pipelineDefinitionId, adoBranch, buildClient, cancellationToken);
+        var lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(azdoClient, pipelineDefinitionId, adoBranch, cancellationToken);
         if (lastSuccessfulBuild == null && adoBranch != "refs/heads/main")
         {
             // If this is a new branch or has no successful builds, fall back to main history
             // to avoid the expensive method-count fallback that creates hundreds of work items.
             ConsoleUtil.Warning($"Unable to get the last successful build for branch {adoBranch}, falling back to refs/heads/main");
-            lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(pipelineDefinitionId, "refs/heads/main", buildClient, cancellationToken);
+            lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(azdoClient, pipelineDefinitionId, "refs/heads/main", cancellationToken);
         }
 
         if (lastSuccessfulBuild == null)
@@ -85,8 +79,7 @@ internal class TestHistoryManager
             return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
         }
 
-        using var testClient = connection.GetClient<TestResultsHttpClient>();
-        var runForThisStage = await GetRunForStageAsync(lastSuccessfulBuild, phaseName, testClient, cancellationToken);
+        var runForThisStage = await GetRunForStageAsync(azdoClient, lastSuccessfulBuild, phaseName, cancellationToken);
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
@@ -106,7 +99,7 @@ internal class TestHistoryManager
         timer.Start();
         for (var i = 0; i < totalTests; i += MaxTestsReturnedPerRequest)
         {
-            var testResults = await GetTestResultsAsync(runForThisStage, i, MaxTestsReturnedPerRequest, testClient, cancellationToken);
+            var testResults = await GetTestResultsAsync(azdoClient, runForThisStage, i, MaxTestsReturnedPerRequest, cancellationToken);
             foreach (var testResult in testResults)
             {
                 // Helix outputs results for the whole dll work item suffixed with WorkItemExecution which we should ignore.
@@ -128,12 +121,12 @@ internal class TestHistoryManager
                     // It may have a different run time, but ADO does not let us differentiate by assembly name, so we just have to pick one.
                     //
                     // Keep tracking the count of theory instances so we can apply async lifetime adjustment.
-                    testInfos[testName] = (existing.Duration, existing.TestTheoryInstances + 1);
+                    testInfos[testName] = (existing.Duration, existing.TestTheoryInstances + testResult.SubResultsCount);
                     duplicateCount++;
                 }
                 else
                 {
-                    testInfos[testName] = (TimeSpan.FromMilliseconds(testResult.DurationInMs), 1);
+                    testInfos[testName] = (TimeSpan.FromMilliseconds(testResult.DurationInMs), testResult.SubResultsCount);
                 }
             }
         }
@@ -168,20 +161,11 @@ internal class TestHistoryManager
         return beforeMethodArgs;
     }
 
-    private static async Task<Build?> GetLastSuccessfulBuildAsync(int definitionId, string branchName, BuildHttpClient buildClient, CancellationToken cancellationToken)
+    private static async Task<AzdoBuild?> GetLastSuccessfulBuildAsync(AzdoClient azdoClient, int definitionId, string branchName, CancellationToken cancellationToken)
     {
         try
         {
-            var builds = await buildClient.GetBuildsAsync2(
-                        project: "public",
-                        new int[] { definitionId },
-                        resultFilter: BuildResult.Succeeded,
-                        queryOrder: BuildQueryOrder.FinishTimeDescending,
-                        maxBuildsPerDefinition: 1,
-                        reasonFilter: BuildReason.IndividualCI,
-                        branchName: branchName,
-                        cancellationToken: cancellationToken);
-            return builds?.FirstOrDefault();
+            return await azdoClient.GetLastSuccessfulBuildAsync("public", definitionId, branchName, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -191,19 +175,11 @@ internal class TestHistoryManager
         }
     }
 
-    private static async Task<TestRun?> GetRunForStageAsync(Build build, string phaseName, TestResultsHttpClient testClient, CancellationToken cancellationToken)
+    private static async Task<AzdoTestRun?> GetRunForStageAsync(AzdoClient azdoClient, AzdoBuild build, string phaseName, CancellationToken cancellationToken)
     {
         try
         {
-            // API requires us to pass a time range to query runs for.  So just pass the times from the build.
-            var minTime = build.QueueTime!.Value;
-            var maxTime = build.FinishTime!.Value;
-            var runsInBuild = await testClient.QueryTestRunsAsync2("public", minTime, maxTime, buildIds: new int[] { build.Id }, cancellationToken: cancellationToken);
-
-            // If the last successful builds had multiple attempts then there are potentially multiple runs with 
-            // the same name. Take the last one as it will be the successful one.
-            var runForThisStage = runsInBuild.LastOrDefault(r => r.Name.Contains(phaseName));
-            return runForThisStage;
+            return await azdoClient.GetRunForStageAsync("public", build, phaseName, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -213,18 +189,17 @@ internal class TestHistoryManager
         }
     }
 
-    private static async Task<List<TestCaseResult>> GetTestResultsAsync(TestRun testRun, int skip, int top, TestResultsHttpClient testClient, CancellationToken cancellationToken)
+    private static async Task<List<AzdoTestResult>> GetTestResultsAsync(AzdoClient azdoClient, AzdoTestRun testRun, int skip, int top, CancellationToken cancellationToken)
     {
         try
         {
-            var testResults = await testClient.GetTestResultsAsync("public", testRun.Id, skip: skip, top: top, cancellationToken: cancellationToken);
-            return testResults ?? new List<TestCaseResult>();
+            return await azdoClient.GetTestResultsAsync("public", testRun.Id, skip, top, includeSubResults: true, cancellationToken);
         }
         catch (Exception ex)
         {
             // We will fallback to test count partitioning if we fail to query ADO.
             ConsoleUtil.WriteLine($"Caught exception querying ADO for test runs: {ex}");
-            return new List<TestCaseResult>();
+            return new List<AzdoTestResult>();
         }
     }
 }
