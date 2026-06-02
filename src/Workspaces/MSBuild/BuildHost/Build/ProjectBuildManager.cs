@@ -285,11 +285,9 @@ internal sealed class ProjectBuildManager : IDisposable
             }
         }
 
-        _buildLogger.SetProjectAndLog(projectInstance.FullPath, log);
-
         var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, [.. targets]);
 
-        var result = await BuildAsync(buildRequestData, cancellationToken).ConfigureAwait(false);
+        var result = await BuildAsync(buildRequestData, log, cancellationToken).ConfigureAwait(false);
 
         if (result.OverallResult == MSB.Execution.BuildResultCode.Failure)
         {
@@ -305,16 +303,16 @@ internal sealed class ProjectBuildManager : IDisposable
     // this lock is static because we are using the default build manager, and there is only one per process
     private static readonly SemaphoreSlim s_buildManagerLock = new(initialCount: 1);
 
-    private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+    private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, DiagnosticLog log, CancellationToken cancellationToken)
     {
         // only allow one build to use the default build manager at a time
         using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, requestData, cancellationToken).ConfigureAwait(false);
+            return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, requestData, log, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private static Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+    private Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, DiagnosticLog log, CancellationToken cancellationToken)
     {
         var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
 
@@ -335,13 +333,21 @@ internal sealed class ProjectBuildManager : IDisposable
         }
 
         // execute build async
+        int? submissionId = null;
         try
         {
-            buildManager.PendBuildRequest(requestData).ExecuteAsync(sub =>
+            // The SubmissionId is assigned by PendBuildRequest and is the same SubmissionId that appears on the
+            // BuildEventContext of every event raised while this submission builds.
+            var submission = buildManager.PendBuildRequest(requestData);
+            submissionId = submission.SubmissionId;
+            _buildLogger.RegisterLog(submission.SubmissionId, log);
+
+            submission.ExecuteAsync(sub =>
             {
                 // when finished
                 try
                 {
+                    _buildLogger.UnregisterLog(sub.SubmissionId);
                     var result = sub.BuildResult;
                     registration.Dispose();
                     taskSource.TrySetResult(result);
@@ -354,6 +360,9 @@ internal sealed class ProjectBuildManager : IDisposable
         }
         catch (Exception e)
         {
+            if (submissionId is not null)
+                _buildLogger.UnregisterLog(submissionId.Value);
+
             taskSource.SetException(e);
         }
 
