@@ -4736,8 +4736,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         static void verify(CSharpCompilation comp)
         {
-            // comp.VerifyEmitDiagnostics();
-            comp.VerifyEmitDiagnostics(
+            // Note: using VerifyEmitDiagnostics here leads to an assertion failure.
+            // See https://github.com/dotnet/roslyn/issues/83978
+            comp.VerifyDiagnostics(
                 // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
                 //         return x switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
