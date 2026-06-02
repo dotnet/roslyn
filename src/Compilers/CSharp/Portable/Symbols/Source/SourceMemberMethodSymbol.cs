@@ -726,6 +726,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
+        private SyntaxTokenList Modifiers
+        {
+            get
+            {
+                return SyntaxNode switch
+                {
+                    BaseMethodDeclarationSyntax method => method.Modifiers,
+                    AccessorDeclarationSyntax accessor => accessor.Modifiers,
+                    _ => default,
+                };
+            }
+        }
+
         internal (BlockSyntax blockBody, ArrowExpressionClauseSyntax arrowBody) Bodies
         {
             get
@@ -974,10 +987,25 @@ done:
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
 
+            if (ContainingModule.UseUpdatedMemorySafetyRules && AssociatedSymbol is null && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, _location));
+            }
+
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                var modifiers = (syntaxReferenceOpt?.GetSyntax() as MemberDeclarationSyntax)?.Modifiers ?? default;
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(_location), modifyCompilation: true);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                    Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, _location),
+                    modifyCompilation: true);
+            }
+
+            // Event accessors get modifiers from the event (and don't have their own modifiers),
+            // hence we skip this error here and report it only at the event symbol.
+            if (AssociatedSymbol is not SourceEventSymbol && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
+            {
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, _location));
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

@@ -524,6 +524,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
             }
 
+            if (definition.HasSafeModifier != implementation.HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberSafeDifference, implementation.GetFirstLocation());
+            }
+
             if (definition.IsParams() != implementation.IsParams())
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberParamsDifference, implementation.GetFirstLocation());
@@ -779,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern;
+            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern | DeclarationModifiers.Safe;
 
             if (containingType.IsStructType())
             {

@@ -6216,6 +6216,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.ReturnStatement
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RightShiftAssignmentExpression
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RightShiftExpression
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SByteKeyword
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SafeKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ScopedKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ScopedType
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SealedKeyword
