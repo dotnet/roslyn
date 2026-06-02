@@ -4774,6 +4774,59 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_GenericUnion_Simple_01()
+    {
+        // A union case type is a type parameter constrained to closed class type
+        var source1 = """
+            public union U<T>(T);
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X>(U<X> x) where X : Program
+                {
+                    return x switch
+                    {
+                        X => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            // Note: using VerifyEmitDiagnostics here leads to an assertion failure.
+            // See https://github.com/dotnet/roslyn/issues/83978
+            comp.VerifyDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return x switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             E => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
+                // TODO2: this result seems unexpected. Is a type test failing to rule out the effective base type?
+                // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return x switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18));
+
+            var classE = comp.GetMember<NamedTypeSymbol>("E");
+            Assert.True(classE.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["F1", "F2"], subtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
     public void Exhaustiveness_BaseTypeArguments_Array_01()
     {
         var source1 = """
