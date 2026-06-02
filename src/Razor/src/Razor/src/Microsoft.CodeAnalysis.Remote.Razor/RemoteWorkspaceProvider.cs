@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+using Microsoft.CodeAnalysis.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -46,23 +47,17 @@ internal sealed class RemoteWorkspaceProvider : IWorkspaceProvider
                 return s_errorMessages;
             }
 
-            await s_initializeGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-            try
+            using var _ = await s_initializeGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false);
+
+            if (Volatile.Read(ref s_initialized))
             {
-                if (Volatile.Read(ref s_initialized))
-                {
-                    return s_errorMessages;
-                }
-
-                s_errorMessages = await s_initializeRemoteExportProviderBuilderAsync(localSettingsDirectory, traceLogger, cancellationToken).ConfigureAwait(false);
-                Volatile.Write(ref s_initialized, true);
-
                 return s_errorMessages;
             }
-            finally
-            {
-                s_initializeGate.Release();
-            }
+
+            s_errorMessages = await s_initializeRemoteExportProviderBuilderAsync(localSettingsDirectory, traceLogger, cancellationToken).ConfigureAwait(false);
+            Volatile.Write(ref s_initialized, true);
+
+            return s_errorMessages;
         }
 
         public static void SetInitializeRemoteExportProviderBuilder(Func<string, TraceSource, CancellationToken, Task<string?>> initializeAsync)

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -44,8 +45,8 @@ public sealed partial class TestComposition
         .AddParts(typeof(TestExportJoinableTaskContext));
 #endif
 
-    private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
-    private static readonly Dictionary<CacheKey, CompositionConfiguration> s_configurationCache = [];
+    private static readonly ConcurrentDictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
+    private static readonly ConcurrentDictionary<CacheKey, CompositionConfiguration> s_configurationCache = [];
 
     private readonly struct CacheKey : IEquatable<CacheKey>
     {
@@ -127,52 +128,26 @@ public sealed partial class TestComposition
 
     private IExportProviderFactory GetOrCreateFactory()
     {
-        lock (s_factoryCache)
+        if (s_factoryCache.TryGetValue(_cacheKey, out var existing))
         {
-            if (s_factoryCache.TryGetValue(_cacheKey, out var existing))
-            {
-                return existing;
-            }
+            return existing;
         }
 
         var newFactory = ExportProviderCache.CreateExportProviderFactory(GetOrCreateConfiguration());
 
-        lock (s_factoryCache)
-        {
-            if (s_factoryCache.TryGetValue(_cacheKey, out var existing))
-            {
-                return existing;
-            }
-
-            s_factoryCache.Add(_cacheKey, newFactory);
-        }
-
-        return newFactory;
+        return s_factoryCache.GetOrAdd(_cacheKey, newFactory);
     }
 
     private CompositionConfiguration GetOrCreateConfiguration()
     {
-        lock (s_configurationCache)
+        if (s_configurationCache.TryGetValue(_cacheKey, out var existing))
         {
-            if (s_configurationCache.TryGetValue(_cacheKey, out var existing))
-            {
-                return existing;
-            }
+            return existing;
         }
 
         var newConfiguration = ExportProviderCache.CreateCompositionConfiguration(GetCatalog());
 
-        lock (s_configurationCache)
-        {
-            if (s_configurationCache.TryGetValue(_cacheKey, out var existing))
-            {
-                return existing;
-            }
-
-            s_configurationCache.Add(_cacheKey, newConfiguration);
-        }
-
-        return newConfiguration;
+        return s_configurationCache.GetOrAdd(_cacheKey, newConfiguration);
     }
 
     private ComposableCatalog GetCatalog()

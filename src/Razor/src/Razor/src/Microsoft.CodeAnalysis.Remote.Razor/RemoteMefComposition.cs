@@ -38,13 +38,6 @@ internal sealed class RemoteMefComposition
     public static string? CacheDirectory { get; set; }
 
     /// <summary>
-    ///  Gets a <see cref="CompositionConfiguration"/> built from <see cref="Assemblies"/>. Note that the
-    ///  same <see cref="CompositionConfiguration"/> instance is returned for subsequent calls to this method.
-    /// </summary>
-    public static Task<CompositionConfiguration> GetConfigurationAsync(CancellationToken cancellationToken)
-        => s_lazyConfiguration.GetValueAsync(cancellationToken);
-
-    /// <summary>
     ///  Gets an <see cref="ExportProvider"/> for the shared MEF composition. Note that the
     ///  same <see cref="ExportProvider"/> instance is returned for subsequent calls to this method.
     /// </summary>
@@ -63,11 +56,17 @@ internal sealed class RemoteMefComposition
 
     private static async Task<IExportProviderFactory> CreateExportProviderFactoryAsync(CancellationToken cancellationToken)
     {
+        var runtimeComposition = await CreateRuntimeCompositionAsync(cancellationToken).ConfigureAwait(false);
+        return runtimeComposition.CreateExportProviderFactory();
+    }
+
+    private static async Task<RuntimeComposition> CreateRuntimeCompositionAsync(CancellationToken cancellationToken)
+    {
         var configuration = await s_lazyConfiguration.GetValueAsync(cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
         var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-        return runtimeComposition.CreateExportProviderFactory();
+        return runtimeComposition;
     }
 
     /// <summary>
@@ -90,10 +89,7 @@ internal sealed class RemoteMefComposition
             return cachedProvider;
         }
 
-        var configuration = await s_lazyConfiguration.GetValueAsync(cancellationToken).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+        var runtimeComposition = await CreateRuntimeCompositionAsync(cancellationToken).ConfigureAwait(false);
         var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
 
         // We don't need to block on saving the cache, because if it fails or is corrupt, we'll just try again next time, but
