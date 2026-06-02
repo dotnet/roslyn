@@ -7,15 +7,15 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 internal static class RazorDiagnosticHelper
 {
-    public static async Task<LspDiagnostic[]?> GetRazorDiagnosticsAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    public static async Task<LspDiagnostic[]?> GetRazorDiagnosticsAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
@@ -30,7 +30,7 @@ internal static class RazorDiagnosticHelper
         return Convert(diagnostics, sourceText, documentSnapshot);
     }
 
-    public static VSDiagnosticProjectInformation[] GetProjectInformation(IDocumentSnapshot? documentSnapshot)
+    public static VSDiagnosticProjectInformation[] GetProjectInformation(RemoteDocumentSnapshot? documentSnapshot)
     {
         if (documentSnapshot is null)
         {
@@ -45,7 +45,7 @@ internal static class RazorDiagnosticHelper
                 }];
     }
 
-    internal static LspDiagnostic[] Convert(ImmutableArray<RazorDiagnostic> diagnostics, SourceText sourceText, IDocumentSnapshot documentSnapshot)
+    internal static LspDiagnostic[] Convert(ImmutableArray<RazorDiagnostic> diagnostics, SourceText sourceText, RemoteDocumentSnapshot documentSnapshot)
     {
         var convertedDiagnostics = new LspDiagnostic[diagnostics.Length];
 
@@ -84,7 +84,7 @@ internal static class RazorDiagnosticHelper
     }
 
     // Internal for testing
-    internal static VSDiagnostic ConvertToVSDiagnostic(RazorDiagnostic razorDiagnostic, SourceText sourceText, IDocumentSnapshot? documentSnapshot)
+    internal static VSDiagnostic ConvertToVSDiagnostic(RazorDiagnostic razorDiagnostic, SourceText sourceText, RemoteDocumentSnapshot? documentSnapshot)
     {
         var diagnostic = new VSDiagnostic()
         {

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -16,10 +17,11 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 using RazorDiagnosticFactory = AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -28,7 +30,9 @@ using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 /// Contains several methods for mapping and filtering Razor and C# diagnostics. It allows for
 /// translating code diagnostics from one representation into another, such as from C# to Razor.
 /// </summary>
-internal class RazorTranslateDiagnosticsService(IDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
+[Export(typeof(RazorTranslateDiagnosticsService)), Shared]
+[method: ImportingConstructor]
+internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorTranslateDiagnosticsService>();
@@ -51,7 +55,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
     internal async Task<LspDiagnostic[]> TranslateAsync(
         RazorLanguageKind diagnosticKind,
         LspDiagnostic[] diagnostics,
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
@@ -100,7 +104,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
     internal LspDiagnostic[] MapDiagnostics(
         RazorLanguageKind languageKind,
         LspDiagnostic[] diagnostics,
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument)
     {
         var projects = RazorDiagnosticHelper.GetProjectInformation(documentSnapshot);
