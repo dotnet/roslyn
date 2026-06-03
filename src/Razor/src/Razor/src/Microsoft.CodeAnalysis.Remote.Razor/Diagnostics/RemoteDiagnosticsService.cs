@@ -111,7 +111,9 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
         // First, RZ diagnostics. Yes, CSharpDocument.Documents are the Razor diagnostics. Don't ask.
-        var razorDiagnostics = codeDocument.GetRequiredImplCSharpDocument().Diagnostics;
+        // Right now Razor diagnostics are duplicated on both decl and impl documents, so it doesn't matter which
+        // one we use.
+        var razorDiagnostics = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics;
         var convertedDiagnostics = RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot);
         diagnostics.AddRange(convertedDiagnostics);
 

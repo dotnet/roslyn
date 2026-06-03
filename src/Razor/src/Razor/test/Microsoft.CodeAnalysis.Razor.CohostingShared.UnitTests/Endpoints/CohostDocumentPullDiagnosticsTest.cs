@@ -56,6 +56,18 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             """);
 
     [Fact]
+    public Task Razor_CodeBlock()
+        => VerifyDiagnosticsAsync("""
+            @code
+            {
+                public void M()
+                {
+                    RenderFragment x = @{|RZ10012:<NonExistentComponent />|};
+                }
+            }
+            """);
+
+    [Fact]
     public Task CSharpAndRazor_MiscellaneousFile()
         => VerifyDiagnosticsAsync("""
             <div>
