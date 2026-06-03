@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
@@ -47,9 +47,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -89,9 +89,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -131,9 +131,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -173,9 +173,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -215,9 +215,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -257,9 +257,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -299,9 +299,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -341,9 +341,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -383,9 +383,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -425,9 +425,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -467,9 +467,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -509,9 +509,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -551,9 +551,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -593,9 +593,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -635,9 +635,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -677,9 +677,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -719,9 +719,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -761,9 +761,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -803,9 +803,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -845,9 +845,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -887,9 +887,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -929,9 +929,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -971,9 +971,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -1013,9 +1013,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -1055,9 +1055,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -1097,9 +1097,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -1139,9 +1139,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -1181,9 +1181,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -1223,9 +1223,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -1265,9 +1265,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -1307,9 +1307,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -1349,9 +1349,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -1391,9 +1391,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -1433,9 +1433,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -1475,9 +1475,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -1517,9 +1517,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -1558,9 +1558,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -1599,9 +1599,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -1640,9 +1640,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -1681,9 +1681,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -1723,9 +1723,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -1765,9 +1765,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -1807,9 +1807,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -1849,9 +1849,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -1891,9 +1891,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -1933,9 +1933,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -1975,9 +1975,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -2017,9 +2017,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -2059,9 +2059,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -2101,9 +2101,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -2143,9 +2143,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -2185,9 +2185,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInControlBlocks | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -2227,9 +2227,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -2269,9 +2269,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -2311,9 +2311,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -2353,9 +2353,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BetweenQueryExpressionClauses,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BetweenQueryExpressionClauses,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });
@@ -2395,9 +2395,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = true,
             });
@@ -2437,9 +2437,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks,
                 WrappingKeepStatementsOnSingleLine = true,
                 WrappingPreserveSingleLine = false,
             });
@@ -2479,9 +2479,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = true,
             });
@@ -2521,9 +2521,9 @@ public class CSharpSyntaxFormattingOptionsTest(ITestOutputHelper testOutput) : D
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeMembersInObjectInitializers | RazorNewLinePlacement.BeforeMembersInAnonymousTypes | RazorNewLinePlacement.BeforeElse | RazorNewLinePlacement.BeforeCatch | RazorNewLinePlacement.BeforeFinally | RazorNewLinePlacement.BeforeOpenBraceInTypes | RazorNewLinePlacement.BeforeOpenBraceInAnonymousTypes | RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | RazorNewLinePlacement.BeforeOpenBraceInProperties | RazorNewLinePlacement.BeforeOpenBraceInMethods | RazorNewLinePlacement.BeforeOpenBraceInAccessors | RazorNewLinePlacement.BeforeOpenBraceInAnonymousMethods | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | RazorNewLinePlacement.BeforeOpenBraceInControlBlocks,
+                NewLines = NewLinePlacement.BeforeMembersInObjectInitializers | NewLinePlacement.BeforeMembersInAnonymousTypes | NewLinePlacement.BeforeElse | NewLinePlacement.BeforeCatch | NewLinePlacement.BeforeFinally | NewLinePlacement.BeforeOpenBraceInTypes | NewLinePlacement.BeforeOpenBraceInAnonymousTypes | NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers | NewLinePlacement.BeforeOpenBraceInProperties | NewLinePlacement.BeforeOpenBraceInMethods | NewLinePlacement.BeforeOpenBraceInAccessors | NewLinePlacement.BeforeOpenBraceInAnonymousMethods | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody | NewLinePlacement.BeforeOpenBraceInControlBlocks,
                 WrappingKeepStatementsOnSingleLine = false,
                 WrappingPreserveSingleLine = false,
             });

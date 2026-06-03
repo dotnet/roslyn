@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Composition;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
@@ -22,21 +20,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 /// LSP clients don't always support file watching; this allows us to be flexible and use it when we can, but fall back
 /// to something else if we can't.
 /// </remarks>
-[Export(typeof(IFileChangeWatcher)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DelegatingFileChangeWatcher(
+    ILspServices lspServices,
     ILoggerFactory loggerFactory,
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-    : IFileChangeWatcher
+    : IFileChangeWatcher, ILspService
 {
     private readonly Lazy<IFileChangeWatcher> _underlyingFileWatcher = new(() =>
         {
-            // Do we already have an LSP client that we can confirm works for us?
-            var instance = LanguageServerHost.Instance;
-
-            if (instance != null && LspFileChangeWatcher.SupportsLanguageServerHost(instance))
-                return new LspFileChangeWatcher(instance, asynchronousOperationListenerProvider);
+            if (LspFileChangeWatcher.TryCreate(lspServices, asynchronousOperationListenerProvider, out var lspFileChangeWatcher))
+                return lspFileChangeWatcher;
 
             loggerFactory.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
 
@@ -47,4 +40,14 @@ internal sealed class DelegatingFileChangeWatcher(
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         => _underlyingFileWatcher.Value.CreateContext(watchedDirectories);
+
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal readonly struct TestAccessor(DelegatingFileChangeWatcher instance)
+    {
+        internal IFileChangeWatcher UnderlyingFileWatcher => instance._underlyingFileWatcher.Value;
+    }
 }
