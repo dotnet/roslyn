@@ -4536,7 +4536,7 @@ class Test
         }
 
         [Fact]
-        public void DynamicAwait_RuntimeAsync_TwoAsyncLocalFunctions()
+        public void DynamicAwait_RuntimeAsync_TwoAsyncLocalFunctions_01()
         {
             var source = """
                 using System;
@@ -4584,6 +4584,69 @@ class Test
                 """), verify: Verification.Fails, symbolValidator: module =>
             {
                 AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__<Main>g__L1|0_0|", "Test.<>o__<Main>g__L2|0_1|"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_TwoAsyncLocalFunctions_02()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1(new Awaitable()));
+                        Console.WriteLine(await L2(new Awaitable()));
+
+                        static async Task<int> L1(dynamic d)
+                        {
+                            static async Task<int> L3(dynamic d) => await d.Property;
+
+                            return await L3(d);
+                        }
+
+                        static async Task<int> L2(dynamic d)
+                        {
+                            static async Task<int> L3(dynamic d) => await d.Property;
+
+                            return await L3(d);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                AssertEx.SequenceEqual(["Test.<>o__0", "Test.<>o__<Main>g__L3|0_2|", "Test.<>o__<Main>g__L3|0_3|"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
             }).VerifyDiagnostics();
         }
 
@@ -12477,9 +12540,9 @@ static class Test1
             );
 
             // Runtime async not turned on, so we shouldn't care about the missing member
-            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net100);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
-            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+            CompileAndVerify(comp).VerifyDiagnostics();
         }
 
         [Fact]
@@ -12506,9 +12569,9 @@ static class Test1
             );
 
             // Runtime async not turned on, so we shouldn't care about the missing member
-            comp = CreateCompilation(code, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(code, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net100);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
-            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
         }
 
         [Fact]
