@@ -96,6 +96,38 @@ public class C
                 Diagnostic("Declaration", "Goo1"));
         }
 
+        [Fact]
+        public async Task SuppressionLookupDoesNotAssertForTupleAndDeconstructionSymbols()
+        {
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var tuple = (x: 1, y: 2);
+                        var (a, b) = tuple;
+                    }
+                }
+                """;
+
+            var tupleElementStart = source.IndexOf("x:", StringComparison.Ordinal);
+            var deconstructionStart = source.IndexOf("a, b", StringComparison.Ordinal);
+
+            await VerifyCSharpAsync(
+                source,
+                new[]
+                {
+                    new WarningOnTokenAnalyzer(
+                        new[]
+                        {
+                            TextSpan.FromBounds(tupleElementStart, tupleElementStart + 1),
+                            TextSpan.FromBounds(deconstructionStart, deconstructionStart + 1),
+                        }),
+                },
+                Diagnostic("Token", "x"),
+                Diagnostic("Token", "a"));
+        }
+
         #endregion
 
         #region Global Suppression

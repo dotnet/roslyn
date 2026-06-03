@@ -79,7 +79,7 @@ internal readonly struct RudeEditDiagnosticDescription : IEquatable<RudeEditDiag
         }
         catch (FormatException)
         {
-            Assert.True(false, $"Message format string was not supplied enough arguments.\nRudeEditKind: {RudeEditKind}\nArguments supplied: {_arguments.Length}\nFormat string: {format}");
+            Assert.Fail($"Message format string was not supplied enough arguments.\nRudeEditKind: {RudeEditKind}\nArguments supplied: {_arguments.Length}\nFormat string: {format}");
         }
     }
 }

@@ -11,16 +11,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(OpenProjectHandler)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(OpenProjectHandler)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class OpenProjectHandlerFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new OpenProjectHandler(lspServices.GetRequiredService<LanguageServerProjectSystem>());
+}
+
 [Method(OpenProjectName)]
-internal sealed class OpenProjectHandler : ILspServiceNotificationHandler<OpenProjectHandler.NotificationParams>
+internal sealed class OpenProjectHandler : ILspService, ILspServiceNotificationHandler<OpenProjectHandler.NotificationParams>
 {
     internal const string OpenProjectName = "project/open";
 
     private readonly LanguageServerProjectSystem _projectSystem;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public OpenProjectHandler(LanguageServerProjectSystem projectSystem)
     {
         _projectSystem = projectSystem;

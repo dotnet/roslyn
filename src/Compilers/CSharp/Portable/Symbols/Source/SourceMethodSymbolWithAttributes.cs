@@ -567,14 +567,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.DeprecatedAttribute))
             {
             }
-            else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.IsReadOnlyAttribute |
-                ReservedAttributes.RequiresLocationAttribute |
-                ReservedAttributes.IsUnmanagedAttribute |
-                ReservedAttributes.IsByRefLikeAttribute |
-                ReservedAttributes.NullableContextAttribute |
-                ReservedAttributes.CaseSensitiveExtensionAttribute |
-                ReservedAttributes.ExtensionMarkerAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeInSource, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (ReportExplicitUseOfReservedAttributes(
+                in arguments,
+                permitted: ReservedAttributes.DynamicAttribute
+                    | ReservedAttributes.TupleElementNamesAttribute
+                    | ReservedAttributes.NullableAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.NativeIntegerAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute)
@@ -631,26 +637,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
-                }
-            }
-            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
-            {
-                if (this.MethodKind is MethodKind.AnonymousFunction or MethodKind.Destructor or MethodKind.LambdaMethod or MethodKind.StaticConstructor)
-                {
-                    diagnostics.Add(ErrorCode.ERR_RequiresUnsafeAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
-                }
-                else
-                {
-                    if (ContainingModule.UseUpdatedMemorySafetyRules)
-                    {
-                        MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.WRN_RequiresUnsafeAttributeLegacyRules, arguments.AttributeSyntaxOpt.Location);
-                    }
-
-                    arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasRequiresUnsafeAttribute = true;
                 }
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
@@ -818,16 +804,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // MarshalAs applied to the return value:
                 MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
             }
-            else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute |
-                ReservedAttributes.IsUnmanagedAttribute |
-                ReservedAttributes.IsReadOnlyAttribute |
-                ReservedAttributes.RequiresLocationAttribute |
-                ReservedAttributes.IsByRefLikeAttribute |
-                ReservedAttributes.TupleElementNamesAttribute |
-                ReservedAttributes.NullableAttribute |
-                ReservedAttributes.NativeIntegerAttribute |
-                ReservedAttributes.ExtensionMarkerAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(
+                in arguments,
+                permitted: ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.MaybeNullAttribute))

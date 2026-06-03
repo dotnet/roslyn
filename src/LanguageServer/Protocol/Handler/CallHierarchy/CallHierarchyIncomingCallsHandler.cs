@@ -30,10 +30,12 @@ internal sealed class CallHierarchyIncomingCallsHandler() : ILspServiceDocumentR
         => CallHierarchyHelpers.GetResolveData(request.Item).TextDocument;
 
     public async Task<LSP.CallHierarchyIncomingCall[]?> HandleRequestAsync(LSP.CallHierarchyIncomingCallsParams request, RequestContext context, CancellationToken cancellationToken)
+        => await GetIncomingCallsAsync(context.GetRequiredDocument(), request.Item, allowRazorSourceGeneratedDocuments: false, cancellationToken).ConfigureAwait(false);
+
+    internal static async Task<LSP.CallHierarchyIncomingCall[]?> GetIncomingCallsAsync(Document document, LSP.CallHierarchyItem item, bool allowRazorSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
         var solution = document.Project.Solution;
-        var resolveData = CallHierarchyHelpers.GetResolveData(request.Item);
+        var resolveData = CallHierarchyHelpers.GetResolveData(item);
 
         var service = document.GetRequiredLanguageService<ICallHierarchyService>();
         var results = await service.SearchIncomingCallsAsync(
@@ -46,7 +48,7 @@ internal sealed class CallHierarchyIncomingCallsHandler() : ILspServiceDocumentR
         foreach (var result in results.Where(result => result.Item != null))
         {
             var locationsByDocumentId = result.ReferenceLocations
-                .Where(static location => location.IsInSource)
+                .Where(location => location.IsInSource || (allowRazorSourceGeneratedDocuments && solution.GetDocument(location.SourceTree).IsRazorSourceGeneratedDocument()))
                 .GroupBy(location => solution.GetDocument(location.SourceTree)?.Id);
 
             foreach (var locationGroup in locationsByDocumentId)
@@ -54,7 +56,9 @@ internal sealed class CallHierarchyIncomingCallsHandler() : ILspServiceDocumentR
                 if (locationGroup.Key == null)
                     continue;
 
-                var callerDocument = solution.GetDocument(locationGroup.Key);
+                // Including source generated documents here is relatively safe because only Razor source generated documents would be seen, due to the filtering
+                // above, and Razor knows how to remap generated document locations back to the original Razor document locations.
+                var callerDocument = await solution.GetDocumentAsync(locationGroup.Key, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 if (callerDocument == null)
                     continue;
 

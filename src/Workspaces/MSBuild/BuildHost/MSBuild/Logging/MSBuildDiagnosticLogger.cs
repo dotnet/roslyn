@@ -2,36 +2,63 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class MSBuildDiagnosticLogger : MSB.Framework.ILogger
 {
-    private string? _projectFilePath;
-    private DiagnosticLog? _log;
+    /// <summary>
+    /// Maps a build's <see cref="MSB.Framework.BuildEventContext.SubmissionId"/> to the
+    /// <see cref="DiagnosticLog"/> that should receive the errors and warnings raised while that
+    /// submission is building. This lets a single logger instance route events to the correct project
+    /// even when multiple builds are in flight. The id matches
+    /// <see cref="MSB.Execution.BuildSubmission.SubmissionId"/>.
+    /// </summary>
+    private readonly ConcurrentDictionary<int, DiagnosticLog> _logsBySubmissionId = new();
+
     private MSB.Framework.IEventSource? _eventSource;
 
     public string? Parameters { get; set; }
     public MSB.Framework.LoggerVerbosity Verbosity { get; set; }
 
-    public void SetProjectAndLog(string projectFilePath, DiagnosticLog log)
-    {
-        _projectFilePath = projectFilePath;
-        _log = log;
-    }
+    /// <summary>
+    /// Registers the <paramref name="log"/> that should receive diagnostics for the build submission with
+    /// the given <paramref name="submissionId"/>. Must be called after the submission's id has been
+    /// assigned (i.e. after <see cref="MSB.Execution.BuildManager.PendBuildRequest(MSB.Execution.BuildRequestData)"/>)
+    /// but before the submission starts executing, so no event can arrive before the log is registered.
+    /// </summary>
+    public void RegisterLog(int submissionId, DiagnosticLog log)
+        => Contract.ThrowIfFalse(_logsBySubmissionId.TryAdd(submissionId, log), $"A log is already registered for submission {submissionId}.");
+
+    public void UnregisterLog(int submissionId)
+        => Contract.ThrowIfFalse(_logsBySubmissionId.TryRemove(submissionId, out _), $"No log is registered for submission {submissionId}.");
 
     private void OnErrorRaised(object sender, MSB.Framework.BuildErrorEventArgs e)
-    {
-        Debug.Assert(_projectFilePath != null);
-        _log?.Add(new MSBuildDiagnosticLogItem(DiagnosticLogItemKind.Error, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
-    }
+        => AddLogItem(DiagnosticLogItemKind.Error, e.BuildEventContext, e.ProjectFile, e.Message, e.File, e.LineNumber, e.ColumnNumber);
 
     private void OnWarningRaised(object sender, MSB.Framework.BuildWarningEventArgs e)
+        => AddLogItem(DiagnosticLogItemKind.Warning, e.BuildEventContext, e.ProjectFile, e.Message, e.File, e.LineNumber, e.ColumnNumber);
+
+    private void AddLogItem(DiagnosticLogItemKind kind, MSB.Framework.BuildEventContext? buildEventContext, string? projectFile, string? message, string? file, int lineNumber, int columnNumber)
     {
-        Debug.Assert(_projectFilePath != null);
-        _log?.Add(new MSBuildDiagnosticLogItem(DiagnosticLogItemKind.Warning, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
+        // A build error or warning is always raised in the context of a building submission whose log we
+        // registered before executing it, so we expect a context and a log registered for its submission.
+        Debug.Assert(buildEventContext != null);
+        if (buildEventContext is null)
+            return;
+
+        if (!_logsBySubmissionId.TryGetValue(buildEventContext.SubmissionId, out var log))
+        {
+            // We don't expect this, but if it happens there's no log to attribute the event to, so ignore it.
+            Debug.Fail($"No log is registered for submission {buildEventContext.SubmissionId}.");
+            return;
+        }
+
+        log.Add(new MSBuildDiagnosticLogItem(kind, projectFile ?? "", message ?? "", file ?? "", lineNumber, columnNumber));
     }
 
     public void Initialize(MSB.Framework.IEventSource eventSource)
@@ -52,8 +79,7 @@ internal sealed class MSBuildDiagnosticLogger : MSB.Framework.ILogger
 
             _eventSource = null;
 
-            _projectFilePath = null;
-            _log = null;
+            _logsBySubmissionId.Clear();
         }
     }
 }

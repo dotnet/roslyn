@@ -94,12 +94,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
         /// <summary>
-        /// Whether the method has the <see langword="unsafe"/> keyword in its signature.
-        /// Do not confuse with <see cref="CallerUnsafeMode"/>.
+        /// Whether the method has an 'unsafe' modifier.
+        /// For event accessors, this comes from the containing member's unsafe modifier
+        /// (the accessor is not allowed to have its own unsafe modifier).
         /// </summary>
-        internal abstract bool IsUnsafe { get; }
+        internal abstract bool HasUnsafeModifier { get; }
 
-        internal bool HasRequiresUnsafeAttribute => GetDecodedWellKnownAttributeData()?.HasRequiresUnsafeAttribute == true;
+        /// <summary>
+        /// Whether the method has a 'safe' modifier.
+        /// For event accessors, this comes from the containing member's safe modifier
+        /// (the accessor is not allowed to have its own safe modifier).
+        /// </summary>
+        protected abstract bool HasSafeModifier { get; }
+
+        internal bool IntroducesUnsafeContext
+        {
+            get
+            {
+                return (HasUnsafeModifier || AssociatedSymbol is SourcePropertySymbolBase { HasUnsafeModifier: true })
+                    && !ContainingModule.UseUpdatedMemorySafetyRules;
+            }
+        }
+
+        /// <summary>
+        /// Whether the method can require callers to be in an unsafe context
+        /// (i.e., can have <see cref="CallerUnsafeMode.Explicit"/>).
+        /// </summary>
+        internal abstract bool CanBeCallerUnsafe { get; }
 
         internal sealed override CallerUnsafeMode CallerUnsafeMode
         {
@@ -109,23 +130,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
 
-                    return HasRequiresUnsafeAttribute || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                    if (!CanBeCallerUnsafe)
+                    {
+                        return CallerUnsafeMode.None;
+                    }
+
+                    return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit)
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }
 
                 return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
                     ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
-            }
-        }
-
-        protected bool NeedsSynthesizedRequiresUnsafeAttribute
-        {
-            get
-            {
-                return ContainingModule.UseUpdatedMemorySafetyRules &&
-                    !HasRequiresUnsafeAttribute &&
-                    (IsExtern || AssociatedSymbol?.IsExtern == true);
             }
         }
 
@@ -151,10 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = target.DeclaringCompilation;
 
-            if (target is SourceMethodSymbol { NeedsSynthesizedRequiresUnsafeAttribute: true })
+            if (target.CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                Debug.Assert(target.CallerUnsafeMode == CallerUnsafeMode.Explicit);
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
 
             if (compilation.ShouldEmitNullableAttributes(target) &&
@@ -178,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
                 // type will not have been created. In this case, omit the attribute.
 
-                if (moduleBuilder.CompilationState.TryGetStateMachineType(target, out NamedTypeSymbol? stateMachineType))
+                if (moduleBuilder.CompilationState.TryGetStateMachineType(target.PartialImplementationPart ?? target, out NamedTypeSymbol? stateMachineType))
                 {
                     var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
                         TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
@@ -236,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (target is SourceConstructorSymbolBase)
             {
                 AddRequiredMembersMarkerAttributes(ref attributes, target);
+                AddClosedClassesFeatureRequiredAttribute(ref attributes, target);
             }
 
             if (target.IsExtensionMethod)

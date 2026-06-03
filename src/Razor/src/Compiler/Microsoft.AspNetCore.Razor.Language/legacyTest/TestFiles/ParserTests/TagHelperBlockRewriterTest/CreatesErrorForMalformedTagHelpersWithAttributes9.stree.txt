@@ -1,0 +1,31 @@
+﻿RazorDocument - [0..25)::25 - [<p class=btn" bar<strong>]
+    MarkupBlock - [0..25)::25
+        MarkupTagHelperElement - [0..25)::25 - p[StartTagAndEndTag] - ptaghelper
+            MarkupTagHelperStartTag - [0..17)::17 - [<p class=btn" bar] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTagHelperAttribute - [2..12)::10 - class - DoubleQuotes - Unbound - [ class=btn]
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [3..8)::5 - [class] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTagHelperAttributeValue - [9..12)::3
+                        MarkupLiteralAttributeValue - [9..12)::3 - [btn]
+                            MarkupTextLiteral - [9..12)::3 - [btn] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                Text;[btn];
+                MarkupMinimizedTagHelperAttribute - [12..13)::1 - " - Minimized - Unbound - ["]
+                    MarkupTextLiteral - [12..13)::1 - ["] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        DoubleQuote;["];
+                MarkupMinimizedTagHelperAttribute - [13..17)::4 - bar - Minimized - Unbound - [ bar]
+                    MarkupTextLiteral - [13..14)::1 - [ ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [14..17)::3 - [bar] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Text;[bar];
+                CloseAngle;[<Missing>];
+            MarkupTagHelperElement - [17..25)::8 - strong[StartTagAndEndTag] - strongtaghelper
+                MarkupTagHelperStartTag - [17..25)::8 - [<strong>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                    OpenAngle;[<];
+                    Text;[strong];
+                    CloseAngle;[>];
+    EndOfFile;[];

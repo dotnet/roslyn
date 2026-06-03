@@ -582,7 +582,8 @@ public sealed class ImplementInterfaceCodeFixTests
             }
             """);
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
     public Task TestMethodWhenClassBracesAreMissing2(
         [CombinatorialValues(0, 1)] int behavior)
         => new VerifyCS.Test
@@ -3057,7 +3058,7 @@ public sealed class ImplementInterfaceCodeFixTests
             }
             """, index: 1);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestImplementEventThroughExplicitMember()
         => TestInRegularAndScriptAsync(
 @"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event System.EventHandler IGoo.E { add { } remove { } } } class HasCanGoo : {|CS0535:IGoo|} { CanGoo canGoo; }",
@@ -6070,7 +6071,8 @@ class B : IGoo
             }
             """, index: 3);
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
     public Task TestDoNotImplementDisposePatternForLocallyDefinedIDisposable()
         => TestWithAllCodeStyleOptionsOffAsync(
             """

@@ -189,6 +189,36 @@ configuration:
       - addLabel:
           label: VSCode
 
+    - description: Adds "Area-Razor" label on PRs that touch src/Razor.
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - filesMatchPattern:
+          pattern: 'src/Razor/.*'
+          matchAny: true
+      - and:
+        - not:
+            isActivitySender:
+              user: dotnet-bot
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: github-actions[bot]
+              issueAuthor: False
+      - or:
+        - isAction:
+            action: Opened
+        - isAction:
+            action: Synchronize
+      - and:
+        - not:
+            hasLabel:
+              label: Area-Razor
+      then:
+      - addLabel:
+          label: Area-Razor
+
     - description: Add "Needs UX Triage" on PRs
       triggerOnOwnActions: false
       if:
@@ -319,6 +349,27 @@ configuration:
           action: Opened
       then:
       - addCodeFlowLink
+
+    - description: Request second sign-off for compiler PRs after first approval
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request_Review
+      - isPullRequest
+      - isOpen
+      - hasLabel:
+          label: Area-Compilers
+      - isAction:
+          action: Submitted
+      - isReviewState:
+          reviewState: Approved
+      - not:
+          hasLabel:
+            label: Second Signoff Requested
+      then:
+      - addLabel:
+          label: Second Signoff Requested
+      - addReply:
+          reply: "@dotnet/roslyn-compiler this PR needs a second sign-off"
 
 onFailure: 
 onSuccess:
