@@ -73,7 +73,7 @@ internal sealed class HandlerProvider(ILspServices lspServices, AbstractTypeRefR
         else
         {
             // No fast path was provided, so we must realize all of of the services.
-            var handlers = lspServices.GetRequiredServices<IMethodHandler>();
+            var handlers = lspServices.GetServices<IMethodHandler>();
 
             foreach (var handler in handlers)
             {

@@ -107,11 +107,11 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         // If given an interface, query for a service that implements that interface (this is how GetRequiredServices works)
         // Only allow this if there is exactly one service that implements the interface.
         return type.IsInterface
-            ? GetRequiredServices<T>().SingleOrDefault()
+            ? GetServices<T>().SingleOrDefault()
             : default;
     }
 
-    public IEnumerable<T> GetRequiredServices<T>()
+    public IEnumerable<T> GetServices<T>()
     {
         // We provide this ILspServices instance as a service.
         if (typeof(T) == typeof(ILspServices))

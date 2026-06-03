@@ -280,7 +280,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             Logger.LogInformation(message);
 
             // Allow implementations to do any additional cleanup on shutdown.
-            var shutdownHooks = GetLspServices().GetRequiredServices<IOnServerShutdown>();
+            var shutdownHooks = GetLspServices().GetServices<IOnServerShutdown>();
             foreach (var hook in shutdownHooks)
             {
                 await hook.ShutdownAsync().ConfigureAwait(false);
@@ -323,7 +323,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 var lspServices = GetLspServices();
 
                 // Allow implementations to do any additional cleanup on exit.
-                var exitHooks = lspServices.GetRequiredServices<IOnServerShutdown>();
+                var exitHooks = lspServices.GetServices<IOnServerShutdown>();
                 foreach (var hook in exitHooks)
                 {
                     await hook.ExitAsync().ConfigureAwait(false);
