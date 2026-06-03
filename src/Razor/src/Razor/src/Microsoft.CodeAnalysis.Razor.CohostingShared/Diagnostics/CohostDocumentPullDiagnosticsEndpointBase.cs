@@ -98,7 +98,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         return [.. diagnostics];
     }
 
-    private async Task<(LspDiagnostic[], LspDiagnostic[])> GetCSharpDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
+    private async Task<(LspDiagnostic[], LspDiagnostic[])> GetCSharpDiagnosticsAsync(TextDocument razorDocument, Guid correlationId, CancellationToken cancellationToken)
     {
         // Because we can't map from a random C# point to a Razor point without knowing which C# document we're talking about, we have to just make two requests
         // and send back two sets of diagnostics
@@ -109,7 +109,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
             return ([], []);
         }
 
-        using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correletionId);
+        using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correlationId);
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
 
         _logger.LogDebug($"Getting C# diagnostics for {generatedDocuments.ImplDoc.FilePath}");
@@ -126,7 +126,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         return (implDiagnostics, declDiagnostics);
     }
 
-    private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
+    private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correlationId, CancellationToken cancellationToken)
     {
         var diagnosticsParams = CreateHtmlParams(razorDocument.CreateSystemUri());
 
@@ -135,7 +135,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
             LspMethodName,
             diagnosticsParams,
             TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold,
-            correletionId,
+            correlationId,
             cancellationToken).ConfigureAwait(false);
 
         if (result is null)

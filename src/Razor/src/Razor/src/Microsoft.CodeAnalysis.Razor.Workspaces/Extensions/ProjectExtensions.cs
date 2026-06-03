@@ -135,8 +135,8 @@ internal static class ProjectExtensions
             return (fullPathMatchedDoc, fullPathMatchedDeclDoc);
         }
 
-        // If we didn't find a candidate impl doc, or found mulitple, bail out so we don't confuse callers in case there is a weird
-        // bug where its possible to have duplicate impl docs and one decl doc
+        // If we didn't find a candidate impl doc, or found multiple, bail out so we don't confuse callers in case there is a weird
+        // bug where it's possible to have duplicate impl docs and one decl doc
         if (candidateDoc is null)
         {
             return (null, null);

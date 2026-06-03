@@ -176,7 +176,11 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         diagnostics.AddRange(TaskListDiagnosticProvider.GetTaskListDiagnostics(codeDocument, _clientSettingsManager.GetClientSettings().AdvancedSettings.TaskListDescriptors));
 
         diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpImplTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: false)));
-        diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpDeclTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: true)));
+
+        if (csharpDeclTaskItems.Length > 0)
+        {
+            diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpDeclTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: true)));
+        }
 
         return diagnostics.ToImmutableAndClear();
     }

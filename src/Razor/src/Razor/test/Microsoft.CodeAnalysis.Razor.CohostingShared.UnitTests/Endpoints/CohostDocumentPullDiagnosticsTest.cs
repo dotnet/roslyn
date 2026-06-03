@@ -39,7 +39,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
 
     [Fact]
     public Task CSharp_ImplicitExpression()
-    => VerifyDiagnosticsAsync("""
+        => VerifyDiagnosticsAsync("""
             <div></div>
 
             @{|CS0103:CallMeMaybe|}()
@@ -132,7 +132,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
 
     [Fact]
     public Task CSharpUnusedUsings_NoCodeBlock()
-     => VerifyDiagnosticsAsync("""
+        => VerifyDiagnosticsAsync("""
             {|RZ0005:@using System|}
 
             <div></div>

@@ -163,7 +163,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         {
             foreach (var otherDiagnostic in diagnostics)
             {
-                if (diagnostic.Code is { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen } &&
+                if (otherDiagnostic.Code is { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen } &&
                     IsSameDiagnosticSpan(diagnostic, otherDiagnostic))
                 {
                     return true;

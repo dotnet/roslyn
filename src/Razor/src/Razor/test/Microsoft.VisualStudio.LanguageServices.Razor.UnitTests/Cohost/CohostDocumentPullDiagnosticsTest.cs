@@ -579,6 +579,27 @@ public partial class CohostDocumentPullDiagnosticsTest
             """,
             taskListRequest: true);
 
+    [Fact]
+    public Task TODOComments_NoDecl()
+        => VerifyDiagnosticsAsync("""
+            @using System.Threading.Tasks;
+
+            @{
+                // {|TODO:|}TODO: This is C# in an impl document
+            }
+
+            TODO: Nor is this
+
+            <div>
+
+                @*{|TODO: TODO: This does |}*@
+
+                @* TODONT: This doesn't *@
+
+            </div>
+            """,
+            taskListRequest: true);
+
     private async Task VerifyDiagnosticsAsync(
         TestCode input,
         VSInternalDiagnosticReport[]? htmlResponse = null,

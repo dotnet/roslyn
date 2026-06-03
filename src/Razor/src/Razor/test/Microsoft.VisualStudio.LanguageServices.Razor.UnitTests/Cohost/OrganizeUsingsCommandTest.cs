@@ -55,7 +55,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
 
                 <div></div>
 
-                @nameof(StringBuilder b)
+                @nameof(StringBuilder)
                 @nameof(Console)
                 """,
            expected: """
@@ -64,7 +64,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
 
                 <div></div>
 
-                @nameof(StringBuilder b)
+                @nameof(StringBuilder)
                 @nameof(Console)
                 """);
 
