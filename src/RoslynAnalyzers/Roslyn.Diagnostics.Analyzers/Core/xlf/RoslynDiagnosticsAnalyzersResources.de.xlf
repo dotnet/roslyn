@@ -257,6 +257,36 @@
         <target state="translated">Nummerierte Kommentare korrigieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterDescription">
+        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorSolutionWrapper or DocumentId as they are not JSON serializable.</source>
+        <target state="translated">Methoden in Schnittstellen, die von „IRemoteJsonService“ erben, dürfen keine Parameter vom Typ „RazorSolutionWrapper“ oder „DocumentId“ aufweisen, da diese nicht mit JSON serialisierbar sind.</target>
+        <note>{Locked="IRemoteJsonService"}{Locked="RazorSolutionWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterMessage">
+        <source>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</source>
+        <target state="translated">Der Parameter „{0}“ in „{1}.{2}“ ist vom Typ „{3}“, der in einem JSON-Dienst nicht zulässig ist</target>
+        <note>{Locked="JSON"}</note>
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterTitle">
+        <source>Invalid parameter type in IRemoteJsonService method</source>
+        <target state="translated">Ungültiger Parametertyp in der IRemoteJsonService-Methode.</target>
+        <note>{Locked="IRemoteJsonService"}</note>
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingDescription">
+        <source>Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</source>
+        <target state="translated">Der Aufruf der Methoden „EnumerableExtensions“ oder „ReadOnlyListExtensions“ für ImmutableArray&lt;T&gt; führt dazu, dass die Struktur verschachtelt wird, was unnötige Zuweisungen erzeugt. Verwenden Sie stattdessen die entsprechenden Erweiterungsmethoden für ImmutableArray&lt;T&gt;.</target>
+        <note>{Locked="EnumerableExtensions"}{Locked="ReadOnlyListExtensions"}{Locked="ImmutableArray&lt;T&gt;"}</note>
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingMessage">
+        <source>Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</source>
+        <target state="translated">Der Aufruf von „{0}“ auf ImmutableArray&lt;T&gt; verursacht Verschachtelung. Ziehen Sie in Betracht, stattdessen die Erweiterungsmethode für ImmutableArray&lt;T&gt; zu verwenden.</target>
+        <note>{Locked="ImmutableArray&lt;T&gt;"}</note>
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingTitle">
+        <source>ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</source>
+        <target state="translated">ImmutableArray&lt;T&gt; wird in IReadOnlyList&lt;T&gt; verschachtelt.</target>
+        <note>{Locked="ImmutableArray&lt;T&gt;"}{Locked="IReadOnlyList&lt;T&gt;"}</note>
+      </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
         <target state="translated">Legen Sie "ObsoleteAttribute.Error" auf TRUE fest.</target>
@@ -306,6 +336,21 @@
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
         <target state="translated">Die Type.FullName-Eigenschaft ist bei Verwendung der Syntax "typeof(T).FullName" nie NULL.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefDescription">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">Instanz von PooledArrayBuilder&lt;T&gt;.AsRef() muss eine „using“-Variable sein.</target>
+        <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefMessage">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">Instanz von PooledArrayBuilder&lt;T&gt;.AsRef() muss eine „using“-Variable sein</target>
+        <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefTitle">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">Instanz von PooledArrayBuilder&lt;T&gt;.AsRef() muss eine „using“-Variable sein</target>
+        <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,14 +32,24 @@ internal sealed class SelectionRangeHandler() : ILspServiceDocumentRequestHandle
         if (document is null)
             return null;
 
+        using var _ = ArrayBuilder<LinePosition>.GetInstance(out var linePositions);
+        foreach (var position in request.Positions)
+        {
+            linePositions.Add(ProtocolConversions.PositionToLinePosition(position));
+        }
+
+        return await GetSelectionRangesAsync(document, linePositions.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task<SelectionRange[]?> GetSelectionRangesAsync(Document document, ImmutableArray<LinePosition> positions, CancellationToken cancellationToken)
+    {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<SelectionRange>.GetInstance(out var results);
-        foreach (var position in request.Positions)
+        foreach (var position in positions)
         {
-            var linePosition = ProtocolConversions.PositionToLinePosition(position);
-            var absolutePosition = text.Lines.GetPosition(linePosition);
+            var absolutePosition = text.Lines.GetPosition(position);
 
             results.Add(GetSelectionRange(root, text, absolutePosition));
         }

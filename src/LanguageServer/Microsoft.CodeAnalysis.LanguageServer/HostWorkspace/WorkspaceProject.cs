@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;

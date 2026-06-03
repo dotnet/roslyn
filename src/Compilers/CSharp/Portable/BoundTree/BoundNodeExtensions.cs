@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TInterpolatedStringType interpolatedString:
                         if (!stringCallback(interpolatedString, arg))
                         {
+                            stack.Free();
                             return false;
                         }
                         break;
@@ -139,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TInterpolatedStringType interpolatedString:
                         if (!stringCallback(interpolatedString, arg))
                         {
+                            stack.Free();
                             return false;
                         }
                         break;

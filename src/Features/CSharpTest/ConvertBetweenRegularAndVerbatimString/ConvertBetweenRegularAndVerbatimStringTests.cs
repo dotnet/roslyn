@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString;
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertBetweenRegularAn
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
 public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private static string NewLineEscape { get; } = Environment.NewLine == "\r\n" ? @"\r\n" : @"\n";
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider();
 
@@ -156,7 +159,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                     var v = "[||]a\r\nb";
                 }
             }
-            """,
+            """.Replace(@"\r\n", NewLineEscape),
             """
             class Test
             {
@@ -188,7 +191,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                     var v = "a\r\nb";
                 }
             }
-            """);
+            """.Replace(@"\r\n", NewLineEscape));
 
     [Fact]
     public Task RegularStringWithEscapedNull()
@@ -254,7 +257,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                     var v = "[||]a\r\n{1}";
                 }
             }
-            """,
+            """.Replace(@"\r\n", NewLineEscape),
             """
             class Test
             {
@@ -286,5 +289,5 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                     var v = "a\r\n{1}";
                 }
             }
-            """);
+            """.Replace(@"\r\n", NewLineEscape));
 }

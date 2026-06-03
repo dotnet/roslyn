@@ -1,0 +1,11 @@
+﻿@implements IDisposable
+@implements IEquatable<string>
+@implements ICloneable
+
+@functions {
+    void IDisposable.Dispose() { }
+
+    bool IEquatable<string>.Equals(string x) => false;
+
+    object ICloneable.Clone() => this;
+}

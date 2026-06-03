@@ -76,6 +76,11 @@ internal static class BrokeredServiceDescriptors
     public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadServiceLegacy = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor HotReloadLoggerServiceLegacy = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
 
+    // Registered so the XAML diagnostics component in the C# extension for VS Code can call them.
+    public static readonly ServiceRpcDescriptor HotReloadSessionNotificationService = CreateDebuggerServiceDescriptor("HotReloadSessionNotificationService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor ManagedHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("ManagedHotReloadAgentManagerService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor GenericHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("GenericHotReloadAgentManagerService", new Version(0, 1));
+
     public static readonly ServiceRpcDescriptor HotReloadOptionService = CreateDebuggerClientServiceDescriptor("HotReloadOptionService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor MauiLaunchCustomizerService = CreateMauiServiceDescriptor("MauiLaunchCustomizerService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor CssVisualDiagnosticsService = CreateWebToolsServiceDescriptor("CssVisualDiagnosticsService", new Version(0, 1));

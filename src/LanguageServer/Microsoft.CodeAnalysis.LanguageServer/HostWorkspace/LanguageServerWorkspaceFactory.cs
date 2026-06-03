@@ -3,38 +3,36 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Shared]
-[Export(typeof(IHostWorkspaceProvider))]
-[Export(typeof(LanguageServerWorkspaceFactory))]
-internal sealed class LanguageServerWorkspaceFactory : IHostWorkspaceProvider
+/// <summary>
+/// Owns the host and miscellaneous-files <see cref="LanguageServerWorkspace"/> instances and their
+/// <see cref="ProjectSystemProjectFactory"/> objects for a single LSP server. Created once per
+/// <see cref="LspServices"/> instance by <see cref="LanguageServerWorkspaceFactoryServiceFactory"/> and
+/// disposed when the LSP server shuts down.
+/// </summary>
+internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspaceProvider
 {
     private readonly ILogger _logger;
     private readonly ImmutableArray<string> _solutionLevelAnalyzerPaths;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerWorkspaceFactory(
         HostServicesProvider hostServicesProvider,
-        IFileChangeWatcher fileChangeWatcher,
-        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
-        ProjectTargetFrameworkManager projectTargetFrameworkManager,
+        ILspServices lspServices,
+        IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ExtensionAssemblyManager extensionManager,
-        [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
+        IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
         ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerWorkspaceFactory));
@@ -53,6 +51,7 @@ internal sealed class LanguageServerWorkspaceFactory : IHostWorkspaceProvider
         var analyzerReferences = CreateSolutionLevelAnalyzerReferences(hostAnalyzerLoaderProvider);
         workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(analyzerReferences), WorkspaceChangeKind.SolutionChanged);
 
+        var fileChangeWatcher = lspServices.GetRequiredService<IFileChangeWatcher>();
         HostProjectFactory = new ProjectSystemProjectFactory(
             workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
@@ -73,19 +72,15 @@ internal sealed class LanguageServerWorkspaceFactory : IHostWorkspaceProvider
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: [.. dynamicFileInfoProviders],
             AnalyzerAssemblyRedirectors: [.. assemblyRedirectors]);
-
-        TargetFrameworkManager = projectTargetFrameworkManager;
     }
 
     public Workspace HostWorkspace => HostProjectFactory.Workspace;
-    public Workspace MiscellaneousFilesWorkspace => MiscellaneousFilesWorkspaceProjectFactory.Workspace;
-    Workspace IHostWorkspaceProvider.Workspace => HostWorkspace;
-
     public ProjectSystemProjectFactory HostProjectFactory { get; }
     public ProjectSystemProjectFactory MiscellaneousFilesWorkspaceProjectFactory { get; }
 
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
-    public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
+
+    Workspace IHostWorkspaceProvider.Workspace => HostWorkspace;
 
     private ImmutableArray<AnalyzerFileReference> CreateSolutionLevelAnalyzerReferences(IAnalyzerAssemblyLoaderProvider loaderProvider)
     {
