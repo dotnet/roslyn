@@ -110,7 +110,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         {
             foreach (var location in referencedSymbol.Locations)
             {
-                if (location.IsImplicit)
+                if (location.IsImplicit || location.Document is null)
                     continue;
 
                 var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
