@@ -4608,7 +4608,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
     public void Exhaustiveness_ConstrainedToClosedType_02()
     {
         // Attempt to exhaust a type parameter constrained to closed type.
-        // This scenario isn't supported by the exhaustiveness check.
         var source1 = """
             public closed class E;
             public sealed class F1 : E;
@@ -4646,12 +4645,21 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         E => 3,
                     };
                 }
-
+            
                 int M4<X>(X x) where X : E
                 {
                     return x switch
                     {
                         X => 1,
+                    };
+                }
+
+                int M5<X>(X x) where X : E
+                {
+                    return x switch
+                    {
+                        F1 => 1,
+                        X => 2,
                     };
                 }
             }
@@ -4738,57 +4746,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         int => 2,
                     };
                 }
-            }
-            """;
 
-        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        verify(comp);
-
-        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
-        verify(comp);
-
-        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
-        verify(comp);
-
-        static void verify(CSharpCompilation comp)
-        {
-            // Note: using VerifyEmitDiagnostics here leads to an assertion failure.
-            // See https://github.com/dotnet/roslyn/issues/83978
-            comp.VerifyDiagnostics(
-                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
-                //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
-                // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             E => 3,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
-                // TODO2: this result seems unexpected. Is a type test failing to rule out the effective base type?
-                // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
-                //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18));
-
-            var classE = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.True(classE.TryGetClosedSubtypes(out var subtypes));
-            Assert.Equal(["F1", "F2"], subtypes.ToTestDisplayStrings());
-        }
-    }
-
-    [Fact]
-    public void Exhaustiveness_GenericUnion_Simple_01()
-    {
-        // A union case type is a type parameter constrained to closed class type
-        var source1 = """
-            public union U<T>(T);
-            """;
-
-        var source2 = """
-            class Program
-            {
-                int M1<X>(U<X> x) where X : Program
+                int M5<X>(U<X> x) where X : E
                 {
                     return x switch
                     {
-                        X => 1,
+                        F1 => 1,
+                        X => 2,
+                        int => 3,
                     };
                 }
             }
@@ -4815,15 +4780,79 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             E => 3,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
-                // TODO2: this result seems unexpected. Is a type test failing to rule out the effective base type?
+                // TODO2: these diagnostics seem unexpected. Why aren't they reported for analogous non-union case in Exhaustiveness_ConstrainedToClosedType_02?
                 // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
                 //         return x switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18));
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18),
+                // (215,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return x switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(215, 18));
 
             var classE = comp.GetMember<NamedTypeSymbol>("E");
             Assert.True(classE.TryGetClosedSubtypes(out var subtypes));
             Assert.Equal(["F1", "F2"], subtypes.ToTestDisplayStrings());
         }
+    }
+
+    [Fact]
+    public void Exhaustiveness_ConstrainedUnionCaseType_01()
+    {
+        // A union case type is a type parameter constrained to non-closed class type
+        var source1 = """
+            public union U<T>(T);
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X>(U<X> x) where X : C
+                {
+                    return x switch
+                    {
+                        X => 1,
+                    };
+                }
+
+                int M2<X>(U<X> x) where X : C
+                {
+                    return x switch
+                    {
+                        C => 1,
+                    };
+                }
+
+                int M3<X>(U<X> x) where X : C
+                {
+                    return x switch
+                    {
+                        D => 1,
+                        X => 2,
+                    };
+                }
+
+                int M4<X>(U<X> x) where X : C
+                {
+                    return x switch
+                    {
+                        D => 1,
+                        C => 2,
+                    };
+                }
+            }
+
+            class C;
+            class D : C;
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
