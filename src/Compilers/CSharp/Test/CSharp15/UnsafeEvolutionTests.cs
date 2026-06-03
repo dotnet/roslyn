@@ -8837,6 +8837,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 [field: FieldOffset(0)] public event System.Action E1;
                 public event System.Action E2 { add { } remove { } }
             }
+
+            [StructLayout(LayoutKind.Explicit)]
+            public record struct R([field: FieldOffset(0)] int X);
+
+            [StructLayout(LayoutKind.Explicit)]
+            public struct P([field: FieldOffset(0)] int x)
+            {
+                public int X => x;
+            }
             """;
 
         CreateCompilation(source,
@@ -8853,11 +8862,29 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 40),
             // (13,56): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
             //     [field: FieldOffset(0)] public event System.Action E1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 56));
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 56),
+            // (18,52): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            // public record struct R([field: FieldOffset(0)] int X);
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(18, 52),
+            // (21,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+            // public struct P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(21, 18),
+            // (21,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+            // public struct P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(21, 45),
+            // (21,45): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            // public struct P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(21, 45));
 
         CreateCompilation(source,
             options: TestOptions.ReleaseDll)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(
+            // (21,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+            // public struct P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(21, 18),
+            // (21,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+            // public struct P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(21, 45));
     }
 
     [Fact]
@@ -8929,6 +8956,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public event System.Action E1;
                 public event System.Action E2 { add { } remove { } }
             }
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+            public record struct R(int X);
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+            public struct P(int x)
+            {
+                public int X => x;
+            }
             """;
 
         CreateCompilation(source,
@@ -8946,7 +8982,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 16),
             // (13,32): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
             //     public event System.Action E1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 32));
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 32),
+            // (18,28): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            // public record struct R(int X);
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(18, 28),
+            // (21,21): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            // public struct P(int x)
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(21, 21));
 
         CreateCompilation(source,
             targetFramework: TargetFramework.Net110,
