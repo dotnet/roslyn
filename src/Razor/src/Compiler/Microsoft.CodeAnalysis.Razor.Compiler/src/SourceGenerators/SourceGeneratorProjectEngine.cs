@@ -87,21 +87,11 @@ internal sealed class SourceGeneratorProjectEngine
     /// and friends) and a fully-written decl <see cref="RazorCSharpDocument"/> accessible via
     /// <see cref="RazorCodeDocumentExtensions.GetDeclCSharpDocument"/>.
     /// </summary>
-    /// <remarks>
-    /// The returned wrapper carries the source <see cref="RazorProjectItem"/> so that
-    /// <see cref="ProcessTagHelpers"/> can rebuild an unresolved IR when tag helpers have changed
-    /// materially. See <see cref="SourceGeneratorRazorCodeDocument.SourceItem"/> for the rationale.
-    /// </remarks>
     public SourceGeneratorRazorCodeDocument ProcessForDecl(RazorProjectItem projectItem, CancellationToken cancellationToken)
     {
-        var codeDocument = CreateAndProcessForDecl(projectItem, cancellationToken);
-        return new SourceGeneratorRazorCodeDocument(codeDocument, projectItem);
-    }
-
-    private RazorCodeDocument CreateAndProcessForDecl(RazorProjectItem projectItem, CancellationToken cancellationToken)
-    {
         var codeDocument = _projectEngine.CreateCodeDocument(projectItem);
-        return ExecutePhases(Phases[..(_declLoweringEndIndex + 1)], codeDocument, cancellationToken);
+        codeDocument = ExecutePhases(Phases[..(_declLoweringEndIndex + 1)], codeDocument, cancellationToken);
+        return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 
     /// <summary>
@@ -154,7 +144,6 @@ internal sealed class SourceGeneratorProjectEngine
         Debug.Assert(sgDocument.CodeDocument.GetSyntaxTree() is not null);
 
         var codeDocument = sgDocument.CodeDocument;
-        var sourceItem = sgDocument.SourceItem;
 
         if (checkForIdempotency && codeDocument.TryGetTagHelpers(out var previousTagHelpers))
         {
@@ -193,9 +182,6 @@ internal sealed class SourceGeneratorProjectEngine
             // correct TagHelperContext / DirectiveTagHelperContributions on `codeDocument` against
             // the new tag helpers, and RebuildUnresolvedIrFromCachedSyntax preserves those on the
             // rebuilt doc via the With pattern. So we can go straight to resolution + rewrite.
-            Debug.Assert(sourceItem is not null,
-                "Cached codeDocument carries previousTagHelpers, which means ProcessForDecl produced it; that should always attach a source item.");
-
             codeDocument = RebuildUnresolvedIrFromCachedSyntax(codeDocument, cancellationToken);
             codeDocument = ExecutePhases(Phases[(_discoveryPhaseIndex + 1)..(_tagHelperRewriteEndIndex + 1)], codeDocument, cancellationToken);
         }
@@ -207,7 +193,7 @@ internal sealed class SourceGeneratorProjectEngine
             codeDocument = ExecutePhases(Phases[_discoveryPhaseIndex..(_tagHelperRewriteEndIndex + 1)], codeDocument, cancellationToken);
         }
 
-        return new SourceGeneratorRazorCodeDocument(codeDocument, sourceItem);
+        return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 
     private static bool RequiresRewrite(
@@ -273,7 +259,7 @@ internal sealed class SourceGeneratorProjectEngine
 
         codeDocument = ExecutePhases(Phases[(_tagHelperRewriteEndIndex + 1)..], codeDocument, cancellationToken);
 
-        return new SourceGeneratorRazorCodeDocument(codeDocument, sgDocument.SourceItem);
+        return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 
     private static RazorCodeDocument ExecutePhases(ReadOnlySpan<IRazorEnginePhase> phases, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
