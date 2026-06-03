@@ -2082,7 +2082,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsUnionType)
             {
-                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null) is null)
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                if (ForEachUnionFactoryMethod(static (MethodSymbol m, object? o) => true, null, ref discardedUseSiteInfo) is null)
                 {
                     diagnostics.Add(ErrorCode.ERR_MissingUnionCaseTypes, location);
                 }

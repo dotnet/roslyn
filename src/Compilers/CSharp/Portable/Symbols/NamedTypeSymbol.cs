@@ -1879,38 +1879,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
-        internal ImmutableArray<TypeSymbol> UnionCaseTypes // https://github.com/dotnet/roslyn/issues/82636: Cache result for definitions?
+        internal ImmutableArray<TypeSymbol> UnionCaseTypesNoUseSiteDiagnostics
         {
             get
             {
-                if (!IsUnionType)
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return UnionCaseTypes(ref discardedUseSiteInfo);
+            }
+        }
+
+        internal ImmutableArray<TypeSymbol> UnionCaseTypes(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) // https://github.com/dotnet/roslyn/issues/82636: Cache result?
+        {
+            if (!IsUnionType)
+            {
+                return [];
+            }
+
+            var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+            var set = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
+            ForEachUnionFactoryMethod(addCaseType, (builder, set), ref useSiteInfo);
+            set.Free();
+            return builder.ToImmutableAndFree();
+
+            static bool addCaseType(MethodSymbol factory, (ArrayBuilder<TypeSymbol> builder, PooledHashSet<TypeSymbol> set) arg)
+            {
+                (ArrayBuilder<TypeSymbol> builder, HashSet<TypeSymbol> set) = arg;
+                var candidate = factory.Parameters[0].Type;
+                if (set.Add(candidate))
                 {
-                    return [];
+                    builder.Add(candidate);
                 }
 
-                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
-                var set = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
-                ForEachUnionFactoryMethod(addCaseType, (builder, set));
-                set.Free();
-                return builder.ToImmutableAndFree();
-
-                static bool addCaseType(MethodSymbol factory, (ArrayBuilder<TypeSymbol> builder, PooledHashSet<TypeSymbol> set) arg)
-                {
-                    (ArrayBuilder<TypeSymbol> builder, HashSet<TypeSymbol> set) = arg;
-                    var candidate = factory.Parameters[0].Type;
-                    if (set.Add(candidate))
-                    {
-                        builder.Add(candidate);
-                    }
-
-                    return false;
-                }
+                return false;
             }
         }
 
         /// <param name="action">If the action returns true, the iteration stops.</param>
         /// <returns>MethodSymbol for factory method for which action returned true; otherwise, null.</returns>
-        internal MethodSymbol? ForEachUnionFactoryMethod<TArg>(Func<MethodSymbol, TArg, bool> action, TArg arg)
+        internal MethodSymbol? ForEachUnionFactoryMethod<TArg>(Func<MethodSymbol, TArg, bool> action, TArg arg, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(IsUnionType);
 
@@ -1921,6 +1927,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var definition = this.OriginalDefinition;
                 NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(this);
 
+                ArrayBuilder<MethodSymbol>? shadowingMethods = membersInterfaceForDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty ? null : ArrayBuilder<MethodSymbol>.GetInstance();
+
                 foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
                 {
                     if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
@@ -1929,10 +1937,79 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (action(method, arg))
                         {
+                            shadowingMethods?.Free();
                             return method;
                         }
+
+                        shadowingMethods?.Add(method);
                     }
                 }
+
+                int shadowingCount = shadowingMethods?.Count ?? 0;
+
+                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                {
+                    Debug.Assert(shadowingMethods is not null);
+                    NamedTypeSymbol? possiblyConstructedOrSubstitutedBaseInterface = null;
+
+                    foreach (var member in baseInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
+                    {
+                        if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
+                        {
+                            if (possiblyConstructedOrSubstitutedBaseInterface is null)
+                            {
+                                if (this.IsDefinition)
+                                {
+                                    possiblyConstructedOrSubstitutedBaseInterface = baseInterfaceForDefinition;
+                                }
+                                else
+                                {
+                                    possiblyConstructedOrSubstitutedBaseInterface = this.TypeSubstitution.SubstituteNamedType(baseInterfaceForDefinition);
+                                }
+                            }
+
+                            method = method.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedBaseInterface);
+
+                            int i;
+                            for (i = 0; i < shadowingCount; i++)
+                            {
+                                MethodSymbol shadowingMethod = shadowingMethods[i];
+
+                                if (MemberSignatureComparer.CSharpOverrideComparer.Equals(shadowingMethod, method) &&
+                                    shadowingMethod.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(possiblyConstructedOrSubstitutedBaseInterface, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                                {
+                                    break;
+                                }
+                            }
+
+                            if (i < shadowingCount)
+                            {
+                                // Shadowed
+                                continue;
+                            }
+
+                            if (action(method, arg))
+                            {
+                                shadowingMethods.Free();
+                                return method;
+                            }
+
+                            shadowingMethods.Add(method);
+                        }
+                    }
+
+                    if (baseInterfaceForDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty)
+                    {
+                        // Added methods cannot shadow anything
+                        shadowingMethods.Count = shadowingCount;
+                    }
+                    else
+                    {
+                        shadowingCount = shadowingMethods.Count;
+                    }
+                }
+
+                shadowingMethods?.Free();
             }
             else
             {
@@ -1954,7 +2031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(unionType.IsDefinition);
                 Debug.Assert(unionType.IsUnionType);
-                Debug.Assert(factory.IsDefinition);
+                Debug.Assert(factory.IsDefinition || factory.ContainingType.IsInterface);
 
                 return factory is
                 {
