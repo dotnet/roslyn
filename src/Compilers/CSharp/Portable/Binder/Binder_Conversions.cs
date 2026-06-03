@@ -1240,6 +1240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeCompareKind.ConsiderEverything);
 
                 _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, _diagnostics, syntax: syntax);
+                // PROTOTYPE: Confirm that this constructor is desired when targeting IReadOnlyDictionary<K, V>, and that it should reflect Dictionary<K, V>
+                // concretely
                 _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K, _diagnostics, syntax: syntax);
                 if (isIDictionary)
                 {
@@ -1289,20 +1291,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Don't need to report diagnostics here. Our caller will have already done this.
                     var compilation = @this._binder.Compilation;
-                    var ctor = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor);
-                    var ctorComparer = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K);
-                    var ctorInt32 = isIDictionary
-                        ? (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32)
-                        : null;
-                    var ctorInt32Comparer = isIDictionary
-                        ? (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K)
-                        : null;
-
                     var candidateConstructorsBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
-                    candidateConstructorsBuilder.AddIfNotNull(ctor?.AsMember(dictionaryType));
-                    candidateConstructorsBuilder.AddIfNotNull(ctorComparer?.AsMember(dictionaryType));
-                    candidateConstructorsBuilder.AddIfNotNull(ctorInt32?.AsMember(dictionaryType));
-                    candidateConstructorsBuilder.AddIfNotNull(ctorInt32Comparer?.AsMember(dictionaryType));
+
+                    candidateConstructorsBuilder.AddIfNotNull(((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor))?.AsMember(dictionaryType));
+                    // PROTOTYPE: Confirm that this constructor is desired when targeting IReadOnlyDictionary<K, V>, and that it should reflect Dictionary<K, V>
+                    // concretely
+                    candidateConstructorsBuilder.AddIfNotNull(((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K))?.AsMember(dictionaryType));
+
+                    if (isIDictionary)
+                    {
+                        candidateConstructorsBuilder.AddIfNotNull(((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32))?.AsMember(dictionaryType));
+                        candidateConstructorsBuilder.AddIfNotNull(((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K))?.AsMember(dictionaryType));
+                    }
+
                     var candidateConstructors = candidateConstructorsBuilder.ToImmutableAndFree();
 
                     var analyzedArguments = withElement is null
@@ -1362,7 +1363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 (SpreadElementSyntax)spreadElement.Syntax,
                                 spreadElement,
                                 implicitReceiver: null,
-                                static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
+                                bindItem: static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
                                 {
                                     return convertItem(
                                         binder,
@@ -1500,7 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 (SpreadElementSyntax)spreadElement.Syntax,
                                 spreadElement,
                                 implicitReceiver,
-                                static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
+                                bindItem: static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
                                 {
                                     return convertItem(
                                         binder,
@@ -1711,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (SpreadElementSyntax)element.Syntax,
                         element,
                         implicitReceiver: null,
-                        static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
+                        bindItem: static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
                         {
                             return ConvertCollectionExpressionItem(
                                 binder,
@@ -2384,8 +2385,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         IsStatic: false,
                         DeclaredAccessibility: Accessibility.Public,
                         RefKind: RefKind.None,
-                        GetMethod: { DeclaredAccessibility: Accessibility.Public },
-                        SetMethod: { DeclaredAccessibility: Accessibility.Public },
+                        GetMethod.DeclaredAccessibility: Accessibility.Public,
+                        SetMethod.DeclaredAccessibility: Accessibility.Public,
                         Parameters: [{ RefKind: RefKind.None or RefKind.In } parameter]
                     } &&
                     Conversions.ClassifyImplicitConversionFromType(parameter.Type, keyType, ref useSiteInfo).IsIdentity &&

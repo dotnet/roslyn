@@ -4875,6 +4875,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (element is BoundKeyValuePairElement keyValuePairElement)
             {
+                // PROTOTYPE: Is there a ref-returning indexer scenario to test here? Spec currently assumes there must be a
+                // set method (so indexer cannot return by ref), but is that a requirement we want to hold?
                 if (expr.IndexerSetMethod is { } indexerSetMethod)
                 {
                     // The key and value are stored into the collection via an invocation of the indexer's set

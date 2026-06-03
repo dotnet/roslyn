@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundKeyValuePairElement:
                     case BoundKeyValuePairConversion:
-                        // https://github.com/dotnet/roslyn/issues/77873: Handle input type inference for key:value elements.
+                        // PROTOTYPE: Handle input type inference for key:value elements.
                         break;
                     default:
                         MakeExplicitParameterTypeInferences(binder, (BoundExpression)element, targetElementType, kind, ref useSiteInfo);
@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
-                // https://github.com/dotnet/roslyn/issues/77873: Handle output type inference for key:value elements.
+                // PROTOTYPE: Handle output type inference for key:value elements.
                 if (element is BoundExpression expression)
                 {
                     MakeOutputTypeInferences(binder, expression, targetElementType, ref useSiteInfo);
