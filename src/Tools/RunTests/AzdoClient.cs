@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -136,12 +135,9 @@ internal sealed class AzdoClient : IDisposable
         return result.Value;
     }
 
-    private sealed class AzdoListResponse<T>
+    private sealed record AzdoListResponse<T>
     {
-        [JsonPropertyName("count")]
         public int Count { get; init; }
-
-        [JsonPropertyName("value")]
         public required List<T> Value { get; init; }
     }
 }
@@ -149,54 +145,28 @@ internal sealed class AzdoClient : IDisposable
 /// <summary>
 /// Represents an Azure DevOps build from the REST API.
 /// </summary>
-internal sealed class AzdoBuild
+internal sealed record AzdoBuild
 {
-    [JsonPropertyName("id")]
     public int Id { get; init; }
-
-    [JsonPropertyName("buildNumber")]
     public string? BuildNumber { get; init; }
-
-    [JsonPropertyName("status")]
     public string? Status { get; init; }
-
-    [JsonPropertyName("result")]
     public string? Result { get; init; }
-
-    [JsonPropertyName("url")]
     public string? Url { get; init; }
-
-    [JsonPropertyName("sourceBranch")]
     public string? SourceBranch { get; init; }
-
-    [JsonPropertyName("queueTime")]
     public DateTime? QueueTime { get; init; }
-
-    [JsonPropertyName("finishTime")]
     public DateTime? FinishTime { get; init; }
 }
 
 /// <summary>
 /// Represents an Azure DevOps test run from the REST API.
 /// </summary>
-internal sealed class AzdoTestRun
+internal sealed record AzdoTestRun
 {
-    [JsonPropertyName("id")]
     public int Id { get; init; }
-
-    [JsonPropertyName("name")]
     public required string Name { get; init; }
-
-    [JsonPropertyName("totalTests")]
     public int TotalTests { get; init; }
-
-    [JsonPropertyName("passedTests")]
     public int PassedTests { get; init; }
-
-    [JsonPropertyName("unanalyzedTests")]
     public int UnanalyzedTests { get; init; }
-
-    [JsonPropertyName("notApplicableTests")]
     public int NotApplicableTests { get; init; }
 }
 
@@ -205,18 +175,11 @@ internal sealed class AzdoTestRun
 /// Includes <see cref="SubResultsCount"/> which exposes the number of sub-results
 /// (e.g. xUnit theory instances) that are not available through the old TFS client library.
 /// </summary>
-internal sealed class AzdoTestResult
+internal sealed record AzdoTestResult
 {
-    [JsonPropertyName("id")]
     public int Id { get; init; }
-
-    [JsonPropertyName("automatedTestName")]
     public required string AutomatedTestName { get; init; }
-
-    [JsonPropertyName("durationInMs")]
     public double DurationInMs { get; init; }
-
-    [JsonPropertyName("outcome")]
     public string? Outcome { get; init; }
 
     /// <summary>
@@ -226,9 +189,7 @@ internal sealed class AzdoTestResult
     /// This field is only available through the REST API and was the motivation for removing
     /// the Microsoft.TeamFoundationServer.Client dependency.
     /// </summary>
-    [JsonPropertyName("subResultsCount")]
     public int SubResultsCount { get; init; }
 
-    [JsonPropertyName("resultGroupType")]
     public string? ResultGroupType { get; init; }
 }
