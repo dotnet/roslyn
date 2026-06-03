@@ -342,7 +342,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (ContainingModule.UseUpdatedMemorySafetyRules &&
+                !hasUnsafeOrSafeModifier() &&
+                !IsStatic && !IsConst &&
+                (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended))
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, ErrorLocation);
+            }
+
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+
+            bool hasUnsafeOrSafeModifier() => AssociatedSymbol switch
+            {
+                SourcePropertySymbolBase prop => prop.HasUnsafeModifier || prop.HasSafeModifier,
+                SourceEventSymbol evt => evt.HasUnsafeModifier || evt.HasSafeModifier,
+                null => (Modifiers & (DeclarationModifiers.Unsafe | DeclarationModifiers.Safe)) != 0,
+                _ => throw ExceptionUtilities.UnexpectedValue(AssociatedSymbol),
+            };
         }
 
         internal sealed override bool HasSpecialName

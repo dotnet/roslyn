@@ -147,11 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExplicitOrExtendedLayoutField && !HasUnsafeModifier && !HasSafeModifier)
-            {
-                diagnostics.Add(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, ErrorLocation);
-            }
-
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
@@ -159,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     modifyCompilation: true);
             }
 
-            if (HasSafeModifier && (!IsExplicitOrExtendedLayoutField || HasUnsafeModifier))
+            if (HasSafeModifier && ((ContainingType.Layout.Kind != LayoutKind.Explicit && ContainingType.Layout.Kind != LayoutKind.Extended) || HasUnsafeModifier))
             {
                 diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
                     ModifiersTokenList.GetModifierLocation(SyntaxKind.SafeKeyword, ErrorLocation));
@@ -207,20 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool HasUnsafeModifier
             => (Modifiers & DeclarationModifiers.Unsafe) != 0;
-
-        private bool IsExplicitOrExtendedLayoutField
-        {
-            get
-            {
-                if (IsConst || IsStatic || ContainingType.TypeKind != TypeKind.Struct)
-                {
-                    return false;
-                }
-
-                var layoutKind = ContainingType.Layout.Kind;
-                return layoutKind == LayoutKind.Explicit || layoutKind == LayoutKind.Extended;
-            }
-        }
 
         internal sealed override CallerUnsafeMode CallerUnsafeMode
         {

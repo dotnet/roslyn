@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -472,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
         }
 
-        private bool HasUnsafeModifier
+        internal bool HasUnsafeModifier
         {
             get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
         }
@@ -900,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     modifyCompilation: true);
             }
 
-            if (HasSafeModifier && (!IsExtern || HasUnsafeModifier))
+            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
             {
                 diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
                     (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, location));
@@ -918,6 +919,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 PartialEventChecks(implementation, diagnostics);
             }
+
+            bool hasExplicitOrExtendedLayoutField() => AssociatedField != null && !IsStatic && (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended);
         }
 
         private void CheckExplicitImplementationAccessor(MethodSymbol? thisAccessor, MethodSymbol? otherAccessor, EventSymbol explicitlyImplementedEvent, BindingDiagnosticBag diagnostics)

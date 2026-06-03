@@ -213,6 +213,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         };
     }
 
+    private static Func<ModuleSymbol, Symbol> EventField(string qualifiedName)
+    {
+        return module => module.GlobalNamespace
+            .GetMember<EventSymbol>(qualifiedName)
+            .AssociatedField
+            ?? throw new InvalidOperationException($"Cannot find event field '{qualifiedName}'.");
+    }
+
     private static void VerifyMemorySafetyRulesAttribute(
         ModuleSymbol module,
         AttributeDefinition expectedDefinition,
@@ -8772,46 +8780,84 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 using System.Runtime.InteropServices;
 
                 [StructLayout(LayoutKind.Explicit)]
-                public struct Explicit
+                public struct S
                 {
                     [FieldOffset(0)] safe public int F1;
                     [FieldOffset(4)] unsafe public int F2;
+                    [field: FieldOffset(0)] safe public int P1 { get; set; }
+                    [field: FieldOffset(0)] unsafe public int P2 { get; set; }
+                    [field: FieldOffset(0)] safe public event System.Action E1;
+                    [field: FieldOffset(0)] unsafe public event System.Action E2;
                 }
                 """,
             caller: """
-                var explicitValue = new Explicit();
-                _ = explicitValue.F1;
-                _ = explicitValue.F2;
+                var s = new S();
+                _ = s.F1;
+                _ = s.F2;
+                _ = s.P1;
+                _ = s.P2;
+                s.E1 += null;
+                s.E2 += null;
                 unsafe
                 {
-                    _ = explicitValue.F2;
+                    _ = s.F2;
+                    _ = s.P2;
+                    s.E2 += null;
                 }
                 """,
-            expectedUnsafeSymbols: ["Explicit.F2"],
-            expectedSafeSymbols: ["Explicit", "Explicit.F1"],
+            expectedUnsafeSymbols: ["S.F2", "S.P2", "S.get_P2", "S.set_P2", "S.E2", "S.add_E2", "S.remove_E2"],
+            expectedSafeSymbols: ["S", "S.F1", "S.P1", "S.get_P1", "S.set_P1", "S.<P1>k__BackingField", "S.<P2>k__BackingField", "S.E1", "S.add_E1", "S.remove_E1", EventField("S.E1"), EventField("S.E2")],
+            optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             expectedDiagnostics:
             [
-                // (3,5): error CS9362: 'Explicit.F2' must be used in an unsafe context because it is marked as 'unsafe'
-                // _ = explicitValue.F2;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "explicitValue.F2").WithArguments("Explicit.F2").WithLocation(3, 5),
+                // (3,5): error CS9362: 'S.F2' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s.F2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.F2").WithArguments("S.F2").WithLocation(3, 5),
+                // (5,5): error CS9362: 'S.P2.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s.P2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.P2").WithArguments("S.P2.get").WithLocation(5, 5),
+                // (7,6): error CS9362: 'S.E2.add' must be used in an unsafe context because it is marked as 'unsafe'
+                // s.E2 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("S.E2.add").WithLocation(7, 6),
             ]);
 
-        CreateCompilation("""
+        var source = """
             using System.Runtime.InteropServices;
 
             [StructLayout(LayoutKind.Explicit)]
-            struct Explicit
+            struct S
             {
                 [FieldOffset(0)] public int F1;
                 public const int F2 = 0;
                 public static int F3 = 0;
+                [field: FieldOffset(0)] public int P1 { get; set; }
+                [field: FieldOffset(0)] public int P2 => field;
+                public int P3 => 0;
+                public static int P4 { get; set; }
+                [field: FieldOffset(0)] public event System.Action E1;
+                public event System.Action E2 { add { } remove { } }
             }
-            """,
-            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (6,33): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
             //     [FieldOffset(0)] public int F1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33));
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33),
+            // (9,40): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            //     [field: FieldOffset(0)] public int P1 { get; set; }
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 40),
+            // (10,40): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            //     [field: FieldOffset(0)] public int P2 => field;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 40),
+            // (13,56): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            //     [field: FieldOffset(0)] public event System.Action E1;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 56));
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -8822,51 +8868,90 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 using System.Runtime.InteropServices;
 
                 [ExtendedLayout(ExtendedLayoutKind.CStruct)]
-                public struct Extended
+                public struct S
                 {
                     safe public int F1;
                     unsafe public int F2;
+                    safe public int P1 { get; set; }
+                    unsafe public int P2 { get; set; }
+                    safe public event System.Action E1;
+                    unsafe public event System.Action E2;
                 }
                 """,
             caller: """
-                var extendedValue = new Extended();
-                _ = extendedValue.F1;
-                _ = extendedValue.F2;
+                var s = new S();
+                _ = s.F1;
+                _ = s.F2;
+                _ = s.P1;
+                _ = s.P2;
+                s.E1 += null;
+                s.E2 += null;
                 unsafe
                 {
-                    _ = extendedValue.F2;
+                    _ = s.F2;
+                    _ = s.P2;
+                    s.E2 += null;
                 }
                 """,
-            expectedUnsafeSymbols: ["Extended.F2"],
-            expectedSafeSymbols: ["Extended", "Extended.F1"],
+            expectedUnsafeSymbols: ["S.F2", "S.P2", "S.get_P2", "S.set_P2", "S.E2", "S.add_E2", "S.remove_E2"],
+            expectedSafeSymbols: ["S", "S.F1", "S.P1", "S.get_P1", "S.set_P1", "S.<P1>k__BackingField", "S.<P2>k__BackingField", "S.E1", "S.add_E1", "S.remove_E1", EventField("S.E1"), EventField("S.E2")],
+            optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             targetFramework: TargetFramework.Net110,
             verify: Verification.Skipped,
             expectedRulesAttribute: AttributeDefinition.None,
             expectedRequiresUnsafeAttribute: AttributeDefinition.None,
             expectedDiagnostics:
             [
-                // (3,5): error CS9362: 'Extended.F2' must be used in an unsafe context because it is marked as 'unsafe'
-                // _ = extendedValue.F2;
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "extendedValue.F2").WithArguments("Extended.F2").WithLocation(3, 5),
+                // (3,5): error CS9362: 'S.F2' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s.F2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.F2").WithArguments("S.F2").WithLocation(3, 5),
+                // (5,5): error CS9362: 'S.P2.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s.P2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.P2").WithArguments("S.P2.get").WithLocation(5, 5),
+                // (7,6): error CS9362: 'S.E2.add' must be used in an unsafe context because it is marked as 'unsafe'
+                // s.E2 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("S.E2.add").WithLocation(7, 6),
             ]);
 
-        CreateCompilation("""
+        var source = """
             using System.Runtime.InteropServices;
 
             [ExtendedLayout(ExtendedLayoutKind.CStruct)]
-            struct Extended
+            struct S
             {
                 public int F1;
                 public const int F2 = 0;
                 public static int F3 = 0;
+                public int P1 { get; set; }
+                public int P2 => field;
+                public int P3 => 0;
+                public static int P4 { get; set; }
+                public event System.Action E1;
+                public event System.Action E2 { add { } remove { } }
             }
-            """,
+            """;
+
+        CreateCompilation(source,
             targetFramework: TargetFramework.Net110,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (6,16): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
             //     public int F1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16));
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16),
+            // (9,16): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            //     public int P1 { get; set; }
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 16),
+            // (10,16): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            //     public int P2 => field;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 16),
+            // (13,32): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
+            //     public event System.Action E1;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 32));
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics();
     }
 
     [Fact]
