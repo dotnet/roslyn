@@ -643,7 +643,15 @@ internal static class Extensions
         var trimmed = text.Trim('\r', '\n')                                // start and end
             .Replace("\r\n", "\r").Replace('\n', '\r').Replace('\r', '\n') // regular new-lines
             .Replace("\\r\\n", "\\n");                                     // embedded new-lines
-        Assert.StartsWith("#pragma", trimmed);
+
+        // Decl outputs intentionally omit the #pragma checksum so the decl SourceText is
+        // byte-stable across markup-only edits (see DefaultRazorDeclCSharpLoweringPhase).
+        // The impl half still emits the checksum, so we trim it when present.
+        if (!trimmed.StartsWith("#pragma", StringComparison.Ordinal))
+        {
+            return trimmed;
+        }
+
         return trimmed.Substring(trimmed.IndexOf('\n') + 1);
     }
 

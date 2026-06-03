@@ -89,6 +89,21 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
         //   - any IsSynthesizedHelper node (compiler plumbing)
         //   - IsGenericTyped namespaces (type-inference helpers)
         var declDocNode = RazorCSharpDocumentWriter.CloneContainer(documentNode);
+
+        // Suppress the #pragma checksum on the decl half so its text depends only on the
+        // user-authored declaration surface (class name, parameters, @inject, @inherits)
+        // rather than the raw bytes of the source file. Without this, a markup-only edit
+        // (which doesn't change anything decl-relevant) still produces a different
+        // checksum hash, which makes the decl SourceText byte-different, which misses the
+        // pre-compilation cache key (it's reference-based on the SourceText) and forces a
+        // full re-walk of compilation.Assembly for tag helper discovery on every keystroke.
+        // The impl half keeps its checksum -- debuggers need it -- which is why we don't
+        // just suppress on the codeDocument's options globally.
+        if (declDocNode.Options is { SuppressChecksum: false } existing)
+        {
+            declDocNode.Options = existing.WithFlags(suppressChecksum: true);
+        }
+
         var declNamespace = RazorCSharpDocumentWriter.CloneContainer(primaryNamespace);
         var declClass = RazorCSharpDocumentWriter.CloneContainer(primaryClass);
 
