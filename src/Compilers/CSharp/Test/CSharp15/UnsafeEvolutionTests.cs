@@ -12442,7 +12442,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (10,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
             //     safe public static explicit operator int(C c) => 0;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (11,5): error CS9385: The 'safe' modifier may only be used on extern members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (11,5): error CS9388: The 'safe' modifier may only be used on extern members or fields in explicit or extended layout structs that are not marked 'unsafe'.
             //     safe public int F;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(11, 5),
             // (12,23): error CS0106: The modifier 'safe' is not valid for this item
