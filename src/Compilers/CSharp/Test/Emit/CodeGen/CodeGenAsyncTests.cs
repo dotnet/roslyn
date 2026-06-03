@@ -4818,6 +4818,128 @@ class Test
         }
 
         [Fact]
+        public void DynamicAwait_RuntimeAsync_NestedGenericAsyncLocalFunctions_01()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1<int>(new Awaitable()));
+
+                        static async Task<int> L1<T>(dynamic d)
+                        {
+                            static async Task<int> L1<T>(dynamic d) => await d.Property;
+
+                            Console.WriteLine(await d.Property);
+                            return await L1<T>(d);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                // Each generic local function gets its own LocalRewriter container for d.Property
+                // (suffix = local function ordinal) plus its own RuntimeAsyncRewriter container for the
+                // await machinery (suffix = synthesized local function name).
+                AssertEx.SequenceEqual(["Test.<>o__0|0<T>", "Test.<>o__1|0<T, T>", "Test.<>o__<Main>g__L1|0_0|<T>", "Test.<>o__<Main>g__L1|0_1|<T, T>"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics(
+                // (26,39): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'L1<T>(dynamic)'
+                //             static async Task<int> L1<T>(dynamic d) => await d.Property;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter, "T").WithArguments("T", "L1<T>(dynamic)").WithLocation(26, 39)
+            );
+        }
+
+        [Fact]
+        public void DynamicAwait_RuntimeAsync_NestedGenericAsyncLocalFunctions_02()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                class Awaitable
+                {
+                    public Awaiter Property { get { Console.WriteLine("Property"); return new Awaiter(); } }
+                }
+
+                class Awaiter : INotifyCompletion
+                {
+                    public bool IsCompleted { get { Console.WriteLine("IsCompleted"); return true; } }
+                    public void OnCompleted(Action continuation) => throw null;
+                    public int GetResult() { Console.WriteLine("GetResult"); return 42; }
+                    public Awaiter GetAwaiter() { Console.WriteLine("GetAwaiter"); return this; }
+                }
+
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Console.WriteLine(await L1<int>(new Awaitable()));
+
+                        static async Task<int> L1<T>(dynamic d)
+                        {
+                            static async Task<int> L1(dynamic d) => await d.Property;
+
+                            Console.WriteLine(await d.Property);
+                            return await L1(d);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("""
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                Property
+                GetAwaiter
+                IsCompleted
+                GetResult
+                42
+                """), verify: Verification.Fails, symbolValidator: module =>
+            {
+                // Each generic local function gets its own LocalRewriter container for d.Property
+                // (suffix = local function ordinal) plus its own RuntimeAsyncRewriter container for the
+                // await machinery (suffix = synthesized local function name).
+                AssertEx.SequenceEqual(["Test.<>o__0|0<T>", "Test.<>o__<Main>g__L1|0_0|<T>", "Test.<>o__<Main>g__L1|0_1|<T>"], module.GlobalNamespace.GetTypeMember("Test").GetTypeMembers().SelectAsArray(t => t.ToTestDisplayString()));
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void DynamicAwait_RuntimeAsync_ExplicitInterfaceImplementation()
         {
             // Explicit interface implementations have metadata names that contain '.', e.g. "IFoo.M".

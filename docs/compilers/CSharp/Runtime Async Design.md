@@ -791,5 +791,5 @@ The dynamic strategy for implementation is:
 2. Store the dynamic awaiter in a synthesized temp so `IsCompleted`, the notification interface conversions, and `GetResult` observe the same awaiter instance.
 3. Emit the `IsCompleted` dynamic operation using the normal await pattern rules.
 4. When `IsCompleted` is false, first try an `as` cast to `ICriticalNotifyCompletion`. If that succeeds, pass the result to `AsyncHelpers.UnsafeAwaitAwaiter<ICriticalNotifyCompletion>`. Otherwise, perform a hard cast to `INotifyCompletion` and pass that to `AsyncHelpers.AwaitAwaiter<INotifyCompletion>`. This mirrors the priority used by existing state machine lowering for dynamic awaits.
-5. Emit the dynamic `GetResult` call only when the await expression result is needed, preserving the existing result conversion behavior.
+5. Emit the dynamic call to `GetResult`.
 
