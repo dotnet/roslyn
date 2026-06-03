@@ -148,11 +148,11 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
 
     private async Task<VSInternalDiagnosticReport[]> HandleTaskListItemRequestAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpTaskItems = await GetCSharpTaskListItemsAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        var (implTaskItems, declTaskItems) = await GetCSharpTaskListItemsAsync(razorDocument, cancellationToken).ConfigureAwait(false);
 
         var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetTaskListDiagnosticsAsync(solutionInfo, razorDocument.Id, csharpTaskItems, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetTaskListDiagnosticsAsync(solutionInfo, razorDocument.Id, implTaskItems, declTaskItems, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         if (diagnostics.IsDefaultOrEmpty)
@@ -170,20 +170,33 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         ];
     }
 
-    private async Task<LspDiagnostic[]> GetCSharpTaskListItemsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<(LspDiagnostic[], LspDiagnostic[])> GetCSharpTaskListItemsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var generatedDocument = await TryGetGeneratedDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (generatedDocument is null)
+        var generatedDocuments = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (generatedDocuments.ImplDoc is null)
         {
-            return [];
+            return ([], []);
         }
 
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
-        var solutionServices = generatedDocument.Project.Solution.Services;
+        var solutionServices = generatedDocuments.ImplDoc.Project.Solution.Services;
         var globalOptionsService = solutionServices.ExportProvider.GetService<IGlobalOptionService>();
-        var items = await TaskListDiagnosticSource.GetTaskListItemsAsync(generatedDocument, globalOptionsService, cancellationToken).ConfigureAwait(false);
-        var csharpTaskItems = CohostDocumentPullDiagnosticsHelpers.ConvertDiagnostics(generatedDocument, supportsVisualStudioExtensions, globalOptionsService, items);
-        return [.. csharpTaskItems];
+
+        var implItems = await GetTaskListItemsAsync(generatedDocuments.ImplDoc).ConfigureAwait(false);
+        var declItems = await GetTaskListItemsAsync(generatedDocuments.DeclDoc).ConfigureAwait(false);
+
+        return (implItems, declItems);
+
+        async Task<LspDiagnostic[]> GetTaskListItemsAsync(SourceGeneratedDocument? doc)
+        {
+            if (doc is null)
+            {
+                return [];
+            }
+
+            var implItems = await TaskListDiagnosticSource.GetTaskListItemsAsync(doc, globalOptionsService, cancellationToken).ConfigureAwait(false);
+            return CohostDocumentPullDiagnosticsHelpers.ConvertDiagnostics(doc, supportsVisualStudioExtensions, globalOptionsService, implItems);
+        }
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

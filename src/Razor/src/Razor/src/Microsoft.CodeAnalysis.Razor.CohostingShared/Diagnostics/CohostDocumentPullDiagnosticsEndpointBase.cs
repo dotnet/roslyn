@@ -80,13 +80,13 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
             return null;
         }
 
-        var csharpDiagnostics = csharpTask.VerifyCompleted();
+        var (implDiagnostics, declDiagnostics) = csharpTask.VerifyCompleted();
         var htmlDiagnostics = htmlTask.VerifyCompleted();
 
-        _logger.LogDebug($"Calling OOP with the {csharpDiagnostics.Length} C# and {htmlDiagnostics.Length} Html diagnostics");
+        _logger.LogDebug($"Calling OOP with the {implDiagnostics.Length} impl C# and {declDiagnostics.Length} decl C# and {htmlDiagnostics.Length} Html diagnostics");
         var diagnostics = await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetDiagnosticsAsync(solutionInfo, razorDocument.Id, csharpDiagnostics, htmlDiagnostics, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetDiagnosticsAsync(solutionInfo, razorDocument.Id, implDiagnostics, declDiagnostics, htmlDiagnostics, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested || diagnostics.IsDefault)
@@ -98,25 +98,32 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         return [.. diagnostics];
     }
 
-    protected static Task<SourceGeneratedDocument?> TryGetGeneratedDocumentAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<(LspDiagnostic[], LspDiagnostic[])> GetCSharpDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
     {
-        return razorDocument.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, cancellationToken);
-    }
+        // Because we can't map from a random C# point to a Razor point without knowing which C# document we're talking about, we have to just make two requests
+        // and send back two sets of diagnostics
 
-    private async Task<LspDiagnostic[]> GetCSharpDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)
-    {
-        var generatedDocument = await TryGetGeneratedDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (generatedDocument is null)
+        var generatedDocuments = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (generatedDocuments.ImplDoc is null)
         {
-            return [];
+            return ([], []);
         }
-
-        _logger.LogDebug($"Getting C# diagnostics for {generatedDocument.FilePath}");
 
         using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correletionId);
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
-        var diagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
-        return [.. diagnostics];
+
+        _logger.LogDebug($"Getting C# diagnostics for {generatedDocuments.ImplDoc.FilePath}");
+        var implDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.ImplDoc, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+
+        if (generatedDocuments.DeclDoc is null)
+        {
+            return (implDiagnostics, []);
+        }
+
+        _logger.LogDebug($"Getting C# diagnostics for {generatedDocuments.DeclDoc.FilePath}");
+        var declDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.DeclDoc, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+
+        return (implDiagnostics, declDiagnostics);
     }
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correletionId, CancellationToken cancellationToken)

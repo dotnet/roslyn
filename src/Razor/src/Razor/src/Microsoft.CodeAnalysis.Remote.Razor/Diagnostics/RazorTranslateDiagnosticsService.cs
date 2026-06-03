@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Text;
@@ -40,10 +39,6 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     /// <summary>
     ///  Translates code diagnostics from one representation into another.
     /// </summary>
-    /// <param name="diagnosticKind">
-    ///  The <see cref="RazorLanguageKind"/> of the <see cref="Diagnostic"/> objects
-    ///  included in <paramref name="diagnostics"/>.
-    /// </param>
     /// <param name="diagnostics">
     ///  An array of <see cref="Diagnostic"/> objects to translate.
     /// </param>
@@ -52,32 +47,25 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     /// </param>
     /// <param name="cancellationToken">A token that can be checked to cancel work.</param>
     /// <returns>An array of translated diagnostics</returns>
-    internal async Task<LspDiagnostic[]> TranslateAsync(
-        RazorLanguageKind diagnosticKind,
+    internal async Task<LspDiagnostic[]> TranslateHtmlAsync(
         LspDiagnostic[] diagnostics,
         RemoteDocumentSnapshot documentSnapshot,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        var filteredDiagnostics = diagnosticKind == RazorLanguageKind.CSharp
-            ? FilterCSharpDiagnostics(diagnostics, codeDocument)
-            : FilterHTMLDiagnostics(diagnostics, codeDocument);
+        var filteredDiagnostics = FilterHTMLDiagnostics(diagnostics, codeDocument);
         if (filteredDiagnostics.Length == 0)
         {
-            _logger.LogDebug($"No diagnostics remaining after filtering.");
+            _logger.LogDebug($"No Html diagnostics remaining after filtering.");
             return [];
         }
 
-        _logger.LogDebug($"{filteredDiagnostics.Length}/{diagnostics.Length} diagnostics remain after filtering {diagnosticKind}.");
+        _logger.LogDebug($"{filteredDiagnostics.Length}/{diagnostics.Length} diagnostics remain after filtering Html.");
 
-        var mappedDiagnostics = MapDiagnostics(
-            diagnosticKind,
-            filteredDiagnostics,
-            documentSnapshot,
-            codeDocument);
+        OverwriteProjectInformation(filteredDiagnostics, documentSnapshot);
 
-        return mappedDiagnostics;
+        return filteredDiagnostics;
     }
 
     private static LspDiagnostic[] FilterHTMLDiagnostics(
@@ -101,39 +89,129 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         return filteredDiagnostics;
     }
 
-    internal LspDiagnostic[] MapDiagnostics(
-        RazorLanguageKind languageKind,
-        LspDiagnostic[] diagnostics,
+    internal async Task<LspDiagnostic[]> TranslateCSharpAsync(
+        LspDiagnostic[] implDiagnostics,
+        LspDiagnostic[] declDiagnostics,
         RemoteDocumentSnapshot documentSnapshot,
-        RazorCodeDocument codeDocument)
+        CancellationToken cancellationToken)
     {
-        var projects = RazorDiagnosticHelper.GetProjectInformation(documentSnapshot);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var implDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+        var declDocument = codeDocument.GetCSharpDocument(declarationDocument: true);
+
+        var filteredImplDiagnostics = FilterCSharpDiagnostics(implDiagnostics, implDocument);
+        var filteredDeclDiagnostics = declDocument is not null
+            ? FilterCSharpDiagnostics(declDiagnostics, declDocument)
+            : [];
+
+        if (filteredImplDiagnostics.Length + filteredDeclDiagnostics.Length == 0)
+        {
+            _logger.LogDebug($"No C# diagnostics remaining after filtering.");
+            return [];
+        }
+
+        _logger.LogDebug($"{filteredImplDiagnostics.Length}/{implDiagnostics.Length} diagnostics remain after filtering C# impl.");
+        _logger.LogDebug($"{filteredDeclDiagnostics.Length}/{declDiagnostics.Length} diagnostics remain after filtering C# decl.");
+
+        var mappedImplDiagnostics = MapCSharpDiagnostics(filteredImplDiagnostics, implDocument);
+        var mappedDeclDiagnostics = declDocument is not null
+            ? MapCSharpDiagnostics(filteredDeclDiagnostics, declDocument)
+            : [];
+
+        // Now that we've mapped and filtered the C# diagnostics, but before we flatten them to one list, we need to process the
+        // unused using directives diagnostics. The compiler puts all of the users usings in both documents, so an unused using
+        // directive from one document, doesn't matter unless it appears in the other as well.
+
+        // If there is no decl document though, we just used the impl diagnostics unfiltered
+        var finalDiagnostics = declDocument is not null
+            ? FilterUnusedUsingDirectiveDiagnostics(mappedImplDiagnostics, mappedDeclDiagnostics)
+            : mappedImplDiagnostics;
+
+        OverwriteProjectInformation(finalDiagnostics, documentSnapshot);
+
+        return finalDiagnostics;
+    }
+
+    private static LspDiagnostic[] FilterUnusedUsingDirectiveDiagnostics(LspDiagnostic[] implDiagnostics, LspDiagnostic[] declDiagnostics)
+    {
+        using var filteredDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
+
+        foreach (var diagnostic in implDiagnostics)
+        {
+            if (diagnostic.Code is not { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen } ||
+                ContainsMatchingGeneratedRemoveUnnecessaryImportsDiagnostic(declDiagnostics, diagnostic))
+            {
+                filteredDiagnostics.Add(diagnostic);
+            }
+        }
+
+        // By definition any diagnostics in decl that we want to keep will be kept because they will have a matching diagnostic in impl,
+        // so we can just need to filter decl diagnostics to ignore all unused using directives.
+        foreach (var diagnostic in declDiagnostics)
+        {
+            if (diagnostic.Code is not { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen })
+            {
+                filteredDiagnostics.Add(diagnostic);
+            }
+        }
+
+        return filteredDiagnostics.ToArrayAndClear();
+
+        static bool ContainsMatchingGeneratedRemoveUnnecessaryImportsDiagnostic(
+            LspDiagnostic[] diagnostics,
+            LspDiagnostic diagnostic)
+        {
+            foreach (var otherDiagnostic in diagnostics)
+            {
+                if (diagnostic.Code is { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen } &&
+                    IsSameDiagnosticSpan(diagnostic, otherDiagnostic))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static bool IsSameDiagnosticSpan(LspDiagnostic diagnostic, LspDiagnostic otherDiagnostic)
+            => diagnostic.Range?.Start.Line == otherDiagnostic.Range?.Start.Line &&
+               diagnostic.Range?.Start.Character == otherDiagnostic.Range?.Start.Character &&
+               diagnostic.Range?.End.Line == otherDiagnostic.Range?.End.Line &&
+               diagnostic.Range?.End.Character == otherDiagnostic.Range?.End.Character;
+    }
+
+    internal LspDiagnostic[] MapCSharpDiagnostics(LspDiagnostic[] diagnostics, RazorCSharpDocument csharpDocument)
+    {
         using var mappedDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
         foreach (var diagnostic in diagnostics)
         {
             // C# requests don't map directly to where they are in the document.
-            if (languageKind == RazorLanguageKind.CSharp)
+            if (!TryGetOriginalDiagnosticRange(diagnostic, csharpDocument, out var originalRange))
             {
-                if (!TryGetOriginalDiagnosticRange(diagnostic, codeDocument, out var originalRange))
-                {
-                    continue;
-                }
-
-                diagnostic.Range = originalRange;
+                continue;
             }
 
+            diagnostic.Range = originalRange;
+
+            mappedDiagnostics.Add(diagnostic);
+        }
+
+        return mappedDiagnostics.ToArrayAndClear();
+    }
+
+    internal static void OverwriteProjectInformation(LspDiagnostic[] diagnostics, RemoteDocumentSnapshot documentSnapshot)
+    {
+        var projects = RazorDiagnosticHelper.GetProjectInformation(documentSnapshot);
+        foreach (var diagnostic in diagnostics)
+        {
             if (diagnostic is VSDiagnostic vsDiagnostic)
             {
                 // We're the ones reporting the diagnostic, and it shows up as coming from our filename (not the generated one), so
                 // the project info should be consistent too
                 vsDiagnostic.Projects = projects;
             }
-
-            mappedDiagnostics.Add(diagnostic);
         }
-
-        return mappedDiagnostics.ToArray();
     }
 
     private static bool InRazorComment(
@@ -474,7 +552,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         }
     }
 
-    private LspDiagnostic[] FilterCSharpDiagnostics(LspDiagnostic[] diagnostics, RazorCodeDocument codeDocument)
+    private LspDiagnostic[] FilterCSharpDiagnostics(LspDiagnostic[] diagnostics, RazorCSharpDocument csharpDocument)
     {
         using var filteredDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
@@ -490,8 +568,8 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
 
             if (str switch
             {
-                "CS1525" => ShouldIgnoreCS1525(diagnostic, codeDocument),
-                RemoveUnnecessaryImportsConstants.IDE0005_gen => IsUsingDirectiveUsed(diagnostic, codeDocument),
+                "CS1525" => ShouldIgnoreCS1525(diagnostic, csharpDocument),
+                RemoveUnnecessaryImportsConstants.IDE0005_gen => IsUsingDirectiveUsed(diagnostic, csharpDocument),
                 // This diagnostics is produced by Roslyn to help its Remove Usings code fixer, so is irrelevant to us
                 RemoveUnnecessaryImportsConstants.DiagnosticFixableId => true,
                 _ => false
@@ -505,10 +583,10 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
 
         return filteredDiagnostics.ToArrayAndClear();
 
-        bool ShouldIgnoreCS1525(LspDiagnostic diagnostic, RazorCodeDocument codeDocument)
+        bool ShouldIgnoreCS1525(LspDiagnostic diagnostic, RazorCSharpDocument csharpDocument)
         {
-            if (CheckIfDocumentHasRazorDiagnostic(codeDocument, RazorDiagnosticFactory.TagHelper_EmptyBoundAttribute.Id) &&
-                TryGetOriginalDiagnosticRange(diagnostic, codeDocument, out var originalRange) &&
+            if (CheckIfDocumentHasRazorDiagnostic(csharpDocument.CodeDocument, RazorDiagnosticFactory.TagHelper_EmptyBoundAttribute.Id) &&
+                TryGetOriginalDiagnosticRange(diagnostic, csharpDocument, out var originalRange) &&
                 originalRange.IsUndefined())
             {
                 // Empty attribute values will take the following form in the generated C# document:
@@ -524,8 +602,10 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         }
     }
 
-    private bool IsUsingDirectiveUsed(LspDiagnostic diagnostic, RazorCodeDocument codeDocument)
+    private bool IsUsingDirectiveUsed(LspDiagnostic diagnostic, RazorCSharpDocument csharpDocument)
     {
+        var codeDocument = csharpDocument.CodeDocument;
+
         // In imports files, all usings are considered used
         if (codeDocument.IsImportsFile())
         {
@@ -544,7 +624,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         // diagnostic. Conveniently, this means we don't need to worry about actually reporting our own
         // unused diagnostics, so it's worth it.
         var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
-        if (TryGetOriginalDiagnosticRange(diagnostic, codeDocument, out var originalRange) &&
+        if (TryGetOriginalDiagnosticRange(diagnostic, csharpDocument, out var originalRange) &&
             syntaxTree.FindInnermostNode(codeDocument.Source.Text, originalRange.Start) is { Parent.Parent: RazorUsingDirectiveSyntax usingDirectiveSyntax })
         {
             return codeDocument.IsDirectiveUsed(usingDirectiveSyntax);
@@ -558,10 +638,10 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         return codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Diagnostics.Any(razorDiagnosticCode, static (d, code) => d.Id == code);
     }
 
-    private bool TryGetOriginalDiagnosticRange(LspDiagnostic diagnostic, RazorCodeDocument codeDocument, [NotNullWhen(true)] out LspRange? originalRange)
+    private bool TryGetOriginalDiagnosticRange(LspDiagnostic diagnostic, RazorCSharpDocument csharpDocument, [NotNullWhen(true)] out LspRange? originalRange)
     {
         if (!_documentMappingService.TryMapToRazorDocumentRange(
-            codeDocument.GetRequiredImplCSharpDocument(),
+            csharpDocument,
             diagnostic.Range,
             MappingBehavior.Inferred,
             out originalRange))
