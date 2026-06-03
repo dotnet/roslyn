@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal static class CohostDocumentPullDiagnosticsHelpers
 {
-    public static async Task<ImmutableArray<LspDiagnostic>> GetDocumentDiagnosticsAsync(Document document, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
+    public static async Task<LspDiagnostic[]> GetDocumentDiagnosticsAsync(Document document, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
     {
         var solutionServices = document.Project.Solution.Services;
         var globalOptionsService = solutionServices.ExportProvider.GetService<IGlobalOptionService>();
@@ -29,7 +29,7 @@ internal static class CohostDocumentPullDiagnosticsHelpers
         return ConvertDiagnostics(document, supportsVisualStudioExtensions, globalOptionsService, [.. diagnostics, .. encDiagnostics]);
     }
 
-    internal static ImmutableArray<LspDiagnostic> ConvertDiagnostics(Document document, bool supportsVisualStudioExtensions, IGlobalOptionService globalOptionsService, ImmutableArray<DiagnosticData> diagnostics)
+    internal static LspDiagnostic[] ConvertDiagnostics(Document document, bool supportsVisualStudioExtensions, IGlobalOptionService globalOptionsService, ImmutableArray<DiagnosticData> diagnostics)
     {
         var project = document.Project;
         // Potential duplicate is only set for workspace diagnostics, which Razor doesn't support
@@ -44,6 +44,6 @@ internal static class CohostDocumentPullDiagnosticsHelpers
             }
         }
 
-        return result.ToImmutableAndClear();
+        return result.ToArrayAndClear();
     }
 }
