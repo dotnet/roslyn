@@ -65,14 +65,19 @@ internal static class ProjectExtensions
         return generatedDocuments.SingleOrDefault(d => d.HintName == hintName);
     }
 
+    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentForRazorDocumentAsync(this Project project, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
+        return (await TryGetSourceGeneratedDocumentsForRazorDocumentAsync(project, razorDocument, cancellationToken).ConfigureAwait(false)).ImplDoc;
+    }
+
     /// <summary>
     /// Finds source generated documents by iterating through all of them. In OOP there are better options!
     /// </summary>
-    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentForRazorDocumentAsync(this Project project, TextDocument razorDocument, CancellationToken cancellationToken)
+    public static async Task<(SourceGeneratedDocument? ImplDoc, SourceGeneratedDocument? DeclDoc)> TryGetSourceGeneratedDocumentsForRazorDocumentAsync(this Project project, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         if (razorDocument.FilePath is null)
         {
-            return null;
+            return (null, null);
         }
 
         var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
@@ -80,10 +85,16 @@ internal static class ProjectExtensions
         // For misc files, and projects that don't have a globalconfig file (eg, non Razor SDK projects), the hint name will be based
         // on the full path of the file.
         var fullPathHintName = RazorSourceGenerator.GetIdentifierFromPath(razorDocument.FilePath);
+        var fullPathDeclHintName = RazorSourceGenerator.GetDeclIdentifierFromHintName(fullPathHintName);
         // For normal Razor SDK projects, the hint name will be based on the project-relative path of the file.
         var projectRelativeHintName = GetProjectRelativeHintName(razorDocument);
+        var projectRelativeDeclHintName = projectRelativeHintName is null ? null : RazorSourceGenerator.GetDeclIdentifierFromHintName(projectRelativeHintName);
+
+        SourceGeneratedDocument? fullPathMatchedDoc = null;
+        SourceGeneratedDocument? fullPathMatchedDeclDoc = null;
 
         SourceGeneratedDocument? candidateDoc = null;
+        SourceGeneratedDocument? candidateDeclDoc = null;
         foreach (var doc in generatedDocuments)
         {
             if (!doc.IsRazorSourceGeneratedDocument())
@@ -94,7 +105,15 @@ internal static class ProjectExtensions
             if (doc.HintName == fullPathHintName)
             {
                 // If the full path matches, we've found it for sure
-                return doc;
+                fullPathMatchedDoc = doc;
+            }
+            else if (doc.HintName == fullPathDeclHintName)
+            {
+                fullPathMatchedDeclDoc = doc;
+            }
+            else if (doc.HintName == projectRelativeDeclHintName)
+            {
+                candidateDeclDoc = doc;
             }
             else if (doc.HintName == projectRelativeHintName)
             {
@@ -110,7 +129,20 @@ internal static class ProjectExtensions
             }
         }
 
-        return candidateDoc;
+        // Full path matches take precedence over candidates
+        if (fullPathMatchedDoc is not null)
+        {
+            return (fullPathMatchedDoc, fullPathMatchedDeclDoc);
+        }
+
+        // If we didn't find a candidate impl doc, or found mulitple, bail out so we don't confuse callers in case there is a weird
+        // bug where its possible to have duplicate impl docs and one decl doc
+        if (candidateDoc is null)
+        {
+            return (null, null);
+        }
+
+        return (candidateDoc, candidateDeclDoc);
 
         static string? GetProjectRelativeHintName(TextDocument razorDocument)
         {
