@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (IsConst || ContainingType.TypeKind != TypeKind.Struct)
+                if (IsConst || IsStatic || ContainingType.TypeKind != TypeKind.Struct)
                 {
                     return false;
                 }

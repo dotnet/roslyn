@@ -8804,6 +8804,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 [FieldOffset(0)] public int F1;
                 public const int F2 = 0;
+                public static int F3 = 0;
             }
             """,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
@@ -8857,6 +8858,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 public int F1;
                 public const int F2 = 0;
+                public static int F3 = 0;
             }
             """,
             targetFramework: TargetFramework.Net110,
