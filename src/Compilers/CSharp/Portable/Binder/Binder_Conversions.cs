@@ -1726,8 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics);
                         },
                         (elementType, elementConversion, elementKeyValueTypes),
-                        @this._diagnostics,
-                        itemSyntax: element.Expression.Syntax);
+                        @this._diagnostics);
                 }
             }
 

@@ -6717,15 +6717,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-#nullable enable
         private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElement<TArg>(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
             Func<Binder, SyntaxNode, BoundValuePlaceholder, BoundObjectOrCollectionValuePlaceholder?, TArg, BindingDiagnosticBag, BoundExpression> bindItem,
             TArg arg,
-            BindingDiagnosticBag diagnostics,
-            SyntaxNode? itemSyntax = null)
+            BindingDiagnosticBag diagnostics)
         {
             var enumeratorInfo = element.EnumeratorInfoOpt;
             if (enumeratorInfo is null)
@@ -6741,17 +6739,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
-            // When binding to an array/span element, the caller passes the spread operand's expression syntax so
-            // that element conversion diagnostics (e.g. nullable warnings) are reported on the operand rather than
-            // on the whole spread element. Other callers (e.g. Add-method based collections) keep the spread element
-            // syntax for the placeholder so argument diagnostics continue to point at the spread element.
-            var placeholderSyntax = itemSyntax ?? syntax;
-            var bindItemSyntax = itemSyntax ?? syntax.Expression;
-            var itemPlaceholder = new BoundValuePlaceholder(placeholderSyntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
+            var spreadExpressionSyntax = syntax.Expression;
+            var itemPlaceholder = new BoundValuePlaceholder(spreadExpressionSyntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
             itemPlaceholder = (BoundValuePlaceholder)itemPlaceholder.WithSuppression(element.Expression.IsSuppressed);
             var item = bindItem(
                 this,
-                bindItemSyntax,
+                spreadExpressionSyntax,
                 itemPlaceholder,
                 implicitReceiver,
                 arg,
