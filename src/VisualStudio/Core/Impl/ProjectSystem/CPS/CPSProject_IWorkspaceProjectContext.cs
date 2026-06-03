@@ -276,12 +276,14 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
     public void RemoveAdditionalFile(string filePath)
         => _projectSystemProject.RemoveAdditionalFile(filePath);
 
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     public void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null)
     {
         // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
         // The contract is retained because the project system still calls this method.
     }
 
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     public void RemoveDynamicFile(string filePath)
     {
         // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.

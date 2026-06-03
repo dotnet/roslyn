@@ -61,6 +61,7 @@ internal sealed class WorkspaceProject : IWorkspaceProject
         }, cancellationToken);
     }
 
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     public Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
         // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
@@ -118,6 +119,7 @@ internal sealed class WorkspaceProject : IWorkspaceProject
         }, cancellationToken);
     }
 
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     public Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
         // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
