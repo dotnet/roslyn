@@ -2047,28 +2047,51 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
         public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
         {
-            if (node.ChunkGenerator is null or StatementChunkGenerator)
+            switch (node.ChunkGenerator)
             {
-                var isAttributeValue = _builder.Current is CSharpCodeAttributeValueIntermediateNode;
+                case AddTagHelperChunkGenerator addTagHelper:
+                    // @addTagHelper / @removeTagHelper / @tagHelperPrefix are not valid in component
+                    // documents. Pre-Sonic-4 this diagnostic was added by
+                    // DefaultRazorTagHelperContextDiscoveryPhase (which ran before lowering); after
+                    // the phase reorder, discovery runs AFTER lowering, so we have to attach the
+                    // diagnostic here so the base visitor copies it onto the resulting IR node.
+                    addTagHelper.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                    break;
+                case RemoveTagHelperChunkGenerator removeTagHelper:
+                    removeTagHelper.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                    break;
+                case TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix:
+                    tagHelperPrefix.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                    break;
 
-                if (!isAttributeValue)
-                {
-                    var statementNode = new CSharpCodeIntermediateNode()
+                case null:
+                case StatementChunkGenerator:
                     {
-                        Source = BuildSourceSpanFromNode(node)
-                    };
-                    _builder.Push(statementNode);
-                }
+                        var isAttributeValue = _builder.Current is CSharpCodeAttributeValueIntermediateNode;
 
-                _builder.Add(IntermediateNodeFactory.CSharpToken(
-                    arg: node,
-                    contentFactory: static node => node.GetContent(),
-                    source: BuildSourceSpanFromNode(node)));
+                        if (!isAttributeValue)
+                        {
+                            var statementNode = new CSharpCodeIntermediateNode()
+                            {
+                                Source = BuildSourceSpanFromNode(node)
+                            };
+                            _builder.Push(statementNode);
+                        }
 
-                if (!isAttributeValue)
-                {
-                    _builder.Pop();
-                }
+                        _builder.Add(IntermediateNodeFactory.CSharpToken(
+                            arg: node,
+                            contentFactory: static node => node.GetContent(),
+                            source: BuildSourceSpanFromNode(node)));
+
+                        if (!isAttributeValue)
+                        {
+                            _builder.Pop();
+                        }
+                    }
+                    break;
             }
 
             base.VisitCSharpStatementLiteral(node);

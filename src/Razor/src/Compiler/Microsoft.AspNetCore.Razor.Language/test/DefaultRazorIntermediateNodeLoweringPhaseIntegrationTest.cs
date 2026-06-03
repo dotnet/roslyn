@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -22,7 +22,14 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest : RazorPro
 
     protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<DefaultTagHelperResolutionPhase>();
+        // We want the IR after tag-helper resolution (so TagHelperIntermediateNode exists where
+        // appropriate) but BEFORE the document classifier wraps everything in namespace/class
+        // structure. In the post-Sonic-4 phase order, classifier runs early (phase 3) so we can't
+        // use a simple "through phase" sentinel -- skip the classifier-style phases explicitly.
+        processor.ExecutePhasesThroughExcept<DefaultTagHelperResolutionPhase>(
+            typeof(DefaultRazorDocumentClassifierPhase),
+            typeof(DefaultRazorDirectiveClassifierPhase),
+            typeof(DefaultRazorDeclCSharpLoweringPhase));
     }
 
     [Fact]
