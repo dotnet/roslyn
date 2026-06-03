@@ -78,45 +78,63 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var componentFiles = sourceItems.Where(static file => FileUtilities.IsRazorComponentFilePath(file.FilePath, StringComparison.OrdinalIgnoreCase));
 
-            var generatedDeclarationText = componentFiles
+            // The SG processes each source file through the Razor engine up to and including the
+            // decl C# lowering phase. This produces:
+            //   - the unresolved IR (waiting for tag helper resolution + rewrite)
+            //   - the decl half C# document (frozen here, since decl text is tag-helper-independent)
+            //
+            // The decl half is then emitted via RegisterPreCompilationSourceOutput so it becomes part
+            // of the input compilation, visible both to subsequent SG stages (tag helper discovery)
+            // and to other generators. This replaces the older approach of running a separate
+            // "declaration project engine" stub and manually calling compilation.AddSyntaxTrees.
+            var withOptions = sourceItems
                 .Combine(importFiles.Collect())
-                .Combine(razorSourceGeneratorOptions)
-                .WithLambdaComparer((old, @new) => old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right))
-                .Select(static (pair, cancellationToken) =>
+                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
+                .Combine(razorSourceGeneratorOptions);
+
+            var parsedDocuments = withOptions
+                .Select((pair, cancellationToken) =>
                 {
-                    var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
-                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
+                    var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
 
-                    var projectEngine = GetDeclarationProjectEngine(sourceItem, importFiles, razorSourceGeneratorOptions);
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
 
-                    var codeGen = projectEngine.Process(sourceItem, cancellationToken);
+                    var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
 
-                    var result = new SourceGeneratorText(codeGen.GetRequiredImplCSharpDocument().Text);
+                    var document = projectEngine.ProcessForDecl(sourceItem, cancellationToken);
 
-                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
-
-                    return result;
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
+                    return (projectEngine, sourceItem.RelativePhysicalPath, document);
                 })
-                .WithTrackingName("GeneratedDeclarationCode");
+                .WithTrackingName("ParsedDocuments");
 
-            var generatedDeclarationSyntaxTrees = generatedDeclarationText
-                .Combine(parseOptions)
-                .Select(static (pair, ct) =>
+            // Decl sources -- the class declaration / parameter / @inject / @inherits surface for
+            // each component, emitted before the compilation exists so it can be added to the
+            // initial compilation that tag-helper discovery sees.
+            var declSources = parsedDocuments
+                .Select(static (item, _) =>
                 {
-                    var (generatedDeclarationText, parseOptions) = pair;
+                    var (_, filePath, document) = item;
+                    var declCSharpDocument = document.CodeDocument.GetDeclCSharpDocument();
+                    return (
+                        hintName: GetIdentifierFromPath(filePath),
+                        declCSharpDocument: declCSharpDocument);
+                })
+                .Where(static item => item.declCSharpDocument is not null)
+                .WithLambdaComparer(static (a, b) =>
+                    a.hintName == b.hintName &&
+                    a.declCSharpDocument!.Text.ContentEquals(b.declCSharpDocument!.Text))
+                .WithTrackingName("DeclSources");
 
-                    return CSharpSyntaxTree.ParseText(generatedDeclarationText.Text, (CSharpParseOptions)parseOptions, cancellationToken: ct);
-                });
+#pragma warning disable RSEXPERIMENTAL007 // RegisterPreCompilationSourceOutput is experimental: emits the decl half before the compilation is built so it's visible to subsequent stages.
+            context.RegisterPreCompilationSourceOutput(declSources, static (context, pair) =>
+            {
+                var (hintName, declCSharpDocument) = pair;
+                context.AddSource(GetDeclIdentifierFromHintName(hintName), declCSharpDocument!.Text);
+            });
+#pragma warning restore RSEXPERIMENTAL007
 
-            var declCompilation = generatedDeclarationSyntaxTrees
-                .Collect()
-                .Combine(compilation)
-                .Select(static (pair, _) =>
-                {
-                    return pair.Right.AddSyntaxTrees(pair.Left);
-                });
-
-            var tagHelpersFromCompilation = declCompilation
+            var tagHelpersFromCompilation = compilation
                 .Combine(razorSourceGeneratorOptions)
                 .Select(static (pair, cancellationToken) =>
                 {
@@ -246,27 +264,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return TagHelperCollection.Merge(pair.Left, pair.Right);
                 });
 
-            var withOptions = sourceItems
-                .Combine(importFiles.Collect())
-                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
-                .Combine(razorSourceGeneratorOptions);
-
-            var parsedDocuments = withOptions
-                .Select((pair, cancellationToken) =>
-                {
-                    var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
-
-                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
-
-                    var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
-
-                    var document = projectEngine.ProcessInitialParse(sourceItem, cancellationToken);
-
-                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
-                    return (projectEngine, sourceItem.RelativePhysicalPath, document);
-                })
-                .WithTrackingName("ParsedDocuments");
-
             // Build a map of which @inherits base types support UTF-8 WriteLiteral.
             var utf8SupportMap = parsedDocuments
                 .Select(static (item, _) =>
@@ -278,7 +275,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Select(static (item, _) => new DefaultUtf8WriteLiteralFeature.InheritsInfo(
                     item.codeDocument.Source.FilePath ?? string.Empty, item.InheritsValue!, item.codeDocument.GetUsingDirectives()))
                 .Collect()
-                .Combine(declCompilation)
+                .Combine(compilation)
                 .Select(static (pair, _) =>
                 {
                     var (inheritsInfos, compilation) = pair;
@@ -374,6 +371,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     context.ReportDiagnostic(csharpDiagnostic);
                 }
 
+                // Decl diagnostics are still surfaced here even though the decl source itself is
+                // emitted via RegisterPreCompilationSourceOutput. The precomp output runs before the
+                // compilation is built, but diagnostics ultimately want to be reported alongside the
+                // compilation, so they flow through this (implementation-time) output instead.
                 if (declCSharpDocument is not null)
                 {
                     foreach (var razorDiagnostic in declCSharpDocument.Diagnostics)
@@ -381,8 +382,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
                         context.ReportDiagnostic(csharpDiagnostic);
                     }
-
-                    context.AddSource(GetDeclIdentifierFromHintName(hintName), declCSharpDocument.Text);
                 }
 
                 context.AddSource(hintName, csharpDocument.Text);

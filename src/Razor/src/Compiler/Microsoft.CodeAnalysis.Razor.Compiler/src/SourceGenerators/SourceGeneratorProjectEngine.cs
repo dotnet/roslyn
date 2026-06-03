@@ -13,9 +13,24 @@ internal sealed class SourceGeneratorProjectEngine
 {
     private readonly RazorProjectEngine _projectEngine;
 
-    private readonly IRazorEnginePhase _discoveryPhase;
+    // Phase index boundaries. Identified by explicit phase type lookup at construction time so the
+    // SG layer doesn't bake in implicit assumptions about pipeline order (the engine may add or
+    // reorder phases as it evolves).
+
+    /// <summary>Inclusive index of <see cref="DefaultRazorDeclCSharpLoweringPhase"/>. Phases at or
+    /// before this index produce the unresolved IR and the decl C# text; they are tag-helper-
+    /// independent.</summary>
+    private readonly int _declLoweringEndIndex = -1;
+
+    /// <summary>Index of <see cref="DefaultRazorTagHelperContextDiscoveryPhase"/>. Cached so the
+    /// idempotency check can re-run discovery in isolation without re-lowering.</summary>
     private readonly int _discoveryPhaseIndex = -1;
-    private readonly int _rewritePhaseIndex = -1;
+
+    /// <summary>Inclusive index of <see cref="DefaultRazorTagHelperRewritePhase"/>. Phases after
+    /// this index (optimization + impl C# lowering) consume the resolved IR.</summary>
+    private readonly int _tagHelperRewriteEndIndex = -1;
+
+    private readonly IRazorEnginePhase _discoveryPhase;
 
     private ReadOnlySpan<IRazorEnginePhase> Phases => _projectEngine.Engine.Phases.AsSpan();
 
@@ -27,93 +42,113 @@ internal sealed class SourceGeneratorProjectEngine
 
         foreach (var phase in Phases)
         {
-            if (_discoveryPhaseIndex >= 0 && _rewritePhaseIndex >= 0)
-            {
-                break;
-            }
-
             switch (phase)
             {
+                case DefaultRazorDeclCSharpLoweringPhase:
+                    _declLoweringEndIndex = index;
+                    break;
+
                 case DefaultRazorTagHelperContextDiscoveryPhase:
                     _discoveryPhase = phase;
                     _discoveryPhaseIndex = index;
                     break;
 
                 case DefaultRazorTagHelperRewritePhase:
-                    _rewritePhaseIndex = index;
+                    _tagHelperRewriteEndIndex = index;
                     break;
             }
 
             index++;
         }
 
+        Debug.Assert(_declLoweringEndIndex >= 0);
         Debug.Assert(_discoveryPhase is not null);
         Debug.Assert(_discoveryPhaseIndex >= 0);
-        Debug.Assert(_rewritePhaseIndex >= 0);
-        Debug.Assert(_discoveryPhaseIndex < _rewritePhaseIndex);
+        Debug.Assert(_tagHelperRewriteEndIndex >= 0);
+        Debug.Assert(_declLoweringEndIndex < _discoveryPhaseIndex);
+        Debug.Assert(_discoveryPhaseIndex < _tagHelperRewriteEndIndex);
     }
 
-    public SourceGeneratorRazorCodeDocument ProcessInitialParse(RazorProjectItem projectItem, CancellationToken cancellationToken)
+    /// <summary>
+    /// Runs the engine pipeline from parsing through decl C# lowering. After this call, the document
+    /// has unresolved IR (tag helper nodes are still represented as
+    /// <see cref="Microsoft.AspNetCore.Razor.Language.Intermediate.UnresolvedElementIntermediateNode"/>
+    /// and friends) and a fully-written decl <see cref="RazorCSharpDocument"/> accessible via
+    /// <see cref="RazorCodeDocumentExtensions.GetDeclCSharpDocument"/>.
+    /// </summary>
+    /// <remarks>
+    /// The returned wrapper carries the source <see cref="RazorProjectItem"/> so that
+    /// <see cref="ProcessTagHelpers"/> can rebuild an unresolved IR when tag helpers have changed
+    /// materially. See <see cref="SourceGeneratorRazorCodeDocument.SourceItem"/> for the rationale.
+    /// </remarks>
+    public SourceGeneratorRazorCodeDocument ProcessForDecl(RazorProjectItem projectItem, CancellationToken cancellationToken)
+    {
+        var codeDocument = CreateAndProcessForDecl(projectItem, cancellationToken);
+        return new SourceGeneratorRazorCodeDocument(codeDocument, projectItem);
+    }
+
+    private RazorCodeDocument CreateAndProcessForDecl(RazorProjectItem projectItem, CancellationToken cancellationToken)
     {
         var codeDocument = _projectEngine.CreateCodeDocument(projectItem);
-
-        codeDocument = ExecutePhases(Phases[.._discoveryPhaseIndex], codeDocument, cancellationToken);
-
-        // By this point, DefaultRazorParsingPhase has set the canonical syntax tree (_syntaxTree)
-        // so that discovery and subsequent phases can read it via GetSyntaxTree().
-        return new SourceGeneratorRazorCodeDocument(codeDocument);
+        return ExecutePhases(Phases[..(_declLoweringEndIndex + 1)], codeDocument, cancellationToken);
     }
 
     public SourceGeneratorRazorCodeDocument ProcessTagHelpers(
-        SourceGeneratorRazorCodeDocument sgDocument, 
-        TagHelperCollection tagHelpers, 
-        bool checkForIdempotency, 
+        SourceGeneratorRazorCodeDocument sgDocument,
+        TagHelperCollection tagHelpers,
+        bool checkForIdempotency,
         CancellationToken cancellationToken)
     {
         Debug.Assert(sgDocument.CodeDocument.GetSyntaxTree() is not null);
 
-        int startIndex = _discoveryPhaseIndex;
         var codeDocument = sgDocument.CodeDocument;
+        var sourceItem = sgDocument.SourceItem;
 
         if (checkForIdempotency && codeDocument.TryGetTagHelpers(out var previousTagHelpers))
         {
-            // compare the tag helpers with the ones the document last used
+            // Same tag helpers as last time -- nothing changed for this document.
             if (tagHelpers.Equals(previousTagHelpers))
             {
-                // tag helpers are the same, nothing to do!
                 return sgDocument;
             }
 
-            // tag helpers have changed, figure out if we need to re-write
+            // Tag helpers changed. Run discovery in isolation to see if the change is material (i.e.
+            // if it affects which tag helpers are in scope or which are referenced by this document).
             var previousTagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
             var previousUsedTagHelpers = codeDocument.GetRequiredReferencedTagHelpers();
 
-            // re-run discovery to figure out which tag helpers are now in scope for this document
             codeDocument = codeDocument.WithTagHelpers(tagHelpers);
             codeDocument = _discoveryPhase.Execute(codeDocument, cancellationToken);
 
             var newTagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
 
-            // Check if any new tag helpers were added or ones we previously used were removed
             if (!RequiresRewrite(newTagHelpersInScope, previousTagHelpersInScope, previousUsedTagHelpers))
             {
-                // No newly visible tag helpers, and any that got removed weren't used by this document anyway
+                // Visible tag-helper set didn't change in a way that affects this document.
                 return sgDocument;
             }
 
-            // We need to re-process the document with the updated tag helpers, but can skip discovery
-            // as we just performed it. We must re-run lowering (not just rewrite) because the resolution
-            // phase resolves unresolved nodes based on tag helpers and mutates the IR in place.
-            startIndex = _discoveryPhaseIndex + 1;
+            // Material change. The IR on the cached codeDocument has already been resolved+rewritten
+            // by an earlier ProcessTagHelpers call (or the first ProcessRemaining); we can't re-run
+            // resolution against it because the unresolved nodes are gone. Rebuild the unresolved IR
+            // by replaying phases 0..decl-lowering from the cached source item, then run
+            // discovery+resolution+rewrite against that fresh document.
+            Debug.Assert(sourceItem is not null,
+                "Cached codeDocument carries previousTagHelpers, which means ProcessForDecl produced it; that should always attach a source item.");
+
+            codeDocument = CreateAndProcessForDecl(sourceItem, cancellationToken);
+            codeDocument = codeDocument.WithTagHelpers(tagHelpers);
+            codeDocument = ExecutePhases(Phases[_discoveryPhaseIndex..(_tagHelperRewriteEndIndex + 1)], codeDocument, cancellationToken);
         }
         else
         {
+            // First run after ProcessForDecl, or caller opted out of idempotency. Run discovery
+            // through rewrite against the current document; the IR is still unresolved here.
             codeDocument = codeDocument.WithTagHelpers(tagHelpers);
+            codeDocument = ExecutePhases(Phases[_discoveryPhaseIndex..(_tagHelperRewriteEndIndex + 1)], codeDocument, cancellationToken);
         }
 
-        codeDocument = ExecutePhases(Phases[startIndex..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
-
-        return new SourceGeneratorRazorCodeDocument(codeDocument);
+        return new SourceGeneratorRazorCodeDocument(codeDocument, sourceItem);
     }
 
     private static bool RequiresRewrite(
@@ -177,9 +212,9 @@ internal sealed class SourceGeneratorProjectEngine
             defaultFeature.SupportMap = utf8SupportMap;
         }
 
-        codeDocument = ExecutePhases(Phases[(_rewritePhaseIndex + 1)..], codeDocument, cancellationToken);
+        codeDocument = ExecutePhases(Phases[(_tagHelperRewriteEndIndex + 1)..], codeDocument, cancellationToken);
 
-        return new SourceGeneratorRazorCodeDocument(codeDocument);
+        return new SourceGeneratorRazorCodeDocument(codeDocument, sgDocument.SourceItem);
     }
 
     private static RazorCodeDocument ExecutePhases(ReadOnlySpan<IRazorEnginePhase> phases, RazorCodeDocument codeDocument, CancellationToken cancellationToken)

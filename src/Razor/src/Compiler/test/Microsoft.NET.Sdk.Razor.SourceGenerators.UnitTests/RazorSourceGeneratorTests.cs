@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable enable
@@ -278,7 +278,7 @@ namespace MyApp.Pages
 
             // Verify all the incremental steps ran as expected for the initial generation
             result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.New);
-            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("DeclSources", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.New);
             result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.New);
             result.VerifyIncrementalStepsMultiple("ParsedDocuments", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
@@ -411,7 +411,7 @@ namespace MyApp.Pages
 
             // Verify that when nothing changes, all steps are cached/unchanged
             result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Cached);
-            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalStepsMultiple("DeclSources", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Cached);
             result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.Cached);
             result.VerifyIncrementalStepsMultiple("ParsedDocuments", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
@@ -1243,7 +1243,7 @@ __builder.AddContent(3, count
             result.VerifyIncrementalStepsMultiple("ParsedDocuments",
                 IncrementalStepRunReason.Cached,    // Index unchanged
                 IncrementalStepRunReason.Modified); // Counter changed
-            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode",
+            result.VerifyIncrementalStepsMultiple("DeclSources",
                 IncrementalStepRunReason.Cached,    // Index unchanged
                 IncrementalStepRunReason.Modified); // Counter changed (new code block)
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged); // Re-run but no new tag helpers
@@ -1536,7 +1536,7 @@ __builder.AddContent(3, count
             result.VerifyIncrementalStepsMultiple("ParsedDocuments",
                 IncrementalStepRunReason.Cached,    // Index unchanged
                 IncrementalStepRunReason.Modified); // Counter changed
-            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode",
+            result.VerifyIncrementalStepsMultiple("DeclSources",
                 IncrementalStepRunReason.Cached,    // Index unchanged
                 IncrementalStepRunReason.Modified); // Counter changed (new Parameter)
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified); // Parameter metadata changed
@@ -3841,7 +3841,7 @@ __builder.AddContent(1, """"""
             result.VerifyIncrementalStepsMultiple("ParsedDocuments",
                 IncrementalStepRunReason.Cached,    // Index unchanged
                 IncrementalStepRunReason.Modified); // NewCounter renamed from Counter
-            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode",
+            result.VerifyIncrementalStepsMultiple("DeclSources",
                 IncrementalStepRunReason.Cached,    // Index unchanged
                 IncrementalStepRunReason.Modified); // NewCounter renamed
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified); // Re-discover (removed Counter, added NewCounter)

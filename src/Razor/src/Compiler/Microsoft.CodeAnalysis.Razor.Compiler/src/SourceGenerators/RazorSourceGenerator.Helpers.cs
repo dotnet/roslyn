@@ -66,44 +66,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             }
         }
 
-        private static RazorProjectEngine GetDeclarationProjectEngine(
-            SourceGeneratorProjectItem item,
-            ImmutableArray<SourceGeneratorProjectItem> imports,
-            RazorSourceGenerationOptions razorSourceGeneratorOptions)
-        {
-            var fileSystem = new VirtualRazorProjectFileSystem();
-            fileSystem.Add(item);
-            foreach (var import in imports)
-            {
-                fileSystem.Add(import);
-            }
-
-            var discoveryProjectEngine = RazorProjectEngine.Create(razorSourceGeneratorOptions.Configuration, fileSystem, b =>
-            {
-                b.ConfigureCodeGenerationOptions(builder =>
-                {
-                    builder.SuppressPrimaryMethodBody = true;
-                    builder.SuppressChecksum = true;
-                    builder.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
-                });
-
-                b.ConfigureParserOptions(builder =>
-                {
-                    builder.UseRoslynTokenizer = razorSourceGeneratorOptions.UseRoslynTokenizer;
-                    builder.CSharpParseOptions = razorSourceGeneratorOptions.CSharpParseOptions;
-                });
-
-                b.SetRootNamespace(razorSourceGeneratorOptions.RootNamespace);
-
-                CompilerFeatures.Register(b);
-                RazorExtensions.Register(b);
-
-                b.SetCSharpLanguageVersion(razorSourceGeneratorOptions.CSharpParseOptions.LanguageVersion);
-            });
-
-            return discoveryProjectEngine;
-        }
-
         private static StaticCompilationTagHelperFeature GetStaticTagHelperFeature(Compilation compilation)
         {
             var tagHelperFeature = new StaticCompilationTagHelperFeature(compilation);

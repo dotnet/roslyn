@@ -8,8 +8,13 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal sealed class ComponentWhitespacePass : ComponentIntermediateNodePassBase, IRazorDirectiveClassifierPass
+internal sealed class ComponentWhitespacePass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
+    // Run early in the optimization phase, before ComponentLoweringPass (Order=0) converts
+    // TagHelperBody into ComponentChildContent. The visitor below specifically expects to see
+    // TagHelperBody (see the comment in VisitTagHelperBody).
+    public override int Order => -500;
+
     protected override void ExecuteCore(
         RazorCodeDocument codeDocument,
         DocumentIntermediateNode documentNode,
