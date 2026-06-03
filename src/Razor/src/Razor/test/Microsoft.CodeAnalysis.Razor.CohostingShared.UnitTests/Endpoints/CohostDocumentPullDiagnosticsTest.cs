@@ -23,7 +23,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             }
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharp()
         => VerifyDiagnosticsAsync("""
             <div></div>
@@ -47,7 +47,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             </div>
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharpAndRazor_MiscellaneousFile()
         => VerifyDiagnosticsAsync("""
             <div>
@@ -66,7 +66,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             """,
             miscellaneousFile: true);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CombinedAndNestedDiagnostics()
         => VerifyDiagnosticsAsync("""
             @using System.Threading.Tasks;
@@ -94,7 +94,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             </div>
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharpUnusedUsings()
        => VerifyDiagnosticsAsync("""
             {|RZ0005:@using System|}
@@ -110,7 +110,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             }
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task RazorUsingAlsoPresentInImports()
        => VerifyDiagnosticsAsync("""
             @using System.Text
@@ -128,7 +128,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             }
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task RazorUsedUsings()
         => VerifyDiagnosticsAsync(
            input: """
@@ -155,7 +155,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
                <div></div>
                """)]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task RazorUnusedUsings()
         => VerifyDiagnosticsAsync(
             input: """
