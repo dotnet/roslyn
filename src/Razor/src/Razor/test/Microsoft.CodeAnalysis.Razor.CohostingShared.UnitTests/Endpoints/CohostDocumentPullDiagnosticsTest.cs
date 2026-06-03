@@ -38,6 +38,14 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             """);
 
     [Fact]
+    public Task CSharp_ImplicitExpression()
+    => VerifyDiagnosticsAsync("""
+            <div></div>
+
+            @{|CS0103:CallMeMaybe|}()
+            """);
+
+    [Fact]
     public Task Razor()
         => VerifyDiagnosticsAsync("""
             <div>
@@ -108,6 +116,14 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
                 {
                 }
             }
+            """);
+
+    [Fact]
+    public Task CSharpUnusedUsings_NoCodeBlock()
+     => VerifyDiagnosticsAsync("""
+            {|RZ0005:@using System|}
+
+            <div></div>
             """);
 
     [Fact]
