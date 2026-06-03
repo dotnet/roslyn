@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [ExportLspServiceFactory(typeof(FileBasedProgramsEntryPointDiscovery), ProtocolConstants.RoslynLspLanguagesContract)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionService globalOptionService, IAsynchronousOperationListenerProvider listenerProvider, ILoggerFactory loggerFactory) : ILspServiceFactory
+internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionService globalOptionService, IAsynchronousOperationListenerProvider listenerProvider) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new FileBasedProgramsEntryPointDiscovery(globalOptionService, listenerProvider.GetListener(FeatureAttribute.Workspace), loggerFactory, lspServices);
+        return new FileBasedProgramsEntryPointDiscovery(globalOptionService, listenerProvider.GetListener(FeatureAttribute.Workspace), lspServices.GetRequiredService<ILoggerFactory>(), lspServices);
     }
 }
 

@@ -2,21 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
 /// <summary>
-/// Implements an ILogger that seamlessly switches from a fallback logger
-/// to LSP log messages as soon as the server initializes.
+/// Implements an ILogger that sends LSP log messages to a single language server client.
 /// </summary>
-internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fallbackLoggerFactory, ServerConfiguration serverConfiguration, IExternalScopeProvider? externalScopeProvider) : ILogger
+internal sealed class LspLogMessageLogger(string categoryName, IClientLanguageServerManager clientLanguageServerManager, ServerConfiguration serverConfiguration, IExternalScopeProvider? externalScopeProvider) : ILogger
 {
-    private readonly Lazy<ILogger> _fallbackLogger = new(() => fallbackLoggerFactory.CreateLogger(categoryName));
     private readonly IExternalScopeProvider? _externalScopeProvider = externalScopeProvider;
 
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => _externalScopeProvider?.Push(state);
@@ -26,14 +23,6 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
     {
         if (!IsEnabled(logLevel) || logLevel == LogLevel.None)
         {
-            return;
-        }
-
-        var server = LanguageServerHost.Instance;
-        if (server == null)
-        {
-            // If the language server has not been initialized yet, log using the fallback logger.
-            _fallbackLogger.Value.Log(logLevel, eventId, state, exception, formatter);
             return;
         }
 
@@ -72,7 +61,7 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
 
         try
         {
-            var _ = server.GetLspServices().GetRequiredService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
+            var _ = clientLanguageServerManager.SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
             {
                 Message = $"{messagePrefix} {message}",
                 MessageType = LogLevelToMessageType(logLevel),

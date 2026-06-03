@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
@@ -15,18 +16,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 internal sealed class LanguageServerHost
 #pragma warning restore CA1001 // The JsonRpc instance is disposed of by the AbstractLanguageServer during shutdown
 {
-    // TODO: replace this with a MEF part instead
-    /// <summary>
-    /// A static reference to the server instance.
-    /// Used by components to send notifications and requests back to the client.
-    /// </summary>
-    internal static LanguageServerHost? Instance { get; private set; }
-
-    private readonly ILogger _logger;
+    private readonly LspLoggerFactory _serverLoggerFactory;
+    private readonly IClientLanguageServerManager _clientLanguageServerManager;
     private readonly AbstractLanguageServer<RequestContext> _roslynLanguageServer;
     private readonly JsonRpc _jsonRpc;
+    private volatile bool _hasStarted;
 
-    public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILoggerFactory loggerFactory, AbstractTypeRefResolver typeRefResolver)
+    internal ILogger GlobalLogger { get; }
+    internal bool HasStarted => _hasStarted;
+
+    public LanguageServerHost(
+        Stream inputStream,
+        Stream outputStream,
+        ExportProvider exportProvider,
+        AbstractTypeRefResolver typeRefResolver,
+        ServerConfiguration serverConfiguration)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
@@ -40,8 +44,11 @@ internal sealed class LanguageServerHost
 
         var roslynLspFactory = exportProvider.GetExportedValue<ILanguageServerFactory>();
 
-        _logger = loggerFactory.CreateLogger("LSP");
-        var lspLogger = new LspServiceLogger(_logger);
+        _clientLanguageServerManager = new ClientLanguageServerManager(_jsonRpc);
+        _serverLoggerFactory = new LspLoggerFactory(_clientLanguageServerManager, serverConfiguration);
+        GlobalLogger = _serverLoggerFactory.CreateLogger("Global");
+
+        var lspLogger = new LspServiceLogger(_serverLoggerFactory.CreateLogger("LSP"));
 
         var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
         _roslynLanguageServer = roslynLspFactory.Create(
@@ -55,13 +62,18 @@ internal sealed class LanguageServerHost
 
     public void Start()
     {
-        _jsonRpc.StartListening();
+        Contract.ThrowIfTrue(_hasStarted);
 
-        // Now that the server is started, update the our instance reference
-        Instance = this;
+        // Eagerly resolve the workspace factory from the per-server LSP services, since right now the language server
+        // assumes there's at least one Workspace. This as a side effect creates the actual workspace object which is
+        // registered by the LspWorkspaceRegistrationEventListener.
+        _ = GetLspServices().GetRequiredService<LanguageServerWorkspaceFactory>();
+
+        _jsonRpc.StartListening();
+        _hasStarted = true;
     }
 
-    public Task WaitForExitAsync()
+    public async Task WaitForExitAsync()
     {
         // Wait until the server exits.  Once complete, we can return and proceed with shutdown.
         // The server is responsible for cleaning up its resources and disposing of the `_jsonRpc` instance.
@@ -72,7 +84,14 @@ internal sealed class LanguageServerHost
         //   2.  On some platforms (Unix), `_jsonRpc.Completion` will not complete until the client closes its end of the transport or sends new data
         //       even if the `_jsonRpc` instance has been disposed of (due to a synchronous read syscall that does not observe disposal).  The server
         //       should still shutdown regardless - we've been told to exit, so exit.
-        return _roslynLanguageServer.WaitForExitAsync();
+        try
+        {
+            await _roslynLanguageServer.WaitForExitAsync();
+        }
+        finally
+        {
+            _serverLoggerFactory.Dispose();
+        }
     }
 
     public ILspServices GetLspServices()

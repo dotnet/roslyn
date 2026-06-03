@@ -6,21 +6,28 @@ using System.Composition;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[Export, Shared]
-internal sealed class DotnetCliHelper
+[ExportCSharpVisualBasicLspServiceFactory(typeof(DotnetCliHelper)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DotnetCliHelperFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new DotnetCliHelper(lspServices.GetRequiredService<ILoggerFactory>());
+}
+
+internal sealed class DotnetCliHelper : ILspService
 {
     internal const string DotnetRootEnvVar = "DOTNET_ROOT";
 
     private readonly ILogger _logger;
     private readonly Lazy<string> _dotnetExecutablePath;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public DotnetCliHelper(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger<DotnetCliHelper>();

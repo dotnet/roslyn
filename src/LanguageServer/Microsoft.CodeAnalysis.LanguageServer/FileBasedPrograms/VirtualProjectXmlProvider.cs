@@ -25,9 +25,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [Export(typeof(VirtualProjectXmlProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
+internal class VirtualProjectXmlProvider()
 {
-    internal async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentAsync(string documentFilePath, ILogger logger, CancellationToken cancellationToken)
+    internal async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentAsync(
+        string documentFilePath,
+        DotnetCliHelper dotnetCliHelper,
+        ILogger logger,
+        CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);
         var process = dotnetCliHelper.Run(["run-api"], workingDirectory, shouldLocalizeOutput: true, keepStandardInputOpen: true);

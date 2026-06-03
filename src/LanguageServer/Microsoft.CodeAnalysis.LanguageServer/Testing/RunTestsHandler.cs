@@ -13,16 +13,26 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(RunTestsHandler)), Shared]
-[Method(RunTestsMethodName)]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(RunTestsHandler)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+internal sealed class RunTestsHandlerFactory(ServerConfiguration serverConfiguration) : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+    {
+        var loggerFactory = lspServices.GetRequiredService<ILoggerFactory>();
+        return new RunTestsHandler(
+            new TestDiscoverer(loggerFactory),
+            new TestRunner(loggerFactory),
+            serverConfiguration);
+    }
+}
+
+[Method(RunTestsMethodName)]
+internal sealed class RunTestsHandler(TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration)
     : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
     private const string RunTestsMethodName = "textDocument/runTests";
-
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RunTestsHandler>();
 
     public bool MutatesSolutionState => false;
 
@@ -37,9 +47,10 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
     {
         Contract.ThrowIfNull(context.Document);
         using var progress = BufferedProgress.Create(request.PartialResultToken);
+        var dotnetCliHelper = context.GetRequiredService<DotnetCliHelper>();
 
         // First, build to make sure we have a relatively up to date project.
-        await BuildAsync(context.Document, progress, cancellationToken);
+        await BuildAsync(context.Document, progress, dotnetCliHelper, cancellationToken);
 
         var projectOutputPath = context.Document.Project.OutputFilePath;
         Contract.ThrowIfFalse(File.Exists(projectOutputPath), $"Output path {projectOutputPath} is missing");
@@ -65,7 +76,7 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
         });
 
         var runSettingsPath = request.RunSettingsPath;
-        var runSettings = await GetRunSettingsAsync(runSettingsPath, progress, cancellationToken);
+        var runSettings = await GetRunSettingsAsync(runSettingsPath, progress, context, cancellationToken);
         var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, runSettings, progress, vsTestConsoleWrapper, cancellationToken);
         if (!testCases.IsEmpty)
         {
@@ -120,7 +131,7 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
     /// However if we don't do a build it is likely the user code is very different from what they last built
     /// which results in a confusing experience.
     /// </summary>
-    private async Task BuildAsync(Document document, BufferedProgress<RunTestsPartialResult> progress, CancellationToken cancellationToken)
+    private async Task BuildAsync(Document document, BufferedProgress<RunTestsPartialResult> progress, DotnetCliHelper dotnetCliHelper, CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(document.Project.FilePath);
         Contract.ThrowIfNull(workingDirectory, $"Unable to get working directory for project {document.Project.Name}");
@@ -168,7 +179,7 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
         };
     }
 
-    private async Task<string?> GetRunSettingsAsync(string? runSettingsPath, BufferedProgress<RunTestsPartialResult> progress, CancellationToken cancellationToken)
+    private async Task<string?> GetRunSettingsAsync(string? runSettingsPath, BufferedProgress<RunTestsPartialResult> progress, RequestContext context, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(runSettingsPath))
         {
@@ -180,7 +191,7 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
             var contents = await File.ReadAllTextAsync(runSettingsPath, cancellationToken);
             var message = string.Format(LanguageServerResources.Using_runsettings_file_at_0, runSettingsPath);
             progress.Report(new(LanguageServerResources.Discovering_tests, message, Progress: null));
-            _logger.LogTrace($".runsettings:{Environment.NewLine}{contents}");
+            context.TraceDebug($".runsettings:{Environment.NewLine}{contents}");
             return contents;
         }
         catch (FileNotFoundException)

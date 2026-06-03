@@ -26,21 +26,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LanguageServerProjectSystemServiceFactory(
     IGlobalOptionService globalOptionService,
-    ILoggerFactory loggerFactory,
     IAsynchronousOperationListenerProvider listenerProvider,
-    ServerConfigurationFactory serverConfigurationFactory,
-    IBinLogPathProvider binLogPathProvider,
-    DotnetCliHelper dotnetCliHelper) : ILspServiceFactory
+    ServerConfigurationFactory serverConfigurationFactory) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         => new LanguageServerProjectSystem(
             lspServices,
             globalOptionService,
-            loggerFactory,
+            lspServices.GetRequiredService<ILoggerFactory>(),
             listenerProvider,
             serverConfigurationFactory,
-            binLogPathProvider,
-            dotnetCliHelper);
+            lspServices.GetRequiredService<IBinLogPathProvider>(),
+            lspServices.GetRequiredService<DotnetCliHelper>());
 }
 
 internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader, ILspService

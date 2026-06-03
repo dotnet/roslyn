@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.Extensions.Logging;
@@ -58,7 +59,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             return testLspServer;
         }
 
-        internal LanguageServerHost LanguageServerHost { get; }
+        private readonly LanguageServerConnectionManager _connectionManager;
         public ExportProvider ExportProvider { get; }
 
         internal ServerCapabilities ServerCapabilities { get => field ?? throw new InvalidOperationException("Initialize has not been called"); private set; }
@@ -75,7 +76,9 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var clientOutputStream = _clientToServerPipe.Writer.AsStream();
             var clientInputStream = _serverToClientPipe.Reader.AsStream();
 
-            LanguageServerHost = new LanguageServerHost(serverInputStream, serverOutputStream, exportProvider, loggerFactory, typeRefResolver);
+            var serverConfiguration = exportProvider.GetExportedValue<ServerConfigurationFactory>().ServerConfiguration;
+            _connectionManager = new LanguageServerConnectionManager();
+            _ = _connectionManager.CreateLanguageServerHost(serverInputStream, serverOutputStream, exportProvider, typeRefResolver, serverConfiguration);
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
             _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientOutputStream, clientInputStream, messageFormatter))
@@ -86,11 +89,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
             _clientRpc.StartListening();
 
-            // This task completes when the server shuts down.  We store it so that we can wait for completion
-            // when we dispose of the test server.
-            LanguageServerHost.Start();
-
-            _languageServerHostCompletionTask = LanguageServerHost.WaitForExitAsync();
+            _languageServerHostCompletionTask = _connectionManager.WaitForExitAsync();
             ExportProvider = exportProvider;
         }
 
@@ -125,7 +124,16 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             _clientRpc.AddLocalRpcMethod(methodName, handler);
         }
 
-        internal T GetRequiredLspService<T>() where T : class => LanguageServerHost.GetLspServices().GetRequiredService<T>();
+        internal T GetRequiredLspService<T>() where T : class
+        {
+            T? result = null;
+            _connectionManager.ForEachStartedServer(server =>
+            {
+                result = server.GetLspServices().GetRequiredService<T>();
+                return true;
+            });
+            return result ?? throw new InvalidOperationException("No started server found.");
+        }
 
         public async ValueTask DisposeAsync()
         {
