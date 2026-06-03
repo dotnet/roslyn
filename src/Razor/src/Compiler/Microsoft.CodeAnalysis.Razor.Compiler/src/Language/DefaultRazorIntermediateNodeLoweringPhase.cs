@@ -2130,6 +2130,32 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         {
         }
 
+        public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
+        {
+            switch (node.ChunkGenerator)
+            {
+                case AddTagHelperChunkGenerator addTagHelper:
+                    // @addTagHelper / @removeTagHelper / @tagHelperPrefix are not valid in component
+                    // import documents (same as components). Pre-Sonic-4 the diagnostic was added by
+                    // DefaultRazorTagHelperContextDiscoveryPhase (which ran before lowering); after
+                    // the phase reorder, discovery runs AFTER lowering, so we attach the diagnostic
+                    // here so the base visitor copies it onto the resulting IR directive node.
+                    addTagHelper.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                    break;
+                case RemoveTagHelperChunkGenerator removeTagHelper:
+                    removeTagHelper.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                    break;
+                case TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix:
+                    tagHelperPrefix.Diagnostics.Add(
+                        ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(BuildSourceSpanFromNode(node)));
+                    break;
+            }
+
+            base.VisitCSharpStatementLiteral(node);
+        }
+
         public override void VisitMarkupElement(MarkupElementSyntax node)
         {
             _document.AddDiagnostic(

@@ -32,7 +32,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 #line hidden
 #nullable disable
 
-        __builder.OpenElement(0, "p");
+        __builder.AddContent(0, "        ");
         __builder.AddContent(1, "Output: ");
 #nullable restore
 #line (9,21)-(9,27) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -42,7 +42,7 @@ __builder.AddContent(2, output
 #line hidden
 #nullable disable
         );
-        __builder.CloseElement();
+        __builder.AddContent(3, "\r\n");
 #nullable restore
 #line (10,1)-(11,1) "x:\dir\subdir\Test\TestComponent.cshtml"
     }

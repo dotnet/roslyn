@@ -9,7 +9,7 @@ Generated Location: (560:18,0 [91] )
 
 Source Location: (297:12,79 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |context|
-Generated Location: (889:30,25 [7] )
+Generated Location: (844:29,25 [7] )
 |context|
 
 Source Location: (308:12,90 [180] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -22,7 +22,7 @@ Source Location: (308:12,90 [180] x:\dir\subdir\Test\TestComponent.cshtml)
     Collapsed = !Collapsed;
   }
 |
-Generated Location: (1098:40,0 [180] )
+Generated Location: (1013:38,0 [180] )
 |;
   [Parameter]
   public bool Collapsed { get; set; }

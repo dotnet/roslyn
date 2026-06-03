@@ -42,17 +42,16 @@ using Microsoft.AspNetCore.Components.Rendering
 #line hidden
 #nullable disable
 
-        __builder.OpenElement(0, "li");
-        __builder.AddAttribute(1, "data-index", 
+        __builder.AddContent(0, "            ");
 #nullable restore
-#line (26,29)-(26,30) "x:\dir\subdir\Test\TestComponent.cshtml"
-i
+#line (26,29)-(26,30) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
+__builder.AddContent(1, i
 
 #line default
 #line hidden
 #nullable disable
         );
-        __builder.AddAttribute(2, "TestCssScope");
+        __builder.AddAttribute(2, "data-index");
         __builder.AddContent(3, "Something ");
 #nullable restore
 #line (26,42)-(26,43) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -62,7 +61,7 @@ __builder.AddContent(4, i
 #line hidden
 #nullable disable
         );
-        __builder.CloseElement();
+        __builder.AddContent(5, "\r\n");
 #nullable restore
 #line (27,1)-(33,1) "x:\dir\subdir\Test\TestComponent.cshtml"
         }

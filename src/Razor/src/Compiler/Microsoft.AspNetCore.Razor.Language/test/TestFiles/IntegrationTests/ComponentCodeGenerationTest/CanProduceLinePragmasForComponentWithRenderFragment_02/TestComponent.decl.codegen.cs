@@ -25,16 +25,14 @@ namespace Test
 #nullable disable
 
         (__builder2) => {
-            __builder2.OpenElement(0, "p");
 #nullable restore
 #line (13,80)-(13,87) 25 "x:\dir\subdir\Test\TestComponent.cshtml"
-__builder2.AddContent(1, context
+__builder2.AddContent(0, context
 
 #line default
 #line hidden
 #nullable disable
             );
-            __builder2.CloseElement();
         }
 #nullable restore
 #line (13,91)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"

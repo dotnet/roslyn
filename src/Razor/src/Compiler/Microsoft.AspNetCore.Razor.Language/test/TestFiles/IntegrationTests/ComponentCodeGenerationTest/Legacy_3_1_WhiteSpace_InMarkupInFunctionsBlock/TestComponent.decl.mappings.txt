@@ -16,34 +16,34 @@ Generated Location: (715:24,0 [57] )
 
 Source Location: (128:5,0 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |            |
-Generated Location: (1040:37,0 [12] )
+Generated Location: (993:36,0 [12] )
 |            |
 
 Source Location: (141:5,13 [46] x:\dir\subdir\Test\TestComponent.cshtml)
 |for (var i = 0; i < 100; i++)
             {
 |
-Generated Location: (1187:45,0 [46] )
+Generated Location: (1140:44,0 [46] )
 |for (var i = 0; i < 100; i++)
             {
 |
 
 Source Location: (230:8,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |i|
-Generated Location: (1557:57,24 [1] )
+Generated Location: (1463:55,24 [1] )
 |i|
 
 Source Location: (256:10,0 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |            }
 |
-Generated Location: (1851:68,0 [15] )
+Generated Location: (1710:65,0 [15] )
 |            }
 |
 
 Source Location: (286:12,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |    }
 |
-Generated Location: (2130:79,0 [7] )
+Generated Location: (1947:75,0 [7] )
 |    }
 |
 

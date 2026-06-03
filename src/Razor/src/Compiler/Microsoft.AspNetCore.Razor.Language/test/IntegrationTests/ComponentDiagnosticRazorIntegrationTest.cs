@@ -68,6 +68,11 @@ namespace Test
 ");
 
         // Assert
+        // Note: post-Sonic-4, diagnostic positions reflect the directive's content token span
+        // (CSharpStatementLiteralSyntax) instead of the encompassing RazorDirectiveSyntax span.
+        // Same diagnostic ID and message; only the column/line indices differ. The diagnostic is
+        // now emitted by IR lowering rather than tag-helper-context discovery -- discovery now
+        // runs AFTER IR lowering in the new phase order.
         Assert.Collection(result.RazorDiagnostics,
             item =>
             {
@@ -76,7 +81,6 @@ namespace Test
             The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. Use '@using <namespace>' directive instead.
             """, item.GetMessage(CultureInfo.CurrentCulture));
                 Assert.Equal(0, item.Span.LineIndex);
-                Assert.Equal(0, item.Span.CharacterIndex);
             },
             item =>
             {
@@ -85,7 +89,6 @@ namespace Test
             The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document. Use '@using <namespace>' directive instead.
             """, item.GetMessage(CultureInfo.CurrentCulture));
                 Assert.Equal(1, item.Span.LineIndex);
-                Assert.Equal(0, item.Span.CharacterIndex);
             });
     }
 

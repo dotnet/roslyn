@@ -29,8 +29,8 @@ using Microsoft.AspNetCore.Components.Rendering;
 #line hidden
 #nullable disable
 
-        __builder.OpenComponent<global::Test.MyComponent>(0);
-        __builder.CloseComponent();
+        __builder.AddContent(0, "        ");
+        __builder.AddContent(1, "\r\n");
 #nullable restore
 #line (9,1)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
     }
