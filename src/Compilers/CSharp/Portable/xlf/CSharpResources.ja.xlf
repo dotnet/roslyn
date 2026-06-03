@@ -979,7 +979,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExternMemberRequiresUnsafeOrSafe">
         <source>'extern' member must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">'extern' member must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">'extern' メンバーは 'unsafe' または 'safe' とマークする必要があります。</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
@@ -1539,7 +1539,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberSafeDifference">
         <source>Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</source>
-        <target state="new">Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</target>
+        <target state="translated">部分メンバー宣言は両方とも 'safe' とマークする必要があります。または、いずれも 'safe' とマークされなくても構いません</target>
         <note>'safe' is a keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
@@ -2494,7 +2494,7 @@
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
         <source>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</source>
-        <target state="new">The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</target>
+        <target state="translated">'safe' 修飾子は、'unsafe' とマークされていない 'extern' メンバーでのみ使用できます。</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2789,12 +2789,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
         <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="new">An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <target state="translated">'{2}' の型パラメーター '{1}' の 'new()' 制約を満たすには、'unsafe' としてマークされたコンストラクター '{0}' に安全ではないコンテキストが必要です</target>
         <note>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
-        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'unsafe'</target>
+        <target state="translated">'{0}' は 'unsafe' としてマークされているため、安全でないコンテキストで使用する必要があります</target>
         <note>'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
