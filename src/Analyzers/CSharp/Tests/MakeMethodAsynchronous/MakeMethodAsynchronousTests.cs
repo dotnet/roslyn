@@ -48,7 +48,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """, index: 1);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
     public async Task AwaitInEventHandlerMethod()
     {
         var initial =
