@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CommonLanguageServerProtocol.Framework.Example;
+using Microsoft.Extensions.DependencyInjection;
 using Nerdbank.Streams;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using Xunit;
 
@@ -16,15 +17,24 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
 public sealed class RequestExecutionQueueTests
 {
-    private sealed class MockServer : NewtonsoftLanguageServer<TestRequestContext>
+    private sealed class MockServer : SystemTextJsonLanguageServer<TestRequestContext>
     {
-        public MockServer() : base(new JsonRpc(new HeaderDelimitedMessageHandler(FullDuplexStream.CreatePair().Item1)), JsonSerializer.CreateDefault(), NoOpLspLogger.Instance)
+        private static readonly JsonSerializerOptions s_jsonSerializerOptions = new SystemTextJsonFormatter().JsonSerializerOptions.AddLspSerializerOptions();
+
+        public MockServer() : base(new JsonRpc(new HeaderDelimitedMessageHandler(FullDuplexStream.CreatePair().Item1)), s_jsonSerializerOptions)
         {
         }
 
         protected override ILspServices ConstructLspServices()
         {
-            throw new NotImplementedException();
+            var serviceCollection = new ServiceCollection();
+
+            var _ = serviceCollection
+                .AddSingleton<ILspLogger>(NoOpLspLogger.Instance);
+
+            var lspServices = new ExampleLspServices(serviceCollection);
+
+            return lspServices;
         }
     }
 
@@ -34,7 +44,7 @@ public sealed class RequestExecutionQueueTests
     {
         var provider = new TestHandlerProvider(handlers);
 
-        var executionQueue = new TestRequestExecutionQueue(new MockServer(), NoOpLspLogger.Instance, provider, cancelInProgressWorkUponMutatingRequest);
+        var executionQueue = new TestRequestExecutionQueue(new MockServer(), provider, cancelInProgressWorkUponMutatingRequest);
         executionQueue.Start();
 
         return executionQueue;
@@ -42,7 +52,10 @@ public sealed class RequestExecutionQueueTests
 
     private static ILspServices GetLspServices()
         => TestLspServices.Create(
-            services: new[] { (typeof(AbstractRequestContextFactory<TestRequestContext>), (object)TestRequestContext.Factory.Instance) },
+            services: [
+                (typeof(AbstractRequestContextFactory<TestRequestContext>),(object)TestRequestContext.Factory.Instance),
+                (typeof(ILspLogger), NoOpLspLogger.Instance)
+            ],
             supportsMethodHandlerProvider: false);
 
     [Fact]
@@ -53,7 +66,7 @@ public sealed class RequestExecutionQueueTests
         var lspServices = GetLspServices();
 
         // Act & Assert
-        await Assert.ThrowsAsync<NotImplementedException>(() => requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), ThrowingHandler.Name, lspServices, CancellationToken.None));
+        await Assert.ThrowsAsync<NotImplementedException>(() => requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), ThrowingHandler.Name, lspServices, CancellationToken.None));
     }
 
     [Fact]
@@ -74,12 +87,12 @@ public sealed class RequestExecutionQueueTests
             var cancellingRequestCancellationToken = new CancellationToken();
             var completingRequestCancellationToken = new CancellationToken();
 
-            var _ = requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), CancellingHandler.Name, lspServices, cancellingRequestCancellationToken);
-            var _1 = requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), CompletingHandler.Name, lspServices, completingRequestCancellationToken);
+            var _ = requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), CancellingHandler.Name, lspServices, cancellingRequestCancellationToken);
+            var _1 = requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), CompletingHandler.Name, lspServices, completingRequestCancellationToken);
 
             // Act & Assert
             // A Debug.Assert would throw if the tasks hadn't completed when the mutating request is called.
-            await requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), MutatingHandler.Name, lspServices, CancellationToken.None);
+            await requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), MutatingHandler.Name, lspServices, CancellationToken.None);
         }
     }
 
@@ -102,7 +115,7 @@ public sealed class RequestExecutionQueueTests
         var requestExecutionQueue = GetRequestExecutionQueue(false, (TestMethodHandler.Metadata, TestMethodHandler.Instance));
         var lspServices = GetLspServices();
 
-        var response = (MockResponse?)await requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), TestMethodHandler.Name, lspServices, CancellationToken.None);
+        var response = (MockResponse?)await requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), TestMethodHandler.Name, lspServices, CancellationToken.None);
         Assert.Equal("stuff", response?.Response);
     }
 
@@ -122,7 +135,7 @@ public sealed class RequestExecutionQueueTests
         var requestExecutionQueue = GetRequestExecutionQueue(false, (TestNotificationHandler.Metadata, TestNotificationHandler.Instance));
         var lspServices = GetLspServices();
 
-        var response = await requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), TestNotificationHandler.Name, lspServices, CancellationToken.None);
+        var response = await requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), TestNotificationHandler.Name, lspServices, CancellationToken.None);
         Assert.Same(NoValue.Instance, response);
     }
 
@@ -140,7 +153,7 @@ public sealed class RequestExecutionQueueTests
     public async Task Queue_DrainsOnShutdown()
     {
         var requestExecutionQueue = GetRequestExecutionQueue(false, (TestMethodHandler.Metadata, TestMethodHandler.Instance));
-        var request = JToken.FromObject(new MockRequest(1));
+        var request = JsonSerializer.SerializeToElement(new MockRequest(1));
         var lspServices = GetLspServices();
 
         var task1 = requestExecutionQueue.ExecuteAsync(request, TestMethodHandler.Name, lspServices, CancellationToken.None);
@@ -156,8 +169,8 @@ public sealed class RequestExecutionQueueTests
     {
         private readonly bool _cancelInProgressWorkUponMutatingRequest;
 
-        public TestRequestExecutionQueue(AbstractLanguageServer<TestRequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
-            : base(languageServer, logger, handlerProvider)
+        public TestRequestExecutionQueue(AbstractLanguageServer<TestRequestContext> languageServer, AbstractHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
+            : base(languageServer, handlerProvider)
         {
             _cancelInProgressWorkUponMutatingRequest = cancelInProgressWorkUponMutatingRequest;
         }

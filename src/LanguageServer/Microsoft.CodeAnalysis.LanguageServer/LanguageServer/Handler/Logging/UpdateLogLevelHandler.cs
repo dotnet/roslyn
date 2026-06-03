@@ -6,6 +6,7 @@ using System.Composition;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class UpdateLogLevelHandler(ServerConfiguration serverConfiguration) : ILspServiceNotificationHandler<UpdateLogLevelParams>
+internal sealed class UpdateLogLevelHandler() : ILspServiceNotificationHandler<UpdateLogLevelParams>
 {
-    private const string MethodName = "roslyn/updateLogLevel";
+    internal const string MethodName = "roslyn/updateLogLevel";
 
     public bool MutatesSolutionState => false;
 
@@ -25,7 +26,8 @@ internal sealed class UpdateLogLevelHandler(ServerConfiguration serverConfigurat
     public async Task HandleNotificationAsync(UpdateLogLevelParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
         var level = Enum.Parse<LogLevel>(request.LogLevelValue);
-        serverConfiguration.LogConfiguration.UpdateLogLevel(level);
+        var loggerFactory = requestContext.GetRequiredService<LspLoggerFactory>();
+        loggerFactory.LogConfiguration.UpdateLogLevel(level);
     }
 }
 

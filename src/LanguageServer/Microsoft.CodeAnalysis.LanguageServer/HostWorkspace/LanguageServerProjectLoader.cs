@@ -110,7 +110,7 @@ internal abstract class LanguageServerProjectLoader
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-        _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
+        _logger = loggerFactory.CreateLogger(this.GetTypeDisplayName());
         _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;
         _dotnetCliHelper = dotnetCliHelper;

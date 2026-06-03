@@ -425,8 +425,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             </Workspace>
             """));
 
-        await using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
-        await using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
+        await using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputHelper);
+        await using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputHelper);
 
         Assert.NotEqual(testLspServerOne.GetManager(), testLspServerTwo.GetManager());
 

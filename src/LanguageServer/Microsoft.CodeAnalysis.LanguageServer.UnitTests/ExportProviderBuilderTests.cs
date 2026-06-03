@@ -86,7 +86,7 @@ public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelpe
 
         var dllPath = GenerateDll(reservedCharacter, out var assemblyName);
 
-        await using var testServer = await TestLspServer.CreateAsync(new Roslyn.LanguageServer.Protocol.ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path, includeDevKitComponents: true, [dllPath]);
+        await using var testServer = await CreateLanguageServerAsync(new Roslyn.LanguageServer.Protocol.ClientCapabilities(), includeDevKitComponents: true, extensionPaths: [dllPath]);
 
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
         var assembly = Assert.Single(assemblies, a => a.GetName().Name == assemblyName);

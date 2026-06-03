@@ -19,7 +19,7 @@ internal sealed class LanguageServerTestComposition
     {
         var devKitDependencyPath = includeDevKitComponents ? TestPaths.GetDevKitExtensionPath() : null;
         var serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
-            LogConfiguration: new LogConfiguration(LogLevel.Trace),
+            InitialLogLevel: LogLevel.Trace,
             TelemetryLevel: null,
             SessionId: null,
             ExtensionAssemblyPaths: extensionPaths ?? [],

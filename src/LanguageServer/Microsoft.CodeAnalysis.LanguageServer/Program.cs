@@ -6,13 +6,9 @@ using System.CommandLine;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
@@ -50,13 +46,15 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         Console.SetOut(new StreamWriter(Console.OpenStandardError()));
     }
 
+    var connectionManager = new LanguageServerConnectionManager();
+
     // Create a console logger as a fallback to use before the LSP server starts.
     using var loggerFactory = LoggerFactory.Create(builder =>
     {
         // The actual logger is responsible for deciding whether to log based on the current log level.
         // The factory should be configured to log everything.
         builder.SetMinimumLevel(LogLevel.Trace);
-        builder.AddProvider(new LspLogMessageLoggerProvider(fallbackLoggerFactory:
+        builder.AddProvider(new GlobalLogMessageLoggerProvider(fallbackLoggerFactory:
             // Add a console logger as a fallback for when the LSP server has not finished initializing.
             LoggerFactory.Create(builder =>
             {
@@ -64,7 +62,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
                 builder.AddConsole();
                 // The console logger outputs control characters on unix for colors which don't render correctly in VSCode.
                 builder.AddSimpleConsole(formatterOptions => formatterOptions.ColorBehavior = LoggerColorBehavior.Disabled);
-            }), serverConfiguration
+            }), connectionManager, new(serverConfiguration.InitialLogLevel)
         ));
     });
 
@@ -116,10 +114,9 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
     RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
-    LanguageServerHost server;
     if (serverConfiguration.UseStdIo)
     {
-        server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory, typeRefResolver);
+        connectionManager.CreateLanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, typeRefResolver);
     }
     else
     {
@@ -131,15 +128,8 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             : serverConfiguration.ServerPipeName!;
         var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
         await pipeClient.ConnectAsync(cancellationToken);
-        server = new LanguageServerHost(pipeClient, pipeClient, exportProvider, loggerFactory, typeRefResolver);
+        connectionManager.CreateLanguageServerHost(pipeClient, pipeClient, exportProvider, typeRefResolver);
     }
-
-    // Eagerly resolve the workspace factory from the per-server LSP services, since right now the language server
-    // assumes there's at least one Workspace. This as a side effect creates the actual workspace object which is
-    // registered by the LspWorkspaceRegistrationEventListener.
-    var workspaceFactory = server.GetLspServices().GetRequiredService<LanguageServerWorkspaceFactory>();
-
-    server.Start();
 
     logger.LogInformation("Language server initialized");
     RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
@@ -149,7 +139,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         if (serverConfiguration.ClientProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
             logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
 
-        await server.WaitForExitAsync();
+        await connectionManager.WaitForExitAsync();
     }
     finally
     {
