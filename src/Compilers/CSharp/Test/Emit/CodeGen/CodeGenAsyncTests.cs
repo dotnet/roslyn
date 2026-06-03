@@ -12542,7 +12542,7 @@ static class Test1
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net100);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
-            CompileAndVerify(comp).VerifyDiagnostics();
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Fact]
@@ -12571,7 +12571,7 @@ static class Test1
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateCompilation(code, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.Net100);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
-            CompileAndVerify(comp).VerifyDiagnostics();
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Fact]
