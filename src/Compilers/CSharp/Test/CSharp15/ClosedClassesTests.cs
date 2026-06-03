@@ -4780,17 +4780,106 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             E => 3,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
-                // TODO2: these diagnostics seem unexpected. Why aren't they reported for analogous non-union case in Exhaustiveness_ConstrainedToClosedType_02?
+                // TODO2: these diagnostics here and in _04 test below seem unexpected. Why aren't they reported for analogous non-union case in Exhaustiveness_ConstrainedToClosedType_02?
                 // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
                 //         return x switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18),
                 // (215,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
                 //         return x switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(215, 18));
+        }
+    }
 
-            var classE = comp.GetMember<NamedTypeSymbol>("E");
-            Assert.True(classE.TryGetClosedSubtypes(out var subtypes));
-            Assert.Equal(["F1", "F2"], subtypes.ToTestDisplayStrings());
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_04()
+    {
+        // Similar to Exhaustiveness_ConstrainedToClosedType_03 except union only has one case type.
+        var source1 = """
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+
+            public union U<T>(T);
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X>(U<X> x) where X : E
+                {
+                    return x switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+                    };
+                }
+
+                int M2<X>(U<X> x) where X : E
+                {
+            #line 100
+                    return x switch
+                    {
+                        F1 => 1,
+                    };
+                }
+
+                int M3<X>(U<X> x) where X : E
+                {
+                    return x switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+            #line 200
+                        E => 3,
+                    };
+                }
+
+                int M4<X>(U<X> x) where X : E
+                {
+                    return x switch
+                    {
+                        X => 1,
+                    };
+                }
+
+                int M5<X>(U<X> x) where X : E
+                {
+                    return x switch
+                    {
+                        F1 => 1,
+                        X => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            // Note: using VerifyEmitDiagnostics here leads to an assertion failure.
+            // See https://github.com/dotnet/roslyn/issues/83978
+            comp.VerifyDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return x switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             E => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
+                // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return x switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18),
+                // (214,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return x switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(214, 18));
         }
     }
 
