@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -52,6 +52,14 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
             }
         }
 
+        if (workspaceContent.ShouldRestore)
+        {
+            foreach (var projectPath in workspaceContent.Files.Keys.Where(static path => PathUtilities.GetExtension(path) == ".csproj"))
+                ProcessUtilities.Run("dotnet", $"restore --project \"{GetFullPath(projectDirectory.Path, projectPath)}\"");
+        }
+
+        var workDoneProgressTarget = new WorkDoneProgressTarget();
+
         // Create server and open the project
         var lspClient = await TestLspClient.CreateAsync(
             clientCapabilities ?? new ClientCapabilities(),
@@ -60,21 +68,9 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
             LoggerFactory,
             workspaceContent,
             projectDirectory.Path,
+            workDoneProgressTarget,
             locations: annotatedLocations);
 
-        if (workspaceContent.ShouldRestore)
-        {
-            foreach (var projectPath in workspaceContent.Files.Keys.Where(static path => PathUtilities.GetExtension(path) == ".csproj"))
-                ProcessUtilities.Run("dotnet", $"restore --project \"{GetFullPath(projectDirectory.Path, projectPath)}\"");
-        }
-
-        lspClient.AddClientLocalRpcTarget(new WorkDoneProgressTarget());
-
-        // Listen for project initialization
-        var projectInitialized = new TaskCompletionSource();
-        lspClient.AddClientLocalRpcTarget(ProjectInitializationHandler.ProjectInitializationCompleteName, () => projectInitialized.SetResult());
-
-#pragma warning disable RS0030 // Do not use banned APIs
         if (workspaceContent.LoadPath is not null)
         {
             var fullLoadPath = GetFullPath(projectDirectory.Path, workspaceContent.LoadPath);
@@ -90,11 +86,10 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
                 default:
                     throw new InvalidOperationException($"Unsupported load path extension: {PathUtilities.GetExtension(workspaceContent.LoadPath)}");
             }
-        }
-#pragma warning restore RS0030 // Do not use banned APIs
 
-        // Wait for initialization
-        await projectInitialized.Task;
+            await lspClient.WaitForProjectInitializationAsync();
+            lspClient.ProjectInitializationCompleted = true;
+        }
 
         return lspClient;
 
@@ -112,13 +107,110 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         }
     }
 
-    private class WorkDoneProgressTarget
+    internal sealed class WorkDoneProgressTarget
     {
+        private readonly object _gate = new();
+        private readonly Dictionary<string, WorkDoneProgressUnit> _unitsByToken = [];
+        private readonly List<(string Title, TaskCompletionSource<WorkDoneProgressUnit> Source)> _unitSourcesByTitle = [];
+
         [JsonRpcMethod(Methods.WindowWorkDoneProgressCreateName, UseSingleObjectParameterDeserialization = true)]
-        public Task HandleCreateWorkDoneProgress(WorkDoneProgressCreateParams _1, CancellationToken _2) => Task.CompletedTask;
+        public Task HandleCreateWorkDoneProgress(WorkDoneProgressCreateParams workDoneProgressCreateParams, CancellationToken _)
+        {
+            var token = GetToken(workDoneProgressCreateParams.Token);
+            var unit = new WorkDoneProgressUnit(token, workDoneProgressCreateParams);
+
+            lock (_gate)
+            {
+                _unitsByToken.Add(token, unit);
+            }
+
+            return Task.CompletedTask;
+        }
 
         [JsonRpcMethod(Methods.ProgressNotificationName, UseSingleObjectParameterDeserialization = true)]
-        public Task HandleProgress((string token, object value) _1, CancellationToken _2) => Task.CompletedTask;
+        public Task HandleProgress(JsonElement progressParams, CancellationToken _)
+        {
+            var progressReport = progressParams.Deserialize<ProgressReportParams>(ProtocolConversions.LspJsonSerializerOptions);
+            WorkDoneProgressUnit unit;
+
+            lock (_gate)
+            {
+                unit = _unitsByToken[progressReport.Token];
+            }
+
+            unit.AddProgress(progressReport.Value);
+
+            if (progressReport.Value is WorkDoneProgressBegin begin)
+            {
+                lock (_gate)
+                {
+                    foreach (var (title, source) in _unitSourcesByTitle)
+                    {
+                        if (title == begin.Title)
+                            source.TrySetResult(unit);
+                    }
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task<WorkDoneProgressUnit> WaitForWorkDoneProgressCreation(string title)
+        {
+            lock (_gate)
+            {
+                if (_unitsByToken.Values.FirstOrDefault(unit => unit.Title == title) is { } unit)
+                    return Task.FromResult(unit);
+
+                var unitSource = new TaskCompletionSource<WorkDoneProgressUnit>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _unitSourcesByTitle.Add((title, unitSource));
+                return unitSource.Task;
+            }
+        }
+
+        private static string GetToken(SumType<int, string> token)
+            => token.Value?.ToString() ?? throw new InvalidOperationException("Work-done progress token must not be null.");
+
+        internal sealed class WorkDoneProgressUnit(string token, WorkDoneProgressCreateParams createParams)
+        {
+            private readonly object _gate = new();
+            private readonly List<WorkDoneProgress> _progressReports = [];
+            private readonly TaskCompletionSource<WorkDoneProgressEnd> _endSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public string Token { get; } = token;
+            public WorkDoneProgressCreateParams CreateParams { get; } = createParams;
+
+            public string? Title { get; private set; }
+
+            public void AddProgress(WorkDoneProgress progress)
+            {
+                lock (_gate)
+                {
+                    _progressReports.Add(progress);
+
+                    if (progress is WorkDoneProgressBegin begin)
+                        Title = begin.Title;
+
+                    if (progress is WorkDoneProgressEnd end)
+                        _endSource.TrySetResult(end);
+                }
+            }
+
+            public Task<WorkDoneProgressEnd> WaitForEndAsync()
+                => _endSource.Task;
+
+            public ImmutableArray<WorkDoneProgress> GetProgressReports()
+            {
+                lock (_gate)
+                {
+                    return [.. _progressReports];
+                }
+            }
+        }
+
+        private readonly record struct ProgressReportParams(
+            [property: System.Text.Json.Serialization.JsonPropertyName("token")] string Token,
+            [property: System.Text.Json.Serialization.JsonPropertyName("value")] WorkDoneProgress Value);
     }
 
     private protected static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(DocumentUri codeUri, SourceText text, ImmutableDictionary<string, ImmutableArray<TextSpan>> spanMap)

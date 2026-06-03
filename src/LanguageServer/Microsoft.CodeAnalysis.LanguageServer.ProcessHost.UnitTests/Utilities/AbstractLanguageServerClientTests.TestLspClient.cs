@@ -41,6 +41,7 @@ public partial class AbstractLanguageServerClientTests
             ILoggerFactory loggerFactory,
             LspWorkspaceContent workspaceContent,
             string workspaceRootPath,
+            WorkDoneProgressTarget workDoneProgressTarget,
             Dictionary<string, IList<LSP.Location>>? locations = null)
         {
             var pipeName = CreateNewPipeName();
@@ -58,7 +59,7 @@ public partial class AbstractLanguageServerClientTests
             using var cts = new CancellationTokenSource(TimeOutMsNewProcess);
             await pipeServer.WaitForConnectionAsync(cts.Token);
 
-            var lspClient = new TestLspClient(process, pipeServer, workspaceContent, workspaceRootPath, locations ?? [], loggerFactory);
+            var lspClient = new TestLspClient(process, pipeServer, workspaceContent, workspaceRootPath, workDoneProgressTarget, locations ?? [], loggerFactory);
 
             // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
             if (process.HasExited)
@@ -66,8 +67,11 @@ public partial class AbstractLanguageServerClientTests
                 throw new Exception($"LSP process exited immediately with {process.ExitCode}");
             }
 
+            lspClient.AddClientLocalRpcTarget(workDoneProgressTarget);
+            lspClient.AddClientLocalRpcTarget(ProjectInitializationHandler.ProjectInitializationCompleteName, lspClient.OnProjectInitializationComplete);
+
             // Initialize the capabilities.
-            var initializeResponse = await lspClient.Initialize(clientCapabilities);
+            var initializeResponse = await lspClient.Initialize(clientCapabilities, workspaceRootPath);
             Assert.NotNull(initializeResponse?.Capabilities);
             lspClient._serverCapabilities = initializeResponse.Capabilities;
 
@@ -140,17 +144,24 @@ public partial class AbstractLanguageServerClientTests
 
         internal ServerCapabilities ServerCapabilities => _serverCapabilities ?? throw new InvalidOperationException("Initialize has not been called");
         internal LspWorkspaceContent WorkspaceContent => _workspaceContent;
+        internal string WorkspaceRootPath => _workspaceRootPath;
+        internal bool ProjectInitializationCompleted { get; set; }
+        internal WorkDoneProgressTarget WorkDoneProgress { get; }
+
+        private readonly TaskCompletionSource _projectInitializationCompletedSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private TestLspClient(
             Process process,
             Stream pipeStream,
             LspWorkspaceContent workspaceContent,
             string workspaceRootPath,
+            WorkDoneProgressTarget workDoneProgressTarget,
             Dictionary<string, IList<LSP.Location>> locations,
             ILoggerFactory loggerFactory)
         {
             _workspaceContent = workspaceContent;
             _workspaceRootPath = Path.GetFullPath(workspaceRootPath);
+            WorkDoneProgress = workDoneProgressTarget;
             _locations = locations;
             _loggerFactory = loggerFactory;
             _process = process;
@@ -236,8 +247,19 @@ public partial class AbstractLanguageServerClientTests
             _clientRpc.AddLocalRpcMethod(methodName, handler);
         }
 
-        public Task<InitializeResult?> Initialize(ClientCapabilities clientCapabilities)
-            => ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
+        public Task<InitializeResult?> Initialize(ClientCapabilities clientCapabilities, string workspaceRootPath)
+            => ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams
+            {
+                Capabilities = clientCapabilities,
+                WorkspaceFolders =
+                [
+                    new WorkspaceFolder
+                    {
+                        DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspaceRootPath),
+                        Name = Path.GetFileName(workspaceRootPath)
+                    }
+                ]
+            }, CancellationToken.None);
 
         public Task Initialized()
             => ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
@@ -305,6 +327,15 @@ public partial class AbstractLanguageServerClientTests
         public string GetFileText(string path) => _workspaceContent.GetFileText(path);
 
         public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
+
+        public async Task WaitForProjectInitializationAsync()
+        {
+            await _projectInitializationCompletedSource.Task;
+            ProjectInitializationCompleted = true;
+        }
+
+        private void OnProjectInitializationComplete()
+            => _projectInitializationCompletedSource.TrySetResult();
 
         private string GetRelativePath(DocumentUri documentUri)
         {
