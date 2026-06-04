@@ -1699,7 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
                     (isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IDictionary_KV, out elementType) ||
-                    isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV, out elementType)))
+                     isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV, out elementType)))
                 {
                     return CollectionExpressionTypeKind.DictionaryInterface;
                 }
@@ -1732,10 +1732,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (targetType is NamedTypeSymbol { Arity: 2 } namedType &&
                     ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(dictionaryType)))
                 {
-                    elementType = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV).
-                        Construct(namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics));
+                    elementType = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)
+                        .Construct(namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics));
                     return true;
                 }
+
                 elementType = default;
                 return false;
             }
@@ -1753,33 +1754,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool IsKeyValuePairType(CSharpCompilation compilation, TypeSymbol? targetType, WellKnownType keyValuePairType, out TypeWithAnnotations keyType, out TypeWithAnnotations valueType)
-        {
-            if (targetType is NamedTypeSymbol { Arity: 2 } namedType
-                && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(keyValuePairType)))
-            {
-                var typeArguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                keyType = typeArguments[0];
-                valueType = typeArguments[1];
-                return true;
-            }
-            keyType = default;
-            valueType = default;
-            return false;
-        }
-
         internal static bool IsKeyValuePairType(
             CSharpCompilation compilation,
             TypeSymbol? type,
             [NotNullWhen(true)] out TypeSymbol? keyType,
             [NotNullWhen(true)] out TypeSymbol? valueType)
         {
-            if (IsKeyValuePairType(compilation, type, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var keyTypeWithAnnotations, out var valueTypeWithAnnotations))
+            if (type is NamedTypeSymbol { Arity: 2 } namedType
+                && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)))
             {
-                keyType = keyTypeWithAnnotations.Type;
-                valueType = valueTypeWithAnnotations.Type;
+                var typeArguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                keyType = typeArguments[0].Type;
+                valueType = typeArguments[1].Type;
                 return true;
             }
+
             keyType = null;
             valueType = null;
             return false;
@@ -1794,6 +1783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (keyType, valueType);
             }
+
             return null;
         }
 #nullable disable

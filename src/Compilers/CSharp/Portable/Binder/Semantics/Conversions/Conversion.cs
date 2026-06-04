@@ -137,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CollectionExpressionUncommonData(collectionExpressionTypeKind, elementType, constructor, constructorUsedInExpandedForm, elementConversions));
         }
 
-<<<<<<< HEAD
         internal static Conversion CreateUnionConversion(UserDefinedConversionResult conversionResult)
         {
             return new Conversion(
@@ -147,14 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isArrayIndex: false,
                     conversionResult: conversionResult,
                     conversionMethod: null));
-||||||| c04730aa9ee
-=======
+        }
+
         internal static Conversion CreateKeyValuePairConversion(Conversion keyConversion, Conversion valueConversion)
         {
             return new Conversion(
                 ConversionKind.KeyValuePair,
                 new NestedUncommonData([keyConversion, valueConversion]));
->>>>>>> upstream/features/dictionary-expressions-old
         }
 
         private Conversion(

@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
                 }
                 else if (elements.Length > 0 &&
-                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
+                         !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
@@ -211,22 +211,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                if (element is BoundCollectionExpressionWithElement)
-                {
-                    // Collection arguments do not affect convertibility.
-                    continue;
-                }
                 Conversion elementConversion = GetCollectionExpressionElementConversion(element, elementType, elementKeyValueTypes, ref useSiteInfo);
                 if (!elementConversion.Exists)
                 {
                     builder.Free();
                     return Conversion.NoConversion;
                 }
+
                 builder.Add(elementConversion);
             }
 
-            var elementConversions = builder.ToImmutableAndFree();
-            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, elementConversions);
+            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
         }
 
         private Conversion GetCollectionExpressionElementConversion(
@@ -284,15 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return elementConversion;
                         }
                         else if (expressionElement.Type is { } &&
-                            elementKeyValueTypes is (var keyType, var valueType) &&
-                            IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
+                                 elementKeyValueTypes is (var keyType, var valueType) &&
+                                 IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
                         {
                             var keyConversion = ClassifyImplicitConversionFromType(elementKeyType, keyType, ref useSiteInfo);
                             var valueConversion = ClassifyImplicitConversionFromType(elementValueType, valueType, ref useSiteInfo);
                             if (keyConversion.Exists && valueConversion.Exists)
                             {
-                                // If key and value conversions are both identity, ClassifyImplicitConversionFromExpression()
-                                // should have returned an identity conversion for the entire expression.
+                                // If key and value conversions are both identity, GetCollectionExpressionSpreadElementConversion()
+                                // should have returned an identity conversion.
                                 Debug.Assert(!keyConversion.IsIdentity || !valueConversion.IsIdentity);
                                 return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
                             }
@@ -300,7 +295,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
             }
+
             return Conversion.NoConversion;
+        }
+
+        internal Conversion GetCollectionExpressionSpreadElementConversion(
+            BoundCollectionExpressionSpreadElement element,
+            TypeSymbol targetType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return Conversion.NoConversion;
+            }
+            return GetCollectionExpressionSpreadElementConversion(element.Syntax, targetType, enumeratorInfo, ref useSiteInfo);
         }
 
         internal Conversion GetCollectionExpressionSpreadElementConversion(
