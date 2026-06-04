@@ -18,8 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem;
 
-internal sealed class FileWatchedReferenceFactory<TReference>
-    where TReference : class
+internal sealed class ReferenceFileChangeTracker
 {
     private readonly object _gate = new();
 
@@ -38,7 +37,7 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     private readonly AsyncBatchingWorkQueue<string> _workQueue;
     private readonly Func<string, CancellationToken, Task> _callback;
 
-    public FileWatchedReferenceFactory(
+    public ReferenceFileChangeTracker(
         IFileChangeWatcher fileChangeWatcher,
         IAsynchronousOperationListener asyncListener,
         Func<string, CancellationToken, Task> callback,
@@ -96,7 +95,7 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     }
 
     /// <summary>
-    /// Starts watching a particular <typeparamref name="TReference"/> for changes to the file. If this is already being
+    /// Starts watching a particular reference for changes to the file. If this is already being
     /// watched , the reference count will be incremented. This is *not* safe to attempt to call multiple times for the
     /// same project and reference (e.g. in applying workspace updates)
     /// </summary>
@@ -115,7 +114,7 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     }
 
     /// <summary>
-    /// Decrements the reference count for the given <typeparamref name="TReference"/>. When the reference count reaches
+    /// Decrements the reference count for the given reference. When the reference count reaches
     /// 0, the file watcher will be stopped. This is *not* safe to attempt to call multiple times for the same project
     /// and reference (e.g. in applying workspace updates)
     /// </summary>

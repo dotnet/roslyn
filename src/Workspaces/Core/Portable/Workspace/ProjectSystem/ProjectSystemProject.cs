@@ -1264,10 +1264,10 @@ internal sealed partial class ProjectSystemProject
         Contract.ThrowIfNull(remainingAnalyzerReferences);
 
         foreach (var reference in remainingMetadataReferences.OfType<PortableExecutableReference>())
-            _projectSystemProjectFactory.FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!);
+            _projectSystemProjectFactory.PortableExecutableReferenceFileChangeTracker.StopWatchingReference(reference.FilePath!);
 
         foreach (var reference in remainingAnalyzerReferences)
-            _projectSystemProjectFactory.FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference.FullPath!);
+            _projectSystemProjectFactory.AnalyzerReferenceFileChangeTracker.StopWatchingReference(reference.FullPath!);
     }
 
     public void ReorderSourceFiles(ImmutableArray<string> filePaths)
