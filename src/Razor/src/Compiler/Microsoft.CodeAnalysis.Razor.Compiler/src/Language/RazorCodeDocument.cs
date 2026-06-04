@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -267,15 +267,24 @@ public sealed partial class RazorCodeDocument
     internal RazorCSharpDocument GetRequiredCSharpDocument(bool declarationDocument)
         => GetCSharpDocument(declarationDocument).AssumeNotNull();
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
     internal bool TryGetImplCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
     {
         result = _csharpDocument;
         return result is not null;
     }
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
     internal RazorCSharpDocument? GetImplCSharpDocument()
         => _csharpDocument;
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
     internal RazorCSharpDocument GetRequiredImplCSharpDocument()
         => _csharpDocument.AssumeNotNull();
 
@@ -289,6 +298,9 @@ public sealed partial class RazorCodeDocument
         return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, value, _declCSharpDocument, _directiveTagHelperContributions);
     }
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
     internal RazorCSharpDocument? GetDeclCSharpDocument()
         => _declCSharpDocument;
 

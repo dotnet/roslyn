@@ -87,7 +87,22 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return snapshotManager.GetSnapshot(newDocument);
     }
 
-    public async ValueTask<SourceGeneratedDocument> GetGeneratedDocumentAsync(CancellationToken cancellationToken)
+    public async ValueTask<SourceGeneratedDocument> GetGeneratedDocumentAsync(bool declarationDocument, CancellationToken cancellationToken)
+    {
+        return declarationDocument
+            ? (await TryGetDeclGeneratedDocumentInternalAsync(cancellationToken).ConfigureAwait(false)).AssumeNotNull()
+            : await GetGeneratedDocumentInternalAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
+    public ValueTask<SourceGeneratedDocument> GetGeneratedDocumentAsync(CancellationToken cancellationToken)
+    {
+        return GetGeneratedDocumentInternalAsync(cancellationToken);
+    }
+
+    private async ValueTask<SourceGeneratedDocument> GetGeneratedDocumentInternalAsync(CancellationToken cancellationToken)
     {
         if (_generatedDocument is not null)
         {
@@ -102,7 +117,15 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
     /// Returns the decl-half generated document for this Razor document, or <see langword="null"/> when the
     /// source generator did not emit a decl-half for it. Caches the (possibly null) result.
     /// </summary>
-    public async ValueTask<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentAsync(CancellationToken cancellationToken)
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
+    public ValueTask<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentAsync(CancellationToken cancellationToken)
+    {
+        return TryGetDeclGeneratedDocumentInternalAsync(cancellationToken);
+    }
+
+    private async ValueTask<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentInternalAsync(CancellationToken cancellationToken)
     {
         if (Volatile.Read(ref _declGeneratedDocumentInitialized))
         {
@@ -116,9 +139,17 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return declDocument;
     }
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
     public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
-        var document = _generatedDocument;
+        return GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken);
+    }
+
+    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(bool declarationDocument, CancellationToken cancellationToken)
+    {
+        var document = declarationDocument ? _declGeneratedDocument : _generatedDocument;
         if (document is not null &&
             document.TryGetSyntaxTree(out var tree))
         {
@@ -129,7 +160,7 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 
         async ValueTask<SyntaxTree> GetCSharpSyntaxTreeCoreAsync(Document? document, CancellationToken cancellationToken)
         {
-            document ??= await GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            document ??= await GetGeneratedDocumentAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return tree.AssumeNotNull();
