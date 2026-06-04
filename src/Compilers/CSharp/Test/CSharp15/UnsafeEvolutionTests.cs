@@ -3569,11 +3569,27 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             _ = unsafe(1);
             """;
 
-        CreateCompilation(source, options: TestOptions.SigningReleaseExe)
-            .VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (1,5): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // _ = unsafe(1);
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 5),
+        };
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe)
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe)
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseExe)
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
