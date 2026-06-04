@@ -4531,15 +4531,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,29): warning CS8601: Possible null reference assignment.
+                // (9,31): warning CS8601: Possible null reference assignment.
                 //         object[] ab = [..a, ..b]; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..b").WithLocation(9, 29),
-                // (10,24): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(9, 31),
+                // (10,26): warning CS8601: Possible null reference assignment.
                 //         object[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..b").WithLocation(10, 24),
-                // (10,29): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(10, 26),
+                // (10,31): warning CS8601: Possible null reference assignment.
                 //         object[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..b").WithLocation(10, 29));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(10, 31));
         }
 
         [Fact]
@@ -4562,15 +4562,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (10,42): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                // (10,44): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
                 //         IEnumerable<object>[] ab = [..a, ..b]; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "..b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(10, 42),
-                // (11,37): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(10, 44),
+                // (11,39): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
                 //         IEnumerable<object>[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "..b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 37),
-                // (11,42): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 39),
+                // (11,44): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
                 //         IEnumerable<object>[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "..b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 42));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 44));
         }
 
         [Fact]
@@ -6133,56 +6133,31 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_List_T);
-            if (collectionType is "ICollection<object>" or "IList<int>")
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                    //         c = [];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
-                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                    //         c = [];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
-                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
-                    //         c = [];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(7, 13),
-                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
-                    //         c = [];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(7, 13),
-                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                    //         c = [..e];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
-                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                    //         c = [..e];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
-                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
-                    //         c = [..e];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(8, 13),
-                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
-                    //         c = [..e];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 13));
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
-                    //         c = [];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(7, 13),
-                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
-                    //         c = [];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(7, 13),
-                    // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                    //         c = [];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
-                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
-                    //         c = [..e];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(8, 13),
-                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
-                    //         c = [..e];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 13),
-                    // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                    //         c = [..e];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13));
-            }
+            comp.VerifyEmitDiagnostics(
+                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(7, 13),
+                // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(7, 13),
+                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         c = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         c = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
+                //         c = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(8, 13),
+                // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
+                //         c = [..e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..e]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 13));
         }
 
         [Fact]
@@ -7560,7 +7535,7 @@ static class Program
         }
 
         [Fact]
-        public void InterfaceType_ComImport()
+        public void InterfaceType()
         {
             string source = """
                 using System;
@@ -7601,94 +7576,6 @@ static class Program
                 // (27,13): error CS9174: Cannot initialize type 'I' with a collection expression because the type is not constructible.
                 //         i = [3, 4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("I").WithLocation(27, 13));
-        }
-
-        [Fact]
-        public void InterfaceType_ImplementsIEnumerable_01()
-        {
-            string source = $$"""
-                using System.Collections;
-                using System.Collections.Generic;
-                interface IMyCollection1<T> : IEnumerable
-                {
-                    void Add(T t);
-                }
-                interface IMyCollection2<T> : IEnumerable<T>
-                {
-                    void Add(T t);
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        IMyCollection1<int> x;
-                        x = [];
-                        x = [1];
-                        IMyCollection2<int> y;
-                        y = [];
-                        y = [2];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (16,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
-                //         x = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection1<int>").WithLocation(16, 13),
-                // (17,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
-                //         x = [1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("IMyCollection1<int>").WithLocation(17, 13),
-                // (19,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
-                //         y = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection2<int>").WithLocation(19, 13),
-                // (20,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
-                //         y = [2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("IMyCollection2<int>").WithLocation(20, 13));
-        }
-
-        [Fact]
-        public void InterfaceType_ImplementsIEnumerable_02()
-        {
-            string source = $$"""
-                using System.Collections;
-                using System.Collections.Generic;
-                interface IMyCollection1<T> : IEnumerable
-                {
-                    void Add(T t) { }
-                }
-                interface IMyCollection2<T> : IEnumerable<T>
-                {
-                    void Add(T t) { }
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        IMyCollection1<int> x;
-                        x = [];
-                        x = [1];
-                        IMyCollection2<int> y;
-                        y = [];
-                        y = [2];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(
-                source,
-                targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // (16,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
-                //         x = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection1<int>").WithLocation(16, 13),
-                // (17,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
-                //         x = [1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("IMyCollection1<int>").WithLocation(17, 13),
-                // (19,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
-                //         y = [];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection2<int>").WithLocation(19, 13),
-                // (20,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
-                //         y = [2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("IMyCollection2<int>").WithLocation(20, 13));
         }
 
         [Fact]
@@ -9775,12 +9662,12 @@ static class Program
                 // (14,42): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
                 //         MyCollection<object> x = new() { 1 };
                 Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(14, 42),
-                // (17,35): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                // (17,37): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
                 //         MyCollection<object> z = [..x, ..y, 3, v];
-                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "..x").WithArguments("1").WithLocation(17, 35),
-                // (17,40): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "x").WithArguments("1").WithLocation(17, 37),
+                // (17,42): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
                 //         MyCollection<object> z = [..x, ..y, 3, v];
-                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "..y").WithArguments("1").WithLocation(17, 40),
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "y").WithArguments("1").WithLocation(17, 42),
                 // (17,45): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
                 //         MyCollection<object> z = [..x, ..y, 3, v];
                 Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "3").WithArguments("1").WithLocation(17, 45));
@@ -11284,7 +11171,7 @@ static class Program
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[], ");
         }
 
-        [Fact(Skip = "PROTOTYPE: implement binding")]
+        [Fact]
         public void DictionaryElement_02()
         {
             string source = """
@@ -11304,33 +11191,6 @@ static class Program
                 }
                 """;
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[[0, 0]], [[1, 2]], [[3, 4]], ");
-        }
-
-        [Fact]
-        public void KeyValuePairElement_CSharp13()
-        {
-            string source = """
-                using System.Collections.Generic;
-                class Program
-                {
-                    static void Main()
-                    {
-                        Dictionary<int, int> d;
-                        d = [3:4];
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
-            comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[3:4]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                // (7,14): error CS9500: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "3:4").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 14),
-                // (7,15): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(7, 15));
         }
 
         [Theory]
@@ -13030,42 +12890,42 @@ static class Program
             if (targetElementType == "int")
             {
                 comp.VerifyEmitDiagnostics(
-                    // 1.cs(10,27): error CS1503: Argument 1: cannot convert from 'object' to 'int'
-                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..d1").WithArguments("1", "object", "int").WithLocation(10, 27),
                     // 1.cs(10,29): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d1").WithArguments("MyCollection.Add(int)").WithLocation(10, 29),
-                    // 1.cs(10,33): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    // 1.cs(10,29): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..d2").WithArguments("1", "object", "int").WithLocation(10, 33),
+                    Diagnostic(ErrorCode.ERR_BadArgType, "d1").WithArguments("1", "object", "int").WithLocation(10, 29),
                     // 1.cs(10,35): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d2").WithArguments("MyCollection.Add(int)").WithLocation(10, 35),
-                    // 1.cs(10,39): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    // 1.cs(10,35): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..e1").WithArguments("1", "object", "int").WithLocation(10, 39),
+                    Diagnostic(ErrorCode.ERR_BadArgType, "d2").WithArguments("1", "object", "int").WithLocation(10, 35),
                     // 1.cs(10,41): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e1").WithArguments("MyCollection.Add(int)").WithLocation(10, 41),
-                    // 1.cs(10,45): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    // 1.cs(10,41): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..e2").WithArguments("1", "object", "int").WithLocation(10, 45),
+                    Diagnostic(ErrorCode.ERR_BadArgType, "e1").WithArguments("1", "object", "int").WithLocation(10, 41),
                     // 1.cs(10,47): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e2").WithArguments("MyCollection.Add(int)").WithLocation(10, 47),
-                    // 1.cs(14,14): error CS1503: Argument 1: cannot convert from 'object' to 'int'
-                    //         c = [..(dynamic)x, ..(IEnumerable)y];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..(dynamic)x").WithArguments("1", "object", "int").WithLocation(14, 14),
+                    // 1.cs(10,47): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "e2").WithArguments("1", "object", "int").WithLocation(10, 47),
                     // 1.cs(14,16): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         c = [..(dynamic)x, ..(IEnumerable)y];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(dynamic)x").WithArguments("MyCollection.Add(int)").WithLocation(14, 16),
-                    // 1.cs(14,28): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    // 1.cs(14,16): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         c = [..(dynamic)x, ..(IEnumerable)y];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..(IEnumerable)y").WithArguments("1", "object", "int").WithLocation(14, 28),
+                    Diagnostic(ErrorCode.ERR_BadArgType, "(dynamic)x").WithArguments("1", "object", "int").WithLocation(14, 16),
                     // 1.cs(14,30): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         c = [..(dynamic)x, ..(IEnumerable)y];
-                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(IEnumerable)y").WithArguments("MyCollection.Add(int)").WithLocation(14, 30));
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(IEnumerable)y").WithArguments("MyCollection.Add(int)").WithLocation(14, 30),
+                    // 1.cs(14,30): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "(IEnumerable)y").WithArguments("1", "object", "int").WithLocation(14, 30));
             }
             else
             {
@@ -15779,12 +15639,18 @@ namespace System
                 // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                 //         IEnumerable<int> x = [0];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(6, 30),
+                // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IEnumerable<int> x = [0];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(6, 30),
                 // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.Add'
                 //         IEnumerable<int> x = [0];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", "Add").WithLocation(6, 30),
                 // (6,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
                 //         IEnumerable<int> x = [0];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(6, 30),
+                // (7,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         IEnumerable<int> y = [..x];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 30),
                 // (7,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                 //         IEnumerable<int> y = [..x];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[..x]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 30),
@@ -16094,9 +15960,9 @@ namespace System
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8601: Possible null reference assignment.
+                // (5,21): warning CS8601: Possible null reference assignment.
                 //     object[] b = [..a];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..a").WithLocation(5, 19));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a").WithLocation(5, 21));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
@@ -16139,28 +16005,9 @@ namespace System
                 bool m() => throw null!;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,19): warning CS8601: Possible null reference assignment.
+                // (6,21): warning CS8601: Possible null reference assignment.
                 //     object[] b = [..(m() ? a1 : a2)];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..(m() ? a1 : a2)").WithLocation(6, 19));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
-        public void Nullable_Spread_04()
-        {
-            var source = """
-                #nullable enable
-                using System.Collections.Generic;
-                {
-                    IEnumerable<object?> a = [null];
-                    List<object> b = [..a];
-                }
-                {
-                    IEnumerable<object?> a = [null];
-                    List<object> b = [..a!];
-                }
-                """;
-            // https://github.com/dotnet/roslyn/issues/68786: Should report warning for [..a].
-            CreateCompilation(source).VerifyDiagnostics();
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(m() ? a1 : a2)").WithLocation(6, 21));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
@@ -19878,8 +19725,11 @@ partial class Program
                 "public static MyCollection<int> Create(ReadOnlySpan<int> items) => default;", // constructed parameter and return types
                 "public static MyCollection<T> Create<T>(ReadOnlySpan<int> items) => default;", // constructed parameter type
                 "public static MyCollection<int> Create<T>(ReadOnlySpan<T> items) => default;", // constructed return type
+                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int index = 0) => default;", // optional parameter
                 "public static MyCollection<T> Create<T>() => default;", // no parameters
                 "public static void Create<T>(ReadOnlySpan<T> items) { }", // no return type
+                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int index = 0) => default;", // optional parameter
+                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params object[] args) => default;", // params
                 "public static MyCollection<T> Create<T, U>(ReadOnlySpan<T> items) => default;", // extra type parameter
                 "public static MyCollection<T> Create<T>(Span<T> items) => default;", // Span<T>
                 "public static MyCollection<T> Create<T>(T[] items) => default;", // T[]
@@ -19928,112 +19778,6 @@ partial class Program
                 // (7,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 31));
-        }
-
-        [CombinatorialData]
-        [Theory]
-        public void CollectionBuilder_UnexpectedSignature_02(
-            [CombinatorialValues(
-                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int index = 0) => new(items);", // optional parameter
-                "public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params object[] args) => new(items);")] // params
-            string methodDeclaration,
-            bool useCompilationReference)
-        {
-            string sourceA = $$"""
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection<T> : IEnumerable<T>
-                {
-                    private readonly List<T> _list;
-                    internal MyCollection(ReadOnlySpan<T> items) { _list = new(items.ToArray()); }
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
-                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                }
-                public class MyCollectionBuilder
-                {
-                    {{methodDeclaration}}
-                }
-                """;
-            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
-            var refA = AsReference(comp, useCompilationReference);
-
-            string sourceB = """
-                #pragma warning disable 219
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<string> x = [];
-                        x.Report();
-                        MyCollection<int> y = [1, 2, 3];
-                        y.Report();
-                        MyCollection<object> z = new();
-                    }
-                }
-                """;
-            comp = CreateCompilation([sourceB, s_collectionExtensions], references: new[] { refA }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics(
-                // (6,34): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<string> x = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 34),
-                // (8,31): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1, 2, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 31));
-        }
-
-        [CombinatorialData]
-        [Theory]
-        public void CollectionBuilder_UnexpectedSignature_03(
-            bool useCompilationReference)
-        {
-            string sourceA = $$"""
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
-                public struct MyCollection : IEnumerable<int>
-                {
-                    private readonly List<int> _list;
-                    internal MyCollection(ReadOnlySpan<int> items) { _list = new(items.ToArray()); }
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => _list.GetEnumerator();
-                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                }
-                public class MyCollectionBuilder
-                {
-                    private static MyCollection _c;
-                    public static ref MyCollection Create(ReadOnlySpan<int> items)
-                    {
-                        _c = new(items);
-                        return ref _c;
-                    }
-                }
-                """;
-            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
-            var refA = AsReference(comp, useCompilationReference);
-
-            string sourceB = """
-                #pragma warning disable 219
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection x = [];
-                        x.Report();
-                        MyCollection y = [1, 2, 3];
-                        y.Report();
-                    }
-                }
-                """;
-            comp = CreateCompilation([sourceB, s_collectionExtensions], references: new[] { refA }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(
-                comp,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
         [CombinatorialData]
@@ -20948,9 +20692,7 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
-                        y = Params(4, 5);
                     }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
@@ -20960,13 +20702,7 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[]").WithArguments("MyCollectionBuilder").WithLocation(6, 34),
                 // (7,31): warning CS0612: 'MyCollectionBuilder' is obsolete
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder").WithLocation(7, 31),
-                // (9,13): warning CS0612: 'MyCollectionBuilder' is obsolete
-                //         y = Params(4, 5);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Params(4, 5)").WithArguments("MyCollectionBuilder").WithLocation(9, 13),
-                // (11,38): warning CS0612: 'MyCollectionBuilder' is obsolete
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyCollectionBuilder").WithLocation(11, 38));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder").WithLocation(7, 31));
         }
 
         [Fact]
@@ -20998,9 +20734,7 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
-                        y = Params(4, 5);
                     }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
@@ -21013,13 +20747,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[]").WithArguments("MyCollectionBuilder", "message 2").WithLocation(6, 34),
                 // 1.cs(7,31): error CS0619: 'MyCollectionBuilder' is obsolete: 'message 2'
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder", "message 2").WithLocation(7, 31),
-                // 1.cs(9,13): error CS0619: 'MyCollectionBuilder' is obsolete: 'message 2'
-                //         y = Params(4, 5);
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Params(4, 5)").WithArguments("MyCollectionBuilder", "message 2").WithLocation(9, 13),
-                // 1.cs(11,38): error CS0619: 'MyCollectionBuilder' is obsolete: 'message 2'
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "params MyCollection<T> c").WithArguments("MyCollectionBuilder", "message 2").WithLocation(11, 38));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder", "message 2").WithLocation(7, 31));
         }
 
         [CombinatorialData]
@@ -21055,9 +20783,7 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
-                        y = Params(4, 5);
                     }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
@@ -21068,10 +20794,7 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(6, 34),
                 // (7,31): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(7, 31),
-                // (9,13): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
-                //         y = Params(4, 5);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(9, 13));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(7, 31));
         }
 
         [CombinatorialData]
@@ -21107,9 +20830,7 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
-                        y = Params(4, 5);
                     }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
 
@@ -21121,10 +20842,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(6, 34),
                 // (7,31): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
                 //         MyCollection<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(7, 31),
-                // (9,13): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
-                //         y = Params(4, 5);
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(7, 31));
         }
 
         [Fact]
@@ -21157,9 +20875,7 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
-                        y = Params(4, 5);
                     }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
@@ -21170,9 +20886,6 @@ partial class Program
                 // 1.cs(7,31): error CS8901: 'MyCollectionBuilder.Create<int>(ReadOnlySpan<int>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)").WithLocation(7, 31),
-                // 1.cs(9,13): error CS8901: 'MyCollectionBuilder.Create<int>(ReadOnlySpan<int>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
-                //         y = Params(4, 5);
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)").WithLocation(9, 13),
                 // 0.cs(14,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(14, 6),
@@ -21219,13 +20932,12 @@ partial class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(
+            CompileAndVerify(
                 new[] { sourceB1, s_collectionExtensions },
                 references: new[] { refA },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.FailsPEVerify,
                 expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
-            verifier.VerifyDiagnostics();
 
             string sourceB2 = """
                 #pragma warning disable 219
@@ -21243,46 +20955,6 @@ partial class Program
                 // (6,32): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
                 //         MyCollection<int?> x = [4, null];
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[4, null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "int?").WithLocation(6, 32));
-
-            string sourceB3 = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        Params(4, 5).Report();
-                    }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) where T : struct => c;
-                }
-                """;
-            verifier = CompileAndVerify(
-                [sourceB3, s_collectionExtensions],
-                references: new[] { refA },
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[4, 5], "));
-            verifier.VerifyDiagnostics();
-
-            string sourceB4 = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        Params<object>(4, 5);
-                    }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                }
-                """;
-            comp = CreateCompilation(sourceB4, references: new[] { refA }, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // (5,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
-                //         Params<object>(4, 5);
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Params<object>(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "object").WithLocation(5, 9),
-                // (7,28): error CS0310: 'T' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "Params").WithArguments("MyCollection<T>", "T", "T").WithLocation(7, 28),
-                // (7,61): error CS0310: 'T' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
-                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "c").WithArguments("MyCollection<T>", "T", "T").WithLocation(7, 61));
         }
 
         [CombinatorialData]
@@ -21323,13 +20995,12 @@ partial class Program
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(
+            CompileAndVerify(
                 new[] { sourceB1, s_collectionExtensions },
                 references: new[] { refA },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.FailsPEVerify,
                 expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
-            verifier.VerifyDiagnostics();
 
             string sourceB2 = """
                 #pragma warning disable 219
@@ -21347,40 +21018,6 @@ partial class Program
                 // (6,32): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
                 //         MyCollection<int?> x = [4, null];
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[4, null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "int?").WithLocation(6, 32));
-
-            string sourceB3 = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        Params(4, 5).Report();
-                    }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) where T : struct => c;
-                }
-                """;
-            verifier = CompileAndVerify(
-                [sourceB3, s_collectionExtensions],
-                references: new[] { refA },
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[4, 5], "));
-            verifier.VerifyDiagnostics();
-
-            string sourceB4 = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        Params<object>(4, 5);
-                    }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                }
-                """;
-            comp = CreateCompilation(sourceB4, references: new[] { refA }, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // (5,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
-                //         Params<object>(4, 5);
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Params<object>(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "object").WithLocation(5, 9));
         }
 
         [Fact]
@@ -21405,8 +21042,7 @@ partial class Program
                         => default;
                 }
                 """;
-
-            string sourceB1 = """
+            string sourceB = """
                 #pragma warning disable 219
                 class Program
                 {
@@ -21418,50 +21054,11 @@ partial class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB1 }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 1.cs(7,22): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("MyCollection<T>", "T", "int").WithLocation(7, 22),
-                // 0.cs(15,35): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
-                //     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "Create").WithArguments("MyCollection<T>", "T", "T").WithLocation(15, 35));
-
-            string sourceB2 = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        NoConstraints<int>([1]);
-                        NoConstraints<object>([2]);
-                        StructConstraint<int>([3]);
-                        ClassConstraint<object>([4]);
-                    }
-                    static MyCollection<T> NoConstraints<T>(params MyCollection<T> c) => c;
-                    static MyCollection<T> StructConstraint<T>(params MyCollection<T> c) where T : struct => c;
-                    static MyCollection<T> ClassConstraint<T>(params MyCollection<T> c) where T : class => c;
-                }
-                """;
-            comp = CreateCompilation(new[] { sourceA, sourceB2 }, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // 1.cs(5,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
-                //         NoConstraints<int>([1]);
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "NoConstraints<int>").WithArguments("MyCollection<T>", "T", "int").WithLocation(5, 9),
-                // 1.cs(7,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
-                //         StructConstraint<int>([3]);
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "StructConstraint<int>").WithArguments("MyCollection<T>", "T", "int").WithLocation(7, 9),
-                // 1.cs(10,28): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
-                //     static MyCollection<T> NoConstraints<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "NoConstraints").WithArguments("MyCollection<T>", "T", "T").WithLocation(10, 28),
-                // 1.cs(10,68): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
-                //     static MyCollection<T> NoConstraints<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c").WithArguments("MyCollection<T>", "T", "T").WithLocation(10, 68),
-                // 1.cs(11,28): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
-                //     static MyCollection<T> StructConstraint<T>(params MyCollection<T> c) where T : struct => c;
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "StructConstraint").WithArguments("MyCollection<T>", "T", "T").WithLocation(11, 28),
-                // 1.cs(11,71): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
-                //     static MyCollection<T> StructConstraint<T>(params MyCollection<T> c) where T : struct => c;
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c").WithArguments("MyCollection<T>", "T", "T").WithLocation(11, 71),
                 // 0.cs(15,35): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
                 //     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "Create").WithArguments("MyCollection<T>", "T", "T").WithLocation(15, 35));
@@ -22007,14 +21604,8 @@ partial class Program
                         MyCollection<int> x = [];
                         MyCollection<string> y = [null];
                         MyCollection<object> z = MyCollectionBuilder.Create<object>(default);
-<<<<<<< HEAD
                         MyCollection<int> w = [with()];
-||||||| c04730aa9ee
-=======
-                        x = Params(1, 2);
->>>>>>> upstream/features/dictionary-expressions-old
                     }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
@@ -22028,17 +21619,9 @@ partial class Program
                 // (8,54): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
                 //         MyCollection<object> z = MyCollectionBuilder.Create<object>(default);
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Create<object>").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(8, 54),
-<<<<<<< HEAD
                 // (9,32): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
                 //         MyCollection<int> w = [with()];
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "with()").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(9, 32));
-||||||| c04730aa9ee
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Create<object>").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(8, 54));
-=======
-                // (9,13): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
-                //         x = Params(1, 2);
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Params(1, 2)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(9, 13));
->>>>>>> upstream/features/dictionary-expressions-old
         }
 
         [Fact]
@@ -22082,9 +21665,7 @@ partial class Program
                         MyCollection<int> x = [];
                         MyCollection<string> y = [null];
                         MyCollection<object> z = MyCollectionBuilder.Create<object>(default);
-                        x = Params(1, 2);
                     }
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
@@ -22100,10 +21681,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "MyCollectionBuilder").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(8, 34),
                 // (8,54): error CS9041: 'MyCollectionBuilder' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
                 //         MyCollection<object> z = MyCollectionBuilder.Create<object>(default);
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Create<object>").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(8, 54),
-                // (9,13): error CS9041: 'MyCollectionBuilder' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
-                //         x = Params(1, 2);
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Params(1, 2)").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Create<object>").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(8, 54));
         }
 
         [Fact]
@@ -23987,7 +23565,7 @@ partial class Program
                   }
                   IL_008b:  ldloc.0
                   IL_008c:  ret
-                }
+                                }
                 """);
         }
 
@@ -30022,7 +29600,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
                 // (4,52): error CS9215: Collection expression type 'Dictionary<string, object>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //     Dictionary<string, object> Config => /*<bind>*/[
@@ -30315,9 +29893,9 @@ partial class Program
                 // (5,27): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgType, "F1()").WithArguments("1", "int", "string").WithLocation(5, 27),
-                // (5,33): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                // (5,35): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "..F2()").WithArguments("1", "int", "string").WithLocation(5, 33),
+                Diagnostic(ErrorCode.ERR_BadArgType, "F2()").WithArguments("1", "int", "string").WithLocation(5, 35),
                 // (5,35): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(string)' for the collection initializer has some invalid arguments
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "F2()").WithArguments("MyCollection<int>.Add(string)").WithLocation(5, 35));
@@ -30408,9 +29986,9 @@ partial class Program
                 // (5,27): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgType, "F1()").WithArguments("2", "int", "string").WithLocation(5, 27),
-                // (5,33): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                // (5,35): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "..F2()").WithArguments("2", "int", "string").WithLocation(5, 33),
+                Diagnostic(ErrorCode.ERR_BadArgType, "F2()").WithArguments("2", "int", "string").WithLocation(5, 35),
                 // (5,35): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "F2()").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(5, 35));
@@ -30499,9 +30077,9 @@ partial class Program
                 // (5,27): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "string").WithLocation(5, 27),
-                // (5,30): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                // (5,32): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "string").WithLocation(5, 30),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("2", "int", "string").WithLocation(5, 32),
                 // (5,32): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, params string[])' for the collection initializer has some invalid arguments
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions.Add<int>(MyCollection<int>, params string[])").WithLocation(5, 32));
@@ -34565,9 +34143,9 @@ partial class Program
                 """;
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
-                //// (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                //// MyCollection<string?> x1 = [null]; // 1
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(7, 28),
+                // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // MyCollection<string?> x1 = [null]; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "string?").WithLocation(7, 28),
                 // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 // MyCollection<string> x2 = [null]; // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28));
@@ -34609,12 +34187,10 @@ partial class Program
                 }
                 """;
 
-            // We're missing diagnostics for the `where T : notnull` constraint on the Create method
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
-                //// (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T?>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
-                //// MyCollection<string?> x1 = [null];
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28),
+                // (7,28): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T?>)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+                // MyCollection<string?> x1 = [null];
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "[null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T?>)", "T", "string?").WithLocation(7, 28),
                 // (8,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 // MyCollection<string> x2 = [null];
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 28));
@@ -41593,10 +41169,8 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Theory]
-        [CombinatorialData]
-        public void Add_ParamsArray_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        [Fact]
+        public void Add_ParamsArray_01()
         {
             string source = """
                 using System;
@@ -41625,10 +41199,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(
-                source,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-                options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ");
 
@@ -41677,10 +41248,8 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Theory]
-        [CombinatorialData]
-        public void Add_ParamsCollection_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        [Fact]
+        public void Add_ParamsCollection_01()
         {
             string source = """
                 using System;
@@ -41709,10 +41278,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(
-                source,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-                options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ").VerifyDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
@@ -42547,9 +42113,9 @@ partial class Program
                 // (7,33): error CS1503: Argument 1: cannot convert from 'int?' to 'string'
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int?", "string").WithLocation(7, 33),
-                // (7,36): error CS1503: Argument 1: cannot convert from 'int?' to 'string'
+                // (7,38): error CS1503: Argument 1: cannot convert from 'int?' to 'string'
                 //         MyCollection<int?> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int?", "string").WithLocation(7, 36),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int?", "string").WithLocation(7, 38),
                 // (7,38): error CS1950: The best overloaded Add method 'MyCollection<int?>.Add(string)' for the collection initializer has some invalid arguments
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int?>.Add(string)").WithLocation(7, 38));
@@ -42797,9 +42363,9 @@ partial class Program
                 // (21,33): error CS1503: Argument 1: cannot convert from 'int' to 'R'
                 //         MyCollection<int?> z = [x, ..y, null];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "R").WithLocation(21, 33),
-                // (21,36): error CS1503: Argument 1: cannot convert from 'int' to 'R'
+                // (21,38): error CS1503: Argument 1: cannot convert from 'int' to 'R'
                 //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int", "R").WithLocation(21, 36),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int", "R").WithLocation(21, 38),
                 // (21,38): error CS1950: The best overloaded Add method 'MyCollection<int?>.Add(R)' for the collection initializer has some invalid arguments
                 //         MyCollection<int?> z = [x, ..y, null];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int?>.Add(R)").WithLocation(21, 38),
@@ -43266,9 +42832,9 @@ partial class Program
                 // (7,33): error CS1503: Argument 1: cannot convert from 'int' to 'int?[]'
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "int?[]").WithLocation(7, 33),
-                // (7,36): error CS1503: Argument 1: cannot convert from 'int' to 'int?[]'
+                // (7,38): error CS1503: Argument 1: cannot convert from 'int' to 'int?[]'
                 //         MyCollection<int?> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int", "int?[]").WithLocation(7, 36),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int", "int?[]").WithLocation(7, 38),
                 // (7,38): error CS1950: The best overloaded Add method 'MyCollection<int?>.Add(int?[])' for the collection initializer has some invalid arguments
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int?>.Add(int?[])").WithLocation(7, 38));
@@ -43458,9 +43024,9 @@ partial class Program
                 // (8,32): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "string").WithLocation(8, 32),
-                // (8,35): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                // (8,37): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int", "string").WithLocation(8, 35),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int", "string").WithLocation(8, 37),
                 // (8,37): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(string)' for the collection initializer has some invalid arguments
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int>.Add(string)").WithLocation(8, 37));
@@ -43575,9 +43141,9 @@ partial class Program
                 // (7,35): error CS1503: Argument 1: cannot convert from 'object' to 'string'
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "object", "string").WithLocation(7, 35),
-                // (7,38): error CS1503: Argument 1: cannot convert from 'object' to 'string'
+                // (7,40): error CS1503: Argument 1: cannot convert from 'object' to 'string'
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "object", "string").WithLocation(7, 38),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "object", "string").WithLocation(7, 40),
                 // (7,40): error CS1950: The best overloaded Add method 'MyCollection<object>.Add(string)' for the collection initializer has some invalid arguments
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<object>.Add(string)").WithLocation(7, 40));
@@ -44053,9 +43619,9 @@ partial class Program
                 // (8,32): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "string").WithLocation(8, 32),
-                // (8,35): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                // (8,37): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "string").WithLocation(8, 35),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("2", "int", "string").WithLocation(8, 37),
                 // (8,37): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(8, 37));
@@ -45152,9 +44718,9 @@ partial class Program
                 // (7,35): error CS1503: Argument 1: cannot convert from 'int' to 'void*'
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "void*").WithLocation(7, 35),
-                // (7,38): error CS1503: Argument 1: cannot convert from 'int' to 'void*'
+                // (7,40): error CS1503: Argument 1: cannot convert from 'int' to 'void*'
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int", "void*").WithLocation(7, 38),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int", "void*").WithLocation(7, 40),
                 // (7,40): error CS1950: The best overloaded Add method 'MyCollection<object>.Add(void*)' for the collection initializer has some invalid arguments
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<object>.Add(void*)").WithLocation(7, 40));
@@ -45200,9 +44766,9 @@ partial class Program
                 // (7,35): error CS1503: Argument 2: cannot convert from 'int' to 'void*'
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "void*").WithLocation(7, 35),
-                // (7,38): error CS1503: Argument 2: cannot convert from 'int' to 'void*'
+                // (7,40): error CS1503: Argument 2: cannot convert from 'int' to 'void*'
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "void*").WithLocation(7, 38),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("2", "int", "void*").WithLocation(7, 40),
                 // (7,40): error CS1950: The best overloaded Add method 'Extensions1.Add<object>(MyCollection<object>, void*)' for the collection initializer has some invalid arguments
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions1.Add<object>(MyCollection<object>, void*)").WithLocation(7, 40));
@@ -46512,12 +46078,12 @@ class Program
                 // (11,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object x = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 20),
-                // (13,23): warning CS8601: Possible null reference assignment.
+                // (13,25): warning CS8601: Possible null reference assignment.
                 //         object[] z = [..y];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..y").WithLocation(13, 23),
-                // (14,14): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(13, 25),
+                // (14,16): warning CS8601: Possible null reference assignment.
                 //         z = [..y];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..y").WithLocation(14, 14));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(14, 16));
         }
 
         [Fact]
@@ -46539,9 +46105,9 @@ class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,35): warning CS8601: Possible null reference assignment.
+                // (8,37): warning CS8601: Possible null reference assignment.
                 //         IEnumerable<object> y1 = [..x1];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..x1").WithLocation(8, 35));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(8, 37));
         }
 
         [Fact]
@@ -46617,9 +46183,9 @@ class Program
                 // (14,14): warning CS8601: Possible null reference assignment.
                 //         z = [x, ..F(x)];
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(14, 14),
-                // (14,17): warning CS8601: Possible null reference assignment.
+                // (14,19): warning CS8601: Possible null reference assignment.
                 //         z = [x, ..F(x)];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..F(x)").WithLocation(14, 17),
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F(x)").WithLocation(14, 19),
                 // (16,26): warning CS8604: Possible null reference argument for parameter 'x' in 'IEnumerable<string> Program.F<string>(string x)'.
                 //         z = [..F<string>(x)];
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "IEnumerable<string> Program.F<string>(string x)").WithLocation(16, 26));
