@@ -148,7 +148,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         }
 
         // By definition any diagnostics in decl that we want to keep will be kept because they will have a matching diagnostic in impl,
-        // so we can just need to filter decl diagnostics to ignore all unused using directives.
+        // so we just need to filter decl diagnostics to ignore all unused using directives.
         foreach (var diagnostic in declDiagnostics)
         {
             if (diagnostic.Code is not { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen })

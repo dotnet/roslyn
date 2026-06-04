@@ -82,7 +82,7 @@ internal static class ProjectExtensions
 
         var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
-        // There are two possible ways hint names come about: The Razor SDK will product project relative paths for projects that use it
+        // There are two possible ways hint names come about: The Razor SDK will produce project relative paths for projects that use it
         // and for non-Razor SDK projects we fallback to using the full path for hint names. We can't easily detect which situation we're
         // in here, so the loop below handles both cases.
 
@@ -132,7 +132,7 @@ internal static class ProjectExtensions
                     // Multiple documents with the same hint name found, can't be sure which one to return
                     // This can happen as a result of a bug in the source generator: https://github.com/dotnet/razor/issues/11578
                     // We can break the loop safely here, because if there are any project relative hint names, it means the project
-                    // is using the Razor SDK, which will never product full path hint names. Or someone is doing something _very_ weird.
+                    // is using the Razor SDK, which will never produce full path hint names. Or someone is doing something _very_ weird.
                     Debug.Assert(fullPathMatchedDoc is null && fullPathMatchedDeclDoc is null, "We don't expect full matches and partial matches in the same project");
                     candidateDoc = null;
                     break;
