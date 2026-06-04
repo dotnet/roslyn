@@ -261,6 +261,12 @@ public sealed partial class RazorCodeDocument
         return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, value, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
     }
 
+    internal RazorCSharpDocument? GetCSharpDocument(bool declarationDocument)
+        => declarationDocument ? _declCSharpDocument : _csharpDocument;
+
+    internal RazorCSharpDocument GetRequiredCSharpDocument(bool declarationDocument)
+        => GetCSharpDocument(declarationDocument).AssumeNotNull();
+
     internal bool TryGetImplCSharpDocument([NotNullWhen(true)] out RazorCSharpDocument? result)
     {
         result = _csharpDocument;

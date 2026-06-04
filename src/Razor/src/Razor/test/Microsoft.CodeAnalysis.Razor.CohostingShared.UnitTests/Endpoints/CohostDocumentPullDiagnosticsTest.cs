@@ -23,7 +23,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             }
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharp()
         => VerifyDiagnosticsAsync("""
             <div></div>
@@ -38,6 +38,14 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             """);
 
     [Fact]
+    public Task CSharp_ImplicitExpression()
+        => VerifyDiagnosticsAsync("""
+            <div></div>
+
+            @{|CS0103:CallMeMaybe|}()
+            """);
+
+    [Fact]
     public Task Razor()
         => VerifyDiagnosticsAsync("""
             <div>
@@ -47,7 +55,19 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             </div>
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
+    public Task Razor_CodeBlock()
+        => VerifyDiagnosticsAsync("""
+            @code
+            {
+                public void M()
+                {
+                    RenderFragment x = @{|RZ10012:<NonExistentComponent />|};
+                }
+            }
+            """);
+
+    [Fact]
     public Task CSharpAndRazor_MiscellaneousFile()
         => VerifyDiagnosticsAsync("""
             <div>
@@ -66,7 +86,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             """,
             miscellaneousFile: true);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CombinedAndNestedDiagnostics()
         => VerifyDiagnosticsAsync("""
             @using System.Threading.Tasks;
@@ -94,7 +114,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             </div>
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharpUnusedUsings()
        => VerifyDiagnosticsAsync("""
             {|RZ0005:@using System|}
@@ -110,7 +130,47 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             }
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
+    public Task CSharpUsingUnusedInImplOnly()
+       => VerifyDiagnosticsAsync("""
+            @using System.Text
+
+            <div></div>
+
+            @code
+            {
+                public void BuildsStrings(StringBuilder b)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task CSharpUsingUnusedInDeclOnly()
+       => VerifyDiagnosticsAsync("""
+            @using System.Text
+
+            @nameof(StringBuilder)
+
+            <div></div>
+
+            @code
+            {
+                public void BuildsStrings()
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task CSharpUnusedUsings_NoCodeBlock()
+        => VerifyDiagnosticsAsync("""
+            {|RZ0005:@using System|}
+
+            <div></div>
+            """);
+
+    [Fact]
     public Task RazorUsingAlsoPresentInImports()
        => VerifyDiagnosticsAsync("""
             @using System.Text
@@ -128,7 +188,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             }
             """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task RazorUsedUsings()
         => VerifyDiagnosticsAsync(
            input: """
@@ -155,7 +215,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
                <div></div>
                """)]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task RazorUnusedUsings()
         => VerifyDiagnosticsAsync(
             input: """

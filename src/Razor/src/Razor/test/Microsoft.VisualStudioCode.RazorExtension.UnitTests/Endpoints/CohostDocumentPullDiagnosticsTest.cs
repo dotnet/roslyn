@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public partial class CohostDocumentPullDiagnosticsTest
 {
-    [Fact(Skip = "PROTOTYPE(sonic): unused-using diagnostics are emitted from both the impl and decl halves of the split generated source, so this test sees 2 RZ0005 diagnostics back-mapped to the same razor position instead of 1. Needs decl/impl-aware diagnostic dedup. See PR #83887.")]
+    [Fact]
     public async Task CSharpUnusedUsings_HintDiagnosticsInVSCode()
     {
         var document = CreateProjectAndRazorDocument("""

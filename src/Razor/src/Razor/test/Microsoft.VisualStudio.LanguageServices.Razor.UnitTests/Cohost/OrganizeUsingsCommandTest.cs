@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task SortOnly_NoUnused()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -46,6 +46,29 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 """);
 
     [Fact]
+    public Task SortOnly_NoUnused_NoCodeBlock()
+       => VerifyRemoveAndSortUsingsAsync(
+           input: """
+                @using System.Text
+                @using System
+                @using Microsoft.AspNetCore.Components.Forms
+
+                <div></div>
+
+                @nameof(StringBuilder)
+                @nameof(Console)
+                """,
+           expected: """
+                @using System
+                @using System.Text
+
+                <div></div>
+
+                @nameof(StringBuilder)
+                @nameof(Console)
+                """);
+
+    [Fact]
     public Task RemoveOnly_AlreadySorted()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -59,7 +82,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 <div></div>
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task RemoveAndSort_Combined()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -91,10 +114,10 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 }
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task RemoveAndSort_Combined2()
-    => VerifyRemoveAndSortUsingsAsync(
-        input: """
+        => VerifyRemoveAndSortUsingsAsync(
+            input: """
                 @using System.Text
                 @using System.Buffers
                 @using System
@@ -109,7 +132,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                     }
                 }
                 """,
-        expected: """
+            expected: """
                 @using System
                 @using System.Text
 
@@ -148,7 +171,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 <div></div>
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task SystemUsings_SortedFirst()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -185,7 +208,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 }
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task SingleUsing_Used_NoChange()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -215,7 +238,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 }
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task PageDirective_BeforeUsings()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -249,7 +272,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 }
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task PageDirective_BetweenUsings()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -283,7 +306,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 }
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task UsingsSpreadAcrossFile_UnusedRemoved()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -318,7 +341,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 }
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task UsingsSpreadAcrossFile_AllUsed_ConsolidatedIntoFirstGroup()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -354,7 +377,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 }
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task SystemUsings_SortedBeforeNonSystem()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -498,7 +521,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 }
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task AlreadySorted_NoUnused()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -583,7 +606,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 """,
           fileKind: RazorFileKind.Legacy);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task DuplicateUsings_Removed()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
