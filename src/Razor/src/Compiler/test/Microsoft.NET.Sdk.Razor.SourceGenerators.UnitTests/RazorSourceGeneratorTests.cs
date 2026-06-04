@@ -70,9 +70,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -209,9 +207,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -257,9 +253,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -336,9 +330,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -384,9 +376,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -469,9 +459,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -517,9 +505,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -587,9 +573,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -637,9 +621,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -721,9 +703,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -769,9 +749,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -880,9 +858,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -928,9 +904,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1020,9 +994,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1068,9 +1040,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1147,9 +1117,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1208,9 +1176,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1309,9 +1275,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1357,9 +1321,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1438,9 +1400,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1501,9 +1461,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1618,9 +1576,7 @@ namespace MyApp.Pages
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1668,9 +1624,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1739,9 +1693,7 @@ using SurveyPromptRootNamspace;
 #nullable disable
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -1791,9 +1743,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -3266,9 +3216,7 @@ namespace MyApp
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Component : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Component
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -3379,9 +3327,7 @@ namespace MyApp
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Component : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Component
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -3652,9 +3598,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -3760,9 +3704,7 @@ namespace MyApp.Pages
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Index
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)

@@ -11,17 +11,7 @@ namespace TestFiles.IntegrationTests.CodeGenerationIntegrationTest
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class BasicComponent : global::Microsoft.AspNetCore.Components.ComponentBase, 
-#nullable restore
-#line (1,13)-(1,24) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicComponent.cshtml"
-IDisposable
-
-#line default
-#line hidden
-#nullable disable
-
-    #nullable disable
+    public partial class BasicComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)

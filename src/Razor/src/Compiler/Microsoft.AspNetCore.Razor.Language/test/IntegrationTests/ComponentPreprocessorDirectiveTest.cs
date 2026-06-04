@@ -395,15 +395,15 @@ public class ComponentPreprocessorDirectiveTest()
                // x:\dir\subdir\Test\TestComponent.cshtml(15,1): error CS1027: #endif directive expected
                 //
                 Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(15, 1),
-                // (19,10): error CS1513: } expected
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10)
             };
 
         CompileToAssembly(generated, expectedDiagnostic);
@@ -427,15 +427,15 @@ public class ComponentPreprocessorDirectiveTest()
                 // x:\dir\subdir\Test\TestComponent.cshtml(15,1): error CS1027: #endif directive expected
                 //
                 Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(15, 1),
-                // (19,10): error CS1513: } expected
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10)
             };
 
         CompileToAssembly(generated, expectedDiagnostics);
@@ -461,15 +461,15 @@ public class ComponentPreprocessorDirectiveTest()
                 // x:\dir\subdir\Test\TestComponent.cshtml(17,1): error CS1027: #endif directive expected
                 //
                 Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(17, 1),
-                // (19,10): error CS1513: } expected
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10)
             };
 
         CompileToAssembly(generated, expectedDiagnostics);
@@ -495,15 +495,15 @@ public class ComponentPreprocessorDirectiveTest()
                 // x:\dir\subdir\Test\TestComponent.cshtml(17,1): error CS1027: #endif directive expected
                 //
                 Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(17, 1),
-                // (19,10): error CS1513: } expected
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10)
             };
 
         CompileToAssembly(generated, expectedDiagnostics);
@@ -529,15 +529,15 @@ public class ComponentPreprocessorDirectiveTest()
                 // x:\dir\subdir\Test\TestComponent.cshtml(17,1): error CS1027: #endif directive expected
                 //
                 Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(17, 1),
-                // (19,10): error CS1513: } expected
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10),
-                // (19,10): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10),
+                // (17,10): error CS1513: } expected
                 //         {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(19, 10)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 10)
             };
 
         CompileToAssembly(generated, expectedDiagnostics);
