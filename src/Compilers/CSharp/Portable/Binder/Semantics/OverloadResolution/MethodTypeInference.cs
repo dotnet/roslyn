@@ -688,15 +688,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (element)
                 {
-                    case BoundCollectionExpressionWithElement withElement:
-                        // Arguments do not affect type inference.
-                        break;
                     case BoundCollectionExpressionSpreadElement spread:
                         MakeSpreadElementTypeInferences(spread, targetElementType, ref useSiteInfo);
                         break;
-                    case BoundKeyValuePairElement keyValuePairElement:
-                    case BoundKeyValuePairConversion keyValuePairConversion:
-                        // https://github.com/dotnet/roslyn/issues/77873: Handle input type inference for key:value elements.
+                    case BoundKeyValuePairElement:
+                    case BoundKeyValuePairConversion:
+                        // PROTOTYPE: Handle input type inference for key:value elements.
                         break;
                     default:
                         MakeExplicitParameterTypeInferences(binder, (BoundExpression)element, targetElementType, kind, ref useSiteInfo);
@@ -919,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
-                // https://github.com/dotnet/roslyn/issues/77873: Handle output type inference for key:value elements.
+                // PROTOTYPE: Handle output type inference for key:value elements.
                 if (element is BoundExpression expression)
                 {
                     MakeOutputTypeInferences(binder, expression, targetElementType, ref useSiteInfo);
