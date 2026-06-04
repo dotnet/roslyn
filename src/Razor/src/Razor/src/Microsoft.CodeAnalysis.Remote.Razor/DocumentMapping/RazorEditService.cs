@@ -46,7 +46,12 @@ internal sealed partial class RazorEditService(
         Func<RazorTextChange, bool>? directlyMappedEditFilter,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        if (snapshot is not RemoteDocumentSnapshot originSnapshot)
+        {
+            throw new InvalidOperationException("RazorEditService can only be used with RemoteDocumentSnapshot instances.");
+        }
+
+        var codeDocument = await originSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
         AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, directlyMappedEditFilter, cancellationToken, out var skippedEdits);

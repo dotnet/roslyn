@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -19,6 +19,11 @@ internal partial class RazorEditService
 {
     public async Task MapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
+        if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
+        {
+            throw new InvalidOperationException("RazorEditService can only be used with RemoteDocumentSnapshot instances.");
+        }
+
         if (workspaceEdit.DocumentChanges is not null)
         {
             using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
@@ -26,7 +31,7 @@ internal partial class RazorEditService
             {
                 if (edit.TryGetFirst(out var textDocumentEdit))
                 {
-                    await MapTextDocumentEditAsync(contextDocumentSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
+                    await MapTextDocumentEditAsync(originSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
                     if (textDocumentEdit.Edits.Length == 0)
                     {
                         continue;
@@ -41,11 +46,11 @@ internal partial class RazorEditService
 
         if (workspaceEdit.Changes is { } changeMap)
         {
-            workspaceEdit.Changes = await MapDocumentEditsAsync(contextDocumentSnapshot, changeMap, cancellationToken).ConfigureAwait(false);
+            workspaceEdit.Changes = await MapDocumentEditsAsync(originSnapshot, changeMap, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async Task MapTextDocumentEditAsync(IDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit entry, CancellationToken cancellationToken)
+    private async Task MapTextDocumentEditAsync(RemoteDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit entry, CancellationToken cancellationToken)
     {
         var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredSystemUri();
 
@@ -67,13 +72,8 @@ internal partial class RazorEditService
             return;
         }
 
-        var razorDocumentUri = await GetRazorDocumentUriAsync(contextDocumentSnapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
-        if (razorDocumentUri is null)
-        {
-            return;
-        }
-
-        if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, entry.TextDocument.GetProjectContext(), out var documentContext))
+        var documentSnapshot = await TryGetRazorDocumentSnapshotForGeneratedUriAsync(contextDocumentSnapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+        if (documentSnapshot is null)
         {
             return;
         }
@@ -85,17 +85,17 @@ internal partial class RazorEditService
             edits[i] = (TextEdit)entry.Edits[i];
         }
 
-        var mappedEdits = await GetMappedTextEditsAsync(documentContext, edits, cancellationToken).ConfigureAwait(false);
+        var mappedEdits = await GetMappedTextEditsAsync(documentSnapshot, edits, cancellationToken).ConfigureAwait(false);
 
         // Update the entry in-place
         entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
         {
-            DocumentUri = razorDocumentUri.CreateDocumentUriFromSystemUri(),
+            DocumentUri = documentSnapshot.TextDocument.GetURI(),
         };
         entry.Edits = mappedEdits.SelectAsPlainArray(static e => new SumType<TextEdit, AnnotatedTextEdit>(e));
     }
 
-    private async Task<Dictionary<string, TextEdit[]>> MapDocumentEditsAsync(IDocumentSnapshot contextDocumentSnapshot, Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
+    private async Task<Dictionary<string, TextEdit[]>> MapDocumentEditsAsync(RemoteDocumentSnapshot contextDocumentSnapshot, Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
     {
         var mappedChanges = new Dictionary<string, TextEdit[]>(capacity: changes.Count);
 
@@ -117,76 +117,46 @@ internal partial class RazorEditService
                 continue;
             }
 
-            var razorDocumentUri = await GetRazorDocumentUriAsync(contextDocumentSnapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
-            if (razorDocumentUri is null)
+            var documentSnapshot = await TryGetRazorDocumentSnapshotForGeneratedUriAsync(contextDocumentSnapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+            if (documentSnapshot is null)
             {
                 continue;
             }
 
-            if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, projectContext: null, out var documentContext))
-            {
-                continue;
-            }
-
-            var mappedEdits = await GetMappedTextEditsAsync(documentContext, edits, cancellationToken).ConfigureAwait(false);
+            var mappedEdits = await GetMappedTextEditsAsync(documentSnapshot, edits, cancellationToken).ConfigureAwait(false);
             if (mappedEdits.Length == 0)
             {
                 // Nothing to do.
                 continue;
             }
 
-            mappedChanges[razorDocumentUri.AbsoluteUri] = ImmutableCollectionsMarshal.AsArray(mappedEdits)!;
+            mappedChanges[documentSnapshot.TextDocument.GetURI().GetRequiredSystemUri().AbsolutePath] = ImmutableCollectionsMarshal.AsArray(mappedEdits)!;
         }
 
         return mappedChanges;
     }
 
-    private async Task<ImmutableArray<TextEdit>> GetMappedTextEditsAsync(DocumentContext documentContext, TextEdit[] edits, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<TextEdit>> GetMappedTextEditsAsync(RemoteDocumentSnapshot documentSnapshot, TextEdit[] edits, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var razorSourceText = codeDocument.Source.Text;
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var textChanges = edits.SelectAsArray(csharpSourceText.GetRazorTextChange);
-        var mappedEdits = await MapCSharpEditsAsync(textChanges, documentContext.Snapshot, includeCSharpLanguageFeatureEdits: true, directlyMappedEditFilter: null, cancellationToken).ConfigureAwait(false);
+        var mappedEdits = await MapCSharpEditsAsync(textChanges, documentSnapshot, includeCSharpLanguageFeatureEdits: true, directlyMappedEditFilter: null, cancellationToken).ConfigureAwait(false);
 
         return mappedEdits.SelectAsArray(razorSourceText.GetTextEdit);
     }
 
-    private bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext)
+    private async Task<RemoteDocumentSnapshot?> TryGetRazorDocumentSnapshotForGeneratedUriAsync(RemoteDocumentSnapshot originSnapshot, Uri generatedDocumentUri, CancellationToken cancellationToken)
     {
-        if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
-        {
-            throw new InvalidOperationException("RazorEditService can only be used with RemoteDocumentSnapshot instances.");
-        }
-
         var solution = originSnapshot.TextDocument.Project.Solution;
-        if (!solution.TryGetRazorDocument(razorDocumentUri, out var razorDocument))
-        {
-            documentContext = null;
-            return false;
-        }
-
-        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-
-        documentContext = new RemoteDocumentContext(razorDocumentUri.CreateDocumentUriFromSystemUri(), razorDocumentSnapshot);
-        return true;
-    }
-
-    private async Task<Uri?> GetRazorDocumentUriAsync(IDocumentSnapshot contextDocumentSnapshot, Uri generatedDocumentUri, CancellationToken cancellationToken)
-    {
-        if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
-        {
-            throw new InvalidOperationException("RazorEditService can only be used with RemoteDocumentSnapshot instances.");
-        }
-
-        var solution = originSnapshot.TextDocument.Project.Solution;
-        var razorCodeDocument = await _snapshotManager.TryGetRazorCodeDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
-        if (razorCodeDocument is null)
+        var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+        if (razorDocument is null)
         {
             return null;
         }
 
-        return solution.GetRazorDocumentUri(razorCodeDocument);
+        return _snapshotManager.GetSnapshot(razorDocument);
     }
 }
