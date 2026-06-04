@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.CodeAction
 
 public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83181")]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestMoveStaticMembersActionIsSurfaced(bool includeDevKitComponents)
     {
         var markup =
@@ -31,8 +30,7 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
         Assert.Contains(codeActionResults, action => action.Title == "Move static members to another type...");
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83181")]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestMoveStaticMembersActionMovesSelectedMembersToHelperClass(bool includeDevKitComponents)
     {
         var markup =

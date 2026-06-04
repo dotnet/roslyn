@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.CodeAction
 
 public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83181")]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestExtractBaseClass(bool includeDevKitComponents)
     {
         var markup =
@@ -43,8 +42,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
             """);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83181")]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestExtractInterface(bool includeDevKitComponents)
     {
         var markup =

@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Text;
@@ -46,25 +47,38 @@ public partial class AbstractLanguageServerClientTests
         {
             var pipeName = CreateNewPipeName();
             var fullPipePath = GetFullPipePath(pipeName);
+            var serverPipeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? pipeName : fullPipePath;
 
             // Create the pipe server - the LSP server process will connect to this as a client.
-            var pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+            var pipeServer = new NamedPipeServerStream(serverPipeName, PipeDirection.InOut, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
 
             var processStartInfo = CreateLspStartInfo(fullPipePath, extensionLogsPath, launchOptions);
 
             var process = Process.Start(processStartInfo);
             Assert.NotNull(process);
 
+            var processOutputTracker = new ProcessOutputTracker(process, loggerFactory);
+
             // Wait for the server process to connect to our pipe.
-            using var cts = new CancellationTokenSource(TimeOutMsNewProcess);
-            await pipeServer.WaitForConnectionAsync(cts.Token);
+            try
+            {
+                await WaitForPipeConnectionAsync(pipeServer, process, processOutputTracker);
+            }
+            catch
+            {
+                pipeServer.Dispose();
+                TryKillProcess(process);
+                process.Dispose();
+                throw;
+            }
 
             var lspClient = new TestLspClient(process, pipeServer, workspaceContent, workspaceRootPath, workDoneProgressTarget, locations ?? [], loggerFactory);
 
             // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
             if (process.HasExited)
             {
-                throw new Exception($"LSP process exited immediately with {process.ExitCode}");
+                process.WaitForExit();
+                throw CreateProcessExitedBeforeConnectionException(process, processOutputTracker);
             }
 
             lspClient.AddClientLocalRpcTarget(workDoneProgressTarget);
@@ -143,6 +157,47 @@ public partial class AbstractLanguageServerClientTests
 
                 return processStartInfo;
             }
+
+            static async Task WaitForPipeConnectionAsync(NamedPipeServerStream pipeServer, Process process, ProcessOutputTracker processOutputTracker)
+            {
+                using var cts = new CancellationTokenSource(TimeOutMsNewProcess);
+                var waitForConnectionTask = pipeServer.WaitForConnectionAsync(cts.Token);
+                var waitForExitTask = process.WaitForExitAsync();
+
+                var completedTask = await Task.WhenAny(waitForConnectionTask, waitForExitTask);
+                if (completedTask == waitForExitTask)
+                {
+                    await waitForExitTask;
+                    process.WaitForExit();
+                    throw CreateProcessExitedBeforeConnectionException(process, processOutputTracker);
+                }
+
+                try
+                {
+                    await waitForConnectionTask;
+                }
+                catch (OperationCanceledException ex) when (cts.IsCancellationRequested)
+                {
+                    throw new TimeoutException($"Timed out after {TimeOutMsNewProcess}ms waiting for the LSP process to connect to the pipe.{processOutputTracker.GetCapturedOutput()}", ex);
+                }
+            }
+
+            static Exception CreateProcessExitedBeforeConnectionException(Process process, ProcessOutputTracker processOutputTracker)
+                => new($"LSP process exited before connecting to the pipe with exit code {process.ExitCode}.{processOutputTracker.GetCapturedOutput()}");
+
+            static void TryKillProcess(Process process)
+            {
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                }
+            }
         }
 
         internal ServerCapabilities ServerCapabilities => _serverCapabilities ?? throw new InvalidOperationException("Initialize has not been called");
@@ -170,12 +225,6 @@ public partial class AbstractLanguageServerClientTests
             _process = process;
 
             _process.EnableRaisingEvents = true;
-            _process.OutputDataReceived += Process_OutputDataReceived;
-            _process.ErrorDataReceived += Process_ErrorDataReceived;
-
-            // Call this last so our type is fully constructed before we start firing events
-            _process.BeginOutputReadLine();
-            _process.BeginErrorReadLine();
 
             Assert.False(_process.HasExited);
 
@@ -214,14 +263,56 @@ public partial class AbstractLanguageServerClientTests
             }
         }
 
-        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        private sealed class ProcessOutputTracker
         {
-            _loggerFactory.CreateLogger("LSP STDOUT").LogInformation(e.Data);
-        }
+            private readonly object _gate = new();
+            private readonly StringBuilder _standardOutput = new();
+            private readonly StringBuilder _standardError = new();
+            private readonly ILoggerFactory _loggerFactory;
 
-        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            _loggerFactory.CreateLogger("LSP STDERR").LogInformation(e.Data);
+            public ProcessOutputTracker(Process process, ILoggerFactory loggerFactory)
+            {
+                _loggerFactory = loggerFactory;
+
+                process.OutputDataReceived += Process_OutputDataReceived;
+                process.ErrorDataReceived += Process_ErrorDataReceived;
+
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+            }
+
+            public string GetCapturedOutput()
+            {
+                lock (_gate)
+                {
+                    return $"{Environment.NewLine}STDOUT:{Environment.NewLine}{_standardOutput}{Environment.NewLine}STDERR:{Environment.NewLine}{_standardError}";
+                }
+            }
+
+            private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+            {
+                _loggerFactory.CreateLogger("LSP STDOUT").LogInformation(e.Data);
+                Append(_standardOutput, e.Data);
+            }
+
+            private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+            {
+                _loggerFactory.CreateLogger("LSP STDERR").LogInformation(e.Data);
+                Append(_standardError, e.Data);
+            }
+
+            private void Append(StringBuilder builder, string? data)
+            {
+                if (data is null)
+                {
+                    return;
+                }
+
+                lock (_gate)
+                {
+                    builder.AppendLine(data);
+                }
+            }
         }
 
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
