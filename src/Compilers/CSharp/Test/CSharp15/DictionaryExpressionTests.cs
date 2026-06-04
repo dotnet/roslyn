@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,7 +17,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
-        private const string s_collectionExtensions = CollectionExpressionTests.s_collectionExtensions;
+        private const string s_collectionExtensions = """
+            using System;
+            using System.Collections;
+            using System.Linq;
+            using System.Text;
+            static partial class CollectionExtensions
+            {
+                private static void Append(StringBuilder builder, bool isFirst, object value)
+                {
+                    if (!isFirst) builder.Append(", ");
+                    if (value is IEnumerable e && value is not string)
+                    {
+                        AppendCollection(builder, e);
+                    }
+                    else
+                    {
+                        builder.Append(value is null ? "null" : value.ToString());
+                    }
+                }
+                private static void AppendCollection(StringBuilder builder, IEnumerable e)
+                {
+                    builder.Append("[");
+                    bool isFirst = true;
+                    foreach (var i in e)
+                    {
+                        Append(builder, isFirst, i);
+                        isFirst = false;
+                    }
+                    builder.Append("]");
+                }
+                internal static void Report(this object o, bool includeType = false)
+                {
+                    var builder = new StringBuilder();
+                    Append(builder, isFirst: true, o);
+                    if (includeType) Console.Write("({0}) ", GetTypeName(o.GetType()));
+                    Console.Write(builder.ToString());
+                    Console.Write(", ");
+                }
+                internal static string GetTypeName(this Type type)
+                {
+                    if (type.IsArray)
+                    {
+                        return GetTypeName(type.GetElementType()) + "[]";
+                    }
+                    string typeName = type.Name;
+                    int index = typeName.LastIndexOf('`');
+                    if (index >= 0)
+                    {
+                        typeName = typeName.Substring(0, index);
+                    }
+                    if (!type.IsGenericParameter)
+                    {
+                        if (type.DeclaringType is { } declaringType)
+                        {
+                            typeName = Concat(GetTypeName(declaringType), typeName);
+                        }
+                        else
+                        {
+                            typeName = Concat(type.Namespace, typeName);
+                        }
+                    }
+                    if (!type.IsGenericType)
+                    {
+                        return typeName;
+                    }
+                    var typeArgs = type.GetGenericArguments();
+                    return $"{typeName}<{string.Join(", ", typeArgs.Select(GetTypeName))}>";
+                }
+                private static string Concat(string container, string name)
+                {
+                    return string.IsNullOrEmpty(container) ? name : container + "." + name;
+                }
+            }
+            """;
         private const string s_dictionaryExtensions = """
             using System;
             using System.Collections.Generic;
@@ -49,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             """;
 
-        public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
+        public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp14, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
         [Theory]
         [MemberData(nameof(LanguageVersions))]
@@ -60,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 IDictionary<int, string> d = [1:"one"];
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (2,30): error CS9174: Cannot initialize type 'IDictionary<int, string>' with a collection expression because the type is not constructible.
@@ -90,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 d = [..y];
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (3,5): error CS9174: Cannot initialize type 'IDictionary<int, string>' with a collection expression because the type is not constructible.
@@ -117,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var x = [1:"one"];
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (1,9): error CS9176: There is no target type for the collection expression.
@@ -172,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void LanguageVersionDiagnostics_05(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeExtensionAdd)
         {
             string sourceA = """
@@ -200,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 includeExtensionAdd ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionAdd)
+            if (languageVersion == LanguageVersion.CSharp14 && !includeExtensionAdd)
             {
                 comp.VerifyEmitDiagnostics(
                     // (6,37): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
@@ -213,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     //         Dictionary<int, string> d = [1:"one"];
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(6, 39));
             }
-            else if (languageVersion == LanguageVersion.CSharp13)
+            else if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (6,38): error CS9500: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
@@ -246,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void BreakingChange_DictionaryAdd_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeExtensionAdd)
         {
             string sourceA = """
@@ -279,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 includeExtensionAdd ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionAdd)
+            if (languageVersion == LanguageVersion.CSharp14 && !includeExtensionAdd)
             {
                 comp.VerifyEmitDiagnostics(
                     // (9,13): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
@@ -292,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             var verifier = CompileAndVerify(comp, expectedOutput: "[2:two], [3:three], ");
             verifier.VerifyDiagnostics();
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 verifier.VerifyIL("Program.Main", """
                     {
@@ -418,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void BreakingChange_DictionaryAdd_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeAdd)
         {
             string sourceA = $$"""
@@ -458,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13 && !includeAdd)
+            if (languageVersion == LanguageVersion.CSharp14 && !includeAdd)
             {
                 comp.VerifyEmitDiagnostics(
                     // (9,13): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
@@ -471,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             var verifier = CompileAndVerify(comp, expectedOutput: "[2:two], [3:three], ");
             verifier.VerifyDiagnostics();
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 verifier.VerifyIL("Program.Main", """
                     {
@@ -793,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     """);
             }
             var comp = (CSharpCompilation)verifier.Compilation;
-            string constructMethod = typeName == "Dictionary" ? "System.Collections.Generic.Dictionary<K, V>..ctor()" : "null";
+            string constructMethod = "System.Collections.Generic.Dictionary<K, V>..ctor()";
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 $$"""
                 ICollectionExpressionOperation (3 elements, ConstructMethod: {{constructMethod}}) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}<K, V>) (Syntax: '[k:v, e, ..s]')
@@ -811,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Dictionary_Params(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             [CombinatorialValues("Dictionary", "IDictionary", "IReadOnlyDictionary")] string typeName)
         {
             string source = $$"""
@@ -832,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [source, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 if (typeName == "Dictionary")
                 {
@@ -1011,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'Program.Params<K, V>(params MyDictionary<K, V>)'
@@ -1309,21 +1382,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    // (6,16): error CS1729: 'Dictionary<K, V>' does not contain a constructor that takes 0 arguments
                     //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16));
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[").WithArguments("System.Collections.Generic.Dictionary<K, V>", "0").WithLocation(6, 16));
             }
             else
             {
@@ -1334,15 +1407,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 16),
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
                     //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16));
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 16),
+                    // (6,16): error CS1729: 'Dictionary<K, V>' does not contain a constructor that takes 0 arguments
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[").WithArguments("System.Collections.Generic.Dictionary<K, V>", "0").WithLocation(6, 16));
             }
 
             comp = CreateCompilation(source);
@@ -1353,12 +1426,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    // (6,16): error CS1729: 'Dictionary<K, V>' does not contain a constructor that takes 0 arguments
                     //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS1501: No overload for method '<signature>' takes 0 arguments
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_BadArgCount, $"[{element}]").WithArguments("<signature>", "0").WithLocation(6, 16));
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[").WithArguments("System.Collections.Generic.Dictionary<K, V>", "0").WithLocation(6, 16));
             }
             else
             {
@@ -1366,12 +1436,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
                     //         return [k:v];
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    // (6,16): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Dictionary<K, V>.Dictionary(IEqualityComparer<K>)'
                     //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
-                    // (6,16): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Program.<signature>(IEqualityComparer<K>?)'
-                    //         return [k:v];
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, $"[{element}]").WithArguments("comparer", "Program.<signature>(System.Collections.Generic.IEqualityComparer<K>?)").WithLocation(6, 16));
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[").WithArguments("comparer", "System.Collections.Generic.Dictionary<K, V>.Dictionary(System.Collections.Generic.IEqualityComparer<K>)").WithLocation(6, 16));
             }
 
             comp = CreateCompilation(source);
@@ -1626,9 +1693,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (18,16): error CS8352: Cannot use variable 'd' in this context because it may expose referenced variables outside of their declaration scope
                 //         return d;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "d").WithArguments("d").WithLocation(18, 16),
-                // (22,16): error CS9203: A collection expression of type 'MyDictionary<K, V>' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [k:v];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[k:v]").WithArguments("MyDictionary<K, V>").WithLocation(22, 16),
                 // (27,16): error CS8352: Cannot use variable 'd' in this context because it may expose referenced variables outside of their declaration scope
                 //         return d;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "d").WithArguments("d").WithLocation(27, 16));
@@ -1699,7 +1763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Int64, System.Object>) (Syntax: '[x:y]')
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.Int64, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Int64, System.Object>) (Syntax: '[x:y]')
                   Elements(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'x:y')
                 """);
@@ -1734,7 +1798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[x]')
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.Object, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[x]')
                   Elements(1):
                       IOperation:  (OperationKind.None, Type: System.Collections.Generic.KeyValuePair<System.Object, System.Object>) (Syntax: 'x')
                 """);
@@ -1769,7 +1833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[..y]')
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<System.Object, System.Object>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[..y]')
                   Elements(1):
                       ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.Int32, System.String>) (OperationKind.Spread, Type: null) (Syntax: '..y')
                         Operand:
@@ -2954,7 +3018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Dictionary(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool includeExtensionAdd)
         {
             string sourceA = """
@@ -2986,7 +3050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, includeExtensionAdd ? sourceB : "", s_collectionExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 if (includeExtensionAdd)
                 {
@@ -3082,7 +3146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Params_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues(
                 "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>",
                 "System.Collections.Generic.KeyValuePair<K, V>[]",
@@ -3187,7 +3251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Params_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues("ReadOnlySpan", "Span")] string typeName)
         {
             string source = $$"""
@@ -3219,7 +3283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Params_03(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             [CombinatorialValues("IReadOnlyDictionary", "Dictionary")] string typeName)
         {
             string source = $$"""
@@ -3240,7 +3304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 if (typeName == "Dictionary")
                 {
@@ -3281,7 +3345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_Span(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -3306,7 +3370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net80);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (11,55): error CS9500: Collection expression type 'ReadOnlySpan<KeyValuePair<int, string>>' does not support key-value pair elements.
@@ -3515,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_CustomType(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useCollectionBuilder)
         {
             string sourceA = useCollectionBuilder ?
@@ -3580,7 +3644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 options: TestOptions.ReleaseExe,
                 references: [refA],
                 targetFramework: TargetFramework.Net80);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (11,15): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int, string>>' does not support key-value pair elements.
@@ -3642,7 +3706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_AddObject(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useDynamic)
         {
             string parameterType = useDynamic ? "dynamic" : "object";
@@ -3691,7 +3755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references: [refA],
                 options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net80);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (15,17): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int, string>>' does not support key-value pair elements.
@@ -3814,7 +3878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_AddUserDefinedConversion(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string sourceA = """
                 using System.Collections;
@@ -3866,7 +3930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 references: [refA],
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (15,17): error CS9500: Collection expression type 'MyCollection<int, string>' does not support key-value pair elements.
@@ -3985,7 +4049,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void KeyValuePairConversions_AddOverloads(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool includeAddT)
         {
             string sourceA = $$"""
@@ -4032,7 +4096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 references: [refA],
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 comp.VerifyEmitDiagnostics(
                     // (15,17): error CS9500: Collection expression type 'MyCollection<KeyValuePair<int, string>>' does not support key-value pair elements.
@@ -4240,7 +4304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net80);
-            if (languageVersion == LanguageVersion.CSharp13)
+            if (languageVersion == LanguageVersion.CSharp14)
             {
                 var verifier = CompileAndVerify(
                     comp,
@@ -5432,6 +5496,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (3 elements, ConstructMethod: MyDictionary<K, V>..ctor([System.Collections.Generic.IEqualityComparer<K> comparer = null])) (OperationKind.CollectionExpression, Type: MyDictionary<K, V>) (Syntax: '[with(null) ... :v, e, ..s]')
+                  ConstructArguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: comparer) (OperationKind.Argument, Type: null) (Syntax: 'null')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEqualityComparer<K>, Constant: null, IsImplicit) (Syntax: 'null')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                          Operand:
+                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Elements(3):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'k:v')
                       IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Collections.Generic.KeyValuePair<K, V>) (Syntax: 'e')
@@ -5465,13 +5537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (12,50): error CS0122: 'MyDictionary<K, V>.MyDictionary()' is inaccessible due to its protection level
                 //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
-                Diagnostic(ErrorCode.ERR_BadAccess, "[default:default]").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(12, 50),
-                // (12,51): error CS8716: There is no target type for the default literal.
-                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(12, 51),
-                // (12,59): error CS8716: There is no target type for the default literal.
-                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(12, 59));
+                Diagnostic(ErrorCode.ERR_BadAccess, "[default:default]").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(12, 50));
         }
 
         [Fact]
@@ -5698,15 +5764,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (17,9): error CS0411: The type arguments for method 'Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F([with(null)], x);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)").WithLocation(17, 9),
-                // (18,24): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
-                //         F<int, string>([with(null)], x);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[with(null)]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(18, 24),
                 // (18,38): error CS1503: Argument 2: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'params MyDictionary<int, string>'
                 //         F<int, string>([with(null)], x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "System.Collections.Generic.KeyValuePair<int, string>", "params MyDictionary<int, string>").WithLocation(18, 38),
-                // (19,11): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
-                //         F([with(null)], [x]);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[with(null)]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(19, 11),
                 // (19,25): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
                 //         F([with(null)], [x]);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(19, 25),
