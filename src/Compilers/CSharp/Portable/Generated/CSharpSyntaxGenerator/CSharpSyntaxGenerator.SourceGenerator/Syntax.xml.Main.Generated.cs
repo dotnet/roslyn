@@ -232,7 +232,11 @@ public partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult? VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
+<<<<<<< HEAD
     [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
+||||||| c04730aa9ee
+=======
+>>>>>>> upstream/features/dictionary-expressions-old
     public virtual TResult? VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
@@ -983,7 +987,11 @@ public partial class CSharpSyntaxVisitor
     public virtual void VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
+<<<<<<< HEAD
     [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
+||||||| c04730aa9ee
+=======
+>>>>>>> upstream/features/dictionary-expressions-old
     public virtual void VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
@@ -1733,7 +1741,11 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     public override SyntaxNode? VisitKeyValuePairElement(KeyValuePairElementSyntax node)
         => node.Update((ExpressionSyntax?)Visit(node.KeyExpression) ?? throw new ArgumentNullException("keyExpression"), VisitToken(node.ColonToken), (ExpressionSyntax?)Visit(node.ValueExpression) ?? throw new ArgumentNullException("valueExpression"));
 
+<<<<<<< HEAD
     [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
+||||||| c04730aa9ee
+=======
+>>>>>>> upstream/features/dictionary-expressions-old
     public override SyntaxNode? VisitWithElement(WithElementSyntax node)
         => node.Update(VisitToken(node.WithKeyword), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
@@ -3471,6 +3483,7 @@ public static partial class SyntaxFactory
         => SyntaxFactory.KeyValuePairElement(keyExpression, SyntaxFactory.Token(SyntaxKind.ColonToken), valueExpression);
 
     /// <summary>Creates a new WithElementSyntax instance.</summary>
+<<<<<<< HEAD
     [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public static WithElementSyntax WithElement(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
@@ -3483,6 +3496,21 @@ public static partial class SyntaxFactory
     [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public static WithElementSyntax WithElement(ArgumentListSyntax? argumentList = default)
         => SyntaxFactory.WithElement(SyntaxFactory.Token(SyntaxKind.WithKeyword), argumentList ?? SyntaxFactory.ArgumentList());
+||||||| c04730aa9ee
+=======
+    public static WithElementSyntax WithElement(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
+    {
+        if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
+        if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+        return (WithElementSyntax)Syntax.InternalSyntax.SyntaxFactory.WithElement((Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
+    }
+
+#pragma warning disable RS0027
+    /// <summary>Creates a new WithElementSyntax instance.</summary>
+    public static WithElementSyntax WithElement(ArgumentListSyntax? argumentList = default)
+        => SyntaxFactory.WithElement(SyntaxFactory.Token(SyntaxKind.WithKeyword), argumentList ?? SyntaxFactory.ArgumentList());
+#pragma warning restore RS0027
+>>>>>>> upstream/features/dictionary-expressions-old
 
     /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
     public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)

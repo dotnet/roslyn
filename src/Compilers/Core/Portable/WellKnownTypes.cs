@@ -361,6 +361,10 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_Encoding,
 
+        System_Collections_Generic_Dictionary_KV,
+        System_Collections_Generic_KeyValuePair_KV,
+        System_Collections_ObjectModel_ReadOnlyDictionary_KV,
+
         // The InlineArray types must be sequential, as we do arithmetic on them.
         System_Runtime_CompilerServices_InlineArray2,
         System_Runtime_CompilerServices_InlineArray3,
@@ -732,6 +736,10 @@ namespace Microsoft.CodeAnalysis
             "System.Linq.Expressions.DefaultExpression",
 
             "System.Text.Encoding",
+
+            "System.Collections.Generic.Dictionary`2",
+            "System.Collections.Generic.KeyValuePair`2",
+            "System.Collections.ObjectModel.ReadOnlyDictionary`2",
 
             "System.Runtime.CompilerServices.InlineArray2`1",
             "System.Runtime.CompilerServices.InlineArray3`1",

@@ -528,6 +528,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+<<<<<<< HEAD
         <source>'with(...)' element arguments cannot be dynamic</source>
         <target state="translated">Argumentos de elemento "with(...)" não podem ser dinâmicos</target>
         <note />
@@ -545,6 +546,21 @@
       <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
         <source>'with(...)' elements are not supported for type '{0}'</source>
         <target state="translated">Não há suporte para elementos "with(...)" no tipo "{0}"</target>
+||||||| c04730aa9ee
+=======
+        <source>Collection arguments cannot be dynamic; compile-time binding is required.</source>
+        <target state="new">Collection arguments cannot be dynamic; compile-time binding is required.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>Collection argument element must be the first element.</source>
+        <target state="new">Collection argument element must be the first element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
+        <source>Collection arguments are not supported for type '{0}'.</source>
+        <target state="new">Collection arguments are not supported for type '{0}'.</target>
+>>>>>>> upstream/features/dictionary-expressions-old
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
@@ -575,6 +591,11 @@
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
         <target state="translated">Esta versão de '{0}' não pode ser usada com expressões de coleção.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionKeyValuePairNotSupported">
+        <source>Collection expression type '{0}' does not support key-value pair elements.</source>
+        <target state="new">Collection expression type '{0}' does not support key-value pair elements.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
@@ -2909,7 +2930,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
         <source>collection expression arguments</source>
+<<<<<<< HEAD
         <target state="translated">argumentos de expressão de coleção</target>
+||||||| c04730aa9ee
+=======
+        <target state="new">collection expression arguments</target>
+>>>>>>> upstream/features/dictionary-expressions-old
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
@@ -2920,6 +2946,11 @@
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">retornos de covariante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDictionaryExpressions">
+        <source>dictionary expressions</source>
+        <target state="new">dictionary expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">

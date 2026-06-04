@@ -4417,8 +4417,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.ValuePlaceholder:
+<<<<<<< HEAD
                 case BoundKind.CollectionBuilderElementsPlaceholder:
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
+||||||| c04730aa9ee
+=======
+>>>>>>> upstream/features/dictionary-expressions-old
                     return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
 
                 case BoundKind.Local:
@@ -4813,6 +4817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _localScopeDepth;
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
+<<<<<<< HEAD
                     Debug.Assert(expr.CollectionCreation is not null);
 
                     // For a ref struct type with a builder method, the scope of the collection expression is the scope
@@ -4823,6 +4828,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // element, and the place-holder representing the elements.
                     return GetValEscape(expr.CollectionCreation);
 
+||||||| c04730aa9ee
+                    // For a ref struct type with a builder method, the scope of the collection
+                    // expression is the scope of an invocation of the builder method with the
+                    // collection expression as the span argument. That is, `R r = [x, y, z];`
+                    // is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
+                    var constructMethod = expr.CollectionBuilderMethod;
+                    if (constructMethod is not { Parameters: [{ RefKind: RefKind.None } parameter] })
+                    {
+                        // Unexpected construct method. Restrict the collection to local scope.
+                        return true;
+                    }
+                    Debug.Assert(constructMethod.ReturnType.Equals(expr.Type, TypeCompareKind.AllIgnoreOptions));
+                    Debug.Assert(parameter.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+                    if (parameter.EffectiveScope == ScopedKind.ScopedValue)
+                    {
+                        return false;
+                    }
+                    if (LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, ((NamedTypeSymbol)parameter.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
+                    {
+                        return false;
+                    }
+                    return true;
+=======
+                    Debug.Assert(expr.CollectionCreation is { });
+                    // For a ref struct type with a builder method, the scope of the collection
+                    // expression is the scope of an invocation of the builder method with the
+                    // collection expression as the span argument. That is, `R r = [x, y, z];`
+                    // is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
+                    var context = GetValEscape(expr.CollectionCreation, _localScopeDepth);
+                    return !context.IsReturnable;
+>>>>>>> upstream/features/dictionary-expressions-old
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                     var receiverScope = expr.CollectionCreation is { } collectionCreation
                         ? GetValEscape(collectionCreation)
@@ -5109,8 +5145,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AwaitableValuePlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.ValuePlaceholder:
+<<<<<<< HEAD
                 case BoundKind.CollectionBuilderElementsPlaceholder:
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
+||||||| c04730aa9ee
+=======
+>>>>>>> upstream/features/dictionary-expressions-old
                     if (!GetPlaceholderScope((BoundValuePlaceholderBase)expr).IsConvertibleTo(escapeTo))
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);

@@ -303,6 +303,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
+                case BoundKind.KeyValuePairElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
+                case BoundKind.CollectionExpressionWithElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
+                case BoundKind.KeyValuePairConversion: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -1277,14 +1280,22 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     case CollectionExpressionTypeKind.None:
                     case CollectionExpressionTypeKind.Array:
+<<<<<<< HEAD
+||||||| c04730aa9ee
+                    case CollectionExpressionTypeKind.ArrayInterface:
+=======
+                    case CollectionExpressionTypeKind.ArrayInterface:
+                    case CollectionExpressionTypeKind.DictionaryInterface:
+>>>>>>> upstream/features/dictionary-expressions-old
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                     case CollectionExpressionTypeKind.Span:
                         return null;
                     case CollectionExpressionTypeKind.ArrayInterface:
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
-                        return expr.CollectionBuilderMethod;
+                        return Binder.GetCollectionBuilderMethod(expr);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
                 }
@@ -1332,9 +1343,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundCollectionExpressionElement(BoundCollectionExpression expr, BoundNode element)
         {
-            return element is BoundCollectionExpressionSpreadElement spreadElement ?
-                CreateBoundCollectionExpressionSpreadElement(expr, spreadElement) :
-                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false));
+            return element switch
+            {
+                BoundCollectionExpressionWithElement withElement => Create(withElement),
+                BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(expr, spreadElement),
+                BoundKeyValuePairElement keyValuePairElement => Create(keyValuePairElement),
+                BoundKeyValuePairConversion keyValuePairConversion => Create(keyValuePairConversion),
+                _ => Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false))
+            };
         }
 
         private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpression expr, BoundCollectionExpressionSpreadElement element)
@@ -1346,7 +1362,10 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
             var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
-            var elementConversion = BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
+            // https://github.com/dotnet/roslyn/issues/77872: For key-value pairs, we probably need a pair of conversions rather a single conversion.
+            var elementConversion = iteratorItem is BoundKeyValuePairConversion or BoundConversion { Operand: BoundKeyValuePairConversion } ?
+                Conversion.Identity :
+                BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
             return new SpreadOperation(
                 collection,
                 elementType: elementType,

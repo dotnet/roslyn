@@ -175,7 +175,8 @@ text;
 
     protected async Task VerifySendEnterThroughToEnterAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
-        string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected)
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string textTypedSoFar,
+        EnterKeyRule sendThroughEnterOption, bool expected)
     {
         using var workspace = CreateWorkspace(initialMarkup);
         var hostDocument = workspace.DocumentWithCursor;

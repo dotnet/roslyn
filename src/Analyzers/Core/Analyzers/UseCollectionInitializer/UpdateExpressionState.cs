@@ -474,7 +474,13 @@ internal readonly struct UpdateExpressionState<
                 @this.ValuePatternMatches(instance))
             {
                 // `foreach` will become `..expr` when we make it into a collection expression.
+<<<<<<< HEAD
                 return new(foreachStatement, UseSpread: true, UseCast: needsCast, UseKeyValue: useKeyValue);
+||||||| c04730aa9ee
+                return new(foreachStatement, UseSpread: true);
+=======
+                return new(foreachStatement, UseSpread: true, useKeyValue);
+>>>>>>> upstream/features/dictionary-expressions-old
             }
 
             return null;

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ReadOnlySpan,
         CollectionBuilder,
         ImplementsIEnumerable,
+<<<<<<< HEAD
 
         /// <summary>
         /// One of the well-known interfaces known to be implemented by any array:
@@ -24,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><see cref="IList{T}"/></item>
         /// </list>
         /// </summary>
+||||||| c04730aa9ee
+=======
+        ImplementsIEnumerableWithIndexer,
+>>>>>>> upstream/features/dictionary-expressions-old
         ArrayInterface,
+        DictionaryInterface,
     }
 }

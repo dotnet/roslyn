@@ -13,14 +13,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
+<<<<<<< HEAD
     public Task TestNotAfterWith()
         => VerifyAbsenceAsync(AddInsideMethod(
 @"var q = goo with $$"));
+||||||| c04730aa9ee
+    public async Task TestNotAfterWith()
+    {
+        await VerifyAbsenceAsync(AddInsideMethod(
+@"var q = goo with $$"));
+    }
+=======
+    public async Task TestNotAfterWith()
+    {
+        await VerifyAbsenceAsync(AddInsideMethod(
+            @"var q = goo with $$"));
+    }
+>>>>>>> upstream/features/dictionary-expressions-old
 
     [Fact]
+<<<<<<< HEAD
     public Task TestNotAtRoot_Interactive()
         => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
+||||||| c04730aa9ee
+    public async Task TestNotAtRoot_Interactive()
+    {
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"$$");
+    }
+=======
+    public async Task TestNotAtRoot_Interactive()
+    {
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
+            @"$$");
+    }
+>>>>>>> upstream/features/dictionary-expressions-old
 
     [Fact]
     public Task TestNotAfterClass_Interactive()
@@ -253,6 +281,7 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
+<<<<<<< HEAD
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78800")]
     public Task TestAfterReturnExpression()
@@ -316,4 +345,69 @@ public sealed class WithKeywordRecommenderTests : KeywordRecommenderTests
                 Goo([$$]);
             }
             """);
+||||||| c04730aa9ee
+    }
+=======
+    }
+
+    [Fact]
+    public async Task TestInCollectionExpression1()
+    {
+        await VerifyKeywordAsync(
+            """
+            var v = [$$];
+            """);
+    }
+
+    [Fact]
+    public async Task TestInCollectionExpression2()
+    {
+        await VerifyKeywordAsync(
+            """
+            var v = [$$, 1];
+            """);
+    }
+
+    [Fact]
+    public async Task TestInCollectionExpression3()
+    {
+        await VerifyAbsenceAsync(
+            """
+            var v = [1, $$];
+            """);
+    }
+
+    [Fact]
+    public async Task TestInCollectionExpression4()
+    {
+        await VerifyAbsenceAsync(
+            """
+            var v = [1, $$
+            """);
+    }
+
+    [Fact]
+    public async Task TestInCollectionExpression5()
+    {
+        await VerifyKeywordAsync(
+            """
+            void M()
+            {
+                Goo([$$
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInCollectionExpression6()
+    {
+        await VerifyKeywordAsync(
+            """
+            void M()
+            {
+                Goo([$$]);
+            }
+            """);
+    }
+>>>>>>> upstream/features/dictionary-expressions-old
 }

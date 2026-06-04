@@ -229,7 +229,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // braces (and initial elements) match whatever the initializer correct looks like.
 
                 var initialCollection = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
-                    initializer, wasOnSingleLine: false);
+                    document.Text, initializer, wasOnSingleLine: false);
 
                 if (!makeMultiLineCollectionExpression &&
                     document.Text.AreOnSameLine(initializer.Expressions.First().GetFirstToken(), initializer.Expressions.Last().GetLastToken()))
@@ -268,7 +268,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // end.
 
                 var initialCollection = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
-                    initializer, wasOnSingleLine: false);
+                    document.Text, initializer, wasOnSingleLine: false);
 
                 if (document.Text.AreOnSameLine(initializer.OpenBraceToken.GetPreviousToken(), initializer.OpenBraceToken))
                 {
@@ -317,7 +317,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // First, convert the existing initializer (and its expressions) into a corresponding collection
                 // expression.  This will fixup the braces properly for the collection expression.
                 var initialCollection = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
-                    initializer, wasOnSingleLine: true);
+                    document.Text, initializer, wasOnSingleLine: true);
 
                 // now, add all the matches in after the existing elements.
                 var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredIndentation: null);
@@ -478,15 +478,49 @@ internal static class CSharpCollectionExpressionRewriter
 
                 if (match.UseKeyValue)
                 {
+<<<<<<< HEAD
                     // Enable when dictionary-expressions come online.
 #if false
+||||||| c04730aa9ee
+                    // If we're spreading a collection expression, just insert those inner collection expression
+                    // elements as is into the outer collection expression.
+                    foreach (var element in collectionExpression.Elements)
+=======
+>>>>>>> upstream/features/dictionary-expressions-old
                     if (expressionStatement.Expression is InvocationExpressionSyntax invocation)
                     {
                         var arguments = invocation.ArgumentList.Arguments;
                         yield return KeyValuePairElement(
+<<<<<<< HEAD
                             IndentNode(expressionStatement, arguments[0].Expression, preferredIndentation),
                             ColonToken.WithTriviaFrom(arguments.GetSeparator(0)),
                             IndentNode(expressionStatement, arguments[1].Expression, preferredIndentation));
+||||||| c04730aa9ee
+                        if (element is SpreadElementSyntax spreadElement)
+                        {
+                            yield return CreateCollectionElement(useSpread: true, spreadElement.Expression);
+                        }
+                        else if (element is ExpressionElementSyntax expressionElement)
+                        {
+                            yield return CreateCollectionElement(useSpread: false, expressionElement.Expression);
+                        }
+=======
+                            IndentExpression(expressionStatement, arguments[0].Expression, preferredIndentation),
+                            ColonToken.WithTriviaFrom(arguments.GetSeparator(0)),
+                            IndentExpression(expressionStatement, arguments[1].Expression, preferredIndentation));
+                    }
+                    else if (expressionStatement.Expression is AssignmentExpressionSyntax assignment)
+                    {
+                        var elementAccess = (ElementAccessExpressionSyntax)assignment.Left;
+                        yield return KeyValuePairElement(
+                            IndentExpression(expressionStatement, elementAccess.ArgumentList.Arguments[0].Expression, preferredIndentation),
+                            ColonToken.WithTrailingTrivia(assignment.OperatorToken.TrailingTrivia),
+                            IndentExpression(expressionStatement, assignment.Right, preferredIndentation));
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.Unreachable();
+>>>>>>> upstream/features/dictionary-expressions-old
                     }
                     else if (expressionStatement.Expression is AssignmentExpressionSyntax assignment)
                     {
@@ -506,7 +540,14 @@ internal static class CSharpCollectionExpressionRewriter
                 }
                 else
                 {
+<<<<<<< HEAD
                     var expressions = ConvertExpressions(expressionStatement.Expression, expr => IndentNode(expressionStatement, expr, preferredIndentation));
+||||||| c04730aa9ee
+                    foreach (var expression in expressions)
+                        yield return CreateCollectionElement(match.UseSpread, expression);
+=======
+                    var expressions = ConvertExpressions(expressionStatement.Expression, expr => IndentExpression(expressionStatement, expr, preferredIndentation));
+>>>>>>> upstream/features/dictionary-expressions-old
 
                     Contract.ThrowIfTrue(expressions.Length >= 2 && match.UseSpread);
 
@@ -595,6 +636,10 @@ internal static class CSharpCollectionExpressionRewriter
                 var indentedArgumentList = IndentNode(parentStatement: null, argumentList, preferredIndentation);
                 yield return WithElement(indentedArgumentList.WithoutTrivia())
                     .WithLeadingTrivia(indentedArgumentList.GetLeadingTrivia());
+            }
+            else if (node is ArgumentListSyntax argumentList)
+            {
+                yield return WithElement(argumentList.WithoutTrivia());
             }
             else
             {
@@ -812,7 +857,13 @@ internal static class CSharpCollectionExpressionRewriter
 
             bool CheckForMultiLine(ImmutableArray<CollectionMatch<TMatchNode>> matches)
             {
+<<<<<<< HEAD
                 foreach (var (node, _, _, _) in matches)
+||||||| c04730aa9ee
+                foreach (var (node, _) in matches)
+=======
+                foreach (var (node, _, _) in matches)
+>>>>>>> upstream/features/dictionary-expressions-old
                 {
                     // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
                     // appropriate place to go.

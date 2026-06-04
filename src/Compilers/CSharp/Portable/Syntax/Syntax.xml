@@ -1847,7 +1847,12 @@
     </Field>
     <Field Name="ValueExpression" Type="ExpressionSyntax" />
   </Node>
+<<<<<<< HEAD
   <Node Name="WithElementSyntax" Base="CollectionElementSyntax" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/82210">
+||||||| c04730aa9ee
+=======
+  <Node Name="WithElementSyntax" Base="CollectionElementSyntax">
+>>>>>>> upstream/features/dictionary-expressions-old
     <Kind Name="WithElement"/>
     <Field Name="WithKeyword" Type="SyntaxToken">
       <Kind Name="WithKeyword"/>

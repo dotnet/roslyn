@@ -13267,11 +13267,26 @@ done:
 
         private bool IsPossibleCollectionElement()
         {
-            return this.IsPossibleExpression();
+            // Note: this handles spread elements as well (`.. expr`) as `..` is the start of a range-expression, which
+            // IsPossibleExpression detects.
+            if (this.IsPossibleExpression())
+                return true;
+
+            // Checking for ':' is for error recovery when someone has a key-value-pair-element and is missing the key part.
+            if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
+                return true;
+
+            // Checking for `keyword:` is for error recovery when typing a key-value-pair-element element, but the
+            // partial identifier happens to match a keyword.
+            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+                return true;
+
+            return false;
         }
 
         private CollectionElementSyntax ParseCollectionElement()
         {
+<<<<<<< HEAD
             // Even though `with(` could start a legal expression (like `with(x) + y`), spec mandates that if we see
             // `with(` at the start of a collection element, we only parse it as a with-element.
             if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword &&
@@ -13290,6 +13305,25 @@ done:
             // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
             var expression = !this.IsPossibleExpression() && SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
                 ? _syntaxFactory.IdentifierName(this.EatTokenAsKind(SyntaxKind.IdentifierToken))
+||||||| c04730aa9ee
+            return IsAtDotDotToken()
+                ? _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore())
+                : _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
+=======
+            if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
+                IsFeatureEnabled(MessageID.IDS_FeatureCollectionExpressionArguments))
+            {
+                return _syntaxFactory.WithElement(this.EatContextualToken(SyntaxKind.WithKeyword), this.ParseParenthesizedArgumentList());
+            }
+
+            if (this.IsAtDotDotToken())
+                return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
+
+            // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
+            var expression = !this.IsPossibleExpression() && SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
+                ? _syntaxFactory.IdentifierName(ConvertToIdentifier(this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken)))
+>>>>>>> upstream/features/dictionary-expressions-old
                 : this.ParseExpressionCore();
 
             var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
