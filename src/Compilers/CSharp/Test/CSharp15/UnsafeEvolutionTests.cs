@@ -4146,6 +4146,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var source = """
             int x = 1;
             unsafe(x);
+            unsafe(x++);
             """;
 
         CreateCompilation(source,
@@ -4153,7 +4154,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
             // unsafe(x);
-            Diagnostic(ErrorCode.ERR_IllegalStatement, "unsafe(x)").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "unsafe(x)").WithLocation(2, 1),
+            // (3,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            // unsafe(x++);
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "unsafe(x++)").WithLocation(3, 1));
     }
 
     [Fact]
@@ -7246,24 +7250,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
-            // (1,21): error CS1525: Invalid expression term 'unsafe'
+            // (1,29): error CS1525: Invalid expression term ')'
             // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "unsafe").WithArguments("unsafe").WithLocation(1, 21),
-            // (1,21): error CS1002: ; expected
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 29),
+            // (1,31): error CS1003: Syntax error, ',' expected
             // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "unsafe").WithLocation(1, 21),
-            // (1,29): error CS8124: Tuple must contain at least two elements.
+            Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 31),
+            // (1,36): error CS1002: ; expected
             // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 29),
-            // (1,31): error CS1001: Identifier expected
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 36),
+            // (1,36): error CS1022: Type or namespace definition, or end-of-file expected
             // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 31),
-            // (1,34): error CS1525: Invalid expression term '{'
-            // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 34),
-            // (1,34): error CS1002: ; expected
-            // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 34));
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 36));
     }
 
     [Fact]
