@@ -304,7 +304,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
                 case BoundKind.KeyValuePairElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
-                case BoundKind.CollectionExpressionWithElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
                 case BoundKind.KeyValuePairConversion: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -1280,22 +1279,16 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     case CollectionExpressionTypeKind.None:
                     case CollectionExpressionTypeKind.Array:
-<<<<<<< HEAD
-||||||| c04730aa9ee
-                    case CollectionExpressionTypeKind.ArrayInterface:
-=======
-                    case CollectionExpressionTypeKind.ArrayInterface:
-                    case CollectionExpressionTypeKind.DictionaryInterface:
->>>>>>> upstream/features/dictionary-expressions-old
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                     case CollectionExpressionTypeKind.Span:
                         return null;
                     case CollectionExpressionTypeKind.ArrayInterface:
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                     case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
+                    case CollectionExpressionTypeKind.DictionaryInterface:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
-                        return Binder.GetCollectionBuilderMethod(expr);
+                        return expr.CollectionBuilderMethod;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
                 }
@@ -1345,7 +1338,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return element switch
             {
-                BoundCollectionExpressionWithElement withElement => Create(withElement),
                 BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(expr, spreadElement),
                 BoundKeyValuePairElement keyValuePairElement => Create(keyValuePairElement),
                 BoundKeyValuePairConversion keyValuePairConversion => Create(keyValuePairConversion),
@@ -1362,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
             var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
-            // https://github.com/dotnet/roslyn/issues/77872: For key-value pairs, we probably need a pair of conversions rather a single conversion.
+            // PROTOTYPE: For key-value pairs, we probably need a pair of conversions rather than a single conversion.
             var elementConversion = iteratorItem is BoundKeyValuePairConversion or BoundConversion { Operand: BoundKeyValuePairConversion } ?
                 Conversion.Identity :
                 BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);

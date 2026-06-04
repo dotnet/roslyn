@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-            // PROTOTYPE: Add to all-in-one
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds([SyntaxKind.KeyValuePairElement]);
+            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds([]);
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
         }
 
