@@ -90,9 +90,6 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? AttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
 
-    public static INamedTypeSymbol? DictionaryOfKVType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Dictionary<,>).FullName!);
-
     public static INamedTypeSymbol? BlockingCollectionOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
 
@@ -108,23 +105,14 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? StructLayoutAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
 
-    public static INamedTypeSymbol? IDictionaryOfKVType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName!);
-
     public static INamedTypeSymbol? InlineArrayAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
-
-    public static INamedTypeSymbol? IReadOnlyDictionaryOfKVType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IReadOnlyDictionary<,>).FullName!);
 
     public static INamedTypeSymbol? DesignerCategoryAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
 
     public static INamedTypeSymbol? DesignerGeneratedAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute");
-
-    public static INamedTypeSymbol? DictionaryOfTKeyTValueType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Dictionary<,>).FullName!);
 
     public static INamedTypeSymbol? HideModuleNameAttribute(this Compilation compilation)
         => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
@@ -174,13 +162,6 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? ICollectionOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(ICollection<>).FullName!);
 
-<<<<<<< HEAD:src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Extensions/Compilation/CompilationExtensions.cs
-||||||| c04730aa9ee:src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/ICompilationExtensions.cs
-=======
-    public static INamedTypeSymbol? IDictionaryOfTKeyTValueType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName!);
-
->>>>>>> upstream/features/dictionary-expressions-old:src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/ICompilationExtensions.cs
     public static INamedTypeSymbol? IEnumerableType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName!);
 

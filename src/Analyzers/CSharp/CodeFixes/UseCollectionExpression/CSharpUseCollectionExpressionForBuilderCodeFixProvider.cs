@@ -74,13 +74,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderCodeFixProv
         var subEditor = new SyntaxEditor(root, document.Project.Solution.Services);
 
         // Remove all the nodes mutating the builder.
-<<<<<<< HEAD
         foreach (var (statement, _, _, _) in analysisResult.Matches)
-||||||| c04730aa9ee
-        foreach (var (statement, _) in analysisResult.Matches)
-=======
-        foreach (var (statement, _, _) in analysisResult.Matches)
->>>>>>> upstream/features/dictionary-expressions-old
             subEditor.RemoveNode(statement);
 
         // Remove the actual declaration of the builder.  Keep any comments on the builder declaration in case they're
@@ -120,13 +114,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderCodeFixProv
 
             nodesToTrack.Add(analysisResult.LocalDeclarationStatement);
             nodesToTrack.Add(analysisResult.CreationExpression);
-<<<<<<< HEAD
             foreach (var (statement, _, _, _) in analysisResult.Matches)
-||||||| c04730aa9ee
-            foreach (var (statement, _) in analysisResult.Matches)
-=======
-            foreach (var (statement, _, _) in analysisResult.Matches)
->>>>>>> upstream/features/dictionary-expressions-old
                 nodesToTrack.Add(statement);
 
             var newRoot = root.TrackNodes(nodesToTrack);

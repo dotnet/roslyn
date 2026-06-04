@@ -452,15 +452,9 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
                 SyntaxKind.CasePatternSwitchLabel or
                 SyntaxKind.DefaultSwitchLabel or
                 SyntaxKind.ExpressionColon or
-<<<<<<< HEAD
 #if false
                 SyntaxKind.KeyValuePairElement or
 #endif
-||||||| c04730aa9ee
-        if (currentToken.IsKind(SyntaxKind.ColonToken))
-=======
-                SyntaxKind.KeyValuePairElement or
->>>>>>> upstream/features/dictionary-expressions-old
                 SyntaxKind.LabeledStatement or
                 SyntaxKind.NameColon or
                 SyntaxKind.SwitchExpressionArm))

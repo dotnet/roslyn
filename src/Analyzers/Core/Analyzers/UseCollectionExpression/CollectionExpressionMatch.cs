@@ -18,11 +18,5 @@ namespace Microsoft.CodeAnalysis.UseCollectionExpression;
 internal readonly record struct CollectionMatch<TMatchNode>(
     TMatchNode Node,
     bool UseSpread,
-<<<<<<< HEAD
     bool UseCast = false,
     bool UseKeyValue = false) where TMatchNode : SyntaxNode;
-||||||| c04730aa9ee
-    bool UseSpread) where TMatchNode : SyntaxNode;
-=======
-    bool UseKeyValue) where TMatchNode : SyntaxNode;
->>>>>>> upstream/features/dictionary-expressions-old

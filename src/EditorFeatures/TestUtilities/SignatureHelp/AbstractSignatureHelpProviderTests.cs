@@ -72,36 +72,14 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
         bool usePreviousCharAsTrigger = false)
     {
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
-        var workspace = workspaceFixture.Target.GetWorkspace(markupWithPositionAndOptSpan);
-
         var options = new MemberDisplayOptions();
 
-<<<<<<< HEAD
         markupWithPositionAndOptSpan = markupWithPositionAndOptSpan.NormalizeLineEndings();
 
         var workspace = workspaceFixture.Target.GetWorkspace(markupWithPositionAndOptSpan);
 
         var code = workspaceFixture.Target.Code;
         var cursorPosition = workspaceFixture.Target.Position;
-||||||| c04730aa9ee
-        markupWithPositionAndOptSpan = markupWithPositionAndOptSpan.NormalizeLineEndings();
-
-        TextSpan? textSpan = null;
-        MarkupTestFile.GetPositionAndSpans(
-            markupWithPositionAndOptSpan,
-            out var code,
-            out var cursorPosition,
-            out var textSpans);
-
-        if (textSpans.Any())
-        {
-            textSpan = textSpans.First();
-        }
-=======
-        var code = workspaceFixture.Target.Code;
-        var position = workspaceFixture.Target.Position;
->>>>>>> upstream/features/dictionary-expressions-old
         var textSpan = workspaceFixture.Target.Spans.FirstOrNull();
 
         var parseOptions = CreateExperimentalParseOptions();
@@ -113,10 +91,10 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
             document1 = document1.Project.WithParseOptions(parseOptions).GetDocument(document1.Id);
         }
 
-        await TestSignatureHelpWorkerSharedAsync(workspaceFixture.Target.GetWorkspace(), code, position, document1, options, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+        await TestSignatureHelpWorkerSharedAsync(workspaceFixture.Target.GetWorkspace(), code, cursorPosition, document1, options, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
 
         // speculative semantic model
-        if (await CanUseSpeculativeSemanticModelAsync(document1, position))
+        if (await CanUseSpeculativeSemanticModelAsync(document1, cursorPosition))
         {
             var document2 = workspaceFixture.Target.UpdateDocument(code, sourceCodeKind, cleanBeforeUpdate: false);
             if (experimental)
@@ -124,7 +102,7 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
                 document2 = document2.Project.WithParseOptions(parseOptions).GetDocument(document2.Id);
             }
 
-            await TestSignatureHelpWorkerSharedAsync(workspaceFixture.Target.GetWorkspace(), code, position, document2, options, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+            await TestSignatureHelpWorkerSharedAsync(workspaceFixture.Target.GetWorkspace(), code, cursorPosition, document2, options, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
         }
     }
 

@@ -12313,7 +12313,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
         );
     }
 
-<<<<<<< HEAD
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
     public Task LambdaWithCommentAndStatement()
         => AssertFormatAsync("""
@@ -12882,78 +12881,4 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             {
                 { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Methods, false) }
             });
-||||||| c04730aa9ee
-=======
-    [Fact]
-    public async Task FormatWithElement1()
-    {
-        await AssertFormatAsync(
-            expected: """
-                var v = [with()];
-                """,
-            code: """
-                var v = [ with ( ) ];
-                """);
-    }
-
-    [Fact]
-    public async Task FormatWithElement2()
-    {
-        await AssertFormatAsync(
-            expected: """
-                var v = [with(1, 2)];
-                """,
-            code: """
-                var v = [ with ( 1 , 2 ) ];
-                """);
-    }
-
-    [Fact]
-    public async Task FormatWithElement3()
-    {
-        await AssertFormatAsync(
-            expected: """
-                var v = [with(1, 2), 3];
-                """,
-            code: """
-                var v = [ with ( 1 , 2 ) , 3];
-                """);
-    }
-
-    [Fact]
-    public async Task FormatKeyValuePair1()
-    {
-        await AssertFormatAsync(
-            expected: """
-                var v = [k: v];
-                """,
-            code: """
-                var v = [ k :  v ];
-                """);
-    }
-
-    [Fact]
-    public async Task FormatKeyValuePair2()
-    {
-        await AssertFormatAsync(
-            expected: """
-                var v = [k: v, k: v];
-                """,
-            code: """
-                var v = [ k :  v , k :  v ];
-                """);
-    }
-
-    [Fact]
-    public async Task FormatKeyValuePair3()
-    {
-        await AssertFormatAsync(
-            expected: """
-                var v = [null: 1 + 1, (x.y): from x in y select z];
-                """,
-            code: """
-                var v = [ null :  1  +  1 , ( x . y ) :  from   x    in   y    select  z ];
-                """);
-    }
->>>>>>> upstream/features/dictionary-expressions-old
 }

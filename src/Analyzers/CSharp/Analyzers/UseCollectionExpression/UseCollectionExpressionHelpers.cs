@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Operations;
@@ -90,9 +89,6 @@ internal static class UseCollectionExpressionHelpers
     {
         var compilation = semanticModel.Compilation;
         changesSemantics = false;
-
-        if (!semanticModel.Compilation.LanguageVersion().SupportsCollectionExpressions())
-            return false;
 
         var topMostExpression = expression.WalkUpParentheses();
         if (topMostExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
@@ -237,39 +233,14 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
-<<<<<<< HEAD
             // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
             // continue emitting a List<X> for those target types.
             var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(convertedType);
             if (isWellKnownCollectionReadWriteInterface &&
                 Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
                 type.AllInterfaces.Contains(convertedType))
-||||||| c04730aa9ee
-            // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
-            // continue emitting a List<X> for those target types.
-            var isWellKnownCollectionReadWriteInterface = IsWellKnownCollectionReadWriteInterface(convertedType);
-            if (isWellKnownCollectionReadWriteInterface &&
-                Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
-                type.AllInterfaces.Contains(convertedType))
-=======
-            // It is always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it
-            // will continue emitting a List<X> for those target types.
-            //
-            // Similarly, it is safe to convert Dictionary<X,Y> to IDictionary<X,Y> in C# 14 and above as the language
-            // guarantees that it will continue emitting a Dictionary<X,Y> for those target types.
-            var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(
-                compilation, convertedType);
-            if (isWellKnownCollectionReadWriteInterface)
->>>>>>> upstream/features/dictionary-expressions-old
             {
-                if (type.AllInterfaces.Contains(convertedType))
-                {
-                    if (Equals(type.OriginalDefinition, compilation.ListOfTType()))
-                        return true;
-
-                    if (Equals(type.OriginalDefinition, compilation.DictionaryOfKVType()))
-                        return compilation.LanguageVersion().SupportsDictionaryExpressions();
-                }
+                return true;
             }
 
             // Before this point are all the changes that we can detect that are always safe to make.
@@ -290,14 +261,7 @@ internal static class UseCollectionExpressionHelpers
             //
             // `IEnumerable<object> obj = Array.Empty<object>();` or
             // `IEnumerable<string> obj = new[] { "" };`
-<<<<<<< HEAD
             if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
-||||||| c04730aa9ee
-            if (IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
-=======
-            if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(compilation, convertedType) &&
-                type.AllInterfaces.Contains(convertedType))
->>>>>>> upstream/features/dictionary-expressions-old
             {
                 // The observable collections are known to have significantly different behavior than List<T>.  So
                 // disallow converting those types to ensure semantics are preserved.  We do this even though
@@ -334,7 +298,6 @@ internal static class UseCollectionExpressionHelpers
             return false;
         }
 
-<<<<<<< HEAD
         bool IsImplementationOfCollectionBuilderPattern()
         {
             // Check if the type being created has a CollectionBuilder attribute that points to the method we're currently in.
@@ -387,94 +350,6 @@ internal static class UseCollectionExpressionHelpers
         }
     }
 
-||||||| c04730aa9ee
-    public static bool IsWellKnownCollectionInterface(ITypeSymbol type)
-        => IsWellKnownCollectionReadOnlyInterface(type) || IsWellKnownCollectionReadWriteInterface(type);
-
-    public static bool IsWellKnownCollectionReadOnlyInterface(ITypeSymbol type)
-    {
-        return type.OriginalDefinition.SpecialType
-            is SpecialType.System_Collections_Generic_IEnumerable_T
-            or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
-            or SpecialType.System_Collections_Generic_IReadOnlyList_T;
-    }
-
-    public static bool IsWellKnownCollectionReadWriteInterface(ITypeSymbol type)
-    {
-        return type.OriginalDefinition.SpecialType
-            is SpecialType.System_Collections_Generic_ICollection_T
-            or SpecialType.System_Collections_Generic_IList_T;
-    }
-
-    public static bool IsConstructibleCollectionType(Compilation compilation, ITypeSymbol? type)
-    {
-        if (type is null)
-            return false;
-
-        // Arrays are always a valid collection expression type.
-        if (type is IArrayTypeSymbol)
-            return true;
-
-        // Has to be a real named type at this point.
-        if (type is INamedTypeSymbol namedType)
-        {
-            // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
-            if (namedType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
-                namedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
-            {
-                return true;
-            }
-
-            // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
-            if (namedType.GetAttributes().Any(a => a.AttributeClass.IsCollectionBuilderAttribute()))
-                return true;
-
-            if (IsWellKnownCollectionInterface(namedType))
-                return true;
-
-            // At this point, all that is left are collection-initializer types.  These need to derive from
-            // System.Collections.IEnumerable, and have an invokable no-arg constructor.
-
-            // Abstract type don't have invokable constructors at all.
-            if (namedType.IsAbstract)
-                return false;
-
-            if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
-            {
-                // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
-                var constructors = namedType.Constructors;
-                var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
-                if (capacityConstructor != null)
-                    return true;
-
-                var noArgConstructor =
-                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
-                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
-                if (noArgConstructor != null)
-                {
-                    // If we have a struct, and the constructor we find is implicitly declared, don't consider this
-                    // a constructible type.  It's likely the user would just get the `default` instance of the
-                    // collection (like with ImmutableArray<T>) which would then not actually work.  If the struct
-                    // does have an explicit constructor though, that's a good sign it can actually be constructed
-                    // safely with the no-arg `new S()` call.
-                    if (!(namedType.TypeKind == TypeKind.Struct && noArgConstructor.IsImplicitlyDeclared))
-                        return true;
-                }
-            }
-        }
-
-        // Anything else is not constructible.
-        return false;
-
-        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
-        {
-            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
-            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
-        }
-    }
-
-=======
->>>>>>> upstream/features/dictionary-expressions-old
     private static bool IsSafeConversionOfArrayToSpanType(
         SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
     {
@@ -721,15 +596,9 @@ internal static class UseCollectionExpressionHelpers
     }
 
     public static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
-<<<<<<< HEAD
         // Enable when dictionary-expressions come online.
         // SourceText text,
         InitializerExpressionSyntax initializer, bool wasOnSingleLine)
-||||||| c04730aa9ee
-        InitializerExpressionSyntax initializer, bool wasOnSingleLine)
-=======
-        SourceText text, InitializerExpressionSyntax initializer, bool wasOnSingleLine)
->>>>>>> upstream/features/dictionary-expressions-old
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
         var openBracket = OpenBracketToken.WithTriviaFrom(initializer.OpenBraceToken);
@@ -753,7 +622,6 @@ internal static class UseCollectionExpressionHelpers
 
         CollectionElementSyntax CreateElement(ExpressionSyntax expression)
         {
-<<<<<<< HEAD
             // Enable when dictionary-expressions come online.
 #if false
             if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression1, var valueExpression1] } initializer)
@@ -792,42 +660,6 @@ internal static class UseCollectionExpressionHelpers
 #else
             return ExpressionElement(expression);
 #endif
-||||||| c04730aa9ee
-=======
-            if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression1, var valueExpression1] } initializer)
-            {
-                // If we have `{ key, ... }` we want to move the leading trivia of the `{` to the key so that it is
-                // properly indented to the same level the `{` was.
-                var openBraceAndKeyOnSingleLine = wasOnSingleLine || text.AreOnSameLine(initializer.OpenBraceToken, keyExpression1.GetLastToken());
-                if (openBraceAndKeyOnSingleLine)
-                    keyExpression1 = keyExpression1.WithLeadingTrivia(initializer.OpenBraceToken.LeadingTrivia);
-
-                // If we have `{ ..., value }` we want to move the trailing trivia of the `}` to the value to preserve trailing comments.
-                var valueAndCloseBraceOnSingleLine = wasOnSingleLine || text.AreOnSameLine(valueExpression1.GetLastToken(), initializer.CloseBraceToken);
-                if (valueAndCloseBraceOnSingleLine)
-                    valueExpression1 = valueExpression1.WithTrailingTrivia(initializer.CloseBraceToken.TrailingTrivia);
-
-                return KeyValuePairElement(keyExpression1, ColonToken.WithTriviaFrom(initializer.Expressions.GetSeparator(0)), valueExpression1);
-            }
-            else if (expression is AssignmentExpressionSyntax
-            {
-                Left: ImplicitElementAccessSyntax { ArgumentList.Arguments: [var argument] } implicitElementAccess,
-                OperatorToken: var equalsToken,
-                Right: var valueExpression2,
-            })
-            {
-                // If we have `[key] = value` we want to move the leading trivia of the `[` to the key.
-                var keyExpression2 = argument.Expression.WithLeadingTrivia(implicitElementAccess.GetLeadingTrivia());
-                return KeyValuePairElement(
-                    keyExpression2,
-                    ColonToken.WithTrailingTrivia(equalsToken.TrailingTrivia),
-                    valueExpression2);
-            }
-            else
-            {
-                return ExpressionElement(expression);
-            }
->>>>>>> upstream/features/dictionary-expressions-old
         }
     }
 
