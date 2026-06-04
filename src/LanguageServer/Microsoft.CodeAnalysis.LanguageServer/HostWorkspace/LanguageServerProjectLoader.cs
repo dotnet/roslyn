@@ -175,6 +175,7 @@ internal abstract class LanguageServerProjectLoader
                 knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
                 globalMSBuildProperties: AdditionalProperties,
                 binaryLogPathProvider: _binLogPathProvider,
+                maxNodeCount: Math.Max(Environment.ProcessorCount / 2, 1), // Don't overload the machine, so leave some CPU cores open. This chosen without much support evidence, other than it's still pretty close to max.
                 loggerFactory: LoggerFactory))
             {
                 var toastErrorReporter = new ToastErrorReporter(_clientLanguageServerManager);

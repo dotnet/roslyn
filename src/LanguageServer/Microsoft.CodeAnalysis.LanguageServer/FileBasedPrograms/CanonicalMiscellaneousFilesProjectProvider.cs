@@ -72,7 +72,7 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
             _workspaceProvider.Workspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
             globalMSBuildProperties: [],
             binaryLogPathProvider: null,
-            _loggerFactory);
+            loggerFactory: _loggerFactory);
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
         return await loadedFile.GetProjectFileInfosAsync(cancellationToken);
