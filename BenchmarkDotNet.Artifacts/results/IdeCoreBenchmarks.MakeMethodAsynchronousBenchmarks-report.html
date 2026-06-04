@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>BenchmarkRun-joined-2026-06-04-16-48-25</title>
+<title>BenchmarkRun-joined-2026-06-04-16-51-26</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -18,14 +18,15 @@ AMD EPYC 7763, 1 CPU, 8 logical and 4 physical cores
 .NET SDK 10.0.108
   [Host] : .NET 10.0.8 (10.0.826.23019), X64 RyuJIT AVX2
 </code></pre>
-<pre><code>InvocationCount=1  IterationCount=5  LaunchCount=1  
-RunStrategy=Monitoring  UnrollFactor=1  WarmupCount=1  
+<pre><code>Toolchain=InProcessEmitToolchain  InvocationCount=1  IterationCount=5  
+UnrollFactor=1  WarmupCount=1  
 </code></pre>
 
 <table>
-<thead><tr><th>Method         </th><th>Mean</th><th>Error</th><th>Ratio</th><th>RatioSD</th><th>Alloc Ratio</th>
+<thead><tr><th>Method           </th><th>Mean</th><th>Error</th><th>StdDev</th><th>Ratio</th><th>RatioSD</th><th>Gen0</th><th>Gen1</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>&#39;No event assignment&#39;</td><td>NA</td><td>NA</td><td>?</td><td>?</td><td>?</td>
+</thead><tbody><tr><td>&#39;No event assignment&#39;</td><td>370.8 ms</td><td>95.16 ms</td><td>24.71 ms</td><td>1.00</td><td>0.08</td><td>4000.0000</td><td>3000.0000</td><td>74.3 MB</td><td>1.00</td>
+</tr><tr><td>&#39;With event assignment&#39;</td><td>439.0 ms</td><td>182.97 ms</td><td>47.52 ms</td><td>1.19</td><td>0.14</td><td>3000.0000</td><td>3000.0000</td><td>57.8 MB</td><td>0.78</td>
 </tr></tbody></table>
 </body>
 </html>
