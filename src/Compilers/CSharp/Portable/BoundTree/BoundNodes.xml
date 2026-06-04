@@ -1953,7 +1953,6 @@
     <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
-<<<<<<< HEAD
     <!-- Call to instantiate a collection with a constructor or through a builder method.
          In former case this should be a BoundObjectCreationExpression.  In the latter
          this should be a BoundCall (possibly wrapped in a conversion). -->
@@ -1967,25 +1966,7 @@
          and will naturally be visited during all binding phases.  It is just the packaging and movement into the final
          arg that the lowering phase concerns itself with. -->
     <Field Name="CollectionBuilderElementsPlaceholder" Type="BoundCollectionBuilderElementsPlaceholder?" Null="allow" SkipInVisitor="true"/>
-||||||| c04730aa9ee
-    <!-- Constructor call to create the empty collection type. -->
-    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
-    <!-- Construct method for collection types with [CollectionBuilder]. -->
-    <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
-    <!-- Placeholder for collection builder method invocation. -->
-    <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Conversion from collection builder method invocation to collection type. -->
-    <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
-    <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
-=======
-    <!-- Constructor or factory method call to create the collection instance. -->
-    <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
-    <!-- Placeholder for collection builder elements span. -->
-    <Field Name="CollectionBuilderSpanPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Indexer setter, if any. -->
     <Field Name="IndexerSetMethod" Type="MethodSymbol?" Null="allow"/>
-    <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
->>>>>>> upstream/features/dictionary-expressions-old
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="HasWithElement" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
@@ -2032,14 +2013,6 @@
     <Field Name="KeyConversion" Type="BoundExpression" SkipInVisitor="true"/>
     <!-- Value conversion. -->
     <Field Name="ValueConversion" Type="BoundExpression" SkipInVisitor="true"/>
-  </Node>
-
-  <!-- Unconverted collection expression arguments. -->
-  <Node Name="BoundCollectionExpressionWithElement" Base="BoundNode">
-    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
-    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
-    <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
 
   <!-- 

@@ -5228,7 +5228,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.Pointer, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Byte,     // Argument: byte*
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,                                     // Argument: int
 
-<<<<<<< HEAD
                 // System_Span_T__Slice_Int
                 (byte)(MemberFlags.Method),                                                                                 // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),           // DeclaringTypeId
@@ -5303,8 +5302,7 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                      // Return Type
-||||||| c04730aa9ee
-=======
+
                 // System_Collections_Generic_Dictionary_KV__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
@@ -5386,7 +5384,6 @@ namespace Microsoft.CodeAnalysis
                         2,
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
                         (byte)SignatureTypeCode.GenericTypeParameter, 1,
->>>>>>> upstream/features/dictionary-expressions-old
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -6017,7 +6014,6 @@ namespace Microsoft.CodeAnalysis
                 "Power",                                    // System_Linq_Expressions_Expression__Power_MethodInfo,
                 "get_UTF8",                                 // System_Text_Encoding__get_UTF8
                 "GetString",                                // System_Text_Encoding__GetString
-<<<<<<< HEAD
                 "Slice",                                    // System_Span_T__Slice_Int
                 "Slice",                                    // System_ReadOnlySpan_T__Slice_Int
                 "Slice",                                    // System_Memory_T__Slice_Int_Int
@@ -6026,8 +6022,7 @@ namespace Microsoft.CodeAnalysis
                 "Slice",                                    // System_ReadOnlyMemory_T__Slice_Int
 
                 ".ctor",                                    // System_Runtime_CompilerServices_UnionAttribute__ctor
-||||||| c04730aa9ee
-=======
+
                 ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor,
                 ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
                 ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor_Int32,
@@ -6037,7 +6032,6 @@ namespace Microsoft.CodeAnalysis
                 "get_Key",                                  // System_Collections_Generic_KeyValuePair_KV__get_Key
                 "get_Value",                                // System_Collections_Generic_KeyValuePair_KV__get_Value
                 ".ctor",                                    // System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor
->>>>>>> upstream/features/dictionary-expressions-old
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

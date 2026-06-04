@@ -528,7 +528,6 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
-<<<<<<< HEAD
         <source>'with(...)' element arguments cannot be dynamic</source>
         <target state="translated">Argumenty elementu with(...) nemůžou být dynamické</target>
         <note />
@@ -546,21 +545,6 @@
       <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
         <source>'with(...)' elements are not supported for type '{0}'</source>
         <target state="translated">Elementy with(...) nejsou pro typ {0} podporovány</target>
-||||||| c04730aa9ee
-=======
-        <source>Collection arguments cannot be dynamic; compile-time binding is required.</source>
-        <target state="new">Collection arguments cannot be dynamic; compile-time binding is required.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
-        <source>Collection argument element must be the first element.</source>
-        <target state="new">Collection argument element must be the first element.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
-        <source>Collection arguments are not supported for type '{0}'.</source>
-        <target state="new">Collection arguments are not supported for type '{0}'.</target>
->>>>>>> upstream/features/dictionary-expressions-old
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
@@ -2930,12 +2914,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
         <source>collection expression arguments</source>
-<<<<<<< HEAD
         <target state="translated">argumenty výrazu kolekce</target>
-||||||| c04730aa9ee
-=======
-        <target state="new">collection expression arguments</target>
->>>>>>> upstream/features/dictionary-expressions-old
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
