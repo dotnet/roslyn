@@ -78,6 +78,9 @@ internal class DocumentContext(DocumentUri uri, IDocumentSnapshot snapshot)
         }
     }
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call GetCodeDocument and get the right CSharpDocument from that, to prove that you thought about which document to get")]
+#endif
     public ValueTask<SourceText> GetCSharpSourceTextAsync(CancellationToken cancellationToken)
     {
         return TryGetCodeDocument(out var codeDocument)

@@ -45,21 +45,6 @@ internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBro
         return positionInfo;
     }
 
-    protected bool TryGetDocumentPositionInfo(RazorCodeDocument codeDocument, Position position, out DocumentPositionInfo positionInfo)
-        => TryGetDocumentPositionInfo(codeDocument, position, preferCSharpOverHtml: false, out positionInfo);
-
-    protected bool TryGetDocumentPositionInfo(RazorCodeDocument codeDocument, Position position, bool preferCSharpOverHtml, out DocumentPositionInfo positionInfo)
-    {
-        if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
-        {
-            positionInfo = default;
-            return false;
-        }
-
-        positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex, preferCSharpOverHtml);
-        return true;
-    }
-
     protected ValueTask<T> RunServiceAsync<T>(
         RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,

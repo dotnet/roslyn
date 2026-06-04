@@ -22,25 +22,18 @@ internal interface IDocumentSnapshot
     ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken);
     ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(CancellationToken cancellationToken);
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
+    ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken);
+
     /// <summary>
     ///  Gets the Roslyn syntax tree for the generated C# for this Razor document
     /// </summary>
     /// <remarks>
     ///  ⚠️ Should be used sparingly in language server scenarios.
     /// </remarks>
-    ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Returns the decl-half source generated document for this Razor document, or
-    /// <see langword="null"/> when the source generator did not emit a decl half (e.g.
-    /// .cshtml files, non-component documents, or components whose primary method body is
-    /// suppressed).
-    /// </summary>
-    /// <remarks>
-    /// Implementations that do not have access to source-generator output (e.g. test
-    /// doubles) should return <see langword="null"/>.
-    /// </remarks>
-    ValueTask<SourceGeneratedDocument?> TryGetDeclGeneratedDocumentAsync(CancellationToken cancellationToken);
+    ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(bool declarationDocument, CancellationToken cancellationToken);
 
     bool TryGetText([NotNullWhen(true)] out SourceText? result);
     bool TryGetTextVersion(out VersionStamp result);

@@ -8,40 +8,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis;
 
 internal static class ProjectExtensions
 {
-    /// <summary>
-    ///  Gets the available <see cref="TagHelperDescriptor">tag helpers</see> from the specified
-    ///  <see cref="Project"/> using the given <see cref="RazorProjectEngine"/>.
-    /// </summary>
-    public static async ValueTask<TagHelperCollection> GetTagHelpersAsync(
-        this Project project,
-        RazorProjectEngine projectEngine,
-        CancellationToken cancellationToken)
-    {
-        if (!projectEngine.Engine.TryGetFeature(out ITagHelperDiscoveryService? discoveryService))
-        {
-            return [];
-        }
-
-        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-        if (compilation is null || !CompilationTagHelperFeature.IsValidCompilation(compilation))
-        {
-            return [];
-        }
-
-        const TagHelperDiscoveryOptions Options = TagHelperDiscoveryOptions.ExcludeHidden |
-                                                  TagHelperDiscoveryOptions.IncludeDocumentation;
-
-        return discoveryService.GetTagHelpers(compilation, Options, cancellationToken);
-    }
-
     public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentForGeneratedDocumentAsync(this Project project, SourceGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
     {
         Debug.Assert(identity.DocumentId.ProjectId == project.Id, "Generated document URI does not belong to this project.");
@@ -65,6 +37,9 @@ internal static class ProjectExtensions
         return generatedDocuments.SingleOrDefault(d => d.HintName == hintName);
     }
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
     public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentForRazorDocumentAsync(this Project project, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         return (await TryGetSourceGeneratedDocumentsForRazorDocumentAsync(project, razorDocument, cancellationToken).ConfigureAwait(false))?.ImplDoc;
