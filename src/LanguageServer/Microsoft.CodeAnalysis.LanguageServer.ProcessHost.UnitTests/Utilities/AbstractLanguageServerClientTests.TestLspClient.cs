@@ -110,6 +110,9 @@ public partial class AbstractLanguageServerClientTests
                 processStartInfo.ArgumentList.Add("--pipe");
                 processStartInfo.ArgumentList.Add(pipeName);
 
+                processStartInfo.ArgumentList.Add("--clientProcessId");
+                processStartInfo.ArgumentList.Add(Environment.ProcessId.ToString());
+
                 processStartInfo.ArgumentList.Add("--logLevel");
                 processStartInfo.ArgumentList.Add("Trace");
 
