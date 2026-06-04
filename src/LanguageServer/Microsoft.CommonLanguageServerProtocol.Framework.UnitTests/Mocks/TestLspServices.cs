@@ -31,7 +31,7 @@ internal abstract class TestLspServices(IEnumerable<(Type type, object instance)
     public T GetRequiredService<T>() where T : notnull
         => TryGetService(typeof(T), out var service) ? (T)service : throw new InvalidOperationException($"{typeof(T).Name} did not have a service");
 
-    public virtual IEnumerable<T> GetRequiredServices<T>()
+    public virtual IEnumerable<T> GetServices<T>()
         => Services.Where(s => s.instance is T).Select(s => (T)s.instance);
 
     public virtual bool TryGetService(Type type, [NotNullWhen(true)] out object? service)
@@ -50,7 +50,7 @@ internal abstract class TestLspServices(IEnumerable<(Type type, object instance)
         public ImmutableArray<(IMethodHandler? Instance, TypeRef HandlerTypeRef, ImmutableArray<MethodHandlerDetails> HandlerDetails)> GetMethodHandlers()
             => [.. Services.Where(s => s.instance is IMethodHandler).Select(s => ((IMethodHandler?)s.instance, TypeRef.From(s.instance.GetType()), MethodHandlerDetails.From(s.instance.GetType())))];
 
-        public override IEnumerable<T> GetRequiredServices<T>() => [];
+        public override IEnumerable<T> GetServices<T>() => [];
 
         public override bool TryGetService(Type type, [NotNullWhen(true)] out object? service)
         {

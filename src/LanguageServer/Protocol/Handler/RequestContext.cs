@@ -363,7 +363,7 @@ internal readonly struct RequestContext
 
     public IEnumerable<T> GetRequiredServices<T>() where T : class
     {
-        return _lspServices.GetRequiredServices<T>();
+        return _lspServices.GetServices<T>();
     }
 
     public T? GetService<T>() where T : class, ILspService
