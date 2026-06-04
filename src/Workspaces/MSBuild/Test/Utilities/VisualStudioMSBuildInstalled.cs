@@ -20,9 +20,9 @@ internal sealed class VisualStudioMSBuildInstalled : ExecutionCondition
         else
         {
             // Tests using this condition (VisualStudioMSBuildWorkspaceTests) only run on Windows and are
-            // failing in the release/dev18.0 backport (PR dotnet/roslyn#83976). Skip them on Windows until
-            // the underlying failures are investigated and fixed.
-            s_skipReason = "Temporarily disabled on Windows: VisualStudioMSBuildWorkspaceTests are failing in the dev18.0 backport (dotnet/roslyn#83976).";
+            // failing on the release/dev18.0 branch. Tracked by https://github.com/dotnet/roslyn/issues/82931;
+            // re-enabling requires backporting https://github.com/dotnet/roslyn/pull/83477 to release/dev18.0.
+            s_skipReason = "Temporarily disabled on Windows: see https://github.com/dotnet/roslyn/issues/82931 (requires backport of https://github.com/dotnet/roslyn/pull/83477).";
         }
     }
 
