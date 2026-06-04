@@ -119,11 +119,6 @@
         <target state="translated">"완료된 항목 다시 트리거"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">''{' or '}' 이외의 RazorMetaCode를 방문하려고 했습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
         <target state="translated">알 수 없는 매핑 동작</target>

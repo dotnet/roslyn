@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -161,7 +161,7 @@ internal partial class CSharpFormattingPass
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
-            private readonly RazorCSharpSyntaxFormattingOptions? _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
+            private readonly CSharpSyntaxFormattingOptions? _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
             private readonly IDocumentMappingService _documentMappingService = documentMappingService;
@@ -1215,7 +1215,7 @@ internal partial class CSharpFormattingPass
                 //
                 // The formatted offset tells the mapping code to ignore whichever representation Roslyn chose, because
                 // the synthetic lambda opener is scaffolding for formatting and should not be copied back into Razor.
-                return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
+                return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
                     ? SyntheticLambdaSignatureLength
                     : SyntheticLambdaBodyStart.Length;
             }

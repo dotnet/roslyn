@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -27,7 +29,10 @@ internal abstract class LanguageServerProjectLoader
     private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToReload;
 
     protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
+    private readonly ProjectTargetFrameworkManager _projectTargetFrameworkManager;
     private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly IClientLanguageServerManager _clientLanguageServerManager;
+    private readonly WorkDoneProgressManager _workDoneProgressManager;
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
     protected readonly IAsynchronousOperationListener Listener;
@@ -89,23 +94,24 @@ internal abstract class LanguageServerProjectLoader
     protected virtual bool EnableProgressReporting => true;
 
     protected LanguageServerProjectLoader(
-        LanguageServerWorkspaceFactory workspaceFactory,
-        IFileChangeWatcher fileChangeWatcher,
+        ILspServices lspServices,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
-        ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider,
         DotnetCliHelper dotnetCliHelper)
     {
-        _workspaceFactory = workspaceFactory;
-        _fileChangeWatcher = fileChangeWatcher;
+        _workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
+        _projectTargetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
+        _fileChangeWatcher = lspServices.GetRequiredService<IFileChangeWatcher>();
+        _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        _workDoneProgressManager = lspServices.GetRequiredService<WorkDoneProgressManager>();
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
-        _projectLoadTelemetryReporter = projectLoadTelemetry;
+        _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;
         _dotnetCliHelper = dotnetCliHelper;
 
@@ -138,7 +144,7 @@ internal abstract class LanguageServerProjectLoader
         return properties;
     }
 
-    private sealed class ToastErrorReporter
+    private sealed class ToastErrorReporter(IClientLanguageServerManager clientLanguageServerManager)
     {
         private int _displayedToast = 0;
 
@@ -148,7 +154,7 @@ internal abstract class LanguageServerProjectLoader
             var shouldShowToast = Interlocked.CompareExchange(ref _displayedToast, value: 1, comparand: 0) == 0;
             if (shouldShowToast)
             {
-                await ShowToastNotification.ShowToastNotificationAsync(errorKind, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
+                await clientLanguageServerManager.ShowToastNotificationAsync(errorKind, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
             }
         }
     }
@@ -169,9 +175,10 @@ internal abstract class LanguageServerProjectLoader
                 knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
                 globalMSBuildProperties: AdditionalProperties,
                 binaryLogPathProvider: _binLogPathProvider,
+                maxNodeCount: Math.Max(Environment.ProcessorCount / 2, 1), // Don't overload the machine, so leave some CPU cores open. This chosen without much support evidence, other than it's still pretty close to max.
                 loggerFactory: LoggerFactory))
             {
-                var toastErrorReporter = new ToastErrorReporter();
+                var toastErrorReporter = new ToastErrorReporter(_clientLanguageServerManager);
 
                 projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
                     source: projectsToLoadOrReload,
@@ -198,7 +205,7 @@ internal abstract class LanguageServerProjectLoader
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
                 // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
+                await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, projectsThatNeedRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
             }
         }
         finally
@@ -393,7 +400,7 @@ internal abstract class LanguageServerProjectLoader
                 _workspaceFactory.ProjectSystemHostInfo,
                 cancellationToken).ConfigureAwait(false);
 
-            var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
+            var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _projectTargetFrameworkManager);
             loadedProject.NeedsReload += (_, _) =>
                 _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false, ProgressTracker = null });
             return (loadedProject, alreadyExists: false);

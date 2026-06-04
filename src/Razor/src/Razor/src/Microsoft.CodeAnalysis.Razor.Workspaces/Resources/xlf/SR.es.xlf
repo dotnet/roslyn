@@ -119,11 +119,6 @@
         <target state="translated">"Volver a desencadenar las finalizaciones..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">Se intentó visitar un RazorMetaCode distinto de '{' or '}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
         <target state="translated">Comportamiento de asignación desconocido</target>

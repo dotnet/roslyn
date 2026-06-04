@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
@@ -33,22 +34,17 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
         VirtualProjectXmlProvider projectXmlProvider,
-        LanguageServerWorkspaceFactory workspaceFactory,
-        IFileChangeWatcher fileChangeWatcher,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
-        ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider,
         DotnetCliHelper dotnetCliHelper)
             : base(
-                workspaceFactory,
-                fileChangeWatcher,
+                lspServices,
                 globalOptionService,
                 loggerFactory,
                 listenerProvider,
-                projectLoadTelemetry,
                 serverConfigurationFactory,
                 binLogPathProvider,
                 dotnetCliHelper)
@@ -56,7 +52,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _projectXmlProvider = projectXmlProvider;
-        _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(workspaceFactory, loggerFactory);
+        _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(lspServices.GetRequiredService<IHostWorkspaceProvider>(), loggerFactory);
 
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }

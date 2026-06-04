@@ -119,11 +119,6 @@
         <target state="translated">"Повторный запуск завершений..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">Предпринята попытка посетить RazorMetaCode, отличный от "{' or '}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
         <target state="translated">Неизвестное поведение сопоставления</target>

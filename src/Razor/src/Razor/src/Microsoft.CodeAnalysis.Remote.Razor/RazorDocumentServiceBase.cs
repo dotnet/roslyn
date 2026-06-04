@@ -5,7 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -61,7 +61,7 @@ internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBro
     }
 
     protected ValueTask<T> RunServiceAsync<T>(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         Func<RemoteDocumentContext, ValueTask<T>> implementation,
         CancellationToken cancellationToken)

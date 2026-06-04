@@ -3,11 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteDocumentSymbolService : IRemoteJsonService
 {
-    ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId documentId, bool useHierarchicalSymbols, CancellationToken cancellationToken);
+    ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId documentId, bool useHierarchicalSymbols, CancellationToken cancellationToken);
 }
