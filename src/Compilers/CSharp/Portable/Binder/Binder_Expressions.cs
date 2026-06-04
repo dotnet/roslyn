@@ -762,6 +762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.CheckedExpression:
                         return BindCheckedExpression((CheckedExpressionSyntax)node, diagnostics);
 
+                    case SyntaxKind.UnsafeExpression:
+                        return BindUnsafeExpression((UnsafeExpressionSyntax)node, diagnostics);
+
                     case SyntaxKind.DefaultExpression:
                         return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
@@ -7597,6 +7600,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             var binder = this.GetBinder(node);
+            return binder.BindParenthesizedExpression(node.Expression, diagnostics);
+        }
+
+        private BoundExpression BindUnsafeExpression(UnsafeExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            var binder = this.GetBinder(node);
+
+            if (!this.Compilation.Options.AllowUnsafe)
+            {
+                Error(diagnostics, ErrorCode.ERR_IllegalUnsafe, node.UnsafeKeyword);
+            }
+
+            CheckFeatureAvailability(node.UnsafeKeyword, MessageID.IDS_FeatureUnsafeEvolution, diagnostics);
+
             return binder.BindParenthesizedExpression(node.Expression, diagnostics);
         }
 

@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  checked and unchecked expressions
                 case SyntaxKind.UncheckedExpression:
                 case SyntaxKind.CheckedExpression:
+                case SyntaxKind.UnsafeExpression:
 
                 //  Default value expressions
                 case SyntaxKind.DefaultExpression:

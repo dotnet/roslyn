@@ -674,6 +674,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Expression, binder);
         }
 
+        public override void VisitUnsafeExpression(UnsafeExpressionSyntax node)
+        {
+            Binder binder = _enclosing.WithAdditionalFlags(BinderFlags.UnsafeRegion);
+            AddToMap(node, binder);
+            Visit(node.Expression, binder);
+        }
+
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
         {
             Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedStatement);

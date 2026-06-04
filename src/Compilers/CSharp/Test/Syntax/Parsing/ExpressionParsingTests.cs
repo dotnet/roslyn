@@ -8052,6 +8052,83 @@ select t";
             EOF();
         }
 
+        [Fact]
+        public void UnsafeExpression()
+        {
+            UsingExpression("unsafe(x)");
+
+            N(SyntaxKind.UnsafeExpression);
+            {
+                N(SyntaxKind.UnsafeKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UnsafeExpression_PostfixMemberAccess()
+        {
+            UsingExpression("unsafe(x).M");
+
+            N(SyntaxKind.SimpleMemberAccessExpression);
+            {
+                N(SyntaxKind.UnsafeExpression);
+                {
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "M");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UnsafeExpression_Indexer()
+        {
+            UsingExpression("unsafe(x)[0]");
+
+            N(SyntaxKind.ElementAccessExpression);
+            {
+                N(SyntaxKind.UnsafeExpression);
+                {
+                    N(SyntaxKind.UnsafeKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.BracketedArgumentList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
         public void InProgressMultipleExpressionsInUncheckedExpression()
         {
@@ -8083,6 +8160,55 @@ select t";
                                     N(SyntaxKind.UncheckedExpression);
                                     {
                                         N(SyntaxKind.UncheckedKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInUnsafeExpression()
+        {
+            UsingTree("""
+                var v = unsafe(Boo Quux());
+                """,
+                // (1,20): error CS1073: Unexpected token 'Quux'
+                // var v = unsafe(Boo Quux());
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "Quux").WithArguments("Quux").WithLocation(1, 20));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.UnsafeExpression);
+                                    {
+                                        N(SyntaxKind.UnsafeKeyword);
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.IdentifierName);
                                         {

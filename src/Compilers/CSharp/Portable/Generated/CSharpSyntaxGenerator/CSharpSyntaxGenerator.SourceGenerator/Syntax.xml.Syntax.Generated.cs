@@ -2306,6 +2306,59 @@ public sealed partial class CheckedExpressionSyntax : ExpressionSyntax
     public CheckedExpressionSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.Keyword, this.OpenParenToken, this.Expression, closeParenToken);
 }
 
+/// <summary>Class which represents the syntax node for Unsafe expression.</summary>
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.UnsafeExpression"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
+{
+    private ExpressionSyntax? expression;
+
+    internal UnsafeExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    /// <summary>SyntaxToken representing the unsafe keyword.</summary>
+    public SyntaxToken UnsafeKeyword => new SyntaxToken(this, ((InternalSyntax.UnsafeExpressionSyntax)this.Green).unsafeKeyword, Position, 0);
+
+    /// <summary>SyntaxToken representing open parenthesis.</summary>
+    public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.UnsafeExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
+
+    /// <summary>Argument of the primary function.</summary>
+    public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
+
+    /// <summary>SyntaxToken representing close parenthesis.</summary>
+    public SyntaxToken CloseParenToken => new SyntaxToken(this, ((InternalSyntax.UnsafeExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
+
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.expression : null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnsafeExpression(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUnsafeExpression(this);
+
+    public UnsafeExpressionSyntax Update(SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    {
+        if (unsafeKeyword != this.UnsafeKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
+        {
+            var newNode = SyntaxFactory.UnsafeExpression(unsafeKeyword, openParenToken, expression, closeParenToken);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public UnsafeExpressionSyntax WithUnsafeKeyword(SyntaxToken unsafeKeyword) => Update(unsafeKeyword, this.OpenParenToken, this.Expression, this.CloseParenToken);
+    public UnsafeExpressionSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(this.UnsafeKeyword, openParenToken, this.Expression, this.CloseParenToken);
+    public UnsafeExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(this.UnsafeKeyword, this.OpenParenToken, expression, this.CloseParenToken);
+    public UnsafeExpressionSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.UnsafeKeyword, this.OpenParenToken, this.Expression, closeParenToken);
+}
+
 /// <summary>Class which represents the syntax node for Default expression.</summary>
 /// <remarks>
 /// <para>This node is associated with the following syntax kinds:</para>

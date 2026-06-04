@@ -11137,6 +11137,7 @@ done:
                 case SyntaxKind.RefTypeKeyword:
                 case SyntaxKind.CheckedKeyword:
                 case SyntaxKind.UncheckedKeyword:
+                case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.RefValueKeyword:
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.BaseKeyword:
@@ -11332,6 +11333,7 @@ done:
                 case SyntaxKind.SizeOfExpression:
                 case SyntaxKind.CheckedExpression:
                 case SyntaxKind.UncheckedExpression:
+                case SyntaxKind.UnsafeExpression:
                 case SyntaxKind.MakeRefExpression:
                 case SyntaxKind.RefValueExpression:
                 case SyntaxKind.RefTypeExpression:
@@ -12005,6 +12007,8 @@ done:
                     case SyntaxKind.CheckedKeyword:
                     case SyntaxKind.UncheckedKeyword:
                         return this.ParseCheckedOrUncheckedExpression();
+                    case SyntaxKind.UnsafeKeyword:
+                        return this.ParseUnsafeExpression();
                     case SyntaxKind.RefValueKeyword:
                         return this.ParseRefValueExpression();
                     case SyntaxKind.ColonColonToken:
@@ -12720,6 +12724,15 @@ done:
             return _syntaxFactory.CheckedExpression(
                 kind,
                 checkedOrUnchecked,
+                this.EatToken(SyntaxKind.OpenParenToken),
+                this.ParseExpressionForParenthesizedConstruct(),
+                this.EatToken(SyntaxKind.CloseParenToken));
+        }
+
+        private UnsafeExpressionSyntax ParseUnsafeExpression()
+        {
+            return _syntaxFactory.UnsafeExpression(
+                this.EatToken(SyntaxKind.UnsafeKeyword),
                 this.EatToken(SyntaxKind.OpenParenToken),
                 this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));
