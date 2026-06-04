@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -99,11 +98,9 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
     private static async Task<bool> IsReferencedAsEventHandlerAsync(Document document, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
     {
-        var projectDocuments = ImmutableHashSet.CreateRange(document.Project.Documents);
         var references = await SymbolFinder.FindReferencesAsync(
             methodSymbol,
             document.Project.Solution,
-            documents: projectDocuments,
             cancellationToken).ConfigureAwait(false);
 
         foreach (var referencingSymbol in references)
