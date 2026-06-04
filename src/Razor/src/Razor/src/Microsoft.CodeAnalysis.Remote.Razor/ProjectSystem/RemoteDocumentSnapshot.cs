@@ -87,6 +87,13 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
         return snapshotManager.GetSnapshot(newDocument);
     }
 
+    public async ValueTask<SourceGeneratedDocument?> TryGetGeneratedDocumentAsync(bool declarationDocument, CancellationToken cancellationToken)
+    {
+        return declarationDocument
+            ? await TryGetDeclGeneratedDocumentInternalAsync(cancellationToken).ConfigureAwait(false)
+            : await GetGeneratedDocumentInternalAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     public async ValueTask<SourceGeneratedDocument> GetGeneratedDocumentAsync(bool declarationDocument, CancellationToken cancellationToken)
     {
         return declarationDocument
