@@ -91,6 +91,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
 
         var filteredDiagnostics = unmappedDiagnostics
             .Where(d =>
+                HasValidRange(d, sourceText) &&
                 !InRazorComment(d, sourceText, syntaxTree) &&
                 !InCSharpLiteral(d, sourceText, syntaxTree) &&
                 !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes) &&
@@ -99,6 +100,22 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
             .ToArray();
 
         return filteredDiagnostics;
+    }
+
+    /// <summary>
+    /// Checks that the diagnostic has a range whose start and end positions are within the source text.
+    /// Diagnostics with out-of-bounds ranges are stale (from a previous document version) and cannot be processed.
+    /// </summary>
+    private static bool HasValidRange(LspDiagnostic d, SourceText sourceText)
+    {
+        if (d.Range is not { } range)
+        {
+            // Null range is valid per LSP spec (file-level diagnostic)
+            return true;
+        }
+
+        return sourceText.IsValidPosition(range.Start.Line, range.Start.Character) &&
+            sourceText.IsValidPosition(range.End.Line, range.End.Character);
     }
 
     internal LspDiagnostic[] MapDiagnostics(
