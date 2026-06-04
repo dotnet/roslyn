@@ -103,8 +103,8 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         // Because we can't map from a random C# point to a Razor point without knowing which C# document we're talking about, we have to just make two requests
         // and send back two sets of diagnostics
 
-        var generatedDocuments = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (generatedDocuments.ImplDoc is null)
+        var csharpDocs = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (csharpDocs is not { } generatedDocuments)
         {
             return ([], []);
         }

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -122,7 +122,9 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         // unused using directives diagnostics. The compiler puts all of the users usings in both documents, so an unused using
         // directive from one document, doesn't matter unless it appears in the other as well.
 
-        // If there is no decl document though, we just used the impl diagnostics unfiltered
+        // If there is no decl document though, we just used the impl diagnostics unfiltered. If there is a decl document, but no
+        // decl diagnostics, we still need to filter as it means that any unused using directive is in the impl diagnostics is not
+        // real, and needs to be filtered out.
         var finalDiagnostics = declDocument is not null
             ? FilterUnusedUsingDirectiveDiagnostics(mappedImplDiagnostics, mappedDeclDiagnostics)
             : mappedImplDiagnostics;

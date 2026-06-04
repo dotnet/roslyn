@@ -131,6 +131,38 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             """);
 
     [Fact]
+    public Task CSharpUsingUnusedInImplOnly()
+       => VerifyDiagnosticsAsync("""
+            @using System.Text
+
+            <div></div>
+
+            @code
+            {
+                public void BuildsStrings(StringBuilder b)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task CSharpUsingUnusedInDeclOnly()
+       => VerifyDiagnosticsAsync("""
+            @using System.Text
+
+            @nameof(StringBuilder)
+
+            <div></div>
+
+            @code
+            {
+                public void BuildsStrings()
+                {
+                }
+            }
+            """);
+
+    [Fact]
     public Task CSharpUnusedUsings_NoCodeBlock()
         => VerifyDiagnosticsAsync("""
             {|RZ0005:@using System|}

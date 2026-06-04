@@ -61,8 +61,8 @@ internal sealed class OrganizeUsingsCommand(IRemoteServiceInvoker remoteServiceI
             return [];
         }
 
-        var generatedDocuments = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (generatedDocuments.ImplDoc is null)
+        var csharpDocs = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (csharpDocs is not { } generatedDocuments)
         {
             return [];
         }

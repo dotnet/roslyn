@@ -172,8 +172,8 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
 
     private async Task<(LspDiagnostic[], LspDiagnostic[])> GetCSharpTaskListItemsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var generatedDocuments = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (generatedDocuments.ImplDoc is null)
+        var csharpDocs = await razorDocument.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
+        if (csharpDocs is not { } generatedDocuments)
         {
             return ([], []);
         }
