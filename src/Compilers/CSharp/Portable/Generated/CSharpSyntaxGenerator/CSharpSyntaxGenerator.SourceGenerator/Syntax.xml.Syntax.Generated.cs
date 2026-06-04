@@ -2313,6 +2313,7 @@ public sealed partial class CheckedExpressionSyntax : ExpressionSyntax
 /// <item><description><see cref="SyntaxKind.UnsafeExpression"/></description></item>
 /// </list>
 /// </remarks>
+[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
 public sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
 {
     private ExpressionSyntax? expression;
@@ -2341,6 +2342,7 @@ public sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnsafeExpression(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUnsafeExpression(this);
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
     public UnsafeExpressionSyntax Update(SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
         if (unsafeKeyword != this.UnsafeKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)

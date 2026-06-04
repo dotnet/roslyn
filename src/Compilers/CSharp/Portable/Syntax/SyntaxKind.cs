@@ -725,9 +725,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         MakeRefExpression = 8765,
         RefValueExpression = 8766,
         RefTypeExpression = 8767,
+        // NameOfExpression = 8768, // we represent nameof(x) as an invocation expression
         [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
-        UnsafeExpression = 8768,
-        // NameOfExpression = 8769, // we represent nameof(x) as an invocation expression
+        UnsafeExpression = 8769,
 
         // query expressions
         QueryExpression = 8774,

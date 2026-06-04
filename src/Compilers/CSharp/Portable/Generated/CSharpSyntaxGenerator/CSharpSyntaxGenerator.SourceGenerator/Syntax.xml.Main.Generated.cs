@@ -142,6 +142,7 @@ public partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult? VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a UnsafeExpressionSyntax node.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
     public virtual TResult? VisitUnsafeExpression(UnsafeExpressionSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a DefaultExpressionSyntax node.</summary>
@@ -897,6 +898,7 @@ public partial class CSharpSyntaxVisitor
     public virtual void VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a UnsafeExpressionSyntax node.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
     public virtual void VisitUnsafeExpression(UnsafeExpressionSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a DefaultExpressionSyntax node.</summary>
@@ -1651,6 +1653,7 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     public override SyntaxNode? VisitCheckedExpression(CheckedExpressionSyntax node)
         => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
     public override SyntaxNode? VisitUnsafeExpression(UnsafeExpressionSyntax node)
         => node.Update(VisitToken(node.UnsafeKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
 
@@ -3094,6 +3097,7 @@ public static partial class SyntaxFactory
         };
 
     /// <summary>Creates a new UnsafeExpressionSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
     public static UnsafeExpressionSyntax UnsafeExpression(SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
         if (unsafeKeyword.Kind() != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(unsafeKeyword));
@@ -3104,6 +3108,7 @@ public static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new UnsafeExpressionSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
     public static UnsafeExpressionSyntax UnsafeExpression(ExpressionSyntax expression)
         => SyntaxFactory.UnsafeExpression(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), expression, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 

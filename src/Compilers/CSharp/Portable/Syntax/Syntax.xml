@@ -1066,7 +1066,7 @@
       <summary>Creates a CheckedExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="UnsafeExpressionSyntax" Base="ExpressionSyntax">
+  <Node Name="UnsafeExpressionSyntax" Base="ExpressionSyntax" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/82789">
     <Kind Name="UnsafeExpression"/>
     <Field Name="UnsafeKeyword" Type="SyntaxToken">
       <Kind Name="UnsafeKeyword"/>
