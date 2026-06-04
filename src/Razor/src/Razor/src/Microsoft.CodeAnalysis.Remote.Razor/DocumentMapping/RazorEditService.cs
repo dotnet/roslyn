@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -17,20 +18,25 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using RoslynSyntaxNode = Microsoft.CodeAnalysis.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-internal abstract partial class RazorEditService(
+[Export(typeof(IRazorEditService)), Shared]
+[method: ImportingConstructor]
+internal sealed partial class RazorEditService(
     IDocumentMappingService documentMappingService,
     IClientSettingsManager clientSettingsManager,
     IFilePathService filePathService,
+    RemoteSnapshotManager snapshotManager,
     ITelemetryReporter telemetryReporter) : IRazorEditService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IFilePathService _filePathService = filePathService;
+    private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(

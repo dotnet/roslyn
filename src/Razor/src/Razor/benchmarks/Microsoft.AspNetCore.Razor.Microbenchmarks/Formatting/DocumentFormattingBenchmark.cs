@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -82,7 +83,7 @@ public class DocumentFormattingBenchmark
 
         var clientSettingsManager = new RemoteClientSettingsManager();
         var documentMappingService = new RemoteDocumentMappingService(filePathService, snapshotManager, EmptyLoggerFactory.Instance);
-        var razorEditService = new RemoteRazorEditService(documentMappingService, clientSettingsManager, filePathService, snapshotManager, NoOpTelemetryReporter.Instance);
+        var razorEditService = new RazorEditService(documentMappingService, clientSettingsManager, filePathService, snapshotManager, NoOpTelemetryReporter.Instance);
 
         _formattingService = new RemoteRazorFormattingService(
             documentMappingService,
