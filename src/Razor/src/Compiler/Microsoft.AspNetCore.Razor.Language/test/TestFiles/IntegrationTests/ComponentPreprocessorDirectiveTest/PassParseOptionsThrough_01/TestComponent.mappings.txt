@@ -2,7 +2,7 @@
 |
 #if SomeSymbol
 |
-Generated Location: (733:21,0 [18] )
+Generated Location: (631:19,0 [18] )
 |
 #if SomeSymbol
 |
@@ -10,7 +10,7 @@ Generated Location: (733:21,0 [18] )
 Source Location: (42:3,0 [8] x:\dir\subdir\Test\TestComponent.razor)
 |#endif
 |
-Generated Location: (946:31,0 [8] )
+Generated Location: (844:29,0 [8] )
 |#endif
 |
 

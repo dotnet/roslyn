@@ -76,7 +76,11 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
         var implSkipUsings = codeDocument.GetImplSkipUsings();
         var implDocNode = RazorCSharpDocumentWriter.CloneContainer(documentNode);
         var implNamespace = RazorCSharpDocumentWriter.CloneContainer(primaryNamespace);
-        var implClass = RazorCSharpDocumentWriter.CloneContainer(primaryClass);
+        // CloneContainerForImpl (vs CloneContainer) strips fields whose syntactic occurrence in
+        // the impl half would duplicate a diagnostic the decl half already raises (BaseType,
+        // Interfaces, type-parameter constraints, NullableContext). Partial-class merging unifies
+        // these from the decl half, so the merged class is equivalent.
+        var implClass = RazorCSharpDocumentWriter.CloneContainerForImpl(primaryClass);
 
         implClass.Children.Add(renderMethod);
         foreach (var classChild in primaryClass.Children)

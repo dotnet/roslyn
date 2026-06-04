@@ -10,7 +10,6 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
     public partial class TestComponent<
 #nullable restore
 #line (1,12)-(1,17) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -27,8 +26,7 @@ TItem2
 #line default
 #line hidden
 #nullable disable
-    > : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    >
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)

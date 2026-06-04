@@ -5,11 +5,11 @@ Generated Location: (372:12,0 [41] )
 
 Source Location: (45:1,1 [14] x:\dir\subdir\Test\TestComponent.cshtml)
 |DynamicElement|
-Generated Location: (855:25,49 [14] )
+Generated Location: (753:23,49 [14] )
 |DynamicElement|
 
 Source Location: (70:1,26 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |OnClick|
-Generated Location: (1153:29,0 [7] )
+Generated Location: (1051:27,0 [7] )
 |OnClick|
 

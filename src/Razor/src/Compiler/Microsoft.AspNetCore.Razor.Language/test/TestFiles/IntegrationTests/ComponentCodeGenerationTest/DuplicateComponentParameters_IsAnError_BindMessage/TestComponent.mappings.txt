@@ -1,25 +1,25 @@
 ﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyComponent|
-Generated Location: (703:19,49 [11] )
+Generated Location: (601:17,49 [11] )
 |MyComponent|
 
 Source Location: (13:0,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |Message|
-Generated Location: (884:23,0 [7] )
+Generated Location: (782:21,0 [7] )
 |Message|
 
 Source Location: (23:0,23 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |message|
-Generated Location: (1147:31,0 [7] )
+Generated Location: (1045:29,0 [7] )
 |message|
 
 Source Location: (38:0,38 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |Message|
-Generated Location: (1386:40,0 [7] )
+Generated Location: (1284:38,0 [7] )
 |Message|
 
 Source Location: (48:0,48 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |message|
-Generated Location: (1649:48,0 [7] )
+Generated Location: (1547:46,0 [7] )
 |message|
 

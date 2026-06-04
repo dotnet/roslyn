@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Components;
 #nullable disable
     #line default
     #line hidden
-    #nullable restore
     public partial class TestComponent<
 #nullable restore
 #line (2,12)-(2,17) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -23,8 +22,7 @@ TItem
 #line default
 #line hidden
 #nullable disable
-    > : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    >
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)

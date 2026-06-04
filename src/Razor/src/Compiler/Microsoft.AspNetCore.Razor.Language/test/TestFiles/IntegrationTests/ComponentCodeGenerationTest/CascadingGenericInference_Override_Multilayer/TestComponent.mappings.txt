@@ -1,45 +1,45 @@
 ﻿Source Location: (17:0,17 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |DateTime.Now|
-Generated Location: (854:23,0 [12] )
+Generated Location: (752:21,0 [12] )
 |DateTime.Now|
 
 Source Location: (54:1,21 [37] x:\dir\subdir\Test\TestComponent.cshtml)
 |System.Threading.Thread.CurrentThread|
-Generated Location: (1342:34,0 [37] )
+Generated Location: (1240:32,0 [37] )
 |System.Threading.Thread.CurrentThread|
 
 Source Location: (1:0,1 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |TreeNode|
-Generated Location: (4002:78,45 [8] )
+Generated Location: (3900:76,45 [8] )
 |TreeNode|
 
 Source Location: (10:0,10 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Item|
-Generated Location: (4194:82,0 [4] )
+Generated Location: (4092:80,0 [4] )
 |Item|
 
 Source Location: (38:1,5 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |TreeNode|
-Generated Location: (4854:98,45 [8] )
+Generated Location: (4752:96,45 [8] )
 |TreeNode|
 
 Source Location: (47:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Item|
-Generated Location: (5046:102,0 [4] )
+Generated Location: (4944:100,0 [4] )
 |Item|
 
 Source Location: (104:2,9 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |TreeNode|
-Generated Location: (5703:118,45 [8] )
+Generated Location: (5601:116,45 [8] )
 |TreeNode|
 
 Source Location: (128:3,13 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |TreeNode|
-Generated Location: (6268:129,45 [8] )
+Generated Location: (6166:127,45 [8] )
 |TreeNode|
 
 Source Location: (184:6,5 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |TreeNode|
-Generated Location: (6759:139,45 [8] )
+Generated Location: (6657:137,45 [8] )
 |TreeNode|
 

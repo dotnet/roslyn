@@ -1,15 +1,15 @@
 ﻿Source Location: (17:0,17 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (899:23,0 [11] )
+Generated Location: (797:21,0 [11] )
 |ParentValue|
 
 Source Location: (41:0,41 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |UpdateValue|
-Generated Location: (1441:32,0 [11] )
+Generated Location: (1339:30,0 [11] )
 |UpdateValue|
 
 Source Location: (67:0,67 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |AfterUpdate|
-Generated Location: (1740:40,0 [11] )
+Generated Location: (1638:38,0 [11] )
 |AfterUpdate|
 

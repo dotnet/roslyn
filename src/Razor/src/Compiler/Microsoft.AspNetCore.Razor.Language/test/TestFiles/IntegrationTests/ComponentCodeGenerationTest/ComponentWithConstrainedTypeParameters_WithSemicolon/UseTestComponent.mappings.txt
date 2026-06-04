@@ -5,41 +5,41 @@ Generated Location: (375:12,0 [10] )
 
 Source Location: (35:1,22 [5] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |item1|
-Generated Location: (972:28,0 [5] )
+Generated Location: (870:26,0 [5] )
 |item1|
 
 Source Location: (49:1,36 [5] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |items|
-Generated Location: (1133:36,0 [5] )
+Generated Location: (1031:34,0 [5] )
 |items|
 
 Source Location: (62:1,49 [5] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |item1|
-Generated Location: (1294:44,0 [5] )
+Generated Location: (1192:42,0 [5] )
 |item1|
 
 Source Location: (78:2,8 [7] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |context|
-Generated Location: (1561:53,25 [7] )
+Generated Location: (1459:51,25 [7] )
 |context|
 
 Source Location: (14:1,1 [13] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |TestComponent|
-Generated Location: (2440:76,45 [13] )
+Generated Location: (2338:74,45 [13] )
 |TestComponent|
 
 Source Location: (28:1,15 [5] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |Item1|
-Generated Location: (2679:80,0 [5] )
+Generated Location: (2577:78,0 [5] )
 |Item1|
 
 Source Location: (41:1,28 [6] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |Items2|
-Generated Location: (2950:89,0 [6] )
+Generated Location: (2848:87,0 [6] )
 |Items2|
 
 Source Location: (55:1,42 [5] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |Item3|
-Generated Location: (3222:98,0 [5] )
+Generated Location: (3120:96,0 [5] )
 |Item3|
 

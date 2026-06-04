@@ -5,31 +5,31 @@ Generated Location: (372:12,0 [10] )
 
 Source Location: (11:0,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |TChild|
-Generated Location: (595:22,0 [6] )
+Generated Location: (572:21,0 [6] )
 |TChild|
 
 Source Location: (51:2,19 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |ChildItem|
-Generated Location: (1106:36,0 [9] )
+Generated Location: (1004:34,0 [9] )
 |ChildItem|
 
 Source Location: (71:2,39 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyChildEvent|
-Generated Location: (1343:44,0 [12] )
+Generated Location: (1241:42,0 [12] )
 |MyChildEvent|
 
 Source Location: (33:2,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyComponent|
-Generated Location: (1897:61,45 [11] )
+Generated Location: (1795:59,45 [11] )
 |MyComponent|
 
 Source Location: (45:2,13 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Item|
-Generated Location: (2095:65,0 [4] )
+Generated Location: (1993:63,0 [4] )
 |Item|
 
 Source Location: (62:2,30 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyEvent|
-Generated Location: (2343:74,0 [7] )
+Generated Location: (2241:72,0 [7] )
 |MyEvent|
 

@@ -1,5 +1,5 @@
 ﻿Source Location: (14:0,14 [51] x:\dir\subdir\Test\TestComponent.cshtml)
 |new TestComponent.MyRenderMode("This is some text")|
-Generated Location: (1100:27,0 [51] )
+Generated Location: (998:25,0 [51] )
 |new TestComponent.MyRenderMode("This is some text")|
 

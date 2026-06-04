@@ -1,5 +1,5 @@
 ﻿Source Location: (33:0,33 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (955:24,0 [11] )
+Generated Location: (853:22,0 [11] )
 |ParentValue|
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -90,6 +91,66 @@ internal static class RazorCSharpDocumentWriter
             Source = node.Source,
             IsImported = node.IsImported,
         };
+
+    /// <summary>
+    /// Clones a class declaration for the impl half of a split component output, stripping fields
+    /// whose syntactic occurrence in the impl half would duplicate diagnostics already produced
+    /// against the decl half:
+    /// <list type="bullet">
+    /// <item><see cref="ClassDeclarationIntermediateNode.BaseType"/> -- e.g. the
+    /// <c>: BaseComponent&lt;string?&gt;</c> from <c>@inherits</c>, whose nullability annotations
+    /// would otherwise trip CS8669 (or whose missing namespace would trip CS0246) twice.</item>
+    /// <item><see cref="ClassDeclarationIntermediateNode.Interfaces"/> -- same reasoning.</item>
+    /// <item>Type-parameter constraints -- <c>where T : SomeType?</c> would trip CS8669 twice.
+    /// The parameter <em>names</em> are kept because partial-class merging requires them to match
+    /// across declarations.</item>
+    /// <item><see cref="ClassDeclarationIntermediateNode.NullableContext"/> -- forced false; with
+    /// no syntactic nullability annotations left on the impl class header, there is nothing to
+    /// wrap in a <c>#nullable restore</c>/<c>#nullable disable</c> pair.</item>
+    /// </list>
+    /// Partial-class merging in the C# compiler unifies BaseType, Interfaces, and constraints
+    /// from the decl half across both halves, so the merged class behaves identically to the
+    /// pre-split single-file class.
+    /// </summary>
+    public static ClassDeclarationIntermediateNode CloneContainerForImpl(ClassDeclarationIntermediateNode node)
+    {
+        var typeParameters = node.TypeParameters;
+        if (!typeParameters.IsDefaultOrEmpty)
+        {
+            // Strip constraints, preserve names + source spans.
+            var builder = ImmutableArray.CreateBuilder<TypeParameter>(typeParameters.Length);
+            foreach (var typeParameter in typeParameters)
+            {
+                if (typeParameter.Constraints is null)
+                {
+                    builder.Add(typeParameter);
+                }
+                else
+                {
+                    builder.Add(new TypeParameter(
+                        name: typeParameter.Name.Content,
+                        nameSource: typeParameter.Name.Source,
+                        constraints: null,
+                        constraintsSource: null));
+                }
+            }
+
+            typeParameters = builder.MoveToImmutable();
+        }
+
+        return new()
+        {
+            Name = node.Name,
+            BaseType = null,
+            Modifiers = node.Modifiers,
+            Interfaces = [],
+            TypeParameters = typeParameters,
+            IsPrimaryClass = node.IsPrimaryClass,
+            NullableContext = false,
+            Source = node.Source,
+            IsImported = node.IsImported,
+        };
+    }
 
     private sealed class Visitor(
         CodeRenderingContext context,

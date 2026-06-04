@@ -1,15 +1,15 @@
 ﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyComponent|
-Generated Location: (703:19,49 [11] )
+Generated Location: (601:17,49 [11] )
 |MyComponent|
 
 Source Location: (13:0,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |OnClick|
-Generated Location: (884:23,0 [7] )
+Generated Location: (782:21,0 [7] )
 |OnClick|
 
 Source Location: (24:0,24 [45] x:\dir\subdir\Test\TestComponent.cshtml)
 |EventCallback.Factory.Create(this, Increment)|
-Generated Location: (1254:31,0 [45] )
+Generated Location: (1152:29,0 [45] )
 |EventCallback.Factory.Create(this, Increment)|
 

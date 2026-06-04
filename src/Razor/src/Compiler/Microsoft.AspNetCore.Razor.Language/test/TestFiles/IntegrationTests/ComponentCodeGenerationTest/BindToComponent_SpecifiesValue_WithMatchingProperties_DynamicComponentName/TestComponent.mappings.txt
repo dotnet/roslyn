@@ -1,15 +1,15 @@
 ﻿Source Location: (1:0,1 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |dynamic|
-Generated Location: (703:19,49 [7] )
+Generated Location: (601:17,49 [7] )
 |dynamic|
 
 Source Location: (15:0,15 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (876:23,0 [5] )
+Generated Location: (774:21,0 [5] )
 |Value|
 
 Source Location: (22:0,22 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (1136:31,0 [11] )
+Generated Location: (1034:29,0 [11] )
 |ParentValue|
 

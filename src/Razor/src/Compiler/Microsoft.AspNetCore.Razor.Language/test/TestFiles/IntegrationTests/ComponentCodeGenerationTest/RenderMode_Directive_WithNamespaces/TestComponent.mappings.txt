@@ -5,6 +5,6 @@ Generated Location: (146:5,0 [16] )
 
 Source Location: (43:2,12 [64] x:\dir\subdir\Test\TestComponent.cshtml)
 |Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
-Generated Location: (1258:34,0 [64] )
+Generated Location: (1156:32,0 [64] )
 |Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
 

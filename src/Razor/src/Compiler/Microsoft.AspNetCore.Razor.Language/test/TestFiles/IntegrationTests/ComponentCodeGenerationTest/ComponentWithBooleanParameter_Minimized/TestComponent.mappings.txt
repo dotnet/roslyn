@@ -1,15 +1,15 @@
 ﻿Source Location: (9:0,9 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestBool|
-Generated Location: (812:22,24 [8] )
+Generated Location: (710:20,24 [8] )
 |TestBool|
 
 Source Location: (31:2,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestComponent|
-Generated Location: (1032:30,49 [13] )
+Generated Location: (930:28,49 [13] )
 |TestComponent|
 
 Source Location: (45:2,15 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestBool|
-Generated Location: (1217:34,0 [8] )
+Generated Location: (1115:32,0 [8] )
 |TestBool|
 

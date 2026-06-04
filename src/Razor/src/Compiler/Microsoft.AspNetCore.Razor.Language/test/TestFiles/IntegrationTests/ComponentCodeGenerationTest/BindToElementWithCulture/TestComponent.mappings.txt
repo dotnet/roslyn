@@ -5,11 +5,11 @@ Generated Location: (372:12,0 [26] )
 
 Source Location: (48:1,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (1036:29,0 [11] )
+Generated Location: (934:27,0 [11] )
 |ParentValue|
 
 Source Location: (115:1,86 [28] x:\dir\subdir\Test\TestComponent.cshtml)
 |CultureInfo.InvariantCulture|
-Generated Location: (1207:37,0 [28] )
+Generated Location: (1105:35,0 [28] )
 |CultureInfo.InvariantCulture|
 

@@ -1,7 +1,7 @@
 ﻿Source Location: (2:0,2 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |
 |
-Generated Location: (734:21,0 [2] )
+Generated Location: (632:19,0 [2] )
 |
 |
 

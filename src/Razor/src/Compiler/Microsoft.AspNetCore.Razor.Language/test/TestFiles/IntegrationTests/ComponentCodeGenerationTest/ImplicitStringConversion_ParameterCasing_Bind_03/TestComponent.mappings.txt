@@ -1,10 +1,10 @@
 ﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyComponent|
-Generated Location: (703:19,49 [11] )
+Generated Location: (601:17,49 [11] )
 |MyComponent|
 
 Source Location: (36:0,36 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |s|
-Generated Location: (871:23,0 [1] )
+Generated Location: (769:21,0 [1] )
 |s|
 

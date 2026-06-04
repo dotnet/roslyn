@@ -10,6 +10,6 @@ Generated Location: (468:17,0 [41] )
 
 Source Location: (92:2,17 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |OnClick|
-Generated Location: (1218:34,0 [7] )
+Generated Location: (1116:32,0 [7] )
 |OnClick|
 

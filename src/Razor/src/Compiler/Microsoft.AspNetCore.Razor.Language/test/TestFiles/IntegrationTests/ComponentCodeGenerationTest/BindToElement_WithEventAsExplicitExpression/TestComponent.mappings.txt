@@ -1,15 +1,15 @@
 ﻿Source Location: (2:0,2 [25] x:\dir\subdir\Test\TestComponent.cshtml)
 | var x = "anotherevent"; |
-Generated Location: (735:21,0 [25] )
+Generated Location: (633:19,0 [25] )
 | var x = "anotherevent"; |
 
 Source Location: (49:1,19 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (1059:31,0 [11] )
+Generated Location: (957:29,0 [11] )
 |ParentValue|
 
 Source Location: (83:1,53 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |x.ToString()|
-Generated Location: (1261:40,0 [12] )
+Generated Location: (1159:38,0 [12] )
 |x.ToString()|
 

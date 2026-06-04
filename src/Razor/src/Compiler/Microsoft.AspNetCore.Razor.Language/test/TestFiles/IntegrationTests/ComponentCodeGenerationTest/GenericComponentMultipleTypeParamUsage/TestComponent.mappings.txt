@@ -1,25 +1,25 @@
 ﻿Source Location: (11:0,11 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |TItem|
-Generated Location: (474:16,0 [5] )
+Generated Location: (451:15,0 [5] )
 |TItem|
 
 Source Location: (29:1,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |TItem2|
-Generated Location: (620:24,0 [6] )
+Generated Location: (597:23,0 [6] )
 |TItem2|
 
 Source Location: (168:10,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestComponent|
-Generated Location: (997:35,49 [13] )
+Generated Location: (895:33,49 [13] )
 |TestComponent|
 
 Source Location: (202:10,35 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |string|
-Generated Location: (1097:38,0 [6] )
+Generated Location: (995:36,0 [6] )
 |string|
 
 Source Location: (190:10,23 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |int|
-Generated Location: (1255:46,0 [3] )
+Generated Location: (1153:44,0 [3] )
 |int|
 

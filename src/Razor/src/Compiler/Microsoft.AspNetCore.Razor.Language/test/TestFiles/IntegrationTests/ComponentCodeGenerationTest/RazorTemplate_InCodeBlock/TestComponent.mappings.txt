@@ -1,19 +1,19 @@
 ﻿Source Location: (2:0,2 [45] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     RenderFragment<Person> p = (person) => |
-Generated Location: (735:21,0 [45] )
+Generated Location: (633:19,0 [45] )
 |
     RenderFragment<Person> p = (person) => |
 
 Source Location: (54:1,50 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |person.Name|
-Generated Location: (1026:32,25 [11] )
+Generated Location: (924:30,25 [11] )
 |person.Name|
 
 Source Location: (71:1,67 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |;
 |
-Generated Location: (1249:42,0 [3] )
+Generated Location: (1147:40,0 [3] )
 |;
 |
 

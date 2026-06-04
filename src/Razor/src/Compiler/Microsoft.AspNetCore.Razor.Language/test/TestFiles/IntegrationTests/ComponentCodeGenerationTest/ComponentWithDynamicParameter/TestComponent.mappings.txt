@@ -1,20 +1,20 @@
 ﻿Source Location: (9:0,9 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestDynamic|
-Generated Location: (812:22,24 [11] )
+Generated Location: (710:20,24 [11] )
 |TestDynamic|
 
 Source Location: (34:2,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestComponent|
-Generated Location: (1035:30,49 [13] )
+Generated Location: (933:28,49 [13] )
 |TestComponent|
 
 Source Location: (48:2,15 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestDynamic|
-Generated Location: (1220:34,0 [11] )
+Generated Location: (1118:32,0 [11] )
 |TestDynamic|
 
 Source Location: (61:2,28 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |4|
-Generated Location: (1473:42,0 [1] )
+Generated Location: (1371:40,0 [1] )
 |4|
 

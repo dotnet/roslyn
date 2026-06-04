@@ -5,37 +5,37 @@ Generated Location: (320:11,0 [37] )
 
 Source Location: (43:2,1 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |Col|
-Generated Location: (799:24,49 [3] )
+Generated Location: (697:22,49 [3] )
 |Col|
 
 Source Location: (66:3,2 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |
 |
-Generated Location: (1148:32,0 [2] )
+Generated Location: (1046:30,0 [2] )
 |
 |
 
 Source Location: (73:4,5 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |Col|
-Generated Location: (1251:38,49 [3] )
+Generated Location: (1149:36,49 [3] )
 |Col|
 
 Source Location: (77:4,9 [51] x:\dir\subdir\Test\TestComponent.cshtml)
 |in code block</Col>
     RenderFragment template = |
-Generated Location: (1384:42,0 [51] )
+Generated Location: (1282:40,0 [51] )
 |in code block</Col>
     RenderFragment template = |
 
 Source Location: (130:5,32 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |Col|
-Generated Location: (1574:50,54 [3] )
+Generated Location: (1472:48,54 [3] )
 |Col|
 
 Source Location: (134:5,36 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |in template</Col>;
 |
-Generated Location: (1726:55,0 [20] )
+Generated Location: (1624:53,0 [20] )
 |in template</Col>;
 |
 
