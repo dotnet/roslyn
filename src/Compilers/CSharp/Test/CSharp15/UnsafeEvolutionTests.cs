@@ -8808,6 +8808,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedUnsafeSymbols: ["S.F2", "S.P2", "S.get_P2", "S.set_P2", "S.E2", "S.add_E2", "S.remove_E2"],
             expectedSafeSymbols: ["S", "S.F1", "S.P1", "S.get_P1", "S.set_P1", "S.<P1>k__BackingField", "S.<P2>k__BackingField", "S.E1", "S.add_E1", "S.remove_E1", EventField("S.E1"), EventField("S.E2")],
             optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            verify: Verification.FailsPEVerify,
             expectedDiagnostics:
             [
                 // (3,5): error CS9362: 'S.F2' must be used in an unsafe context because it is marked as 'unsafe'
