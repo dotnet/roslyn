@@ -328,6 +328,33 @@ stages:
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
+- stage: Unix_Debug_CoreClr
+  dependsOn: Unix_Build
+  variables:
+  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    - group: DotNet-HelixApi-Access
+  jobs:
+  - template: eng/pipelines/test-unix-job.yml
+    parameters:
+      testRunName: 'Test Linux Debug'
+      jobName: Test_Linux_Debug
+      testArtifactName: Transport_Artifacts_Unix_Debug
+      configuration: Debug
+      testArguments: --testCoreClr
+      helixQueueName: $(HelixUbuntuQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.ubuntuPool }}
+
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-unix-job-single-machine.yml
+      parameters:
+        testRunName: 'Test Linux Debug Single Machine'
+        jobName: Test_Linux_Debug_Single_Machine
+        testArtifactName: Transport_Artifacts_Unix_Debug
+        configuration: Debug
+        testArguments: --testCoreClr
+        poolParameters: ${{ parameters.ubuntuPool }}
+
 - stage: Correctness
   dependsOn: []
   jobs:
