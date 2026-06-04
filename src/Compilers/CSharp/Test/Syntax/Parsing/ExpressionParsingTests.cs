@@ -8129,6 +8129,88 @@ select t";
             EOF();
         }
 
+        [Fact]
+        public void UnsafeExpression_AssignmentStatement()
+        {
+            UsingTree("""
+                unsafe(x) = y;
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.UnsafeExpression);
+                            {
+                                N(SyntaxKind.UnsafeKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UnsafeExpression_PointerAssignmentStatement()
+        {
+            UsingTree("""
+                unsafe(*p) = 2;
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.UnsafeExpression);
+                            {
+                                N(SyntaxKind.UnsafeKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.PointerIndirectionExpression);
+                                {
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "p");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
         public void InProgressMultipleExpressionsInUncheckedExpression()
         {

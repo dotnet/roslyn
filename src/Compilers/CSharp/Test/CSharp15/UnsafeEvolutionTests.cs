@@ -3875,30 +3875,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
+            // (6,1): error CS8803: Top-level statements must precede namespace and type declarations.
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[unsafe(A(1))").WithLocation(6, 1),
+            // (6,1): error CS8805: Program using top-level statements must be an executable.
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "[unsafe(A(1))").WithLocation(6, 1),
+            // (6,1): error CS7014: Attributes are not valid in this context.
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(6, 1),
             // (6,2): error CS1001: Identifier expected
             // [unsafe(A(1))] class C1;
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "unsafe").WithLocation(6, 2),
             // (6,2): error CS1003: Syntax error, ']' expected
             // [unsafe(A(1))] class C1;
             Diagnostic(ErrorCode.ERR_SyntaxError, "unsafe").WithArguments("]").WithLocation(6, 2),
-            // (6,10): error CS8124: Tuple must contain at least two elements.
+            // (6,9): error CS1955: Non-invocable member 'A' cannot be used like a method.
             // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(").WithLocation(6, 10),
-            // (6,10): error CS1026: ) expected
+            Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "A").WithArguments("A").WithLocation(6, 9),
+            // (6,14): error CS1002: ; expected
             // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "(").WithLocation(6, 10),
-            // (6,10): error CS8803: Top-level statements must precede namespace and type declarations.
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(6, 14),
+            // (6,14): error CS1022: Type or namespace definition, or end-of-file expected
             // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(1)").WithLocation(6, 10),
-            // (6,10): error CS8805: Program using top-level statements must be an executable.
-            // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(1)").WithLocation(6, 10),
-            // (6,13): error CS1002: ; expected
-            // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 13),
-            // (6,13): error CS1022: Type or namespace definition, or end-of-file expected
-            // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(6, 13),
+            Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(6, 14),
             // (7,2): error CS9362: 'A.A(int)' must be used in an unsafe context because it is marked as 'unsafe'
             // [A(unsafe(1))] class C2;
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A(unsafe(1))").WithArguments("A.A(int)").WithLocation(7, 2));
@@ -4105,12 +4105,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,5): warning CS0219: The variable 'x' is assigned but its value is never used
-            // int x = 1;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 5),
-            // (2,9): error CS8124: Tuple must contain at least two elements.
+            // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
             // unsafe(x);
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 9));
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "unsafe(x)").WithLocation(2, 1));
     }
 
     [Fact]
@@ -4143,13 +4140,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (1,5): warning CS0219: The variable 'x' is assigned but its value is never used
             // int x;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 5),
-            // (3,9): error CS8124: Tuple must contain at least two elements.
-            // unsafe(x) = 2;
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 9),
-            // (3,11): error CS1525: Invalid expression term '='
-            // unsafe(x) = 2;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(3, 11));
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 5));
     }
 
     [Fact]
@@ -4171,19 +4162,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (5,9): error CS9360: This operation may only be used in an unsafe context
             //         *p = 1;
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(5, 9),
-            // (6,9): error CS0106: The modifier 'unsafe' is not valid for this item
-            //         unsafe(*p) = 2;
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "unsafe").WithArguments("unsafe").WithLocation(6, 9),
-            // (6,16): error CS1031: Type expected
-            //         unsafe(*p) = 2;
-            Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(6, 16),
-            // (6,18): error CS8124: Tuple must contain at least two elements.
-            //         unsafe(*p) = 2;
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(6, 18),
-            // (6,20): error CS1001: Identifier expected
-            //         unsafe(*p) = 2;
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(6, 20));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(5, 9));
     }
 
     [Fact]

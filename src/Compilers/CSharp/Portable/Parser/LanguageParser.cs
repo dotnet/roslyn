@@ -2630,6 +2630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Doing this before parsing modifiers simplifies further analysis since some of these keywords can act as modifiers as well.
                 //
                 // unsafe { ... }
+                // unsafe (...)
                 // fixed (...) { ... } 
                 // delegate (...) { ... }
                 // delegate { ... }
@@ -2649,6 +2650,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                             {
                                 return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
+                            }
+                            else if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
                             }
                             break;
 
@@ -8521,9 +8526,16 @@ done:
         private StatementSyntax ParseStatementStartingWithUsing(SyntaxList<AttributeListSyntax> attributes)
             => PeekToken(1).Kind == SyntaxKind.OpenParenToken ? ParseUsingStatement(attributes) : ParseLocalDeclarationStatement(attributes);
 
-        // Checking for brace to disambiguate between unsafe statement and unsafe local function
+        // Checking for brace or parenthesis to disambiguate between unsafe statement, unsafe expression, and unsafe local function
         private StatementSyntax TryParseStatementStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
-            => IsPossibleUnsafeStatement() ? ParseUnsafeStatement(attributes) : null;
+        {
+            if (PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+            {
+                return ParseExpressionStatement(attributes);
+            }
+
+            return IsPossibleUnsafeStatement() ? ParseUnsafeStatement(attributes) : null;
+        }
 
         private bool IsPossibleAwaitUsing()
             => CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(1).Kind == SyntaxKind.UsingKeyword;
