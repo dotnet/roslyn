@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 
@@ -246,7 +247,22 @@ internal sealed class SourceGeneratorProjectEngine
         return false;
     }
 
-    public SourceGeneratorRazorCodeDocument ProcessRemaining(SourceGeneratorRazorCodeDocument sgDocument, DefaultUtf8WriteLiteralFeature.Utf8SupportMap utf8SupportMap, CancellationToken cancellationToken)
+    /// <summary>
+    /// Runs the optimization and impl C# lowering phases.
+    /// </summary>
+    /// <param name="implSkipUsings">
+    /// Optional set of using-directive namespace strings to omit from the impl half (when the
+    /// SG has determined they don't resolve in the input compilation, so the decl half should
+    /// carry them alone and the C# compiler reports CS0246/CS0234 once instead of twice). Applied
+    /// to the codeDocument here -- right before impl-C# lowering -- rather than upstream so that
+    /// the earlier <see cref="ProcessTagHelpers"/> caches stay invalidated only by file-content
+    /// changes, not by compilation-only changes to using resolvability.
+    /// </param>
+    public SourceGeneratorRazorCodeDocument ProcessRemaining(
+        SourceGeneratorRazorCodeDocument sgDocument,
+        DefaultUtf8WriteLiteralFeature.Utf8SupportMap utf8SupportMap,
+        ImmutableHashSet<string>? implSkipUsings,
+        CancellationToken cancellationToken)
     {
         var codeDocument = sgDocument.CodeDocument;
         Debug.Assert(codeDocument.GetReferencedTagHelpers() is not null);
@@ -255,6 +271,11 @@ internal sealed class SourceGeneratorProjectEngine
             feature is DefaultUtf8WriteLiteralFeature defaultFeature)
         {
             defaultFeature.SupportMap = utf8SupportMap;
+        }
+
+        if (implSkipUsings is { Count: > 0 })
+        {
+            codeDocument = codeDocument.WithImplSkipUsings(implSkipUsings);
         }
 
         codeDocument = ExecutePhases(Phases[(_tagHelperRewriteEndIndex + 1)..], codeDocument, cancellationToken);

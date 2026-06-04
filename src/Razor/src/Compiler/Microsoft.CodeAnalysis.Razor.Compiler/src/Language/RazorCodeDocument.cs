@@ -37,6 +37,11 @@ public sealed partial class RazorCodeDocument
     private readonly RazorCSharpDocument? _csharpDocument;
     private readonly RazorCSharpDocument? _declCSharpDocument;
     private readonly ImmutableArray<DirectiveTagHelperContribution> _directiveTagHelperContributions;
+    // Set of using-directive namespace strings that the impl half should omit. Populated by the
+    // source generator (which has access to the full compilation) when it detects that a given
+    // `@using NS` doesn't resolve. Keeping the using in only the decl half lets the C# compiler
+    // report the resulting CS0246/CS0234 once instead of twice.
+    private readonly ImmutableHashSet<string>? _implSkipUsings;
 
     private RazorCodeDocument(
         RazorSourceDocument source,
@@ -52,7 +57,8 @@ public sealed partial class RazorCodeDocument
         DocumentIntermediateNode? documentNode,
         RazorCSharpDocument? csharpDocument,
         RazorCSharpDocument? declCSharpDocument,
-        ImmutableArray<DirectiveTagHelperContribution> directiveTagHelperContributions)
+        ImmutableArray<DirectiveTagHelperContribution> directiveTagHelperContributions,
+        ImmutableHashSet<string>? implSkipUsings)
     {
         Source = source;
         Imports = imports.NullToEmpty();
@@ -70,6 +76,7 @@ public sealed partial class RazorCodeDocument
         _csharpDocument = csharpDocument;
         _declCSharpDocument = declCSharpDocument;
         _directiveTagHelperContributions = directiveTagHelperContributions.NullToEmpty();
+        _implSkipUsings = implSkipUsings;
     }
 
     public static RazorCodeDocument Create(
@@ -100,7 +107,8 @@ public sealed partial class RazorCodeDocument
             documentNode: null,
             csharpDocument: null,
             declCSharpDocument: null,
-            directiveTagHelperContributions: default);
+            directiveTagHelperContributions: default,
+            implSkipUsings: null);
     }
 
     internal bool TryGetTagHelpers([NotNullWhen(true)] out TagHelperCollection? result)
@@ -121,7 +129,7 @@ public sealed partial class RazorCodeDocument
         {
             return this;
         }
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, value, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, value, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions, _implSkipUsings);
     }
 
     internal bool TryGetReferencedTagHelpers([NotNullWhen(true)] out TagHelperCollection? result)
@@ -142,7 +150,7 @@ public sealed partial class RazorCodeDocument
         {
             return this;
         }
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, value, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, value, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions, _implSkipUsings);
     }
 
     internal bool TryGetSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
@@ -164,7 +172,7 @@ public sealed partial class RazorCodeDocument
         {
             return this;
         }
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, value, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, value, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions, _implSkipUsings);
     }
 
     internal bool TryGetTagHelperRewrittenSyntaxTree([NotNullWhen(true)] out RazorSyntaxTree? result)
@@ -186,7 +194,7 @@ public sealed partial class RazorCodeDocument
         {
             return this;
         }
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, value, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, value, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions, _implSkipUsings);
     }
 
     internal bool TryGetImportSyntaxTrees(out ImmutableArray<RazorSyntaxTree> result)
@@ -213,7 +221,7 @@ public sealed partial class RazorCodeDocument
         {
             return this;
         }
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, value, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, value, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions, _implSkipUsings);
     }
 
     internal bool TryGetTagHelperContext([NotNullWhen(true)] out TagHelperDocumentContext? result)
@@ -236,7 +244,7 @@ public sealed partial class RazorCodeDocument
         {
             return this;
         }
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, value, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, value, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions, _implSkipUsings);
     }
 
     internal bool TryGetDocumentNode([NotNullWhen(true)] out DocumentIntermediateNode? result)
@@ -258,7 +266,7 @@ public sealed partial class RazorCodeDocument
         {
             return this;
         }
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, value, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, value, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions, _implSkipUsings);
     }
 
     internal RazorCSharpDocument? GetCSharpDocument(bool declarationDocument)
@@ -295,7 +303,7 @@ public sealed partial class RazorCodeDocument
         {
             return this;
         }
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, value, _declCSharpDocument, _directiveTagHelperContributions);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, value, _declCSharpDocument, _directiveTagHelperContributions, _implSkipUsings);
     }
 
 #if SONICDEV
@@ -311,7 +319,7 @@ public sealed partial class RazorCodeDocument
         {
             return this;
         }
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, value, _directiveTagHelperContributions);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, value, _directiveTagHelperContributions, _implSkipUsings);
     }
 
     internal ImmutableArray<DirectiveTagHelperContribution> GetDirectiveTagHelperContributions()
@@ -324,7 +332,39 @@ public sealed partial class RazorCodeDocument
             return this;
         }
 
-        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, value);
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, value, _implSkipUsings);
+    }
+
+    /// <summary>
+    /// Set of `@using` directive namespace strings that the impl half should omit from its
+    /// generated C#. Populated by the source generator (which has access to the compilation) when
+    /// it detects a namespace that doesn't resolve. Keeping such usings in only the decl half
+    /// ensures the C# compiler's per-syntactic-occurrence diagnostics (CS0246, CS0234) fire once
+    /// instead of twice. Returns <see langword="null"/> when the SG hasn't supplied a set (e.g.
+    /// for direct test paths that don't go through the SG).
+    /// </summary>
+    internal ImmutableHashSet<string>? GetImplSkipUsings()
+        => _implSkipUsings;
+
+    internal RazorCodeDocument WithImplSkipUsings(ImmutableHashSet<string>? value)
+    {
+        // Content equality keeps the codeDocument reference stable across SG runs where the
+        // compilation changes but the resolved bad-usings set ends up identical. That preserves
+        // downstream caching for impl-C# lowering: only a genuine set change (a using's
+        // resolvability flipped) re-invalidates impl output.
+        if (ReferenceEquals(value, _implSkipUsings))
+        {
+            return this;
+        }
+
+        if (_implSkipUsings is null
+            ? value is null or { Count: 0 }
+            : value is not null && _implSkipUsings.SetEquals(value))
+        {
+            return this;
+        }
+
+        return new RazorCodeDocument(Source, Imports, ParserOptions, CodeGenerationOptions, _tagHelpers, _referencedTagHelpers, _syntaxTree, _tagHelperRewrittenSyntaxTree, _importSyntaxTrees, _tagHelperContext, _documentNode, _csharpDocument, _declCSharpDocument, _directiveTagHelperContributions, value);
     }
 
     // In general documents will have a relative path (relative to the project root).

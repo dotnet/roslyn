@@ -1574,9 +1574,9 @@ __builder.AddContent(3, count
             var result = RunGenerator(compilation!, ref driver,
                 // Pages/Index.razor(2,8): error CS0246: The type or namespace name 'SurveyPromptRootNamspace' could not be found (are you missing a using directive or an assembly reference?)
                 // using SurveyPromptRootNamspace;
-                // The decl/impl split emits the using directive into both halves, so the C#
-                // compiler reports the missing namespace once per generated file.
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SurveyPromptRootNamspace").WithArguments("SurveyPromptRootNamspace").WithLocation(2, 8),
+                // The source generator detects that `SurveyPromptRootNamspace` doesn't resolve and
+                // omits the using from the impl half, so the C# compiler reports the missing
+                // namespace exactly once (from the decl half) instead of twice.
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SurveyPromptRootNamspace").WithArguments("SurveyPromptRootNamspace").WithLocation(2, 8)
             );
 
@@ -1618,13 +1618,6 @@ namespace MyApp.Pages
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
-#nullable restore
-#line (2,2)-(2,33) ""Pages/Index.razor""
-using SurveyPromptRootNamspace;
-
-#nullable disable
-    #line default
-    #line hidden
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable

@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -107,6 +108,76 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (projectEngine, sourceItem.RelativePhysicalPath, document);
                 })
                 .WithTrackingName("ParsedDocuments");
+
+            // Per-file "impl skip usings" map keyed on file path. The set for each file lists the
+            // `@using NS` directive contents whose namespace doesn't resolve against the input
+            // compilation; the impl half omits those usings so that the C# compiler's
+            // CS0246/CS0234 fires exactly once (against the decl half), instead of duplicating
+            // across decl + impl.
+            //
+            // Computed as a collected singleton (rather than per-file in the csharpDocuments
+            // pipeline) so the result feeds in only at the final ProcessRemaining step, where
+            // it's actually consumed. That keeps the per-file first/second ProcessTagHelpers
+            // caches keyed strictly on file content + tag helpers, preserving the idempotency-
+            // replay machinery that handles "tag helpers changed but file didn't" scenarios.
+            var implSkipUsingsByPath = parsedDocuments
+                .Combine(compilation)
+                .Select(static (pair, cancellationToken) =>
+                {
+                    var (item, compilation) = pair;
+                    var (_, filePath, sgDocument) = item;
+
+                    var documentNode = sgDocument.CodeDocument.GetDocumentNode();
+                    if (documentNode is null)
+                    {
+                        return (filePath, skipSet: (ImmutableHashSet<string>?)null);
+                    }
+
+                    ImmutableHashSet<string>.Builder? skipBuilder = null;
+                    foreach (var usingDirective in documentNode.FindDescendantNodes<UsingDirectiveIntermediateNode>())
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var content = usingDirective.Content;
+                        if (content is null)
+                        {
+                            continue;
+                        }
+
+                        var namespaceName = TryGetPlainUsingNamespace(content);
+                        if (namespaceName is null)
+                        {
+                            continue;
+                        }
+
+                        if (!ResolvesAsNamespace(compilation, namespaceName))
+                        {
+                            skipBuilder ??= ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+                            // Match on UsingDirectiveIntermediateNode.Content (raw, untrimmed). Storing the
+                            // trimmed namespace would miss directives that have trailing whitespace, etc.
+                            skipBuilder.Add(content);
+                        }
+                    }
+
+                    return (filePath, skipSet: skipBuilder?.ToImmutable());
+                })
+                .WithLambdaComparer(static (old, @new) =>
+                    old.filePath == @new.filePath &&
+                    AreImplSkipUsingsEqual(old.skipSet, @new.skipSet))
+                .Collect()
+                .Select(static (items, _) =>
+                {
+                    var builder = ImmutableDictionary.CreateBuilder<string, ImmutableHashSet<string>>(StringComparer.Ordinal);
+                    foreach (var (filePath, skipSet) in items)
+                    {
+                        if (skipSet is { Count: > 0 })
+                        {
+                            builder[filePath] = skipSet;
+                        }
+                    }
+                    return builder.ToImmutable();
+                })
+                .WithTrackingName("ImplSkipUsings");
 
             // Decl sources -- the class declaration / parameter / @inject / @inherits surface for
             // each component, emitted before the compilation exists so it can be added to the
@@ -314,12 +385,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .WithTrackingName("CheckedAndRewrittenTagHelpers")
                 .Combine(utf8SupportMap)
+                .Combine(implSkipUsingsByPath)
                 .Select((pair, cancellationToken) =>
                 {
-                    var ((projectEngine, filePath, document), utf8SupportMap) = pair;
+                    var (((projectEngine, filePath, document), utf8SupportMap), implSkipUsingsByPath) = pair;
+                    var implSkipUsings = implSkipUsingsByPath.GetValueOrDefault(filePath);
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath);
-                    document = projectEngine.ProcessRemaining(document, utf8SupportMap, cancellationToken);
+                    document = projectEngine.ProcessRemaining(document, utf8SupportMap, implSkipUsings, cancellationToken);
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath);
                     return (filePath, document);

@@ -67,7 +67,13 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
         // attribute decoration that preceded the class in the original tree continues
         // to do so. IsGenericTyped helper namespaces are also lifted as siblings of the
         // primary namespace.
+        //
+        // Usings whose namespace is listed in codeDocument.GetImplSkipUsings() are omitted
+        // here. The decl half (which always emits the full set) is the canonical occurrence
+        // of those usings, so the C# compiler's CS0246/CS0234 fires exactly once when the
+        // namespace doesn't resolve, instead of duplicating across both halves.
         var usings = primaryNamespace.FindDescendantNodes<UsingDirectiveIntermediateNode>();
+        var implSkipUsings = codeDocument.GetImplSkipUsings();
         var implDocNode = RazorCSharpDocumentWriter.CloneContainer(documentNode);
         var implNamespace = RazorCSharpDocumentWriter.CloneContainer(primaryNamespace);
         var implClass = RazorCSharpDocumentWriter.CloneContainer(primaryClass);
@@ -83,6 +89,10 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
 
         foreach (var usingDirective in usings)
         {
+            if (implSkipUsings is not null && implSkipUsings.Contains(usingDirective.Content))
+            {
+                continue;
+            }
             implNamespace.Children.Add(usingDirective);
         }
 
