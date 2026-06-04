@@ -55,19 +55,43 @@
   </ItemGroup>
   <PropertyGroup>
     <_DotNetSdkVersionFile>$(IntermediateOutputPath)\DotNetVersions.g.cs</_DotNetSdkVersionFile>
+    <_DotNetSdkVersionInputCacheFile>$(IntermediateOutputPath)\DotNetVersions.input.cache</_DotNetSdkVersionInputCacheFile>
+    <_CurrentCompilerApiVersion>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</_CurrentCompilerApiVersion>
   </PropertyGroup>
-  <Target Name="_GenerateSdkVersionAttribute" BeforeTargets="CoreCompile" Outputs="$(_DotNetSdkVersionFile)">
+  <!--
+    Captures the values embedded into DotNetVersions.g.cs in a cache file. WriteOnlyWhenDifferent ensures
+    the cache file's timestamp only changes when those values actually change, which is what allows
+    _GenerateSdkVersionAttribute below to be skipped (and avoid recompiling this assembly) on incremental builds.
+  -->
+  <PropertyGroup>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);_GenerateSdkVersionAttribute</CoreCompileDependsOn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(_DotNetSdkVersionFile)" />
+  </ItemGroup>
+  <Target Name="_CreateSdkVersionInputCache">
+    <WriteLinesToFile File="$(_DotNetSdkVersionInputCacheFile)"
+                      Lines="$(NETCoreSdkVersion);$(_CurrentCompilerApiVersion)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <FileWrites Include="$(_DotNetSdkVersionInputCacheFile)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="_GenerateSdkVersionAttribute"
+          DependsOnTargets="_CreateSdkVersionInputCache"
+          Inputs="$(_DotNetSdkVersionInputCacheFile)"
+          Outputs="$(_DotNetSdkVersionFile)">
     <ItemGroup>
       <_Attribute Include="Microsoft.CodeAnalysis.BuildTasks.UnitTests.DotNetSdkVersionAttribute">
         <_Parameter1>$(NETCoreSdkVersion)</_Parameter1>
       </_Attribute>
       <_Attribute Include="System.Reflection.AssemblyMetadataAttribute">
         <_Parameter1>CurrentCompilerApiVersion</_Parameter1>
-        <_Parameter2>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</_Parameter2>
+        <_Parameter2>$(_CurrentCompilerApiVersion)</_Parameter2>
       </_Attribute>
     </ItemGroup>
     <WriteCodeFragment AssemblyAttributes="@(_Attribute)" Language="$(Language)" OutputFile="$(_DotNetSdkVersionFile)">
-      <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragment>
   </Target>
