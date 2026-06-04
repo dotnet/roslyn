@@ -3680,6 +3680,36 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeExpression_Emit()
+    {
+        var source = """
+            class C
+            {
+                int M1(int* p) => unsafe(*p);
+                unsafe int M2(int* p) => *p;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source,
+            options: TestOptions.UnsafeDebugDll,
+            verify: Verification.Skipped)
+            .VerifyDiagnostics();
+
+        var expectedIl = """
+            {
+              // Code size        3 (0x3)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  ldind.i4
+              IL_0002:  ret
+            }
+            """;
+
+        verifier.VerifyIL("C.M1", expectedIl);
+        verifier.VerifyIL("C.M2", expectedIl);
+    }
+
+    [Fact]
     public void UnsafeExpression_CheckedUnchecked()
     {
         var source = """
@@ -3722,7 +3752,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
               IL_000f:  ldind.i4
               IL_0010:  pop
               IL_0011:  ret
-            } 
+            }
             """);
     }
 
