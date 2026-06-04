@@ -5,6 +5,7 @@
 #if DEBUG
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Xunit;
@@ -52,13 +53,15 @@ public class PoolTrackingTests
     {
         PoolTracker.StartTracking(out var context);
         var builder = ArrayBuilder<int>.GetInstance();
-        var task = Task.Run(async () =>
+        using var allowFree = new SemaphoreSlim(0, 1);
+        var task = Task.Run(() =>
         {
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            allowFree.Wait();
             builder.Free();
         });
 
         Assert.True(context.HasLeaks);
+        allowFree.Release();
         Assert.True(context.WaitForOutstandingObjectsToBeFreed(TimeSpan.FromSeconds(5)));
         PoolTracker.StopTracking();
         await task;
