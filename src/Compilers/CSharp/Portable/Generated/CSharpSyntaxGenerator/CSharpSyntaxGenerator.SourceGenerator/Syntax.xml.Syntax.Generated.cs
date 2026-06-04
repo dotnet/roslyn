@@ -4337,11 +4337,7 @@ public sealed partial class KeyValuePairElementSyntax : CollectionElementSyntax
 /// <item><description><see cref="SyntaxKind.WithElement"/></description></item>
 /// </list>
 /// </remarks>
-<<<<<<< HEAD
 [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
-||||||| c04730aa9ee
-=======
->>>>>>> upstream/features/dictionary-expressions-old
 public sealed partial class WithElementSyntax : CollectionElementSyntax
 {
     private ArgumentListSyntax? argumentList;
