@@ -182,8 +182,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
     }
 
     [Fact]
-    public async Task Inject()
-    {
+    public async Task AddUsing_InjectDirective()
         var input = """
             @inject [||]StringBuilder Builder
 
@@ -193,7 +192,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
         var expected = """
             @using System.Text
             @inject StringBuilder Builder
-            
+
             <div></div>
             """;
 
@@ -201,8 +200,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
     }
 
     [Fact]
-    public async Task Inject_Legacy()
-    {
+    public async Task AddUsing_InjectDirective_Legacy()
         var input = """
             @inject [||]StringBuilder Builder
 
@@ -212,7 +210,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
         var expected = """
             @using System.Text
             @inject StringBuilder Builder
-            
+
             <div></div>
             """;
 
