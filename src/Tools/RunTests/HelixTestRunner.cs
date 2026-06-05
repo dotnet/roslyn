@@ -323,6 +323,7 @@ internal sealed partial class HelixTestRunner
         // Retrieve test runtimes from azure devops historical data.
         var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
         var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), testHistory);
+        var timeout = testHistory is null ? WorkItemExecutionTimeout * 2 : WorkItemExecutionTimeout;
         var helixProjectFileContent = GetHelixProjectFileContent(
             helixWorkItems,
             testOS,
@@ -330,7 +331,8 @@ internal sealed partial class HelixTestRunner
             platform,
             options.HelixQueueName,
             options.ArtifactsDirectory,
-            payloadsDir);
+            payloadsDir,
+            timeout);
 
         var helixFilePath = Path.Combine(options.ArtifactsDirectory, "helix.proj");
         File.WriteAllText(helixFilePath, helixProjectFileContent);
@@ -419,7 +421,8 @@ internal sealed partial class HelixTestRunner
         string platform,
         string helixQueueName,
         string artifactsDir,
-        string payloadsDir)
+        string payloadsDir,
+        TimeSpan timeout)
     {
         // Setup the environment variables that are required for the helix project.
         //
@@ -464,7 +467,7 @@ internal sealed partial class HelixTestRunner
 
         foreach (var helixWorkItem in helixWorkItems)
         {
-            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS);
+            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS, timeout);
         }
 
         builder.AppendLine("""
@@ -490,7 +493,8 @@ internal sealed partial class HelixTestRunner
             string platform,
             string artifactsDir,
             string payloadsDir,
-            TestOS testOS)
+            TestOS testOS,
+            TimeSpan timeout)
         {
             var isUnix = testOS != TestOS.Windows;
 
@@ -538,7 +542,7 @@ internal sealed partial class HelixTestRunner
                         <PayloadDirectory>{workItemPayloadDir}</PayloadDirectory>
                         <Command>{commandPrefix}{commandFileName}</Command>
                         <PostCommands>{commandPrefix}{postCommandFileName}</PostCommands>
-                        <Timeout>{WorkItemExecutionTimeout:hh\:mm\:ss}</Timeout>
+                        <Timeout>{timeout:hh\:mm\:ss}</Timeout>
                         <ExpectedExecutionTime>{helixWorkItem.EstimatedExecutionTime}</ExpectedExecutionTime>
                     </HelixWorkItem>
                 """);
