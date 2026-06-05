@@ -94,7 +94,7 @@ internal abstract class AbstractFileHeaderDiagnosticAnalyzer : AbstractBuiltInCo
         // compare line by line, ignoring leading and trailing whitespace on each line.
         for (var i = 0; i < reformattedCopyrightTextParts.Length; i++)
         {
-            if (string.CompareOrdinal(reformattedCopyrightTextParts[i].Trim(), fileHeaderCopyrightTextParts[i].Trim()) != 0)
+            if (reformattedCopyrightTextParts[i].Trim() != fileHeaderCopyrightTextParts[i].Trim())
             {
                 return false;
             }

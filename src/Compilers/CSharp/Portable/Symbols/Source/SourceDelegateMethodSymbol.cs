@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var p in currentParameters)
             {
-                if (string.CompareOrdinal(p.Name, name) == 0)
+                if (p.Name == name)
                 {
                     return false;
                 }
