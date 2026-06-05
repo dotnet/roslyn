@@ -15933,16 +15933,15 @@ record B(int X, int Y) : A
 @"#nullable enable
 abstract record R
 {
-    public abstract bool Equals(R? other);
     public abstract override int GetHashCode();
 }
 sealed record S : R;";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (7,1): error CS0205: Cannot call an abstract base member: 'R.GetHashCode()'
+                // (6,1): error CS0205: Cannot call an abstract base member: 'R.GetHashCode()'
                 // sealed record S : R;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "sealed record S : R;").WithArguments("R.GetHashCode()").WithLocation(7, 1)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "sealed record S : R;").WithArguments("R.GetHashCode()").WithLocation(6, 1)
                 );
         }
 
