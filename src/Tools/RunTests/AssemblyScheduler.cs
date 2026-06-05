@@ -39,19 +39,39 @@ namespace RunTests
 
             if (testHistory is null)
             {
-                // We didn't have any test history from azure devops, just partition by test count.
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
-                var totalTestCount = orderedTypeInfos.Values.Sum(types => types.Sum(t => t.Tests.Length));
-                var testsPerWorkItem = Math.Max(1, totalTestCount / TargetWorkItemCount);
-                var workItemsByMethodCount = BuildWorkItems(
-                    orderedTypeInfos,
-                    getWeightFunc: static test => 1,
-                    limit: testsPerWorkItem);
-
-                LogWorkItems(workItemsByMethodCount);
-                return workItemsByMethodCount;
+                return ScheduleByCount(orderedTypeInfos);
             }
 
+            return ScheduleByTime(orderedTypeInfos, testHistory);
+        }
+
+        /// <summary>
+        /// Partition tests evenly by count into a target number of work items.
+        /// Used as a fallback when test history is unavailable.
+        /// </summary>
+        private static ImmutableArray<HelixWorkItem> ScheduleByCount(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos)
+        {
+            var totalTestCount = orderedTypeInfos.Values.Sum(types => types.Sum(t => t.Tests.Length));
+            var testsPerWorkItem = Math.Max(1, totalTestCount / TargetWorkItemCount);
+            var workItems = BuildWorkItems(
+                orderedTypeInfos,
+                getWeightFunc: static test => 1,
+                limit: testsPerWorkItem);
+
+            LogWorkItems(workItems);
+            return workItems;
+        }
+
+        /// <summary>
+        /// Partition tests by historical execution time with the goal of each work item
+        /// running under the time limit.
+        /// </summary>
+        private static ImmutableArray<HelixWorkItem> ScheduleByTime(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos,
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+        {
             LogLongTests(testHistory);
 
             // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
