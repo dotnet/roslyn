@@ -15966,6 +15966,25 @@ sealed record S : R;";
         }
 
         [Fact]
+        public void Overrides_AbstractBaseCalls_03()
+        {
+            var source =
+@"#nullable enable
+abstract record R
+{
+    protected abstract bool PrintMembers(System.Text.StringBuilder builder);
+}
+sealed record S : R;";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (6,1): error CS0205: Cannot call an abstract base member: 'R.PrintMembers(StringBuilder)'
+                // sealed record S : R;
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "sealed record S : R;").WithArguments("R.PrintMembers(System.Text.StringBuilder)").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
         public void ObjectEquals_01()
         {
             var ilSource = @"
