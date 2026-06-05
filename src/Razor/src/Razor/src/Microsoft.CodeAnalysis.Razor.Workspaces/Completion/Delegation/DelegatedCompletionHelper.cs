@@ -198,7 +198,7 @@ internal static class DelegatedCompletionHelper
                 previousPosition.Line,
                 previousPosition.Character + 1),
             previousCharacterPositionInfo.HostDocumentIndex + 1,
-            originalPositionInfo.InDeclDocument);
+            previousCharacterPositionInfo.InDeclDocument);
 
         result = new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
         return true;

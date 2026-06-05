@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
@@ -141,37 +140,6 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             return CallHtml;
         }
 
-        // Ensure that we convert our Hover to a Roslyn Hover.
-        var resultHover = ConvertHover(razorHover);
-
-        return Results(resultHover);
-    }
-
-    /// <summary>
-    ///  Converts a <see cref="Hover"/> to a <see cref="Hover"/>.
-    /// </summary>
-    /// <remarks>
-    ///  Once Razor moves wholly over to Roslyn.LanguageServer.Protocol, this method can be removed.
-    /// </remarks>
-    private static LspHover ConvertHover(LspHover hover)
-    {
-        // Note: Razor only ever produces a Hover with MarkupContent or a VSInternalHover with RawContents.
-        // Both variants return a Range.
-
-        return hover switch
-        {
-            VSInternalHover { Range: var range, RawContent: { } rawContent } => new VSInternalHover()
-            {
-                Range = range,
-                Contents = string.Empty,
-                RawContent = rawContent
-            },
-            LspHover { Range: var range, Contents.Fourth: MarkupContent contents } => new LspHover()
-            {
-                Range = range,
-                Contents = contents
-            },
-            _ => Assumed.Unreachable<LspHover>(),
-        };
+        return Results(razorHover);
     }
 }
