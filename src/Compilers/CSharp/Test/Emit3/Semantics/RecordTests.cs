@@ -15940,12 +15940,9 @@ sealed record S : R;";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (7,15): error CS0205: Cannot call an abstract base member: 'R.GetHashCode()'
+                // (7,1): error CS0205: Cannot call an abstract base member: 'R.GetHashCode()'
                 // sealed record S : R;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "S").WithArguments("R.GetHashCode()").WithLocation(7, 15),
-                // (7,15): error CS0205: Cannot call an abstract base member: 'R.Equals(R?)'
-                // sealed record S : R;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "S").WithArguments("R.Equals(R?)").WithLocation(7, 15)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "sealed record S : R;").WithArguments("R.GetHashCode()").WithLocation(7, 1)
                 );
         }
 

@@ -2021,6 +2021,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                 }
 
+                if (callKind == CallKind.Call && method.IsAbstract)
+                {
+                    _diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, call.Syntax.Location, method);
+                }
+
                 var arguments = call.Arguments;
                 EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
                 int stackBehavior = GetCallStackBehavior(method, arguments);
