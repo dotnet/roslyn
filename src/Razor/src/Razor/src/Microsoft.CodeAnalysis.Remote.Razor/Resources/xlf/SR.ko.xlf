@@ -122,9 +122,14 @@
         <target state="translated">using 정렬 및 통합</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unknown_RazorMetaCode">
+        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
+        <target state="translated">''{' or '}' 이외의 RazorMetaCode를 방문하려고 했습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unsupported_type_0">
         <source>Unsupported type: '{0}'.</source>
-        <target state="new">Unsupported type: '{0}'.</target>
+        <target state="translated">지원되지 않는 유형: '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_attributes">

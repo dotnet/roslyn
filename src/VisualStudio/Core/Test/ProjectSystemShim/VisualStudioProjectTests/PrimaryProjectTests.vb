@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class PrimaryProjectTests
         <WpfFact>
         Public Async Function ProjectIsPrimaryByDefault() As Task
-            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
+            Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project", LanguageNames.CSharp, CancellationToken.None)
 
@@ -23,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact>
         Public Async Function ChangeProjectIsPrimary() As Task
-            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
+            Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project", LanguageNames.CSharp, CancellationToken.None)
 
@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact>
         Public Async Function ChangeProjectIsPrimaryBack() As Task
-            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
+            Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project", LanguageNames.CSharp, CancellationToken.None)
 

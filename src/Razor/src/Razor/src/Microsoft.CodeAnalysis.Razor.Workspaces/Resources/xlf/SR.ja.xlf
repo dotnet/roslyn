@@ -119,11 +119,6 @@
         <target state="translated">"再トリガーの完了..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">'{' or '}' 以外の RazorMetaCode にアクセスしようとしました。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
         <target state="translated">不明なマッピング動作</target>

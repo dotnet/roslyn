@@ -139,9 +139,6 @@
   <data name="Unknown_mapping_behavior" xml:space="preserve">
     <value>Unknown mapping behavior</value>
   </data>
-  <data name="Unknown_RazorMetaCode" xml:space="preserve">
-    <value>Attempted to visit a RazorMetaCode other than '{' or '}'.</value>
-  </data>
   <data name="Format_operation_changed_nonwhitespace" xml:space="preserve">
     <value>A format operation is being abandoned because it would add or delete non-whitespace content.</value>
   </data>

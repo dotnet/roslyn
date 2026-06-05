@@ -40,6 +40,11 @@ internal abstract class AbstractBuildHost :
     /// </summary>
     private string? _binaryLogPath;
 
+    /// <summary>
+    /// The maximum number of MSBuild nodes that may build concurrently, or <see langword="null"/> to use MSBuild's default; should not be changed once the <see cref="_buildManager"/> is initialized.
+    /// </summary>
+    private int? _maxNodeCount;
+
     public AbstractBuildHost(BuildHostLogger logger, RpcServer server)
     {
         Logger = logger;
@@ -93,7 +98,7 @@ internal abstract class AbstractBuildHost :
                 Logger.LogInformation($"Logging builds to {_binaryLogPath}");
             }
 
-            _buildManager = new ProjectBuildManager(_knownCommandLineParserLanguages, _globalMSBuildProperties, logger);
+            _buildManager = new ProjectBuildManager(_knownCommandLineParserLanguages, _globalMSBuildProperties, logger, _maxNodeCount);
         }
     }
 
@@ -112,16 +117,17 @@ internal abstract class AbstractBuildHost :
         Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
     }
 
-    public void ConfigureGlobalState(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, string? binlogPath)
+    public void ConfigureGlobalState(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, string? binlogPath, int? maxNodeCount)
     {
         lock (_gate)
         {
             if (_buildManager != null)
                 throw new InvalidOperationException($"{nameof(_buildManager)} has already been initialized and cannot be changed");
 
+            _knownCommandLineParserLanguages = knownCommandLineParserLanguages;
             _globalMSBuildProperties = globalProperties;
             _binaryLogPath = binlogPath;
-            _knownCommandLineParserLanguages = knownCommandLineParserLanguages;
+            _maxNodeCount = maxNodeCount;
         }
     }
 

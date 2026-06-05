@@ -65,7 +65,7 @@ internal sealed class ProjectBuildManager : IDisposable
     };
     private bool _disposed;
 
-    public ProjectBuildManager(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, ILogger? msbuildLogger = null)
+    public ProjectBuildManager(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, ILogger? msbuildLogger = null, int? maxNodeCount = null)
     {
         KnownCommandLineParserLanguages = knownCommandLineParserLanguages;
 
@@ -89,10 +89,17 @@ internal sealed class ProjectBuildManager : IDisposable
             // The loggers are not inherited from the project collection, so specify both the
             // binlog logger and the _buildLogger for the build steps.
             Loggers = [.. loggers, _buildLogger],
+
             // If we have an additional logger and it's diagnostic, then we need to opt into task inputs globally, or otherwise
             // it won't get any log events. This logic matches https://github.com/dotnet/msbuild/blob/fa6710d2720dcf1230a732a8858ffe71bcdbe110/src/Build/Instance/ProjectInstance.cs#L2365-L2371
-            LogTaskInputs = msbuildLogger is not null && msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic
+            LogTaskInputs = msbuildLogger is not null && msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic,
+
+            // Disable node reuse so nodes don't live around once we're done
+            EnableNodeReuse = false
         };
+
+        if (maxNodeCount is int nodeCount)
+            buildParameters.MaxNodeCount = nodeCount;
 
         MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
     }
@@ -285,11 +292,9 @@ internal sealed class ProjectBuildManager : IDisposable
             }
         }
 
-        _buildLogger.SetProjectAndLog(projectInstance.FullPath, log);
-
         var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, [.. targets]);
 
-        var result = await BuildAsync(buildRequestData, cancellationToken).ConfigureAwait(false);
+        var result = await BuildAsync(buildRequestData, log, cancellationToken).ConfigureAwait(false);
 
         if (result.OverallResult == MSB.Execution.BuildResultCode.Failure)
         {
@@ -302,48 +307,29 @@ internal sealed class ProjectBuildManager : IDisposable
         return projectInstance;
     }
 
-    // this lock is static because we are using the default build manager, and there is only one per process
-    private static readonly SemaphoreSlim s_buildManagerLock = new(initialCount: 1);
-
-    private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+    private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, DiagnosticLog log, CancellationToken cancellationToken)
     {
-        // only allow one build to use the default build manager at a time
-        using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, requestData, cancellationToken).ConfigureAwait(false);
-        }
-    }
+        // MSBuild doesn't have a way to cancel a single submission, so we'll only check the token before we start. In practice this is fine --
+        // the RPC layer we use to call into the BuildHost doesn't support cancellation anyways so there's no reason to have lots of extra code.
+        cancellationToken.ThrowIfCancellationRequested();
 
-    private static Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
-    {
-        var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
+        var submission = MSB.Execution.BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
 
-        // enable cancellation of build
-        CancellationTokenRegistration registration = default;
-        if (cancellationToken.CanBeCanceled)
-        {
-            registration = cancellationToken.Register(() =>
-            {
-                // Note: We only ever expect that a single submission is being built,
-                // even though we're calling CancelAllSubmissions(). If MSBuildWorkspace is
-                // ever updated to support parallel builds, we'll likely need to update this code.
-
-                taskSource.TrySetCanceled();
-                buildManager.CancelAllSubmissions();
-                registration.Dispose();
-            });
-        }
-
-        // execute build async
         try
         {
-            buildManager.PendBuildRequest(requestData).ExecuteAsync(sub =>
+            // The SubmissionId is assigned by PendBuildRequest and is the same SubmissionId that appears on the
+            // BuildEventContext of every event raised while this submission builds.
+            _buildLogger.RegisterLog(submission.SubmissionId, log);
+
+            var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
+
+            // Start the job
+            submission.ExecuteAsync(sub =>
             {
                 // when finished
                 try
                 {
                     var result = sub.BuildResult;
-                    registration.Dispose();
                     taskSource.TrySetResult(result);
                 }
                 catch (Exception e)
@@ -351,12 +337,13 @@ internal sealed class ProjectBuildManager : IDisposable
                     taskSource.TrySetException(e);
                 }
             }, null);
-        }
-        catch (Exception e)
-        {
-            taskSource.SetException(e);
-        }
 
-        return taskSource.Task;
+            return await taskSource.Task.ConfigureAwait(false);
+        }
+        finally
+        {
+            // Ensure the log is cleaned up if it's still there no matter if we take an exceptional path or not
+            _buildLogger.TryUnregisterLog(submission.SubmissionId);
+        }
     }
 }

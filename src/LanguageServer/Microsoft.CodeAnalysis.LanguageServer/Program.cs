@@ -116,10 +116,6 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
     RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
-    // Create the workspace first, since right now the language server will assume there's at least one Workspace. This as a side effect creates the actual workspace
-    // object which is registered by the LspWorkspaceRegistrationEventListener.
-    var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-
     LanguageServerHost server;
     if (serverConfiguration.UseStdIo)
     {
@@ -137,6 +133,11 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         await pipeClient.ConnectAsync(cancellationToken);
         server = new LanguageServerHost(pipeClient, pipeClient, exportProvider, loggerFactory, typeRefResolver);
     }
+
+    // Eagerly resolve the workspace factory from the per-server LSP services, since right now the language server
+    // assumes there's at least one Workspace. This as a side effect creates the actual workspace object which is
+    // registered by the LspWorkspaceRegistrationEventListener.
+    var workspaceFactory = server.GetLspServices().GetRequiredService<LanguageServerWorkspaceFactory>();
 
     server.Start();
 

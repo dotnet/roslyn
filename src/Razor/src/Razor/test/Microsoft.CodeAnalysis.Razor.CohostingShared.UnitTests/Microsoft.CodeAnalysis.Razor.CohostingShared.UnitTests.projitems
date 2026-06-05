@@ -39,7 +39,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\UnboundDirectiveAttributeAddUsingTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\WrapAttributeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ComputedTargetPathTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\RazorDiagnosticHelperTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentExcerpt\DocumentExcerptServiceTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentExcerpt\RazorDocumentExcerptServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentCompletionEndpointTest.cs" />
@@ -82,6 +81,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ProjectAvailabilityTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetResolveProvider.cs" />
   </ItemGroup>
 </Project>

@@ -122,9 +122,14 @@
         <target state="translated">排序并合并 using 指令</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unknown_RazorMetaCode">
+        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
+        <target state="translated">已尝试访问除 "{' or '}" 之外的 RazorMetaCode。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unsupported_type_0">
         <source>Unsupported type: '{0}'.</source>
-        <target state="new">Unsupported type: '{0}'.</target>
+        <target state="translated">不支持的类型:“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_attributes">
