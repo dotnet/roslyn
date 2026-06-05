@@ -4760,27 +4760,27 @@ class X : List<int>
                     // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
                     //         return [local, .. arr];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local, .. arr]").WithArguments("R").WithLocation(8, 16),
-                    // (8,24): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                    //         return [local, .. arr];
-                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(8, 24),
                     // (8,24): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         return [local, .. arr];
                     Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(8, 24),
+                    // (8,27): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr").WithLocation(8, 27),
                     // (13,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
                     //         return [.. arr];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[.. arr]").WithArguments("R").WithLocation(13, 16),
-                    // (13,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                    //         return [.. arr];
-                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(13, 17),
                     // (13,17): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         return [.. arr];
                     Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(13, 17),
-                    // (18,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                    //         R r = [.. arr];
-                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(18, 16),
+                    // (13,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr").WithLocation(13, 20),
                     // (18,16): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         R r = [.. arr];
                     Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(18, 16),
+                    // (18,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         R r = [.. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr").WithLocation(18, 19),
                 ]);
         }
 
@@ -4847,12 +4847,12 @@ class X : List<int>
                 }
                 """;
             CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
-                // (41,32): error CS8352: Cannot use variable '..source' in this context because it may expose referenced variables outside of their declaration scope
-                //         MyCollection result = [..source]; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "..source").WithArguments("..source").WithLocation(41, 32),
                 // (41,32): error CS8350: This combination of arguments to 'MyCollection.Add(Span<int>)' is disallowed because it may expose variables referenced by parameter 'item' outside of their declaration scope
                 //         MyCollection result = [..source]; // 1
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "..source").WithArguments("MyCollection.Add(System.Span<int>)", "item").WithLocation(41, 32),
+                // (41,34): error CS8352: Cannot use variable 'source' in this context because it may expose referenced variables outside of their declaration scope
+                //         MyCollection result = [..source]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "source").WithArguments("source").WithLocation(41, 34),
                 // (42,16): error CS8352: Cannot use variable 'result' in this context because it may expose referenced variables outside of their declaration scope
                 //         return result; // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "result").WithArguments("result").WithLocation(42, 16));
@@ -6233,12 +6233,12 @@ class X : List<int>
                     // (8,26): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                     //         return [with(ref heapSpan), .. arr];
                     Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(8, 26),
-                    // (8,37): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                    //         return [with(ref heapSpan), .. arr];
-                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(8, 37),
                     // (8,37): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
                     //         return [with(ref heapSpan), .. arr];
                     Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "i").WithLocation(8, 37),
+                    // (8,40): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr").WithLocation(8, 40),
                 ]);
         }
 
