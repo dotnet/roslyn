@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -127,6 +128,22 @@ public class LocalHtmlCompletionProviderTest
         Assert.Contains(result.Items, static item => item.Label == "type");
         Assert.Contains(result.Items, static item => item.Label == "value");
         Assert.Contains(result.Items, static item => item.Label == "placeholder");
+    }
+
+    [Fact]
+    public void AttributeCompletion_NoDuplicateNames()
+    {
+        // Elements like <input> define attributes (e.g., enterkeyhint) that also exist as
+        // global attributes. The completion list must not contain duplicate names — the
+        // element-specific version takes precedence.
+        var result = GetCompletionList("<input $$>");
+
+        Assert.NotNull(result);
+        var hasDuplicates = result.Items
+            .GroupBy(static item => item.Label, StringComparer.OrdinalIgnoreCase)
+            .Any(static g => g.Count() > 1);
+
+        Assert.False(hasDuplicates);
     }
 
     [Fact]
