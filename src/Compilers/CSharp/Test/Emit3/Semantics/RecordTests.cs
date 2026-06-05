@@ -15927,6 +15927,29 @@ record B(int X, int Y) : A
         }
 
         [Fact]
+        public void Overrides_AbstractBaseCalls_01()
+        {
+            var source =
+@"#nullable enable
+abstract record R
+{
+    public abstract bool Equals(R? other);
+    public abstract override int GetHashCode();
+}
+sealed record S : R;";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (7,15): error CS0205: Cannot call an abstract base member: 'R.GetHashCode()'
+                // sealed record S : R;
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "S").WithArguments("R.GetHashCode()").WithLocation(7, 15),
+                // (7,15): error CS0205: Cannot call an abstract base member: 'R.Equals(R?)'
+                // sealed record S : R;
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "S").WithArguments("R.Equals(R?)").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
         public void ObjectEquals_01()
         {
             var ilSource = @"
