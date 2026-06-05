@@ -4883,12 +4883,415 @@ public sealed class ClosedClassesTests : CSharpTestBase
         }
     }
 
-    // TODO2: test also constraining indirectly to closed type.
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_05()
+    {
+        // Type parameter is constrained indirectly to closed type
+        var source1 = """
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+                    };
+                }
+
+                int M2<X, Y>(Y y) where X : E where Y : X
+                {
+            #line 100
+                    return y switch
+                    {
+                        F1 => 1,
+                    };
+                }
+
+                int M3<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+            #line 200
+                        E => 3,
+                    };
+                }
+            
+                int M4<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                    };
+                }
+
+                int M5<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        X => 2,
+                    };
+                }
+            
+                int M6<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                    };
+                }
+
+                int M7<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        Y => 2,
+                    };
+                }
+
+                int M8<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                #line 300
+                        Y => 2,
+                    };
+                }
+
+                int M9<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 400
+                        X => 2,
+                    };
+                }
+
+                int M10<X, Y>(X x) where X : E where Y : X
+                {
+                    return x switch
+                    {
+                        X => 1,
+                #line 500
+                        Y => 2,
+                    };
+                }
+
+                int M11<X, Y>(X x) where X : E where Y : X
+                {
+                    return x switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M12<X, Y>(object obj) where X : E where Y : X
+                {
+                    return obj switch
+                    {
+                        X => 1,
+                #line 600
+                        Y => 2,
+                    };
+                }
+
+                int M13<X, Y>(object obj) where X : E where Y : X
+                {
+                #line 700
+                    return obj switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M14<X, Y>(Y y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 800
+                        F1 => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             E => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
+                // (300,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(300, 13),
+                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             X => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "X").WithLocation(400, 13),
+                // (500,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(500, 13),
+                // (515,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(515, 20),
+                // (600,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(600, 13),
+                // (700,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(700, 20),
+                // (800,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             F1 => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "F1").WithLocation(800, 13));
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_06()
+    {
+        // Union case type is a type parameter is constrained indirectly to closed type
+        var source1 = """
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+
+            public union U<T>(T);
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+                    };
+                }
+
+                int M2<X, Y>(U<Y> y) where X : E where Y : X
+                {
+            #line 100
+                    return y switch
+                    {
+                        F1 => 1,
+                    };
+                }
+
+                int M3<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        F2 => 2,
+            #line 200
+                        E => 3,
+                    };
+                }
+            
+                int M4<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                    };
+                }
+
+                int M5<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        X => 2,
+                    };
+                }
+            
+                int M6<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                    };
+                }
+
+                int M7<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        F1 => 1,
+                        Y => 2,
+                    };
+                }
+
+                int M8<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        X => 1,
+                #line 300
+                        Y => 2,
+                    };
+                }
+
+                int M9<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 400
+                        X => 2,
+                    };
+                }
+
+                int M10<X, Y>(U<X> x) where X : E where Y : X
+                {
+                    return x switch
+                    {
+                        X => 1,
+                #line 500
+                        Y => 2,
+                    };
+                }
+
+                int M11<X, Y>(U<X> x) where X : E where Y : X
+                {
+                    return x switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M12<X, Y>(U<object> obj) where X : E where Y : X
+                {
+                    return obj switch
+                    {
+                        X => 1,
+                #line 600
+                        Y => 2,
+                    };
+                }
+
+                int M13<X, Y>(U<object> obj) where X : E where Y : X
+                {
+                #line 700
+                    return obj switch
+                    {
+                        Y => 1,
+                        X => 2,
+                    };
+                }
+
+                int M14<X, Y>(U<Y> y) where X : E where Y : X
+                {
+                    return y switch
+                    {
+                        Y => 1,
+                #line 800
+                        F1 => 2,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            // TODO2: diagnostics are expected only on the `#line` lines.
+            comp.VerifyDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(100, 18),
+                // (200,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             E => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E").WithLocation(200, 13),
+                // (206,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(206, 18),
+                // (214,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(214, 18),
+                // (223,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(223, 18),
+                // (231,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(231, 18),
+                // (240,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(240, 18),
+                // (300,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(300, 13),
+                // (306,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(306, 18),
+                // (406,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return x switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(406, 18),
+                // (500,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(500, 13),
+                // (506,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F1' is not covered.
+                //         return x switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F1").WithLocation(506, 18),
+                // (515,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'object' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("object").WithLocation(515, 20),
+                // (600,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             Y => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "Y").WithLocation(600, 13),
+                // (700,20): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'object' is not covered.
+                //         return obj switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("object").WithLocation(700, 20),
+                // (709,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+                //         return y switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(709, 18));
+        }
+    }
 
     [Fact]
     public void Exhaustiveness_ConstrainedUnionCaseType_01()
     {
         // A union case type is a type parameter constrained to non-closed class type
+        // This is tested as a point of comparison with Exhaustiveness_ConstrainedToClosedType_04
         var source1 = """
             public union U<T>(T);
             """;
