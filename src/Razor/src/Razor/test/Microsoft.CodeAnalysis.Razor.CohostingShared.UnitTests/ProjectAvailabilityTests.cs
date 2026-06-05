@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Remote.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.Hover;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;

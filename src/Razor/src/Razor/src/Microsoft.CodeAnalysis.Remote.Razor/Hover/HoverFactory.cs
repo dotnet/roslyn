@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Roslyn.Text.Adornments;
 
-namespace Microsoft.CodeAnalysis.Razor.Hover;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Hover;
 
 internal static class HoverFactory
 {
