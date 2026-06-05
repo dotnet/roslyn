@@ -20,9 +20,9 @@ namespace RunTests
     {
 
         /// <summary>
-        /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
+        /// The target number of work items to create when partitioning by test count.
         /// </summary>
-        private static readonly int s_maxMethodCount = 500;
+        private const int TargetWorkItemCount = 25;
 
         public static ImmutableArray<HelixWorkItem> Schedule(
             IEnumerable<string> assemblyFilePaths,
@@ -41,10 +41,12 @@ namespace RunTests
             {
                 // We didn't have any test history from azure devops, just partition by test count.
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
+                var totalTestCount = orderedTypeInfos.Values.Sum(types => types.Sum(t => t.Tests.Length));
+                var testsPerWorkItem = Math.Max(1, totalTestCount / TargetWorkItemCount);
                 var workItemsByMethodCount = BuildWorkItems(
                     orderedTypeInfos,
                     getWeightFunc: static test => 1,
-                    limit: s_maxMethodCount);
+                    limit: testsPerWorkItem);
 
                 LogWorkItems(workItemsByMethodCount);
                 return workItemsByMethodCount;
