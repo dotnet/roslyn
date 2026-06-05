@@ -3456,7 +3456,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (8,34): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
             //         System.Span<int> c = b ? stackalloc int[5] : default;
             Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 34),
-            // (9,49): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            // (9,48): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
             //         System.Span<int> d = (System.Span<int>)stackalloc int[5];
             Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(9, 48),
             // (10,17): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
