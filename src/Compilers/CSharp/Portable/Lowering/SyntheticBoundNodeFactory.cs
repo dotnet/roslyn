@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<BoundExpression> args, bool useStrictArgumentRefKinds = false)
         {
             Debug.Assert(method.ParameterCount == args.Length);
-            ReportAbstractBaseCall(receiver, method);
+            ReportAbstractNonVirtualCall(receiver, method);
 
             return new BoundCall(
                 Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
@@ -924,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)
         {
             Debug.Assert(method.ParameterCount == args.Length);
-            ReportAbstractBaseCall(receiver, method);
+            ReportAbstractNonVirtualCall(receiver, method);
             return new BoundCall(
                 Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
                 argumentNamesOpt: default(ImmutableArray<String?>), argumentRefKindsOpt: refKinds, isDelegateCall: false, expanded: false, invokedAsExtensionMethod: false,
@@ -932,9 +932,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        private void ReportAbstractBaseCall(BoundExpression? receiver, MethodSymbol method)
+        private void ReportAbstractNonVirtualCall(BoundExpression? receiver, MethodSymbol method)
         {
-            if (receiver?.Kind == BoundKind.BaseReference && method.IsAbstract)
+            if (receiver?.SuppressVirtualCalls == true && method.IsAbstract)
             {
                 Debug.Assert(CurrentFunction is { });
                 Diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, CurrentFunction.GetFirstLocation(), method);
