@@ -152,6 +152,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool RequiresUnsafeForUninitializedSpanStackAlloc(bool hasInitializer)
+        {
+            return Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
+                !hasInitializer &&
+                ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false };
+        }
+
         internal bool ReportUnsafeIfNotAllowed(
             SyntaxNodeOrToken node,
             BindingDiagnosticBag diagnostics,

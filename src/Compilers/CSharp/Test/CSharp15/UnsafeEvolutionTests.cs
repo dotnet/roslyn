@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -3416,6 +3416,55 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (11,26): error CS0847: An array initializer of length '3' is expected
             //     System.Span<int> e = stackalloc int[3] { 1, 2 };
             Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26));
+    }
+
+    [Fact]
+    public void StackAlloc_SafeContext_WrappedExpressions()
+    {
+        var source = """
+            [module: System.Runtime.CompilerServices.SkipLocalsInit]
+
+            class C
+            {
+                void M(bool b)
+                {
+                    System.Span<int> a = (stackalloc int[5]);
+                    System.Span<int> c = b ? stackalloc int[5] : default;
+                    System.Span<int> d = (System.Span<int>)stackalloc int[5];
+                    Consume(stackalloc int[5]);
+                    ConsumeRo(stackalloc int[5]);
+                }
+
+                void Consume(System.Span<int> span) { }
+                void ConsumeRo(System.ReadOnlySpan<int> span) { }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SkipLocalsInitAttribute : Attribute;
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,31): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         System.Span<int> a = (stackalloc int[5]);
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(7, 31),
+            // (8,34): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         System.Span<int> c = b ? stackalloc int[5] : default;
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 34),
+            // (9,49): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         System.Span<int> d = (System.Span<int>)stackalloc int[5];
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(9, 49),
+            // (10,17): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         Consume(stackalloc int[5]);
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(10, 17),
+            // (11,19): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
+            //         ConsumeRo(stackalloc int[5]);
+            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(11, 19));
     }
 
     [Fact]

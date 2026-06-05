@@ -4690,6 +4690,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors = !inLegalPosition;
             if (inLegalPosition && !isStackallocTargetTyped(node))
             {
+                if (RequiresUnsafeForUninitializedSpanStackAlloc(hasInitializer: node is not StackAllocArrayCreationExpressionSyntax { Initializer: null }))
+                {
+                    ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
+                }
+
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
