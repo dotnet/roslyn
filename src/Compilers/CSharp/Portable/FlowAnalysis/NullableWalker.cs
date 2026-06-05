@@ -2066,11 +2066,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property when
                         variable.ContainingSlot is > 0 and var containingSlot &&
-                        _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypes: not [] } unionType &&
+                        _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
                         Binder.IsUnionTypeValueProperty(unionType, property):
                     {
                         // For union types where none of the case types are nullable, the default state for Value is "not null" rather than "maybe null".
                         var result = NullableFlowState.NotNull;
+                        var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
                         unionType.ForEachUnionFactoryMethod(
                             (factory, _) =>
@@ -2079,7 +2080,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 result = result.Join(GetParameterState(parameter.TypeWithAnnotations, parameter.FlowAnalysisAnnotations).State);
                                 return false;
                             },
-                            (object?)null);
+                            (object?)null,
+                            ref discardedUseSiteInfo);
 
                         return result;
                     }
@@ -10624,9 +10626,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType = targetTypeWithNullability.Type;
             var toType = (NamedTypeSymbol)targetType.StrippedType();
 
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var match = toType.ForEachUnionFactoryMethod(
-                static (factory, factoryDefinition) => factory.OriginalDefinition == (object)factoryDefinition,
-                factory.OriginalDefinition);
+                static (candidate, factory) => candidate.Equals(factory, TypeCompareKind.AllNullableIgnoreOptions),
+                factory,
+                ref discardedUseSiteInfo);
             Debug.Assert(match is not null);
             if (match is not null)
             {

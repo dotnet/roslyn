@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             typeSet = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
 
-                            foreach (var caseType in inputUnionType.OriginalDefinition.UnionCaseTypes)
+                            foreach (var caseType in inputUnionType.OriginalDefinition.UnionCaseTypes(ref discardedUseSiteInfo))
                             {
                                 typeSet.Add(caseType);
 
@@ -390,11 +390,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (membersInterfaceForDefinition == (object)originalContainingType)
                 {
-                    return isMatch(method.OriginalDefinition, unionDefinition);
+                    return isMatch(method.OriginalDefinition, unionDefinition.UnionCaseTypesNoUseSiteDiagnostics);
                 }
             }
             else
             {
+                ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypesNoUseSiteDiagnostics;
+
                 for (var container = unionDefinition; container is not null; container = container.BaseTypeNoUseSiteDiagnostics)
                 {
                     if (container.OriginalDefinition == (object)originalContainingType)
@@ -404,17 +406,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             method = method.OriginalDefinition.AsMember(container);
                         }
 
-                        return isMatch(method, unionDefinition);
+                        return isMatch(method, unionDefinitionCaseTypes);
                     }
                 }
             }
 
             return false;
 
-            static bool isMatch(MethodSymbol method, NamedTypeSymbol unionDefinition)
+            static bool isMatch(MethodSymbol method, ImmutableArray<TypeSymbol> unionDefinitionCaseTypes)
             {
                 return HasTryGetValueSignature(method) && method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
-                       unionDefinition.UnionCaseTypes.Any(
+                       unionDefinitionCaseTypes.Any(
                            static (caseType, parameterType) =>
                            {
                                if (caseType.Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
@@ -1215,9 +1217,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasErrors && unionType is not null && !convertedExpression.HasErrors && constantValue is { IsBad: false } && expression.Type is not null)
             {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var unionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                 bool matched = false;
-                foreach (var caseType in unionType.UnionCaseTypes)
+                foreach (var caseType in unionType.UnionCaseTypes(ref useSiteInfo))
                 {
                     var caseDiagnostics = BindingDiagnosticBag.GetInstance(unionDiagnostics);
                     ConvertPatternExpression(
@@ -1246,6 +1249,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         unionDiagnostics.AddRangeAndFree(caseDiagnostics);
                     }
                 }
+
+                diagnostics.Add(node, useSiteInfo);
 
                 if (!matched)
                 {
@@ -1377,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue matchPossible = ConstantValue.Bad;
             conversion = Conversion.NoConversion;
 
-            foreach (var caseType in unionType.UnionCaseTypes)
+            foreach (var caseType in unionType.UnionCaseTypes(ref useSiteInfo))
             {
                 matchPossible = ExpressionOfTypeMatchesPatternType(
                     conversions, caseType, patternType, ref useSiteInfo, out conversion,
