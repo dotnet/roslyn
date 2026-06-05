@@ -1945,12 +1945,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                int shadowingCount = shadowingMethods?.Count ?? 0;
-
                 foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
                 {
                     Debug.Assert(shadowingMethods is not null);
                     NamedTypeSymbol? possiblyConstructedOrSubstitutedBaseInterface = null;
+                    bool canShadow = !baseInterfaceForDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
 
                     foreach (var member in baseInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
                     {
@@ -1970,22 +1969,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             method = method.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedBaseInterface);
 
-                            int i;
-                            for (i = 0; i < shadowingCount; i++)
+                            foreach (MethodSymbol shadowingMethod in shadowingMethods)
                             {
-                                MethodSymbol shadowingMethod = shadowingMethods[i];
-
                                 if (MemberSignatureComparer.CSharpOverrideComparer.Equals(shadowingMethod, method) &&
                                     shadowingMethod.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(possiblyConstructedOrSubstitutedBaseInterface, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
                                 {
-                                    break;
+                                    // Shadowed
+                                    goto nextMember;
                                 }
-                            }
-
-                            if (i < shadowingCount)
-                            {
-                                // Shadowed
-                                continue;
                             }
 
                             if (action(method, arg))
@@ -1994,18 +1985,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return method;
                             }
 
-                            shadowingMethods.Add(method);
+                            if (canShadow)
+                            {
+                                shadowingMethods.Add(method);
+                            }
                         }
-                    }
 
-                    if (baseInterfaceForDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty)
-                    {
-                        // Added methods cannot shadow anything
-                        shadowingMethods.Count = shadowingCount;
-                    }
-                    else
-                    {
-                        shadowingCount = shadowingMethods.Count;
+nextMember:
+                        ;
                     }
                 }
 

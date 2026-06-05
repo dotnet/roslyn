@@ -390,14 +390,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (membersInterfaceForDefinition == (object)originalContainingType)
                 {
-                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    return isMatch(method.OriginalDefinition, unionDefinition.UnionCaseTypes(ref discardedUseSiteInfo));
+                    return isMatch(method.OriginalDefinition, unionDefinition.UnionCaseTypesNoUseSiteDiagnostics);
                 }
             }
             else
             {
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypes(ref discardedUseSiteInfo);
+                ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypesNoUseSiteDiagnostics;
 
                 for (var container = unionDefinition; container is not null; container = container.BaseTypeNoUseSiteDiagnostics)
                 {
