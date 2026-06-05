@@ -393,7 +393,6 @@ internal static class SchemaParser
         var vsStandalone = GetVsAttribute(attrNode, VsSchemaAttributes.Standalone);
         var vsDesc = GetVsAttribute(attrNode, VsSchemaAttributes.Description);
         var vsOmType = GetVsAttribute(attrNode, VsSchemaAttributes.OmType);
-        var vsPreferredExtensions = GetVsAttribute(attrNode, VsSchemaAttributes.PreferredExtensions);
         var vsMultiValue = GetVsAttribute(attrNode, VsSchemaAttributes.MultiValue);
 
         var isBoolean = string.Equals(vsStandalone, "true", StringComparison.OrdinalIgnoreCase);
@@ -413,14 +412,14 @@ internal static class SchemaParser
         }
 
         // Determine if this attribute's value completion is owned by an external provider.
-        // Sources: vs:preferredextensions (file paths), vs:multivalue (space-separated values),
-        // multivalue simpleType reference, or hardcoded names (class, style).
+        // Sources: xsd:anyURI type (URLs/file paths), vs:multivalue (space-separated values),
+        // multivalue simpleType reference, or hardcoded names (class, style, id).
         var typeRef = attrNode.Attributes?["type"]?.Value;
         var isMultiValue = string.Equals(vsMultiValue, "true", StringComparison.OrdinalIgnoreCase)
             || (typeRef != null && context.MultiValueSimpleTypes.Contains(typeRef));
 
-        var hasExternalCompletion = vsPreferredExtensions != null
-            || isMultiValue
+        var hasExternalCompletion = isMultiValue
+            || string.Equals(typeRef, "xsd:anyURI", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "class", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "style", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "id", StringComparison.OrdinalIgnoreCase);

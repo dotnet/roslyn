@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 /// - Element completion (basic, filtered by parent)
 /// - Attribute completion (element-specific and global)
 /// - Attribute value completion (enumerated values)
-/// - HasExternalCompletion (vs:preferredextensions, vs:multivalue, class/style)
+/// - HasExternalCompletion (xsd:anyURI, vs:multivalue, class/style/id)
 /// - Element HasExternalCompletion (script, style content)
 /// - vs:nonbrowseable (hidden attributes/elements)
 /// - vs:standalone (boolean attributes)
@@ -260,8 +260,7 @@ public class LocalHtmlCompletionProviderTest
     [Fact]
     public void AttributeValueCompletion_HasExternalCompletion_FilePathAttribute_ReturnsNull()
     {
-        // vs:preferredextensions marks attributes like src, href as file-path attributes.
-        // These defer to an external file-picker provider.
+        // xsd:anyURI-typed attributes like src defer to an external file-picker provider.
         var result = GetCompletionList("<script src=\"f$$\">");
 
         Assert.Null(result);
@@ -307,8 +306,26 @@ public class LocalHtmlCompletionProviderTest
     [Fact]
     public void AttributeValueCompletion_HasExternalCompletion_HrefAttribute_ReturnsNull()
     {
-        // href on <base> has vs:preferredextensions (file path completion)
+        // href on <base> is xsd:anyURI (URL/file path completion)
         var result = GetCompletionList("<base href=\"f$$\">");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void AttributeValueCompletion_HasExternalCompletion_AnchorHrefAttribute_ReturnsNull()
+    {
+        // href on <a> is xsd:anyURI — defers to external URL/file path provider
+        var result = GetCompletionList("<a href=\"f$$\">");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void AttributeValueCompletion_HasExternalCompletion_LinkHrefAttribute_ReturnsNull()
+    {
+        // href on <link> is xsd:anyURI — defers to external URL/file path provider
+        var result = GetCompletionList("<link href=\"f$$\">");
 
         Assert.Null(result);
     }

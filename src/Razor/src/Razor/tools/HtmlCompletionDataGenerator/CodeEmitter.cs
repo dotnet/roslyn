@@ -298,8 +298,8 @@ internal static class CodeEmitter
         sb.AppendLine();
         sb.AppendLine("    /// <summary>");
         sb.AppendLine("    /// When true, this attribute's value completion is owned by an external provider.");
-        sb.AppendLine("    /// Sources: file-path attributes (vs:preferredextensions), multivalue attributes");
-        sb.AppendLine("    /// (vs:multivalue), and CSS-related attributes (class, style).");
+        sb.AppendLine("    /// Sources: URI attributes (xsd:anyURI), multivalue attributes");
+        sb.AppendLine("    /// (vs:multivalue), and hardcoded attributes (class, style, id).");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine("    public bool HasExternalCompletion { get; }");
         sb.AppendLine();

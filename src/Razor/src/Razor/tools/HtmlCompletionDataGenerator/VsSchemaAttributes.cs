@@ -35,13 +35,6 @@ internal static class VsSchemaAttributes
     public const string OmType = "omtype";
 
     /// <summary>
-    /// File extension filter (e.g., ".js; .iced" or ".css") indicating the attribute accepts
-    /// a file path value. Signals that value completion is owned by an external provider
-    /// (file picker). Sets <c>HasExternalCompletion</c> on the attribute.
-    /// </summary>
-    public const string PreferredExtensions = "preferredextensions";
-
-    /// <summary>
     /// When "true", the attribute or simpleType accepts multiple space-separated values
     /// (e.g., <c>rel</c>, <c>aria-relevant</c>). Signals that value completion is owned by
     /// an external provider (which handles retrigger-on-space and value exclusion).
