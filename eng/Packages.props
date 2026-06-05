@@ -124,7 +124,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="18.0.0-beta.25379.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="18.3.0-beta.26277.4" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="18.0.1082202-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="18.0.1082202-preview" />
 
@@ -302,9 +302,6 @@
     <PackageVersion Include="Basic.Reference.Assemblies.NetStandard13" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="$(_BasicReferenceAssembliesVersion)" />
-    <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
-    <PackageVersion Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
-    <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="$(SystemSecurityCryptographyXmlVersion)" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="$(SystemSecurityCryptographyPkcsVersion)" />
     <!--

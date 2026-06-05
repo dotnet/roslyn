@@ -1539,6 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExtensionMarkerAttribute = 1 << 15,
             MemorySafetyRulesAttribute = 1 << 16,
             IsClosedTypeAttribute = 1 << 17,
+            RequiresUnsafeAttribute = 1 << 18,
         }
 
         // https://github.com/dotnet/roslyn/issues/83627: Remove unnecessary 'permitted' flags from call sites of this method
@@ -1626,6 +1627,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((permitted & ReservedAttributes.IsClosedTypeAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsClosedTypeAttribute))
+            {
+            }
+            else if ((permitted & ReservedAttributes.RequiresUnsafeAttribute) == 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RequiresUnsafeAttribute))
             {
             }
             else

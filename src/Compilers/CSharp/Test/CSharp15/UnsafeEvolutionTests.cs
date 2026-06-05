@@ -884,6 +884,154 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
+    public void RulesAttribute_ReferencedInSource_Reserved(bool updatedRules)
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            [assembly: MemorySafetyRules(2)]
+            [module: MemorySafetyRules(2)]
+            [MemorySafetyRules(2)] class C
+            {
+                [MemorySafetyRules(2)] void M() { }
+                [MemorySafetyRules(2)] int P1 { get; set; }
+                [field: MemorySafetyRules(2)] int P2 { get; set; }
+                int P3 { [MemorySafetyRules(2)] get; [MemorySafetyRules(2)] set; }
+            #pragma warning disable CS0067 // unused event
+                [MemorySafetyRules(2)] event System.Action E1;
+                [field: MemorySafetyRules(2)] event System.Action E2;
+                event System.Action E3 { [MemorySafetyRules(2)] add { } [MemorySafetyRules(2)] remove { } }
+                [MemorySafetyRules(2)] int this[int i] { get => i; set { } }
+                [MemorySafetyRules(2)] C() { }
+                [MemorySafetyRules(2)] ~C() { }
+                [MemorySafetyRules(2)] static C() { }
+                [MemorySafetyRules(2)] public static C operator +(C c1, C c2) => c1;
+                [MemorySafetyRules(2)] public void operator +=(C c) { }
+                public void M([MemorySafetyRules(2)] int x) { }
+                [return: MemorySafetyRules(2)] public int Func() => 0;
+                public void M<[MemorySafetyRules(2)] T>() { }
+            #pragma warning disable CS0169 // unused field
+                [MemorySafetyRules(2)] int F;
+                void L() { var lam = [MemorySafetyRules(2)] () => { }; }
+            }
+            [MemorySafetyRules(2)] delegate void D();
+            [MemorySafetyRules(2)] enum E { X }
+            enum F { [MemorySafetyRules(2)] X }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class MemorySafetyRulesAttribute : Attribute
+                {
+                    public MemorySafetyRulesAttribute(int version) { Version = version; }
+                    public int Version { get; }
+                }
+            }
+            """;
+
+        CreateCompilation([source, CompilerFeatureRequiredAttribute],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (2,12): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            // [assembly: MemorySafetyRules(2)]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(2, 12),
+            // (3,10): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            // [module: MemorySafetyRules(2)]
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(3, 10),
+            // (4,2): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            // [MemorySafetyRules(2)] class C
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(4, 2),
+            // (6,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] void M() { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(6, 6),
+            // (7,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] int P1 { get; set; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(7, 6),
+            // (8,13): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [field: MemorySafetyRules(2)] int P2 { get; set; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(8, 13),
+            // (9,15): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     int P3 { [MemorySafetyRules(2)] get; [MemorySafetyRules(2)] set; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(9, 15),
+            // (9,43): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     int P3 { [MemorySafetyRules(2)] get; [MemorySafetyRules(2)] set; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(9, 43),
+            // (11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] event System.Action E1;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(11, 6),
+            // (12,13): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [field: MemorySafetyRules(2)] event System.Action E2;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(12, 13),
+            // (13,31): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     event System.Action E3 { [MemorySafetyRules(2)] add { } [MemorySafetyRules(2)] remove { } }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(13, 31),
+            // (13,62): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     event System.Action E3 { [MemorySafetyRules(2)] add { } [MemorySafetyRules(2)] remove { } }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(13, 62),
+            // (14,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] int this[int i] { get => i; set { } }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(14, 6),
+            // (15,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] C() { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(15, 6),
+            // (16,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] ~C() { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(16, 6),
+            // (17,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] static C() { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(17, 6),
+            // (18,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] public static C operator +(C c1, C c2) => c1;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(18, 6),
+            // (19,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] public void operator +=(C c) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(19, 6),
+            // (20,20): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     public void M([MemorySafetyRules(2)] int x) { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(20, 20),
+            // (21,14): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [return: MemorySafetyRules(2)] public int Func() => 0;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(21, 14),
+            // (22,20): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     public void M<[MemorySafetyRules(2)] T>() { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(22, 20),
+            // (24,6): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     [MemorySafetyRules(2)] int F;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(24, 6),
+            // (25,27): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            //     void L() { var lam = [MemorySafetyRules(2)] () => { }; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(25, 27),
+            // (27,2): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            // [MemorySafetyRules(2)] delegate void D();
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(27, 2),
+            // (28,2): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            // [MemorySafetyRules(2)] enum E { X }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(28, 2),
+            // (29,11): error CS8335: Do not use 'System.Runtime.CompilerServices.MemorySafetyRulesAttribute'. This is reserved for compiler usage.
+            // enum F { [MemorySafetyRules(2)] X }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "MemorySafetyRules(2)").WithArguments("System.Runtime.CompilerServices.MemorySafetyRulesAttribute").WithLocation(29, 11));
+
+        source = """
+            using System.Runtime.CompilerServices;
+            [assembly: MemorySafetyRules]
+            [module: MemorySafetyRules]
+            [MemorySafetyRules] class C;
+
+            namespace System.Runtime.CompilerServices
+            {
+                public sealed class MemorySafetyRulesAttribute : Attribute
+                {
+                    public MemorySafetyRulesAttribute() { }
+                    public MemorySafetyRulesAttribute(int version) { Version = version; }
+                    public int Version { get; }
+                }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
     public void Pointer_Variable_SafeContext(bool allowUnsafe)
     {
         var source = """
@@ -12932,6 +13080,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             [
                 .. sourceErrors,
+                // (2,2): error CS8335: Do not use 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+                // [RequiresUnsafeAttribute] class C
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(2, 2),
+                // (18,20): error CS8335: Do not use 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+                //     public void M([RequiresUnsafeAttribute] int x) { }
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(18, 20),
+                // (19,14): error CS8335: Do not use 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+                //     [return: RequiresUnsafeAttribute] public int Func() => 0;
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(19, 14),
+                // (20,20): error CS8335: Do not use 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+                //     public void M<[RequiresUnsafeAttribute] T>() { }
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(20, 20),
+                // (25,2): error CS8335: Do not use 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+                // [RequiresUnsafeAttribute] delegate void D();
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(25, 2),
+                // (26,2): error CS8335: Do not use 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+                // [RequiresUnsafeAttribute] enum E { X }
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(26, 2),
+                // (2,10): error CS8335: Do not use 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+                // [module: RequiresUnsafeAttribute]
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(2, 10),
+                // (3,12): error CS8335: Do not use 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute'. This is reserved for compiler usage.
+                // [assembly: RequiresUnsafeAttribute]
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresUnsafeAttribute").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute").WithLocation(3, 12),
             ]);
 
         var comp2 = CreateCompilation(RequiresUnsafeAttributeDefinition).VerifyDiagnostics();

@@ -5,9 +5,10 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
-namespace Microsoft.CodeAnalysis.Razor.DocumentPresentation;
+namespace Microsoft.CodeAnalysis.Remote.Razor.UriPresentation;
 
 internal static class UriPresentationHelper
 {
