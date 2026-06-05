@@ -10,9 +10,13 @@ using StreamJsonRpc;
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
 /// <summary>
-/// Implements an ILogger that sends LSP log messages to a single language server client.
+/// Implements an <see cref="ILogger"/> that sends log messages to the client via LSP's window/logMessage notification.
 /// </summary>
-internal sealed class LspLogMessageLogger(string categoryName, IClientLanguageServerManager clientLanguageServerManager, ServerConfiguration serverConfiguration, IExternalScopeProvider? externalScopeProvider) : ILogger
+internal sealed partial class LspLogMessageLogger(
+    string categoryName,
+    IClientLanguageServerManager clientLanguageServerManager,
+    ServerConfiguration serverConfiguration,
+    IExternalScopeProvider? externalScopeProvider) : ILogger
 {
     private readonly IExternalScopeProvider? _externalScopeProvider = externalScopeProvider;
 

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
+namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LanguageServerConnectionManager
 {
@@ -18,8 +18,7 @@ internal sealed class LanguageServerConnectionManager
         Stream inputStream,
         Stream outputStream,
         ExportProvider exportProvider,
-        AbstractTypeRefResolver typeRefResolver,
-        ServerConfiguration serverConfiguration)
+        AbstractTypeRefResolver typeRefResolver)
     {
         var entry = new ServerEntry();
 
@@ -30,7 +29,7 @@ internal sealed class LanguageServerConnectionManager
 
         try
         {
-            var server = new LanguageServerHost(inputStream, outputStream, exportProvider, typeRefResolver, serverConfiguration);
+            var server = new LanguageServerHost(inputStream, outputStream, exportProvider, typeRefResolver);
             entry.Server = server;
 
             server.Start();

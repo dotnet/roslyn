@@ -21,7 +21,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 internal abstract class AbstractLanguageServer<TRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
-    protected readonly ILspLogger Logger;
+    protected readonly Lazy<ILspLogger> Logger;
 
     /// <summary>
     /// These are lazy to allow implementations to define custom variables that are used by
@@ -59,10 +59,8 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     protected AbstractLanguageServer(
         JsonRpc jsonRpc,
-        ILspLogger logger,
         AbstractTypeRefResolver? typeRefResolver)
     {
-        Logger = logger;
         _jsonRpc = jsonRpc;
         TypeRefResolver = typeRefResolver ?? TypeRef.DefaultResolver.Instance;
 
@@ -72,6 +70,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
         _lspServices = new Lazy<ILspServices>(() => ConstructLspServices());
+        Logger = new Lazy<ILspLogger>(() => GetLspServices().GetRequiredService<ILspLogger>());
         _queue = new Lazy<IRequestExecutionQueue<TRequestContext>>(() => ConstructRequestExecutionQueue());
         _handlerProvider = new Lazy<AbstractHandlerProvider>(() =>
         {
@@ -171,7 +170,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     protected virtual IRequestExecutionQueue<TRequestContext> ConstructRequestExecutionQueue()
     {
         var handlerProvider = HandlerProvider;
-        var queue = new RequestExecutionQueue<TRequestContext>(this, Logger, handlerProvider);
+        var queue = new RequestExecutionQueue<TRequestContext>(this, handlerProvider);
 
         queue.Start();
 
@@ -185,7 +184,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     public virtual bool TryGetLanguageForRequest(string methodName, object? serializedRequest, [NotNullWhen(true)] out string? language)
     {
-        Logger.LogDebug($"Using default language handler for {methodName}");
+        Logger.Value.LogDebug($"Using default language handler for {methodName}");
         language = LanguageServerConstants.DefaultLanguageName;
         return true;
     }
@@ -277,7 +276,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             // Immediately yield so that this does not run under the lock.
             await Task.Yield();
 
-            Logger.LogInformation(message);
+            Logger.Value.LogInformation(message);
 
             // Allow implementations to do any additional cleanup on shutdown.
             var shutdownHooks = GetLspServices().GetRequiredServices<IOnServerShutdown>();

@@ -20,3 +20,8 @@ internal interface ILspLogger
     void LogError(string message, params object[] @params);
     void LogException(Exception exception, string? message = null, params object[] @params);
 }
+
+internal interface ILspLoggerFactory
+{
+    ILspLogger CreateLogger();
+}

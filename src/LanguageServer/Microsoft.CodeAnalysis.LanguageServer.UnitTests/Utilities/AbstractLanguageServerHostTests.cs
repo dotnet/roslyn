@@ -76,9 +76,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var clientOutputStream = _clientToServerPipe.Writer.AsStream();
             var clientInputStream = _serverToClientPipe.Reader.AsStream();
 
-            var serverConfiguration = exportProvider.GetExportedValue<ServerConfigurationFactory>().ServerConfiguration;
             _connectionManager = new LanguageServerConnectionManager();
-            _ = _connectionManager.CreateLanguageServerHost(serverInputStream, serverOutputStream, exportProvider, typeRefResolver, serverConfiguration);
+            _ = _connectionManager.CreateLanguageServerHost(serverInputStream, serverOutputStream, exportProvider, typeRefResolver);
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
             _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientOutputStream, clientInputStream, messageFormatter))

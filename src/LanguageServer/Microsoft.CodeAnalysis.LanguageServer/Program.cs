@@ -120,7 +120,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     if (serverConfiguration.UseStdIo)
     {
-        connectionManager.CreateLanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, typeRefResolver, serverConfiguration);
+        connectionManager.CreateLanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, typeRefResolver);
     }
     else
     {
@@ -132,7 +132,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             : serverConfiguration.ServerPipeName!;
         var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
         await pipeClient.ConnectAsync(cancellationToken);
-        connectionManager.CreateLanguageServerHost(pipeClient, pipeClient, exportProvider, typeRefResolver, serverConfiguration);
+        connectionManager.CreateLanguageServerHost(pipeClient, pipeClient, exportProvider, typeRefResolver);
     }
 
     logger.LogInformation("Language server initialized");
