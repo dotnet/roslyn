@@ -936,7 +936,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver?.Kind == BoundKind.BaseReference && method.IsAbstract)
             {
-                Diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, CurrentFunction?.GetFirstLocation() ?? Syntax.Location, method);
+                Debug.Assert(CurrentFunction is { });
+                Diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, CurrentFunction.GetFirstLocation(), method);
             }
         }
 
