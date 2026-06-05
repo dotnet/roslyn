@@ -22,7 +22,7 @@ public class AssemblyRedirectorTests
             "System.Collections.Immutable.dll"
         };
 
-        var redirector = new RazorAnalyzerAssemblyRedirector();
+        var redirector = new RazorCompilerAnalyzerAssemblyRedirector();
         foreach (var assembly in expectedAssemblies)
         {
             var actualPath = redirector.RedirectPath(assembly);
@@ -38,9 +38,32 @@ public class AssemblyRedirectorTests
     public void AssemblyRedirector_RedirectOlderAssembly()
     {
         // test that we correctly redirect the old generator assembly to the new named one
-        var redirector = new RazorAnalyzerAssemblyRedirector();
+        var redirector = new RazorCompilerAnalyzerAssemblyRedirector();
         var actualPath = redirector.RedirectPath("Microsoft.NET.Sdk.Razor.SourceGenerators.dll");
         Assert.NotNull(actualPath);
         Assert.EndsWith("Microsoft.CodeAnalysis.Razor.Compiler.dll", actualPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void AssemblyRedirector_OnlyActivatesForRazorPaths()
+    {
+        var activated = false;
+        var redirector = new RazorAnalyzerAssemblyRedirector(new Lazy<RazorAnalyzerAssemblyRedirector.IRazorAnalyzerAssemblyRedirector>(() =>
+        {
+            activated = true;
+            return new TestRazorAnalyzerAssemblyRedirector();
+        }));
+
+        Assert.Null(redirector.RedirectPath(@"C:\analyzers\Microsoft.CodeAnalysis.Features.dll"));
+        Assert.False(activated);
+
+        Assert.Equal(@"C:\redirected\Microsoft.CodeAnalysis.Razor.Compiler.dll", redirector.RedirectPath(@"C:\analyzers\Microsoft.CodeAnalysis.Razor.Compiler.dll"));
+        Assert.True(activated);
+    }
+
+    private sealed class TestRazorAnalyzerAssemblyRedirector : RazorAnalyzerAssemblyRedirector.IRazorAnalyzerAssemblyRedirector
+    {
+        public string? RedirectPath(string fullPath)
+            => @"C:\redirected\Microsoft.CodeAnalysis.Razor.Compiler.dll";
     }
 }

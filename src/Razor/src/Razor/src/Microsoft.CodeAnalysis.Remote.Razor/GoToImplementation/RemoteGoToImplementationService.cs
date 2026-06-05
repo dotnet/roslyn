@@ -4,7 +4,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -13,7 +15,6 @@ using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.Location[]?>;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -30,7 +31,7 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
     public ValueTask<RemoteResponse<LspLocation[]?>> GetImplementationAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         CancellationToken cancellationToken)
@@ -70,14 +71,14 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
             .ConfigureAwait(false);
 
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
-
-        var locations = await ExternalHandlers.GoToImplementation
-            .FindImplementationsAsync(
-                generatedDocument,
-                positionInfo.Position.ToLinePosition(),
-                supportsVisualStudioExtensions,
-                cancellationToken)
-            .ConfigureAwait(false);
+        var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var classificationOptions = globalOptions.GetClassificationOptionsProvider();
+        var locations = await FindImplementationsHandler.FindImplementationsAsync(
+            generatedDocument,
+            positionInfo.Position.ToLinePosition(),
+            classificationOptions,
+            supportsVisualStudioExtensions,
+            cancellationToken).ConfigureAwait(false);
 
         if (locations is null and not [])
         {

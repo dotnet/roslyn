@@ -119,11 +119,6 @@
         <target state="translated">Aktivovat znovu dokončení…</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">Došlo k pokusu navštívit RazorMetaCode jiný než '{' or '}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
         <target state="translated">Neznámé chování mapování</target>

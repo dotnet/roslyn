@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol.InlayHints;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -28,10 +28,10 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
             => new RemoteInlayHintService(in args);
     }
 
-    private readonly InlayHintCacheWrapperProvider _cacheWrapperProvider = args.ExportProvider.GetExportedValue<InlayHintCacheWrapperProvider>();
+    private readonly InlayHintCacheProvider _cacheProvider = args.ExportProvider.GetExportedValue<InlayHintCacheProvider>();
     private readonly IRazorEditService _razorEditService = args.ExportProvider.GetExportedValue<IRazorEditService>();
 
-    public ValueTask<InlayHint[]?> GetInlayHintsAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken)
+    public ValueTask<InlayHint[]?> GetInlayHintsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
@@ -69,7 +69,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
         foreach (var csharpSpan in overlappingSpans)
         {
             var range = csharpSpan.ToRange();
-            var hints = await InlayHints.GetInlayHintsAsync(generatedDocument, textDocument, range, displayAllOverride, _cacheWrapperProvider.GetCache(), cancellationToken).ConfigureAwait(false);
+            var hints = await GetInlayHintsAsync(generatedDocument, textDocument, range, displayAllOverride, _cacheProvider.GetCache(), cancellationToken).ConfigureAwait(false);
             if (hints is null)
             {
                 continue;
@@ -118,7 +118,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
         return inlayHintsBuilder.ToArray();
     }
 
-    public ValueTask<InlayHint> ResolveHintAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHint inlayHint, CancellationToken cancellationToken)
+    public ValueTask<InlayHint> ResolveHintAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHint inlayHint, CancellationToken cancellationToken)
        => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
@@ -131,6 +131,52 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return await InlayHints.ResolveInlayHintAsync(generatedDocument, inlayHint, _cacheWrapperProvider.GetCache(), cancellationToken).ConfigureAwait(false);
+        return await ResolveInlayHintAsync(generatedDocument, inlayHint, _cacheProvider.GetCache(), cancellationToken).ConfigureAwait(false);
+    }
+
+    private static Task<InlayHint[]?> GetInlayHintsAsync(
+        Document document,
+        TextDocumentIdentifier textDocumentIdentifier,
+        LspRange range,
+        bool displayAllOverride,
+        InlayHintCache cache,
+        CancellationToken cancellationToken)
+    {
+        var options = GetInlineHintsOptions(displayAllOverride);
+
+        return InlayHintHandler.GetInlayHintsAsync(
+            document,
+            textDocumentIdentifier,
+            range,
+            options,
+            displayAllOverride,
+            cache,
+            cancellationToken);
+    }
+
+    private static Task<InlayHint> ResolveInlayHintAsync(
+        Document document,
+        InlayHint request,
+        InlayHintCache cache,
+        CancellationToken cancellationToken)
+    {
+        var data = InlayHintResolveHandler.GetInlayHintResolveData(request);
+        var options = GetInlineHintsOptions(data.DisplayAllOverride);
+        return InlayHintResolveHandler.ResolveInlayHintAsync(document, request, cache, data, options, cancellationToken);
+    }
+
+    private static InlineHintsOptions GetInlineHintsOptions(bool displayAllOverride)
+    {
+        var options = InlineHintsOptions.Default;
+        if (!displayAllOverride)
+        {
+            options = options with
+            {
+                TypeOptions = options.TypeOptions with { EnabledForTypes = true },
+                ParameterOptions = options.ParameterOptions with { EnabledForParameters = true },
+            };
+        }
+
+        return options;
     }
 }

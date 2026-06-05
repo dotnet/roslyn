@@ -133,9 +133,7 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         // can assume there should be no errors related to Razor, and having this array makes debugging failures a lot
         // easier.
         var errors = composition.GetCompositionErrors().ToArray();
-        // RazorInProcLanguageClient is a Roslyn type, which we don't care about, so no need to worry about false positives there,
-        // but command line builds fail to compose it correctly.
-        AssertEx.EqualOrDiff("", string.Join(Environment.NewLine, errors.Where(e => e.Contains("Razor") && !e.Contains("RazorInProcLanguageClient"))));
+        AssertEx.EqualOrDiff("", string.Join(Environment.NewLine, errors.Where(e => e.Contains("Razor"))));
 
         _localExportProvider = composition.ExportProviderFactory.CreateExportProvider();
         AddDisposable(_localExportProvider);
