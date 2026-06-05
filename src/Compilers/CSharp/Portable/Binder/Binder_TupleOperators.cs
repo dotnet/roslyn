@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string leftName = leftNoNames ? null : leftNames[i];
                 string rightName = rightNoNames ? null : rightNames[i];
 
-                if (leftName == rightName)
+                if (string.Equals(leftName, rightName, StringComparison.Ordinal))
                 {
                     continue;
                 }

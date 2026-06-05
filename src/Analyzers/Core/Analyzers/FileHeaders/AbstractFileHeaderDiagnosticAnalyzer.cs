@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -94,7 +95,7 @@ internal abstract class AbstractFileHeaderDiagnosticAnalyzer : AbstractBuiltInCo
         // compare line by line, ignoring leading and trailing whitespace on each line.
         for (var i = 0; i < reformattedCopyrightTextParts.Length; i++)
         {
-            if (reformattedCopyrightTextParts[i].Trim() != fileHeaderCopyrightTextParts[i].Trim())
+            if (!string.Equals(reformattedCopyrightTextParts[i].Trim(), fileHeaderCopyrightTextParts[i].Trim(), StringComparison.Ordinal))
             {
                 return false;
             }

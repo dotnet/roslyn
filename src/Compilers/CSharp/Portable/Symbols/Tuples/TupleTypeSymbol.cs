@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var sourceName = sourceNames[i];
                 var wasInferred = noInferredNames ? false : inferredNames[i];
 
-                if (sourceName != null && !wasInferred && (allMissing || destinationNames[i] != sourceName))
+                if (sourceName != null && !wasInferred && (allMissing || !string.Equals(destinationNames[i], sourceName, StringComparison.Ordinal)))
                 {
                     diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent!.Location, sourceName, destination);
                 }
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 Debug.Assert(names1.Length == names2.Length);
-                mergedNames = names1.ZipAsArray(names2, (n1, n2) => n1 == n2 ? n1 : null);
+                mergedNames = names1.ZipAsArray(names2, (n1, n2) => string.Equals(n1, n2, StringComparison.Ordinal) ? n1 : null);
 
                 if (mergedNames.All(n => n is null))
                 {

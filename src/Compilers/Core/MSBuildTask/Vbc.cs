@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // However, we explicitly allow two values (mostly for parity with C#):
                 // Null is supported because it means that option should be omitted, and compiler default used - obviously always valid.
                 // Explicitly specified name of current locale is also supported, since it is effectively a no-op.
-                if (!string.IsNullOrEmpty(PreferredUILang) && !string.Equals(PreferredUILang, System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase))
+                if (!String.IsNullOrEmpty(PreferredUILang) && !String.Equals(PreferredUILang, System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     CheckHostObjectSupport(param = nameof(PreferredUILang), resultFromHostObjectSetOperation: false);
                 }
