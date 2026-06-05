@@ -15,9 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
 public sealed class FindAllReferencesHandlerFeaturesTests(ITestOutputHelper? testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    protected override TestComposition Composition => LspTestCompositions.LanguageServerProtocol
-        .AddParts(typeof(TestDocumentTrackingService));
-
     [Theory, CombinatorialData]
     public async Task TestFindAllReferencesAsync_DoesNotUseVSTypes(bool mutatingLspWorkspace)
     {

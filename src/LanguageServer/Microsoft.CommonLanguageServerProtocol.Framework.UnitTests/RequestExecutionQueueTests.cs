@@ -7,6 +7,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CommonLanguageServerProtocol.Framework.Example;
+using Microsoft.Extensions.DependencyInjection;
 using Nerdbank.Streams;
 using StreamJsonRpc;
 using Xunit;
@@ -25,7 +27,14 @@ public sealed class RequestExecutionQueueTests
 
         protected override ILspServices ConstructLspServices()
         {
-            throw new NotImplementedException();
+            var serviceCollection = new ServiceCollection();
+
+            var _ = serviceCollection
+                .AddSingleton<ILspLogger>(NoOpLspLogger.Instance);
+
+            var lspServices = new ExampleLspServices(serviceCollection);
+
+            return lspServices;
         }
     }
 
