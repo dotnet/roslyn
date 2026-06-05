@@ -4883,6 +4883,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
         }
     }
 
+    // TODO2: test also constraining indirectly to closed type.
+
     [Fact]
     public void Exhaustiveness_ConstrainedUnionCaseType_01()
     {
