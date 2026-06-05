@@ -6721,7 +6721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
-            Func<Binder, SyntaxNode, BoundValuePlaceholder, BoundObjectOrCollectionValuePlaceholder?, TArg, BindingDiagnosticBag, BoundExpression> bindItem,
+            Func<Binder, ExpressionSyntax, BoundValuePlaceholder, BoundObjectOrCollectionValuePlaceholder?, TArg, BindingDiagnosticBag, BoundExpression> bindItem,
             TArg arg,
             BindingDiagnosticBag diagnostics)
         {
