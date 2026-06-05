@@ -65,7 +65,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
         if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {
             var generatedDocument = await context.Snapshot
-                .GetGeneratedDocumentAsync(cancellationToken)
+                .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
                 .ConfigureAwait(false);
 
             var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
@@ -85,7 +85,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
 
             // Map the hover range back to the host document
             if (csharpHover.Range is { } range &&
-                DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredImplCSharpDocument(), range.ToLinePositionSpan(), out var hostDocumentSpan))
+                DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(positionInfo.InDeclDocument), range.ToLinePositionSpan(), out var hostDocumentSpan))
             {
                 csharpHover.Range = LspFactory.CreateRange(hostDocumentSpan);
             }
