@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -10,9 +10,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Hover;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.Hover;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.Hover?>;
 
@@ -30,7 +30,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
-    public ValueTask<RemoteResponse<Hover?>> GetHoverAsync(
+    public ValueTask<RemoteResponse<LspHover?>> GetHoverAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
@@ -41,7 +41,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             context => GetHoverAsync(context, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<RemoteResponse<Hover?>> GetHoverAsync(
+    private async ValueTask<RemoteResponse<LspHover?>> GetHoverAsync(
         RemoteDocumentContext context,
         Position position,
         CancellationToken cancellationToken)
@@ -112,7 +112,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
             }
 
             // As there is a C# hover, stop further handling.
-            return new RemoteResponse<Hover?>(StopHandling: true, Result: csharpHover);
+            return new RemoteResponse<LspHover?>(StopHandling: true, Result: csharpHover);
         }
 
         if (positionInfo.LanguageKind is not (RazorLanguageKind.Html or RazorLanguageKind.Razor))
@@ -153,7 +153,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
     /// <remarks>
     ///  Once Razor moves wholly over to Roslyn.LanguageServer.Protocol, this method can be removed.
     /// </remarks>
-    private static Hover ConvertHover(Hover hover)
+    private static LspHover ConvertHover(LspHover hover)
     {
         // Note: Razor only ever produces a Hover with MarkupContent or a VSInternalHover with RawContents.
         // Both variants return a Range.
@@ -166,12 +166,12 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
                 Contents = string.Empty,
                 RawContent = rawContent
             },
-            Hover { Range: var range, Contents.Fourth: MarkupContent contents } => new Hover()
+            LspHover { Range: var range, Contents.Fourth: MarkupContent contents } => new LspHover()
             {
                 Range = range,
                 Contents = contents
             },
-            _ => Assumed.Unreachable<Hover>(),
+            _ => Assumed.Unreachable<LspHover>(),
         };
     }
 }
