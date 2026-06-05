@@ -2021,17 +2021,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                 }
 
-                if (callKind == CallKind.Call && receiver?.SuppressVirtualCalls == true && method.IsAbstract)
-                {
-                    _diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, call.Syntax, method);
-                }
-
                 var arguments = call.Arguments;
                 EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
                 int stackBehavior = GetCallStackBehavior(method, arguments);
                 switch (callKind)
                 {
                     case CallKind.Call:
+                        if (actualMethodTargetedByTheCall.IsAbstract)
+                        {
+                            _diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, call.Syntax, actualMethodTargetedByTheCall);
+                        }
+
                         _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
                         break;
 
