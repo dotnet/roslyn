@@ -19,6 +19,7 @@
 - `dotnet build Compilers.slnf` — Compiler-only build
 - `dotnet build Ide.slnf` — IDE-only build
 - Solution filters: `Roslyn.slnx` (full), `Compilers.slnf` (compilers), `Ide.slnf` (IDE)
+- 'dotnet build' will not run analyzers by default. To include analyzers in the build, use the `-p:RunAnalyzersDuringBuild=true` flag to run them. Consider using this when searching for diagnostics you need to fix, or when you're doing a final build before creating a pull request.
 
 **Testing**:
 - Windows: `test.cmd` / Unix: `test.sh` — Run all tests
