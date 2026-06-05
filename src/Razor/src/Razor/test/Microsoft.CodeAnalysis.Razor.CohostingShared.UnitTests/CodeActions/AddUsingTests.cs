@@ -183,6 +183,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
 
     [Fact]
     public async Task AddUsing_InjectDirective()
+    {
         var input = """
             @inject [||]StringBuilder Builder
 
@@ -201,6 +202,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
 
     [Fact]
     public async Task AddUsing_InjectDirective_Legacy()
+    {
         var input = """
             @inject [||]StringBuilder Builder
 
