@@ -1275,7 +1275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim name = [namespace].Name
-            Return name.AsSpan().Equals(namespaceName.AsSpan(offset, length), comparison)
+            Return (name.Length = length) AndAlso (String.Compare(name, 0, namespaceName, offset, length, comparison) = 0)
         End Function
 
         <Extension>
