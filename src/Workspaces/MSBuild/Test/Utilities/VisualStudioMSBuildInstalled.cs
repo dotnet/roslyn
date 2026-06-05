@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -18,28 +17,12 @@ internal sealed class VisualStudioMSBuildInstalled : ExecutionCondition
         {
             s_skipReason = "Test is only supported on Windows since it looks for a Visual Studio install.";
         }
-        else if (!IsVisualStudioMSBuildInstalled())
+        else
         {
-            s_skipReason = "No usable Visual Studio is installed.";
-        }
-    }
-
-    private static bool IsVisualStudioMSBuildInstalled()
-    {
-        BuildHostProcessManager? buildHostProcessManager = null;
-
-        try
-        {
-            buildHostProcessManager = new BuildHostProcessManager();
-
-            var buildHost = buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetFramework, CancellationToken.None).Result;
-
-            // HACK: for .NET Framework build hosts, we don't actually need the project path to determine whether there's a usable VS -- so we can pass any file name here.
-            return buildHost.HasUsableMSBuildAsync("NonExistent.sln", CancellationToken.None).Result;
-        }
-        finally
-        {
-            buildHostProcessManager?.DisposeAsync().AsTask().Wait();
+            // Tests using this condition (VisualStudioMSBuildWorkspaceTests) only run on Windows and are
+            // failing on the release/dev18.0 branch. Tracked by https://github.com/dotnet/roslyn/issues/82931;
+            // re-enabling requires backporting https://github.com/dotnet/roslyn/pull/83477 to release/dev18.0.
+            s_skipReason = "Temporarily disabled on Windows: see https://github.com/dotnet/roslyn/issues/82931 (requires backport of https://github.com/dotnet/roslyn/pull/83477).";
         }
     }
 
