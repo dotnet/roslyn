@@ -186,7 +186,8 @@ internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
                 return false;
             }
 
-            return version1.AsSpan(0, secondDotIndex + 1).Equals(version2.AsSpan(0, secondDotIndex + 1), StringComparison.OrdinalIgnoreCase);
+            var prefixLength = secondDotIndex + 1;
+            return version2.Length >= prefixLength && version1.AsSpan(0, prefixLength).Equals(version2.AsSpan(0, prefixLength), StringComparison.OrdinalIgnoreCase);
         }
     }
 

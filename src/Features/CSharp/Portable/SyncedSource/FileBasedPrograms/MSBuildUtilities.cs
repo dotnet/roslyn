@@ -46,12 +46,12 @@ namespace Microsoft.DotNet.FileBasedPrograms
         /// </summary>
         private static bool ValidBooleanTrue(string? parameterValue)
         {
-            return (string.Equals(parameterValue, "true", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(parameterValue, "on", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(parameterValue, "yes", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(parameterValue, "!false", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(parameterValue, "!off", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(parameterValue, "!no", StringComparison.OrdinalIgnoreCase));
+            return ((string.Compare(parameterValue, "true", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "on", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "yes", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "!false", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "!off", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "!no", StringComparison.OrdinalIgnoreCase) == 0));
         }
 
         /// <summary>
@@ -60,12 +60,12 @@ namespace Microsoft.DotNet.FileBasedPrograms
         /// </summary>
         private static bool ValidBooleanFalse(string? parameterValue)
         {
-            return ((string.Equals(parameterValue, "false", StringComparison.OrdinalIgnoreCase)) ||
-                    (string.Equals(parameterValue, "off", StringComparison.OrdinalIgnoreCase)) ||
-                    (string.Equals(parameterValue, "no", StringComparison.OrdinalIgnoreCase)) ||
-                    (string.Equals(parameterValue, "!true", StringComparison.OrdinalIgnoreCase)) ||
-                    (string.Equals(parameterValue, "!on", StringComparison.OrdinalIgnoreCase)) ||
-                    (string.Equals(parameterValue, "!yes", StringComparison.OrdinalIgnoreCase)));
+            return ((string.Compare(parameterValue, "false", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "off", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "no", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "!true", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "!on", StringComparison.OrdinalIgnoreCase) == 0) ||
+                    (string.Compare(parameterValue, "!yes", StringComparison.OrdinalIgnoreCase) == 0));
         }
     }
 }
