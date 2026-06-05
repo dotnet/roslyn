@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem;
 
-internal sealed class ReferenceFileChangeTracker
+internal sealed class ReferenceFileChangeTracker : IDisposable
 {
     private readonly object _gate = new();
 
@@ -37,7 +37,10 @@ internal sealed class ReferenceFileChangeTracker
     private readonly AsyncBatchingWorkQueue<string> _workQueue;
     private readonly Func<string, CancellationToken, Task> _callback;
 
+    private bool _disposed;
+
     public ReferenceFileChangeTracker(
+
         IFileChangeWatcher fileChangeWatcher,
         IAsynchronousOperationListener asyncListener,
         Func<string, CancellationToken, Task> callback,
@@ -103,6 +106,9 @@ internal sealed class ReferenceFileChangeTracker
     {
         lock (_gate)
         {
+            if (_disposed)
+                return;
+
             var (token, count) = _referenceFileWatchingTokens.GetOrAdd(fullFilePath, _ =>
             {
                 var fileToken = _fileReferenceChangeContext.Value.EnqueueWatchingFile(fullFilePath);
@@ -122,6 +128,9 @@ internal sealed class ReferenceFileChangeTracker
     {
         lock (_gate)
         {
+            if (_disposed)
+                return;
+
             if (!_referenceFileWatchingTokens.TryGetValue(fullFilePath, out var watchedFileReference))
                 throw new ArgumentException("Attempting to stop watching a file that we never started watching. This is a bug.");
 
@@ -149,6 +158,27 @@ internal sealed class ReferenceFileChangeTracker
             //    which actual reference needs to be changed. That'll automatically handle any race where the event
             //    comes late, which is a scenario this must always deal with no matter what -- another thread might
             //    already be gearing up to notify the caller of this reference and we can't stop it.
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+
+            foreach (var (token, _) in _referenceFileWatchingTokens.Values)
+                token.Dispose();
+
+            _referenceFileWatchingTokens.Clear();
+
+            if (_fileReferenceChangeContext.IsValueCreated)
+                _fileReferenceChangeContext.Value.Dispose();
+
+            _workQueue.Dispose();
         }
     }
 

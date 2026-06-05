@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
-internal sealed partial class ProjectSystemProjectFactory
+internal sealed partial class ProjectSystemProjectFactory : IDisposable
 {
     /// <summary>
     /// The main gate to synchronize updates to this solution.
@@ -92,6 +91,12 @@ internal sealed partial class ProjectSystemProjectFactory
 
         PortableExecutableReferenceFileChangeTracker = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingMetadataReferencesForFileAsync, cancellationToken);
         AnalyzerReferenceFileChangeTracker = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingAnalyzerReferenceForFileAsync, cancellationToken);
+    }
+
+    public void Dispose()
+    {
+        PortableExecutableReferenceFileChangeTracker.Dispose();
+        AnalyzerReferenceFileChangeTracker.Dispose();
     }
 
     public FileTextLoader CreateFileTextLoader(string fullPath)
