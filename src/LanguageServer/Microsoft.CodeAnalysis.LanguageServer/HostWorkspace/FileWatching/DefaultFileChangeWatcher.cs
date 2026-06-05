@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -117,7 +119,11 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
                         {
                             if (parentNodeForWatch.Watcher is null)
                             {
-                                parentNodeForWatch.CreateNewFileWatcher(watchedDirectory.ExtensionFilters.SelectAsArray(static extension => '*' + extension), includeSubdirectories);
+                                var filters = watchedDirectory.ExtensionFilters.SelectAsArray(static extension => '*' + extension);
+                                parentNodeForWatch.CreateNewFileWatcher(
+                                    filters,
+                                    includeSubdirectories,
+                                    getDiagnostics: () => GetFileSystemWatcherCreationDiagnostics_NoLock(parentNodeForWatch.Path, filters, includeSubdirectories));
                                 _currentWatcherCount++;
                             }
                             else
@@ -265,7 +271,10 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
                 }
                 else
                 {
-                    nodeToConsolidate.CreateNewFileWatcher(filters.ToImmutableArray(), includeSubdirectories: true);
+                    nodeToConsolidate.CreateNewFileWatcher(
+                        filters.ToImmutableArray(),
+                        includeSubdirectories: true,
+                        getDiagnostics: () => GetFileSystemWatcherCreationDiagnostics_NoLock(nodeToConsolidate.Path, filters, includeSubdirectories: true));
                     _currentWatcherCount++;
                 }
 
@@ -321,6 +330,94 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
         }
     }
 
+    private string GetFileSystemWatcherCreationDiagnostics_NoLock(string path, IEnumerable<string> filters, bool includeSubdirectories)
+    {
+        Contract.ThrowIfFalse(Monitor.IsEntered(_gate));
+
+        var builder = new StringBuilder();
+        builder.Append($"RequestedPath='{path}', IncludeSubdirectories={includeSubdirectories}, Filters=[{string.Join(", ", filters)}], CurrentWatcherCount={_currentWatcherCount}, MaxWatcherCount={_maxWatcherCount}, RootCount={_roots.Count}");
+
+        using var _ = ArrayBuilder<string>.GetInstance(out var activeWatcherPaths);
+        foreach (var root in _roots.Values)
+            AddActiveWatcherPaths(root, activeWatcherPaths, maxPathsToAdd: 20);
+
+        builder.Append(", ActiveWatcherPaths=[");
+        builder.Append(string.Join(", ", activeWatcherPaths));
+        builder.Append(']');
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            builder.Append(", LinuxDiagnostics={");
+            builder.Append(GetLinuxInotifyDiagnostics());
+            builder.Append('}');
+        }
+
+        return builder.ToString();
+
+        static void AddActiveWatcherPaths(DirectoryNode node, ArrayBuilder<string> activeWatcherPaths, int maxPathsToAdd)
+        {
+            if (activeWatcherPaths.Count >= maxPathsToAdd)
+                return;
+
+            if (node.Watcher is not null)
+            {
+                activeWatcherPaths.Add(node.Path);
+            }
+
+            foreach (var child in node.Children.Values)
+                AddActiveWatcherPaths(child, activeWatcherPaths, maxPathsToAdd);
+        }
+    }
+
+    private static string GetLinuxInotifyDiagnostics()
+    {
+        var builder = new StringBuilder();
+        builder.Append($"max_user_instances={ReadFileOrUnavailable("/proc/sys/fs/inotify/max_user_instances")}");
+        builder.Append($", max_user_watches={ReadFileOrUnavailable("/proc/sys/fs/inotify/max_user_watches")}");
+        builder.Append($", max_queued_events={ReadFileOrUnavailable("/proc/sys/fs/inotify/max_queued_events")}");
+
+        try
+        {
+            var fileDescriptors = Directory.GetFileSystemEntries("/proc/self/fd");
+            var inotifyFileDescriptorCount = 0;
+
+            foreach (var fileDescriptor in fileDescriptors)
+            {
+                try
+                {
+                    if (File.ResolveLinkTarget(fileDescriptor, returnFinalTarget: false)?.FullName.Contains("inotify", StringComparison.OrdinalIgnoreCase) == true)
+                        inotifyFileDescriptorCount++;
+                }
+                catch (Exception ex) when (IsExpectedFileSystemDiagnosticException(ex))
+                {
+                }
+            }
+
+            builder.Append($", openFileDescriptorCount={fileDescriptors.Length}, currentProcessInotifyFileDescriptorCount={inotifyFileDescriptorCount}");
+        }
+        catch (Exception ex) when (IsExpectedFileSystemDiagnosticException(ex))
+        {
+            builder.Append($", fileDescriptorDiagnosticsError='{ex.Message}'");
+        }
+
+        return builder.ToString();
+
+        static string ReadFileOrUnavailable(string path)
+        {
+            try
+            {
+                return File.Exists(path) ? File.ReadAllText(path).Trim() : "unavailable";
+            }
+            catch (Exception ex) when (IsExpectedFileSystemDiagnosticException(ex))
+            {
+                return $"unavailable ({ex.Message})";
+            }
+        }
+
+        static bool IsExpectedFileSystemDiagnosticException(Exception ex)
+            => ex is IOException or UnauthorizedAccessException or DirectoryNotFoundException;
+    }
+
     /// <summary>
     /// Represents a single directory in the directory tree structure.
     /// </summary>
@@ -357,21 +454,30 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
         public int ActiveWatchersRecursiveCount { get; private set; }
 
         [MemberNotNull(nameof(Watcher))]
-        public void CreateNewFileWatcher(ImmutableArray<string> filters, bool includeSubdirectories)
+        public void CreateNewFileWatcher(ImmutableArray<string> filters, bool includeSubdirectories, Func<string> getDiagnostics)
         {
             Contract.ThrowIfTrue(Watcher is not null);
             Contract.ThrowIfFalse(ActiveContexts.IsEmpty);
 
-            Watcher = new FileSystemWatcher(Path);
-            Watcher.Filters.AddRange(filters);
+            try
+            {
+                Watcher = new FileSystemWatcher(Path);
+                Watcher.Filters.AddRange(filters);
 
-            Watcher.Created += OnFileSystemWatcherEvent;
-            Watcher.Changed += OnFileSystemWatcherEvent;
-            Watcher.Renamed += OnFileSystemWatcherEvent;
-            Watcher.Deleted += OnFileSystemWatcherEvent;
+                Watcher.Created += OnFileSystemWatcherEvent;
+                Watcher.Changed += OnFileSystemWatcherEvent;
+                Watcher.Renamed += OnFileSystemWatcherEvent;
+                Watcher.Deleted += OnFileSystemWatcherEvent;
 
-            Watcher.IncludeSubdirectories = includeSubdirectories;
-            Watcher.EnableRaisingEvents = true;
+                Watcher.IncludeSubdirectories = includeSubdirectories;
+                Watcher.EnableRaisingEvents = true;
+            }
+            catch (IOException ex)
+            {
+                Watcher?.Dispose();
+                Watcher = null;
+                throw new IOException($"Failed to create FileSystemWatcher. {getDiagnostics()}", ex);
+            }
 
             UpdateActiveWatchersRecursiveCountIncludingAllParents(delta: 1);
         }
