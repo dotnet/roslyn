@@ -1651,50 +1651,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // https://github.com/dotnet/roslyn/issues/77879: Report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
                             if (binder.GetCollectionExpressionApplicableIndexer(syntax, Type, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is null)
                             {
-<<<<<<< HEAD
-                                return;
-                            }
-
-                            Debug.Assert(!addMethods.IsDefaultOrEmpty);
-
-                            if (addMethods[0].IsExtensionMethod || addMethods[0].IsExtensionBlockMember()) // No need to check other methods, extensions are never mixed with instance methods
-                            {
-                                diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
-                                return;
-                            }
-
-                            MethodSymbol? reportAsLessVisible = null;
-
-                            foreach (var addMethod in addMethods)
-                            {
-                                if (isAtLeastAsVisible(syntax, binder, addMethod, diagnostics))
-||||||| c04730aa9ee
-                                return;
-                            }
-
-                            Debug.Assert(!addMethods.IsDefaultOrEmpty);
-
-                            if (addMethods[0].IsExtensionMethod || addMethods[0].GetIsNewExtensionMember()) // No need to check other methods, extensions are never mixed with instance methods
-                            {
-                                diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
-                                return;
-                            }
-
-                            MethodSymbol? reportAsLessVisible = null;
-
-                            foreach (var addMethod in addMethods)
-                            {
-                                if (isAtLeastAsVisible(syntax, binder, addMethod, diagnostics))
-=======
                                 if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
->>>>>>> upstream/features/dictionary-expressions-old
                                 {
                                     return;
                                 }
 
                                 Debug.Assert(!addMethods.IsDefaultOrEmpty);
 
-                                if (addMethods[0].IsExtensionMethod || addMethods[0].GetIsNewExtensionMember()) // No need to check other methods, extensions are never mixed with instance methods
+                                if (addMethods[0].IsExtensionMethod || addMethods[0].IsExtensionBlockMember()) // No need to check other methods, extensions are never mixed with instance methods
                                 {
                                     diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
                                     return;
@@ -1736,24 +1700,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-<<<<<<< HEAD
                             var collectionBuilderMethods = binder.GetCollectionBuilderMethods(
                                 syntax, (NamedTypeSymbol)Type, diagnostics, forParams: true);
                             Debug.Assert(collectionBuilderMethods.Length <= 1);
 
                             if (collectionBuilderMethods is not [var collectionBuilderMethod])
-||||||| c04730aa9ee
-                            MethodSymbol? collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethod(syntax, (NamedTypeSymbol)Type, diagnostics, elementType: out _);
-                            if (collectionBuilderMethod is null)
-=======
-                            var targetType = (NamedTypeSymbol)Type;
-                            targetType.OriginalDefinition.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
-                            Debug.Assert(builderType is { });
-                            Debug.Assert(!string.IsNullOrEmpty(methodName));
-
-                            MethodSymbol? collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethod(syntax, targetType.OriginalDefinition, builderType, methodName, diagnostics);
-                            if (collectionBuilderMethod is null)
->>>>>>> upstream/features/dictionary-expressions-old
                             {
                                 Debug.Assert(diagnostics.HasAnyErrors(), $"{nameof(binder.GetCollectionBuilderMethods)} should have reported an error in this case");
                                 return;

@@ -1357,12 +1357,6 @@ outerDefault:
 
                         if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                         {
-<<<<<<< HEAD
-                            if (!binder.HasCollectionExpressionApplicableConstructor(
-                                    withElement: null, syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
-||||||| c04730aa9ee
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
-=======
                             if (binder.HasParamsCollectionTypeApplicableIndexerInProgress(syntax, type))
                             {
                                 // We are in a cycle. Optimistically assume the type has an applicable indexer.
@@ -1371,8 +1365,8 @@ outerDefault:
 
                             binder = new ParamsCollectionTypeApplicableIndexerInProgress(syntax, type, binder);
 
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
->>>>>>> upstream/features/dictionary-expressions-old
+                            if (!binder.HasCollectionExpressionApplicableConstructor(
+                                    withElement: null, syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }
