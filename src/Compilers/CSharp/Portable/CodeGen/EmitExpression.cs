@@ -2021,9 +2021,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                 }
 
-                if (callKind == CallKind.Call && method.IsAbstract)
+                if (callKind == CallKind.Call && receiver?.SuppressVirtualCalls == true && method.IsAbstract)
                 {
-                    _diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, call.Syntax.Location, method);
+                    _diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, _method.GetFirstLocation(), method);
                 }
 
                 var arguments = call.Arguments;
