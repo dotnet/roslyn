@@ -881,6 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<BoundExpression> args, bool useStrictArgumentRefKinds = false)
         {
             Debug.Assert(method.ParameterCount == args.Length);
+            ReportAbstractBaseCall(receiver, method);
 
             return new BoundCall(
                 Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
@@ -923,11 +924,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)
         {
             Debug.Assert(method.ParameterCount == args.Length);
+            ReportAbstractBaseCall(receiver, method);
             return new BoundCall(
                 Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
                 argumentNamesOpt: default(ImmutableArray<String?>), argumentRefKindsOpt: refKinds, isDelegateCall: false, expanded: false, invokedAsExtensionMethod: false,
                 argsToParamsOpt: ImmutableArray<int>.Empty, defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable, type: method.ReturnType)
             { WasCompilerGenerated = true };
+        }
+
+        private void ReportAbstractBaseCall(BoundExpression? receiver, MethodSymbol method)
+        {
+            if (receiver?.Kind == BoundKind.BaseReference && method.IsAbstract)
+            {
+                Diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, CurrentFunction?.GetFirstLocation() ?? Syntax.Location, method);
+            }
         }
 
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type, bool isRef = false)
