@@ -26,7 +26,7 @@ namespace RunTests
 
         public static ImmutableArray<HelixWorkItem> Schedule(
             IEnumerable<string> assemblyFilePaths,
-            ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>? testHistory)
         {
             var orderedTypeInfos = assemblyFilePaths.ToImmutableSortedDictionary(x => x, GetTypeInfoList);
             ConsoleUtil.WriteLine($"Scheduling {orderedTypeInfos.Count} assemblies");
@@ -37,7 +37,7 @@ namespace RunTests
                 ConsoleUtil.WriteLine($"\tAssembly: {Path.GetFileName(kvp.Key)}, Test Type Count: {typeCount}, Test Count: {testCount}");
             }
 
-            if (testHistory.IsEmpty)
+            if (testHistory is null)
             {
                 // We didn't have any test history from azure devops, just partition by test count.
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
@@ -67,7 +67,7 @@ namespace RunTests
             return workItems;
         }
 
-        private static void LogLongTests(ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+        private static void LogLongTests(Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
             var longTests = testHistory
                 .Where(kvp => kvp.Value.Duration > HelixTestRunner.WorkItemScheduleTime)
@@ -85,7 +85,7 @@ namespace RunTests
 
         private static ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> assemblyTypes,
-            ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
             // In xUnit v2, the ExecutionTimer in TestInvoker does NOT include IAsyncLifetime
             // .InitializeAsync() or .DisposeAsync() in DurationInMs. Test base classes that
