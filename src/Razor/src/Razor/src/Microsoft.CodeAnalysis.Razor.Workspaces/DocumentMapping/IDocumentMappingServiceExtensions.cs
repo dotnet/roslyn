@@ -36,14 +36,15 @@ internal static class IDocumentMappingServiceExtensions
 
         var position = sourceText.GetPosition(razorIndex);
 
+        var inDeclDocument = false;
         var languageKind = codeDocument.GetLanguageKind(razorIndex, rightAssociative: false);
         if (languageKind is RazorLanguageKind.CSharp)
         {
-            if (service.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredImplCSharpDocument(), razorIndex, out Position? mappedPosition, out _))
+            if (service.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out var mappedPosition, out _, out inDeclDocument))
             {
                 // For C# locations, we attempt to return the corresponding position
                 // within the projected document
-                position = mappedPosition;
+                position = mappedPosition.ToPosition();
             }
             else
             {
@@ -54,7 +55,7 @@ internal static class IDocumentMappingServiceExtensions
             }
         }
 
-        return new DocumentPositionInfo(languageKind, position, razorIndex);
+        return new DocumentPositionInfo(languageKind, position, razorIndex, inDeclDocument);
     }
 
     public static bool TryMapToRazorDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange csharpRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out LspRange? razorRange)

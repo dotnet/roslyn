@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -197,7 +197,8 @@ internal static class DelegatedCompletionHelper
             LspFactory.CreatePosition(
                 previousPosition.Line,
                 previousPosition.Character + 1),
-            previousCharacterPositionInfo.HostDocumentIndex + 1);
+            previousCharacterPositionInfo.HostDocumentIndex + 1,
+            originalPositionInfo.InDeclDocument);
 
         result = new CompletionPositionInfo(addProvisionalDot, provisionalPositionInfo, ShouldIncludeDelegationSnippets: false);
         return true;
