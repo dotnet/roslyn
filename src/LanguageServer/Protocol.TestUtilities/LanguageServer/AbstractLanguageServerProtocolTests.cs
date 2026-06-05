@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -22,7 +21,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -604,8 +602,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         where TWorkspace : TestWorkspace<TDocument, TProject, TSolution>
     {
         public readonly TWorkspace TestWorkspace;
-        protected readonly ITestOutputHelper TestOutputHelper;
-
+        private readonly ITestOutputHelper _testOutputHelper;
         private readonly JsonRpc _clientRpc;
         private readonly Dictionary<string, IList<LSP.Location>> _locations;
         private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
@@ -626,7 +623,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             _initializationOptions = initializationOptions;
             _locations = locations;
             _codeAnalysisService = testWorkspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
-            TestOutputHelper = testOutputHelper;
+            _testOutputHelper = testOutputHelper;
 
             ClientCapabilities = initializationOptions.ClientCapabilities;
 
@@ -651,6 +648,9 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         private void InitializeClientRpc()
         {
+            _clientRpc.AddLocalRpcMethod(Methods.WindowLogMessageName,
+                (int type, string message) => _testOutputHelper.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}][{(MessageType)type}]{message}"));
+
             _clientRpc.StartListening();
 
             var workspaceWaiter = GetWorkspaceWaiter(TestWorkspace);
@@ -694,8 +694,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
             };
 
             var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, serverKind, TestWorkspace.Services.HostServices);
-            var testLogger = (TestOutputLspLogger)languageServer.GetLspServices().GetRequiredService<ILspLogger>();
-            testLogger.TestOutputHelper = TestOutputHelper;
 
             jsonRpc.StartListening();
             return languageServer;

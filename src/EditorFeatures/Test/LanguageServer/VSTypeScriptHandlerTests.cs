@@ -27,7 +27,7 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     {
     }
 
-    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures;
+    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures.AddParts(typeof(TestLspLoggerFactory));
 
     [Fact]
     public async Task TestRoslynTypeScriptHandlerInvoked()
@@ -95,17 +95,11 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
-            var logger = new TestOutputLspLogger
-            {
-                TestOutputHelper = TestOutputHelper
-            };
-
             var languageServer = new RoslynLanguageServer(
                 servicesProvider, jsonRpc, messageFormatter.JsonSerializerOptions,
                 TestWorkspace.Services.HostServices,
                 [InternalLanguageNames.TypeScript],
-                WellKnownLspServerKinds.RoslynTypeScriptLspServer,
-                logger: logger);
+                WellKnownLspServerKinds.RoslynTypeScriptLspServer);
 
             jsonRpc.StartListening();
             return languageServer;

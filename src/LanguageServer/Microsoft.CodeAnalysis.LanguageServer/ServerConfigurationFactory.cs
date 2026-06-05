@@ -56,6 +56,7 @@ internal sealed record class ServerConfiguration(
     SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference,
     int? ClientProcessId);
 
+// TODO - needs to be per server.
 internal sealed class LogConfiguration
 {
     private int _currentLogLevel;

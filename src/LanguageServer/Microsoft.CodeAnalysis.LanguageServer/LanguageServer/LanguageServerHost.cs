@@ -64,7 +64,7 @@ internal sealed class LanguageServerHost
         _hasStarted = true;
     }
 
-    public async Task WaitForExitAsync()
+    public Task WaitForExitAsync()
     {
         // Wait until the server exits.  Once complete, we can return and proceed with shutdown.
         // The server is responsible for cleaning up its resources and disposing of the `_jsonRpc` instance.
@@ -75,7 +75,7 @@ internal sealed class LanguageServerHost
         //   2.  On some platforms (Unix), `_jsonRpc.Completion` will not complete until the client closes its end of the transport or sends new data
         //       even if the `_jsonRpc` instance has been disposed of (due to a synchronous read syscall that does not observe disposal).  The server
         //       should still shutdown regardless - we've been told to exit, so exit.
-        await _roslynLanguageServer.WaitForExitAsync();
+        return _roslynLanguageServer.WaitForExitAsync();
     }
 
     public ILspServices GetLspServices()
