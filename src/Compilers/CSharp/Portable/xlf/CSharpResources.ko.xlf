@@ -529,22 +529,22 @@
       </trans-unit>
       <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
         <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
-        <target state="new">'{0}': cannot use a closed type '{1}' from another assembly as a base type.</target>
+        <target state="translated">'{0}': 다른 어셈블리의 닫힌 형식 '{1}'을(를) 기본 형식으로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedExplicitlyAbstract">
         <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
-        <target state="new">'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</target>
+        <target state="translated">'{0}': 닫힌 형식은 항상 암시적으로 추상적이므로 추상으로 표시할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedSealedStatic">
         <source>'{0}': a closed type cannot be sealed or static</source>
-        <target state="new">'{0}': a closed type cannot be sealed or static</target>
+        <target state="translated">'{0}': 닫힌 형식은 봉인되거나 정적일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClosedTypeNameDisallowed">
         <source>Types and aliases cannot be named 'closed'.</source>
-        <target state="new">Types and aliases cannot be named 'closed'.</target>
+        <target state="translated">형식 및 별칭은 'closed'로 이름을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
@@ -976,6 +976,11 @@
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': extern 이벤트에는 이니셜라이저를 사용할 수 없습니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExternMemberRequiresUnsafeOrSafe">
+        <source>'extern' member must be marked 'unsafe' or 'safe'.</source>
+        <target state="new">'extern' member must be marked 'unsafe' or 'safe'.</target>
+        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
@@ -1504,17 +1509,17 @@
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
-        <target state="new">A 'union' declaration cannot use a union member provider interface.</target>
+        <target state="translated">'union' 선언에서는 공용 구조체 멤버 공급자 인터페이스를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionCaseTypes">
         <source>A union type must have at least one union creation member.</source>
-        <target state="new">A union type must have at least one union creation member.</target>
+        <target state="translated">공용 구조체 형식에는 최소한 하나의 공용 구조체 생성 멤버가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="new">A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</target>
+        <target state="translated">공용 구조체 멤버 공급자 형식에는 형식이 'object?' 또는 'object'인 퍼블릭 인스턴스 'Value' 속성이 있어야 합니다. 속성에는 get 접근자가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -1531,6 +1536,11 @@
         <source>'#!' must be the first characters on the first line of the file</source>
         <target state="translated">'#!'는 파일의 첫 번째 줄에 있는 첫 번째 문자여야 함</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberSafeDifference">
+        <source>Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</source>
+        <target state="new">Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</target>
+        <note>'safe' is a keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
         <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
@@ -2482,6 +2492,11 @@
         <target state="translated">대상 런타임에서 확장 가능 또는 런타임 환경 기본 호출 규칙을 지원하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+        <source>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</source>
+        <target state="new">The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</target>
+        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
         <target state="translated">'scoped' 한정자는 'in', 'out', 'ref' 또는 'readonly' 한정자 뒤에 올 수 없습니다.</target>
@@ -2724,7 +2739,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedClosedSubtype">
         <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
-        <target state="new">'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</target>
+        <target state="translated">'{0}': 기본 형식이 닫혀 있으므로 형식 매개 변수 '{1}'은(는) 기본 형식 '{2}'에서 참조되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
@@ -2773,14 +2788,14 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
-        <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="translated">'{2}'의 형식 매개 변수 '{1}'의 'new()' 제약 조건을 충족하려면 'unsafe' 또는 'extern'으로 표시된 생성자 '{0}'에 안전하지 않은 컨텍스트가 필요합니다.</target>
-        <note>'unsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+        <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="new">An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
+        <note>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
-        <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</source>
-        <target state="translated">'{0}'은(는) 'unsafe' 또는 'extern'으로 표시되어 있어 안전하지 않은 컨텍스트에서 사용해야 합니다.</target>
-        <note>'unsafe' and 'extern' should not be localized.</note>
+        <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
+        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'unsafe'</target>
+        <note>'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
@@ -2949,7 +2964,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureClosedClasses">
         <source>closed classes</source>
-        <target state="new">closed classes</target>
+        <target state="translated">닫힌 클래스</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">

@@ -119,11 +119,6 @@
         <target state="translated">"Disparar conclusões novamente..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_RazorMetaCode">
-        <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">Tentativa de visitar um RazorMetaCode diferente de '{' or '}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
         <target state="translated">Comportamento de mapeamento desconhecido</target>

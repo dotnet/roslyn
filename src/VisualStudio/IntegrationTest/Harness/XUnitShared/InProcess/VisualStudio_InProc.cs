@@ -8,18 +8,16 @@ namespace Xunit.InProcess
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
-    using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
+    using Microsoft.VisualStudio.IntegrationTest;
     using Microsoft.VisualStudio.Shell.Interop;
     using Windows.Win32;
     using Windows.Win32.Foundation;
     using Windows.Win32.UI.WindowsAndMessaging;
     using Xunit.Harness;
-    using File = System.IO.File;
     using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
     using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
-    using Path = System.IO.Path;
     using SVsActivityLog = Microsoft.VisualStudio.Shell.Interop.SVsActivityLog;
     using SVsUIShell = Microsoft.VisualStudio.Shell.Interop.SVsUIShell;
 
@@ -48,16 +46,7 @@ namespace Xunit.InProcess
 
         public void AddCodeBaseDirectory(string directory)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
-            {
-                var path = Path.Combine(directory, new AssemblyName(e.Name).Name + ".dll");
-                if (File.Exists(path))
-                {
-                    return Assembly.LoadFrom(path);
-                }
-
-                return null;
-            };
+            IntegrationTestAssemblyResolver.AddCodeBaseDirectory(directory);
         }
 
         public void ActivateMainWindow()
