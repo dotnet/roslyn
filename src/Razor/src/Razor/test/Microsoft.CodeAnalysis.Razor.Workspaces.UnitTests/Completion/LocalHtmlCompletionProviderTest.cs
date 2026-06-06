@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 /// - Element completion (basic, filtered by parent)
 /// - Attribute completion (element-specific and global)
 /// - Attribute value completion (enumerated values)
-/// - HasExternalCompletion (vs:preferredextensions, vs:multivalue, class/style)
+/// - HasExternalCompletion (xsd:anyURI, vs:multivalue, class/style/id)
 /// - Element HasExternalCompletion (script, style content)
 /// - vs:nonbrowseable (hidden attributes/elements)
 /// - vs:standalone (boolean attributes)
@@ -127,6 +128,22 @@ public class LocalHtmlCompletionProviderTest
         Assert.Contains(result.Items, static item => item.Label == "type");
         Assert.Contains(result.Items, static item => item.Label == "value");
         Assert.Contains(result.Items, static item => item.Label == "placeholder");
+    }
+
+    [Fact]
+    public void AttributeCompletion_NoDuplicateNames()
+    {
+        // Elements like <input> define attributes (e.g., enterkeyhint) that also exist as
+        // global attributes. The completion list must not contain duplicate names — the
+        // element-specific version takes precedence.
+        var result = GetCompletionList("<input $$>");
+
+        Assert.NotNull(result);
+        var hasDuplicates = result.Items
+            .GroupBy(static item => item.Label, StringComparer.OrdinalIgnoreCase)
+            .Any(static g => g.Count() > 1);
+
+        Assert.False(hasDuplicates);
     }
 
     [Fact]
@@ -260,8 +277,7 @@ public class LocalHtmlCompletionProviderTest
     [Fact]
     public void AttributeValueCompletion_HasExternalCompletion_FilePathAttribute_ReturnsNull()
     {
-        // vs:preferredextensions marks attributes like src, href as file-path attributes.
-        // These defer to an external file-picker provider.
+        // xsd:anyURI-typed attributes like src defer to an external file-picker provider.
         var result = GetCompletionList("<script src=\"f$$\">");
 
         Assert.Null(result);
@@ -307,8 +323,26 @@ public class LocalHtmlCompletionProviderTest
     [Fact]
     public void AttributeValueCompletion_HasExternalCompletion_HrefAttribute_ReturnsNull()
     {
-        // href on <base> has vs:preferredextensions (file path completion)
+        // href on <base> is xsd:anyURI (URL/file path completion)
         var result = GetCompletionList("<base href=\"f$$\">");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void AttributeValueCompletion_HasExternalCompletion_AnchorHrefAttribute_ReturnsNull()
+    {
+        // href on <a> is xsd:anyURI — defers to external URL/file path provider
+        var result = GetCompletionList("<a href=\"f$$\">");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void AttributeValueCompletion_HasExternalCompletion_LinkHrefAttribute_ReturnsNull()
+    {
+        // href on <link> is xsd:anyURI — defers to external URL/file path provider
+        var result = GetCompletionList("<link href=\"f$$\">");
 
         Assert.Null(result);
     }
