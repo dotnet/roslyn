@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// When a closed class contains type parameters, it's possible that some subtype may or
         /// may not apply, depending on what type substitution is ultimately performed at a later stage.
-        /// This call will return <see langword="false"/> and only the subtypes which are speakable in terms of type parameters on <see langword="this"/> this in that situation.
+        /// This call will return <see langword="false"/> and only the subtypes which are speakable in terms of type parameters on <see langword="this"/> in that situation.
         /// </remarks>
         internal bool TryGetClosedSubtypes(out ImmutableArray<NamedTypeSymbol> subtypes)
         {
