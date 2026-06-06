@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="HtmlAttribute_async">
         <source>This is a Boolean attribute indicating that the browser should, if possible, load the script asynchronously. This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts). If it is included in this case it will have no effect. Browsers usually assume the worst case scenario and load scripts synchronously, (i.e. `async="false"`) during HTML parsing. Dynamically inserted scripts (using [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.")) load asynchronously by default, so to turn on synchronous loading (i.e. scripts load in the order they were inserted) set `async="false"`. See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) for notes on browser support. See also [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</source>
-        <target state="needs-review-translation">Skrypt zostanie wykonany asynchronicznie, gdy stanie się dostępny.</target>
+        <target state="new">This is a Boolean attribute indicating that the browser should, if possible, load the script asynchronously. This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts). If it is included in this case it will have no effect. Browsers usually assume the worst case scenario and load scripts synchronously, (i.e. `async="false"`) during HTML parsing. Dynamically inserted scripts (using [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.")) load asynchronously by default, so to turn on synchronous loading (i.e. scripts load in the order they were inserted) set `async="false"`. See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) for notes on browser support. See also [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocapitalize">
@@ -149,7 +149,7 @@
       </trans-unit>
       <trans-unit id="HtmlAttribute_defer">
         <source>This Boolean attribute is set to indicate to a browser that the script is meant to be executed after the document has been parsed, but before firing [`DOMContentLoaded`](https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded "/en-US/docs/Web/Events/DOMContentLoaded"). Scripts with the `defer` attribute will prevent the `DOMContentLoaded` event from firing until the script has loaded and finished evaluating. This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts), in this case it would have no effect. To achieve a similar effect for dynamically inserted scripts use `async="false"` instead. Scripts with the `defer` attribute will execute in the order in which they appear in the document.</source>
-        <target state="needs-review-translation">Skrypt zostanie wykonany po zakończeniu analizy strony.</target>
+        <target state="new">This Boolean attribute is set to indicate to a browser that the script is meant to be executed after the document has been parsed, but before firing [`DOMContentLoaded`](https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded "/en-US/docs/Web/Events/DOMContentLoaded"). Scripts with the `defer` attribute will prevent the `DOMContentLoaded` event from firing until the script has loaded and finished evaluating. This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts), in this case it would have no effect. To achieve a similar effect for dynamically inserted scripts use `async="false"` instead. Scripts with the `defer` attribute will execute in the order in which they appear in the document.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_dir">
@@ -169,7 +169,7 @@
       </trans-unit>
       <trans-unit id="HtmlAttribute_draggable">
         <source>An enumerated attribute indicating whether the element can be dragged, using the [Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). It can have the following values: * `true`, which indicates that the element may be dragged * `false`, which indicates that the element may not be dragged.</source>
-        <target state="needs-review-translation">Element z atrybutem z możliwością przeciągania powinien również zawierać atrybut tytułu, który określa nazwę elementu na potrzeby interakcji niewizualnych.</target>
+        <target state="new">An enumerated attribute indicating whether the element can be dragged, using the [Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). It can have the following values: * `true`, which indicates that the element may be dragged * `false`, which indicates that the element may not be dragged.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_dropzone">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="HtmlAttribute_integrity">
         <source>Contains inline metadata — a base64-encoded cryptographic hash of the resource (file) you’re telling the browser to fetch. The browser can use this to verify that the fetched resource has been delivered free of unexpected manipulation. See [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).</source>
-        <target state="needs-review-translation">Atrybut integrity reprezentuje metadane integralności elementu.</target>
+        <target state="new">Contains inline metadata — a base64-encoded cryptographic hash of the resource (file) you’re telling the browser to fetch. The browser can use this to verify that the fetched resource has been delivered free of unexpected manipulation. See [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_is">
@@ -729,7 +729,7 @@
       </trans-unit>
       <trans-unit id="HtmlAttribute_open">
         <source>Indicates that the dialog is active and available for interaction. When the `open` attribute is not set, the dialog shouldn't be shown to the user.</source>
-        <target state="needs-review-translation">W przypadku określenia wskazuje, że element okna dialogowego jest aktywny i użytkownik może wchodzić z nim w interakcje.</target>
+        <target state="new">Indicates that the dialog is active and available for interaction. When the `open` attribute is not set, the dialog shouldn't be shown to the user.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_optimum">
@@ -814,7 +814,7 @@
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">
         <source>This attribute defines the sizes of the icons for visual media contained in the resource. It must be present only if the [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) contains a value of `icon` or a non-standard type such as Apple's `apple-touch-icon`. It may have the following values: * `any`, meaning that the icon can be scaled to any size as it is in a vector format, like `image/svg+xml`. * a white-space separated list of sizes, each in the format `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` or `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Each of these sizes must be contained in the resource. **Note:** Most icon formats are only able to store one single icon; therefore most of the time the [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) contains only one entry. MS's ICO format does, as well as Apple's ICNS. ICO is more ubiquitous; you should definitely use it.</source>
-        <target state="needs-review-translation">Rozmiary obrazów między punktami przerwań.</target>
+        <target state="new">This attribute defines the sizes of the icons for visual media contained in the resource. It must be present only if the [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) contains a value of `icon` or a non-standard type such as Apple's `apple-touch-icon`. It may have the following values: * `any`, meaning that the icon can be scaled to any size as it is in a vector format, like `image/svg+xml`. * a white-space separated list of sizes, each in the format `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` or `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Each of these sizes must be contained in the resource. **Note:** Most icon formats are only able to store one single icon; therefore most of the time the [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) contains only one entry. MS's ICO format does, as well as Apple's ICNS. ICO is more ubiquitous; you should definitely use it.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_slot">
@@ -844,7 +844,7 @@
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcset">
         <source>A list of one or more strings separated by commas indicating a set of possible image sources for the user agent to use. Each string is composed of: 1. a URL to an image, 2. optionally, whitespace followed by one of: * A width descriptor, or a positive integer directly followed by '`w`'. The width descriptor is divided by the source size given in the `sizes` attribute to calculate the effective pixel density. * A pixel density descriptor, which is a positive floating point number directly followed by '`x`'. If no descriptor is specified, the source is assigned the default descriptor: `1x`. It is incorrect to mix width descriptors and pixel density descriptors in the same `srcset` attribute. Duplicate descriptors (for instance, two sources in the same `srcset` which are both described with '`2x`') are also invalid. The user agent selects any one of the available sources at its discretion. This provides them with significant leeway to tailor their selection based on things like user preferences or bandwidth conditions. See our [Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) tutorial for an example.</source>
-        <target state="needs-review-translation">Obrazy używane w różnych sytuacjach (np. wyświetlacze o wysokiej rozdzielczości, małe monitory itp.).</target>
+        <target state="new">A list of one or more strings separated by commas indicating a set of possible image sources for the user agent to use. Each string is composed of: 1. a URL to an image, 2. optionally, whitespace followed by one of: * A width descriptor, or a positive integer directly followed by '`w`'. The width descriptor is divided by the source size given in the `sizes` attribute to calculate the effective pixel density. * A pixel density descriptor, which is a positive floating point number directly followed by '`x`'. If no descriptor is specified, the source is assigned the default descriptor: `1x`. It is incorrect to mix width descriptors and pixel density descriptors in the same `srcset` attribute. Duplicate descriptors (for instance, two sources in the same `srcset` which are both described with '`2x`') are also invalid. The user agent selects any one of the available sources at its discretion. This provides them with significant leeway to tailor their selection based on things like user preferences or bandwidth conditions. See our [Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) tutorial for an example.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_start">
@@ -934,7 +934,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_article">
         <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content. Each article should be identified, typically by including a heading (h1–h6 element) as a child of the article element.</source>
-        <target state="needs-review-translation">Element article reprezentuje pełną (samodzielną) strukturę dokumentu, strony, aplikacji lub witryny, która może być niezależnie rozpowszechniana lub używana ponownie, na przykład w przypadku syndykacji. Może to być wpis na forum, artykuł w magazynie lub gazecie, wpis w blogu, komentarz użytkownika, interakcyjny widżet lub gadżet albo inny niezależny element zawartości.</target>
+        <target state="new">The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content. Each article should be identified, typically by including a heading (h1–h6 element) as a child of the article element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_aside">
@@ -959,12 +959,12 @@
       </trans-unit>
       <trans-unit id="HtmlElement_bdi">
         <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting. [BIDI]</source>
-        <target state="needs-review-translation">Element bdi reprezentuje fragment tekstu, który ma być odizolowany od jego otoczenia na potrzeby formatowania tekstu dwukierunkowego.</target>
+        <target state="new">The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting. [BIDI]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdo">
         <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override. [BIDI]</source>
-        <target state="needs-review-translation">Element bdo reprezentuje jawną kontrolę formatowania kierunku tekstu dla jego elementów podrzędnych. Przy użyciu tego elementu autorzy mogą przesłaniać algorytm dwukierunkowy Unicode, jawnie określając przesłonięcie kierunku.</target>
+        <target state="new">The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override. [BIDI]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_blockquote">
@@ -999,7 +999,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_cite">
         <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, or a reference in abbreviated form as per the conventions used for the addition of citation metadata.</source>
-        <target state="needs-review-translation">Element cite reprezentuje odwołanie do dzieła twórczego. Musi on zawierać tytuł dzieła lub nazwę autora (osoby, osób lub organizacji) albo adres URL odwołania, który może mieć postać skrótu zgodnie z konwencją dodatku związanego z metadanymi cytatu.</target>
+        <target state="new">The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, or a reference in abbreviated form as per the conventions used for the addition of citation metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_code">
@@ -1109,42 +1109,42 @@
       </trans-unit>
       <trans-unit id="HtmlElement_h1">
         <source>The h1 element represents a section heading.</source>
-        <target state="needs-review-translation">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <target state="new">The h1 element represents a section heading.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h2">
         <source>The h2 element represents a section heading.</source>
-        <target state="needs-review-translation">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <target state="new">The h2 element represents a section heading.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h3">
         <source>The h3 element represents a section heading.</source>
-        <target state="needs-review-translation">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <target state="new">The h3 element represents a section heading.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h4">
         <source>The h4 element represents a section heading.</source>
-        <target state="needs-review-translation">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <target state="new">The h4 element represents a section heading.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h5">
         <source>The h5 element represents a section heading.</source>
-        <target state="needs-review-translation">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <target state="new">The h5 element represents a section heading.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h6">
         <source>The h6 element represents a section heading.</source>
-        <target state="needs-review-translation">Te elementy reprezentują nagłówki ich sekcji.</target>
+        <target state="new">The h6 element represents a section heading.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_head">
         <source>The head element represents a collection of metadata for the Document.</source>
-        <target state="needs-review-translation">Element head reprezentuje kolekcję metadanych dokumentu. Musi on być pierwszym elementem w elemencie html.</target>
+        <target state="new">The head element represents a collection of metadata for the Document.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_header">
         <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids. When the nearest ancestor sectioning content or sectioning root element is the body element, then it applies to the whole page.</source>
-        <target state="needs-review-translation">Element header reprezentuje wprowadzenie dla jego najbliższej nadrzędnej zawartości sekcji lub najbliższego elementu głównego sekcji. Element header zwykle zawiera grupę dodatkowych elementów stanowiących pomoc dotyczącą wprowadzenia lub nawigacji.</target>
+        <target state="new">The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids. When the nearest ancestor sectioning content or sectioning root element is the body element, then it applies to the whole page.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_hr">
@@ -1199,7 +1199,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_li">
         <source>The li element represents a list item. If its parent element is an ol, ul, or menu element, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
-        <target state="needs-review-translation">Element li reprezentuje pozycję listy. Jeśli elementem nadrzędnym elementu li jest element ol lub ul, element li jest pozycją na liście elementu nadrzędnego zgodnie z definicją tych elementów. W przeciwnym razie elementy li nie mają zdefiniowanych relacji listy z innymi elementami li.</target>
+        <target state="new">The li element represents a list item. If its parent element is an ol, ul, or menu element, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_link">
@@ -1229,7 +1229,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_menu">
         <source>The menu element represents an unordered list of interactive items.</source>
-        <target state="needs-review-translation">Element menu reprezentuje listę poleceń.</target>
+        <target state="new">The menu element represents an unordered list of interactive items.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menuitem">
@@ -1304,7 +1304,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_output">
         <source>The output element represents the result of a calculation performed by the application, or the result of a user action.</source>
-        <target state="needs-review-translation">Element output reprezentuje rezultat wykonanego obliczenia lub akcji użytkownika.</target>
+        <target state="new">The output element represents the result of a calculation performed by the application, or the result of a user action.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_p">
@@ -1319,7 +1319,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_picture">
         <source>The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
-        <target state="needs-review-translation">Element picture to kontener udostępniający wiele źródeł dla zawartego w nim elementu img w celu umożliwienia autorom deklaratywnego sterowania lub udostępniania podpowiedzi agentowi użytkownika w zakresie tego, którego zasobu obrazu użyć, na podstawie rozdzielczości ekranu w pikselach, rozmiaru okienka ekranu, formatu obrazu i innych czynników. Reprezentuje on swoje elementy podrzędne.</target>
+        <target state="new">The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_polymer-element">
@@ -1359,7 +1359,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_ruby">
         <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations. In Japanese, this form of typography is also known as furigana. Ruby text can appear on either side, and sometimes both sides, of the base text, and it is possible to control its position using CSS. A more complete introduction to ruby can be found in the Use Cases &amp; Exploratory Approaches for Ruby Markup document as well as in CSS Ruby Module Level 1. [RUBY-UC] [CSSRUBY]</source>
-        <target state="needs-review-translation">Element ruby służy do oznaczania co najmniej jednego fragmentu zawartości właściwej przy użyciu dopisków fonetycznych. Dopiski fonetyczne to krótkie fragmenty prezentowane wraz z podstawowym tekstem, które są używane głównie w przypadku typografii wschodnioazjatyckiej jako pomoc w wymowie lub w celu dołączenia innych adnotacji.</target>
+        <target state="new">The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations. In Japanese, this form of typography is also known as furigana. Ruby text can appear on either side, and sometimes both sides, of the base text, and it is possible to control its position using CSS. A more complete introduction to ruby can be found in the Use Cases &amp; Exploratory Approaches for Ruby Markup document as well as in CSS Ruby Module Level 1. [RUBY-UC] [CSSRUBY]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_s">
@@ -1369,7 +1369,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_samp">
         <source>The samp element represents sample or quoted output from another program or computing system.</source>
-        <target state="needs-review-translation">Element samp reprezentuje przykładowe dane wyjściowe z programu lub systemu komputerowego.</target>
+        <target state="new">The samp element represents sample or quoted output from another program or computing system.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_script">
@@ -1384,7 +1384,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_section">
         <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. Each section should be identified, typically by including a heading ( h1- h6 element) as a child of the section element.</source>
-        <target state="needs-review-translation">Element section reprezentuje ogólną sekcję dokumentu lub aplikacji. W tym kontekście sekcja to tematyczna grupa elementów zawartości. Należy określić temat każdej sekcji. Zwykle w tym celu jest dołączany nagłówek (elementy h1-h6) jako element podrzędny elementu section.</target>
+        <target state="new">The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. Each section should be identified, typically by including a heading ( h1- h6 element) as a child of the section element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_select">
@@ -1429,7 +1429,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_sub">
         <source>The sub element represents a subscript.</source>
-        <target state="needs-review-translation">Element sup reprezentuje indeks górny, a element sub reprezentuje indeks dolny.</target>
+        <target state="new">The sub element represents a subscript.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_summary">
@@ -1439,7 +1439,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_sup">
         <source>The sup element represents a superscript.</source>
-        <target state="needs-review-translation">Element sup reprezentuje indeks górny, a element sub reprezentuje indeks dolny.</target>
+        <target state="new">The sup element represents a superscript.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_svg">
