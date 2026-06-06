@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -198,6 +199,78 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Assert.True(classC.IsClosed);
             // attribute is filtered out of source and metadata symbols.
             Assert.Empty(classC.GetAttributes());
+        }
+    }
+
+    [Fact]
+    public void PublicAPI_01()
+    {
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifySymbols(ModuleSymbol module)
+        {
+            var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetPublicSymbol();
+            Assert.True(classC.IsClosed);
+            // attribute is filtered out of source and metadata symbols.
+            Assert.Empty(classC.GetAttributes());
+
+            var subtypeInfo = classC.GetClosedSubtypes(CancellationToken.None);
+            Assert.Equal(["D1", "D2"], subtypeInfo.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(subtypeInfo.IsComplete);
+
+            var d1 = subtypeInfo.ClosedSubtypes[0];
+            Assert.False(d1.IsClosed);
+            Assert.Throws<InvalidOperationException>(() => d1.GetClosedSubtypes(CancellationToken.None));
+        }
+    }
+
+    [Fact]
+    public void PublicAPI_02()
+    {
+        var source = """
+            closed class C<T>;
+
+            class D1<U1> : C<U1>;
+            class D2<U2> : C<U2[]>;
+            class D3 : C<string>;
+            """;
+
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        verify(comp);
+        verify(CreateCompilation([], references: [comp.ToMetadataReference()], targetFramework: TargetFramework.Net100));
+        verify(CreateCompilation([], references: [comp.EmitToImageReference()], targetFramework: TargetFramework.Net100));
+
+        void verify(CSharpCompilation comp)
+        {
+            var classC = comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol();
+            Assert.Equal("C<T>", classC.ToTestDisplayString());
+
+            var subtypeInfo = classC.GetClosedSubtypes(CancellationToken.None);
+            Assert.False(subtypeInfo.IsComplete);
+            Assert.Equal(["D1<T>", "D3"], subtypeInfo.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfIntArray = classC.Construct(comp.CreateArrayTypeSymbol(comp.GetSpecialType(SpecialType.System_Int32)));
+            Assert.Equal("C<System.Int32[]>", cOfIntArray.ToTestDisplayString());
+
+            subtypeInfo = cOfIntArray.GetClosedSubtypes(CancellationToken.None);
+            Assert.True(subtypeInfo.IsComplete);
+            Assert.Equal(["D1<System.Int32[]>", "D2<System.Int32>"], subtypeInfo.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfString = classC.Construct(comp.GetSpecialType(SpecialType.System_String));
+            Assert.Equal("C<System.String>", cOfString.ToTestDisplayString());
+            subtypeInfo = cOfString.GetClosedSubtypes(CancellationToken.None);
+            Assert.True(subtypeInfo.IsComplete);
+            Assert.Equal(["D1<System.String>", "D3"], subtypeInfo.ClosedSubtypes.ToTestDisplayStrings());
         }
     }
 

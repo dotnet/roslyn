@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -199,6 +201,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             // For public API, only source types are considered file-local types.
             UnderlyingNamedTypeSymbol.OriginalDefinition is SourceMemberContainerTypeSymbol
                 && UnderlyingNamedTypeSymbol.IsFileLocal;
+
+        bool INamedTypeSymbol.IsClosed => UnderlyingNamedTypeSymbol.IsClosed;
+
+        ClosedSubtypeInfo INamedTypeSymbol.GetClosedSubtypes(CancellationToken cancellationToken)
+        {
+            if (!UnderlyingNamedTypeSymbol.IsClosed)
+                throw new InvalidOperationException();
+
+            var isComplete = UnderlyingNamedTypeSymbol.TryGetClosedSubtypes(out var subtypes);
+            return new ClosedSubtypeInfo(subtypes.GetPublicSymbols(), isComplete);
+        }
 
         INamedTypeSymbol INamedTypeSymbol.NativeIntegerUnderlyingType => UnderlyingNamedTypeSymbol.NativeIntegerUnderlyingType.GetPublicSymbol();
 
