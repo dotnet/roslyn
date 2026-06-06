@@ -22,7 +22,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-internal abstract class LanguageServerProjectLoader
+internal abstract class LanguageServerProjectLoader : IDisposable
 {
     private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
 
@@ -504,6 +504,31 @@ internal abstract class LanguageServerProjectLoader
                 var removed = await TryUnloadProject_NoLockAsync(key);
                 Contract.ThrowIfFalse(removed); // We obtained lock before enumerating, how was this already removed?
             }
+        }
+    }
+
+    /// <summary>
+    /// Disposes all loaded projects when the server is shutting down. Each <see cref="LoadedProject"/> owns the file
+    /// watches (e.g. inotify instances on Linux) it created, so they must be disposed here to avoid leaking those
+    /// operating system handles across server restarts.
+    /// </summary>
+    public virtual void Dispose()
+    {
+        using (_gate.DisposableWait(CancellationToken.None))
+        {
+            foreach (var (_, loadState) in _loadedProjects)
+            {
+                // Disposing a LoadedProject unloads it, releasing its file watches and removing it from the workspace.
+                // Primordial projects don't own any file watches; their placeholder projects are torn down along with
+                // the workspace, so there's nothing to release for them here.
+                if (loadState is ProjectLoadState.LoadedTargets(var loadedProjectTargets))
+                {
+                    foreach (var loadedProject in loadedProjectTargets)
+                        loadedProject.Dispose();
+                }
+            }
+
+            _loadedProjects.Clear();
         }
     }
 

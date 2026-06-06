@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// <see cref="LspServices"/> instance by <see cref="LanguageServerWorkspaceFactoryServiceFactory"/> and
 /// disposed when the LSP server shuts down.
 /// </summary>
-internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspaceProvider
+internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspaceProvider, IDisposable
 {
     private readonly ILogger _logger;
     private readonly ImmutableArray<string> _solutionLevelAnalyzerPaths;
@@ -79,6 +79,14 @@ internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspa
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
 
     Workspace IHostWorkspaceProvider.Workspace => HostWorkspace;
+
+    public void Dispose()
+    {
+        // Dispose the project factories so they release the reference-directory file watches (e.g. inotify instances
+        // on Linux) they created. This factory is an LSP service, so it is disposed when the LSP server shuts down.
+        HostProjectFactory.Dispose();
+        MiscellaneousFilesWorkspaceProjectFactory.Dispose();
+    }
 
     private ImmutableArray<AnalyzerFileReference> CreateSolutionLevelAnalyzerReferences(IAnalyzerAssemblyLoaderProvider loaderProvider)
     {

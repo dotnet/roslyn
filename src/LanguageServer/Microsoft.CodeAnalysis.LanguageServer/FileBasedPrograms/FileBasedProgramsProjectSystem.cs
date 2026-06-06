@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
-internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable
+internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
@@ -57,9 +57,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
+        base.Dispose();
     }
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)

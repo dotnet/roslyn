@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem;
 
-internal sealed class ReferenceFileChangeTracker
+internal sealed class ReferenceFileChangeTracker : IDisposable
 {
     private readonly object _gate = new();
 
@@ -156,5 +156,17 @@ internal sealed class ReferenceFileChangeTracker
     {
         foreach (var filePath in list)
             await _callback(filePath, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Releases the file watches created by this tracker. Disposing the underlying <see cref="IFileChangeContext"/>
+    /// releases both the directory watch on the reference directories and any per-file watches created via
+    /// <see cref="StartWatchingReference"/>. This is used when the owning workspace is torn down (e.g. on LSP server
+    /// shutdown) so we don't leak operating system file watch handles (such as inotify instances on Linux).
+    /// </summary>
+    public void Dispose()
+    {
+        if (_fileReferenceChangeContext.IsValueCreated)
+            _fileReferenceChangeContext.Value.Dispose();
     }
 }
