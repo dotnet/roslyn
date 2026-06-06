@@ -2576,7 +2576,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             bool isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
             var data = new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, isPartialDeclAnalysis);
-            AddSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, semanticModel, data.DescendantNodesToAnalyze, cancellationToken);
+            try
+            {
+                AddSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, semanticModel, data.DescendantNodesToAnalyze, cancellationToken);
+            }
+            catch
+            {
+                data.Free();
+                throw;
+            }
+
             return data;
         }
 
