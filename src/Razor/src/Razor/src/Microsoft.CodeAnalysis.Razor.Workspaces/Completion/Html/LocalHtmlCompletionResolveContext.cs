@@ -19,7 +19,7 @@ internal sealed class LocalHtmlCompletionResolveContext(
 {
     internal static readonly LocalHtmlCompletionResolveContext Empty = new([], []);
 
-    public bool TryGetResolveData(string label, CompletionItemKind kind, [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl, out string? baseline, out string? baselineDate)
+    public bool TryGetResolveData(string label, CompletionItemKind kind, [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl, [NotNullWhen(true)] out string? baseline, [NotNullWhen(true)] out string? baselineDate)
     {
         if (kind == CompletionItemKind.Element)
         {
@@ -49,7 +49,7 @@ internal sealed class LocalHtmlCompletionResolveContext(
     }
 
     private static bool TryFindAttribute(ImmutableArray<HtmlAttributeInfo> attributes, string name,
-        [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl, out string? baseline, out string? baselineDate)
+        [NotNullWhen(true)] out string? description, [NotNullWhen(true)] out string? documentationUrl, [NotNullWhen(true)] out string? baseline, [NotNullWhen(true)] out string? baselineDate)
     {
         foreach (var attr in attributes)
         {

@@ -554,7 +554,7 @@ internal static class CodeEmitter
     {
         var url = GetUrl(attr.DescriptionId, schema);
         var valuesExpr = GetValuesExpression(attr, sharedValueMap, uniqueValueMap);
-        // key format: name|url|valuesExpr|boolean|event|icon|filePath|baseline|baselineDate
+        // key format: name|url|valuesExpr|boolean|event|icon|hasExternalCompletion|baseline|baselineDate
         return $"{attr.Name}|{url}|{valuesExpr}|{attr.IsBoolean}|{attr.IsEvent}|{attr.Icon ?? ""}|{attr.HasExternalCompletion}|{attr.Baseline}|{attr.BaselineDate}";
     }
 
