@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Remote.Razor;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Hover;
 
 internal sealed class ComponentAvailabilityService(RemoteSolutionSnapshot solutionSnapshot) : AbstractComponentAvailabilityService
 {

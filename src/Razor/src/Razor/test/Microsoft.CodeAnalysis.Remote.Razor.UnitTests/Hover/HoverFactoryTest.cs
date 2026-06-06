@@ -12,8 +12,9 @@ using Roslyn.Text.Adornments;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.Hover;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Hover;
 
 public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
