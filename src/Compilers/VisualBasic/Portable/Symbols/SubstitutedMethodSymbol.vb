@@ -341,8 +341,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
-            Return OriginalDefinition.IsMetadataNewSlot(ignoreInterfaceImplementationChanges)
+        Friend NotOverridable Overrides Function IsMetadataNewSlot() As Boolean
+            Return OriginalDefinition.IsMetadataNewSlot()
         End Function
 
         Friend NotOverridable Overrides Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean

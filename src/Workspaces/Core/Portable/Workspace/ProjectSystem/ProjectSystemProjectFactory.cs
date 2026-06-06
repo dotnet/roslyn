@@ -43,8 +43,8 @@ internal sealed partial class ProjectSystemProjectFactory
     public IAsynchronousOperationListener WorkspaceListener { get; }
     public IFileChangeWatcher FileChangeWatcher { get; }
 
-    public FileWatchedReferenceFactory<PortableExecutableReference> FileWatchedPortableExecutableReferenceFactory { get; }
-    public FileWatchedReferenceFactory<AnalyzerReference> FileWatchedAnalyzerReferenceFactory { get; }
+    public ReferenceFileChangeTracker PortableExecutableReferenceFileChangeTracker { get; }
+    public ReferenceFileChangeTracker AnalyzerReferenceFileChangeTracker { get; }
 
     public SolutionServices SolutionServices => this.Workspace.Services.SolutionServices;
 
@@ -90,8 +90,8 @@ internal sealed partial class ProjectSystemProjectFactory
 
         WorkspaceListener = this.SolutionServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
-        FileWatchedPortableExecutableReferenceFactory = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingMetadataReferencesForFileAsync, cancellationToken);
-        FileWatchedAnalyzerReferenceFactory = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingAnalyzerReferenceForFileAsync, cancellationToken);
+        PortableExecutableReferenceFileChangeTracker = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingMetadataReferencesForFileAsync, cancellationToken);
+        AnalyzerReferenceFileChangeTracker = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingAnalyzerReferenceForFileAsync, cancellationToken);
     }
 
     public FileTextLoader CreateFileTextLoader(string fullPath)
@@ -434,19 +434,19 @@ internal sealed partial class ProjectSystemProjectFactory
 
         // Add file watchers for any references we are now watching.
         foreach (var reference in projectUpdateState.AddedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference.FilePath!);
+            PortableExecutableReferenceFileChangeTracker.StartWatchingReference(reference.FilePath!);
 
         // Remove file watchers for any references we're no longer watching.
         foreach (var reference in projectUpdateState.RemovedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
+            PortableExecutableReferenceFileChangeTracker.StopWatchingReference(reference.FilePath!);
 
         // Add file watchers for any analyzers we are now watching.
         foreach (var referenceFullPath in projectUpdateState.AddedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StartWatchingReference(referenceFullPath);
+            AnalyzerReferenceFileChangeTracker.StartWatchingReference(referenceFullPath);
 
         // Remove file watchers for any analyzers we're no longer watching.
         foreach (var referenceFullPath in projectUpdateState.RemovedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(referenceFullPath, referenceToTrack: null);
+            AnalyzerReferenceFileChangeTracker.StopWatchingReference(referenceFullPath);
 
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();

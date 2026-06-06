@@ -18,8 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem;
 
-internal sealed class FileWatchedReferenceFactory<TReference>
-    where TReference : class
+internal sealed class ReferenceFileChangeTracker
 {
     private readonly object _gate = new();
 
@@ -35,21 +34,10 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     /// the file reference will actually be a file reference or it'll be a converted project reference.
     /// </summary>
     private readonly Dictionary<string, (IWatchedFile Token, int RefCount)> _referenceFileWatchingTokens = [];
-
-    /// <summary>
-    /// Stores the caller for a previous disposal of a reference produced by this class, to track down a double-dispose
-    /// issue.
-    /// </summary>
-    /// <remarks>
-    /// This can be removed once https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1843611 is fixed.
-    /// </remarks>
-    private readonly ConditionalWeakTable<TReference, string> _previousDisposalLocations = new();
-
     private readonly AsyncBatchingWorkQueue<string> _workQueue;
-
     private readonly Func<string, CancellationToken, Task> _callback;
 
-    public FileWatchedReferenceFactory(
+    public ReferenceFileChangeTracker(
         IFileChangeWatcher fileChangeWatcher,
         IAsynchronousOperationListener asyncListener,
         Func<string, CancellationToken, Task> callback,
@@ -107,7 +95,7 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     }
 
     /// <summary>
-    /// Starts watching a particular <typeparamref name="TReference"/> for changes to the file. If this is already being
+    /// Starts watching a particular reference for changes to the file. If this is already being
     /// watched , the reference count will be incremented. This is *not* safe to attempt to call multiple times for the
     /// same project and reference (e.g. in applying workspace updates)
     /// </summary>
@@ -126,27 +114,16 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     }
 
     /// <summary>
-    /// Decrements the reference count for the given <typeparamref name="TReference"/>. When the reference count reaches
+    /// Decrements the reference count for the given reference. When the reference count reaches
     /// 0, the file watcher will be stopped. This is *not* safe to attempt to call multiple times for the same project
     /// and reference (e.g. in applying workspace updates)
     /// </summary>
-    public void StopWatchingReference(string fullFilePath, TReference? referenceToTrack, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
+    public void StopWatchingReference(string fullFilePath)
     {
         lock (_gate)
         {
             if (!_referenceFileWatchingTokens.TryGetValue(fullFilePath, out var watchedFileReference))
-            {
-                if (referenceToTrack != null)
-                {
-                    // We're attempting to stop watching a file that we never started watching. This is a bug.
-                    var existingDisposalStackTrace = _previousDisposalLocations.TryGetValue(referenceToTrack, out var previousDisposalLocation);
-                    throw new ArgumentException("The reference was already disposed at " + previousDisposalLocation);
-                }
-                else
-                {
-                    throw new ArgumentException("Attempting to stop watching a file that we never started watching. This is a bug.");
-                }
-            }
+                throw new ArgumentException("Attempting to stop watching a file that we never started watching. This is a bug.");
 
             var newRefCount = watchedFileReference.RefCount - 1;
             Contract.ThrowIfFalse(newRefCount >= 0, "Ref count cannot be negative");
@@ -155,14 +132,6 @@ internal sealed class FileWatchedReferenceFactory<TReference>
                 // No one else is watching this file, so stop watching it and remove from our map.
                 watchedFileReference.Token.Dispose();
                 _referenceFileWatchingTokens.Remove(fullFilePath);
-
-                if (referenceToTrack != null)
-                {
-                    var disposalLocation = callerFilePath + ", line " + callerLineNumber;
-
-                    _previousDisposalLocations.Remove(referenceToTrack);
-                    _previousDisposalLocations.Add(referenceToTrack, disposalLocation);
-                }
             }
             else
             {

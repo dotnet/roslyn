@@ -583,10 +583,14 @@ internal static partial class LocalHtmlCompletionProvider
         // draggable=""="". This matches the behavior of the external HTML language server.
         var existingAttributeHasValue = owner is MarkupAttributeBlockSyntax or MarkupTagHelperAttributeSyntax or MarkupTagHelperDirectiveAttributeSyntax;
 
-        using var _ = ListPool<VSInternalCompletionItem>.GetPooledObject(out var items);
+        using var _1 = ListPool<VSInternalCompletionItem>.GetPooledObject(out var items);
 
-        AddAttributeItems(items, elementAttributes, expandedPrefix, existingAttributeHasValue, attrRange);
-        AddAttributeItems(items, globalAttributes, expandedPrefix, existingAttributeHasValue, attrRange);
+        // Track seen attribute names so that element-specific attributes take precedence
+        // over globals with the same name (which may have different values/semantics).
+        using var _2 = SpecializedPools.StringHashSet.OrdinalIgnoreCase.GetPooledObject(out var seenNames);
+
+        AddAttributeItems(items, elementAttributes, expandedPrefix, existingAttributeHasValue, attrRange, seenNames);
+        AddAttributeItems(items, globalAttributes, expandedPrefix, existingAttributeHasValue, attrRange, seenNames);
 
         // Add synthetic group items only when no group is expanded
         if (expandedPrefix == null)
@@ -613,7 +617,8 @@ internal static partial class LocalHtmlCompletionProvider
         ImmutableArray<HtmlAttributeInfo> attributes,
         string? expandedPrefix,
         bool existingAttributeHasValue,
-        LspRange range)
+        LspRange range,
+        HashSet<string> seenNames)
     {
         foreach (var attr in attributes)
         {
@@ -626,6 +631,11 @@ internal static partial class LocalHtmlCompletionProvider
             // If a group IS expanded, only include items from that group
             if (expandedPrefix != null &&
                 !attr.Name.StartsWith(expandedPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!seenNames.Add(attr.Name))
             {
                 continue;
             }

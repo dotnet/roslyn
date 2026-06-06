@@ -216,12 +216,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, ScopedKind.None, refCustomModifiers: sourceParameter.RefCustomModifiers);
         }
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
