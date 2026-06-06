@@ -735,6 +735,96 @@ public class LocalHtmlCompletionProviderTest
             : null;
     }
 
+    #region Baseline Data
+
+    [Fact]
+    public void ElementInfo_Baseline_KnownElements_HaveBaselineSet()
+    {
+        // Elements like <article>, <div>, <section> should have baseline info from the XSD
+        var article = HtmlCompletionData.GetElement("article");
+        Assert.NotNull(article);
+        Assert.Equal("high", article.Baseline);
+        Assert.Equal("2015", article.BaselineDate);
+
+        var div = HtmlCompletionData.GetElement("div");
+        Assert.NotNull(div);
+        Assert.Equal("high", div.Baseline);
+        Assert.Equal("2015", div.BaselineDate);
+    }
+
+    [Fact]
+    public void ElementInfo_Baseline_NewerElement_HasLaterDate()
+    {
+        // <dialog> reached baseline later than most elements
+        var dialog = HtmlCompletionData.GetElement("dialog");
+        Assert.NotNull(dialog);
+        Assert.Equal("high", dialog.Baseline);
+        Assert.NotEqual("", dialog.BaselineDate);
+        Assert.True(int.Parse(dialog.BaselineDate) >= 2022);
+    }
+
+    [Fact]
+    public void AttributeInfo_Baseline_GlobalAttributes_HaveBaselineSet()
+    {
+        // Global attributes like accesskey, autofocus should have baseline info
+        var accesskey = HtmlCompletionData.GlobalAttributes.FirstOrDefault(a => a.Name == "accesskey");
+        Assert.NotNull(accesskey);
+        Assert.Equal("high", accesskey.Baseline);
+        Assert.Equal("2015", accesskey.BaselineDate);
+
+        var autofocus = HtmlCompletionData.GlobalAttributes.FirstOrDefault(a => a.Name == "autofocus");
+        Assert.NotNull(autofocus);
+        Assert.Equal("high", autofocus.Baseline);
+        Assert.Equal("2023", autofocus.BaselineDate);
+    }
+
+    [Fact]
+    public void AttributeInfo_Baseline_ElementSpecificAttributes_HaveBaselineSet()
+    {
+        // Element-specific attributes should also carry baseline when present in the XSD
+        var input = HtmlCompletionData.GetElement("input");
+        Assert.NotNull(input);
+        var placeholder = input.Attributes.FirstOrDefault(a => a.Name == "placeholder");
+        Assert.NotNull(placeholder);
+        Assert.Equal("high", placeholder.Baseline);
+    }
+
+    #endregion
+
+    #region CreateDocumentation MarkupKind
+
+    [Fact]
+    public void CreateDocumentation_Markdown_RendersLinkSyntax()
+    {
+        var result = LocalHtmlCompletionProvider.CreateDocumentation(
+            MarkupKind.Markdown,
+            description: null,
+            documentationUrl: "https://developer.mozilla.org/docs/Web/HTML/Element/div",
+            baseline: "high",
+            baselineDate: "2015");
+
+        Assert.Equal(MarkupKind.Markdown, result.Kind);
+        Assert.Contains("[", result.Value);
+        Assert.Contains("](https://developer.mozilla.org/docs/Web/HTML/Element/div)", result.Value);
+    }
+
+    [Fact]
+    public void CreateDocumentation_PlainText_RendersUrlDirectly()
+    {
+        var result = LocalHtmlCompletionProvider.CreateDocumentation(
+            MarkupKind.PlainText,
+            description: null,
+            documentationUrl: "https://developer.mozilla.org/docs/Web/HTML/Element/div",
+            baseline: "high",
+            baselineDate: "2015");
+
+        Assert.Equal(MarkupKind.PlainText, result.Kind);
+        Assert.DoesNotContain("[", result.Value);
+        Assert.Contains("https://developer.mozilla.org/docs/Web/HTML/Element/div", result.Value);
+    }
+
+    #endregion
+
     private static RazorCompletionContext CreateContext(string text, int absoluteIndex, TagHelperDescriptor[]? tagHelpers = null)
     {
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: "C:/path/to/document.cshtml");

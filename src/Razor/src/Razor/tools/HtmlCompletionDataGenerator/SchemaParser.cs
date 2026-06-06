@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Text;
 using System.Xml;
 
 namespace HtmlSchemaGenerator;
@@ -214,6 +215,8 @@ internal static class SchemaParser
             HasExternalCompletion = string.Equals(name, "script", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(name, "style", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(name, "svg", StringComparison.OrdinalIgnoreCase),
+            Baseline = GetVsAttribute(elementNode, VsSchemaAttributes.Baseline) ?? "",
+            BaselineDate = GetVsAttribute(elementNode, VsSchemaAttributes.BaselineDate) ?? "",
         };
 
         // Get attributes from the element's type or inline complexType
@@ -432,6 +435,8 @@ internal static class SchemaParser
             IsEvent = isEvent,
             Icon = icon,
             HasExternalCompletion = hasExternalCompletion,
+            Baseline = GetVsAttribute(attrNode, VsSchemaAttributes.Baseline) ?? "",
+            BaselineDate = GetVsAttribute(attrNode, VsSchemaAttributes.BaselineDate) ?? "",
         };
 
         // Resolve enumeration values
@@ -506,27 +511,37 @@ internal static class SchemaParser
         return descriptions;
     }
 
+    /// <summary>
+    /// Normalizes whitespace in LOC file descriptions: skips \r, preserves \n (for markdown
+    /// paragraph/bullet structure), and collapses runs of spaces/tabs within a line.
+    /// </summary>
     private static string NormalizeWhitespace(string input)
     {
         var trimmed = input.Trim();
-        var sb = new System.Text.StringBuilder(trimmed.Length);
-        var prevWasSpace = false;
+        var sb = new StringBuilder(trimmed.Length);
+        var prevChar = 'X';
 
-        foreach (var ch in trimmed)
+        for (var i = 0; i < trimmed.Length; i++)
         {
-            if (ch == '\r' || ch == '\n' || ch == '\t' || ch == ' ')
+            var ch = trimmed[i];
+
+            if (ch == '\r')
             {
-                if (!prevWasSpace)
+                // Skip carriage returns; \n handles line breaks.
+            }
+            else if (ch == '\t' || ch == ' ')
+            {
+                if (!char.IsWhiteSpace(prevChar))
                 {
                     sb.Append(' ');
                 }
-                prevWasSpace = true;
             }
             else
             {
                 sb.Append(ch);
-                prevWasSpace = false;
             }
+
+            prevChar = ch;
         }
 
         return sb.ToString();

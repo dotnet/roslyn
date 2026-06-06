@@ -66,4 +66,15 @@ internal static class VsSchemaAttributes
     /// Used to determine which child elements are allowed within this element.
     /// </summary>
     public const string ContentModel = "contentmodel";
+
+    /// <summary>
+    /// Baseline availability level: "high" (widely available across browsers) or "low" (newly available).
+    /// From the Web Platform Baseline classification.
+    /// </summary>
+    public const string Baseline = "baseline";
+
+    /// <summary>
+    /// The year the feature reached its baseline status (e.g., "2015", "2024").
+    /// </summary>
+    public const string BaselineDate = "baselinedate";
 }
