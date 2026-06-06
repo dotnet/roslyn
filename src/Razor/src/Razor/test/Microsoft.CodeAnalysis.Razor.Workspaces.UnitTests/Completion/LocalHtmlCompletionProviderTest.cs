@@ -801,7 +801,7 @@ public class LocalHtmlCompletionProviderTest
             description: null,
             documentationUrl: "https://developer.mozilla.org/docs/Web/HTML/Element/div",
             baseline: "high",
-            baselineDate: "2015");
+            baselineYear: "2015");
 
         Assert.Equal(MarkupKind.Markdown, result.Kind);
         Assert.Contains("[", result.Value);
@@ -816,7 +816,7 @@ public class LocalHtmlCompletionProviderTest
             description: null,
             documentationUrl: "https://developer.mozilla.org/docs/Web/HTML/Element/div",
             baseline: "high",
-            baselineDate: "2015");
+            baselineYear: "2015");
 
         Assert.Equal(MarkupKind.PlainText, result.Kind);
         Assert.DoesNotContain("[", result.Value);

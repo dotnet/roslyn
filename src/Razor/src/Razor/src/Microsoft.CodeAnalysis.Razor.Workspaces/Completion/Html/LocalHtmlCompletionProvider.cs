@@ -725,9 +725,9 @@ internal static partial class LocalHtmlCompletionProvider
     /// <summary>
     /// Creates a <see cref="MarkupContent"/> documentation tooltip from a description, URL, and baseline status.
     /// </summary>
-    internal static MarkupContent CreateDocumentation(MarkupKind documentationKind, string? description, string? documentationUrl, string? baseline = null, string? baselineDate = null)
+    internal static MarkupContent CreateDocumentation(MarkupKind documentationKind, string? description, string? documentationUrl, string? baseline = null, string? baselineYear = null)
     {
-        var sb = new StringBuilder();
+        using var _ = StringBuilderPool.GetPooledObject(out var sb);
 
         if (description is { Length: > 0 })
         {
@@ -742,7 +742,7 @@ internal static partial class LocalHtmlCompletionProvider
                 sb.Append("\n\n");
             }
 
-            var sinceText = baselineDate is { Length: > 0 } ? $" (Baseline since {baselineDate})" : "";
+            var sinceText = baselineYear is { Length: > 0 } ? SR.FormatBaseline_Since(baselineYear) : "";
             if (baseline == "high")
             {
                 sb.Append(SR.FormatBaseline_Widely_Available(sinceText));
