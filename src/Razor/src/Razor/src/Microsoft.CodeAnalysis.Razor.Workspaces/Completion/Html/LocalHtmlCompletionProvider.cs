@@ -722,23 +722,57 @@ internal static partial class LocalHtmlCompletionProvider
     }
 
     /// <summary>
-    /// Creates a <see cref="MarkupContent"/> documentation tooltip from a description and/or URL.
+    /// Creates a <see cref="MarkupContent"/> documentation tooltip from a description, URL, and baseline status.
     /// </summary>
-    internal static MarkupContent CreateDocumentation(string? description, string? documentationUrl)
+    internal static MarkupContent CreateDocumentation(MarkupKind documentationKind, string? description, string? documentationUrl, string? baseline = null, string? baselineYear = null)
     {
-        var value = description;
+        using var _ = StringBuilderPool.GetPooledObject(out var sb);
+
+        if (description is { Length: > 0 })
+        {
+            sb.Append(description);
+        }
+
+        // Baseline availability status
+        if (baseline is { Length: > 0 })
+        {
+            if (sb.Length > 0)
+            {
+                sb.Append("\n\n");
+            }
+
+            var sinceText = baselineYear is { Length: > 0 } ? SR.FormatBaseline_Since(baselineYear) : "";
+            if (baseline == "high")
+            {
+                sb.Append(SR.FormatBaseline_Widely_Available(sinceText));
+            }
+            else if (baseline == "low")
+            {
+                sb.Append(SR.FormatBaseline_Newly_Available(sinceText));
+            }
+        }
 
         if (documentationUrl is { Length: > 0 })
         {
-            value = description is { Length: > 0 }
-                ? $"{description}\n\n[HTML reference]({documentationUrl})"
-                : $"[HTML reference]({documentationUrl})";
+            if (sb.Length > 0)
+            {
+                sb.Append("\n\n");
+            }
+
+            if (documentationKind == MarkupKind.Markdown)
+            {
+                sb.Append($"[{SR.MDN_Reference}]({documentationUrl})");
+            }
+            else
+            {
+                sb.Append($"{SR.MDN_Reference}: {documentationUrl}");
+            }
         }
 
         return new MarkupContent
         {
-            Kind = MarkupKind.Markdown,
-            Value = value ?? "",
+            Kind = documentationKind,
+            Value = sb.ToString(),
         };
     }
 
