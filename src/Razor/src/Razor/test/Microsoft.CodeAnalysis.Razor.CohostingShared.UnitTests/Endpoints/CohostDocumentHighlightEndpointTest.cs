@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -19,134 +20,370 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
     public async Task Local()
     {
         var input = """
-                <div></div>
+            <div></div>
 
-                @{
-                    var $$[|myVariable|] = "Hello";
+            @{
+                var $$[|myVariable|] = "Hello";
 
-                    var length = [|myVariable|].Length;
-                }
-                """;
+                var length = [|myVariable|].Length;
+            }
+            """;
 
         await VerifyDocumentHighlightsAsync(input);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
+    public async Task Legacy_Local()
+    {
+        var input = """
+            <div></div>
+
+            @{
+                var $$[|myVariable|] = "Hello";
+
+                var length = [|myVariable|].Length;
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task Keyword_Impl()
+    {
+        var input = """
+            <div></div>
+
+            @{
+                var strings = new[] { "Hello", "World" };
+                [|foreach|] (var str in strings)
+                {
+                    if (str.Length == 0)
+                    {
+                        $$[|break|];
+                    }
+                }
+            }
+
+            @code
+            {
+                private string Title { get;set; }
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input);
+    }
+
+    [Fact]
+    public async Task Legacy_Keyword_Impl()
+    {
+        var input = """
+            <div></div>
+
+            @{
+                var strings = new[] { "Hello", "World" };
+                [|foreach|] (var str in strings)
+                {
+                    if (str.Length == 0)
+                    {
+                        $$[|break|];
+                    }
+                }
+            }
+
+            @functions
+            {
+                private string Title { get;set; }
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task Keyword_Decl()
+    {
+        var input = """
+            <div></div>
+
+            @{
+                string x = "asdf";
+            }
+
+            @code
+            {
+                void Method(string[] strings)
+                {
+                    [|foreach|] (var str in strings)
+                    {
+                        if (str.Length == 0)
+                        {
+                            $$[|break|];
+                        }
+                    }
+                }
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input);
+    }
+
+    [Fact]
+    public async Task Legacy_Keyword_Decl()
+    {
+        var input = """
+            <div></div>
+
+            @{
+                string x = "asdf";
+            }
+
+            @functions
+            {
+                void Method(string[] strings)
+                {
+                    [|foreach|] (var str in strings)
+                    {
+                        if (str.Length == 0)
+                        {
+                            $$[|break|];
+                        }
+                    }
+                }
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task Method()
     {
         var input = """
-                <div></div>
+            <div></div>
 
-                @code
+            @code
+            {
+                void [|Method|]()
                 {
-                    void [|Method|]()
-                    {
-                        $$[|Method|]();
-                    }
+                    $$[|Method|]();
                 }
-                """;
+            }
+            """;
 
         await VerifyDocumentHighlightsAsync(input);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
+    public async Task Legacy_Method()
+    {
+        var input = """
+            <div></div>
+
+            @functions
+            {
+                void [|Method|]()
+                {
+                    $$[|Method|]();
+                }
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task AttributeToField()
     {
         var input = """
-                <div>
-                    <div class="@$$[|_className|]">
-                    </div>
+            <div>
+                <div class="@$$[|_className|]">
                 </div>
+            </div>
 
-                @code
-                {
-                    private string [|_className|] = "hello";
-                }
-                """;
+            @code
+            {
+                private string [|_className|] = "hello";
+            }
+            """;
 
         await VerifyDocumentHighlightsAsync(input);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
+    public async Task Legacy_AttributeToField()
+    {
+        var input = """
+            <div>
+                <div class="@$$[|_className|]">
+                </div>
+            </div>
+
+            @functions
+            {
+                private string [|_className|] = "hello";
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task FieldToAttribute()
     {
         var input = """
-                <div>
-                    <div class="@[|_className|]">
-                    </div>
+            <div>
+                <div class="@[|_className|]">
                 </div>
+            </div>
 
-                @code
-                {
-                    private string $$[|_className|] = "hello";
-                }
-                """;
+            @code
+            {
+                private string $$[|_className|] = "hello";
+            }
+            """;
 
         await VerifyDocumentHighlightsAsync(input);
+    }
+
+    [Fact]
+    public async Task Legacy_FieldToAttribute()
+    {
+        var input = """
+            <div>
+                <div class="@[|_className|]">
+                </div>
+            </div>
+
+            @functions
+            {
+                private string $$[|_className|] = "hello";
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input, fileKind: RazorFileKind.Legacy);
     }
 
     [Fact]
     public async Task Html()
     {
         var input = """
-                <div>
-                    <di$$v class="@_className">
-                    </div>
+            <div>
+                <di$$v class="@_className">
                 </div>
+            </div>
 
-                @code
-                {
-                    private string _className = "hello";
-                }
-                """;
+            @code
+            {
+                private string _className = "hello";
+            }
+            """;
 
         await VerifyDocumentHighlightsAsync(input, htmlResponse: [new DocumentHighlight()]);
+    }
+
+    [Fact]
+    public async Task Legacy_Html()
+    {
+        var input = """
+            <div>
+                <di$$v class="@_className">
+                </div>
+            </div>
+
+            @functions
+            {
+                private string _className = "hello";
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input, htmlResponse: [new DocumentHighlight()], fileKind: RazorFileKind.Legacy);
     }
 
     [Fact]
     public async Task Razor()
     {
         var input = """
-                @in$$ject IDisposable Disposable
+            @in$$ject IDisposable Disposable
 
-                <div>
-                    <div class="@_className">
-                    </div>
+            <div>
+                <div class="@_className">
                 </div>
+            </div>
 
-                @code
-                {
-                    private string _className = "hello";
-                }
-                """;
+            @code
+            {
+                private string _className = "hello";
+            }
+            """;
 
         await VerifyDocumentHighlightsAsync(input);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
+    public async Task Legacy_Razor()
+    {
+        var input = """
+            @in$$ject IDisposable Disposable
+
+            <div>
+                <div class="@_className">
+                </div>
+            </div>
+
+            @functions
+            {
+                private string _className = "hello";
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task Inject()
     {
         var input = """
-                @inject [|IDis$$posable|] Disposable
+            @inject [|IDis$$posable|] Disposable
 
-                <div>
-                </div>
+            <div>
+            </div>
 
-                @code
+            @code
+            {
+                void Dispose([|IDisposable|] thingToDispose)
                 {
-                    void Dispose([|IDisposable|] thingToDispose)
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
         await VerifyDocumentHighlightsAsync(input);
     }
 
-    private async Task VerifyDocumentHighlightsAsync(string input, DocumentHighlight[]? htmlResponse = null)
+    [Fact]
+    public async Task Legacy_Inject()
+    {
+        var input = """
+            @inject [|IDis$$posable|] Disposable
+
+            <div>
+            </div>
+
+            @functions
+            {
+                void Dispose([|IDisposable|] thingToDispose)
+                {
+                }
+            }
+            """;
+
+        await VerifyDocumentHighlightsAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    private async Task VerifyDocumentHighlightsAsync(string input, DocumentHighlight[]? htmlResponse = null, RazorFileKind? fileKind = null)
     {
         TestFileMarkupParser.GetPositionAndSpans(input, out var source, out int cursorPosition, out ImmutableArray<TextSpan> spans);
-        var document = CreateProjectAndRazorDocument(source);
+        var document = CreateProjectAndRazorDocument(source, fileKind: fileKind);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(cursorPosition);
 

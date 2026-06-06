@@ -98,8 +98,8 @@ internal static class IDocumentMappingServiceExtensions
     /// </summary>
     /// <remarks>
     /// A position in a Razor document could map to one of two different C# documents, but the only situation
-    /// where it would map to both, is when the resulting position in the C# document is semantically equivalent.
-    /// ie, a Razor using or namespace directive would map to both the decl and impl documents, but in either case
+    /// where it would map to both is when the resulting position in the C# document is semantically equivalent.
+    /// i.e., a Razor using or namespace directive would map to both the decl and impl documents, but in either case
     /// it ends up at a C# using or namespace directive, so it doesn't matter which one we get back.
     ///
     /// For all other positions in the Razor document, only one document will be mappable.
