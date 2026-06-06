@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -115,7 +114,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         var highlightingService = document.Project.Solution.Services.ExportProvider.GetService<IHighlightingService>();
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var keywordSpans = new List<TextSpan>();
+        using var _ = ListPool<TextSpan>.GetPooledObject(out var keywordSpans);
         highlightingService.AddHighlights(root, position, keywordSpans, cancellationToken);
 
         using var result = new PooledArrayBuilder<RemoteDocumentHighlight>();
