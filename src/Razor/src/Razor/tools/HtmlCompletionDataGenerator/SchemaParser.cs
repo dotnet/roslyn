@@ -531,7 +531,7 @@ internal static class SchemaParser
             }
             else if (ch == '\t' || ch == ' ')
             {
-                if (!char.IsWhiteSpace(prevChar))
+                if (prevChar != ' ' && prevChar != '\t')
                 {
                     sb.Append(' ');
                 }
