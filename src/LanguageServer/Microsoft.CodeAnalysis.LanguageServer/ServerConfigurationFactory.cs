@@ -48,12 +48,11 @@ internal sealed record class ServerConfiguration(
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
-    string? RazorDesignTimePath,
     string? CSharpDesignTimePath,
     string? ServerPipeName,
     bool UseStdIo,
     string? ExtensionLogDirectory,
-    bool AutoLoadProjects,
+    int? AutoLoadProjects,
     SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference,
     int? ClientProcessId);
 

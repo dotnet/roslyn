@@ -82,10 +82,25 @@
         <target state="translated">{1} で {0} 件のテストが見つかりました</target>
         <note />
       </trans-unit>
+      <trans-unit id="Loaded_0">
+        <source>Loaded {0}</source>
+        <target state="translated">{0} を読み込みました</target>
+        <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Loaded_0_projects">
+        <source>Loaded {0} project(s)</source>
+        <target state="translated">{0} 件のプロジェクトを読み込みました</target>
+        <note>The placeholder is the number of projects</note>
+      </trans-unit>
       <trans-unit id="Loading_0">
         <source>Loading {0}...</source>
         <target state="translated">{0} を読み込んでいます...</target>
         <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Loading_0_projects">
+        <source>Loading {0} project(s)...</source>
+        <target state="translated">{0} 件のプロジェクトを読み込んでいます...</target>
+        <note>The placeholder is the number of projects</note>
       </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>

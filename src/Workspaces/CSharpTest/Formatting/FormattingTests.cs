@@ -12865,6 +12865,14 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 { NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.None }
             });
 
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9339")]
+    public Task CollectionExpressionAtStartOfFile()
+        => AssertFormatAsync("""
+            [1].ToString();
+            """, """
+            [1].ToString();
+            """);
+
     [Fact]
     public Task TopLevelLocalFunctionBraceStillFormatsWhenMethodBraceOptionIsOff()
         => AssertFormatAsync(

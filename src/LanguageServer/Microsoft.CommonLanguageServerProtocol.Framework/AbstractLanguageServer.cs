@@ -223,7 +223,23 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         }
     }
 
+    /// <summary>
+    /// Waits for the server to exit. Unlike <see cref="EnsureExitAsync"/>, this does not require
+    /// that a prior shutdown request was received - it can safely be awaited from server startup
+    /// and will simply remain incomplete until exit actually happens (either via the LSP
+    /// <c>exit</c> notification, or via the framework's JSON-RPC disconnect handling).
+    /// </summary>
     public Task WaitForExitAsync()
+    {
+        return _serverExitedSource.Task;
+    }
+
+    /// <summary>
+    /// Like <see cref="WaitForExitAsync"/>, but throws <see cref="ServerNotShutDownException"/>
+    /// if the server has not yet been asked to shut down. Useful for callers that need to assert
+    /// a prior shutdown request as part of their lifecycle contract.
+    /// </summary>
+    public Task EnsureExitAsync()
     {
         lock (_lifeCycleLock)
         {
@@ -264,8 +280,11 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             Logger.LogInformation(message);
 
             // Allow implementations to do any additional cleanup on shutdown.
-            var lifeCycleManager = GetLspServices().GetRequiredService<ILifeCycleManager>();
-            await lifeCycleManager.ShutdownAsync().ConfigureAwait(false);
+            var shutdownHooks = GetLspServices().GetRequiredServices<IOnServerShutdown>();
+            foreach (var hook in shutdownHooks)
+            {
+                await hook.ShutdownAsync().ConfigureAwait(false);
+            }
 
             await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
         }
@@ -304,8 +323,11 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 var lspServices = GetLspServices();
 
                 // Allow implementations to do any additional cleanup on exit.
-                var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
-                await lifeCycleManager.ExitAsync().ConfigureAwait(false);
+                var exitHooks = lspServices.GetRequiredServices<IOnServerShutdown>();
+                foreach (var hook in exitHooks)
+                {
+                    await hook.ExitAsync().ConfigureAwait(false);
+                }
 
                 await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
 

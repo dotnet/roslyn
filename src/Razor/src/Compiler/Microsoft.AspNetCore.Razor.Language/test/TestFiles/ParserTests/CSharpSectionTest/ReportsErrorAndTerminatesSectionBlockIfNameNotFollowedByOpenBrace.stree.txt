@@ -1,0 +1,37 @@
+﻿RazorDocument - [0..31)::31 - [@section foo-bar { <p>Foo</p> }]
+    MarkupBlock - [0..31)::31
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..12)::12
+            RazorDirective - [0..12)::12 - Directive:{section;RazorBlock;Unrestricted} [RZ1017(12:0,12 [1] )]
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..12)::11
+                    RazorMetaCode - [1..8)::7 - Gen<None>
+                        Identifier;[section];
+                    CSharpCodeBlock - [8..12)::4
+                        CSharpStatementLiteral - [8..9)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [9..12)::3 - [foo] - Gen<DirectiveToken {SectionName;Member;Opt:False}>
+                            Identifier;[foo];
+        MarkupTextLiteral - [12..19)::7 - [-bar { ] - Gen<Markup>
+            Text;[-bar];
+            Whitespace;[ ];
+            Text;[{];
+            Whitespace;[ ];
+        MarkupElement - [19..29)::10
+            MarkupStartTag - [19..22)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [22..25)::3 - [Foo] - Gen<Markup>
+                Text;[Foo];
+            MarkupEndTag - [25..29)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [29..31)::2 - [ }] - Gen<Markup>
+            Whitespace;[ ];
+            Text;[}];
+    EndOfFile;[];

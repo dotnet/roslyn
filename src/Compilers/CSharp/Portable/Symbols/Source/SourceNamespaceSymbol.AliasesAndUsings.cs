@@ -1064,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (alias.Alias is AliasSymbolFromSyntax aliasFromSyntax)
                     {
-                        semanticDiagnostics.AddRange(aliasFromSyntax.AliasTargetDiagnostics.DiagnosticBag!);
+                        semanticDiagnostics.AddRange(aliasFromSyntax.AliasTargetDiagnostics.Diagnostics);
                     }
 
                     if (!Compilation.ReportUnusedImportsInTree(alias.ExternAliasDirective!.SyntaxTree))

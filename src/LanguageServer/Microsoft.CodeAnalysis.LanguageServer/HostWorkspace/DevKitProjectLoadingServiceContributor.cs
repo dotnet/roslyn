@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
@@ -20,15 +21,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// Also creates the <see cref="ProjectInitializationHandler"/> with the actual service broker instance
 /// so it can subscribe to the remote project initialization status service.
 /// </summary>
-[Export(typeof(IServiceBrokerInitializer)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(DevKitProjectLoadingServiceContributor)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DevKitProjectLoadingServiceContributor(
-    LanguageServerWorkspaceFactory workspaceFactory,
-    ILoggerFactory loggerFactory) : IServiceBrokerInitializer
+internal sealed class DevKitProjectLoadingServiceContributorFactory(
+    ILoggerFactory loggerFactory) : ILspServiceFactory
 {
-    private ProjectInitializationHandler? _projectInitializationHandler;
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new DevKitProjectLoadingServiceContributor(lspServices, loggerFactory);
+}
 
+internal sealed class DevKitProjectLoadingServiceContributor(
+    LspServices lspServices,
+    ILoggerFactory loggerFactory) : IServiceBrokerInitializer, ILspService
+{
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
     {
         { WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
@@ -36,14 +42,15 @@ internal sealed class DevKitProjectLoadingServiceContributor(
 
     public void Proffer(GlobalBrokeredServiceContainer container)
     {
-        var serviceBroker = container.GetFullAccessServiceBroker();
-        _projectInitializationHandler = new ProjectInitializationHandler(serviceBroker, loggerFactory);
-
         container.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             async (moniker, options, innerServiceBroker, cancellationToken) =>
             {
-                var service = new WorkspaceProjectFactoryService(workspaceFactory, _projectInitializationHandler, loggerFactory);
+                var workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
+                var targetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
+                var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+                var projectInitializationHandler = new ProjectInitializationHandler(clientLanguageServerManager, innerServiceBroker, loggerFactory);
+                var service = new WorkspaceProjectFactoryService(workspaceFactory, targetFrameworkManager, projectInitializationHandler, loggerFactory);
                 await service.InitializeAsync(cancellationToken);
                 return service;
             });

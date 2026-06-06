@@ -149,7 +149,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        protected sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal sealed override bool CanBeCallerUnsafe
+        {
+            get
+            {
+                Debug.Assert(!HasUnsafeModifier, $"Revisit {nameof(CanBeCallerUnsafe)} implementation if {nameof(SynthesizedSimpleProgramEntryPointSymbol)} can be marked 'unsafe'.");
+                return false;
+            }
+        }
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {

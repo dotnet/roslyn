@@ -55,8 +55,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     }
 
     protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
-        .AddParts(typeof(TestDocumentTrackingService))
-        .AddParts(typeof(TestWorkspaceRegistrationService));
+        .AddParts(typeof(TestDocumentTrackingService));
 
     private sealed class TestSpanMapperProvider : IDocumentServiceProvider
     {
@@ -415,7 +414,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var listenerProvider = workspace.ExportProvider.GetExportedValues<MockWorkspaceEventListenerProvider>().SingleOrDefault();
         if (listenerProvider is not null)
         {
-            var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+            var lspWorkspaceRegistrationListener = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
             listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
         }
 
@@ -911,7 +910,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         internal AbstractLanguageServer<RequestContext>.TestAccessor GetServerAccessor() => _languageServer.Value.GetTestAccessor();
 
-        internal T GetRequiredLspService<T>() where T : class, ILspService => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
+        internal T GetRequiredLspService<T>() where T : class => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
 
         internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.SourceText)];
 

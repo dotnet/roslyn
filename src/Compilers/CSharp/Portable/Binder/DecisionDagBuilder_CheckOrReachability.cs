@@ -367,7 +367,7 @@ start:
                 // but our method for detecting redundancies only detects those in `or` cases (which we bring to the top after normalization).
                 // By analyzing `not A` too we can report more redundancies.
                 // For example: `if (o is not (<any pattern including a redundancy>))`, `if (i is 42 and not 43)` (which is the negation of `not 42 or 43`)
-                var negated = new BoundNegatedPattern(pattern.Syntax, negated: pattern, isUnionMatching: false, pattern.InputType, narrowedType: pattern.InputType);
+                var negated = new BoundNegatedPattern(pattern.Syntax, negated: pattern, pattern.InputType, narrowedType: pattern.InputType);
                 var normalizedNegatedPattern = PatternNormalizer.Rewrite(negated, rootIdentifier.Type);
 
 #if ROSLYN_TEST_REDUNDANT_PATTERN
@@ -937,7 +937,7 @@ start:
                     return negated;
                 }
 
-                var result = new BoundNegatedPattern(node.Syntax, node, isUnionMatching: false, node.InputType, narrowedType: node.InputType);
+                var result = new BoundNegatedPattern(node.Syntax, node, node.InputType, narrowedType: node.InputType);
                 if (node.WasCompilerGenerated)
                 {
                     result.MakeCompilerGenerated();
@@ -1008,7 +1008,7 @@ start:
                 {
                     return negatedPattern.Update(
                         WithInputTypeCheckIfNeeded(negatedPattern.Negated, inputType),
-                        isUnionMatching: false, inputType, inputType);
+                        inputType, inputType);
                 }
 
                 if (pattern is BoundConstantPattern constantPattern)
@@ -1097,7 +1097,7 @@ start:
                     var nullCheck = new BoundConstantPattern(node.Syntax,
                         new BoundLiteral(node.Syntax, constantValueOpt: ConstantValue.Null, type: node.InputType, hasErrors: false),
                         ConstantValue.Null, isUnionMatching: false, node.InputType, node.InputType, hasErrors: false);
-                    initialCheck = new BoundNegatedPattern(node.Syntax, nullCheck, isUnionMatching: false, node.InputType, narrowedType: node.InputType);
+                    initialCheck = new BoundNegatedPattern(node.Syntax, nullCheck, node.InputType, narrowedType: node.InputType);
                 }
                 else
                 {

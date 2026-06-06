@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return AdaptedMethodSymbol.IsMetadataNewSlot();
+                return AdaptedMethodSymbol.IsMetadataNewSlot(AdaptedSymbol.ContainingModule); // Use in context of other module is not expected. See 'CheckDefinitionInvariant' above.
             }
         }
 
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return AdaptedMethodSymbol.IsMetadataVirtual();
+                return AdaptedMethodSymbol.IsMetadataVirtual(AdaptedSymbol.ContainingModule); // Use in context of other module is not expected. See 'CheckDefinitionInvariant' above.
             }
         }
 
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (accessibility == Accessibility.Private ||
                         accessibility == Accessibility.ProtectedAndInternal ||
                         accessibility == Accessibility.Internal)
-                       && this.IsMetadataVirtual() && !this.IsMetadataFinal;
+                       && this.IsMetadataVirtual(ContainingModule) && !this.IsMetadataFinal; // Use in context of other module is not expected. See 'CheckDefinitionInvariant' above.
             }
         }
 
@@ -647,7 +647,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// requirements.
         /// NOTE: Not ignoring changes can only result in a value that is more true.
         /// </summary>
-        internal abstract bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false);
+        /// <param name="context">See <see cref="IsMetadataVirtual(ModuleSymbol?, bool)"/></param>
+        /// <param name="ignoreInterfaceImplementationChanges">See summary.</param>
+#nullable enable
+        internal abstract bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false);
+#nullable disable
 
         internal virtual bool HasRuntimeSpecialName
         {
@@ -667,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(this.MethodKind != MethodKind.Destructor);
 
                 return this.IsSealed ||
-                    (this.IsMetadataVirtual() &&
+                    (this.IsMetadataVirtual(this.ContainingModule) &&
                      !(this.IsVirtual || this.IsOverride || this.IsAbstract || this.MethodKind == MethodKind.Destructor));
             }
         }
@@ -676,26 +680,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This method indicates whether or not the runtime will regard the method
         /// as virtual (as indicated by the presence of the "virtual" modifier in the
         /// signature).
-        /// WARN WARN WARN: We won't have a final value for this until declaration
+        /// WARN WARN WARN:
+        /// When called in <paramref name="context"/> of the declaring module we won't have a final value for this until declaration
         /// diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s, so pass
-        /// option: <see cref="IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges"/> if you need a value sooner
+        /// 'true' for <paramref name="ignoreInterfaceImplementationChanges"/> if you need a value sooner
         /// and aren't concerned about tweaks made to satisfy interface implementation 
         /// requirements.
         /// NOTE: Not ignoring changes can only result in a value that is more true.
-        ///
-        /// Use IsMetadataVirtualOption.ForceCompleteIfNeeded in DEBUG/assertion code
-        /// to get the final value.
         /// </summary>
-        internal abstract bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None);
-
-        internal enum IsMetadataVirtualOption
-        {
-            None = 0,
-            IgnoreInterfaceImplementationChanges,
-#if DEBUG
-            ForceCompleteIfNeeded
-#endif
-        }
+        /// <param name="context">
+        /// Module "asking" the question. For example, when "asking" the question during emit,
+        /// the module that is being emitted. Etc.
+        /// This is needed to determine whether we should force compute the final value.
+        /// Fine to pass null if <paramref name="ignoreInterfaceImplementationChanges"/> is 'true'.
+        /// </param>
+        /// <param name="ignoreInterfaceImplementationChanges">See summary.</param>
+#nullable enable
+        internal abstract bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false);
+#nullable disable
 
         internal virtual bool ReturnValueIsMarshalledExplicitly
         {

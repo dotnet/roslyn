@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// </summary>
 internal sealed class ManagedHotReloadLanguageServiceImpl(
     EditAndContinueSessionState sessionState,
-    Lazy<IHostWorkspaceProvider> workspaceProvider,
+    IHostWorkspaceProvider workspaceProvider,
     IManagedHotReloadService debuggerService,
     ISolutionSnapshotProvider solutionSnapshotProvider,
     PdbMatchingSourceTextProvider sourceTextProvider,
@@ -71,10 +71,11 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
     {
         sessionState.IsSessionActive = true;
 
-        if (_disabled)
-        {
-            return;
-        }
+        // Reset the disabled flag so that a previous session's failure does not permanently
+        // disable Hot Reload for subsequent sessions. Any exception that caused _disabled to be
+        // set is a product bug, but resetting here gives the user a chance to try again after
+        // restarting the debug session, instead of having to restart the Roslyn process.
+        _disabled = false;
 
         try
         {
@@ -179,7 +180,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
         {
         }
 
-        workspaceProvider.Value.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
+        workspaceProvider.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
     }
 
     public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
