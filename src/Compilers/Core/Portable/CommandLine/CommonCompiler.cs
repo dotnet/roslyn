@@ -982,14 +982,6 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerCts != null)
                 {
                     analyzerCts.Cancel();
-
-                    try
-                    {
-                        analyzerDriver?.WhenCompletedTask.GetAwaiter().GetResult();
-                    }
-                    catch (OperationCanceledException)
-                    {
-                    }
                 }
 
                 var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
