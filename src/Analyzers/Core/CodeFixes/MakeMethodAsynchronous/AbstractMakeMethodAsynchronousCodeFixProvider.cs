@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -67,11 +65,26 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         // Heuristic to recognize the common case for entry point method
         var isEntryPoint = methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
-        var isEventHandlerMethod = methodSymbol.ReturnsVoid &&
-            methodSymbol.IsOrdinaryMethodOrLocalFunction() &&
-            await IsReferencedAsEventHandlerAsync(document, methodSymbol, cancellationToken).ConfigureAwait(false);
+        var canOfferAsyncVoid = methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint;
+        if (canOfferAsyncVoid)
+        {
+            // For perf, avoid FindReferences and approximate event-handler usage from signature.
+            // If it looks like an event-handler method, prefer the async-void fixer first.
+            var isLikelyEventHandlerMethod = IsLikelyEventHandlerMethodSignature(methodSymbol, compilation);
+            if (isLikelyEventHandlerMethod)
+                RegisterAsyncVoidFix();
 
-        if (!isEventHandlerMethod)
+            RegisterTaskFix();
+
+            if (!isLikelyEventHandlerMethod)
+                RegisterAsyncVoidFix();
+        }
+        else
+        {
+            RegisterTaskFix();
+        }
+
+        void RegisterTaskFix()
         {
             // Offer to convert to a Task return type.
             var taskTitle = GetMakeAsyncTaskFunctionResource();
@@ -83,8 +96,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 context.Diagnostics);
         }
 
-        // If it's a void returning method (and not an entry point), also offer to keep the void return type
-        if (methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint)
+        void RegisterAsyncVoidFix()
         {
             var asyncVoidTitle = GetMakeAsyncVoidFunctionResource();
             context.RegisterCodeFix(
@@ -96,33 +108,17 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         }
     }
 
-    private static async Task<bool> IsReferencedAsEventHandlerAsync(Document document, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
+    private static bool IsLikelyEventHandlerMethodSignature(IMethodSymbol methodSymbol, Compilation compilation)
     {
-        var references = await SymbolFinder.FindReferencesAsync(
-            methodSymbol,
-            document.Project.Solution,
-            cancellationToken).ConfigureAwait(false);
+        if (!methodSymbol.ReturnsVoid || methodSymbol.MethodKind != MethodKind.Ordinary || methodSymbol.Parameters.Length != 2)
+            return false;
 
-        foreach (var referencingSymbol in references)
-        {
-            foreach (var location in referencingSymbol.Locations)
-            {
-                if (location.IsImplicit || location.Document is null)
-                    continue;
+        if (methodSymbol.Parameters[0].Type.SpecialType != SpecialType.System_Object)
+            return false;
 
-                var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-                var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var operation = semanticModel.GetOperation(syntaxNode, cancellationToken);
-                for (var current = operation; current != null; current = current.Parent)
-                {
-                    if (current is IEventAssignmentOperation)
-                        return true;
-                }
-            }
-        }
-
-        return false;
+        var eventArgsType = compilation.GetTypeByMetadataName("System.EventArgs");
+        return eventArgsType is not null &&
+            methodSymbol.Parameters[1].Type.InheritsFromOrEquals(eventArgsType);
     }
 
     private static IMethodSymbol? GetMethodSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)

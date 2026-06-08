@@ -72,7 +72,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """;
 
-        await TestActionCountAsync(initial, count: 1);
+        await TestActionCountAsync(initial, count: 2);
         await TestInRegularAndScriptAsync(initial, """
             using System;
             using System.Threading.Tasks;
