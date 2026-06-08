@@ -16078,7 +16078,7 @@ sealed record S : R
     public override int GetHashCode() => 0;
 }";
 
-            CompileAndVerify(CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll));
+            CompileAndVerify(CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -16095,7 +16095,7 @@ sealed record S : R
     protected override bool PrintMembers(System.Text.StringBuilder builder) => true;
 }";
 
-            CompileAndVerify(CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll));
+            CompileAndVerify(CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll)).VerifyDiagnostics();
         }
 
         [Fact]
