@@ -22,6 +22,11 @@
         <target state="translated">제네릭이 아닌 형식에서 생성된 제네릭 형식을 만들 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractAPIInRecord">
+        <source>Record member '{0}' may not be abstract.</source>
+        <target state="new">Record member '{0}' may not be abstract.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">인터페이스의 사용자 정의 변환은 바깥쪽 형식으로 제한되는 바깥쪽 형식의 형식 매개 변수로 또는 그 반대로 변환해야 합니다.</target>

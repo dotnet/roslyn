@@ -5622,7 +5622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         thisEquals.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions) &&
                         thisEquals.Parameters[0].TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
                     {
-                        diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, thisEquals.GetFirstLocation(), thisEquals);
+                        diagnostics.Add(ErrorCode.ERR_AbstractAPIInRecord, thisEquals.GetFirstLocation(), thisEquals);
                     }
 
                     reportStaticOrNotOverridableAPIInRecord(thisEquals, diagnostics);

@@ -15960,9 +15960,9 @@ abstract record R
 
             var compR = CreateCompilation(sourceR, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             compR.VerifyEmitDiagnostics(
-                // (4,26): error CS8872: 'R.Equals(R?)' must allow overriding because the containing record is not sealed.
+                // (4,26): error CS9391: Record member 'R.Equals(R?)' may not be abstract.
                 //     public abstract bool Equals(R? other);
-                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("R.Equals(R?)").WithLocation(4, 26)
+                Diagnostic(ErrorCode.ERR_AbstractAPIInRecord, "Equals").WithArguments("R.Equals(R?)").WithLocation(4, 26)
                 );
 
             var ilSource = @"
@@ -16111,9 +16111,9 @@ public abstract record R
 
             var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp1.VerifyDiagnostics(
-                // (4,26): error CS8872: 'R.Equals(R?)' must allow overriding because the containing record is not sealed.
+                // (4,26): error CS9391: Record member 'R.Equals(R?)' may not be abstract.
                 //     public abstract bool Equals(R? other);
-                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("R.Equals(R?)").WithLocation(4, 26)
+                Diagnostic(ErrorCode.ERR_AbstractAPIInRecord, "Equals").WithArguments("R.Equals(R?)").WithLocation(4, 26)
                 );
 
             var source2 =

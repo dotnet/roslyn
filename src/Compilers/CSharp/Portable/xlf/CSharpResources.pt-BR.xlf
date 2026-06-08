@@ -22,6 +22,11 @@
         <target state="translated">Não é possível criar um tipo genérico construído com base em um tipo não genérico.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractAPIInRecord">
+        <source>Record member '{0}' may not be abstract.</source>
+        <target state="new">Record member '{0}' may not be abstract.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">A conversão definida pelo usuário em uma interface deve converter de ou para um parâmetro de tipo no tipo delimitador restrito ao tipo delimitador</target>

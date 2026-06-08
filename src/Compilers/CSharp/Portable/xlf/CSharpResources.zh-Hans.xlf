@@ -22,6 +22,11 @@
         <target state="translated">无法从非泛型类型创建构造泛型类型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractAPIInRecord">
+        <source>Record member '{0}' may not be abstract.</source>
+        <target state="new">Record member '{0}' may not be abstract.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">接口中的用户定义转换必须转换为或转换自封闭类型约束为封闭类型的类型参数</target>

@@ -6673,6 +6673,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NonPrivateAPIInRecord" xml:space="preserve">
     <value>Record member '{0}' must be private.</value>
   </data>
+  <data name="ERR_AbstractAPIInRecord" xml:space="preserve">
+    <value>Record member '{0}' may not be abstract.</value>
+  </data>
   <data name="WRN_PrecedenceInversion" xml:space="preserve">
     <value>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</value>
   </data>
