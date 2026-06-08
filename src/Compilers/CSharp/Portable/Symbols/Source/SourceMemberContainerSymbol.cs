@@ -5474,7 +5474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count));
             }
 
-            MethodSymbol addGetHashCode(PropertySymbol? equalityContract)
+            MethodSymbol? addGetHashCode(PropertySymbol? equalityContract)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.ObjectGetHashCode,
@@ -5618,7 +5618,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, thisEquals.GetFirstLocation(), thisEquals, targetMethod.ReturnType);
                     }
 
-                    if (thisEquals.IsAbstract)
+                    if (thisEquals is { IsAbstract: true, ParameterCount: 1 } &&
+                        thisEquals.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions) &&
+                        thisEquals.Parameters[0].TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
                     {
                         diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, thisEquals.GetFirstLocation(), thisEquals);
                     }

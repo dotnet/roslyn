@@ -15885,6 +15885,9 @@ record B(int X, int Y) : A
                 // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public abstract override bool Equals(object other);
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 35),
+                // (7,8): error CS0534: 'B' does not implement inherited abstract member 'A.GetHashCode()'
+                // record B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.GetHashCode()").WithLocation(7, 8),
                 // (7,8): error CS0534: 'B' does not implement inherited abstract member 'A.Equals(object)'
                 // record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.Equals(object)").WithLocation(7, 8)
@@ -15915,7 +15918,6 @@ record B(int X, int Y) : A
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean B.op_Inequality(B? left, B? right)",
                 "System.Boolean B.op_Equality(B? left, B? right)",
-                "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
                 "System.Boolean B.Equals(B? other)",
@@ -16101,27 +16103,34 @@ sealed record S : R
         [Fact]
         public void Overrides_AbstractBaseCalls_06()
         {
-            var source =
+            var source1 =
 @"#nullable enable
-abstract record R
+public abstract record R
 {
     public abstract bool Equals(R? other);
     public override int GetHashCode() => 0;
-}
+}";
+
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp1.VerifyDiagnostics(
+                // (4,26): error CS8872: 'R.Equals(R?)' must allow overriding because the containing record is not sealed.
+                //     public abstract bool Equals(R? other);
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("R.Equals(R?)").WithLocation(4, 26)
+                );
+
+            var source2 =
+@"#nullable enable
 sealed record S : R
 {
     public override bool Equals(R? other) => other is S;
     public override int GetHashCode() => 0;
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
-            comp.VerifyEmitDiagnostics(
-                // (4,26): error CS8872: 'R.Equals(R?)' must allow overriding because the containing record is not sealed.
-                //     public abstract bool Equals(R? other);
-                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("R.Equals(R?)").WithLocation(4, 26),
-                // (9,26): error CS0111: Type 'S' already defines a member called 'Equals' with the same parameter types
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp2.VerifyEmitDiagnostics(
+                // (4,26): error CS0111: Type 'S' already defines a member called 'Equals' with the same parameter types
                 //     public override bool Equals(R? other) => other is S;
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "S").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "S").WithLocation(4, 26)
                 );
         }
 
