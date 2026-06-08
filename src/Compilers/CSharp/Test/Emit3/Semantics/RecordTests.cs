@@ -15950,6 +15950,7 @@ sealed record S : R;";
         [Fact]
         public void Overrides_AbstractBaseCalls_02()
         {
+            // R is referenced from a separate compilation below.
             var sourceR =
 @"#nullable enable
 public abstract record R
@@ -15971,6 +15972,7 @@ sealed record S : R;";
 
             var compS = CreateCompilation(new[] { sourceS, IsExternalInitTypeDefinition }, references: new[] { compR.ToMetadataReference() }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             compS.VerifyEmitDiagnostics(
+                // Emit reports the abstract base call on the synthesized call syntax.
                 // (2,1): error CS0205: Cannot call an abstract base member: 'R.Equals(R?)'
                 // sealed record S : R;
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "sealed record S : R;").WithArguments("R.Equals(R?)").WithLocation(2, 1)
