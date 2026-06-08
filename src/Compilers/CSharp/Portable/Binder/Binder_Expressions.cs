@@ -4690,10 +4690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors = !inLegalPosition;
             if (inLegalPosition && !isStackallocTargetTyped(node))
             {
-                if (RequiresUnsafeForUninitializedSpanStackAlloc(hasInitializer: node is not StackAllocArrayCreationExpressionSyntax { Initializer: null }))
-                {
-                    ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
-                }
+                ReportUnsafeForUninitializedSpanStackAllocIfRequired(node, diagnostics, hasInitializer: node is not StackAllocArrayCreationExpressionSyntax { Initializer: null });
 
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
