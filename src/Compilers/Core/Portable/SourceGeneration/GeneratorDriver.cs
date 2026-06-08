@@ -59,53 +59,38 @@ namespace Microsoft.CodeAnalysis
         /// <returns>An updated driver that contains the results of the generators running.</returns>
         public GeneratorDriver RunGenerators(Compilation compilation, Func<GeneratorFilterContext, bool>? generatorFilter, CancellationToken cancellationToken = default)
         {
-#if DEBUG
-            try
-#endif
-            {
-                var state = RunGeneratorsCore(compilation, diagnosticsBag: null, generatorFilter, cancellationToken);
-                return FromState(state);
-            }
-#if DEBUG
-            catch (OperationCanceledException)
-            {
-                PoolTracker.ForgiveLeaks();
-                throw;
-            }
-#endif
+            var state = RunGeneratorsCore(compilation, diagnosticsBag: null, generatorFilter, cancellationToken);
+            return FromState(state);
         }
 
         public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
             var diagnosticsBag = DiagnosticBag.GetInstance();
-            GeneratorDriverState state;
-#if DEBUG
+            ArrayBuilder<SyntaxTree>? trees = null;
             try
-#endif
             {
-                state = RunGeneratorsCore(compilation, diagnosticsBag, generatorFilter: null, cancellationToken);
-            }
-#if DEBUG
-            catch (OperationCanceledException)
-            {
-                PoolTracker.ForgiveLeaks();
-                throw;
-            }
-#endif
+                var state = RunGeneratorsCore(compilation, diagnosticsBag, generatorFilter: null, cancellationToken);
 
-            // build the output compilation
-            diagnostics = diagnosticsBag.ToReadOnlyAndFree();
-            ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
-            foreach (var generatorState in state.GeneratorStates)
-            {
-                trees.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
-                trees.AddRange(generatorState.PreCompilationTrees.Select(t => t.Tree));
-                trees.AddRange(generatorState.GeneratedTrees.Select(t => t.Tree));
-            }
-            outputCompilation = compilation.AddSyntaxTrees(trees);
-            trees.Free();
+                // build the output compilation
+                diagnostics = diagnosticsBag.ToReadOnlyAndFree();
+                diagnosticsBag = null;
+                trees = ArrayBuilder<SyntaxTree>.GetInstance();
+                foreach (var generatorState in state.GeneratorStates)
+                {
+                    trees.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
+                    trees.AddRange(generatorState.PreCompilationTrees.Select(t => t.Tree));
+                    trees.AddRange(generatorState.GeneratedTrees.Select(t => t.Tree));
+                }
 
-            return FromState(state);
+                outputCompilation = compilation.AddSyntaxTrees(trees);
+
+                return FromState(state);
+            }
+            finally
+            {
+                diagnosticsBag?.Free();
+                trees?.Free();
+            }
         }
 
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
@@ -262,191 +247,203 @@ namespace Microsoft.CodeAnalysis
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var syntaxInputNodes = ArrayBuilder<SyntaxInputNode>.GetInstance();
 
-            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+            try
             {
-                var generator = state.IncrementalGenerators[i];
-                var generatorState = state.GeneratorStates[i];
-                var sourceGenerator = state.Generators[i];
-
-                if (shouldSkipGenerator(sourceGenerator))
+                for (int i = 0; i < state.IncrementalGenerators.Length; i++)
                 {
-                    stateBuilder.Add(generatorState);
-                    continue;
-                }
+                    var generator = state.IncrementalGenerators[i];
+                    var generatorState = state.GeneratorStates[i];
+                    var sourceGenerator = state.Generators[i];
 
-                // initialize the generator if needed
-                if (!generatorState.Initialized)
-                {
-                    var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
-                    var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
-                    var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
-                    var pipelineContext = new IncrementalGeneratorInitializationContext(
-                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, this.EmbeddedAttributeDefinition, compilation.CatchAnalyzerExceptions);
-
-                    Exception? ex = null;
-                    try
+                    if (shouldSkipGenerator(sourceGenerator))
                     {
-                        generator.Initialize(pipelineContext);
-                    }
-                    catch (Exception e) when (handleGeneratorException(compilation, MessageProvider, sourceGenerator, e, isInit: true))
-                    {
-                        ex = e;
+                        stateBuilder.Add(generatorState);
+                        continue;
                     }
 
-                    var outputNodes = outputBuilder.ToImmutableAndFree();
-                    var inputNodes = inputBuilder.ToImmutableAndFree();
-
-                    // run post init
-                    if (ex is null)
+                    // initialize the generator if needed
+                    if (!generatorState.Initialized)
                     {
+                        var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
+                        var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
+                        var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
+                        var pipelineContext = new IncrementalGeneratorInitializationContext(
+                            inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, this.EmbeddedAttributeDefinition, compilation.CatchAnalyzerExceptions);
+
+                        Exception? ex = null;
                         try
                         {
-                            IncrementalExecutionContext context = UpdateOutputs(outputNodes, IncrementalGeneratorOutputKind.PostInit, new GeneratorRunStateTable.Builder(false), ImmutableHashSet<string>.Empty, cancellationToken);
-                            postInitSources = ParseAdditionalSources(sourceGenerator, context.ToImmutableAndFree().sources, cancellationToken);
+                            generator.Initialize(pipelineContext);
                         }
-                        catch (UserFunctionException e) when (handleGeneratorException(compilation, MessageProvider, sourceGenerator, e, isInit: true))
+                        catch (Exception e) when (handleGeneratorException(compilation, MessageProvider, sourceGenerator, e, isInit: true))
                         {
-                            ex = e.InnerException;
+                            ex = e;
+                        }
+
+                        var outputNodes = outputBuilder.ToImmutableAndFree();
+                        var inputNodes = inputBuilder.ToImmutableAndFree();
+
+                        // run post init
+                        if (ex is null)
+                        {
+                            try
+                            {
+                                IncrementalExecutionContext context = UpdateOutputs(outputNodes, IncrementalGeneratorOutputKind.PostInit, new GeneratorRunStateTable.Builder(false), ImmutableHashSet<string>.Empty, cancellationToken);
+                                postInitSources = ParseAdditionalSources(sourceGenerator, context.ToImmutableAndFree().sources, cancellationToken);
+                            }
+                            catch (UserFunctionException e) when (handleGeneratorException(compilation, MessageProvider, sourceGenerator, e, isInit: true))
+                            {
+                                ex = e.InnerException;
+                            }
+                        }
+
+                        generatorState = ex is null
+                                         ? new GeneratorState(postInitSources, inputNodes, outputNodes)
+                                         : SetGeneratorException(compilation, MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, phase: GeneratorRunPhase.Init, runTime: null, cancellationToken);
+                    }
+                    else if (generatorState.RequiresInputTreeReparse(state.ParseOptions))
+                    {
+                        // the generator is initialized, but we need to reparse constant trees as the parse options have changed
+                        var reparsedInitSources = generatorState.PostInitTrees.Length > 0
+                            ? ParseAdditionalSources(sourceGenerator, generatorState.PostInitTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken)
+                            : generatorState.PostInitTrees;
+
+                        var reparsedPreCompilationSources = generatorState.PreCompilationTrees.Length > 0
+                            ? ParseAdditionalSources(sourceGenerator, generatorState.PreCompilationTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken)
+                            : generatorState.PreCompilationTrees;
+
+                        generatorState = new GeneratorState(reparsedInitSources, generatorState.InputNodes, generatorState.OutputNodes, reparsedPreCompilationSources);
+                    }
+
+                    // if the pipeline registered any syntax input nodes, record them
+                    if (!generatorState.InputNodes.IsEmpty)
+                    {
+                        syntaxInputNodes.AddRange(generatorState.InputNodes);
+                    }
+
+                    // record any constant sources
+                    if (generatorState.PostInitTrees.Length > 0)
+                    {
+                        constantSourcesBuilder.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
+                    }
+
+                    stateBuilder.Add(generatorState);
+                }
+
+                // update the compilation with any constant sources
+                if (constantSourcesBuilder.Count > 0)
+                {
+                    compilation = compilation.AddSyntaxTrees(constantSourcesBuilder);
+                }
+                constantSourcesBuilder.Free();
+                constantSourcesBuilder = null;
+
+                var driverStateBuilder = new DriverStateTable.Builder(_state, compilation, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
+                syntaxInputNodes = null;
+
+                // Pre-compilation pass: evaluate pre-compilation output nodes for all generators
+                // and add their sources to the compilation before standard output nodes execute.
+                // Pre-compilation nodes only depend on non-compilation inputs (AdditionalTexts, ParseOptions, etc.)
+                // so they cannot access the compilation or syntax store — doing so will throw.
+                // Create per-generator step tracking builders that will be shared across both passes
+                var generatorRunStateBuilders = new GeneratorRunStateTable.Builder[state.IncrementalGenerators.Length];
+                for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+                {
+                    generatorRunStateBuilders[i] = new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps);
+                }
+
+                for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+                {
+                    var generatorState = stateBuilder[i];
+                    if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        var preCompReserved = collectHintNames(generatorState.PostInitTrees);
+                        var preCompilationContext = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.PreCompilation, generatorRunStateBuilders[i], preCompReserved, cancellationToken, driverStateBuilder);
+                        var (sources, _, _, _) = preCompilationContext.ToImmutableAndFree();
+
+                        var parsedSources = ReuseOrParsePreCompilationSources(state.Generators[i], sources, generatorState.PreCompilationTrees, cancellationToken);
+                        stateBuilder[i] = generatorState.WithPreCompilationTrees(parsedSources);
+                    }
+                    catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
+                    {
+                        stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, phase: GeneratorRunPhase.PreCompilation, runTime: null, cancellationToken);
+                    }
+                }
+
+                // Accumulate the inputs that determine the compilation seen by standard-phase
+                // generators, then ask the cache whether to reuse the previous run's compilation
+                // reference or build a new one. Filtered generators don't run their pre-comp
+                // callback this pass, but their state still carries the previously collected
+                // PreCompilationTrees -- feeding those (and the just-produced trees from unfiltered
+                // generators) into the cache keeps the resulting compilation stable across runs.
+                var cacheBuilder = state.CompilationCache.ToBuilder(inputCompilation, compilation);
+                for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+                {
+                    var generatorState = stateBuilder[i];
+                    if (!generatorState.PostInitTrees.IsDefaultOrEmpty)
+                    {
+                        foreach (var tree in generatorState.PostInitTrees)
+                        {
+                            cacheBuilder.AddPostInitTree(tree.Tree);
                         }
                     }
-
-                    generatorState = ex is null
-                                     ? new GeneratorState(postInitSources, inputNodes, outputNodes)
-                                     : SetGeneratorException(compilation, MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, phase: GeneratorRunPhase.Init, runTime: null, cancellationToken);
-                }
-                else if (generatorState.RequiresInputTreeReparse(state.ParseOptions))
-                {
-                    // the generator is initialized, but we need to reparse constant trees as the parse options have changed
-                    var reparsedInitSources = generatorState.PostInitTrees.Length > 0
-                        ? ParseAdditionalSources(sourceGenerator, generatorState.PostInitTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken)
-                        : generatorState.PostInitTrees;
-
-                    var reparsedPreCompilationSources = generatorState.PreCompilationTrees.Length > 0
-                        ? ParseAdditionalSources(sourceGenerator, generatorState.PreCompilationTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken)
-                        : generatorState.PreCompilationTrees;
-
-                    generatorState = new GeneratorState(reparsedInitSources, generatorState.InputNodes, generatorState.OutputNodes, reparsedPreCompilationSources);
-                }
-
-                // if the pipeline registered any syntax input nodes, record them
-                if (!generatorState.InputNodes.IsEmpty)
-                {
-                    syntaxInputNodes.AddRange(generatorState.InputNodes);
-                }
-
-                // record any constant sources
-                if (generatorState.PostInitTrees.Length > 0)
-                {
-                    constantSourcesBuilder.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
-                }
-
-                stateBuilder.Add(generatorState);
-            }
-
-            // update the compilation with any constant sources
-            if (constantSourcesBuilder.Count > 0)
-            {
-                compilation = compilation.AddSyntaxTrees(constantSourcesBuilder);
-            }
-            constantSourcesBuilder.Free();
-
-            var driverStateBuilder = new DriverStateTable.Builder(_state, compilation, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
-
-            // Pre-compilation pass: evaluate pre-compilation output nodes for all generators
-            // and add their sources to the compilation before standard output nodes execute.
-            // Pre-compilation nodes only depend on non-compilation inputs (AdditionalTexts, ParseOptions, etc.)
-            // so they cannot access the compilation or syntax store — doing so will throw.
-            // Create per-generator step tracking builders that will be shared across both passes
-            var generatorRunStateBuilders = new GeneratorRunStateTable.Builder[state.IncrementalGenerators.Length];
-            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
-            {
-                generatorRunStateBuilders[i] = new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps);
-            }
-
-            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
-            {
-                var generatorState = stateBuilder[i];
-                if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    var preCompReserved = collectHintNames(generatorState.PostInitTrees);
-                    var preCompilationContext = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.PreCompilation, generatorRunStateBuilders[i], preCompReserved, cancellationToken, driverStateBuilder);
-                    var (sources, _, _, _) = preCompilationContext.ToImmutableAndFree();
-
-                    var parsedSources = ReuseOrParsePreCompilationSources(state.Generators[i], sources, generatorState.PreCompilationTrees, cancellationToken);
-                    stateBuilder[i] = generatorState.WithPreCompilationTrees(parsedSources);
-                }
-                catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
-                {
-                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, phase: GeneratorRunPhase.PreCompilation, runTime: null, cancellationToken);
-                }
-            }
-
-            // Accumulate the inputs that determine the compilation seen by standard-phase
-            // generators, then ask the cache whether to reuse the previous run's compilation
-            // reference or build a new one. Filtered generators don't run their pre-comp
-            // callback this pass, but their state still carries the previously collected
-            // PreCompilationTrees -- feeding those (and the just-produced trees from unfiltered
-            // generators) into the cache keeps the resulting compilation stable across runs.
-            var cacheBuilder = state.CompilationCache.ToBuilder(inputCompilation, compilation);
-            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
-            {
-                var generatorState = stateBuilder[i];
-                if (!generatorState.PostInitTrees.IsDefaultOrEmpty)
-                {
-                    foreach (var tree in generatorState.PostInitTrees)
+                    if (!generatorState.PreCompilationTrees.IsDefaultOrEmpty)
                     {
-                        cacheBuilder.AddPostInitTree(tree.Tree);
+                        foreach (var tree in generatorState.PreCompilationTrees)
+                        {
+                            cacheBuilder.AddPreCompTree(i, tree);
+                        }
                     }
                 }
-                if (!generatorState.PreCompilationTrees.IsDefaultOrEmpty)
+
+                state = state.With(compilationCache: cacheBuilder.ToImmutableAndFree());
+                compilation = state.CompilationCache.Compilation;
+
+                driverStateBuilder.SetCompilation(compilation);
+
+                for (int i = 0; i < state.IncrementalGenerators.Length; i++)
                 {
-                    foreach (var tree in generatorState.PreCompilationTrees)
+                    var generatorState = stateBuilder[i];
+                    if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0 || generatorState.PreCompilationFailed)
                     {
-                        cacheBuilder.AddPreCompTree(i, tree);
+                        continue;
+                    }
+
+                    using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], (t) => t.Add(driverStateBuilder.SyntaxStore.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
+                    try
+                    {
+                        // Reserve hint names from prior phases (PostInit and PreCompilation) so that
+                        // standard-phase outputs cannot collide with them. Hint names must be unique
+                        // across all phases for a single generator.
+                        var standardReserved = collectHintNames(generatorState.PostInitTrees, generatorState.PreCompilationTrees);
+                        // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
+                        var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host, generatorRunStateBuilders[i], standardReserved, cancellationToken, driverStateBuilder);
+                        (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
+                        generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
+
+                        stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, hostOutputs, generatorTimer.Elapsed);
+                    }
+                    catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
+                    {
+                        stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, phase: GeneratorRunPhase.Standard, runTime: generatorTimer.Elapsed, cancellationToken);
                     }
                 }
+
+                state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: driverStateBuilder.SyntaxStore.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
+                stateBuilder = null;
+                return state;
             }
-
-            state = state.With(compilationCache: cacheBuilder.ToImmutableAndFree());
-            compilation = state.CompilationCache.Compilation;
-
-            driverStateBuilder.SetCompilation(compilation);
-
-            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+            finally
             {
-                var generatorState = stateBuilder[i];
-                if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0 || generatorState.PreCompilationFailed)
-                {
-                    continue;
-                }
-
-                using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], (t) => t.Add(driverStateBuilder.SyntaxStore.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
-                try
-                {
-                    // Reserve hint names from prior phases (PostInit and PreCompilation) so that
-                    // standard-phase outputs cannot collide with them. Hint names must be unique
-                    // across all phases for a single generator.
-                    var standardReserved = collectHintNames(generatorState.PostInitTrees, generatorState.PreCompilationTrees);
-                    // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
-                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host, generatorRunStateBuilders[i], standardReserved, cancellationToken, driverStateBuilder);
-                    (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
-                    generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
-
-                    stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, hostOutputs, generatorTimer.Elapsed);
-                }
-                catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
-                {
-                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, phase: GeneratorRunPhase.Standard, runTime: generatorTimer.Elapsed, cancellationToken);
-                }
+                stateBuilder?.Free();
+                constantSourcesBuilder?.Free();
+                syntaxInputNodes?.Free();
             }
-
-            state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: driverStateBuilder.SyntaxStore.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
-            return state;
 
             static bool handleGeneratorException(Compilation compilation, CommonMessageProvider messageProvider, ISourceGenerator sourceGenerator, Exception e, bool isInit)
             {
@@ -490,27 +487,45 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(outputKind != IncrementalGeneratorOutputKind.None);
             var sources = new AdditionalSourcesCollection(SourceExtension, reservedHintNames);
             IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, generatorRunStateBuilder, sources);
-            foreach (var outputNode in outputNodes)
+            try
             {
-                // if we're looking for this output kind, and it has not been explicitly disabled
-                if (outputKind.HasFlag(outputNode.Kind) && !_state.DisabledOutputs.HasFlag(outputNode.Kind))
+                foreach (var outputNode in outputNodes)
                 {
-                    outputNode.AppendOutputs(context, cancellationToken);
+                    // if we're looking for this output kind, and it has not been explicitly disabled
+                    if (outputKind.HasFlag(outputNode.Kind) && !_state.DisabledOutputs.HasFlag(outputNode.Kind))
+                    {
+                        outputNode.AppendOutputs(context, cancellationToken);
+                    }
                 }
+
+                return context;
             }
-            return context;
+            catch
+            {
+                context.Free();
+                throw;
+            }
         }
 
         private ImmutableArray<GeneratedSyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(generatedSources.Length);
-            var prefix = GetFilePathPrefixForGenerator(this._state.BaseDirectory, generator);
-            foreach (var source in generatedSources)
+            try
             {
-                var tree = ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken);
-                trees.Add(new GeneratedSyntaxTree(source.HintName, source.Text, tree));
+                var prefix = GetFilePathPrefixForGenerator(this._state.BaseDirectory, generator);
+                foreach (var source in generatedSources)
+                {
+                    var tree = ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken);
+                    trees.Add(new GeneratedSyntaxTree(source.HintName, source.Text, tree));
+                }
+
+                return trees.ToImmutableAndFree();
             }
-            return trees.ToImmutableAndFree();
+            catch
+            {
+                trees.Free();
+                throw;
+            }
         }
 
         /// <summary>
@@ -531,24 +546,33 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<GeneratedSyntaxTree> ReuseOrParsePreCompilationSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> sources, ImmutableArray<GeneratedSyntaxTree> previousTrees, CancellationToken cancellationToken)
         {
             var trees = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(sources.Length);
-            var prefix = GetFilePathPrefixForGenerator(this._state.BaseDirectory, generator);
-            for (int j = 0; j < sources.Length; j++)
+            try
             {
-                var source = sources[j];
-                if (!previousTrees.IsDefaultOrEmpty
-                    && j < previousTrees.Length
-                    && ReferenceEquals(source.Text, previousTrees[j].Text)
-                    && string.Equals(source.HintName, previousTrees[j].HintName, StringComparison.OrdinalIgnoreCase))
+                var prefix = GetFilePathPrefixForGenerator(this._state.BaseDirectory, generator);
+                for (int j = 0; j < sources.Length; j++)
                 {
-                    trees.Add(previousTrees[j]);
+                    var source = sources[j];
+                    if (!previousTrees.IsDefaultOrEmpty
+                        && j < previousTrees.Length
+                        && ReferenceEquals(source.Text, previousTrees[j].Text)
+                        && string.Equals(source.HintName, previousTrees[j].HintName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        trees.Add(previousTrees[j]);
+                    }
+                    else
+                    {
+                        var tree = ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken);
+                        trees.Add(new GeneratedSyntaxTree(source.HintName, source.Text, tree));
+                    }
                 }
-                else
-                {
-                    var tree = ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken);
-                    trees.Add(new GeneratedSyntaxTree(source.HintName, source.Text, tree));
-                }
+
+                return trees.ToImmutableAndFree();
             }
-            return trees.ToImmutableAndFree();
+            catch
+            {
+                trees.Free();
+                throw;
+            }
         }
 
         private static GeneratorState SetGeneratorException(Compilation compilation, CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, GeneratorRunPhase phase, TimeSpan? runTime, CancellationToken cancellationToken)
@@ -605,25 +629,34 @@ namespace Microsoft.CodeAnalysis
 
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
             ArrayBuilder<Diagnostic> filteredDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
-            foreach (var diag in generatorDiagnostics)
+            try
             {
-                try
+                foreach (var diag in generatorDiagnostics)
                 {
-                    DiagnosticAnalysisContextHelpers.VerifyArguments(diag, compilation, isSupportedDiagnostic: static (_, _) => true, cancellationToken);
-                }
-                catch (ArgumentException ex)
-                {
-                    throw new UserFunctionException(ex);
+                    try
+                    {
+                        DiagnosticAnalysisContextHelpers.VerifyArguments(diag, compilation, isSupportedDiagnostic: static (_, _) => true, cancellationToken);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        throw new UserFunctionException(ex);
+                    }
+
+                    if (compilation.Options.FilterDiagnostic(diag, cancellationToken) is { } filtered &&
+                        suppressMessageState.ApplySourceSuppressions(filtered) is { } effective)
+                    {
+                        filteredDiagnostics.Add(effective);
+                        driverDiagnostics?.Add(effective);
+                    }
                 }
 
-                if (compilation.Options.FilterDiagnostic(diag, cancellationToken) is { } filtered &&
-                    suppressMessageState.ApplySourceSuppressions(filtered) is { } effective)
-                {
-                    filteredDiagnostics.Add(effective);
-                    driverDiagnostics?.Add(effective);
-                }
+                return filteredDiagnostics.ToImmutableAndFree();
             }
-            return filteredDiagnostics.ToImmutableAndFree();
+            catch
+            {
+                filteredDiagnostics.Free();
+                throw;
+            }
         }
 
         internal static string GetFilePathPrefixForGenerator(string? baseDirectory, ISourceGenerator generator)

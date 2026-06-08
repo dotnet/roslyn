@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
             var defaultAccess = inInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
             var allowedModifiers =
-                DeclarationModifiers.Unsafe | DeclarationModifiers.Extern;
+                DeclarationModifiers.Unsafe | DeclarationModifiers.Extern | DeclarationModifiers.Safe;
 
             if (!isCompoundAssignmentOrIncrementAssignment)
             {

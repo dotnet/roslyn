@@ -34,7 +34,8 @@ internal interface IBuildHost
     /// contain paths (which can have escaping issues) or could be quite large (which could run into length limits).
     /// </summary>
     /// <param name="knownCommandLineParserLanguages">Languages whose command line parser we understand (ICommandLineParserService).</param>
-    void ConfigureGlobalState(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, string? binlogPath);
+    /// <param name="maxNodeCount">The maximum number of MSBuild nodes that may build concurrently, or <see langword="null"/> to use MSBuild's default. Builds submitted in parallel can run in parallel up to this limit.</param>
+    void ConfigureGlobalState(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, string? binlogPath, int? maxNodeCount);
 
     Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken);
 

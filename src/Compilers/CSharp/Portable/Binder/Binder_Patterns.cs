@@ -476,11 +476,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
-            LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
-            LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
-
             bool negated = pattern.IsNegated(out var innerPattern);
+
+            // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
+            LabelSymbol whenTrueLabel = new GeneratedLabelSymbol(negated ? "isPatternFailure" : "isPatternSuccess");
+            LabelSymbol whenFalseLabel = new GeneratedLabelSymbol(negated ? "isPatternSuccess" : "isPatternFailure");
+
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
                 this.Compilation, pattern.Syntax, expression, innerPattern, hasUnionMatching, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
 
@@ -2424,27 +2425,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool underIsPattern,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
-            bool isUnionMatching = unionMatchingInputType is not null;
-
-            if (unionMatchingInputType is not null && (unionMatchingInputType.TypeKind != TypeKind.Struct || unionMatchingInputType.IsNullableType()))
-            {
-                // When we are not 'underIsPattern', we don't 'permitDesignations'. See an assignment and a comment below.
-                // Only 'BindIsPatternExpression' passes true for 'underIsPattern' and only 'BindUnaryPattern' propagates it. 
-                // Since we are doing Union matching, we are effectively in a sub-pattern, thus we are not directly under
-                // "is pattern", but we can still make things work for struct types (excluding Nullable<T>), because they
-                // do not have an implicit null check for the Union instance itself.
-                // The effect of this logic can be observed in unit-tests 'UnionMatching_15_Negated' and 'UnionMatching_16_Negated', for example.   
-                underIsPattern = false;
-            }
-
             MessageID.IDS_FeatureNotPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             bool permitDesignations = underIsPattern; // prevent designators under 'not' except under an is-pattern
             NamedTypeSymbol? currentUnionType = unionType;
             var subPattern = BindPattern(node.Pattern, ref currentUnionType, inputType, permitDesignations, hasErrors, diagnostics, out hasUnionMatching, underIsPattern);
-            hasUnionMatching |= isUnionMatching;
-            return new BoundNegatedPattern(node, subPattern, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: inputType, hasErrors);
+            return new BoundNegatedPattern(node, subPattern, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
         private BoundPattern BindBinaryPattern(

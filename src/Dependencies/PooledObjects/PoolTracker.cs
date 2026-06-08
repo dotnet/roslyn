@@ -139,6 +139,22 @@ internal sealed class PoolTrackingContext
         _outstanding.Clear();
     }
 
+    internal bool WaitForOutstandingObjectsToBeFreed(TimeSpan timeout)
+    {
+        if (!HasLeaks)
+            return true;
+
+        var stopwatch = Stopwatch.StartNew();
+        while (stopwatch.Elapsed < timeout)
+        {
+            Thread.Sleep(10);
+            if (!HasLeaks)
+                return true;
+        }
+
+        return !HasLeaks;
+    }
+
     /// <summary>
     /// Returns a human-readable summary of leaked pooled objects, grouped by type with counts
     /// and allocation stack traces.

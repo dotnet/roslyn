@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis
                 tables.SetTable(_key, _transformTable.ToImmutableAndFree());
             }
 
+            public void FreeUnderlying()
+            {
+                _filterTable.Free();
+                _transformTable.Free();
+            }
+
             public void VisitTree(
                 Lazy<SyntaxNode> root,
                 EntryState state,
@@ -84,7 +90,6 @@ namespace Microsoft.CodeAnalysis
                     {
                         var stopwatch = SharedStopwatch.StartNew();
                         var nodes = getFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
-
                         if (state != EntryState.Modified || !_filterTable.TryModifyEntries(nodes, stopwatch.Elapsed, noInputStepsStepInfo, state, out entry))
                         {
                             entry = _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
@@ -118,17 +123,25 @@ namespace Microsoft.CodeAnalysis
                 static ImmutableArray<SyntaxNode> getFilteredNodes(SyntaxNode root, Func<SyntaxNode, CancellationToken, bool> func, CancellationToken token)
                 {
                     ArrayBuilder<SyntaxNode>? results = null;
-                    foreach (var node in root.DescendantNodesAndSelf())
+                    try
                     {
-                        token.ThrowIfCancellationRequested();
-
-                        if (func(node, token))
+                        foreach (var node in root.DescendantNodesAndSelf())
                         {
-                            (results ??= ArrayBuilder<SyntaxNode>.GetInstance()).Add(node);
-                        }
-                    }
+                            token.ThrowIfCancellationRequested();
 
-                    return results.ToImmutableOrEmptyAndFree();
+                            if (func(node, token))
+                            {
+                                (results ??= ArrayBuilder<SyntaxNode>.GetInstance()).Add(node);
+                            }
+                        }
+
+                        return results.ToImmutableOrEmptyAndFree();
+                    }
+                    catch
+                    {
+                        results?.Free();
+                        throw;
+                    }
                 }
             }
         }

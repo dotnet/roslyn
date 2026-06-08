@@ -32,6 +32,9 @@ parameters:
 - name: testMachineRetention
   type: string
   default: 1:0:0:0
+- name: dartLabTemplatesRepositoryAlias
+  type: string
+  default: DartLabTemplates
 - name: roslynRepositoryAlias
   type: string
   default: self
@@ -53,4 +56,5 @@ stages:
     testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
     testMachineCleanUpStrategy: ${{ parameters.testMachineCleanUpStrategy }}
     testMachineRetention: ${{ parameters.testMachineRetention }}
+    dartLabTemplatesRepositoryAlias: ${{ parameters.dartLabTemplatesRepositoryAlias }}
     roslynRepositoryAlias: ${{ parameters.roslynRepositoryAlias }}

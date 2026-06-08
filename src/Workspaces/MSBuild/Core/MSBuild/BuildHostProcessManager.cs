@@ -28,6 +28,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private readonly ILoggerFactory? _loggerFactory;
     private readonly ILogger? _logger;
     private readonly IBinLogPathProvider? _binaryLogPathProvider;
+    private readonly int? _maxNodeCount;
 
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = [];
@@ -41,6 +42,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         ImmutableArray<string> knownCommandLineParserLanguages,
         ImmutableDictionary<string, string>? globalMSBuildProperties = null,
         IBinLogPathProvider? binaryLogPathProvider = null,
+        int? maxNodeCount = null,
         ILoggerFactory? loggerFactory = null)
     {
         _knownCommandLineParserLanguages = knownCommandLineParserLanguages;
@@ -48,6 +50,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         _binaryLogPathProvider = binaryLogPathProvider;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory?.CreateLogger<BuildHostProcessManager>();
+        _maxNodeCount = maxNodeCount;
     }
 
     /// <summary>
@@ -134,7 +137,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 throw new Exception($"The build host was started but we were unable to connect to it's pipe. The process exited with {process.ExitCode}. Process output:{Environment.NewLine}{buildHostProcess.GetBuildHostProcessOutput()}", innerException: e);
             }
 
-            await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(_knownCommandLineParserLanguages, _globalMSBuildProperties, _binaryLogPathProvider?.GetNewLogPath(), cancellationToken).ConfigureAwait(false);
+            await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(_knownCommandLineParserLanguages, _globalMSBuildProperties, _binaryLogPathProvider?.GetNewLogPath(), _maxNodeCount, cancellationToken).ConfigureAwait(false);
 
             if (buildHostKind != BuildHostProcessKind.NetCore
                 || projectOrSolutionFilePath is null
