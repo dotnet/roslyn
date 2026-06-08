@@ -81,7 +81,6 @@
     <ProjectReference Include="..\ExternalAccess\TestDiscovery\Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.csproj" />
     <!-- Ship the VS Code Razor entrypoint as a real runtime dependency so it participates in the server deps.json. -->
     <ProjectReference Include="..\..\Razor\src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
-    <ProjectReference Include="..\..\Features\ExternalAccess\Core\Microsoft.CodeAnalysis.ExternalAccess.Features.csproj" />
     <ProjectReference Include="..\ExternalAccess\Core\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.csproj" />
   </ItemGroup>
 
