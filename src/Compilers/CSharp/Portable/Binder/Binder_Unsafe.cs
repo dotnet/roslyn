@@ -152,22 +152,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool RequiresUnsafeForUninitializedSpanStackAlloc(bool hasInitializer)
-        {
-            // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
-            // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
-            // https://github.com/dotnet/roslyn/issues/82546: Confirm this rule with LDM.
-            return Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
-                !hasInitializer &&
-                ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false };
-        }
-
         /// <summary>
         /// Reports CS9361 if an uninitialized span stackalloc requires an unsafe context under updated memory safety rules.
         /// </summary>
         internal void ReportUnsafeForUninitializedSpanStackAllocIfRequired(SyntaxNodeOrToken node, BindingDiagnosticBag diagnostics, bool hasInitializer)
         {
-            if (RequiresUnsafeForUninitializedSpanStackAlloc(hasInitializer))
+            // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
+            // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
+            // https://github.com/dotnet/roslyn/issues/82546: Confirm this rule with LDM.
+            if (Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
+                !hasInitializer &&
+                ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
             {
                 ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
             }
