@@ -157,6 +157,9 @@ Microsoft.CodeAnalysis.ChildSyntaxList.get_Count
 Microsoft.CodeAnalysis.ChildSyntaxList.get_Item(System.Int32)
 Microsoft.CodeAnalysis.ChildSyntaxList.op_Equality(Microsoft.CodeAnalysis.ChildSyntaxList,Microsoft.CodeAnalysis.ChildSyntaxList)
 Microsoft.CodeAnalysis.ChildSyntaxList.op_Inequality(Microsoft.CodeAnalysis.ChildSyntaxList,Microsoft.CodeAnalysis.ChildSyntaxList)
+Microsoft.CodeAnalysis.ClosedSubtypeInfo
+Microsoft.CodeAnalysis.ClosedSubtypeInfo.get_ClosedSubtypes
+Microsoft.CodeAnalysis.ClosedSubtypeInfo.get_IsComplete
 Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.AddReferences(Microsoft.CodeAnalysis.MetadataReference[])
 Microsoft.CodeAnalysis.Compilation.AddReferences(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.MetadataReference})
@@ -1280,6 +1283,7 @@ Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.INamedTypeSymbol.Construct(Microsoft.CodeAnalysis.ITypeSymbol[])
 Microsoft.CodeAnalysis.INamedTypeSymbol.Construct(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.ITypeSymbol},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.NullableAnnotation})
 Microsoft.CodeAnalysis.INamedTypeSymbol.ConstructUnboundGenericType
+Microsoft.CodeAnalysis.INamedTypeSymbol.GetClosedSubtypes(System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.INamedTypeSymbol.GetTypeArgumentCustomModifiers(System.Int32)
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_Arity
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_AssociatedSymbol
@@ -1291,6 +1295,7 @@ Microsoft.CodeAnalysis.INamedTypeSymbol.get_ExtensionGroupingName
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_ExtensionMarkerName
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_ExtensionParameter
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_InstanceConstructors
+Microsoft.CodeAnalysis.INamedTypeSymbol.get_IsClosed
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_IsComImport
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_IsExtension
 Microsoft.CodeAnalysis.INamedTypeSymbol.get_IsFileLocal

@@ -1,0 +1,1 @@
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsClosed.get -> bool
