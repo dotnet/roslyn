@@ -2774,12 +2774,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
         <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="translated">Un contexte non sécurisé est requis pour le constructeur « {0} » marqué comme « Unsafe » ou « extern » afin de satisfaire la contrainte « new() » du paramètre de type « {1} » dans « {2} »</target>
+        <target state="new">An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</target>
         <note>'unsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</source>
-        <target state="translated">« {0} » doit être utilisé dans un contexte non sécurisé, car il est marqué comme « Unsafe » ou « extern »</target>
+        <target state="new">'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</target>
         <note>'unsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
