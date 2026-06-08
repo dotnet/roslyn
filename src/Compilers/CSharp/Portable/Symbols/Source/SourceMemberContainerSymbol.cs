@@ -5256,8 +5256,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol printMembersMethod;
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingPrintMembersMethod))
                 {
-                    printMembersMethod = new SynthesizedRecordPrintMembers(this, userDefinedMembers, memberOffset: members.Count);
-                    members.Add(printMembersMethod);
+                    var abstractBasePrintMembers = getAbstractBasePrintMembersMethod();
+                    if (abstractBasePrintMembers is object)
+                    {
+                        printMembersMethod = abstractBasePrintMembers;
+                    }
+                    else
+                    {
+                        printMembersMethod = new SynthesizedRecordPrintMembers(this, userDefinedMembers, memberOffset: members.Count);
+                        members.Add(printMembersMethod);
+                    }
                 }
                 else
                 {
@@ -5486,8 +5494,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
-                    getHashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count);
-                    members.Add(getHashCode);
+                    var abstractBaseGetHashCode = getAbstractBaseGetHashCodeMethod();
+                    if (abstractBaseGetHashCode is object)
+                    {
+                        getHashCode = abstractBaseGetHashCode;
+                    }
+                    else
+                    {
+                        getHashCode = new SynthesizedRecordGetHashCode(this, equalityContract, memberOffset: members.Count);
+                        members.Add(getHashCode);
+                    }
                 }
                 else
                 {
@@ -5602,10 +5618,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, thisEquals.GetFirstLocation(), thisEquals, targetMethod.ReturnType);
                     }
 
+                    if (thisEquals.IsAbstract)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, thisEquals.GetFirstLocation(), thisEquals);
+                    }
+
                     reportStaticOrNotOverridableAPIInRecord(thisEquals, diagnostics);
                 }
 
                 return thisEquals;
+            }
+
+            MethodSymbol? getAbstractBaseGetHashCodeMethod()
+            {
+                var objectGetHashCode = this.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode);
+                var currentBaseType = this.BaseTypeNoUseSiteDiagnostics;
+                while (currentBaseType is not null)
+                {
+                    foreach (var member in currentBaseType.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectGetHashCode))
+                    {
+                        if (member is MethodSymbol method &&
+                            method.IsAbstract &&
+                            !method.IsStatic &&
+                            method.ParameterCount == 0 &&
+                            method.GetLeastOverriddenMethod(null) == objectGetHashCode)
+                        {
+                            return method;
+                        }
+                    }
+
+                    currentBaseType = currentBaseType.BaseTypeNoUseSiteDiagnostics;
+                }
+
+                return null;
+            }
+
+            MethodSymbol? getAbstractBasePrintMembersMethod()
+            {
+                var stringBuilderType = this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Text_StringBuilder);
+                var currentBaseType = this.BaseTypeNoUseSiteDiagnostics;
+                while (currentBaseType is not null)
+                {
+                    foreach (var member in currentBaseType.GetSimpleNonTypeMembers(WellKnownMemberNames.PrintMembersMethodName))
+                    {
+                        if (member is MethodSymbol method &&
+                            method.IsAbstract &&
+                            !method.IsStatic &&
+                            method.ParameterCount == 1 &&
+                            method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                            method.Parameters[0].Type.Equals(stringBuilderType, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            return method;
+                        }
+                    }
+
+                    currentBaseType = currentBaseType.BaseTypeNoUseSiteDiagnostics;
+                }
+
+                return null;
             }
 
             void reportStaticOrNotOverridableAPIInRecord(Symbol symbol, BindingDiagnosticBag diagnostics)

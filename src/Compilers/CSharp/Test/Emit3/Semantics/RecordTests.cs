@@ -15939,29 +15939,107 @@ sealed record S : R;";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (6,1): error CS0205: Cannot call an abstract base member: 'R.GetHashCode()'
+                // (6,15): error CS0534: 'S' does not implement inherited abstract member 'R.GetHashCode()'
                 // sealed record S : R;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "sealed record S : R;").WithArguments("R.GetHashCode()").WithLocation(6, 1)
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "S").WithArguments("S", "R.GetHashCode()").WithLocation(6, 15)
                 );
         }
 
         [Fact]
         public void Overrides_AbstractBaseCalls_02()
         {
-            var source =
+            var sourceR =
 @"#nullable enable
 abstract record R
 {
     public abstract bool Equals(R? other);
     public override int GetHashCode() => 0;
-}
+}";
+
+            var compR = CreateCompilation(sourceR, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            compR.VerifyEmitDiagnostics(
+                // (4,26): error CS8872: 'R.Equals(R?)' must allow overriding because the containing record is not sealed.
+                //     public abstract bool Equals(R? other);
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("R.Equals(R?)").WithLocation(4, 26)
+                );
+
+            var ilSource = @"
+.class public auto ansi abstract beforefieldinit R
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual 
+        instance class R '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot hidebysig virtual 
+        instance bool Equals (
+            object other
+        ) cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public newslot abstract virtual 
+        instance bool Equals (
+            class R ''
+        ) { }
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class R ''
+        ) cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .method family hidebysig newslot virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type R::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}";
+
+            var sourceS =
+@"#nullable enable
 sealed record S : R;";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
-            comp.VerifyEmitDiagnostics(
-                // (7,1): error CS0205: Cannot call an abstract base member: 'R.Equals(R?)'
+            var compS = CreateCompilationWithIL(new[] { sourceS, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            compS.VerifyEmitDiagnostics(
+                // (2,15): error CS8869: 'S.Equals(object?)' does not override expected method from 'object'.
                 // sealed record S : R;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "sealed record S : R;").WithArguments("R.Equals(R?)").WithLocation(7, 1)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "S").WithArguments("S.Equals(object?)").WithLocation(2, 15)
                 );
         }
 
@@ -15978,9 +16056,9 @@ sealed record S : R;";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (6,1): error CS0205: Cannot call an abstract base member: 'R.PrintMembers(StringBuilder)'
+                // (6,15): error CS0534: 'S' does not implement inherited abstract member 'R.PrintMembers(StringBuilder)'
                 // sealed record S : R;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "sealed record S : R;").WithArguments("R.PrintMembers(System.Text.StringBuilder)").WithLocation(6, 1)
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "S").WithArguments("S", "R.PrintMembers(System.Text.StringBuilder)").WithLocation(6, 15)
                 );
         }
 
@@ -16038,6 +16116,9 @@ sealed record S : R
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics(
+                // (4,26): error CS8872: 'R.Equals(R?)' must allow overriding because the containing record is not sealed.
+                //     public abstract bool Equals(R? other);
+                Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("R.Equals(R?)").WithLocation(4, 26),
                 // (9,26): error CS0111: Type 'S' already defines a member called 'Equals' with the same parameter types
                 //     public override bool Equals(R? other) => other is S;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "S").WithLocation(9, 26)
