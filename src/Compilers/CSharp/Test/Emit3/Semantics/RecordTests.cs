@@ -15952,7 +15952,7 @@ sealed record S : R;";
         {
             var sourceR =
 @"#nullable enable
-abstract record R
+public abstract record R
 {
     public abstract bool Equals(R? other);
     public override int GetHashCode() => 0;
@@ -15965,83 +15965,15 @@ abstract record R
                 Diagnostic(ErrorCode.ERR_AbstractAPIInRecord, "Equals").WithArguments("R.Equals(R?)").WithLocation(4, 26)
                 );
 
-            var ilSource = @"
-.class public auto ansi abstract beforefieldinit R
-    extends System.Object
-{
-    .method public hidebysig specialname newslot virtual 
-        instance class R '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public newslot hidebysig virtual 
-        instance bool Equals (
-            object other
-        ) cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig virtual 
-        instance int32 GetHashCode () cil managed 
-    {
-        IL_0000: ldc.i4.0
-        IL_0001: ret
-    }
-
-    .method public newslot abstract virtual 
-        instance bool Equals (
-            class R ''
-        ) { }
-
-    .method family hidebysig specialname rtspecialname 
-        instance void .ctor (
-            class R ''
-        ) cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig specialname rtspecialname 
-        instance void .ctor () cil managed 
-    {
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Object::.ctor()
-        IL_0006: ret
-    }
-
-    .method family hidebysig newslot virtual 
-        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type R::get_EqualityContract()
-    }
-
-    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}";
-
             var sourceS =
 @"#nullable enable
 sealed record S : R;";
 
-            var compS = CreateCompilationWithIL(new[] { sourceS, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            var compS = CreateCompilation(new[] { sourceS, IsExternalInitTypeDefinition }, references: new[] { compR.ToMetadataReference() }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             compS.VerifyEmitDiagnostics(
-                // (2,15): error CS8869: 'S.Equals(object?)' does not override expected method from 'object'.
+                // (2,1): error CS0205: Cannot call an abstract base member: 'R.Equals(R?)'
                 // sealed record S : R;
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "S").WithArguments("S.Equals(object?)").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "sealed record S : R;").WithArguments("R.Equals(R?)").WithLocation(2, 1)
                 );
         }
 
