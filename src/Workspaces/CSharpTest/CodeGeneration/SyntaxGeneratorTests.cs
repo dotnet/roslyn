@@ -3314,6 +3314,56 @@ public sealed class SyntaxGeneratorTests
     }
 
     [Fact]
+    public void TestAddAbstractToClosedClass()
+    {
+        var closedClass = (ClassDeclarationSyntax)ParseMemberDeclaration("closed class C { }");
+        var closedAbstractClass = Generator.WithModifiers(closedClass, Generator.GetModifiers(closedClass).WithIsAbstract(true));
+
+        VerifySyntax<ClassDeclarationSyntax>(closedAbstractClass, """
+            closed class C
+            {
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestAddPublicToClosedClass()
+    {
+        var closedClass = (ClassDeclarationSyntax)ParseMemberDeclaration("closed class C { }");
+        var closedPublicClass = Generator.WithAccessibility(closedClass, Accessibility.Public);
+        VerifySyntax<ClassDeclarationSyntax>(closedPublicClass, """
+            public closed class C
+            {
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestAddClosedModifierToAbstractClass()
+    {
+        var abstractClass = (ClassDeclarationSyntax)ParseMemberDeclaration("abstract class C { }");
+        var closedAbstractClass = Generator.WithModifiers(abstractClass, Generator.GetModifiers(abstractClass).WithIsClosed(true));
+
+        VerifySyntax<ClassDeclarationSyntax>(closedAbstractClass, """
+            closed class C
+            {
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestAddClosedModifierToPublicClass()
+    {
+        var publicClass = (ClassDeclarationSyntax)ParseMemberDeclaration("public class C { }");
+        var closedPublicClass = Generator.WithModifiers(publicClass, Generator.GetModifiers(publicClass).WithIsClosed(true));
+        VerifySyntax<ClassDeclarationSyntax>(closedPublicClass, """
+            public closed class C
+            {
+            }
+            """);
+    }
+
+    [Fact]
     public void TestAddRequiredModifierToVirtualProperty()
     {
         var property = (PropertyDeclarationSyntax)ParseMemberDeclaration("public virtual int P { get; }");

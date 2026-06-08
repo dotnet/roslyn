@@ -1503,7 +1503,8 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.Sealed |
         DeclarationModifiers.Static |
         DeclarationModifiers.Unsafe |
-        DeclarationModifiers.File;
+        DeclarationModifiers.File |
+        DeclarationModifiers.Closed;
 
     private static readonly DeclarationModifiers s_recordModifiers =
         DeclarationModifiers.Abstract |
@@ -1636,6 +1637,12 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                         // We remove the accessibility if the modifiers don't allow it.
                         accessibility = Accessibility.NotApplicable;
                     }
+                }
+
+                // 'closed' implies abstract on classes and 'closed abstract' can't be explicitly combined.
+                if (modifiers.IsClosed && modifiers.IsAbstract)
+                {
+                    modifiers = modifiers.WithIsAbstract(false);
                 }
 
                 // We're updating the modifiers for something.  We don't want to add elastic trivia in that case as

@@ -195,6 +195,10 @@ public readonly record struct DeclarationModifiers
     public DeclarationModifiers WithIsFile(bool isFile)
         => new(SetFlag(Modifiers, Modifiers.File, isFile));
 
+    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
+    public DeclarationModifiers WithIsClosed(bool isClosed)
+        => new(SetFlag(Modifiers, Modifiers.Closed, isClosed));
+
     private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)
         => isSet ? (existing | modifier) : (existing & ~modifier);
 
@@ -218,7 +222,11 @@ public readonly record struct DeclarationModifiers
     public static DeclarationModifiers Extern => new(Modifiers.Extern);
     public static DeclarationModifiers Required => new(Modifiers.Required);
     public static DeclarationModifiers File => new(Modifiers.File);
+
     internal static DeclarationModifiers Fixed => new(Modifiers.Fixed);
+
+    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
+    public static DeclarationModifiers Closed => new(Modifiers.Closed);
 
     public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)
         => new(left.Modifiers | right.Modifiers);
