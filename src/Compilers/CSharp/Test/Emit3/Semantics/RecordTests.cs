@@ -16003,6 +16003,48 @@ sealed record S : R
         }
 
         [Fact]
+        public void Overrides_AbstractBaseCalls_05()
+        {
+            var source =
+@"#nullable enable
+abstract record R
+{
+    protected abstract bool PrintMembers(System.Text.StringBuilder builder);
+}
+sealed record S : R
+{
+    protected override bool PrintMembers(System.Text.StringBuilder builder) => true;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Overrides_AbstractBaseCalls_06()
+        {
+            var source =
+@"#nullable enable
+abstract record R
+{
+    public abstract bool Equals(R? other);
+    public override int GetHashCode() => 0;
+}
+sealed record S : R
+{
+    public override bool Equals(R? other) => other is S;
+    public override int GetHashCode() => 0;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (9,26): error CS0111: Type 'S' already defines a member called 'Equals' with the same parameter types
+                //     public override bool Equals(R? other) => other is S;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "S").WithLocation(9, 26)
+                );
+        }
+
+        [Fact]
         public void ObjectEquals_01()
         {
             var ilSource = @"
