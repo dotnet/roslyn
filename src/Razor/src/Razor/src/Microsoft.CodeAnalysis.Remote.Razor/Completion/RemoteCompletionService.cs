@@ -450,18 +450,19 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return result ?? request;
     }
 
-    private static VSInternalCompletionItem ResolveLocalHtmlCompletionItem(VSInternalCompletionItem request, LocalHtmlCompletionResolveContext resolveContext)
+    private VSInternalCompletionItem ResolveLocalHtmlCompletionItem(VSInternalCompletionItem request, LocalHtmlCompletionResolveContext resolveContext)
     {
-        if (resolveContext.TryGetResolveData(request.Label, request.Kind, out var description, out var documentationUrl))
+        if (resolveContext.TryGetResolveData(request.Label, request.Kind, out var description, out var documentationUrl, out var baseline, out var baselineYear))
         {
-            if (description.Length > 0)
+            if (documentationUrl.Length > 0 || baseline.Length > 0)
+            {
+                var completionSupportedKinds = _clientCapabilitiesService.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat;
+                var documentationKind = completionSupportedKinds is { } kinds && Array.IndexOf(kinds, MarkupKind.Markdown) >= 0 ? MarkupKind.Markdown : MarkupKind.PlainText;
+                request.Documentation = LocalHtmlCompletionProvider.CreateDocumentation(documentationKind, description, documentationUrl, baseline, baselineYear);
+            }
+            else if (description.Length > 0)
             {
                 request.Detail = description;
-            }
-
-            if (documentationUrl.Length > 0)
-            {
-                request.Documentation = LocalHtmlCompletionProvider.CreateDocumentation(description: null, documentationUrl);
             }
         }
 
