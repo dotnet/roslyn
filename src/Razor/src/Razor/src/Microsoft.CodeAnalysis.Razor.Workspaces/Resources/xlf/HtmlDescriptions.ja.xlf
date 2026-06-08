@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="HtmlAttribute_abbr">
         <source>This attribute contains a short abbreviated description of the cell's content. Some user-agents, such as speech readers, may present this description before the content itself.</source>
-        <target state="new">This attribute contains a short abbreviated description of the cell's content. Some user-agents, such as speech readers, may present this description before the content itself.</target>
+        <target state="translated">この属性には、セルの内容の省略形の説明が含まれています。音声リーダーなどの一部のユーザー エージェントは、コンテンツ自体の前にこの説明を表示する場合があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_accept-charset">
@@ -16,12 +16,12 @@ In previous versions of HTML, the different character encodings could be delimit
       </trans-unit>
       <trans-unit id="HtmlAttribute_accesskey">
         <source>Provides a hint for generating a keyboard shortcut for the current element. This attribute consists of a space-separated list of characters. The browser should use the first one that exists on the computer keyboard layout.</source>
-        <target state="new">Provides a hint for generating a keyboard shortcut for the current element. This attribute consists of a space-separated list of characters. The browser should use the first one that exists on the computer keyboard layout.</target>
+        <target state="translated">現在の要素のキーボード ショートカットを生成するためのヒントを提供します。この属性は、スペースで区切られた文字の一覧で構成されます。ブラウザーでは、コンピューターのキーボード レイアウトに存在する最初のものを使用する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_action">
         <source>The URI of a program that processes the form information. This value can be overridden by a [`formaction`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="new">The URI of a program that processes the form information. This value can be overridden by a [`formaction`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</target>
+        <target state="translated">フォーム情報を処理するプログラムの URI。この値は、[`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML の &lt;button&gt; 要素は、クリック可能なボタンを表します。これは、フォームや、単純で標準的なボタン機能が必要なドキュメント内のあらゆる場所で使用できます。") 要素の [`formaction`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction) によってオーバーライドされる可能性があります、または [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTMLの &lt;input&gt; 要素は、ユーザーからのデータを受け付けるための Web フォーム用インタラクティブ コントロールの作成に使用されます。デバイスやユーザーエージェントに応じて、さまざまな種類の入力データやコントロールウィジェットが利用可能です。") 要素。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_align">
@@ -49,7 +49,7 @@ In previous versions of HTML, the different character encodings could be delimit
       </trans-unit>
       <trans-unit id="HtmlAttribute_allow">
         <source>Specifies a [feature policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Feature_Policy) for the `&lt;iframe&gt;`.</source>
-        <target state="new">Specifies a [feature policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Feature_Policy) for the `&lt;iframe&gt;`.</target>
+        <target state="translated">`&lt;iframe&gt;` の [機能ポリシー](https://developer.mozilla.org/en-US/docs/Web/HTTP/Feature_Policy) を指定します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_allowfullscreen">
@@ -74,7 +74,7 @@ This attribute is considered a legacy attribute and redefined as `allow="fullscr
       </trans-unit>
       <trans-unit id="HtmlAttribute_as">
         <source>This attribute is only used when `rel="preload"` or `rel="prefetch"` has been set on the `&lt;link&gt;` element. It specifies the type of content being loaded by the `&lt;link&gt;`, which is necessary for content prioritization, request matching, application of correct [content security policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), and setting of correct [`Accept`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept "The Accept request HTTP header advertises which content types, expressed as MIME types, the client is able to understand. Using content negotiation, the server then selects one of the proposals, uses it and informs the client of its choice with the Content-Type response header. Browsers set adequate values for this header depending on the context where the request is done: when fetching a CSS stylesheet a different value is set for the request than when fetching an image, video or a script.") request header.</source>
-        <target state="new">This attribute is only used when `rel="preload"` or `rel="prefetch"` has been set on the `&lt;link&gt;` element. It specifies the type of content being loaded by the `&lt;link&gt;`, which is necessary for content prioritization, request matching, application of correct [content security policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), and setting of correct [`Accept`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept "The Accept request HTTP header advertises which content types, expressed as MIME types, the client is able to understand. Using content negotiation, the server then selects one of the proposals, uses it and informs the client of its choice with the Content-Type response header. Browsers set adequate values for this header depending on the context where the request is done: when fetching a CSS stylesheet a different value is set for the request than when fetching an image, video or a script.") request header.</target>
+        <target state="translated">この属性は、`rel="preload"` または `rel="prefetch"` が `&lt;link&gt;` 要素に設定されている場合にのみ使用されます。これは、`&lt;link&gt;` によって読み込まれるコンテンツの種類を指定するものであり、コンテンツの優先順位付け、要求の照合、適切な [コンテンツセキュリティポリシー](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)の適用、および正しい [`Accept`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept "Accept 要求 HTTP ヘッダーは、クライアントが理解できるコンテンツ タイプ (MIMEタイプで表現) を通知します。サーバーはコンテンツ ネゴシエーションを使用して提案の中から 1 つを選択し、それを使用するとともに、Content-Type 応答ヘッダーでその選択をクライアントに通知します。ブラウザーは、要求が行われる状況に応じて、このヘッダーに適切な値を設定します。たとえば、CSS スタイルシートを取得する場合と、画像、動画、またはスクリプトを取得する場合では、要求に設定される値が異なります。") 要求ヘッダー。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_async">
@@ -132,12 +132,12 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocorrect">
         <source>Controls whether autocorrection of editable text is enabled for spelling and/or punctuation errors.</source>
-        <target state="new">Controls whether autocorrection of editable text is enabled for spelling and/or punctuation errors.</target>
+        <target state="translated">編集可能なテキストのオートコレクトをスペル ミスや句読点エラーに対して有効にするかどうかを制御します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autofocus">
         <source>Indicates that an element should be focused on page load, or when the [`&lt;dialog&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/dialog) that it is part of is displayed.</source>
-        <target state="new">Indicates that an element should be focused on page load, or when the [`&lt;dialog&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/dialog) that it is part of is displayed.</target>
+        <target state="translated">要素がページの読み込みに集中する必要があることを示します。または、その要素が含まれている [`&lt;dialog&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/dialog) が表示される場合です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_axis">
@@ -188,27 +188,27 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
       </trans-unit>
       <trans-unit id="HtmlAttribute_cite">
         <source>A URL that designates a source document or message for the information quoted. This attribute is intended to point to information explaining the context or the reference for the quote.</source>
-        <target state="new">A URL that designates a source document or message for the information quoted. This attribute is intended to point to information explaining the context or the reference for the quote.</target>
+        <target state="translated">引用された情報のソース ドキュメントまたはメッセージを指定する URL。この属性は、引用符のコンテキストまたは参照を説明する情報を指すことを目的としています。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_class">
         <source>A space-separated list of the classes of the element. Classes allows CSS and JavaScript to select and access specific elements via the [class selectors](https://developer.mozilla.org/docs/Web/CSS/Class_selectors) or functions like the method [`Document.getElementsByClassName()`](https://developer.mozilla.org/docs/Web/API/Document/getElementsByClassName "returns an array-like object of all child elements which have all of the given class names.").</source>
-        <target state="new">A space-separated list of the classes of the element. Classes allows CSS and JavaScript to select and access specific elements via the [class selectors](https://developer.mozilla.org/docs/Web/CSS/Class_selectors) or functions like the method [`Document.getElementsByClassName()`](https://developer.mozilla.org/docs/Web/API/Document/getElementsByClassName "returns an array-like object of all child elements which have all of the given class names.").</target>
+        <target state="translated">要素のクラス名をスペース区切りで列挙したリスト。クラスを使用することで、CSS や JavaScript は [class selectors](https://developer.mozilla.org/docs/Web/CSS/Class_selectors) や [`Document.getElementsByClassName()`](https://developer.mozilla.org/docs/Web/API/Document/getElementsByClassName "のようなメソッドを通じて、特定の要素を選択・参照することができます。指定されたすべてのクラス名を持つすべての子要素の配列のようなオブジェクトを返します。")。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_classid">
         <source>The URI of the object's implementation. It can be used together with, or in place of, the **data** attribute.</source>
-        <target state="new">The URI of the object's implementation. It can be used together with, or in place of, the **data** attribute.</target>
+        <target state="translated">オブジェクトの実装の URI。**data** 属性と一緒に、または **data** 属性の代わりに使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_cols">
         <source>The visible width of the text control, in average character widths. If it is specified, it must be a positive integer. If it is not specified, the default value is `20`.</source>
-        <target state="new">The visible width of the text control, in average character widths. If it is specified, it must be a positive integer. If it is not specified, the default value is `20`.</target>
+        <target state="translated">テキスト コントロールの表示幅 (平均文字幅)。指定する場合は、正の整数である必要があります。指定しない場合、既定値は `20` です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_content">
         <source>This attribute contains the value for the [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`name`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-name) attribute, depending on which is used.</source>
-        <target state="new">This attribute contains the value for the [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`name`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-name) attribute, depending on which is used.</target>
+        <target state="translated">この属性には、[`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) 属性または [`name`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-name) 属性の値が含まれています。どちらが使用されているかに応じて異なります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_contenteditable">
@@ -224,7 +224,7 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
       </trans-unit>
       <trans-unit id="HtmlAttribute_contextmenu">
         <source>The `[**id**](#attr-id)` of a [`&lt;menu&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/menu "The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.") to use as the contextual menu for this element.</source>
-        <target state="new">The `[**id**](#attr-id)` of a [`&lt;menu&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/menu "The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.") to use as the contextual menu for this element.</target>
+        <target state="translated">[`&lt;menu&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/menu "HTMLの&lt;menu&gt;要素は、ユーザーが実行または起動できる一連のコマンドを表します。これには、画面上部に表示されるリストメニューや、ボタンがクリックされた後にその下に表示されるようなコンテキストメニューなどが含まれます。") の`[**id**](#attr-id)`を、この要素のコンテキストメニューとして使用します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_crossorigin">
@@ -254,17 +254,17 @@ If the attribute is not present, the resource is fetched without a [CORS](https:
       </trans-unit>
       <trans-unit id="HtmlAttribute_csp">
         <source>A [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) enforced for the embedded resource. See [`HTMLIFrameElement.csp`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/csp "The csp property of the HTMLIFrameElement interface specifies the Content Security Policy that an embedded document must agree to enforce upon itself.") for details.</source>
-        <target state="new">A [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) enforced for the embedded resource. See [`HTMLIFrameElement.csp`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/csp "The csp property of the HTMLIFrameElement interface specifies the Content Security Policy that an embedded document must agree to enforce upon itself.") for details.</target>
+        <target state="translated">埋め込みリソースに適用される [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) です。詳細については、[`HTMLIFrameElement.csp`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/csp "HTMLIFrameElement インターフェイスの csp プロパティは、埋め込みドキュメントが自身に適用することに同意する必要があるコンテンツ セキュリティ ポリシーを指定します。") を参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_data">
         <source>The address of the resource as a valid URL. At least one of **data** and **type** must be defined.</source>
-        <target state="new">The address of the resource as a valid URL. At least one of **data** and **type** must be defined.</target>
+        <target state="translated">有効な URL としてのリソースのアドレス。**data** と **type** のうち少なくとも 1 つを定義する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_datetime">
         <source>This attribute indicates the time and/or date of the element and must be in one of the formats described below.</source>
-        <target state="new">This attribute indicates the time and/or date of the element and must be in one of the formats described below.</target>
+        <target state="translated">この属性は要素の時刻または日付を示し、以下で説明する形式のいずれかである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_decoding">
@@ -296,7 +296,7 @@ Default mode, which indicates no preference for the decoding mode. The browser d
       </trans-unit>
       <trans-unit id="HtmlAttribute_default">
         <source>This attribute indicates that the track should be enabled unless the user's preferences indicate that another track is more appropriate. This may only be used on one `track` element per media element.</source>
-        <target state="new">This attribute indicates that the track should be enabled unless the user's preferences indicate that another track is more appropriate. This may only be used on one `track` element per media element.</target>
+        <target state="translated">この属性は、ユーザーの設定が別のトラックの方が適切であることを示していない限り、トラックを有効にする必要があることを示します。これは、メディア要素ごとに 1 つの `track` 要素でのみ使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_defer">
@@ -331,7 +331,7 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
       </trans-unit>
       <trans-unit id="HtmlAttribute_disabled">
         <source>If this Boolean attribute is set, all form controls that are descendants of the `&lt;fieldset&gt;`, are disabled, meaning they are not editable and won't be submitted along with the `&lt;form&gt;`. They won't receive any browsing events, like mouse clicks or focus-related events. By default browsers display such controls grayed out. Note that form elements inside the [`&lt;legend&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend "The HTML &lt;legend&gt; element represents a caption for the content of its parent &lt;fieldset&gt;.") element won't be disabled.</source>
-        <target state="new">If this Boolean attribute is set, all form controls that are descendants of the `&lt;fieldset&gt;`, are disabled, meaning they are not editable and won't be submitted along with the `&lt;form&gt;`. They won't receive any browsing events, like mouse clicks or focus-related events. By default browsers display such controls grayed out. Note that form elements inside the [`&lt;legend&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend "The HTML &lt;legend&gt; element represents a caption for the content of its parent &lt;fieldset&gt;.") element won't be disabled.</target>
+        <target state="translated">このブール型属性が設定されている場合、`&lt;fieldset&gt;` の子孫であるすべてのフォーム コントロールは無効になります。つまり、編集できず、`&lt;form&gt;` と共に送信されることはありません。マウス クリックやフォーカス関連のイベントなど、閲覧イベントは受信されません。既定で、ブラウザーではこのようなコントロールが淡色表示されます。なお、[`&lt;legend&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend "HTML の &lt;legend&gt; 要素は、親要素である &lt;fieldset&gt; の内容に対するキャプションを表します。") 要素内のフォーム要素は無効化されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_download">
@@ -396,17 +396,17 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
       </trans-unit>
       <trans-unit id="HtmlAttribute_enterkeyhint">
         <source>An enumerated attribute defining what action label (or icon) to present for the enter key on virtual keyboards.</source>
-        <target state="new">An enumerated attribute defining what action label (or icon) to present for the enter key on virtual keyboards.</target>
+        <target state="translated">仮想キーボードの Enter キーに表示するアクション ラベル (またはアイコン) を定義する列挙属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_exportparts">
         <source>Used to transitively export shadow parts from a nested shadow tree into a containing light tree.</source>
-        <target state="new">Used to transitively export shadow parts from a nested shadow tree into a containing light tree.</target>
+        <target state="translated">入れ子になったシャドウ ツリーから含まれるライト ツリーにシャドウ パーツを推移的にエクスポートするために使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_fetchpriority">
         <source>Provides a hint of the relative priority to use when fetching the image.</source>
-        <target state="new">Provides a hint of the relative priority to use when fetching the image.</target>
+        <target state="translated">画像をフェッチするときに使用する相対的な優先順位のヒントを提供します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_for">
@@ -420,12 +420,12 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
       </trans-unit>
       <trans-unit id="HtmlAttribute_form">
         <source>The form element, if any, that the object element is associated with (its _form owner_). The value of the attribute must be an ID of a [`&lt;form&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form "The HTML &lt;form&gt; element represents a document section that contains interactive controls for submitting information to a web server.") element in the same document.</source>
-        <target state="new">The form element, if any, that the object element is associated with (its _form owner_). The value of the attribute must be an ID of a [`&lt;form&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form "The HTML &lt;form&gt; element represents a document section that contains interactive controls for submitting information to a web server.") element in the same document.</target>
+        <target state="translated">オブジェクト要素が関連付けられているフォーム要素 (存在する場合) (its_form owner_)。属性の値は、同じドキュメント内の [`&lt;form&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form "THE HTML &lt;form&gt; 要素は、Web サーバーに情報を送信するための対話型コントロールを含むドキュメント セクションを表します"。) 要素である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formaction">
         <source>The URI of a program that processes the information submitted by the button. If specified, it overrides the [`action`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-action) attribute of the button's form owner.</source>
-        <target state="new">The URI of a program that processes the information submitted by the button. If specified, it overrides the [`action`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-action) attribute of the button's form owner.</target>
+        <target state="translated">ボタンによって送信された情報を処理するプログラムの URI。指定すると、ボタンのフォーム所有者の [`action`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-action) 属性がオーバーライドされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formenctype">
@@ -462,7 +462,7 @@ If specified, this attribute overrides the [`method`](https://developer.mozilla.
       </trans-unit>
       <trans-unit id="HtmlAttribute_formnovalidate">
         <source>If the button is a submit button, this Boolean attribute specifies that the form is not to be validated when it is submitted. If this attribute is specified, it overrides the [`novalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-novalidate) attribute of the button's form owner.</source>
-        <target state="new">If the button is a submit button, this Boolean attribute specifies that the form is not to be validated when it is submitted. If this attribute is specified, it overrides the [`novalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-novalidate) attribute of the button's form owner.</target>
+        <target state="translated">ボタンが送信ボタンの場合、このブール型属性は、送信時にフォームを検証しないことを指定します。この属性を指定すると、ボタンのフォーム所有者の [`novalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-novalidate) 属性がオーバーライドされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formtarget">
@@ -482,27 +482,27 @@ If specified, this attribute overrides the [`method`](https://developer.mozilla.
       </trans-unit>
       <trans-unit id="HtmlAttribute_height">
         <source>The intrinsic height of the image in pixels.</source>
-        <target state="new">The intrinsic height of the image in pixels.</target>
+        <target state="translated">画像の組み込み関数の高さ (ピクセル単位)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_hidden">
         <source>A Boolean attribute indicates that the element is not yet, or is no longer, _relevant_. For example, it can be used to hide elements of the page that can't be used until the login process has been completed. The browser won't render such elements. This attribute must not be used to hide content that could legitimately be shown.</source>
-        <target state="new">A Boolean attribute indicates that the element is not yet, or is no longer, _relevant_. For example, it can be used to hide elements of the page that can't be used until the login process has been completed. The browser won't render such elements. This attribute must not be used to hide content that could legitimately be shown.</target>
+        <target state="translated">ブール型属性は、要素がまだ _relevant_ でないことを示します。たとえば、ログイン プロセスが完了するまで使用できないページの要素を非表示にするために使用できます。ブラウザーでは、このような要素はレンダリングされません。この属性を使用して、正当に表示される可能性のあるコンテンツを非表示にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_high">
         <source>The lower numeric bound of the high end of the measured range. This must be less than the maximum value (`max` attribute), and it also must be greater than the low value and minimum value (`low` attribute and **min** attribute, respectively), if any are specified. If unspecified, or if greater than the maximum value, the `high` value is equal to the maximum value.</source>
-        <target state="new">The lower numeric bound of the high end of the measured range. This must be less than the maximum value (`max` attribute), and it also must be greater than the low value and minimum value (`low` attribute and **min** attribute, respectively), if any are specified. If unspecified, or if greater than the maximum value, the `high` value is equal to the maximum value.</target>
+        <target state="translated">測定範囲の上限の下限の数値。これは最大値 (`max` 属性) より小さくする必要があります。また、指定されている場合は、低い値と最小値 (それぞれ `low` 属性と **min** 属性) よりも大きくする必要があります。指定しない場合、または最大値より大きい場合、`high` 値は最大値と等しくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_href">
         <source>The base URL to be used throughout the document for relative URL addresses. If this attribute is specified, this element must come before any other elements with attributes whose values are URLs. Absolute and relative URLs are allowed.</source>
-        <target state="new">The base URL to be used throughout the document for relative URL addresses. If this attribute is specified, this element must come before any other elements with attributes whose values are URLs. Absolute and relative URLs are allowed.</target>
+        <target state="translated">ドキュメント全体で相対 URL アドレスに使用されるベース URL。この属性を指定する場合、この要素は、値が URL である属性を持つ他の要素の前に存在する必要があります。絶対 URL と相対 URL が許可されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_hreflang">
         <source>This attribute indicates the language of the linked resource. It is purely advisory. Allowed values are determined by [BCP47](https://www.ietf.org/rfc/bcp/bcp47.txt). Use this attribute only if the [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute is present.</source>
-        <target state="new">This attribute indicates the language of the linked resource. It is purely advisory. Allowed values are determined by [BCP47](https://www.ietf.org/rfc/bcp/bcp47.txt). Use this attribute only if the [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute is present.</target>
+        <target state="translated">この属性は、リンクされたリソースの言語を示します。純粋にアドバイザリです。使用できる値は [BCP47](https://www.ietf.org/rfc/bcp/bcp47.txt) によって決まります。この属性は、[`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) 属性が存在する場合にのみ使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_http-equiv">
@@ -558,27 +558,27 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
       </trans-unit>
       <trans-unit id="HtmlAttribute_id">
         <source>Defines a unique identifier (ID) which must be unique in the whole document. Its purpose is to identify the element when linking (using a fragment identifier), scripting, or styling (with CSS).</source>
-        <target state="new">Defines a unique identifier (ID) which must be unique in the whole document. Its purpose is to identify the element when linking (using a fragment identifier), scripting, or styling (with CSS).</target>
+        <target state="translated">ドキュメント全体で一意である必要がある一意識別子 (ID) を定義します。その目的は、リンク (フラグメント識別子を使用)、スクリプト作成、またはスタイル設定 (CSS を使用) するときに要素を識別することです。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_inert">
         <source>Indicates that the element and all of its flat tree descendants become _inert_. Modal `&lt;dialog&gt;`s generated with [`showModal()`](https://developer.mozilla.org/docs/Web/API/HTMLDialogElement/showModal) escape inertness, meaning that they don't inherit inertness from their ancestors, but can only be made inert by having the `inert` attribute explicitly set on themselves.</source>
-        <target state="new">Indicates that the element and all of its flat tree descendants become _inert_. Modal `&lt;dialog&gt;`s generated with [`showModal()`](https://developer.mozilla.org/docs/Web/API/HTMLDialogElement/showModal) escape inertness, meaning that they don't inherit inertness from their ancestors, but can only be made inert by having the `inert` attribute explicitly set on themselves.</target>
+        <target state="translated">要素とそのフラット ツリーのすべての子孫が _wav_ になることを示します。モーダル `&lt;dialog&gt;` は [`showModal()`](https://developer.mozilla.org/docs/Web/API/HTMLDialogElement/showModal) エスケープの分離性で生成されます。つまり、先祖から継承するのではなく、`inert` 属性を明示的に設定することによってのみ、それらを作成できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_inputmode">
         <source>Provides a hint to browsers as to the type of virtual keyboard configuration to use when editing this element or its contents. Used primarily on [`&lt;input&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") elements, but is usable on any element while in `[contenteditable](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-contenteditable)` mode.</source>
-        <target state="new">Provides a hint to browsers as to the type of virtual keyboard configuration to use when editing this element or its contents. Used primarily on [`&lt;input&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") elements, but is usable on any element while in `[contenteditable](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-contenteditable)` mode.</target>
+        <target state="translated">この要素またはその内容を編集するときに使用する仮想キーボード構成の種類に関するヒントをブラウザーに提供します。主に [`&lt;input&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/input "HTML &lt;input&gt; 要素は、ユーザーからのデータを受け入れるように Web ベースのフォームの対話型コントロールを作成するために使用されます。デバイスとユーザー エージェントに応じて、さまざまな種類の入力データと制御ウィジェットを使用できます。") 要素ですが、`[contenteditable](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-contenteditable)` モードの間は任意の要素で使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_integrity">
         <source>Contains inline metadata — a base64-encoded cryptographic hash of the resource (file) you’re telling the browser to fetch. The browser can use this to verify that the fetched resource has been delivered free of unexpected manipulation. See [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).</source>
-        <target state="new">Contains inline metadata — a base64-encoded cryptographic hash of the resource (file) you’re telling the browser to fetch. The browser can use this to verify that the fetched resource has been delivered free of unexpected manipulation. See [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).</target>
+        <target state="translated">ブラウザーにフェッチを指示 — リソース (ファイル) の base64 エンコード暗号化ハッシュ’インライン メタデータが含まれます。ブラウザーはこれを使用して、フェッチされたリソースが予期しない操作を行わなく配信されたことを確認できます。「[Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity)」を参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_is">
         <source>Allows you to specify that a standard HTML element should behave like a registered custom built-in element (see [Using custom elements](https://developer.mozilla.org/docs/Web/Web_Components/Using_custom_elements) for more details).</source>
-        <target state="new">Allows you to specify that a standard HTML element should behave like a registered custom built-in element (see [Using custom elements](https://developer.mozilla.org/docs/Web/Web_Components/Using_custom_elements) for more details).</target>
+        <target state="translated">標準 HTML 要素が登録済みのカスタム組み込み要素のように動作するように指定できます (詳細については、「[カスタム要素の使用](https://developer.mozilla.org/docs/Web/Web_Components/Using_custom_elements)"」を参照してください)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ismap">
@@ -592,27 +592,27 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemid">
         <source>The unique, global identifier of an item.</source>
-        <target state="new">The unique, global identifier of an item.</target>
+        <target state="translated">項目の一意のグローバル識別子。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemprop">
         <source>Used to add properties to an item. Every HTML element may have an `itemprop` attribute specified, where an `itemprop` consists of a name and value pair.</source>
-        <target state="new">Used to add properties to an item. Every HTML element may have an `itemprop` attribute specified, where an `itemprop` consists of a name and value pair.</target>
+        <target state="translated">アイテムにプロパティを追加するために使用します。すべての HTML 要素に `itemprop` 属性を指定できます。ここで、`itemprop` は名前と値のペアで構成されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemref">
         <source>Properties that are not descendants of an element with the `itemscope` attribute can be associated with the item using an `itemref`. It provides a list of element ids (not `itemid`s) with additional properties elsewhere in the document.</source>
-        <target state="new">Properties that are not descendants of an element with the `itemscope` attribute can be associated with the item using an `itemref`. It provides a list of element ids (not `itemid`s) with additional properties elsewhere in the document.</target>
+        <target state="translated">`itemscope` 属性を持つ要素の子孫ではないプロパティは、`itemref` を使用して項目に関連付けることができます。ドキュメント内の他の場所に追加のプロパティを含む要素 ID (`itemid` ではない) の一覧が提供されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemscope">
         <source>`itemscope` (usually) works along with `[itemtype](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemtype)` to specify that the HTML contained in a block is about a particular item. `itemscope` creates the Item and defines the scope of the `itemtype` associated with it. `itemtype` is a valid URL of a vocabulary (such as [schema.org](https://schema.org/)) that describes the item and its properties context.</source>
-        <target state="new">`itemscope` (usually) works along with `[itemtype](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemtype)` to specify that the HTML contained in a block is about a particular item. `itemscope` creates the Item and defines the scope of the `itemtype` associated with it. `itemtype` is a valid URL of a vocabulary (such as [schema.org](https://schema.org/)) that describes the item and its properties context.</target>
+        <target state="translated">`itemscope` (通常) は `[itemtype](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemtype)` と共に動作し、ブロックに含まれる HTML が特定の項目に関することを指定します。`itemscope` は Item を作成し、それに関連付けられている `itemtype` のスコープを定義します。`itemtype` は、アイテムとそのプロパティ コンテキストを記述するボキャブラリ ([schema.org](https://schema.org/)) の有効な URL です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemtype">
         <source>Specifies the URL of the vocabulary that will be used to define `itemprop`s (item properties) in the data structure. `[itemscope](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemscope)` is used to set the scope of where in the data structure the vocabulary set by `itemtype` will be active.</source>
-        <target state="new">Specifies the URL of the vocabulary that will be used to define `itemprop`s (item properties) in the data structure. `[itemscope](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemscope)` is used to set the scope of where in the data structure the vocabulary set by `itemtype` will be active.</target>
+        <target state="translated">データ構造で `itemprop` の (項目プロパティ) を定義するために使用されるボキャブラリの URL を指定します。`[itemscope](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemscope)` は、`itemtype` によって設定されたボキャブラリがアクティブになるデータ構造内の場所のスコープを設定するために使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_kind">
@@ -652,37 +652,37 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
         <source>A user-readable title of the text track which is used by the browser when listing available text tracks.</source>
-        <target state="new">A user-readable title of the text track which is used by the browser when listing available text tracks.</target>
+        <target state="translated">使用可能なテキスト トラックを一覧表示するときにブラウザーによって使用されるテキスト トラックのユーザーが読み取り可能なタイトル。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_lang">
         <source>Helps define the language of an element: the language that non-editable elements are in, or the language that editable elements should be written in by the user. The attribute contains one “language tag” (made of hyphen-separated “language subtags”) in the format defined in [_Tags for Identifying Languages (BCP47)_](https://www.ietf.org/rfc/bcp/bcp47.txt). [**xml:lang**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/lang#attr-xml:lang) has priority over it.</source>
-        <target state="new">Helps define the language of an element: the language that non-editable elements are in, or the language that editable elements should be written in by the user. The attribute contains one “language tag” (made of hyphen-separated “language subtags”) in the format defined in [_Tags for Identifying Languages (BCP47)_](https://www.ietf.org/rfc/bcp/bcp47.txt). [**xml:lang**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/lang#attr-xml:lang) has priority over it.</target>
+        <target state="translated">要素の言語を定義するのに役立ちます。編集できない要素がある言語、または編集可能な要素をユーザーが記述する必要がある言語です。属性には、1 つの “言語タグ” ([_Tags for Identifying Languages (BCP47)_](https://www.ietf.org/rfc/bcp/bcp47.txt) で定義されている形式のハイフン区切りの “言語サブタグ”) が 1 つ含まれています。[**xml:lang**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/lang#attr-xml:lang) の方が優先されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_loading">
         <source>Indicates how the browser should load the image.</source>
-        <target state="new">Indicates how the browser should load the image.</target>
+        <target state="translated">ブラウザーで画像を読み込む方法を示します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_low">
         <source>The upper numeric bound of the low end of the measured range. This must be greater than the minimum value (`min` attribute), and it also must be less than the high value and maximum value (`high` attribute and `max` attribute, respectively), if any are specified. If unspecified, or if less than the minimum value, the `low` value is equal to the minimum value.</source>
-        <target state="new">The upper numeric bound of the low end of the measured range. This must be greater than the minimum value (`min` attribute), and it also must be less than the high value and maximum value (`high` attribute and `max` attribute, respectively), if any are specified. If unspecified, or if less than the minimum value, the `low` value is equal to the minimum value.</target>
+        <target state="translated">測定範囲の下限の上限の数値。最小値 (`min` 属性) より大きくする必要があります。また、指定されている場合は、高い値と最大値 (それぞれ `high` 属性と `max` 属性) より小さくする必要があります。指定しない場合、または最小値より小さい場合、`low` 値は最小値と等しくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_manifest">
         <source>Specifies the URI of a resource manifest indicating resources that should be cached locally. See [Using the application cache](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache) for details.</source>
-        <target state="new">Specifies the URI of a resource manifest indicating resources that should be cached locally. See [Using the application cache](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache) for details.</target>
+        <target state="translated">ローカルにキャッシュする必要があるリソースを示すリソース マニフェストの URI を指定します。詳細については、[アプリケーション キャッシュの使用](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache) を参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_max">
         <source>This attribute describes how much work the task indicated by the `progress` element requires. The `max` attribute, if present, must have a value greater than zero and be a valid floating point number. The default value is 1.</source>
-        <target state="new">This attribute describes how much work the task indicated by the `progress` element requires. The `max` attribute, if present, must have a value greater than zero and be a valid floating point number. The default value is 1.</target>
+        <target state="translated">この属性は、`progress` 要素によって示されるタスクに必要な作業量を表します。`max` 属性 (存在する場合) には、0 より大きい値を指定し、有効な浮動小数点数を指定する必要があります。既定値は 1 です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_maxlength">
         <source>The maximum number of characters (unicode code points) that the user can enter. If this value isn't specified, the user can enter an unlimited number of characters.</source>
-        <target state="new">The maximum number of characters (unicode code points) that the user can enter. If this value isn't specified, the user can enter an unlimited number of characters.</target>
+        <target state="translated">ユーザーが入力できる最大文字数 (Unicode コード ポイント)。この値を指定しない場合、ユーザーは無制限の文字数を入力できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_media">
@@ -719,17 +719,17 @@ This value can be overridden by a [`formmethod`](https://developer.mozilla.org/e
       </trans-unit>
       <trans-unit id="HtmlAttribute_min">
         <source>The lower numeric bound of the measured range. This must be less than the maximum value (`max` attribute), if specified. If unspecified, the minimum value is 0.</source>
-        <target state="new">The lower numeric bound of the measured range. This must be less than the maximum value (`max` attribute), if specified. If unspecified, the minimum value is 0.</target>
+        <target state="translated">測定範囲の下限の数値。指定する場合は、最大値 (`max` 属性) より小さくする必要があります。指定しない場合、最小値は 0 です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_minlength">
         <source>The minimum number of characters (unicode code points) required that the user should enter.</source>
-        <target state="new">The minimum number of characters (unicode code points) required that the user should enter.</target>
+        <target state="translated">ユーザーが入力する必要がある最小文字数 (Unicode コード ポイント)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_multiple">
         <source>This Boolean attribute indicates that multiple options can be selected in the list. If it is not specified, then only one option can be selected at a time. When `multiple` is specified, most browsers will show a scrolling list box instead of a single line dropdown.</source>
-        <target state="new">This Boolean attribute indicates that multiple options can be selected in the list. If it is not specified, then only one option can be selected at a time. When `multiple` is specified, most browsers will show a scrolling list box instead of a single line dropdown.</target>
+        <target state="translated">このブール値属性は、一覧で複数のオプションを選択できることを示します。指定されていない場合は、一度に 1 つのオプションのみを選択できます。`multiple` を指定すると、ほとんどのブラウザーでは、1 行のドロップダウンではなくスクロール リスト ボックスが表示されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_name">
@@ -1153,362 +1153,362 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_nomodule">
         <source>This Boolean attribute is set to indicate that the script should not be executed in browsers that support [ES2015 modules](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/) — in effect, this can be used to serve fallback scripts to older browsers that do not support modular JavaScript code.</source>
-        <target state="new">This Boolean attribute is set to indicate that the script should not be executed in browsers that support [ES2015 modules](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/) — in effect, this can be used to serve fallback scripts to older browsers that do not support modular JavaScript code.</target>
+        <target state="translated">このブール型属性は、[ES2015 モジュール](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/) をサポートするブラウザーではスクリプトを実行しないことを示すように設定されています。この属性を使用すると、モジュール型 JavaScript コードをサポートしていない古いブラウザーにフォールバック スクリプトを提供できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_nonce">
         <source>A cryptographic nonce (number used once) used to allow inline styles in a [style-src Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src). The server must generate a unique nonce value each time it transmits a policy. It is critical to provide a nonce that cannot be guessed as bypassing a resource’s policy is otherwise trivial.</source>
-        <target state="new">A cryptographic nonce (number used once) used to allow inline styles in a [style-src Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src). The server must generate a unique nonce value each time it transmits a policy. It is critical to provide a nonce that cannot be guessed as bypassing a resource’s policy is otherwise trivial.</target>
+        <target state="translated">[style-src Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src) においてインライン スタイルを許可するために使用される暗号の nonce (1 回限りの数値)。サーバーは、ポリシーを送信するたびに一意の nonce 値を生成する必要があります。nonce が推測できないようにすることは極めて重要です。そうでなければ、リソースのポリシーを回避することが容易になってしまうためです。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_novalidate">
         <source>This Boolean attribute indicates that the form is not to be validated when submitted. If this attribute is not specified (and therefore the form is validated), this default setting can be overridden by a [`formnovalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formnovalidate) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element belonging to the form.</source>
-        <target state="new">This Boolean attribute indicates that the form is not to be validated when submitted. If this attribute is not specified (and therefore the form is validated), this default setting can be overridden by a [`formnovalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formnovalidate) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element belonging to the form.</target>
+        <target state="translated">このブール型属性は、フォームの送信時に検証を行わないことを示します。この属性が指定されていない場合 (つまり、フォームの検証が行われる場合)、この既定の設定は、[`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML の &lt;button&gt; 要素は、クリック可能なボタンを表します。これは、フォームや、単純で標準的なボタン機能が必要なドキュメント内のあらゆる場所で使用できます。") の [`formnovalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button# attr-formnovalidate) 属性によってオーバーライドされる可能性があります。または、フォームに属する [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML の &lt;input&gt; 要素は、ユーザーからのデータを受け取るために Web ベースのフォーム用の対話型コントロールを作成するために使用されます。デバイスやユーザー エージェントに応じて、多種多様な入力データやコントロール ウィジェットが利用可能です。") 要素に対して設定されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onabort">
         <source>The loading of a resource has been aborted.</source>
-        <target state="new">The loading of a resource has been aborted.</target>
+        <target state="translated">リソースの読み込みが中止されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onafterprint">
         <source>Function to call after the user has printed the document.</source>
-        <target state="new">Function to call after the user has printed the document.</target>
+        <target state="translated">ユーザーがドキュメントを印刷した後に呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onbeforeprint">
         <source>Function to call when the user requests printing of the document.</source>
-        <target state="new">Function to call when the user requests printing of the document.</target>
+        <target state="translated">ユーザーがドキュメントの印刷を要求したときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onbeforeunload">
         <source>Function to call when the document is about to be unloaded.</source>
-        <target state="new">Function to call when the document is about to be unloaded.</target>
+        <target state="translated">ドキュメントがアンロードされようとしているときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onblur">
         <source>An element has lost focus (does not bubble).</source>
-        <target state="new">An element has lost focus (does not bubble).</target>
+        <target state="translated">要素がフォーカスを失いました (バブルにはなりません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oncanplay">
         <source>The user agent can play the media, but estimates that not enough data has been loaded to play the media up to its end without having to stop for further buffering of content.</source>
-        <target state="new">The user agent can play the media, but estimates that not enough data has been loaded to play the media up to its end without having to stop for further buffering of content.</target>
+        <target state="translated">ユーザー エージェントはメディアを再生できますが、コンテンツをさらにバッファリングするために停止することなく、メディアを最後まで再生するのに十分なデータが読み込まれていないと見積もります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oncanplaythrough">
         <source>The user agent can play the media up to its end without having to stop for further buffering of content.</source>
-        <target state="new">The user agent can play the media up to its end without having to stop for further buffering of content.</target>
+        <target state="translated">ユーザー エージェントは、コンテンツをさらにバッファリングするために停止することなく、メディアを最後まで再生できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onchange">
         <source>The change event is fired for &lt;input&gt;, &lt;select&gt;, and &lt;textarea&gt; elements when a change to the element's value is committed by the user.</source>
-        <target state="new">The change event is fired for &lt;input&gt;, &lt;select&gt;, and &lt;textarea&gt; elements when a change to the element's value is committed by the user.</target>
+        <target state="translated">&lt;input&gt;、&lt;select&gt;、&lt;textarea&gt; 要素の値への変更がユーザーによってコミットされると、変更イベントが発生します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onclick">
         <source>A pointing device button has been pressed and released on an element.</source>
-        <target state="new">A pointing device button has been pressed and released on an element.</target>
+        <target state="translated">ポインティング デバイス ボタンが押され、要素上で離されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oncontextmenu">
         <source>The right button of the mouse is clicked (before the context menu is displayed).</source>
-        <target state="new">The right button of the mouse is clicked (before the context menu is displayed).</target>
+        <target state="translated">マウスの右ボタンがクリックされます (コンテキスト メニューが表示される前)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondblclick">
         <source>A pointing device button is clicked twice on an element.</source>
-        <target state="new">A pointing device button is clicked twice on an element.</target>
+        <target state="translated">要素でポインティング デバイス ボタンが 2 回クリックされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondrag">
         <source>An element or text selection is being dragged (every 350ms).</source>
-        <target state="new">An element or text selection is being dragged (every 350ms).</target>
+        <target state="translated">要素またはテキストの選択をドラッグしています (350 ミリ秒ごと)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragend">
         <source>A drag operation is being ended (by releasing a mouse button or hitting the escape key).</source>
-        <target state="new">A drag operation is being ended (by releasing a mouse button or hitting the escape key).</target>
+        <target state="translated">ドラッグ操作を終了しています (マウス ボタンを離すか、エスケープ キーを押します)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragenter">
         <source>A dragged element or text selection enters a valid drop target.</source>
-        <target state="new">A dragged element or text selection enters a valid drop target.</target>
+        <target state="translated">ドラッグされた要素またはテキストの選択は、有効なドロップ ターゲットを入力します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragleave">
         <source>A dragged element or text selection leaves a valid drop target.</source>
-        <target state="new">A dragged element or text selection leaves a valid drop target.</target>
+        <target state="translated">ドラッグされた要素またはテキストの選択は、有効なドロップ ターゲットから離れます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragover">
         <source>An element or text selection is being dragged over a valid drop target (every 350ms).</source>
-        <target state="new">An element or text selection is being dragged over a valid drop target (every 350ms).</target>
+        <target state="translated">要素またはテキストの選択は、有効なドロップ ターゲット (350 ミリ秒ごと) の上にドラッグされています。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragstart">
         <source>The user starts dragging an element or text selection.</source>
-        <target state="new">The user starts dragging an element or text selection.</target>
+        <target state="translated">ユーザーが要素またはテキストの選択のドラッグを開始します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondrop">
         <source>An element is dropped on a valid drop target.</source>
-        <target state="new">An element is dropped on a valid drop target.</target>
+        <target state="translated">有効なドロップ ターゲットで要素が削除されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondurationchange">
         <source>The duration attribute has been updated.</source>
-        <target state="new">The duration attribute has been updated.</target>
+        <target state="translated">duration 属性が更新されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onemptied">
         <source>The media has become empty; for example, this event is sent if the media has already been loaded (or partially loaded), and the load() method is called to reload it.</source>
-        <target state="new">The media has become empty; for example, this event is sent if the media has already been loaded (or partially loaded), and the load() method is called to reload it.</target>
+        <target state="translated">メディアが空になりました。たとえば、メディアが既に読み込まれている (または部分的に読み込まれている) 場合、このイベントが送信され、load() メソッドが呼び出されて再読み込みされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onended">
         <source>Playback has stopped because the end of the media was reached.</source>
-        <target state="new">Playback has stopped because the end of the media was reached.</target>
+        <target state="translated">メディアの末尾に達したため、再生が停止しました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onerror">
         <source>A resource failed to load.</source>
-        <target state="new">A resource failed to load.</target>
+        <target state="translated">Bicep リソースを読み込めませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onfocus">
         <source>An element has received focus (does not bubble).</source>
-        <target state="new">An element has received focus (does not bubble).</target>
+        <target state="translated">要素がフォーカスを受け取りました (バブルにはなりません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onhashchange">
         <source>Function to call when the fragment identifier part (starting with the hash (`'#'`) character) of the document's current address has changed.</source>
-        <target state="new">Function to call when the fragment identifier part (starting with the hash (`'#'`) character) of the document's current address has changed.</target>
+        <target state="translated">ドキュメントの現在のアドレスのフラグメント識別子部分 (ハッシュ (`'#'`) 文字で始まる) が変更されたときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oninput">
         <source>The value of an element changes or the content of an element with the attribute contenteditable is modified.</source>
-        <target state="new">The value of an element changes or the content of an element with the attribute contenteditable is modified.</target>
+        <target state="translated">要素の値が変更されるか、属性 contenteditable を持つ要素のコンテンツが変更されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oninvalid">
         <source>A submittable element has been checked and doesn't satisfy its constraints.</source>
-        <target state="new">A submittable element has been checked and doesn't satisfy its constraints.</target>
+        <target state="translated">送信可能な要素がチェックされ、制約を満たしていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onkeydown">
         <source>A key is pressed down.</source>
-        <target state="new">A key is pressed down.</target>
+        <target state="translated">キーが押されています。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onkeypress">
         <source>A key is pressed down and that key normally produces a character value (use input instead).</source>
-        <target state="new">A key is pressed down and that key normally produces a character value (use input instead).</target>
+        <target state="translated">キーが押下され、そのキーは通常、文字値を生成します (代わりに入力を使用します)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onkeyup">
         <source>A key is released.</source>
-        <target state="new">A key is released.</target>
+        <target state="translated">キーが解放されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onload">
         <source>A resource and its dependent resources have finished loading.</source>
-        <target state="new">A resource and its dependent resources have finished loading.</target>
+        <target state="translated">リソースとその依存リソースの読み込みが完了しました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onloadeddata">
         <source>The first frame of the media has finished loading.</source>
-        <target state="new">The first frame of the media has finished loading.</target>
+        <target state="translated">メディアの最初のフレームの読み込みが完了しました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onloadedmetadata">
         <source>The metadata has been loaded.</source>
-        <target state="new">The metadata has been loaded.</target>
+        <target state="translated">メタデータが読み込まれています。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onloadstart">
         <source>Progress has begun.</source>
-        <target state="new">Progress has begun.</target>
+        <target state="translated">進行状況が開始されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmessage">
         <source>Function to call when the document has received a message.</source>
-        <target state="new">Function to call when the document has received a message.</target>
+        <target state="translated">ドキュメントがメッセージを受信したときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmousedown">
         <source>A pointing device button (usually a mouse) is pressed on an element.</source>
-        <target state="new">A pointing device button (usually a mouse) is pressed on an element.</target>
+        <target state="translated">要素でポインティング デバイス ボタン (通常はマウス) が押されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmousemove">
         <source>A pointing device is moved over an element.</source>
-        <target state="new">A pointing device is moved over an element.</target>
+        <target state="translated">ポインティング デバイスは要素の上に移動されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmouseout">
         <source>A pointing device is moved off the element that has the listener attached or off one of its children.</source>
-        <target state="new">A pointing device is moved off the element that has the listener attached or off one of its children.</target>
+        <target state="translated">ポインティング デバイスは、リスナーがアタッチされている要素の外、またはその子の 1 つから外されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmouseover">
         <source>A pointing device is moved onto the element that has the listener attached or onto one of its children.</source>
-        <target state="new">A pointing device is moved onto the element that has the listener attached or onto one of its children.</target>
+        <target state="translated">ポインティング デバイスは、リスナーがアタッチされている要素、またはその子の 1 つに移動されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmouseup">
         <source>A pointing device button is released over an element.</source>
-        <target state="new">A pointing device button is released over an element.</target>
+        <target state="translated">要素上でポインティング デバイス ボタンがリリースされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onoffline">
         <source>Function to call when network communication has failed.</source>
-        <target state="new">Function to call when network communication has failed.</target>
+        <target state="translated">ネットワーク通信が失敗したときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ononline">
         <source>Function to call when network communication has been restored.</source>
-        <target state="new">Function to call when network communication has been restored.</target>
+        <target state="translated">ネットワーク通信が復元されたときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onpause">
         <source>Playback has been paused.</source>
-        <target state="new">Playback has been paused.</target>
+        <target state="translated">再生が一時停止されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onplay">
         <source>Playback has begun.</source>
-        <target state="new">Playback has begun.</target>
+        <target state="translated">再生が開始されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onplaying">
         <source>Playback is ready to start after having been paused or delayed due to lack of data.</source>
-        <target state="new">Playback is ready to start after having been paused or delayed due to lack of data.</target>
+        <target state="translated">データが不足しているために一時停止または遅延した後、再生を開始する準備ができました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onpopstate">
         <source>Function to call when the user has navigated session history.</source>
-        <target state="new">Function to call when the user has navigated session history.</target>
+        <target state="translated">ユーザーがセッション履歴を移動したときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onprogress">
         <source>In progress.</source>
-        <target state="new">In progress.</target>
+        <target state="translated">処理中です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onratechange">
         <source>The playback rate has changed.</source>
-        <target state="new">The playback rate has changed.</target>
+        <target state="translated">再生速度が変更されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onreadystatechange">
         <source>The readyState attribute of a document has changed.</source>
-        <target state="new">The readyState attribute of a document has changed.</target>
+        <target state="translated">ドキュメントの readyState 属性が変更されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onredo">
         <source>Function to call when the user has moved forward in undo transaction history.</source>
-        <target state="new">Function to call when the user has moved forward in undo transaction history.</target>
+        <target state="translated">ユーザーがトランザクション履歴を元に戻したときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onreset">
         <source>A form is reset.</source>
-        <target state="new">A form is reset.</target>
+        <target state="translated">フォームがリセットされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onresize">
         <source>Function to call when the document has been resized.</source>
-        <target state="new">Function to call when the document has been resized.</target>
+        <target state="translated">ドキュメントのサイズが変更されたときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onscroll">
         <source>The document view or an element has been scrolled.</source>
-        <target state="new">The document view or an element has been scrolled.</target>
+        <target state="translated">ドキュメント ビューまたは要素がスクロールされました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onseeked">
         <source>A seek operation completed.</source>
-        <target state="new">A seek operation completed.</target>
+        <target state="translated">ロック解除操作は完了しました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onseeking">
         <source>A seek operation began.</source>
-        <target state="new">A seek operation began.</target>
+        <target state="translated">シーク操作が開始されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onselect">
         <source>Some text is being selected.</source>
-        <target state="new">Some text is being selected.</target>
+        <target state="translated">一部のテキストが選択されています。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onshow">
         <source>A contextmenu event was fired on/bubbled to an element that has a contextmenu attribute</source>
-        <target state="new">A contextmenu event was fired on/bubbled to an element that has a contextmenu attribute</target>
+        <target state="translated">contextmenu イベントが、contextmenu 属性を持つ要素に対して発生またはバブルされました</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onstalled">
         <source>The user agent is trying to fetch media data, but data is unexpectedly not forthcoming.</source>
-        <target state="new">The user agent is trying to fetch media data, but data is unexpectedly not forthcoming.</target>
+        <target state="translated">ユーザー エージェントがメディア データをフェッチしようとしていますが、予期せずデータが出てきません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onstorage">
         <source>Function to call when the storage area has changed.</source>
-        <target state="new">Function to call when the storage area has changed.</target>
+        <target state="translated">記憶域が変更されたときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onsubmit">
         <source>A form is submitted.</source>
-        <target state="new">A form is submitted.</target>
+        <target state="translated">フォームが送信されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onsuspend">
         <source>Media data loading has been suspended.</source>
-        <target state="new">Media data loading has been suspended.</target>
+        <target state="translated">メディア データの読み込みが中断されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ontimeupdate">
         <source>The time indicated by the currentTime attribute has been updated.</source>
-        <target state="new">The time indicated by the currentTime attribute has been updated.</target>
+        <target state="translated">currentTime 属性によって示される時間が更新されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onundo">
         <source>Function to call when the user has moved backward in undo transaction history.</source>
-        <target state="new">Function to call when the user has moved backward in undo transaction history.</target>
+        <target state="translated">元に戻すトランザクション履歴でユーザーが後方に移動したときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onunload">
         <source>Function to call when the document is going away.</source>
-        <target state="new">Function to call when the document is going away.</target>
+        <target state="translated">ドキュメントが消えるときに呼び出す関数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onvolumechange">
         <source>The volume has changed.</source>
-        <target state="new">The volume has changed.</target>
+        <target state="translated">ボリュームが変更されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onwaiting">
         <source>Playback has stopped because of a temporary lack of data.</source>
-        <target state="new">Playback has stopped because of a temporary lack of data.</target>
+        <target state="translated">データが一時的に不足しているため、再生が停止しました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_open">
         <source>Indicates that the dialog is active and available for interaction. When the `open` attribute is not set, the dialog shouldn't be shown to the user.</source>
-        <target state="new">Indicates that the dialog is active and available for interaction. When the `open` attribute is not set, the dialog shouldn't be shown to the user.</target>
+        <target state="translated">ダイアログがアクティブであり、対話に使用できることを示します。`open` 属性が設定されていない場合、ダイアログはユーザーに表示されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_optimum">
         <source>This attribute indicates the optimal numeric value. It must be within the range (as defined by the `min` attribute and `max` attribute). When used with the `low` attribute and `high` attribute, it gives an indication where along the range is considered preferable. For example, if it is between the `min` attribute and the `low` attribute, then the lower range is considered preferred.</source>
-        <target state="new">This attribute indicates the optimal numeric value. It must be within the range (as defined by the `min` attribute and `max` attribute). When used with the `low` attribute and `high` attribute, it gives an indication where along the range is considered preferable. For example, if it is between the `min` attribute and the `low` attribute, then the lower range is considered preferred.</target>
+        <target state="translated">この属性は、最適な数値を示します。範囲内になければなりません (`min` 属性と `max` 属性によって定義されます)。`low` 属性と `high` 属性と共に使用すると、範囲に沿った方が適していると見なされる場所が示されます。たとえば、`min` 属性と `low` 属性の間にある場合、低い範囲が優先されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_part">
         <source>A space-separated list of the part names of the element. Part names allows CSS to select and style specific elements in a shadow tree via the [`::part`](https://developer.mozilla.org/docs/Web/CSS/::part "The ::part CSS pseudo-element represents any element within a shadow tree that has a matching part attribute.") pseudo-element.</source>
-        <target state="new">A space-separated list of the part names of the element. Part names allows CSS to select and style specific elements in a shadow tree via the [`::part`](https://developer.mozilla.org/docs/Web/CSS/::part "The ::part CSS pseudo-element represents any element within a shadow tree that has a matching part attribute.") pseudo-element.</target>
+        <target state="translated">要素のパーツ名のスペース区切りのリスト。パーツ名を使用すると、CSS は [`::part`](https://developer.mozilla.org/docs/Web/CSS/::part "::p art CSS 擬似要素は、一致するパーツ属性を持つシャドウ ツリー内の任意の要素を表します。") 擬似要素を使用して、シャドウ ツリー内の特定の要素を選択およびスタイル設定できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ping">
         <source>Contains a space-separated list of URLs to which, when the hyperlink is followed, [`POST`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST "The HTTP POST method sends data to the server. The type of the body of the request is indicated by the Content-Type header.") requests with the body `PING` will be sent by the browser (in the background). Typically used for tracking.</source>
-        <target state="new">Contains a space-separated list of URLs to which, when the hyperlink is followed, [`POST`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST "The HTTP POST method sends data to the server. The type of the body of the request is indicated by the Content-Type header.") requests with the body `PING` will be sent by the browser (in the background). Typically used for tracking.</target>
+        <target state="translated">ハイパーリンクがクリックされたときに送信される URL のリスト (スペース区切り) が含まれています。[`POST`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST "HTTP POSTメソッドは、データをサーバーに送信します。リクエスト本文のタイプは Content-Type ヘッダーで指定されます。") 要求（本文は `PING`）が送信されます。通常、追跡に使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_placeholder">
@@ -1522,17 +1522,17 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_popover">
         <source>Designates an element as a popover element.</source>
-        <target state="new">Designates an element as a popover element.</target>
+        <target state="translated">要素をポップオーバー要素として指定します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_profile">
         <source>The URIs of one or more metadata profiles, separated by white space.</source>
-        <target state="new">The URIs of one or more metadata profiles, separated by white space.</target>
+        <target state="translated">空白で区切られた 1 つ以上のメタデータ プロファイルの URI。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_readonly">
         <source>This Boolean attribute indicates that the user cannot modify the value of the control. Unlike the `disabled` attribute, the `readonly` attribute does not prevent the user from clicking or selecting in the control. The value of a read-only control is still submitted with the form.</source>
-        <target state="new">This Boolean attribute indicates that the user cannot modify the value of the control. Unlike the `disabled` attribute, the `readonly` attribute does not prevent the user from clicking or selecting in the control. The value of a read-only control is still submitted with the form.</target>
+        <target state="translated">このブール値属性は、ユーザーがコントロールの値を変更できないことを示します。`disabled` 属性とは異なり、`readonly` 属性では、ユーザーがコントロールをクリックまたは選択できなくなります。読み取り専用コントロールの値は、引き続きフォームと共に送信されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_referrerpolicy">
@@ -1554,22 +1554,22 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_rel">
         <source>This attribute names a relationship of the linked document to the current document. The attribute must be a space-separated list of the [link types values](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types).</source>
-        <target state="new">This attribute names a relationship of the linked document to the current document. The attribute must be a space-separated list of the [link types values](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types).</target>
+        <target state="translated">この属性は、リンクされたドキュメントと現在のドキュメントのリレーションシップを指定します。属性は、[link types values](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types) のスペース区切りのリストである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_required">
         <source>A Boolean attribute indicating that an option with a non-empty string value must be selected.</source>
-        <target state="new">A Boolean attribute indicating that an option with a non-empty string value must be selected.</target>
+        <target state="translated">空でない文字列値を持つオプションを選択する必要があることを示すブール型属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_reversed">
         <source>This Boolean attribute specifies that the items of the list are specified in reversed order.</source>
-        <target state="new">This Boolean attribute specifies that the items of the list are specified in reversed order.</target>
+        <target state="translated">このブール型属性は、リストの項目を逆順に指定することを指定します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_rows">
         <source>The number of visible text lines for the control.</source>
-        <target state="new">The number of visible text lines for the control.</target>
+        <target state="translated">コントロールに表示されるテキスト行の数。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sandbox">
@@ -1626,7 +1626,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_selected">
         <source>If present, this Boolean attribute indicates that the option is initially selected. If the `&lt;option&gt;` element is the descendant of a [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element whose [`multiple`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select#attr-multiple) attribute is not set, only one single `&lt;option&gt;` of this [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element may have the `selected` attribute.</source>
-        <target state="new">If present, this Boolean attribute indicates that the option is initially selected. If the `&lt;option&gt;` element is the descendant of a [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element whose [`multiple`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select#attr-multiple) attribute is not set, only one single `&lt;option&gt;` of this [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element may have the `selected` attribute.</target>
+        <target state="translated">存在する場合、このブール属性は、オプションが最初に選択されていることを示します。`&lt;option&gt;` 要素が [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "HTML の &lt;select&gt; 要素は、オプションのメニューを提供するコントロールを表します") 要素の子孫である場合、かつ [`multiple`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select# attr-multiple) 属性が設定されていない場合、この [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "HTML の &lt;select&gt; 要素は、オプションのメニューを提供するコントロールを表します") 要素の 1 つの `&lt;option&gt;` のみが `selected` 属性を持つことができます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_size">
@@ -1655,7 +1655,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_slot">
         <source>Assigns a slot in a [shadow DOM](https://developer.mozilla.org/docs/Web/Web_Components/Shadow_DOM) shadow tree to an element: An element with a `slot` attribute is assigned to the slot created by the [`&lt;slot&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/slot "The HTML &lt;slot&gt; element—part of the Web Components technology suite—is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.") element whose `[name](https://developer.mozilla.org/docs/Web/HTML/Element/slot#attr-name)` attribute's value matches that `slot` attribute's value.</source>
-        <target state="new">Assigns a slot in a [shadow DOM](https://developer.mozilla.org/docs/Web/Web_Components/Shadow_DOM) shadow tree to an element: An element with a `slot` attribute is assigned to the slot created by the [`&lt;slot&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/slot "The HTML &lt;slot&gt; element—part of the Web Components technology suite—is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.") element whose `[name](https://developer.mozilla.org/docs/Web/HTML/Element/slot#attr-name)` attribute's value matches that `slot` attribute's value.</target>
+        <target state="translated">[shadow DOM](https://developer.mozilla.org/docs/Web/Web_Components/Shadow_DOM) シャドウ ツリーのスロットを要素に割り当てます: `slot` 属性を持つ要素は、[`&lt;slot&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/slot "Web Components 技術スイートの一部である HTML の &lt;slot&gt; 要素は、Web コンポーネント内のプレースホルダーであり、独自のマークアップで埋めることができます。これにより、個別の DOM ツリーを作成し、それらをまとめて表示することが可能になります。") 要素によって作成されたスロットに割り当てられます。その `[name](https://developer.mozilla.org/docs/Web/HTML/Element/slot#attr-name)` 属性の値は、その `slot` 属性の値と一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_spellcheck">
@@ -1680,12 +1680,12 @@ If a `script` element has a `src` attribute specified, it should not have a scri
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcdoc">
         <source>Inline HTML to embed, overriding the `src` attribute. If a browser does not support the `srcdoc` attribute, it will fall back to the URL in the `src` attribute.</source>
-        <target state="new">Inline HTML to embed, overriding the `src` attribute. If a browser does not support the `srcdoc` attribute, it will fall back to the URL in the `src` attribute.</target>
+        <target state="translated">埋め込むインライン HTML で、`src` 属性をオーバーライドします。ブラウザーが `srcdoc` 属性をサポートしていない場合は、`src` 属性の URL にフォールバックします。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srclang">
         <source>Language of the track text data. It must be a valid [BCP 47](https://r12a.github.io/app-subtags/) language tag. If the `kind` attribute is set to `subtitles,` then `srclang` must be defined.</source>
-        <target state="new">Language of the track text data. It must be a valid [BCP 47](https://r12a.github.io/app-subtags/) language tag. If the `kind` attribute is set to `subtitles,` then `srclang` must be defined.</target>
+        <target state="translated">トラック テキスト データの言語。有効な [BCP 47](https://r12a.github.io/app-subtags/) 言語タグである必要があります。`kind` 属性が `subtitles,` に設定されている場合は、`srclang` を定義する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcset">
@@ -1726,7 +1726,7 @@ The user agent selects any one of the available sources at its discretion. This 
       </trans-unit>
       <trans-unit id="HtmlAttribute_style">
         <source>Contains [CSS](https://developer.mozilla.org/docs/Web/CSS) styling declarations to be applied to the element. Note that it is recommended for styles to be defined in a separate file or files. This attribute and the [`&lt;style&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/style "The HTML &lt;style&gt; element contains style information for a document, or part of a document.") element have mainly the purpose of allowing for quick styling, for example for testing purposes.</source>
-        <target state="new">Contains [CSS](https://developer.mozilla.org/docs/Web/CSS) styling declarations to be applied to the element. Note that it is recommended for styles to be defined in a separate file or files. This attribute and the [`&lt;style&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/style "The HTML &lt;style&gt; element contains style information for a document, or part of a document.") element have mainly the purpose of allowing for quick styling, for example for testing purposes.</target>
+        <target state="translated">要素に適用される [CSS](https://developer.mozilla.org/docs/Web/CSS) スタイル設定宣言が含まれます。スタイルは別のファイルで定義することをお勧めします。この属性と [`&lt;style&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/style "HTML &lt;style&gt; 要素には、ドキュメントのスタイル情報またはドキュメントの一部が含まれています。") 要素には、テストなどの目的で、主にクイック スタイル設定を許可する目的があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_tabindex">
@@ -1763,7 +1763,7 @@ If this attribute is specified, this element must come before any other elements
       </trans-unit>
       <trans-unit id="HtmlAttribute_title">
         <source>Contains a text representing advisory information related to the element it belongs to. Such information can typically, but not necessarily, be presented to the user as a tooltip.</source>
-        <target state="new">Contains a text representing advisory information related to the element it belongs to. Such information can typically, but not necessarily, be presented to the user as a tooltip.</target>
+        <target state="translated">属する要素に関連するアドバイザリ情報を表すテキストが含まれます。このような情報は、通常、ヒントとしてユーザーに表示できますが、必ずしも表示されるわけではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_translate">
@@ -1779,7 +1779,7 @@ If this attribute is specified, this element must come before any other elements
       </trans-unit>
       <trans-unit id="HtmlAttribute_type">
         <source>This attribute is used to define the type of the content linked to. The value of the attribute should be a MIME type such as **text/html**, **text/css**, and so on. The common use of this attribute is to define the type of stylesheet being referenced (such as **text/css**), but given that CSS is the only stylesheet language used on the web, not only is it possible to omit the `type` attribute, but is actually now recommended practice. It is also used on `rel="preload"` link types, to make sure the browser only downloads file types that it supports.</source>
-        <target state="new">This attribute is used to define the type of the content linked to. The value of the attribute should be a MIME type such as **text/html**, **text/css**, and so on. The common use of this attribute is to define the type of stylesheet being referenced (such as **text/css**), but given that CSS is the only stylesheet language used on the web, not only is it possible to omit the `type` attribute, but is actually now recommended practice. It is also used on `rel="preload"` link types, to make sure the browser only downloads file types that it supports.</target>
+        <target state="translated">この属性は、リンク先のコンテンツの種類を定義するために使用されます。属性の値は、**text/html**、**text/css**などの MIME の種類にする必要があります。この属性の一般的な用途は、参照されているスタイルシートの種類 (**text/css** など) を定義することですが、CSS が Web で使用される唯一のスタイルシート言語であることを考えると、`type` 属性を省略できるだけでなく、それが実際には推奨される方法です。また、ブラウザーがサポートするファイルの種類のみをダウンロードするために、`rel="preload"` リンクの種類でも使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_usemap">
@@ -1819,12 +1819,12 @@ If this attribute is specified, this element must come before any other elements
       </trans-unit>
       <trans-unit id="HtmlAttribute_virtualkeyboardpolicy">
         <source>When specified on an element that the element's content is editable (for example, it is an `&lt;input&gt;` or `&lt;textarea&gt;` element, or an element with the `contenteditable` attribute set), it controls the on-screen virtual keyboard behavior on devices such as tablets, mobile phones, or other devices where a hardware keyboard may not be available.</source>
-        <target state="new">When specified on an element that the element's content is editable (for example, it is an `&lt;input&gt;` or `&lt;textarea&gt;` element, or an element with the `contenteditable` attribute set), it controls the on-screen virtual keyboard behavior on devices such as tablets, mobile phones, or other devices where a hardware keyboard may not be available.</target>
+        <target state="translated">要素のコンテンツが編集可能な要素 (たとえば、`&lt;input&gt;` 要素または `&lt;textarea&gt;` 要素、または `contenteditable` 属性が設定された要素) で指定すると、タブレット、携帯電話、ハードウェア キーボードを使用できない可能性がある他のデバイスでの画面上の仮想キーボードの動作を制御します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_width">
         <source>The intrinsic width of the image in pixels.</source>
-        <target state="new">The intrinsic width of the image in pixels.</target>
+        <target state="translated">画像の組み込み幅 (ピクセル単位)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_wrap">
@@ -1866,7 +1866,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_article">
         <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content. Each article should be identified, typically by including a heading (h1–h6 element) as a child of the article element.</source>
-        <target state="new">The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content. Each article should be identified, typically by including a heading (h1–h6 element) as a child of the article element.</target>
+        <target state="translated">article 要素は、ドキュメント、ページ、アプリケーション、またはサイトの完全な、あるいは自己完結した構成を表します。つまり、原則として、シンジケートのように単独で再配布や再利用が可能なものです。これは、フォーラム記事、雑誌や新聞の記事、ブログ記事、ユーザーが送信したコメント、インタラクティブなウィジェットやガジェット、その他、コンテンツの独立した項目である場合があります。各 article 要素の子として見出し (h1-h6 要素) を含めることによって識別する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_aside">
@@ -1891,12 +1891,12 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_bdi">
         <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting. [BIDI]</source>
-        <target state="new">The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting. [BIDI]</target>
+        <target state="translated">bdi 要素は、双方向テキストの書式設定のために、その周囲のものからは分離されるテキストの範囲を表します。[BDI]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdo">
         <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override. [BIDI]</source>
-        <target state="new">The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override. [BIDI]</target>
+        <target state="translated">bdo 要素は、その子に対する明示的なテキスト方向の書式設定制御を表します。これにより、作成者は明示的に方向のオーバーライドを指定することで、Unicode 双方向アルゴリズムをオーバーライドできるようになります。[BIDI]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_blockquote">
@@ -1931,7 +1931,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_cite">
         <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, or a reference in abbreviated form as per the conventions used for the addition of citation metadata.</source>
-        <target state="new">The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, or a reference in abbreviated form as per the conventions used for the addition of citation metadata.</target>
+        <target state="translated">cite 要素は、クリエイティブな作品への参照を表します。引用メタデータの追加に使用される規則に従って、作業のタイトル、作成者 (個人、人々、または組織) の名前、または URL 参照、または省略形の参照を含める必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_code">
@@ -1961,7 +1961,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_data">
         <source>The data element links a given piece of content with a machine-readable translation.</source>
-        <target state="new">The data element links a given piece of content with a machine-readable translation.</target>
+        <target state="translated">データ要素は、特定のコンテンツを機械で読み取り可能な翻訳とリンクします。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_datalist">
@@ -2041,42 +2041,42 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_h1">
         <source>The h1 element represents a section heading.</source>
-        <target state="new">The h1 element represents a section heading.</target>
+        <target state="translated">h1 要素はセクション見出しを表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h2">
         <source>The h2 element represents a section heading.</source>
-        <target state="new">The h2 element represents a section heading.</target>
+        <target state="translated">h2 要素はセクション見出しを表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h3">
         <source>The h3 element represents a section heading.</source>
-        <target state="new">The h3 element represents a section heading.</target>
+        <target state="translated">h3 要素はセクション見出しを表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h4">
         <source>The h4 element represents a section heading.</source>
-        <target state="new">The h4 element represents a section heading.</target>
+        <target state="translated">h4 要素はセクション見出しを表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h5">
         <source>The h5 element represents a section heading.</source>
-        <target state="new">The h5 element represents a section heading.</target>
+        <target state="translated">h5 要素はセクション見出しを表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h6">
         <source>The h6 element represents a section heading.</source>
-        <target state="new">The h6 element represents a section heading.</target>
+        <target state="translated">h6 要素はセクション見出しを表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_head">
         <source>The head element represents a collection of metadata for the Document.</source>
-        <target state="new">The head element represents a collection of metadata for the Document.</target>
+        <target state="translated">head 要素はドキュメントのメタデータ コレクションを表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_header">
         <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids. When the nearest ancestor sectioning content or sectioning root element is the body element, then it applies to the whole page.</source>
-        <target state="new">The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids. When the nearest ancestor sectioning content or sectioning root element is the body element, then it applies to the whole page.</target>
+        <target state="translated">ヘッダー要素は、最も近い先祖のセクション コンテンツまたはセクションルート要素の入門コンテンツを表します。ヘッダーには通常、入門補助またはナビゲーション補助のグループが含まれます。最も近い先祖のセクションコンテンツまたはセクションルート要素が body 要素である場合、ページ全体に適用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_hr">
@@ -2131,7 +2131,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_li">
         <source>The li element represents a list item. If its parent element is an ol, ul, or menu element, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
-        <target state="new">The li element represents a list item. If its parent element is an ol, ul, or menu element, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</target>
+        <target state="translated">li 要素はリスト項目を表します。その親要素が ol、ul、または menu 要素である場合、要素はそれらの要素に定義されているように、親要素のリストの項目となります。それ以外の場合、リスト項目は定義済みのリストに関連する別の li 要素との関係はありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_link">
@@ -2161,7 +2161,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_menu">
         <source>The menu element represents an unordered list of interactive items.</source>
-        <target state="new">The menu element represents an unordered list of interactive items.</target>
+        <target state="translated">menu 要素は、対話型項目の順序なしリストを表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menuitem">
@@ -2236,7 +2236,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_output">
         <source>The output element represents the result of a calculation performed by the application, or the result of a user action.</source>
-        <target state="new">The output element represents the result of a calculation performed by the application, or the result of a user action.</target>
+        <target state="translated">output 要素は、アプリケーションによって実行された計算の結果、またはユーザー操作の結果を表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_p">
@@ -2251,7 +2251,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_picture">
         <source>The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
-        <target state="new">The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</target>
+        <target state="translated">picture 要素は内包する img 要素に複数のソースを指定するコンテナーです。これにより、作成者は使用するイメージ リソースについて、画面のピクセルの密度、ビューポートのサイズ、イメージの形式などの要因に基づいて、宣言によって制御したりユーザー エージェントにヒントを与えたりできます。自身の子を表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_polymer-element">
@@ -2291,7 +2291,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_ruby">
         <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations. In Japanese, this form of typography is also known as furigana. Ruby text can appear on either side, and sometimes both sides, of the base text, and it is possible to control its position using CSS. A more complete introduction to ruby can be found in the Use Cases &amp; Exploratory Approaches for Ruby Markup document as well as in CSS Ruby Module Level 1. [RUBY-UC] [CSSRUBY]</source>
-        <target state="new">The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations. In Japanese, this form of typography is also known as furigana. Ruby text can appear on either side, and sometimes both sides, of the base text, and it is possible to control its position using CSS. A more complete introduction to ruby can be found in the Use Cases &amp; Exploratory Approaches for Ruby Markup document as well as in CSS Ruby Module Level 1. [RUBY-UC] [CSSRUBY]</target>
+        <target state="translated">ruby 要素を使用すると、1 つまたは複数のフレーズ範囲にルビの注釈を付与することができます。ruby の注釈とは、本文の横に表示される短いテキストのことで、主に東アジアの文字体裁、発音の目安やその他の注釈を示すために用いられます。日本語では、この文字体裁は "ふりがな" とも呼ばれます。ruby は、基となるテキストの左右のいずれか、あるいは両側に表示することができ、CSS を使用してその位置を制御することが可能です。ruby に関するより詳細な解説については、ルビ マークアップのユースケースと探索的アプローチに関するドキュメントおよび CSS Ruby Module Level 1 を参照してください。[RUBY-UC] [CSSRUBY]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_s">
@@ -2301,7 +2301,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_samp">
         <source>The samp element represents sample or quoted output from another program or computing system.</source>
-        <target state="new">The samp element represents sample or quoted output from another program or computing system.</target>
+        <target state="translated">sample 要素は、別のプログラムまたはコンピューティング システムからのサンプルまたは引用符で囲まれた出力を表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_script">
@@ -2311,12 +2311,12 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_search">
         <source>The search element represents the parts of the document or application with form controls or other content related to performing a search or filtering operation.</source>
-        <target state="new">The search element represents the parts of the document or application with form controls or other content related to performing a search or filtering operation.</target>
+        <target state="translated">検索要素は、検索またはフィルター処理の実行に関連するフォーム コントロールまたはその他のコンテンツを含むドキュメントまたはアプリケーションの部分を表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_section">
         <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. Each section should be identified, typically by including a heading ( h1- h6 element) as a child of the section element.</source>
-        <target state="new">The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. Each section should be identified, typically by including a heading ( h1- h6 element) as a child of the section element.</target>
+        <target state="translated">section 要素は、ドキュメントやアプリケーションの一般的なセクションを表します。このコンテキストでは、セクションはコンテンツをグループ化するものです。各セクションのテーマは、通常、section 要素の子として見出し (h1 から h6 要素) を含めることで識別する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_select">
@@ -2331,7 +2331,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_slot">
         <source>The slot element is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.</source>
-        <target state="new">The slot element is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.</target>
+        <target state="translated">slot 要素は、独自のマークアップで埋めることができる Web コンポーネント内のプレースホルダーです。これにより、個別の DOM ツリーを作成し、それらを一緒に表示できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_small">
@@ -2361,7 +2361,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_sub">
         <source>The sub element represents a subscript.</source>
-        <target state="new">The sub element represents a subscript.</target>
+        <target state="translated">sub 要素は下付き文字を表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_summary">
@@ -2371,7 +2371,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_sup">
         <source>The sup element represents a superscript.</source>
-        <target state="new">The sup element represents a superscript.</target>
+        <target state="translated">sup 要素は上付き文字を表します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_svg">

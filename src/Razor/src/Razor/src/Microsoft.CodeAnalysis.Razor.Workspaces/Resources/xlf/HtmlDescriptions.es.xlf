@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="HtmlAttribute_abbr">
         <source>This attribute contains a short abbreviated description of the cell's content. Some user-agents, such as speech readers, may present this description before the content itself.</source>
-        <target state="new">This attribute contains a short abbreviated description of the cell's content. Some user-agents, such as speech readers, may present this description before the content itself.</target>
+        <target state="translated">Este atributo contiene una breve descripción abreviada del contenido de la celda. Algunos agentes de usuario, como los lectores de voz, pueden presentar esta descripción antes que el propio contenido.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_accept-charset">
@@ -16,12 +16,12 @@ In previous versions of HTML, the different character encodings could be delimit
       </trans-unit>
       <trans-unit id="HtmlAttribute_accesskey">
         <source>Provides a hint for generating a keyboard shortcut for the current element. This attribute consists of a space-separated list of characters. The browser should use the first one that exists on the computer keyboard layout.</source>
-        <target state="new">Provides a hint for generating a keyboard shortcut for the current element. This attribute consists of a space-separated list of characters. The browser should use the first one that exists on the computer keyboard layout.</target>
+        <target state="translated">Proporciona una sugerencia para generar un método abreviado de teclado para el elemento actual. Este atributo consta de una lista de caracteres separados por espacios. El explorador debe usar el primero que existe en la distribución del teclado del equipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_action">
         <source>The URI of a program that processes the form information. This value can be overridden by a [`formaction`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="new">The URI of a program that processes the form information. This value can be overridden by a [`formaction`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</target>
+        <target state="translated">Uri de un programa que procesa la información del formulario. Este valor se puede invalidar con un atributo [`formaction`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction) en un elemento [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "El elemento HTML &lt;button&gt; representa un botón en el que se puede hacer clic, que se puede usar en formularios o en cualquier lugar de un documento que necesite una funcionalidad de botón simple y estándar.") o [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "El elemento HTML &lt;input&gt; se usa para crear controles interactivos para formularios web con el fin de aceptar datos del usuario; hay disponible una amplia variedad de tipos de datos de entrada y controles, según el dispositivo y el agente de usuario.")</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_align">
@@ -49,7 +49,7 @@ In previous versions of HTML, the different character encodings could be delimit
       </trans-unit>
       <trans-unit id="HtmlAttribute_allow">
         <source>Specifies a [feature policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Feature_Policy) for the `&lt;iframe&gt;`.</source>
-        <target state="new">Specifies a [feature policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Feature_Policy) for the `&lt;iframe&gt;`.</target>
+        <target state="translated">Especifica una [directiva de características](https://developer.mozilla.org/en-US/docs/Web/HTTP/Feature_Policy) para `&lt;iframe&gt;`.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_allowfullscreen">
@@ -74,7 +74,7 @@ This attribute is considered a legacy attribute and redefined as `allow="fullscr
       </trans-unit>
       <trans-unit id="HtmlAttribute_as">
         <source>This attribute is only used when `rel="preload"` or `rel="prefetch"` has been set on the `&lt;link&gt;` element. It specifies the type of content being loaded by the `&lt;link&gt;`, which is necessary for content prioritization, request matching, application of correct [content security policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), and setting of correct [`Accept`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept "The Accept request HTTP header advertises which content types, expressed as MIME types, the client is able to understand. Using content negotiation, the server then selects one of the proposals, uses it and informs the client of its choice with the Content-Type response header. Browsers set adequate values for this header depending on the context where the request is done: when fetching a CSS stylesheet a different value is set for the request than when fetching an image, video or a script.") request header.</source>
-        <target state="new">This attribute is only used when `rel="preload"` or `rel="prefetch"` has been set on the `&lt;link&gt;` element. It specifies the type of content being loaded by the `&lt;link&gt;`, which is necessary for content prioritization, request matching, application of correct [content security policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), and setting of correct [`Accept`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept "The Accept request HTTP header advertises which content types, expressed as MIME types, the client is able to understand. Using content negotiation, the server then selects one of the proposals, uses it and informs the client of its choice with the Content-Type response header. Browsers set adequate values for this header depending on the context where the request is done: when fetching a CSS stylesheet a different value is set for the request than when fetching an image, video or a script.") request header.</target>
+        <target state="translated">Este atributo solo se usa cuando se ha establecido `rel="preload"` o `rel="prefetch"` en el elemento `&lt;link&gt;`. Especifica el tipo de contenido que carga `&lt;link&gt;`, que es necesario para la priorización de contenido, la coincidencia de solicitudes, la aplicación de [directiva de seguridad de contenido](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) correcta y la configuración de [`Accept`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept "El encabezado HTTP de solicitud Accept anuncia qué tipos de contenido, expresados como tipos MIME, el cliente puede entender. Mediante la negociación de contenido, el servidor selecciona una de las propuestas, la usa e informa al cliente de su elección con el encabezado de respuesta Content-Type. Los exploradores establecen los valores adecuados para este encabezado en función del contexto en el que se realiza la solicitud: al capturar una hoja de estilos CSS, se establece un valor diferente para la solicitud que al capturar una imagen, un vídeo o un script). encabezado de solicitud.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_async">
@@ -132,12 +132,12 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocorrect">
         <source>Controls whether autocorrection of editable text is enabled for spelling and/or punctuation errors.</source>
-        <target state="new">Controls whether autocorrection of editable text is enabled for spelling and/or punctuation errors.</target>
+        <target state="translated">Controla si la autocorrección de texto editable está habilitada para errores ortográficos o de puntuación.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autofocus">
         <source>Indicates that an element should be focused on page load, or when the [`&lt;dialog&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/dialog) that it is part of is displayed.</source>
-        <target state="new">Indicates that an element should be focused on page load, or when the [`&lt;dialog&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/dialog) that it is part of is displayed.</target>
+        <target state="translated">Indica que un elemento debe centrarse en la carga de página o cuando se muestra [`&lt;dialog&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/dialog) del que forma parte.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_axis">
@@ -188,27 +188,27 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
       </trans-unit>
       <trans-unit id="HtmlAttribute_cite">
         <source>A URL that designates a source document or message for the information quoted. This attribute is intended to point to information explaining the context or the reference for the quote.</source>
-        <target state="new">A URL that designates a source document or message for the information quoted. This attribute is intended to point to information explaining the context or the reference for the quote.</target>
+        <target state="translated">Dirección URL que designa un documento o mensaje de origen para la información entrecomillada. Este atributo está pensado para apuntar a información que explique el contexto o la referencia de la cita.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_class">
         <source>A space-separated list of the classes of the element. Classes allows CSS and JavaScript to select and access specific elements via the [class selectors](https://developer.mozilla.org/docs/Web/CSS/Class_selectors) or functions like the method [`Document.getElementsByClassName()`](https://developer.mozilla.org/docs/Web/API/Document/getElementsByClassName "returns an array-like object of all child elements which have all of the given class names.").</source>
-        <target state="new">A space-separated list of the classes of the element. Classes allows CSS and JavaScript to select and access specific elements via the [class selectors](https://developer.mozilla.org/docs/Web/CSS/Class_selectors) or functions like the method [`Document.getElementsByClassName()`](https://developer.mozilla.org/docs/Web/API/Document/getElementsByClassName "returns an array-like object of all child elements which have all of the given class names.").</target>
+        <target state="translated">Lista separada por espacios de las clases del elemento. Las clases permiten a CSS y JavaScript seleccionar y tener acceso a elementos específicos a través de [selectores de clases](https://developer.mozilla.org/docs/Web/CSS/Class_selectors) o funciones como el método [`Document.getElementsByClassName()`](https://developer.mozilla.org/docs/Web/API/Document/getElementsByClassName "devuelve un objeto similar a una matriz de todos los elementos secundarios que tienen todos los nombres de clase especificados").</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_classid">
         <source>The URI of the object's implementation. It can be used together with, or in place of, the **data** attribute.</source>
-        <target state="new">The URI of the object's implementation. It can be used together with, or in place of, the **data** attribute.</target>
+        <target state="translated">URI de la implementación del objeto. Se puede usar junto con o en lugar del atributo **data**.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_cols">
         <source>The visible width of the text control, in average character widths. If it is specified, it must be a positive integer. If it is not specified, the default value is `20`.</source>
-        <target state="new">The visible width of the text control, in average character widths. If it is specified, it must be a positive integer. If it is not specified, the default value is `20`.</target>
+        <target state="translated">Ancho visible del control de texto, en ancho medio de caracteres. Si se especifica, debe ser un entero positivo. Si no se especifica, el valor predeterminado es `20`.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_content">
         <source>This attribute contains the value for the [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`name`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-name) attribute, depending on which is used.</source>
-        <target state="new">This attribute contains the value for the [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`name`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-name) attribute, depending on which is used.</target>
+        <target state="translated">Este atributo contiene el valor del atributo [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) o [`name`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-name), dependiendo de cuál se use.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_contenteditable">
@@ -224,7 +224,7 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
       </trans-unit>
       <trans-unit id="HtmlAttribute_contextmenu">
         <source>The `[**id**](#attr-id)` of a [`&lt;menu&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/menu "The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.") to use as the contextual menu for this element.</source>
-        <target state="new">The `[**id**](#attr-id)` of a [`&lt;menu&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/menu "The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.") to use as the contextual menu for this element.</target>
+        <target state="translated">El `[**id**](#attr-id)` de un [`&lt;menu&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/menu "El elemento HTML &lt;menu&gt; representa un grupo de comandos que una persona usuaria puede ejecutar o activar. Esto incluye ambos menús de lista, que pueden aparecer en la parte superior de una pantalla, así como menús contextuales, como los que pueden aparecer debajo de un botón después de hacer clic en él). que se va a usar como menú contextual para este elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_crossorigin">
@@ -254,17 +254,17 @@ If the attribute is not present, the resource is fetched without a [CORS](https:
       </trans-unit>
       <trans-unit id="HtmlAttribute_csp">
         <source>A [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) enforced for the embedded resource. See [`HTMLIFrameElement.csp`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/csp "The csp property of the HTMLIFrameElement interface specifies the Content Security Policy that an embedded document must agree to enforce upon itself.") for details.</source>
-        <target state="new">A [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) enforced for the embedded resource. See [`HTMLIFrameElement.csp`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/csp "The csp property of the HTMLIFrameElement interface specifies the Content Security Policy that an embedded document must agree to enforce upon itself.") for details.</target>
+        <target state="translated">Una [directiva de seguridad de contenido](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) aplicada para el recurso incrustado. Consulte [`HTMLIFrameElement.csp`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/csp "La propiedad csp de la interfaz HTMLIFrameElement especifica la directiva de seguridad de contenido que un documento incrustado debe aceptar aplicar sobre sí mismo"). para obtener más información.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_data">
         <source>The address of the resource as a valid URL. At least one of **data** and **type** must be defined.</source>
-        <target state="new">The address of the resource as a valid URL. At least one of **data** and **type** must be defined.</target>
+        <target state="translated">Dirección del recurso como una dirección URL válida. Se debe definir al menos uno de los valores **data** y **type**.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_datetime">
         <source>This attribute indicates the time and/or date of the element and must be in one of the formats described below.</source>
-        <target state="new">This attribute indicates the time and/or date of the element and must be in one of the formats described below.</target>
+        <target state="translated">Este atributo indica la hora o fecha del elemento y debe estar en uno de los formatos que se describen a continuación.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_decoding">
@@ -296,7 +296,7 @@ Default mode, which indicates no preference for the decoding mode. The browser d
       </trans-unit>
       <trans-unit id="HtmlAttribute_default">
         <source>This attribute indicates that the track should be enabled unless the user's preferences indicate that another track is more appropriate. This may only be used on one `track` element per media element.</source>
-        <target state="new">This attribute indicates that the track should be enabled unless the user's preferences indicate that another track is more appropriate. This may only be used on one `track` element per media element.</target>
+        <target state="translated">Este atributo indica que la pista debe habilitarse a menos que las preferencias del usuario indiquen que otra pista es más adecuada. Esto solo se puede usar en un elemento `track` por cada elemento multimedia.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_defer">
@@ -331,7 +331,7 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
       </trans-unit>
       <trans-unit id="HtmlAttribute_disabled">
         <source>If this Boolean attribute is set, all form controls that are descendants of the `&lt;fieldset&gt;`, are disabled, meaning they are not editable and won't be submitted along with the `&lt;form&gt;`. They won't receive any browsing events, like mouse clicks or focus-related events. By default browsers display such controls grayed out. Note that form elements inside the [`&lt;legend&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend "The HTML &lt;legend&gt; element represents a caption for the content of its parent &lt;fieldset&gt;.") element won't be disabled.</source>
-        <target state="new">If this Boolean attribute is set, all form controls that are descendants of the `&lt;fieldset&gt;`, are disabled, meaning they are not editable and won't be submitted along with the `&lt;form&gt;`. They won't receive any browsing events, like mouse clicks or focus-related events. By default browsers display such controls grayed out. Note that form elements inside the [`&lt;legend&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend "The HTML &lt;legend&gt; element represents a caption for the content of its parent &lt;fieldset&gt;.") element won't be disabled.</target>
+        <target state="translated">Si se establece este atributo booleano, se deshabilitan todos los controles de formulario que son descendientes de `&lt;fieldset&gt;`, lo que significa que no se pueden editar y no se enviarán junto con `&lt;form&gt;`. No recibirán ningún evento de exploración, como los clics del mouse o los eventos relacionados con el foco. De forma predeterminada, los exploradores muestran estos controles atenuados. Tenga en cuenta que los elementos de formulario dentro del elemento [`&lt;legend&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend "El elemento HTML &lt;legend&gt; representa un título para el contenido de su elemento primario &lt;fieldset&gt;.") no se deshabilitará.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_download">
@@ -396,17 +396,17 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
       </trans-unit>
       <trans-unit id="HtmlAttribute_enterkeyhint">
         <source>An enumerated attribute defining what action label (or icon) to present for the enter key on virtual keyboards.</source>
-        <target state="new">An enumerated attribute defining what action label (or icon) to present for the enter key on virtual keyboards.</target>
+        <target state="translated">Atributo enumerado que define la etiqueta de acción (o icono) que se va a presentar para la tecla Entrar en los teclados virtuales.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_exportparts">
         <source>Used to transitively export shadow parts from a nested shadow tree into a containing light tree.</source>
-        <target state="new">Used to transitively export shadow parts from a nested shadow tree into a containing light tree.</target>
+        <target state="translated">Se usa para exportar de forma transitiva las partes de sombra de un árbol sombreado anidado a un árbol claro contenedor.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_fetchpriority">
         <source>Provides a hint of the relative priority to use when fetching the image.</source>
-        <target state="new">Provides a hint of the relative priority to use when fetching the image.</target>
+        <target state="translated">Proporciona una sugerencia de la prioridad relativa que se va a usar al capturar la imagen.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_for">
@@ -420,12 +420,12 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
       </trans-unit>
       <trans-unit id="HtmlAttribute_form">
         <source>The form element, if any, that the object element is associated with (its _form owner_). The value of the attribute must be an ID of a [`&lt;form&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form "The HTML &lt;form&gt; element represents a document section that contains interactive controls for submitting information to a web server.") element in the same document.</source>
-        <target state="new">The form element, if any, that the object element is associated with (its _form owner_). The value of the attribute must be an ID of a [`&lt;form&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form "The HTML &lt;form&gt; element represents a document section that contains interactive controls for submitting information to a web server.") element in the same document.</target>
+        <target state="translated">Elemento de formulario, si existe, al que está asociado el elemento de objeto (su _form owner_). El valor del atributo debe ser un identificador de un elemento [`&lt;form&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form "El elemento HTML &lt;form&gt; representa una sección de documento que contiene controles interactivos para enviar información a un servidor web. ") en el mismo documento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formaction">
         <source>The URI of a program that processes the information submitted by the button. If specified, it overrides the [`action`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-action) attribute of the button's form owner.</source>
-        <target state="new">The URI of a program that processes the information submitted by the button. If specified, it overrides the [`action`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-action) attribute of the button's form owner.</target>
+        <target state="translated">Uri de un programa que procesa la información enviada por el botón. Si se especifica, invalida el atributo [`action`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-action) del propietario del formulario del botón.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formenctype">
@@ -462,7 +462,7 @@ If specified, this attribute overrides the [`method`](https://developer.mozilla.
       </trans-unit>
       <trans-unit id="HtmlAttribute_formnovalidate">
         <source>If the button is a submit button, this Boolean attribute specifies that the form is not to be validated when it is submitted. If this attribute is specified, it overrides the [`novalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-novalidate) attribute of the button's form owner.</source>
-        <target state="new">If the button is a submit button, this Boolean attribute specifies that the form is not to be validated when it is submitted. If this attribute is specified, it overrides the [`novalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-novalidate) attribute of the button's form owner.</target>
+        <target state="translated">Si el botón es un botón de envío, este atributo booleano especifica que el formulario no se validará cuando se envíe. Si se especifica este atributo, invalida el atributo [`novalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-novalidate) del propietario del formulario del botón.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formtarget">
@@ -482,27 +482,27 @@ If specified, this attribute overrides the [`method`](https://developer.mozilla.
       </trans-unit>
       <trans-unit id="HtmlAttribute_height">
         <source>The intrinsic height of the image in pixels.</source>
-        <target state="new">The intrinsic height of the image in pixels.</target>
+        <target state="translated">Alto intrínseco de la imagen en píxeles.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_hidden">
         <source>A Boolean attribute indicates that the element is not yet, or is no longer, _relevant_. For example, it can be used to hide elements of the page that can't be used until the login process has been completed. The browser won't render such elements. This attribute must not be used to hide content that could legitimately be shown.</source>
-        <target state="new">A Boolean attribute indicates that the element is not yet, or is no longer, _relevant_. For example, it can be used to hide elements of the page that can't be used until the login process has been completed. The browser won't render such elements. This attribute must not be used to hide content that could legitimately be shown.</target>
+        <target state="translated">Un atributo booleano indica que el elemento aún no es _relevante o ya no lo es. Por ejemplo, se puede usar para ocultar elementos de la página que no se pueden usar hasta que se haya completado el proceso de inicio de sesión. El explorador no representará estos elementos. Este atributo no debe usarse para ocultar el contenido que podría mostrarse de forma legítima.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_high">
         <source>The lower numeric bound of the high end of the measured range. This must be less than the maximum value (`max` attribute), and it also must be greater than the low value and minimum value (`low` attribute and **min** attribute, respectively), if any are specified. If unspecified, or if greater than the maximum value, the `high` value is equal to the maximum value.</source>
-        <target state="new">The lower numeric bound of the high end of the measured range. This must be less than the maximum value (`max` attribute), and it also must be greater than the low value and minimum value (`low` attribute and **min** attribute, respectively), if any are specified. If unspecified, or if greater than the maximum value, the `high` value is equal to the maximum value.</target>
+        <target state="translated">Límite numérico inferior del extremo superior del intervalo medido. Debe ser menor que el valor máximo (atributo `max`) y también debe ser mayor que el valor bajo y el valor mínimo (atributo `low` y atributo **min**, respectivamente), si se especifica alguno. Si no se especifica, o si es mayor que el valor máximo, el valor `high` es igual al valor máximo.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_href">
         <source>The base URL to be used throughout the document for relative URL addresses. If this attribute is specified, this element must come before any other elements with attributes whose values are URLs. Absolute and relative URLs are allowed.</source>
-        <target state="new">The base URL to be used throughout the document for relative URL addresses. If this attribute is specified, this element must come before any other elements with attributes whose values are URLs. Absolute and relative URLs are allowed.</target>
+        <target state="translated">Dirección URL base que se va a usar en todo el documento para las direcciones URL relativas. Si se especifica este atributo, este elemento debe ir delante de cualquier otro elemento con atributos cuyos valores sean direcciones URL. Se permiten direcciones URL absolutas y relativas.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_hreflang">
         <source>This attribute indicates the language of the linked resource. It is purely advisory. Allowed values are determined by [BCP47](https://www.ietf.org/rfc/bcp/bcp47.txt). Use this attribute only if the [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute is present.</source>
-        <target state="new">This attribute indicates the language of the linked resource. It is purely advisory. Allowed values are determined by [BCP47](https://www.ietf.org/rfc/bcp/bcp47.txt). Use this attribute only if the [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute is present.</target>
+        <target state="translated">Este atributo indica el idioma del recurso vinculado. Es meramente informativo. Los valores permitidos vienen determinados por [BCP47](https://www.ietf.org/rfc/bcp/bcp47.txt). Use este atributo solo si el atributo [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) está presente.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_http-equiv">
@@ -558,27 +558,27 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
       </trans-unit>
       <trans-unit id="HtmlAttribute_id">
         <source>Defines a unique identifier (ID) which must be unique in the whole document. Its purpose is to identify the element when linking (using a fragment identifier), scripting, or styling (with CSS).</source>
-        <target state="new">Defines a unique identifier (ID) which must be unique in the whole document. Its purpose is to identify the element when linking (using a fragment identifier), scripting, or styling (with CSS).</target>
+        <target state="translated">Define un identificador único (ID) que debe ser único en todo el documento. Su propósito es identificar el elemento al vincular (mediante un identificador de fragmento), crear scripts o aplicar estilos (con CSS).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_inert">
         <source>Indicates that the element and all of its flat tree descendants become _inert_. Modal `&lt;dialog&gt;`s generated with [`showModal()`](https://developer.mozilla.org/docs/Web/API/HTMLDialogElement/showModal) escape inertness, meaning that they don't inherit inertness from their ancestors, but can only be made inert by having the `inert` attribute explicitly set on themselves.</source>
-        <target state="new">Indicates that the element and all of its flat tree descendants become _inert_. Modal `&lt;dialog&gt;`s generated with [`showModal()`](https://developer.mozilla.org/docs/Web/API/HTMLDialogElement/showModal) escape inertness, meaning that they don't inherit inertness from their ancestors, but can only be made inert by having the `inert` attribute explicitly set on themselves.</target>
+        <target state="translated">Indica que el elemento y todos sus descendientes de árbol plano se convierten en _inert_. El elemento modal `&lt;dialog&gt;` se genera con la inertidad de escape [`showModal()`](https://developer.mozilla.org/docs/Web/API/HTMLDialogElement/showModal), lo que significa que no heredan la inertidad de sus antecesores, pero solo se pueden convertir en inertes si el atributo `inert` se establece explícitamente en ellos mismos.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_inputmode">
         <source>Provides a hint to browsers as to the type of virtual keyboard configuration to use when editing this element or its contents. Used primarily on [`&lt;input&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") elements, but is usable on any element while in `[contenteditable](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-contenteditable)` mode.</source>
-        <target state="new">Provides a hint to browsers as to the type of virtual keyboard configuration to use when editing this element or its contents. Used primarily on [`&lt;input&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") elements, but is usable on any element while in `[contenteditable](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-contenteditable)` mode.</target>
+        <target state="translated">Proporciona una sugerencia a los exploradores sobre el tipo de configuración del teclado virtual que se debe usar al editar este elemento o su contenido. Se usa principalmente en [`&lt;input&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/input "El elemento HTML &lt;input&gt; se usa para crear controles interactivos para formularios basados en web con el fin de aceptar datos del usuario; hay una amplia variedad de tipos de datos de entrada y widgets de control disponibles, según el dispositivo y el agente de usuario."), pero se puede usar en cualquier elemento mientras esté en modo `[contenteditable](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-contenteditable)`.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_integrity">
         <source>Contains inline metadata — a base64-encoded cryptographic hash of the resource (file) you’re telling the browser to fetch. The browser can use this to verify that the fetched resource has been delivered free of unexpected manipulation. See [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).</source>
-        <target state="new">Contains inline metadata — a base64-encoded cryptographic hash of the resource (file) you’re telling the browser to fetch. The browser can use this to verify that the fetched resource has been delivered free of unexpected manipulation. See [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).</target>
+        <target state="translated">Contiene metadatos insertados: un hash criptográfico codificado en base64 del recurso (archivo) que está indicando al explorador que capture. El explorador puede usarlo para comprobar que el recurso obtenido se ha entregado sin manipulaciones inesperadas. Consulte [Integridad de subrecurso](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_is">
         <source>Allows you to specify that a standard HTML element should behave like a registered custom built-in element (see [Using custom elements](https://developer.mozilla.org/docs/Web/Web_Components/Using_custom_elements) for more details).</source>
-        <target state="new">Allows you to specify that a standard HTML element should behave like a registered custom built-in element (see [Using custom elements](https://developer.mozilla.org/docs/Web/Web_Components/Using_custom_elements) for more details).</target>
+        <target state="translated">Permite especificar que un elemento HTML estándar debe comportarse como un elemento integrado personalizado registrado (vea [Usar elementos personalizados](https://developer.mozilla.org/docs/Web/Web_Components/Using_custom_elements) para obtener más detalles).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ismap">
@@ -592,27 +592,27 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemid">
         <source>The unique, global identifier of an item.</source>
-        <target state="new">The unique, global identifier of an item.</target>
+        <target state="translated">Identificador global único de un elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemprop">
         <source>Used to add properties to an item. Every HTML element may have an `itemprop` attribute specified, where an `itemprop` consists of a name and value pair.</source>
-        <target state="new">Used to add properties to an item. Every HTML element may have an `itemprop` attribute specified, where an `itemprop` consists of a name and value pair.</target>
+        <target state="translated">Se usa para agregar propiedades a un elemento. Cada elemento HTML puede tener un atributo `itemprop` especificado, donde un elemento `itemprop` consta de un par de nombre y valor.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemref">
         <source>Properties that are not descendants of an element with the `itemscope` attribute can be associated with the item using an `itemref`. It provides a list of element ids (not `itemid`s) with additional properties elsewhere in the document.</source>
-        <target state="new">Properties that are not descendants of an element with the `itemscope` attribute can be associated with the item using an `itemref`. It provides a list of element ids (not `itemid`s) with additional properties elsewhere in the document.</target>
+        <target state="translated">Las propiedades que no son descendientes de un elemento con el atributo `itemscope` se pueden asociar al elemento mediante `itemref`. Proporciona una lista de identificadores de elemento (no `itemid`) con propiedades adicionales en otra parte del documento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemscope">
         <source>`itemscope` (usually) works along with `[itemtype](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemtype)` to specify that the HTML contained in a block is about a particular item. `itemscope` creates the Item and defines the scope of the `itemtype` associated with it. `itemtype` is a valid URL of a vocabulary (such as [schema.org](https://schema.org/)) that describes the item and its properties context.</source>
-        <target state="new">`itemscope` (usually) works along with `[itemtype](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemtype)` to specify that the HTML contained in a block is about a particular item. `itemscope` creates the Item and defines the scope of the `itemtype` associated with it. `itemtype` is a valid URL of a vocabulary (such as [schema.org](https://schema.org/)) that describes the item and its properties context.</target>
+        <target state="translated">`itemscope` (normalmente) funciona junto con `[itemtype](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemtype)` para especificar que el HTML contenido en un bloque trata de un elemento concreto. `itemscope` crea el elemento y define el ámbito del `itemtype` asociado. `itemtype` es una URL válida de un vocabulario, como [schema.org](https://schema.org/), que describe el elemento y el contexto de sus propiedades.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemtype">
         <source>Specifies the URL of the vocabulary that will be used to define `itemprop`s (item properties) in the data structure. `[itemscope](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemscope)` is used to set the scope of where in the data structure the vocabulary set by `itemtype` will be active.</source>
-        <target state="new">Specifies the URL of the vocabulary that will be used to define `itemprop`s (item properties) in the data structure. `[itemscope](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemscope)` is used to set the scope of where in the data structure the vocabulary set by `itemtype` will be active.</target>
+        <target state="translated">Especifica la dirección URL del vocabulario que se usará para definir `itemprop` (propiedades de elemento) en la estructura de datos. `[itemscope](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemscope)` se usa para establecer el ámbito de dónde en la estructura de datos estará activo el vocabulario establecido por `itemtype`.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_kind">
@@ -652,37 +652,37 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
         <source>A user-readable title of the text track which is used by the browser when listing available text tracks.</source>
-        <target state="new">A user-readable title of the text track which is used by the browser when listing available text tracks.</target>
+        <target state="translated">Título legible por el usuario de la pista de texto que usa el explorador al enumerar las pistas de texto disponibles.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_lang">
         <source>Helps define the language of an element: the language that non-editable elements are in, or the language that editable elements should be written in by the user. The attribute contains one “language tag” (made of hyphen-separated “language subtags”) in the format defined in [_Tags for Identifying Languages (BCP47)_](https://www.ietf.org/rfc/bcp/bcp47.txt). [**xml:lang**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/lang#attr-xml:lang) has priority over it.</source>
-        <target state="new">Helps define the language of an element: the language that non-editable elements are in, or the language that editable elements should be written in by the user. The attribute contains one “language tag” (made of hyphen-separated “language subtags”) in the format defined in [_Tags for Identifying Languages (BCP47)_](https://www.ietf.org/rfc/bcp/bcp47.txt). [**xml:lang**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/lang#attr-xml:lang) has priority over it.</target>
+        <target state="translated">Ayuda a definir el idioma de un elemento: el idioma en el que se encuentran los elementos no editables o el idioma en el que el usuario debe escribir los elementos editables. El atributo contiene una "etiqueta de idioma" (formada por "subetiquetas de idioma" separadas por guiones) en el formato definido en [_Tags para identificar idiomas (BCP47)_](https://www.ietf.org/rfc/bcp/bcp47.txt). [**xml:lang**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/lang#attr-xml:lang) tiene prioridad sobre él.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_loading">
         <source>Indicates how the browser should load the image.</source>
-        <target state="new">Indicates how the browser should load the image.</target>
+        <target state="translated">Indica cómo debe cargarse la imagen el explorador.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_low">
         <source>The upper numeric bound of the low end of the measured range. This must be greater than the minimum value (`min` attribute), and it also must be less than the high value and maximum value (`high` attribute and `max` attribute, respectively), if any are specified. If unspecified, or if less than the minimum value, the `low` value is equal to the minimum value.</source>
-        <target state="new">The upper numeric bound of the low end of the measured range. This must be greater than the minimum value (`min` attribute), and it also must be less than the high value and maximum value (`high` attribute and `max` attribute, respectively), if any are specified. If unspecified, or if less than the minimum value, the `low` value is equal to the minimum value.</target>
+        <target state="translated">Límite numérico superior del extremo inferior del intervalo medido. Debe ser mayor que el valor mínimo (atributo `min`) y también debe ser menor que el valor alto y el valor máximo (atributo `high` y atributo `max`, respectivamente), si se especifica alguno. Si no se especifica, o si es menor que el valor mínimo, el valor `low` es igual al valor mínimo.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_manifest">
         <source>Specifies the URI of a resource manifest indicating resources that should be cached locally. See [Using the application cache](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache) for details.</source>
-        <target state="new">Specifies the URI of a resource manifest indicating resources that should be cached locally. See [Using the application cache](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache) for details.</target>
+        <target state="translated">Especifica el URI de un manifiesto de recursos que indica los recursos que deben almacenarse en caché localmente. Consulte [Uso de la memoria caché de la aplicación](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache) para obtener más información.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_max">
         <source>This attribute describes how much work the task indicated by the `progress` element requires. The `max` attribute, if present, must have a value greater than zero and be a valid floating point number. The default value is 1.</source>
-        <target state="new">This attribute describes how much work the task indicated by the `progress` element requires. The `max` attribute, if present, must have a value greater than zero and be a valid floating point number. The default value is 1.</target>
+        <target state="translated">Este atributo describe cuánto trabajo requiere la tarea indicada por el elemento `progress`. El atributo `max`, si está presente, debe tener un valor mayor que cero y ser un número de punto flotante válido. El valor predeterminado es 1.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_maxlength">
         <source>The maximum number of characters (unicode code points) that the user can enter. If this value isn't specified, the user can enter an unlimited number of characters.</source>
-        <target state="new">The maximum number of characters (unicode code points) that the user can enter. If this value isn't specified, the user can enter an unlimited number of characters.</target>
+        <target state="translated">Número máximo de caracteres (puntos de código Unicode) que el usuario puede escribir. Si no se especifica este valor, el usuario puede escribir un número ilimitado de caracteres.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_media">
@@ -719,17 +719,17 @@ This value can be overridden by a [`formmethod`](https://developer.mozilla.org/e
       </trans-unit>
       <trans-unit id="HtmlAttribute_min">
         <source>The lower numeric bound of the measured range. This must be less than the maximum value (`max` attribute), if specified. If unspecified, the minimum value is 0.</source>
-        <target state="new">The lower numeric bound of the measured range. This must be less than the maximum value (`max` attribute), if specified. If unspecified, the minimum value is 0.</target>
+        <target state="translated">Límite numérico inferior del intervalo medido. Debe ser menor que el valor máximo (atributo `max`), si se especifica. Si no se especifica, el valor mínimo es 0.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_minlength">
         <source>The minimum number of characters (unicode code points) required that the user should enter.</source>
-        <target state="new">The minimum number of characters (unicode code points) required that the user should enter.</target>
+        <target state="translated">Número mínimo de caracteres (puntos de código Unicode) necesarios que debe escribir el usuario.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_multiple">
         <source>This Boolean attribute indicates that multiple options can be selected in the list. If it is not specified, then only one option can be selected at a time. When `multiple` is specified, most browsers will show a scrolling list box instead of a single line dropdown.</source>
-        <target state="new">This Boolean attribute indicates that multiple options can be selected in the list. If it is not specified, then only one option can be selected at a time. When `multiple` is specified, most browsers will show a scrolling list box instead of a single line dropdown.</target>
+        <target state="translated">Este atributo booleano indica que se pueden seleccionar varias opciones en la lista. Si no se especifica, solo se puede seleccionar una opción a la vez. Cuando se especifica `multiple`, la mayoría de los exploradores mostrarán un cuadro de lista de desplazamiento en lugar de una lista desplegable de una sola línea.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_name">
@@ -1153,362 +1153,362 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_nomodule">
         <source>This Boolean attribute is set to indicate that the script should not be executed in browsers that support [ES2015 modules](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/) — in effect, this can be used to serve fallback scripts to older browsers that do not support modular JavaScript code.</source>
-        <target state="new">This Boolean attribute is set to indicate that the script should not be executed in browsers that support [ES2015 modules](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/) — in effect, this can be used to serve fallback scripts to older browsers that do not support modular JavaScript code.</target>
+        <target state="translated">Este atributo booleano se establece para indicar que el script no se debe ejecutar en exploradores que admiten [módulos ES2015](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/): en efecto, se puede usar para servir scripts de reserva a exploradores anteriores que no admiten código JavaScript modular.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_nonce">
         <source>A cryptographic nonce (number used once) used to allow inline styles in a [style-src Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src). The server must generate a unique nonce value each time it transmits a policy. It is critical to provide a nonce that cannot be guessed as bypassing a resource’s policy is otherwise trivial.</source>
-        <target state="new">A cryptographic nonce (number used once) used to allow inline styles in a [style-src Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src). The server must generate a unique nonce value each time it transmits a policy. It is critical to provide a nonce that cannot be guessed as bypassing a resource’s policy is otherwise trivial.</target>
+        <target state="translated">Nonce criptográfico (número usado una vez) que se usa para permitir estilos insertados en una [style-src Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src). El servidor debe generar un valor nonce único cada vez que transmite una directiva. Es fundamental proporcionar un valor nonce que no se pueda adivinar, ya que omitir la directiva de un recurso es trivial.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_novalidate">
         <source>This Boolean attribute indicates that the form is not to be validated when submitted. If this attribute is not specified (and therefore the form is validated), this default setting can be overridden by a [`formnovalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formnovalidate) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element belonging to the form.</source>
-        <target state="new">This Boolean attribute indicates that the form is not to be validated when submitted. If this attribute is not specified (and therefore the form is validated), this default setting can be overridden by a [`formnovalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formnovalidate) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element belonging to the form.</target>
+        <target state="translated">Este atributo booleano indica que el formulario no se va a validar cuando se envía. Si no se especifica este atributo y, por tanto, el formulario se valida, este valor predeterminado se puede invalidar con un atributo [`formnovalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formnovalidate) en un elemento [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "El elemento HTML &lt;button&gt; representa un botón en el que se puede hacer clic, que se puede usar en formularios o en cualquier lugar de un documento que necesite una funcionalidad de botón simple y estándar.") o [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "El elemento HTML &lt;input&gt; se usa para crear controles interactivos para formularios web con el fin de aceptar datos del usuario; hay disponible una amplia variedad de tipos de datos de entrada y controles, según el dispositivo y el agente de usuario.") que pertenezca al formulario.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onabort">
         <source>The loading of a resource has been aborted.</source>
-        <target state="new">The loading of a resource has been aborted.</target>
+        <target state="translated">Se anuló la carga de un recurso.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onafterprint">
         <source>Function to call after the user has printed the document.</source>
-        <target state="new">Function to call after the user has printed the document.</target>
+        <target state="translated">Función a la que se llamará después de que el usuario haya impreso el documento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onbeforeprint">
         <source>Function to call when the user requests printing of the document.</source>
-        <target state="new">Function to call when the user requests printing of the document.</target>
+        <target state="translated">Función a la que se llama cuando el usuario solicita la impresión del documento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onbeforeunload">
         <source>Function to call when the document is about to be unloaded.</source>
-        <target state="new">Function to call when the document is about to be unloaded.</target>
+        <target state="translated">Función a la que se llamará cuando el documento esté a punto de descargarse.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onblur">
         <source>An element has lost focus (does not bubble).</source>
-        <target state="new">An element has lost focus (does not bubble).</target>
+        <target state="translated">Un elemento ha perdido el foco (no se propaga).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oncanplay">
         <source>The user agent can play the media, but estimates that not enough data has been loaded to play the media up to its end without having to stop for further buffering of content.</source>
-        <target state="new">The user agent can play the media, but estimates that not enough data has been loaded to play the media up to its end without having to stop for further buffering of content.</target>
+        <target state="translated">El agente de usuario puede reproducir los medios, pero calcula que no se han cargado suficientes datos para reproducir los medios hasta su fin sin tener que detenerse para almacenar más contenido en búfer.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oncanplaythrough">
         <source>The user agent can play the media up to its end without having to stop for further buffering of content.</source>
-        <target state="new">The user agent can play the media up to its end without having to stop for further buffering of content.</target>
+        <target state="translated">El agente de usuario puede reproducir el medio hasta su fin sin tener que detenerse para almacenar en búfer el contenido.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onchange">
         <source>The change event is fired for &lt;input&gt;, &lt;select&gt;, and &lt;textarea&gt; elements when a change to the element's value is committed by the user.</source>
-        <target state="new">The change event is fired for &lt;input&gt;, &lt;select&gt;, and &lt;textarea&gt; elements when a change to the element's value is committed by the user.</target>
+        <target state="translated">El evento de cambio se desencadena para los elementos &lt;input&gt;, &lt;select&gt; y &lt;textarea&gt; cuando el usuario confirma un cambio en el valor del elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onclick">
         <source>A pointing device button has been pressed and released on an element.</source>
-        <target state="new">A pointing device button has been pressed and released on an element.</target>
+        <target state="translated">Se presionó y soltó un botón de dispositivo señalador en un elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oncontextmenu">
         <source>The right button of the mouse is clicked (before the context menu is displayed).</source>
-        <target state="new">The right button of the mouse is clicked (before the context menu is displayed).</target>
+        <target state="translated">Se hace clic en el botón derecho del mouse (antes de que se muestre el menú contextual).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondblclick">
         <source>A pointing device button is clicked twice on an element.</source>
-        <target state="new">A pointing device button is clicked twice on an element.</target>
+        <target state="translated">Se hace clic dos veces en un botón de dispositivo señalador en un elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondrag">
         <source>An element or text selection is being dragged (every 350ms).</source>
-        <target state="new">An element or text selection is being dragged (every 350ms).</target>
+        <target state="translated">Se está arrastrando un elemento o una selección de texto (cada 350 ms).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragend">
         <source>A drag operation is being ended (by releasing a mouse button or hitting the escape key).</source>
-        <target state="new">A drag operation is being ended (by releasing a mouse button or hitting the escape key).</target>
+        <target state="translated">Se está finalizando una operación de arrastre (al soltar un botón del mouse o presionar la tecla de escape).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragenter">
         <source>A dragged element or text selection enters a valid drop target.</source>
-        <target state="new">A dragged element or text selection enters a valid drop target.</target>
+        <target state="translated">Un elemento arrastrado o una selección de texto entra en un destino de colocación válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragleave">
         <source>A dragged element or text selection leaves a valid drop target.</source>
-        <target state="new">A dragged element or text selection leaves a valid drop target.</target>
+        <target state="translated">Un elemento arrastrado o una selección de texto sale de un destino de colocación válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragover">
         <source>An element or text selection is being dragged over a valid drop target (every 350ms).</source>
-        <target state="new">An element or text selection is being dragged over a valid drop target (every 350ms).</target>
+        <target state="translated">Se está arrastrando un elemento o una selección de texto sobre un destino de colocación válido (cada 350 ms).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondragstart">
         <source>The user starts dragging an element or text selection.</source>
-        <target state="new">The user starts dragging an element or text selection.</target>
+        <target state="translated">El usuario empieza a arrastrar un elemento o selección de texto.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondrop">
         <source>An element is dropped on a valid drop target.</source>
-        <target state="new">An element is dropped on a valid drop target.</target>
+        <target state="translated">Se quita un elemento en un destino de colocación válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ondurationchange">
         <source>The duration attribute has been updated.</source>
-        <target state="new">The duration attribute has been updated.</target>
+        <target state="translated">Se ha actualizado el atributo de duración.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onemptied">
         <source>The media has become empty; for example, this event is sent if the media has already been loaded (or partially loaded), and the load() method is called to reload it.</source>
-        <target state="new">The media has become empty; for example, this event is sent if the media has already been loaded (or partially loaded), and the load() method is called to reload it.</target>
+        <target state="translated">El medio se ha vuelto vacío; por ejemplo, este evento se envía si el medio ya se ha cargado (o cargado parcialmente) y se llama al método load() para volver a cargarlo.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onended">
         <source>Playback has stopped because the end of the media was reached.</source>
-        <target state="new">Playback has stopped because the end of the media was reached.</target>
+        <target state="translated">Se detuvo la reproducción porque se alcanzó el final del medio.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onerror">
         <source>A resource failed to load.</source>
-        <target state="new">A resource failed to load.</target>
+        <target state="translated">No se pudo cargar un recurso.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onfocus">
         <source>An element has received focus (does not bubble).</source>
-        <target state="new">An element has received focus (does not bubble).</target>
+        <target state="translated">Un elemento ha recibido el foco (no se propaga).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onhashchange">
         <source>Function to call when the fragment identifier part (starting with the hash (`'#'`) character) of the document's current address has changed.</source>
-        <target state="new">Function to call when the fragment identifier part (starting with the hash (`'#'`) character) of the document's current address has changed.</target>
+        <target state="translated">Función a la que se llamará cuando la parte del identificador de fragmento (empezando por el carácter hash(`'#'`)) de la dirección actual del documento haya cambiado.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oninput">
         <source>The value of an element changes or the content of an element with the attribute contenteditable is modified.</source>
-        <target state="new">The value of an element changes or the content of an element with the attribute contenteditable is modified.</target>
+        <target state="translated">El valor de un elemento cambia o se modifica el contenido de un elemento con el atributo contenteditable.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_oninvalid">
         <source>A submittable element has been checked and doesn't satisfy its constraints.</source>
-        <target state="new">A submittable element has been checked and doesn't satisfy its constraints.</target>
+        <target state="translated">Se ha comprobado un elemento que se puede enviar y no cumple sus restricciones.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onkeydown">
         <source>A key is pressed down.</source>
-        <target state="new">A key is pressed down.</target>
+        <target state="translated">Se presiona una tecla.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onkeypress">
         <source>A key is pressed down and that key normally produces a character value (use input instead).</source>
-        <target state="new">A key is pressed down and that key normally produces a character value (use input instead).</target>
+        <target state="translated">Se presiona una tecla hacia abajo y esa tecla normalmente genera un valor de carácter (use la entrada en su lugar).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onkeyup">
         <source>A key is released.</source>
-        <target state="new">A key is released.</target>
+        <target state="translated">Se libera una clave.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onload">
         <source>A resource and its dependent resources have finished loading.</source>
-        <target state="new">A resource and its dependent resources have finished loading.</target>
+        <target state="translated">Un recurso y sus recursos dependientes han terminado de cargarse.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onloadeddata">
         <source>The first frame of the media has finished loading.</source>
-        <target state="new">The first frame of the media has finished loading.</target>
+        <target state="translated">El primer fotograma del medio ha terminado de cargarse.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onloadedmetadata">
         <source>The metadata has been loaded.</source>
-        <target state="new">The metadata has been loaded.</target>
+        <target state="translated">Se han cargado los metadatos.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onloadstart">
         <source>Progress has begun.</source>
-        <target state="new">Progress has begun.</target>
+        <target state="translated">Ha comenzado el progreso.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmessage">
         <source>Function to call when the document has received a message.</source>
-        <target state="new">Function to call when the document has received a message.</target>
+        <target state="translated">Función a la que se llamará cuando el documento haya recibido un mensaje.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmousedown">
         <source>A pointing device button (usually a mouse) is pressed on an element.</source>
-        <target state="new">A pointing device button (usually a mouse) is pressed on an element.</target>
+        <target state="translated">Se presiona un botón de dispositivo señalador (normalmente un mouse) en un elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmousemove">
         <source>A pointing device is moved over an element.</source>
-        <target state="new">A pointing device is moved over an element.</target>
+        <target state="translated">Un dispositivo señalador se mueve sobre un elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmouseout">
         <source>A pointing device is moved off the element that has the listener attached or off one of its children.</source>
-        <target state="new">A pointing device is moved off the element that has the listener attached or off one of its children.</target>
+        <target state="translated">Un dispositivo señalador se mueve fuera del elemento que tiene el agente de escucha conectado o fuera de uno de sus elementos secundarios.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmouseover">
         <source>A pointing device is moved onto the element that has the listener attached or onto one of its children.</source>
-        <target state="new">A pointing device is moved onto the element that has the listener attached or onto one of its children.</target>
+        <target state="translated">Un dispositivo señalador se mueve al elemento que tiene el agente de escucha conectado o a uno de sus elementos secundarios.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onmouseup">
         <source>A pointing device button is released over an element.</source>
-        <target state="new">A pointing device button is released over an element.</target>
+        <target state="translated">Se suelta un botón de dispositivo señalador sobre un elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onoffline">
         <source>Function to call when network communication has failed.</source>
-        <target state="new">Function to call when network communication has failed.</target>
+        <target state="translated">Función a la que se llamará cuando se haya producido un error en la comunicación de red.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ononline">
         <source>Function to call when network communication has been restored.</source>
-        <target state="new">Function to call when network communication has been restored.</target>
+        <target state="translated">Función a la que se llama cuando se ha restaurado la comunicación de red.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onpause">
         <source>Playback has been paused.</source>
-        <target state="new">Playback has been paused.</target>
+        <target state="translated">La reproducción se ha pausado.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onplay">
         <source>Playback has begun.</source>
-        <target state="new">Playback has begun.</target>
+        <target state="translated">Ha comenzado la reproducción.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onplaying">
         <source>Playback is ready to start after having been paused or delayed due to lack of data.</source>
-        <target state="new">Playback is ready to start after having been paused or delayed due to lack of data.</target>
+        <target state="translated">La reproducción está lista para iniciarse después de haberse pausado o retrasado debido a la falta de datos.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onpopstate">
         <source>Function to call when the user has navigated session history.</source>
-        <target state="new">Function to call when the user has navigated session history.</target>
+        <target state="translated">Función a la que se llamará cuando el usuario haya navegado por el historial de sesiones.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onprogress">
         <source>In progress.</source>
-        <target state="new">In progress.</target>
+        <target state="translated">En curso.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onratechange">
         <source>The playback rate has changed.</source>
-        <target state="new">The playback rate has changed.</target>
+        <target state="translated">La velocidad de reproducción ha cambiado.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onreadystatechange">
         <source>The readyState attribute of a document has changed.</source>
-        <target state="new">The readyState attribute of a document has changed.</target>
+        <target state="translated">El atributo readyState de un documento ha cambiado.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onredo">
         <source>Function to call when the user has moved forward in undo transaction history.</source>
-        <target state="new">Function to call when the user has moved forward in undo transaction history.</target>
+        <target state="translated">Función a la que se llama cuando el usuario ha avanzado en el historial de transacciones de deshacer.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onreset">
         <source>A form is reset.</source>
-        <target state="new">A form is reset.</target>
+        <target state="translated">Se restablece un formulario.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onresize">
         <source>Function to call when the document has been resized.</source>
-        <target state="new">Function to call when the document has been resized.</target>
+        <target state="translated">Función a la que se llama cuando se ha cambiado el tamaño del documento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onscroll">
         <source>The document view or an element has been scrolled.</source>
-        <target state="new">The document view or an element has been scrolled.</target>
+        <target state="translated">Se ha desplazado la vista de documento o un elemento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onseeked">
         <source>A seek operation completed.</source>
-        <target state="new">A seek operation completed.</target>
+        <target state="translated">Operación de búsqueda completada.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onseeking">
         <source>A seek operation began.</source>
-        <target state="new">A seek operation began.</target>
+        <target state="translated">Se inició una operación de búsqueda.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onselect">
         <source>Some text is being selected.</source>
-        <target state="new">Some text is being selected.</target>
+        <target state="translated">Se está seleccionando texto.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onshow">
         <source>A contextmenu event was fired on/bubbled to an element that has a contextmenu attribute</source>
-        <target state="new">A contextmenu event was fired on/bubbled to an element that has a contextmenu attribute</target>
+        <target state="translated">Un evento contextmenu se activó o se activó con burbujas en un elemento que tiene un atributo contextmenu</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onstalled">
         <source>The user agent is trying to fetch media data, but data is unexpectedly not forthcoming.</source>
-        <target state="new">The user agent is trying to fetch media data, but data is unexpectedly not forthcoming.</target>
+        <target state="translated">El agente de usuario está intentando capturar datos multimedia, pero los datos no están disponibles de forma inesperada.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onstorage">
         <source>Function to call when the storage area has changed.</source>
-        <target state="new">Function to call when the storage area has changed.</target>
+        <target state="translated">Función a la que se llamará cuando el área de almacenamiento haya cambiado.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onsubmit">
         <source>A form is submitted.</source>
-        <target state="new">A form is submitted.</target>
+        <target state="translated">Se envía un formulario.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onsuspend">
         <source>Media data loading has been suspended.</source>
-        <target state="new">Media data loading has been suspended.</target>
+        <target state="translated">Se ha suspendido la carga de datos multimedia.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ontimeupdate">
         <source>The time indicated by the currentTime attribute has been updated.</source>
-        <target state="new">The time indicated by the currentTime attribute has been updated.</target>
+        <target state="translated">Se ha actualizado la hora indicada por el atributo currentTime.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onundo">
         <source>Function to call when the user has moved backward in undo transaction history.</source>
-        <target state="new">Function to call when the user has moved backward in undo transaction history.</target>
+        <target state="translated">Función a la que se llamará cuando el usuario haya retrocedido en el historial de transacciones de deshacer.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onunload">
         <source>Function to call when the document is going away.</source>
-        <target state="new">Function to call when the document is going away.</target>
+        <target state="translated">Función a la que se va a llamar cuando el documento desaparece.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onvolumechange">
         <source>The volume has changed.</source>
-        <target state="new">The volume has changed.</target>
+        <target state="translated">El volumen ha cambiado.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_onwaiting">
         <source>Playback has stopped because of a temporary lack of data.</source>
-        <target state="new">Playback has stopped because of a temporary lack of data.</target>
+        <target state="translated">La reproducción se ha detenido debido a una falta temporal de datos.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_open">
         <source>Indicates that the dialog is active and available for interaction. When the `open` attribute is not set, the dialog shouldn't be shown to the user.</source>
-        <target state="new">Indicates that the dialog is active and available for interaction. When the `open` attribute is not set, the dialog shouldn't be shown to the user.</target>
+        <target state="translated">Indica que el cuadro de diálogo está activo y disponible para la interacción. Cuando no se establece el atributo `open`, el cuadro de diálogo no debe mostrarse al usuario.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_optimum">
         <source>This attribute indicates the optimal numeric value. It must be within the range (as defined by the `min` attribute and `max` attribute). When used with the `low` attribute and `high` attribute, it gives an indication where along the range is considered preferable. For example, if it is between the `min` attribute and the `low` attribute, then the lower range is considered preferred.</source>
-        <target state="new">This attribute indicates the optimal numeric value. It must be within the range (as defined by the `min` attribute and `max` attribute). When used with the `low` attribute and `high` attribute, it gives an indication where along the range is considered preferable. For example, if it is between the `min` attribute and the `low` attribute, then the lower range is considered preferred.</target>
+        <target state="translated">Este atributo indica el valor numérico óptimo. Debe estar dentro del intervalo (definido por el atributo `min` y el atributo `max`). Cuando se usa con el atributo `low` y el atributo `high`, proporciona una indicación de dónde se considera preferible a lo largo del intervalo. Por ejemplo, si se encuentra entre el atributo `min` y el atributo `low`, el intervalo inferior se considera preferido.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_part">
         <source>A space-separated list of the part names of the element. Part names allows CSS to select and style specific elements in a shadow tree via the [`::part`](https://developer.mozilla.org/docs/Web/CSS/::part "The ::part CSS pseudo-element represents any element within a shadow tree that has a matching part attribute.") pseudo-element.</source>
-        <target state="new">A space-separated list of the part names of the element. Part names allows CSS to select and style specific elements in a shadow tree via the [`::part`](https://developer.mozilla.org/docs/Web/CSS/::part "The ::part CSS pseudo-element represents any element within a shadow tree that has a matching part attribute.") pseudo-element.</target>
+        <target state="translated">Lista separada por espacios de los nombres de las partes del elemento. Los nombres de elemento permiten a CSS seleccionar y aplicar estilo a elementos específicos de un árbol de sombras a través del seudoelemento [`::part`](https://developer.mozilla.org/docs/Web/CSS/::part "El seudoelemento CSS ::p art representa cualquier elemento dentro de un árbol de sombras que tenga un atributo de parte coincidente").</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_ping">
         <source>Contains a space-separated list of URLs to which, when the hyperlink is followed, [`POST`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST "The HTTP POST method sends data to the server. The type of the body of the request is indicated by the Content-Type header.") requests with the body `PING` will be sent by the browser (in the background). Typically used for tracking.</source>
-        <target state="new">Contains a space-separated list of URLs to which, when the hyperlink is followed, [`POST`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST "The HTTP POST method sends data to the server. The type of the body of the request is indicated by the Content-Type header.") requests with the body `PING` will be sent by the browser (in the background). Typically used for tracking.</target>
+        <target state="translated">Contiene una lista separada por espacios de direcciones URL a las que, cuando se sigue el hipervínculo, [`POST`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST "El método HTTP POST envía datos al servidor. El encabezado Content-Type indica el tipo de cuerpo de la solicitud. El explorador enviará las solicitudes con el cuerpo `PING` (en segundo plano). Normalmente se usa para el seguimiento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_placeholder">
@@ -1522,17 +1522,17 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_popover">
         <source>Designates an element as a popover element.</source>
-        <target state="new">Designates an element as a popover element.</target>
+        <target state="translated">Designa un elemento como elemento emergente.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_profile">
         <source>The URIs of one or more metadata profiles, separated by white space.</source>
-        <target state="new">The URIs of one or more metadata profiles, separated by white space.</target>
+        <target state="translated">Uri de uno o más perfiles de metadatos, separados por espacios en blanco.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_readonly">
         <source>This Boolean attribute indicates that the user cannot modify the value of the control. Unlike the `disabled` attribute, the `readonly` attribute does not prevent the user from clicking or selecting in the control. The value of a read-only control is still submitted with the form.</source>
-        <target state="new">This Boolean attribute indicates that the user cannot modify the value of the control. Unlike the `disabled` attribute, the `readonly` attribute does not prevent the user from clicking or selecting in the control. The value of a read-only control is still submitted with the form.</target>
+        <target state="translated">Este atributo booleano indica que el usuario no puede modificar el valor del control. A diferencia del atributo `disabled`, el atributo `readonly` no impide que el usuario haga clic o seleccione en el control. El valor de un control de solo lectura todavía se envía con el formulario.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_referrerpolicy">
@@ -1554,22 +1554,22 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_rel">
         <source>This attribute names a relationship of the linked document to the current document. The attribute must be a space-separated list of the [link types values](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types).</source>
-        <target state="new">This attribute names a relationship of the linked document to the current document. The attribute must be a space-separated list of the [link types values](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types).</target>
+        <target state="translated">Este atributo asigna un nombre a una relación del documento vinculado con el documento actual. El atributo debe ser una lista separada por espacios de los [valores de tipos de vínculo](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_required">
         <source>A Boolean attribute indicating that an option with a non-empty string value must be selected.</source>
-        <target state="new">A Boolean attribute indicating that an option with a non-empty string value must be selected.</target>
+        <target state="translated">Atributo booleano que indica que se debe seleccionar una opción con un valor de cadena no vacío.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_reversed">
         <source>This Boolean attribute specifies that the items of the list are specified in reversed order.</source>
-        <target state="new">This Boolean attribute specifies that the items of the list are specified in reversed order.</target>
+        <target state="translated">Este atributo booleano especifica que los elementos de la lista se especifican en orden inverso.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_rows">
         <source>The number of visible text lines for the control.</source>
-        <target state="new">The number of visible text lines for the control.</target>
+        <target state="translated">Número de líneas de texto visibles para el control.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sandbox">
@@ -1626,7 +1626,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_selected">
         <source>If present, this Boolean attribute indicates that the option is initially selected. If the `&lt;option&gt;` element is the descendant of a [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element whose [`multiple`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select#attr-multiple) attribute is not set, only one single `&lt;option&gt;` of this [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element may have the `selected` attribute.</source>
-        <target state="new">If present, this Boolean attribute indicates that the option is initially selected. If the `&lt;option&gt;` element is the descendant of a [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element whose [`multiple`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select#attr-multiple) attribute is not set, only one single `&lt;option&gt;` of this [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The HTML &lt;select&gt; element represents a control that provides a menu of options") element may have the `selected` attribute.</target>
+        <target state="translated">Si está presente, este atributo booleano indica que la opción está seleccionada inicialmente. Si el elemento `&lt;option&gt;` es el descendiente de un elemento [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "El elemento HTML &lt;select&gt; representa un control que proporciona un menú de opciones") cuyo atributo [`multiple`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select#attr-multiple) no está establecido, solo un solo `&lt;option&gt;` de este [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select "The El elemento HTML &lt;select&gt; representa un control que proporciona un menú de opciones") puede tener el atributo `selected`.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_size">
@@ -1655,7 +1655,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
       </trans-unit>
       <trans-unit id="HtmlAttribute_slot">
         <source>Assigns a slot in a [shadow DOM](https://developer.mozilla.org/docs/Web/Web_Components/Shadow_DOM) shadow tree to an element: An element with a `slot` attribute is assigned to the slot created by the [`&lt;slot&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/slot "The HTML &lt;slot&gt; element—part of the Web Components technology suite—is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.") element whose `[name](https://developer.mozilla.org/docs/Web/HTML/Element/slot#attr-name)` attribute's value matches that `slot` attribute's value.</source>
-        <target state="new">Assigns a slot in a [shadow DOM](https://developer.mozilla.org/docs/Web/Web_Components/Shadow_DOM) shadow tree to an element: An element with a `slot` attribute is assigned to the slot created by the [`&lt;slot&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/slot "The HTML &lt;slot&gt; element—part of the Web Components technology suite—is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.") element whose `[name](https://developer.mozilla.org/docs/Web/HTML/Element/slot#attr-name)` attribute's value matches that `slot` attribute's value.</target>
+        <target state="translated">Asigna una ranura en un árbol de sombras [shadow DOM](https://developer.mozilla.org/docs/Web/Web_Components/Shadow_DOM) a un elemento: un elemento con un atributo `slot` se asigna a la ranura creada por [`&lt;slot&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/slot "El elemento HTML &lt;slot&gt;, que forma parte del conjunto de tecnología de componentes web, es un marcador de posición dentro de un componente web que puede rellenar con su propio marcado, que le permite crear árboles DOM independientes y presentarlos juntos"). cuyo valor del atributo `[name](https://developer.mozilla.org/docs/Web/HTML/Element/slot#attr-name)` coincide con el valor del atributo `slot`.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_spellcheck">
@@ -1680,12 +1680,12 @@ If a `script` element has a `src` attribute specified, it should not have a scri
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcdoc">
         <source>Inline HTML to embed, overriding the `src` attribute. If a browser does not support the `srcdoc` attribute, it will fall back to the URL in the `src` attribute.</source>
-        <target state="new">Inline HTML to embed, overriding the `src` attribute. If a browser does not support the `srcdoc` attribute, it will fall back to the URL in the `src` attribute.</target>
+        <target state="translated">HTML insertado para insertar, reemplazando el atributo `src`. Si un explorador no admite el atributo `srcdoc`, recurrirá a la dirección URL del atributo `src`.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srclang">
         <source>Language of the track text data. It must be a valid [BCP 47](https://r12a.github.io/app-subtags/) language tag. If the `kind` attribute is set to `subtitles,` then `srclang` must be defined.</source>
-        <target state="new">Language of the track text data. It must be a valid [BCP 47](https://r12a.github.io/app-subtags/) language tag. If the `kind` attribute is set to `subtitles,` then `srclang` must be defined.</target>
+        <target state="translated">Idioma de los datos de texto de seguimiento. Debe ser una etiqueta de idioma [BCP 47](https://r12a.github.io/app-subtags/) válida. Si el atributo `kind` se establece en `subtitles,` se debe definir `srclang`.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcset">
@@ -1726,7 +1726,7 @@ The user agent selects any one of the available sources at its discretion. This 
       </trans-unit>
       <trans-unit id="HtmlAttribute_style">
         <source>Contains [CSS](https://developer.mozilla.org/docs/Web/CSS) styling declarations to be applied to the element. Note that it is recommended for styles to be defined in a separate file or files. This attribute and the [`&lt;style&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/style "The HTML &lt;style&gt; element contains style information for a document, or part of a document.") element have mainly the purpose of allowing for quick styling, for example for testing purposes.</source>
-        <target state="new">Contains [CSS](https://developer.mozilla.org/docs/Web/CSS) styling declarations to be applied to the element. Note that it is recommended for styles to be defined in a separate file or files. This attribute and the [`&lt;style&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/style "The HTML &lt;style&gt; element contains style information for a document, or part of a document.") element have mainly the purpose of allowing for quick styling, for example for testing purposes.</target>
+        <target state="translated">Contiene declaraciones de estilo [CSS](https://developer.mozilla.org/docs/Web/CSS) que se aplicarán al elemento. Tenga en cuenta que se recomienda que los estilos se definan en un archivo o archivos independientes. Este atributo y el elemento [`&lt;style&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/style "El elemento HTML &lt;style&gt; contiene información de estilo para un documento o parte de un documento"). tienen principalmente el propósito de permitir estilos rápidos, por ejemplo con fines de prueba.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_tabindex">
@@ -1763,7 +1763,7 @@ If this attribute is specified, this element must come before any other elements
       </trans-unit>
       <trans-unit id="HtmlAttribute_title">
         <source>Contains a text representing advisory information related to the element it belongs to. Such information can typically, but not necessarily, be presented to the user as a tooltip.</source>
-        <target state="new">Contains a text representing advisory information related to the element it belongs to. Such information can typically, but not necessarily, be presented to the user as a tooltip.</target>
+        <target state="translated">Contiene un texto que representa información de asesoramiento relacionada con el elemento al que pertenece. Normalmente, esta información se puede presentar al usuario, pero no necesariamente, como información sobre herramientas.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_translate">
@@ -1779,7 +1779,7 @@ If this attribute is specified, this element must come before any other elements
       </trans-unit>
       <trans-unit id="HtmlAttribute_type">
         <source>This attribute is used to define the type of the content linked to. The value of the attribute should be a MIME type such as **text/html**, **text/css**, and so on. The common use of this attribute is to define the type of stylesheet being referenced (such as **text/css**), but given that CSS is the only stylesheet language used on the web, not only is it possible to omit the `type` attribute, but is actually now recommended practice. It is also used on `rel="preload"` link types, to make sure the browser only downloads file types that it supports.</source>
-        <target state="new">This attribute is used to define the type of the content linked to. The value of the attribute should be a MIME type such as **text/html**, **text/css**, and so on. The common use of this attribute is to define the type of stylesheet being referenced (such as **text/css**), but given that CSS is the only stylesheet language used on the web, not only is it possible to omit the `type` attribute, but is actually now recommended practice. It is also used on `rel="preload"` link types, to make sure the browser only downloads file types that it supports.</target>
+        <target state="translated">Este atributo se usa para definir el tipo de contenido al que está vinculado. El valor del atributo debe ser un tipo MIME como **text/html**, **text/css**, etc. El uso común de este atributo es definir el tipo de hoja de estilos a la que se hace referencia (por ejemplo, **texto/css**), pero dado que CSS es el único lenguaje de hoja de estilos que se usa en la web, no solo es posible omitir el atributo `type`, sino que, en realidad, es una práctica recomendada. También se usa en los tipos de vínculo `rel="preload"` para asegurarse de que el explorador solo descarga los tipos de archivo que admite.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_usemap">
@@ -1819,12 +1819,12 @@ If this attribute is specified, this element must come before any other elements
       </trans-unit>
       <trans-unit id="HtmlAttribute_virtualkeyboardpolicy">
         <source>When specified on an element that the element's content is editable (for example, it is an `&lt;input&gt;` or `&lt;textarea&gt;` element, or an element with the `contenteditable` attribute set), it controls the on-screen virtual keyboard behavior on devices such as tablets, mobile phones, or other devices where a hardware keyboard may not be available.</source>
-        <target state="new">When specified on an element that the element's content is editable (for example, it is an `&lt;input&gt;` or `&lt;textarea&gt;` element, or an element with the `contenteditable` attribute set), it controls the on-screen virtual keyboard behavior on devices such as tablets, mobile phones, or other devices where a hardware keyboard may not be available.</target>
+        <target state="translated">Cuando se especifica en un elemento que el contenido del elemento es editable (por ejemplo, es un elemento `&lt;input&gt;` o `&lt;textarea&gt;`, o un elemento con el atributo `contenteditable` establecido), controla el comportamiento del teclado virtual en pantalla en dispositivos como tabletas, teléfonos móviles u otros dispositivos en los que es posible que un teclado hardware no esté disponible.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_width">
         <source>The intrinsic width of the image in pixels.</source>
-        <target state="new">The intrinsic width of the image in pixels.</target>
+        <target state="translated">Ancho intrínseco de la imagen en píxeles.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_wrap">
@@ -1866,7 +1866,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_article">
         <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content. Each article should be identified, typically by including a heading (h1–h6 element) as a child of the article element.</source>
-        <target state="new">The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content. Each article should be identified, typically by including a heading (h1–h6 element) as a child of the article element.</target>
+        <target state="translated">El elemento de artículo representa una composición completa o independiente en un documento, página, aplicación o sitio y que, en principio, es distribuible o reutilizable de forma independiente, por ejemplo, en la redifusión. Esto podría ser una publicación en un foro, un artículo de revista o periódico, una entrada de blog, un comentario enviado por un usuario, un widget o gadget interactivo, o cualquier otro elemento independiente de contenido. Cada artículo debe identificarse, normalmente mediante la inclusión de un encabezado (elemento h1–h6) como elemento secundario del elemento de artículo.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_aside">
@@ -1891,12 +1891,12 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_bdi">
         <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting. [BIDI]</source>
-        <target state="new">The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting. [BIDI]</target>
+        <target state="translated">El elemento bdi representa un intervalo de texto que se aísla de lo que le rodea para fines de formato de texto bidireccional. [BIDI]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdo">
         <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override. [BIDI]</source>
-        <target state="new">The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override. [BIDI]</target>
+        <target state="translated">El elemento bdo representa control de formato de direccionalidad de texto explícito para sus elementos secundarios. Permite a los autores invalidar el algoritmo bidireccional Unicode especificando explícitamente una invalidación de dirección. [BIDI]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_blockquote">
@@ -1931,7 +1931,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_cite">
         <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, or a reference in abbreviated form as per the conventions used for the addition of citation metadata.</source>
-        <target state="new">The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, or a reference in abbreviated form as per the conventions used for the addition of citation metadata.</target>
+        <target state="translated">El elemento cite representa una referencia a una obra creativa. Debe incluir el título del trabajo, el nombre del autor (persona, personas u organización), una referencia URL o una referencia abreviada según las convenciones usadas para la adición de metadatos de cita.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_code">
@@ -1961,7 +1961,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_data">
         <source>The data element links a given piece of content with a machine-readable translation.</source>
-        <target state="new">The data element links a given piece of content with a machine-readable translation.</target>
+        <target state="translated">El elemento de datos vincula un elemento de contenido determinado con una traducción legible por máquina.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_datalist">
@@ -2041,42 +2041,42 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_h1">
         <source>The h1 element represents a section heading.</source>
-        <target state="new">The h1 element represents a section heading.</target>
+        <target state="translated">El elemento h1 representa un encabezado de sección.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h2">
         <source>The h2 element represents a section heading.</source>
-        <target state="new">The h2 element represents a section heading.</target>
+        <target state="translated">El elemento h2 representa un encabezado de sección.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h3">
         <source>The h3 element represents a section heading.</source>
-        <target state="new">The h3 element represents a section heading.</target>
+        <target state="translated">El elemento h3 representa un encabezado de sección.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h4">
         <source>The h4 element represents a section heading.</source>
-        <target state="new">The h4 element represents a section heading.</target>
+        <target state="translated">El elemento h4 representa un encabezado de sección.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h5">
         <source>The h5 element represents a section heading.</source>
-        <target state="new">The h5 element represents a section heading.</target>
+        <target state="translated">El elemento h5 representa un encabezado de sección.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h6">
         <source>The h6 element represents a section heading.</source>
-        <target state="new">The h6 element represents a section heading.</target>
+        <target state="translated">El elemento h6 representa un encabezado de sección.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_head">
         <source>The head element represents a collection of metadata for the Document.</source>
-        <target state="new">The head element represents a collection of metadata for the Document.</target>
+        <target state="translated">El elemento principal representa una colección de metadatos para el documento.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_header">
         <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids. When the nearest ancestor sectioning content or sectioning root element is the body element, then it applies to the whole page.</source>
-        <target state="new">The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids. When the nearest ancestor sectioning content or sectioning root element is the body element, then it applies to the whole page.</target>
+        <target state="translated">El elemento header representa el contenido de introducción para su elemento raíz de sección o contenido de sección antecesor más cercano. Un encabezado suele contener un grupo de ayudas de navegación o de introducción. Cuando el elemento raíz de sección o de sección del antecesor más cercano es el elemento de cuerpo, se aplica a toda la página.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_hr">
@@ -2131,7 +2131,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_li">
         <source>The li element represents a list item. If its parent element is an ol, ul, or menu element, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
-        <target state="new">The li element represents a list item. If its parent element is an ol, ul, or menu element, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</target>
+        <target state="translated">El elemento li representa un elemento de lista. Si su elemento principal es un elemento ol, ul o menu, entonces el elemento es un elemento de la lista del elemento principal, tal como se define para esos elementos. De lo contrario, el elemento de lista no tiene ninguna relación asociada con la lista con otro elemento li.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_link">
@@ -2161,7 +2161,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_menu">
         <source>The menu element represents an unordered list of interactive items.</source>
-        <target state="new">The menu element represents an unordered list of interactive items.</target>
+        <target state="translated">El elemento de menú representa una lista desordenada de elementos interactivos.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menuitem">
@@ -2236,7 +2236,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_output">
         <source>The output element represents the result of a calculation performed by the application, or the result of a user action.</source>
-        <target state="new">The output element represents the result of a calculation performed by the application, or the result of a user action.</target>
+        <target state="translated">El elemento output representa el resultado de un cálculo realizado por la aplicación o el resultado de una acción del usuario.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_p">
@@ -2251,7 +2251,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_picture">
         <source>The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
-        <target state="new">The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</target>
+        <target state="translated">El elemento picture es un contenedor que proporciona varios orígenes a su elemento img contenido para permitir que los autores controlen mediante declaración o proporcionen sugerencias al agente de usuario sobre qué recurso de imagen usar, en función de la densidad de píxeles de pantalla, el tamaño de la ventanilla, el formato de imagen y otros factores. Representa sus elementos secundarios.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_polymer-element">
@@ -2291,7 +2291,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_ruby">
         <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations. In Japanese, this form of typography is also known as furigana. Ruby text can appear on either side, and sometimes both sides, of the base text, and it is possible to control its position using CSS. A more complete introduction to ruby can be found in the Use Cases &amp; Exploratory Approaches for Ruby Markup document as well as in CSS Ruby Module Level 1. [RUBY-UC] [CSSRUBY]</source>
-        <target state="new">The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations. In Japanese, this form of typography is also known as furigana. Ruby text can appear on either side, and sometimes both sides, of the base text, and it is possible to control its position using CSS. A more complete introduction to ruby can be found in the Use Cases &amp; Exploratory Approaches for Ruby Markup document as well as in CSS Ruby Module Level 1. [RUBY-UC] [CSSRUBY]</target>
+        <target state="translated">El elemento ruby permite que uno o varios intervalos de contenido de frases se marquen con anotaciones ruby. Las anotaciones ruby son pequeñas ejecuciones de texto que se presentan con texto base, estas se usan principalmente en la tipografía de Asia oriental como guía de pronunciación o para incluir otras anotaciones. En japonés, esta forma de tipografía también se conoce como furigana. El texto Ruby puede aparecer a uno u otro lado, y a veces en ambos, del texto base, y es posible controlar su posición mediante CSS. Puede encontrar una introducción más completa a ruby en el documento Casos de uso y enfoques exploratorios para el marcado Ruby, así como en el nivel 1 del módulo Ruby de CSS. [RUBY-UC] [CSSRUBY]</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_s">
@@ -2301,7 +2301,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_samp">
         <source>The samp element represents sample or quoted output from another program or computing system.</source>
-        <target state="new">The samp element represents sample or quoted output from another program or computing system.</target>
+        <target state="translated">El elemento samp representa una salida de ejemplo o citada de otro programa o sistema informático.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_script">
@@ -2311,12 +2311,12 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_search">
         <source>The search element represents the parts of the document or application with form controls or other content related to performing a search or filtering operation.</source>
-        <target state="new">The search element represents the parts of the document or application with form controls or other content related to performing a search or filtering operation.</target>
+        <target state="translated">El elemento de búsqueda representa las partes del documento o la aplicación con controles de formulario u otro contenido relacionado con la realización de una operación de búsqueda o filtrado.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_section">
         <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. Each section should be identified, typically by including a heading ( h1- h6 element) as a child of the section element.</source>
-        <target state="new">The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. Each section should be identified, typically by including a heading ( h1- h6 element) as a child of the section element.</target>
+        <target state="translated">El elemento section representa una sección genérica de un documento o aplicación. Una sección, en este contexto, es una agrupación temática de contenido. Cada sección debe identificarse, normalmente mediante la inclusión de un encabezado (elemento h1- h6) como elemento secundario del elemento de sección.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_select">
@@ -2331,7 +2331,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_slot">
         <source>The slot element is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.</source>
-        <target state="new">The slot element is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.</target>
+        <target state="translated">El elemento slot es un marcador de posición dentro de un componente web que puede rellenar con su propio marcado, lo que le permite crear árboles DOM independientes y presentarlos juntos.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_small">
@@ -2361,7 +2361,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_sub">
         <source>The sub element represents a subscript.</source>
-        <target state="new">The sub element represents a subscript.</target>
+        <target state="translated">El subelemento representa un subíndice.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_summary">
@@ -2371,7 +2371,7 @@ If this attribute is not specified, `soft` is its default value.</target>
       </trans-unit>
       <trans-unit id="HtmlElement_sup">
         <source>The sup element represents a superscript.</source>
-        <target state="new">The sup element represents a superscript.</target>
+        <target state="translated">El elemento sup representa un superíndice.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_svg">
