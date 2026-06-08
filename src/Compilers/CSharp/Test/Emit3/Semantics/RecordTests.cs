@@ -15985,6 +15985,24 @@ sealed record S : R;";
         }
 
         [Fact]
+        public void Overrides_AbstractBaseCalls_04()
+        {
+            var source =
+@"#nullable enable
+abstract record R
+{
+    public abstract override int GetHashCode();
+}
+sealed record S : R
+{
+    public override int GetHashCode() => 0;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void ObjectEquals_01()
         {
             var ilSource = @"
