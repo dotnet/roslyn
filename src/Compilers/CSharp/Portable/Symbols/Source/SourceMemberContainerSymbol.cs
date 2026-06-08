@@ -5257,7 +5257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingPrintMembersMethod))
                 {
                     var abstractBasePrintMembers = getAbstractBasePrintMembersMethod();
-                    if (abstractBasePrintMembers is object)
+                    if (abstractBasePrintMembers is not null)
                     {
                         printMembersMethod = abstractBasePrintMembers;
                     }
@@ -5495,7 +5495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
                     var abstractBaseGetHashCode = getAbstractBaseGetHashCodeMethod();
-                    if (abstractBaseGetHashCode is object)
+                    if (abstractBaseGetHashCode is not null)
                     {
                         getHashCode = abstractBaseGetHashCode;
                     }
