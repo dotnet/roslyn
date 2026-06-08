@@ -2038,15 +2038,45 @@ class Test1 : I1
 
             Assert.False(m1.IsMetadataVirtual());
 
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular8,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular14,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular14,
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
-                // (4,17): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,17): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static void M1() 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(4, 17)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("static members in interfaces").WithLocation(4, 17)
                 );
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics();
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics();
         }
 
         [Theory]
@@ -10516,7 +10546,7 @@ class Test2 : I1
             Validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
-                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.Regular14, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -10526,9 +10556,9 @@ class Test2 : I1
                 // (5,25): error CS8501: Target runtime doesn't support default interface implementation.
                 //     virtual extern void M2(); 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M2").WithLocation(5, 25),
-                // (6,24): error CS8701: Target runtime doesn't support default interface implementation.
+                // (6,24): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static extern void M3(); 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M3").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M3").WithArguments("static members in interfaces").WithLocation(6, 24),
                 // (7,25): error CS8501: Target runtime doesn't support default interface implementation.
                 //     private extern void M4();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M4").WithLocation(7, 25),
@@ -10553,6 +10583,53 @@ class Test2 : I1
                 );
 
             Validate(compilation3.SourceModule);
+
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
+                                                 parseOptions: TestOptions.RegularNext, skipUsesIsNullable: true);
+            Assert.False(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            var expected = new[]
+            {
+                // (4,17): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern void M1(); 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(4, 17),
+                // (5,25): error CS8501: Target runtime doesn't support default interface implementation.
+                //     virtual extern void M2(); 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M2").WithLocation(5, 25),
+                // (7,25): error CS8501: Target runtime doesn't support default interface implementation.
+                //     private extern void M4();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M4").WithLocation(7, 25),
+                // (8,24): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern sealed void M5();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M5").WithLocation(8, 24),
+                // (4,17): warning CS0626: Method, operator, or accessor 'I1.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void M1(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.M1()").WithLocation(4, 17),
+                // (5,25): warning CS0626: Method, operator, or accessor 'I1.M2()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern void M2(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M2").WithArguments("I1.M2()").WithLocation(5, 25),
+                // (6,24): warning CS0626: Method, operator, or accessor 'I1.M3()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern void M3(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M3").WithArguments("I1.M3()").WithLocation(6, 24),
+                // (7,25): warning CS0626: Method, operator, or accessor 'I1.M4()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern void M4();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M4").WithArguments("I1.M4()").WithLocation(7, 25),
+                // (8,24): warning CS0626: Method, operator, or accessor 'I1.M5()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed void M5();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M5").WithArguments("I1.M5()").WithLocation(8, 24)
+            };
+
+            compilation4.VerifyDiagnostics(expected);
+
+            Validate(compilation4.SourceModule);
+
+            var compilation5 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
+                                                 parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+            Assert.False(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation5.VerifyDiagnostics(expected);
+
+            Validate(compilation5.SourceModule);
         }
 
         [Fact]
@@ -11276,7 +11353,7 @@ public partial interface I1
         }
 
         [Fact]
-        public void MethodModifiers_26()
+        public void MethodModifiers_26_01()
         {
             var source1 =
 @"
@@ -11381,27 +11458,15 @@ public partial interface I1
                 // (8,25): error CS8795: Partial method 'I1.M5(out int)' must have accessibility modifiers because it has 'out' parameters.
                 //     static partial void M5(out int x);
                 Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M5").WithArguments("I1.M5(out int)").WithLocation(8, 25),
-                // (10,17): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static void M7() {}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M7").WithLocation(10, 17),
-                // (11,25): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static partial void M8() {}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M8").WithLocation(11, 25),
                 // (11,25): error CS0759: No defining declaration found for implementing declaration of partial method 'I1.M8()'
                 //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M8").WithArguments("I1.M8()").WithLocation(11, 25),
-                // (18,17): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static void M6() {}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M6").WithLocation(18, 17),
                 // (18,17): error CS0111: Type 'I1' already defines a member called 'M6' with the same parameter types
                 //     static void M6() {}
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M6").WithArguments("M6", "I1").WithLocation(18, 17),
                 // (19,25): error CS0111: Type 'I1' already defines a member called 'M7' with the same parameter types
                 //     static partial void M7();
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "I1").WithLocation(19, 25),
-                // (20,25): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static partial void M8() {}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M8").WithLocation(20, 25),
                 // (20,25): error CS0757: A partial method may not have multiple implementing declarations
                 //     static partial void M8() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneActual, "M8").WithLocation(20, 25),
@@ -11414,9 +11479,6 @@ public partial interface I1
                 // (21,25): error CS0111: Type 'I1' already defines a member called 'M9' with the same parameter types
                 //     static partial void M9();
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "I1").WithLocation(21, 25),
-                // (22,32): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static extern partial void M10();
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M10").WithLocation(22, 32),
                 // (22,32): error CS8796: Partial method 'I1.M10()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     static extern partial void M10();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M10").WithArguments("I1.M10()").WithLocation(22, 32),
@@ -11429,6 +11491,120 @@ public partial interface I1
                 // (25,43): error CS8793: Partial method 'I1.M13()' must have an implementation part because it has accessibility modifiers.
                 //     private protected static partial void M13();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M13").WithArguments("I1.M13()").WithLocation(25, 43)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MethodModifiers_26_02([CombinatorialValues("", "public", "private", "internal")] string accessibility)
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    " + accessibility + @"
+    static void M1() {}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular14,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular14,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics(
+                // (5,17): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static void M1() {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("static members in interfaces").WithLocation(5, 17)
+                );
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics();
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MethodModifiers_26_03([CombinatorialValues("protected", "internal protected", "private protected")] string accessibility)
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    " + accessibility + @"
+    static void M1() {}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular14,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular14,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics(
+                // (5,17): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static void M1() {}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M1").WithLocation(5, 17)
+                );
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics(
+                // (5,17): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static void M1() {}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M1").WithLocation(5, 17)
+                );
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics(
+                // (5,17): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static void M1() {}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M1").WithLocation(5, 17)
                 );
         }
 
@@ -13666,7 +13842,7 @@ public interface I1
             ValidateSymbolsPropertyModifiers_01(compilation1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular14,
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -13680,9 +13856,9 @@ public interface I1
                 // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P05 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P05.set").WithLocation(8, 22),
-                // (9,21): error CS8701: Target runtime doesn't support default interface implementation.
+                // (9,21): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int P06 {get;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(9, 21),
                 // (10,22): error CS0501: 'I1.P07.set' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual int P07 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P07.set").WithLocation(10, 22),
@@ -13726,6 +13902,79 @@ public interface I1
                 //     int P19 { get; private protected set;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(24, 38)
                 );
+
+            ValidateSymbolsPropertyModifiers_01(compilation2);
+
+            var expected = new[]
+            {
+                // (5,19): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected int P02 {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P02").WithLocation(5, 19),
+                // (6,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected internal int P03 {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P03").WithLocation(6, 28),
+                // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
+                //     private int P05 {set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P05.set").WithLocation(8, 22),
+                // (10,22): error CS0501: 'I1.P07.set' must declare a body because it is not marked abstract, extern, or partial
+                //     virtual int P07 {set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P07.set").WithLocation(10, 22),
+                // (11,21): error CS0501: 'I1.P08.get' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed int P08 {get;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P08.get").WithLocation(11, 21),
+                // (12,18): error CS0106: The modifier 'override' is not valid for this item
+                //     override int P09 {set;}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 18),
+                // (14,21): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern int P11 {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(14, 21),
+                // (14,21): warning CS0626: Method, operator, or accessor 'I1.P11.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int P11 {get; set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.P11.get").WithLocation(14, 21),
+                // (14,26): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern int P11 {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(14, 26),
+                // (14,26): warning CS0626: Method, operator, or accessor 'I1.P11.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int P11 {get; set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I1.P11.set").WithLocation(14, 26),
+                // (16,22): error CS0273: The accessibility modifier of the 'I1.P12.get' accessor must be more restrictive than the property or indexer 'I1.P12'
+                //     int P12 { public get; set;}
+                Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I1.P12.get", "I1.P12").WithLocation(16, 22),
+                // (17,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     int P13 { get; protected set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(17, 30),
+                // (18,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     int P14 { protected internal get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "get").WithLocation(18, 34),
+                // (20,23): error CS0442: 'I1.P16.get': abstract properties cannot have private accessors
+                //     int P16 { private get; set;}
+                Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I1.P16.get").WithLocation(20, 23),
+                // (21,9): error CS0276: 'I1.P17': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
+                //     int P17 { private get;}
+                Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "P17").WithArguments("I1.P17").WithLocation(21, 9),
+                // (23,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected int P18 {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P18").WithLocation(23, 27),
+                // (24,38): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     int P19 { get; private protected set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(24, 38)
+            };
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+
+            ValidateSymbolsPropertyModifiers_01(compilation2);
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
 
             ValidateSymbolsPropertyModifiers_01(compilation2);
         }
@@ -14222,8 +14471,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
-
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+            var expected =
 @"get_P1
 set_P1
 get_P2
@@ -14234,48 +14482,64 @@ get_P4
 get_P5
 get_P6
 set_P7
-set_P8", symbolValidator: Validate);
+set_P8";
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expected, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
+                                                 parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS8701: Target runtime doesn't support default interface implementation.
+                // (6,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         get
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(6, 9),
-                // (11,9): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(6, 9),
+                // (11,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(11, 9),
-                // (19,9): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(11, 9),
+                // (19,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         get
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(19, 9),
-                // (24,9): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(19, 9),
+                // (24,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(24, 9),
-                // (33,9): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(24, 9),
+                // (33,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         get => Test1.GetP3();
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(33, 9),
-                // (34,9): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(33, 9),
+                // (34,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set => System.Console.WriteLine("set_P3");
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(34, 9),
-                // (37,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(34, 9),
+                // (37,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static int P4 => Test1.GetP4();
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "Test1.GetP4()").WithLocation(37, 31),
-                // (41,9): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Test1.GetP4()").WithArguments("static members in interfaces").WithLocation(37, 31),
+                // (41,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         get
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(41, 9),
-                // (50,9): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(41, 9),
+                // (50,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         get => Test1.GetP6();
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(50, 9),
-                // (55,9): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(50, 9),
+                // (55,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(55, 9),
-                // (63,9): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(55, 9),
+                // (63,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         set => System.Console.WriteLine("set_P8");
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(63, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(63, 9)
                 );
+
+            Validate(compilation2.SourceModule);
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation2, expectedOutput: expected, symbolValidator: Validate);
+
+            Validate(compilation2.SourceModule);
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation2, expectedOutput: expected, symbolValidator: Validate);
 
             Validate(compilation2.SourceModule);
 
@@ -16749,15 +17013,9 @@ class Test2 : I1, I2, I3, I4, I5
                 // (8,28): warning CS0626: Method, operator, or accessor 'I2.P2.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern int P2 {set;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I2.P2.set").WithLocation(8, 28),
-                // (12,27): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static extern int P3 {get; set;} 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(12, 27),
                 // (12,27): warning CS0626: Method, operator, or accessor 'I3.P3.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern int P3 {get; set;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I3.P3.get").WithLocation(12, 27),
-                // (12,32): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static extern int P3 {get; set;} 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(12, 32),
                 // (12,32): warning CS0626: Method, operator, or accessor 'I3.P3.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern int P3 {get; set;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I3.P3.set").WithLocation(12, 32),
@@ -16776,7 +17034,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidatePropertyModifiers_16(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
@@ -16934,7 +17192,7 @@ class Test2 : I1, I2, I3, I4, I5
             Validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
-                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(expected2);
@@ -27232,7 +27490,7 @@ public interface I1
             ValidateSymbolsEventModifiers_01(compilation1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular14,
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
@@ -27254,9 +27512,9 @@ public interface I1
                 // (8,38): error CS8701: Target runtime doesn't support default interface implementation.
                 //     private event System.Action P05 {remove{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(8, 38),
-                // (9,37): error CS8701: Target runtime doesn't support default interface implementation.
+                // (9,37): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static event System.Action P06 {add{}}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(9, 37),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("static members in interfaces").WithLocation(9, 37),
                 // (10,38): error CS8701: Target runtime doesn't support default interface implementation.
                 //     virtual event System.Action P07 {remove{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(10, 38),
@@ -27321,6 +27579,107 @@ public interface I1
                 //     protected internal event System.Action P16;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P16").WithLocation(19, 44)
                 );
+
+            ValidateSymbolsEventModifiers_01(compilation2);
+
+            var expected = new[]
+            {
+                // (5,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected event System.Action P02 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P02").WithLocation(5, 35),
+                // (5,40): error CS8701: Target runtime doesn't support default interface implementation.
+                //     protected event System.Action P02 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(5, 40),
+                // (6,44): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected internal event System.Action P03 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P03").WithLocation(6, 44),
+                // (6,49): error CS8701: Target runtime doesn't support default interface implementation.
+                //     protected internal event System.Action P03 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(6, 49),
+                // (7,39): error CS8701: Target runtime doesn't support default interface implementation.
+                //     internal event System.Action P04 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(7, 39),
+                // (8,38): error CS8701: Target runtime doesn't support default interface implementation.
+                //     private event System.Action P05 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(8, 38),
+                // (10,38): error CS8701: Target runtime doesn't support default interface implementation.
+                //     virtual event System.Action P07 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(10, 38),
+                // (11,37): error CS8701: Target runtime doesn't support default interface implementation.
+                //     sealed event System.Action P08 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(11, 37),
+                // (12,34): error CS0106: The modifier 'override' is not valid for this item
+                //     override event System.Action P09 {remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
+                // (12,39): error CS8701: Target runtime doesn't support default interface implementation.
+                //     override event System.Action P09 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(12, 39),
+                // (13,39): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract event System.Action P10 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(13, 39),
+                // (13,38): error CS8712: 'I1.P10': abstract event cannot use event accessor syntax
+                //     abstract event System.Action P10 {add{}}
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P10").WithLocation(13, 38),
+                // (14,37): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(14, 37),
+                // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.P11.add").WithLocation(14, 37),
+                // (14,43): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(14, 43),
+                // (14,43): error CS0179: 'I1.P11.remove' cannot be extern and declare a body
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I1.P11.remove").WithLocation(14, 43),
+                // (15,37): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(15, 37),
+                // (15,37): warning CS0626: Method, operator, or accessor 'I1.P12.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "add").WithArguments("I1.P12.add").WithLocation(15, 37),
+                // (15,40): error CS0073: An add or remove accessor must have a body
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 40),
+                // (15,42): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(15, 42),
+                // (15,42): warning CS0626: Method, operator, or accessor 'I1.P12.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "remove").WithArguments("I1.P12.remove").WithLocation(15, 42),
+                // (15,48): error CS0073: An add or remove accessor must have a body
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 48),
+                // (16,32): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P13").WithLocation(16, 32),
+                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32),
+                // (17,43): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected event System.Action P14;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P14").WithLocation(17, 43),
+                // (18,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected event System.Action P15;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P15").WithLocation(18, 35),
+                // (19,44): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected internal event System.Action P16;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P16").WithLocation(19, 44)
+            };
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(expected);
+
+            ValidateSymbolsEventModifiers_01(compilation2);
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(expected);
 
             ValidateSymbolsEventModifiers_01(compilation2);
         }
@@ -27800,13 +28159,15 @@ class Test1 : I1
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+            var expected =
 @"get_P1
 set_P1
 get_P2
 get_P3
 set_P2
-set_P3", symbolValidator: Validate);
+set_P3";
+
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expected, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -27892,36 +28253,80 @@ class Test1 : I1
             Validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
+                                                 parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyEmitDiagnostics(
-                // (4,39): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,39): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P1").WithLocation(4, 39),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("static members in interfaces").WithLocation(4, 39),
                 // (4,39): warning CS0067: The event 'I1.P1' is never used
                 //     public static event System.Action P1; 
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P1").WithArguments("I1.P1").WithLocation(4, 39),
-                // (8,9): error CS8701: Target runtime doesn't support default interface implementation.
+                // (8,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         add;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(8, 9),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("static members in interfaces").WithLocation(8, 9),
                 // (8,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 12),
-                // (9,9): error CS8701: Target runtime doesn't support default interface implementation.
+                // (9,9): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         remove;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("static members in interfaces").WithLocation(9, 9),
                 // (9,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(9, 15),
-                // (12,40): error CS8701: Target runtime doesn't support default interface implementation.
+                // (12,40): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static event System.Action P3 = null;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P3").WithLocation(12, 40),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("static members in interfaces").WithLocation(12, 40),
                 // (12,40): warning CS0414: The field 'I1.P3' is assigned but its value is never used
                 //     private static event System.Action P3 = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "P3").WithArguments("I1.P3").WithLocation(12, 40)
                 );
 
             Validate(compilation3.SourceModule);
+
+            var expected2 = new[]
+            {
+                // (4,39): warning CS0067: The event 'I1.P1' is never used
+                //     public static event System.Action P1; 
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P1").WithArguments("I1.P1").WithLocation(4, 39),
+                // (8,12): error CS0073: An add or remove accessor must have a body
+                //         add;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 12),
+                // (9,15): error CS0073: An add or remove accessor must have a body
+                //         remove;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(9, 15),
+                // (12,40): warning CS0414: The field 'I1.P3' is assigned but its value is never used
+                //     private static event System.Action P3 = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "P3").WithArguments("I1.P3").WithLocation(12, 40)
+            };
+
+            compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation3.VerifyEmitDiagnostics(expected2);
+
+            Validate(compilation3.SourceModule);
+
+            compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation3.VerifyEmitDiagnostics(expected2);
+
+            Validate(compilation3.SourceModule);
+
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation4, expectedOutput: expected, symbolValidator: Validate);
+
+            Validate(compilation4.SourceModule);
+
+            compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation4, expectedOutput: expected, symbolValidator: Validate);
+
+            Validate(compilation4.SourceModule);
         }
 
         [Fact]
@@ -30328,7 +30733,7 @@ class Test2 : I1, I2, I3, I4, I5
             Validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
-                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
+                                                 parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -30347,9 +30752,6 @@ class Test2 : I1, I2, I3, I4, I5
                 // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 40),
-                // (12,39): error CS8701: Target runtime doesn't support default interface implementation.
-                //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P3").WithLocation(12, 39),
                 // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern event System.Action P3; 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
@@ -30361,13 +30763,7 @@ class Test2 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.remove").WithLocation(20, 39),
                 // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P1; 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.remove").WithLocation(4, 32),
-                // (26,9): error CS8701: Target runtime doesn't support default interface implementation.
-                //         add => throw null;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(26, 9),
-                // (27,9): error CS8701: Target runtime doesn't support default interface implementation.
-                //         remove => throw null;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(27, 9)
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.remove").WithLocation(4, 32)
                 );
 
             Validate(compilation3.SourceModule);
@@ -43690,8 +44086,9 @@ public interface I3 : I1
                 );
         }
 
-        [Fact]
-        public void Field_01()
+        [Theory]
+        [CombinatorialData]
+        public void Field_01(bool testCSharp14)
         {
             var source1 =
 @"
@@ -43705,22 +44102,22 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: testCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyEmitDiagnostics(
                 // (4,9): error CS0525: Interfaces cannot contain instance fields
                 //     int F1;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 9),
-                // (5,26): error CS8701: Target runtime doesn't support default interface implementation.
+                // (5,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected static int F2;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F2").WithLocation(5, 26),
-                // (6,35): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F2").WithLocation(5, 26),
+                // (6,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal static int F3;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F3").WithLocation(6, 35),
-                // (7,34): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F3").WithLocation(6, 35),
+                // (7,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected static int F4;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 34),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F4").WithLocation(7, 34),
                 // (8,9): error CS0525: Interfaces cannot contain instance fields
                 //     int F5 = 5;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F5").WithLocation(8, 9)
@@ -43729,7 +44126,7 @@ public interface I1
             validate(compilation1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: testCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyEmitDiagnostics(
@@ -43877,25 +44274,51 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular14,
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,16): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,16): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int F1;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F1").WithLocation(4, 16),
-                // (5,23): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 16),
+                // (5,23): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static int F2;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F2").WithLocation(5, 23),
-                // (6,25): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 23),
+                // (6,25): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static int F3;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F3").WithLocation(6, 25),
-                // (7,24): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 25),
+                // (7,24): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static int F4;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 24)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 24)
                 );
 
             Validate1(compilation5.SourceModule);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation2 = CreateCompilation(source2, new[] { compilation5.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation2, expectedOutput: "112244");
+
+            compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation3, expectedOutput: "112244");
         }
 
         [Fact]
@@ -44013,24 +44436,50 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
+                                                 parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,25): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,25): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static readonly int F1 = 1;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F1").WithLocation(4, 25),
-                // (5,32): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 25),
+                // (5,32): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static readonly int F2 = 2;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F2").WithLocation(5, 32),
-                // (6,34): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 32),
+                // (6,34): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static readonly int F3 = 3;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F3").WithLocation(6, 34),
-                // (7,33): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 34),
+                // (7,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static readonly int F4 = 4;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 33)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 33)
                 );
 
             Validate1(compilation5.SourceModule);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation2 = CreateCompilation(source2, new[] { compilation5.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation2, expectedOutput: "124");
+
+            compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation3, expectedOutput: "124");
         }
 
         [Fact]
@@ -44143,24 +44592,50 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
+                                                 parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,15): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,15): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     const int F1 = 1;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F1").WithLocation(4, 15),
-                // (5,22): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 15),
+                // (5,22): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public const int F2 = 2;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F2").WithLocation(5, 22),
-                // (6,24): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 22),
+                // (6,24): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal const int F3 = 3;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F3").WithLocation(6, 24),
-                // (7,23): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 24),
+                // (7,23): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private const int F4 = 4;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 23)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 23)
                 );
 
             Validate1(compilation5.SourceModule);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation2 = CreateCompilation(source2, new[] { compilation5.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation2, expectedOutput: "124");
+
+            compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation3, expectedOutput: "124");
         }
 
         [Fact]
@@ -44429,16 +44904,16 @@ interface I6
                 );
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                  parseOptions: TestOptions.Regular,
+                                                  parseOptions: TestOptions.Regular14,
                                                   targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
-                // (4,12): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,12): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static I1() {}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "I1").WithLocation(4, 12),
-                // (8,12): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1").WithArguments("static members in interfaces").WithLocation(4, 12),
+                // (8,12): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static I2() => throw null;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "I2").WithLocation(8, 12),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2").WithArguments("static members in interfaces").WithLocation(8, 12),
                 // (12,5): error CS0526: Interfaces cannot contain instance constructors
                 //     I3() {}
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I3").WithLocation(12, 5),
@@ -44451,13 +44926,44 @@ interface I6
                 // (20,5): error CS0526: Interfaces cannot contain instance constructors
                 //     I5();
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I5").WithLocation(20, 5),
-                // (24,19): error CS8701: Target runtime doesn't support default interface implementation.
+                // (24,19): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     extern static I6();
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "I6").WithLocation(24, 19),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I6").WithArguments("static members in interfaces").WithLocation(24, 19),
                 // (24,19): warning CS0824: Constructor 'I6.I6()' is marked external
                 //     extern static I6();
                 Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "I6").WithArguments("I6.I6()").WithLocation(24, 19)
                 );
+
+            var expected = new[]
+            {
+                // (12,5): error CS0526: Interfaces cannot contain instance constructors
+                //     I3() {}
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I3").WithLocation(12, 5),
+                // (16,5): error CS0526: Interfaces cannot contain instance constructors
+                //     I4() => throw null;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I4").WithLocation(16, 5),
+                // (20,5): error CS0501: 'I5.I5()' must declare a body because it is not marked abstract, extern, or partial
+                //     I5();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I5").WithArguments("I5.I5()").WithLocation(20, 5),
+                // (20,5): error CS0526: Interfaces cannot contain instance constructors
+                //     I5();
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I5").WithLocation(20, 5),
+                // (24,19): warning CS0824: Constructor 'I6.I6()' is marked external
+                //     extern static I6();
+                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "I6").WithArguments("I6.I6()").WithLocation(24, 19)
+            };
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics(expected);
+
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation2.VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -44642,14 +45148,14 @@ interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation1.VerifyDiagnostics();
 
             ValidateConstructor(compilation1.SourceModule);
             Assert.Empty(compilation1.GetTypeByMetadataName("I1").GetMembers("I1"));
 
-            CompileAndVerify(compilation1, symbolValidator: ValidateConstructor, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+            CompileAndVerify(compilation1, symbolValidator: ValidateConstructor, expectedOutput:
 @"I1
 Main
 ");
@@ -45143,38 +45649,64 @@ class Test2 : I1
 
             Validate1(compilation4.SourceModule);
 
-            var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+            var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular14,
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
+            Validate1(compilation5.SourceModule);
+
             compilation5.VerifyDiagnostics(
-                // (4,20): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,20): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int F1 {get; set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 20),
-                // (4,25): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(4, 20),
+                // (4,25): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int F1 {get; set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(4, 25),
-                // (5,27): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(4, 25),
+                // (5,27): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(5, 27),
-                // (5,32): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(5, 27),
+                // (5,32): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(5, 32),
-                // (6,29): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(5, 32),
+                // (6,29): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(6, 29),
-                // (6,34): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(6, 29),
+                // (6,34): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(6, 34),
-                // (7,28): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(6, 34),
+                // (7,28): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(7, 28),
-                // (7,33): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(7, 28),
+                // (7,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(7, 33)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(7, 33)
                 );
 
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
             Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            var compilation6 = CreateCompilation(source2, new[] { compilation5.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation6, expectedOutput: "112244");
+
+            var compilation7 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation7, expectedOutput: "112244");
         }
 
         [Fact]
@@ -45297,25 +45829,51 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular14,
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,20): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,20): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int F1 {get;} = 1;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 20),
-                // (5,27): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(4, 20),
+                // (5,27): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static int F2 {get;} = 2;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(5, 27),
-                // (6,29): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(5, 27),
+                // (6,29): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static int F3 {get;} = 3;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(6, 29),
-                // (7,28): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(6, 29),
+                // (7,28): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static int F4 {get;} = 4;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(7, 28)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(7, 28)
                 );
 
             Validate1(compilation5.SourceModule);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            var compilation6 = CreateCompilation(source2, new[] { compilation5.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation6, expectedOutput: "124");
+
+            var compilation7 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation7, expectedOutput: "124");
         }
 
         [Fact]
@@ -45439,31 +45997,57 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular14,
                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,20): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,20): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 20),
-                // (4,33): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(4, 20),
+                // (4,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(4, 33),
-                // (5,27): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(4, 33),
+                // (5,27): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(5, 27),
-                // (5,40): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(5, 27),
+                // (5,40): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(5, 40),
-                // (6,29): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(5, 40),
+                // (6,29): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(6, 29),
-                // (6,42): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("static members in interfaces").WithLocation(6, 29),
+                // (6,42): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(6, 42)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("static members in interfaces").WithLocation(6, 42)
                 );
 
             Validate1(compilation5.SourceModule);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "123", symbolValidator: Validate1);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "123", symbolValidator: Validate1);
+
+            var compilation6 = CreateCompilation(source2, new[] { compilation5.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation6, expectedOutput: "1122");
+
+            var compilation7 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation7, expectedOutput: "1122");
         }
 
         [Fact]
@@ -45627,24 +46211,48 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
+                                                 parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,32): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,32): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static event System.Action F1;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F1").WithLocation(4, 32),
-                // (5,39): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 32),
+                // (5,39): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static event System.Action F2;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F2").WithLocation(5, 39),
-                // (6,41): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 39),
+                // (6,41): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static event System.Action F3;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F3").WithLocation(6, 41),
-                // (7,40): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 41),
+                // (7,40): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static event System.Action F4;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 40)
                 );
 
             Validate1(compilation5.SourceModule);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation2 = CreateCompilation(source2, new[] { compilation5.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation2, expectedOutput: "112244");
+
+            compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation3, expectedOutput: "112244");
         }
 
         [Fact]
@@ -45764,24 +46372,48 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
+                                                 parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
-                // (4,32): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,32): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static event System.Action F1 = () => System.Console.Write(1);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F1").WithLocation(4, 32),
-                // (5,39): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("static members in interfaces").WithLocation(4, 32),
+                // (5,39): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static event System.Action F2 = () => System.Console.Write(2);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F2").WithLocation(5, 39),
-                // (6,41): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("static members in interfaces").WithLocation(5, 39),
+                // (6,41): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal static event System.Action F3 = () => System.Console.Write(3);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F3").WithLocation(6, 41),
-                // (7,40): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("static members in interfaces").WithLocation(6, 41),
+                // (7,40): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private static event System.Action F4 = () => System.Console.Write(4);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F4").WithArguments("static members in interfaces").WithLocation(7, 40)
                 );
 
             Validate1(compilation5.SourceModule);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+
+            compilation2 = CreateCompilation(source2, new[] { compilation5.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation2, expectedOutput: "1234");
+
+            compilation3 = CreateCompilation(source2, new[] { compilation5.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Mscorlib461Extended);
+
+            CompileAndVerify(compilation3, expectedOutput: "1234");
         }
 
         [Fact]
@@ -45965,8 +46597,9 @@ P50
             }
         }
 
-        [Fact]
-        public void UnsupportedMemberAccess_02()
+        [Theory]
+        [CombinatorialData]
+        public void UnsupportedMemberAccess_02_01(bool testCSharp14)
         {
             var source0 =
 @"
@@ -45994,6 +46627,13 @@ public interface I0
 
     static int P8 {protected internal get {System.Console.WriteLine(""P8""); return 8;} set {System.Console.WriteLine(""set_P8"");}}
     static int P9 {get {System.Console.WriteLine(""P9""); return 9;} protected set {System.Console.WriteLine(""set_P9"");}}
+#pragma warning disable CS0067 // The event is never used
+    static protected event D0 E5;
+    static protected internal event D0 E6;
+    static private protected event D0 E7;
+
+    static protected internal readonly int F2 = 1;
+    static private protected readonly int F3 = 1;
 }
 
 public class Test1 : I0
@@ -46001,8 +46641,199 @@ public class Test1 : I0
 }
 ";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: testCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
+
+            compilation0.VerifyDiagnostics();
+
+            var source2 =
+@"
+
+using static I0;
+
+class Test2 : Test1
+{
+    static void Main()
+    {
+        System.Console.WriteLine(I0.F1);
+        System.Console.WriteLine(I0.P2);
+        I0.M3();
+        I0.E4 += I0.M3;
+        I0.E4 -= new D0(I0.M3);
+        I0.P2 = 3;
+        I0.C6.M();
+        _ = new C7<int>();
+        _ = I0.P8;
+        _ = I0.P9;
+        I0.P8 = 12;
+        I0.P9 = 13;
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
+                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     references: new[] { reference },
+                                                     parseOptions: testCSharp14 ? TestOptions.Regular14 : TestOptions.RegularPreview);
+
+                CompileAndVerify(compilation2, verify: Verification.Skipped, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+1
+P2
+2
+M3
+add E4
+M3
+remove E4
+M3
+set_P2
+C6.M
+P8
+P9
+set_P8
+set_P9
+");
+            }
+        }
+
+        [Fact]
+        public void UnsupportedMemberAccess_02_02()
+        {
+            var source0 =
+@"
+public delegate void D0();
+
+public interface I0
+{
+#line 1100
+    static protected  readonly int F1 = 1;
+#line 1200
+    static protected internal int P2
+    {
+#line 1300
+        get 
+        {System.Console.WriteLine(""P2""); return 2;}
+#line 1400
+        set
+        {System.Console.WriteLine(""set_P2"");}
+    }
+#line 1500
+    static protected void M3()
+    {System.Console.WriteLine(""M3"");}
+#line 1600
+    static protected internal event D0 E4
+    {
+#line 1700
+        add
+        {System.Console.WriteLine(""add E4"");value();}
+#line 1800
+        remove
+        {System.Console.WriteLine(""remove E4"");value();}
+    }
+#line 1900
+    protected internal class C6
+    {
+        public static void M() {System.Console.WriteLine(""C6.M"");}
+    }
+
+#line 2000
+    protected class C7<T>
+    {
+    }
+    static int P8
+    {
+#line 2100
+        protected internal get
+        {System.Console.WriteLine(""P8""); return 8;} 
+#line 2200
+        set
+        {System.Console.WriteLine(""set_P8"");}
+    }
+    static int P9
+    {
+#line 2300
+        get
+        {System.Console.WriteLine(""P9""); return 9;}
+#line 2400
+        protected set
+        {System.Console.WriteLine(""set_P9"");}
+    }
+
+#pragma warning disable CS0067 // The event is never used
+
+#line 2500
+    static protected event D0 E5;
+#line 2600
+    static protected internal event D0 E6;
+#line 2700
+    static private protected event D0 E7;
+#line 2800
+    static protected internal readonly int F2 = 1;
+#line 2900
+    static private protected readonly int F3 = 1;
+}
+
+public class Test1 : I0
+{
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
+
+            compilation0.VerifyDiagnostics(
+                // (1100,36): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static protected  readonly int F1 = 1;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F1").WithLocation(1100, 36),
+                // (1300,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //         get 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "get").WithLocation(1300, 9),
+                // (1400,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //         set
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(1400, 9),
+                // (1500,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static protected void M3()
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M3").WithLocation(1500, 27),
+                // (1700,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //         add
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "add").WithLocation(1700, 9),
+                // (1800,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //         remove
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "remove").WithLocation(1800, 9),
+                // (1900,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected internal class C6
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "C6").WithLocation(1900, 30),
+                // (2000,21): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected class C7<T>
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "C7").WithLocation(2000, 21),
+                // (2100,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //         protected internal get
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "get").WithLocation(2100, 28),
+                // (2400,19): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //         protected set
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(2400, 19),
+                // (2500,31): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static protected event D0 E5;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "E5").WithLocation(2500, 31),
+                // (2600,40): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static protected internal event D0 E6;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "E6").WithLocation(2600, 40),
+                // (2700,39): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static private protected event D0 E7;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "E7").WithLocation(2700, 39),
+                // (2800,44): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static protected internal readonly int F2 = 1;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F2").WithLocation(2800, 44),
+                // (2900,43): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     static private protected readonly int F3 = 1;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F3").WithLocation(2900, 43)
+                );
+
+            compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
 
             compilation0.VerifyDiagnostics();
 
@@ -46036,7 +46867,7 @@ class Test2 : Test1
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
                                                      targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.RegularPreview);
 
                 compilation2.VerifyDiagnostics(
                     // (9,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
@@ -46162,12 +46993,9 @@ interface Test4 : I1
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
                                                      targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.RegularPreview);
 
                 compilation3.VerifyDiagnostics(
-                    // (4,17): error CS8701: Target runtime doesn't support default interface implementation.
-                    //     static void Main()
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "Main").WithLocation(4, 17),
                     // (7,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         System.Console.WriteLine(i1.P20);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.P20").WithLocation(7, 34),
@@ -46200,13 +47028,10 @@ interface Test4 : I1
                 var compilation4 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular);
+                                                     parseOptions: TestOptions.RegularPreview);
 
                 Assert.False(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation4.VerifyDiagnostics(
-                    // (4,17): error CS8701: Target runtime doesn't support default interface implementation.
-                    //     static void Main()
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "Main").WithLocation(4, 17),
                     // (7,34): error CS8701: Target runtime doesn't support default interface implementation.
                     //         System.Console.WriteLine(i1.P200);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P200").WithLocation(7, 34),
@@ -46691,79 +47516,91 @@ true
 
             var compilation61 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
                                                  targetFramework: TargetFramework.Mscorlib461Extended,
-                                                 parseOptions: TestOptions.RegularPreview);
+                                                 parseOptions: TestOptions.Regular14);
 
             compilation61.VerifyDiagnostics(
-                // (4,31): error CS8701: Target runtime doesn't support default interface implementation.
+                // (4,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator +(I1 x)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "+").WithLocation(4, 31),
-                // (10,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+").WithArguments("static members in interfaces").WithLocation(4, 31),
+                // (10,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator -(I1 x)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "-").WithLocation(10, 31),
-                // (16,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-").WithArguments("static members in interfaces").WithLocation(10, 31),
+                // (16,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator !(I1 x)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "!").WithLocation(16, 31),
-                // (22,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "!").WithArguments("static members in interfaces").WithLocation(16, 31),
+                // (22,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator ~(I1 x)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "~").WithLocation(22, 31),
-                // (28,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "~").WithArguments("static members in interfaces").WithLocation(22, 31),
+                // (28,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator ++(I1 x)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "++").WithLocation(28, 31),
-                // (34,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "++").WithArguments("static members in interfaces").WithLocation(28, 31),
+                // (34,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator --(I1 x)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "--").WithLocation(34, 31),
-                // (40,33): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "--").WithArguments("static members in interfaces").WithLocation(34, 31),
+                // (40,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static bool operator true(I1 x)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "true").WithLocation(40, 33),
-                // (46,33): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "true").WithArguments("static members in interfaces").WithLocation(40, 33),
+                // (46,33): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static bool operator false(I1 x)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "false").WithLocation(46, 33),
-                // (52,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "false").WithArguments("static members in interfaces").WithLocation(46, 33),
+                // (52,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator +(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "+").WithLocation(52, 31),
-                // (58,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+").WithArguments("static members in interfaces").WithLocation(52, 31),
+                // (58,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator -(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "-").WithLocation(58, 31),
-                // (64,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "-").WithArguments("static members in interfaces").WithLocation(58, 31),
+                // (64,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator *(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "*").WithLocation(64, 31),
-                // (70,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "*").WithArguments("static members in interfaces").WithLocation(64, 31),
+                // (70,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator /(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "/").WithLocation(70, 31),
-                // (76,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "/").WithArguments("static members in interfaces").WithLocation(70, 31),
+                // (76,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator %(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "%").WithLocation(76, 31),
-                // (82,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "%").WithArguments("static members in interfaces").WithLocation(76, 31),
+                // (82,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator &(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "&").WithLocation(82, 31),
-                // (88,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&").WithArguments("static members in interfaces").WithLocation(82, 31),
+                // (88,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator |(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "|").WithLocation(88, 31),
-                // (94,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "|").WithArguments("static members in interfaces").WithLocation(88, 31),
+                // (94,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator ^(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "^").WithLocation(94, 31),
-                // (100,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "^").WithArguments("static members in interfaces").WithLocation(94, 31),
+                // (100,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator <<(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "<<").WithLocation(100, 31),
-                // (106,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<<").WithArguments("static members in interfaces").WithLocation(100, 31),
+                // (106,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator >>(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ">>").WithLocation(106, 31),
-                // (112,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>").WithArguments("static members in interfaces").WithLocation(106, 31),
+                // (112,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator >(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ">").WithLocation(112, 31),
-                // (118,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">").WithArguments("static members in interfaces").WithLocation(112, 31),
+                // (118,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator <(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "<").WithLocation(118, 31),
-                // (124,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<").WithArguments("static members in interfaces").WithLocation(118, 31),
+                // (124,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator >=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ">=").WithLocation(124, 31),
-                // (130,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">=").WithArguments("static members in interfaces").WithLocation(124, 31),
+                // (130,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator <=(I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "<=").WithLocation(130, 31),
-                // (136,31): error CS8701: Target runtime doesn't support default interface implementation.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "<=").WithArguments("static members in interfaces").WithLocation(130, 31),
+                // (136,31): error CS8652: The feature 'static members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static I1 operator >>>(I1 x, int y)
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ">>>").WithLocation(136, 31)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("static members in interfaces").WithLocation(136, 31)
                 );
+
+            var compilation62 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            compilation62.VerifyDiagnostics();
+
+            compilation62 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                              targetFramework: TargetFramework.Mscorlib461Extended,
+                                              parseOptions: TestOptions.RegularNext);
+
+            compilation62.VerifyDiagnostics();
 
             var compilation7 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetCoreApp,
@@ -67864,17 +68701,14 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
             compilation1.VerifyDiagnostics(
                 // (4,37): error CS0106: The modifier 'static' is not valid for this item
                 //     public static partial interface RuntimeFeature
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "RuntimeFeature").WithArguments("static").WithLocation(4, 37),
                 // (6,22): error CS0518: Predefined type 'System.String' is not defined or imported
                 //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string").WithArguments("System.String").WithLocation(6, 22),
-                // (6,29): error CS8701: Target runtime doesn't support default interface implementation.
-                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "DefaultImplementationsOfInterfaces").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string").WithArguments("System.String").WithLocation(6, 22)
                 );
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -67895,14 +68729,11 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.RegularPreview);
             compilation1.VerifyDiagnostics(
                 // (6,22): error CS0518: Predefined type 'System.String' is not defined or imported
                 //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string").WithArguments("System.String").WithLocation(6, 22),
-                // (6,29): error CS8701: Target runtime doesn't support default interface implementation.
-                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "DefaultImplementationsOfInterfaces").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string").WithArguments("System.String").WithLocation(6, 22)
                 );
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);

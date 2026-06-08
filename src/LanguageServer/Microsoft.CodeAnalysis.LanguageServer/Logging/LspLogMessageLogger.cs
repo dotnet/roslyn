@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -51,8 +52,6 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
 
         string messagePrefix = "";
 
-        var logMethod = Methods.WindowLogMessageName;
-
         _externalScopeProvider?.ForEachScope((scope, _) =>
         {
             if (scope is LspLoggingScope lspLoggingScope)
@@ -62,13 +61,9 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
                     messagePrefix += $"[{lspLoggingScope.Context}] ";
                 }
 
-                if (lspLoggingScope.Language is not null)
+                if (lspLoggingScope.Language is not null && lspLoggingScope.Language != LanguageServerConstants.DefaultLanguageName)
                 {
-                    logMethod = lspLoggingScope.Language switch
-                    {
-                        LanguageInfoProvider.RazorLanguageName => "razor/log",
-                        _ => logMethod,
-                    };
+                    messagePrefix += $"[{lspLoggingScope.Language}] ";
                 }
             }
         }, state);
@@ -77,7 +72,7 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
 
         try
         {
-            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(logMethod, new LogMessageParams()
+            var _ = server.GetLspServices().GetRequiredService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
             {
                 Message = $"{messagePrefix} {message}",
                 MessageType = LogLevelToMessageType(logLevel),

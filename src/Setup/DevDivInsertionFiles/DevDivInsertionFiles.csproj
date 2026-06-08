@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <!-- TODO: Remove UsingTasks when upgrading to Arcade 11: https://github.com/dotnet/roslyn/issues/83095 -->
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GroupItemsBy" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.Unsign" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Condition="$(ArcadeSdkVersion.StartsWith('10'))" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GroupItemsBy" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Condition="$(ArcadeSdkVersion.StartsWith('10'))" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.Unsign" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Condition="$(ArcadeSdkVersion.StartsWith('10'))" />
   <UsingTask TaskName="Microsoft.DotNet.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
 
   <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
@@ -126,11 +126,13 @@
       <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.NET.StringTools"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>
+      <_Dependency Remove="Nerdbank.MessagePack"/>
       <_Dependency Remove="Nerdbank.NetStandardBridge" />
       <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="NuGet.VisualStudio"/>
       <_Dependency Remove="NuGet.VisualStudio.Contracts"/>
+      <_Dependency Remove="PolyType"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Buffers" />

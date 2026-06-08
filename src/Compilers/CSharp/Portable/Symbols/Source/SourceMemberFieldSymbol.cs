@@ -137,6 +137,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ref attributes,
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
+
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
+            }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        {
+            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            {
+                DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                    ModifiersTokenList.GetModifierLocation(SyntaxKind.UnsafeKeyword, ErrorLocation),
+                    modifyCompilation: true);
+            }
+
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
@@ -170,6 +187,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!this.IsFixedSizeBuffer, "Subclasses representing fixed fields must override");
                 state.NotePartComplete(CompletionPart.FixedSize);
                 return 0;
+            }
+        }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    return (Modifiers & DeclarationModifiers.Unsafe) != 0 &&
+                        AssociatedSymbol is null &&
+                        !IsConst
+                            ? CallerUnsafeMode.Explicit
+                            : CallerUnsafeMode.None;
+                }
+
+                return !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
             }
         }
 
@@ -375,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ErrorLocation);
+                        SourceMemberMethodSymbol.ReportLackOfRuntimeSupportForStaticMembersInInterfaces(declarator, DeclaredAccessibility, diagnostics, ErrorLocation);
                     }
                 }
                 else

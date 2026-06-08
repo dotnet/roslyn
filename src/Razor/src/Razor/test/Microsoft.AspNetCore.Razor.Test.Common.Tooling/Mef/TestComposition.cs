@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -28,9 +28,7 @@ public sealed partial class TestComposition
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.CSharp.Features.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.Features.dll"))
-        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.dll"))
-        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"))
-        .AddParts(typeof(RazorTestWorkspaceRegistrationService));
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"));
 
 #if NETFRAMEWORK
     public static readonly TestComposition Roslyn = Empty
@@ -38,16 +36,15 @@ public sealed partial class TestComposition
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll"))
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.EditorFeatures.dll"))
-        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.dll"))
-        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"))
-        .AddParts(typeof(RazorTestWorkspaceRegistrationService));
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"));
 
     public static readonly TestComposition Editor = Empty
         .AddAssemblies(Assembly.LoadFrom("Microsoft.VisualStudio.Text.Implementation.dll"))
         .AddParts(typeof(TestExportJoinableTaskContext));
 #endif
 
-    private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
+    private static readonly ConcurrentDictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
+    private static readonly ConcurrentDictionary<CacheKey, CompositionConfiguration> s_configurationCache = [];
 
     private readonly struct CacheKey : IEquatable<CacheKey>
     {
@@ -110,12 +107,14 @@ public sealed partial class TestComposition
     public readonly ImmutableHashSet<Type> Parts;
 
     private readonly Lazy<IExportProviderFactory> _exportProviderFactory;
+    private readonly CacheKey _cacheKey;
 
     private TestComposition(ImmutableHashSet<Assembly> assemblies, ImmutableHashSet<Type> parts, ImmutableHashSet<Type> excludedPartTypes)
     {
         Assemblies = assemblies;
         Parts = parts;
         ExcludedPartTypes = excludedPartTypes;
+        _cacheKey = new CacheKey(assemblies, parts, excludedPartTypes);
 
         _exportProviderFactory = new Lazy<IExportProviderFactory>(GetOrCreateFactory);
     }
@@ -127,29 +126,26 @@ public sealed partial class TestComposition
 
     private IExportProviderFactory GetOrCreateFactory()
     {
-        var key = new CacheKey(Assemblies, Parts, ExcludedPartTypes);
-
-        lock (s_factoryCache)
+        if (s_factoryCache.TryGetValue(_cacheKey, out var existing))
         {
-            if (s_factoryCache.TryGetValue(key, out var existing))
-            {
-                return existing;
-            }
+            return existing;
         }
 
-        var newFactory = ExportProviderCache.CreateExportProviderFactory(GetCatalog());
+        var newFactory = ExportProviderCache.CreateExportProviderFactory(GetOrCreateConfiguration());
 
-        lock (s_factoryCache)
+        return s_factoryCache.GetOrAdd(_cacheKey, newFactory);
+    }
+
+    private CompositionConfiguration GetOrCreateConfiguration()
+    {
+        if (s_configurationCache.TryGetValue(_cacheKey, out var existing))
         {
-            if (s_factoryCache.TryGetValue(key, out var existing))
-            {
-                return existing;
-            }
-
-            s_factoryCache.Add(key, newFactory);
+            return existing;
         }
 
-        return newFactory;
+        var newConfiguration = ExportProviderCache.CreateCompositionConfiguration(GetCatalog());
+
+        return s_configurationCache.GetOrAdd(_cacheKey, newConfiguration);
     }
 
     private ComposableCatalog GetCatalog()
@@ -233,7 +229,7 @@ public sealed partial class TestComposition
     /// <returns>All composition error messages.</returns>
     public IEnumerable<string> GetCompositionErrors()
     {
-        var configuration = CompositionConfiguration.Create(GetCatalog());
+        var configuration = GetOrCreateConfiguration();
 
         foreach (var errorGroup in configuration.CompositionErrors)
         {

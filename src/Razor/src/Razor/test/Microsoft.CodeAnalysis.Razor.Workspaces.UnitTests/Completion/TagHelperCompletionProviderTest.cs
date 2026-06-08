@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
@@ -35,7 +35,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Too
             syntaxTree,
             tagHelperContext,
             CompletionReason.Invoked,
-            new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false));
+            new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false));
 
         var provider = new TagHelperCompletionProvider(new TagHelperCompletionService());
 
@@ -69,7 +69,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Too
             syntaxTree,
             tagHelperContext,
             CompletionReason.Invoked,
-            new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false));
+            new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false));
 
         var provider = new TagHelperCompletionProvider(new TagHelperCompletionService());
 
@@ -117,7 +117,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Too
             syntaxTree,
             tagHelperContext,
             CompletionReason.Invoked,
-            new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false));
+            new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false));
 
         var provider = new TagHelperCompletionProvider(new TagHelperCompletionService());
 

@@ -140,7 +140,7 @@ For each eligible compilation request, the compiler server:
 1. Computes the deterministic key.
 2. Hashes that key.
 3. Looks for an existing entry under the cache root.
-4. If a valid cached assembly is present, copies the cached outputs to the requested output locations and reports success.
+4. If a valid cached assembly is present, copies the cached outputs to the requested output locations, stamps them with the UTC time captured immediately before input/key inspection began, and reports success.
 5. Otherwise performs a normal compilation.
 6. After a successful compilation, attempts to publish the outputs into the cache for future requests.
 

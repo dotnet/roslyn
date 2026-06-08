@@ -31,7 +31,7 @@ internal partial class SmartRenameViewModel
         {
             _suggestionsPanelTelemetry = new SuggestionsPanelTelemetry
             {
-                CollapseSuggestionsPanelWhenRenameStarts = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel)
+                CollapseSuggestionsPanelWhenRenameStarts = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel) ?? true
             };
         }
         else
@@ -50,7 +50,7 @@ internal partial class SmartRenameViewModel
                 m[nameof(isCommit)] = isCommit;
                 m["UseSuggestionsPanel"] = true;
                 m[nameof(SuggestionsPanelTelemetry.CollapseSuggestionsPanelWhenRenameStarts)] = _suggestionsPanelTelemetry.CollapseSuggestionsPanelWhenRenameStarts;
-                m["CollapseSuggestionsPanelWhenRenameEnds"] = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
+                m["CollapseSuggestionsPanelWhenRenameEnds"] = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel) ?? true;
                 m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
                 m["smartRenameCorrelationId"] = _smartRenameSession.CorrelationId;
                 m["smartRenameSemanticContextUsed"] = _semanticContextUsed;

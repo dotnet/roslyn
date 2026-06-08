@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.ExtractClass;
-using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Suggestions;
 using Microsoft.CodeAnalysis.Text;
@@ -96,12 +94,10 @@ internal static class CodeActionHelpers
     }
 
     private static bool IsCodeActionNotSupportedByLSP(SuggestedAction suggestedAction)
-        // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-        // Exceptions are made for ExtractClass and ExtractInterface because we have OptionsServices which
-        // provide reasonable defaults without user interaction.
-        => (suggestedAction.CodeAction is CodeActionWithOptions
-            && suggestedAction.CodeAction is not ExtractInterfaceCodeAction
-            && suggestedAction.CodeAction is not ExtractClassWithDialogCodeAction)
+        // Filter out CodeActionsWithOptions that do not report having an OptionsService
+        // that can provide options. 
+        => (suggestedAction.CodeAction is CodeActionWithOptions codeAction
+            && !codeAction.IsOptionServiceAvailable())
         // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
         // https://github.com/dotnet/roslyn/issues/48698
         || suggestedAction.CodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
