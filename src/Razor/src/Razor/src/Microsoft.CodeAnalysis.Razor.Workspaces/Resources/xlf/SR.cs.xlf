@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="Baseline_Since">
         <source> (Baseline since {0})</source>
-        <target state="new"> (Baseline since {0})</target>
+        <target state="translated"> (Standardní hodnoty od {0})</target>
         <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
       </trans-unit>
       <trans-unit id="Baseline_Widely_Available">
         <source>✅ Widely available across major browsers{0}</source>
-        <target state="new">✅ Widely available across major browsers{0}</target>
+        <target state="translated">✅ Široce dostupné v hlavních prohlížečích{0}</target>
         <note>{0} is " (Baseline since YYYY)" or empty</note>
       </trans-unit>
       <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
