@@ -5649,6 +5649,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return method;
                             }
 
+                            // Stop at the first matching override candidate. This is the method that
+                            // SynthesizedRecordGetHashCode would call via base.GetHashCode().
                             return null;
                         }
                     }
