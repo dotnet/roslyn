@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces.CodeLens;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -84,6 +85,12 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
     private async ValueTask<LspCodeLens?> ResolveCodeLensAsync(RemoteDocumentContext context, LspCodeLens codeLens, CancellationToken cancellationToken)
     {
         var snapshot = context.Snapshot;
+        var razorData = RazorCodeLensResolveData.Unwrap(codeLens);
+        if (razorData.OriginalData is { } originalData)
+        {
+            codeLens.Data = originalData;
+        }
+
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         return await CodeLensResolveHandler.ResolveCodeLensAsync(codeLens, generatedDocument, cancellationToken).ConfigureAwait(false);
