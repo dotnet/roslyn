@@ -28,8 +28,6 @@ jobs:
         configuration: ${{ parameters.configuration }}
     - name: artifactName
       value: ${{ parameters.testArtifactName }}
-    - name: ROSLYN_CACHE_PATH
-      value: $(Agent.TempDirectory)/roslyn-cache
 
   steps:
     - template: checkout-windows-task.yml

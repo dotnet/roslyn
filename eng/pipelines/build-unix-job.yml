@@ -20,8 +20,6 @@ jobs:
     - template: variables-build.yml
       parameters:
         configuration: ${{ parameters.configuration }}
-    - name: ROSLYN_CACHE_PATH
-      value: $(Agent.TempDirectory)/roslyn-cache
 
   steps:
     - template: checkout-unix-task.yml
