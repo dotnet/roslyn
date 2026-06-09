@@ -34,7 +34,7 @@ pr:
       - azure-pipelines-integration-scouting.yml
       - azure-pipelines-official.yml
       - azure-pipelines-pr-validation.yml
-      - *.md
+      - '*.md'
 
 variables:
   # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
