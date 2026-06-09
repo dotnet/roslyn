@@ -389,7 +389,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
         // What the source generator would product for TestProjectData.SomeProjectPath
         var generatedClassName = PlatformInformation.IsWindows
             ? "c__users_example_src_SomeProject_File1"
-            : "home_example_SomeProject_File1";
+            : "_home_example_SomeProject_File1";
         return VerifySymbolInformationsAsync(
             $$"""
             {|ExecuteAsync():|}@functions {
