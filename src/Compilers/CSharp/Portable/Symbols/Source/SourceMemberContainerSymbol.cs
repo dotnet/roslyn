@@ -5644,7 +5644,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             method.ParameterCount == 0 &&
                             method.GetLeastOverriddenMethod(null) == objectGetHashCode)
                         {
-                            return method.IsAbstract ? method : null;
+                            if (method.IsAbstract)
+                            {
+                                return method;
+                            }
+
+                            return null;
                         }
                     }
 
