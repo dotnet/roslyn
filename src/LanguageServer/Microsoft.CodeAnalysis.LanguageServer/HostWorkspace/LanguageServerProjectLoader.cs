@@ -27,6 +27,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
     private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
 
     private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToReload;
+    private bool _isDisposed;
 
     protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ProjectTargetFrameworkManager _projectTargetFrameworkManager;
@@ -238,10 +239,11 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         BuildHostProcessKind? preferredBuildHostKindThatWeDidNotGet = null;
         var projectPath = projectToLoad.Path;
 
-        // Before doing any work, check if the project has already been unloaded.
+        // Before doing any work, check if the project has already been unloaded
+        // or if the loader itself has been disposed (indicating the server is shutting down).
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
-            if (!_loadedProjects.ContainsKey(projectPath))
+            if (_isDisposed || !_loadedProjects.ContainsKey(projectPath))
             {
                 return null;
             }
@@ -433,6 +435,8 @@ internal abstract class LanguageServerProjectLoader : IDisposable
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
+            Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
+
             if (_loadedProjects.TryGetValue(projectPath, out var existingState))
             {
                 // Note: this generally only happens if we fall through to the "add to misc workspace" path,
@@ -480,6 +484,8 @@ internal abstract class LanguageServerProjectLoader : IDisposable
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
+            Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
+
             // If project has already begun loading, no need to do any further work.
             if (_loadedProjects.ContainsKey(projectPath))
             {
@@ -507,15 +513,16 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         }
     }
 
-    /// <summary>
-    /// Disposes all loaded projects when the server is shutting down. Each <see cref="LoadedProject"/> owns the file
-    /// watches (e.g. inotify instances on Linux) it created, so they must be disposed here to avoid leaking those
-    /// operating system handles across server restarts.
-    /// </summary>
     public virtual void Dispose()
     {
         using (_gate.DisposableWait(CancellationToken.None))
         {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            _projectsToReload.Dispose();
+
             foreach (var (_, loadState) in _loadedProjects)
             {
                 // Disposing a LoadedProject unloads it, releasing its file watches and removing it from the workspace.

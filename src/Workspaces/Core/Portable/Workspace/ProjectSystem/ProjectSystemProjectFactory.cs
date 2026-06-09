@@ -99,9 +99,6 @@ internal sealed partial class ProjectSystemProjectFactory : IDisposable
 
     public void Dispose()
     {
-        // Releases the file watches (e.g. inotify instances on Linux) created to watch metadata and analyzer
-        // reference directories. Hosts that keep this factory alive for the lifetime of the process (such as Visual
-        // Studio) never dispose it; the LSP server disposes it when the server shuts down.
         PortableExecutableReferenceFileChangeTracker.Dispose();
         AnalyzerReferenceFileChangeTracker.Dispose();
     }
