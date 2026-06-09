@@ -2138,7 +2138,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_StaticAPIInRecord
                 or ErrorCode.ERR_CopyConstructorWrongAccessibility
                 or ErrorCode.ERR_NonPrivateAPIInRecord
-                or ErrorCode.ERR_AbstractAPIInRecord
                 or ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion
                 or ErrorCode.WRN_UnassignedThisUnsupportedVersion
                 or ErrorCode.WRN_ParamUnassigned
@@ -2172,6 +2171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
                 or ErrorCode.ERR_InheritingFromRecordWithSealedToString
                 or ErrorCode.ERR_HiddenPositionalMember
+                or ErrorCode.ERR_AbstractAPIInRecord
                 or ErrorCode.ERR_GlobalUsingInNamespace
                 or ErrorCode.ERR_GlobalUsingOutOfOrder
                 or ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression
