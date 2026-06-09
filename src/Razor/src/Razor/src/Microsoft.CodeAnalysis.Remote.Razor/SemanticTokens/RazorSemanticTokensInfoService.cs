@@ -12,10 +12,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 internal sealed partial class RazorSemanticTokensInfoService(
     IDocumentMappingService documentMappingService,
     ISemanticTokensLegendService semanticTokensLegendService,
-    ICSharpSemanticTokensProvider csharpSemanticTokensProvider,
+    IClientCapabilitiesService clientCapabilitiesService,
+    ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory)
     : IRazorSemanticTokensInfoService
 {
@@ -41,7 +46,8 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
-    private readonly ICSharpSemanticTokensProvider _csharpSemanticTokensProvider = csharpSemanticTokensProvider;
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorSemanticTokensInfoService>();
 
     public async Task<int[]?> GetSemanticTokensAsync(
@@ -125,40 +131,58 @@ internal sealed partial class RazorSemanticTokensInfoService(
         CancellationToken cancellationToken)
     {
         // Impl pass
-        var implGeneratedDocument = codeDocument.GetRequiredImplCSharpDocument();
-        if (TryGetSortedCSharpRanges(codeDocument, implGeneratedDocument, razorSpan, out var implRanges))
+        var implGeneratedDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+        if (!await AddCSharpSemanticRangesForDocumentAsync(implGeneratedDocument).ConfigureAwait(false))
         {
-            _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, decl half: false, and the server thinks there are {implGeneratedDocument.Text.Lines.Count} lines of C#");
-
-            var implResponse = await _csharpSemanticTokensProvider
-                .GetCSharpSemanticTokensResponseAsync(documentContext, implRanges, correlationId, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (!ProcessCSharpResponse(ranges, codeDocument, implGeneratedDocument, implResponse, razorSpan, colorBackground))
-            {
-                return false;
-            }
+            return false;
         }
 
         // Run a second pass against the decl-half generated document, if there is one. For an
         // @code / @functions block the impl half only contains BuildRenderTree and an invocation,
         // while the full method bodies (and therefore most C# tokens) live in the decl half.
-        if (codeDocument.GetDeclCSharpDocument() is { } declGeneratedDocument &&
-            TryGetSortedCSharpRanges(codeDocument, declGeneratedDocument, razorSpan, out var declRanges))
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declGeneratedDocument &&
+            !await AddCSharpSemanticRangesForDocumentAsync(declGeneratedDocument).ConfigureAwait(false))
         {
-            _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, decl half: true, and the server thinks there are {declGeneratedDocument.Text.Lines.Count} lines of C#");
-
-            var declResponse = await _csharpSemanticTokensProvider
-                .GetDeclCSharpSemanticTokensResponseAsync(documentContext, declRanges, correlationId, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (!ProcessCSharpResponse(ranges, codeDocument, declGeneratedDocument, declResponse, razorSpan, colorBackground))
-            {
-                return false;
-            }
+            return false;
         }
 
         return true;
+
+        async Task<bool> AddCSharpSemanticRangesForDocumentAsync(RazorCSharpDocument csharpDocument)
+        {
+            if (!TryGetSortedCSharpRanges(codeDocument, csharpDocument, razorSpan, out var csharpRanges))
+            {
+                return true;
+            }
+
+            _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, decl half: {csharpDocument.IsDeclarationDocument}, and the server thinks there are {csharpDocument.Text.Lines.Count} lines of C#");
+
+            var csharpResponse = await GetCSharpSemanticTokensResponseAsync(documentContext.Snapshot, csharpDocument.IsDeclarationDocument, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
+
+            return ProcessCSharpResponse(ranges, codeDocument, csharpDocument, csharpResponse, razorSpan, colorBackground);
+        }
+    }
+
+    private async Task<int[]?> GetCSharpSemanticTokensResponseAsync(
+        RemoteDocumentSnapshot documentSnapshot,
+        bool declarationDocument,
+        ImmutableArray<LinePositionSpan> csharpRanges,
+        Guid correlationId,
+        CancellationToken cancellationToken)
+    {
+        var generatedDocument = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
+
+        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName,
+            Constants.ExternalAccessServerName,
+            TelemetryThresholds.SemanticTokensSubLSPTelemetryThreshold,
+            correlationId);
+
+        return await SemanticTokensHelpers.HandleRequestHelperAsync(
+            generatedDocument,
+            csharpRanges,
+            supportsVisualStudioExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
+            ClassificationOptions.Default,
+            cancellationToken).ConfigureAwait(false);
     }
 
     private bool ProcessCSharpResponse(
