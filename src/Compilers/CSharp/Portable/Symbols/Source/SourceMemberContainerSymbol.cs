@@ -5490,14 +5490,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<CustomModifier>.Empty,
                     ImmutableArray<MethodSymbol>.Empty);
 
-                MethodSymbol getHashCode;
+                MethodSymbol? getHashCode;
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
-                    var abstractBaseGetHashCode = getAbstractBaseGetHashCodeMethodIfTargetedBySynthesizedBody();
-                    if (abstractBaseGetHashCode is not null)
+                    if (synthesizedGetHashCodeWouldTargetAbstractBaseMethod())
                     {
-                        getHashCode = abstractBaseGetHashCode;
+                        getHashCode = null;
                     }
                     else
                     {
@@ -5631,7 +5630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return thisEquals;
             }
 
-            MethodSymbol? getAbstractBaseGetHashCodeMethodIfTargetedBySynthesizedBody()
+            bool synthesizedGetHashCodeWouldTargetAbstractBaseMethod()
             {
                 var objectGetHashCode = this.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode);
                 var currentBaseType = this.BaseTypeNoUseSiteDiagnostics;
@@ -5644,21 +5643,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             method.ParameterCount == 0 &&
                             method.GetLeastOverriddenMethod(null) == objectGetHashCode)
                         {
-                            if (method.IsAbstract)
-                            {
-                                return method;
-                            }
-
                             // Stop at the first matching override candidate. This is the method that
                             // SynthesizedRecordGetHashCode would call via base.GetHashCode().
-                            return null;
+                            return method.IsAbstract;
                         }
                     }
 
                     currentBaseType = currentBaseType.BaseTypeNoUseSiteDiagnostics;
                 }
 
-                return null;
+                return false;
             }
 
             MethodSymbol? getAbstractBasePrintMembersMethod()
