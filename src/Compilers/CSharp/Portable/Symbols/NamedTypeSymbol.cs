@@ -1948,31 +1948,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
                 {
                     Debug.Assert(shadowingMethods is not null);
-                    NamedTypeSymbol? possiblyConstructedOrSubstitutedBaseInterface = null;
-                    bool canShadow = !baseInterfaceForDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
+                    NamedTypeSymbol? constructedOrSubstitutedBaseInterface = null;
+                    bool canShadow = !baseInterfaceForDefinition.OriginalDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
 
                     foreach (var member in baseInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
                     {
                         if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
                         {
-                            if (possiblyConstructedOrSubstitutedBaseInterface is null)
+                            if (!this.IsDefinition)
                             {
-                                if (this.IsDefinition)
+                                if (constructedOrSubstitutedBaseInterface is null)
                                 {
-                                    possiblyConstructedOrSubstitutedBaseInterface = baseInterfaceForDefinition;
+                                    constructedOrSubstitutedBaseInterface = this.TypeSubstitution.SubstituteNamedType(baseInterfaceForDefinition);
                                 }
-                                else
-                                {
-                                    possiblyConstructedOrSubstitutedBaseInterface = this.TypeSubstitution.SubstituteNamedType(baseInterfaceForDefinition);
-                                }
-                            }
 
-                            method = method.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedBaseInterface);
+                                method = method.OriginalDefinition.AsMember(constructedOrSubstitutedBaseInterface);
+                            }
 
                             foreach (MethodSymbol shadowingMethod in shadowingMethods)
                             {
                                 if (MemberSignatureComparer.CSharpOverrideComparer.Equals(shadowingMethod, method) &&
-                                    shadowingMethod.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(possiblyConstructedOrSubstitutedBaseInterface, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                                    shadowingMethod.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(method.ContainingType, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
                                 {
                                     // Shadowed
                                     goto nextMember;

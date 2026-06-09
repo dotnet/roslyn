@@ -51,6 +51,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                PropertySymbol? match = null;
+
+                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                {
+                    foreach (var member in baseInterfaceForDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
+                    {
+                        if (isSuitableProperty(member, out PropertySymbol? valueProperty))
+                        {
+                            if (match is null)
+                            {
+                                match = valueProperty;
+                            }
+                            else if (!match.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(baseInterfaceForDefinition, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                            {
+                                // Ambiguity
+                                return reportDiagnosticAndReturnProperty(membersInterface, null, ref useSiteInfo);
+                            }
+                            else
+                            {
+                                // Shadowed
+                            }
+
+                            break;
+                        }
+                    }
+                }
+
+                if (match is not null)
+                {
+                    if (!inputUnionType.IsDefinition)
+                    {
+                        match = match.OriginalDefinition.AsMember(inputUnionType.TypeSubstitution.SubstituteNamedType(match.ContainingType));
+                    }
+
+                    return reportDiagnosticAndReturnProperty(membersInterface, match, ref useSiteInfo);
+                }
+
                 return reportDiagnosticAndReturnProperty(membersInterface, null, ref useSiteInfo);
             }
             else
@@ -93,8 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return property is
                 {
                     IsStatic: false,
-                    DeclaredAccessibility: Accessibility.Public,
-                    GetMethod: not null,
+                    GetMethod: { DeclaredAccessibility: Accessibility.Public },
                     RefKind: RefKind.None,
                     ParameterCount: 0,
                     Type.SpecialType: SpecialType.System_Object
@@ -212,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     IsStatic: false,
                     DeclaredAccessibility: Accessibility.Public,
-                    GetMethod: not null,
+                    GetMethod: not null, // PROTOTYPE: Must be public
                     RefKind: RefKind.None,
                     ParameterCount: 0,
                     Type.SpecialType: SpecialType.System_Boolean
