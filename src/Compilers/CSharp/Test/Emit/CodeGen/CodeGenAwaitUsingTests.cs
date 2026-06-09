@@ -1442,14 +1442,9 @@ class C : System.IAsyncDisposable
             var expectedOutput = "body DisposeAsync end";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            // https://github.com/dotnet/roslyn/issues/79762: Test dynamic
-
-            comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (6,30): error CS9328: Method 'C.Main()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         await using (dynamic x = new C())
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "x = new C()").WithArguments("C.Main()").WithLocation(6, 30)
-            );
+            comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
         [Fact]
@@ -1479,13 +1474,9 @@ class C : System.IAsyncDisposable
             string expectedOutput = "body DisposeAsync end";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            // https://github.com/dotnet/roslyn/issues/79762: Test dynamic
-            comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (6,30): error CS9328: Method 'C.Main()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         await using (dynamic x = new C())
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "x = new C()").WithArguments("C.Main()").WithLocation(6, 30)
-            );
+            comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
         [Fact]

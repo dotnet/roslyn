@@ -1529,6 +1529,85 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             inGlobalNamespace: inGlobalNamespace);
     }
 
+    [Fact]
+    public async Task CodeBlock_TopLevel_WithMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                """,
+            htmlFormatted: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                """,
+            expected: """
+                @code
+                {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    public async Task CodeBlock_TopLevel_WithRazorMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            expected: """
+                @code
+                {
+                    private int currentCount = 0;
+                }
+
+                @if (currentCount > 0)
+                {
+                    <div>
+                        <p>Current count: @currentCount</p>
+                    </div>
+                }
+                """);
+    }
+
     [Theory, CombinatorialData]
     public async Task CodeBlock_IndentedBlock_MaintainsIndent(bool inGlobalNamespace)
     {
@@ -2028,6 +2107,50 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     {
                         currentCount++;
                     }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task FunctionsBlock_TopLevel_WithRazorMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @functions
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @functions
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            expected: """
+                @functions
+                {
+                    private int currentCount = 0;
+                }
+
+                @if (currentCount > 0)
+                {
+                    <div>
+                        <p>Current count: @currentCount</p>
+                    </div>
                 }
                 """,
             fileKind: RazorFileKind.Legacy);

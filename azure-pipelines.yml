@@ -597,7 +597,7 @@ stages:
 
   - job: Correctness_Analyzers
     pool: ${{ parameters.ubuntuPool }}
-    timeoutInMinutes: 35
+    timeoutInMinutes: 40
     variables:
       - template: eng/pipelines/variables-build.yml
         parameters:

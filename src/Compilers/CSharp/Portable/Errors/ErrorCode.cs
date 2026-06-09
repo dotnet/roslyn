@@ -2496,6 +2496,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingUnionValueProperty = 9386,
         ERR_MemberProviderInUnionDeclaration = 9387,
 
+        ERR_SafeModifierUnsupportedTarget = 9388,
+        ERR_ExternMemberRequiresUnsafeOrSafe = 9389,
+        ERR_PartialMemberSafeDifference = 9390,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

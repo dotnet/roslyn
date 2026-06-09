@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.FindAllReferences;
+namespace Microsoft.CodeAnalysis.Remote.Razor.FindAllReferences;
 
 internal static class FindAllReferencesHelper
 {
