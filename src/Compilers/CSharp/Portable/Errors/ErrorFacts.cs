@@ -2171,7 +2171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
                 or ErrorCode.ERR_InheritingFromRecordWithSealedToString
                 or ErrorCode.ERR_HiddenPositionalMember
-                or ErrorCode.ERR_AbstractAPIInRecord
                 or ErrorCode.ERR_GlobalUsingInNamespace
                 or ErrorCode.ERR_GlobalUsingOutOfOrder
                 or ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression
@@ -2600,6 +2599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SafeModifierUnsupportedTarget
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                 or ErrorCode.ERR_PartialMemberSafeDifference
+                or ErrorCode.ERR_AbstractAPIInRecord
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
