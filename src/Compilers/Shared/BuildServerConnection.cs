@@ -325,6 +325,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         response = await responseTask.ConfigureAwait(false);
                     }
+                    catch (Exception e) when (e is IOException or ObjectDisposedException)
+                    {
+                        logger.Log($"Server disconnected while reading response for {request.RequestId}: {e.Message}");
+                        response = new CannotConnectResponse();
+                    }
                     catch (Exception e)
                     {
                         logger.LogException(e, $"Reading response for {request.RequestId}");
@@ -333,8 +338,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 else
                 {
-                    logger.LogError($"Client disconnect for {request.RequestId}");
-                    response = new RejectedBuildResponse($"Client disconnected");
+                    logger.Log($"Client disconnected while reading response for {request.RequestId}");
+                    response = new CannotConnectResponse();
                 }
 
                 // Cancel whatever task is still around

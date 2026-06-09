@@ -137,6 +137,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(5, count);
         }
 
+        [Fact]
+        public async Task ServerDisconnectWhileReadingResponse()
+        {
+            var pipeName = ServerUtil.GetPipeName();
+            using var readyMre = new ManualResetEvent(initialState: false);
+            var serverTask = Task.Run(async () =>
+            {
+                using var stream = NamedPipeUtil.CreateServer(pipeName);
+                readyMre.Set();
+                stream.WaitForConnection();
+                await BuildRequest.ReadAsync(stream, CancellationToken.None);
+                stream.Close();
+            });
+
+            readyMre.WaitOne();
+            var response = await BuildServerConnection.RunServerBuildRequestAsync(
+                ProtocolUtil.CreateEmptyCSharp(TempRoot.CreateDirectory().Path),
+                pipeName,
+                timeoutOverride: Timeout.Infinite,
+                tryCreateServerFunc: (_, _) => true,
+                Logger,
+                cancellationToken: default);
+
+            await serverTask;
+            Assert.True(response is CannotConnectResponse);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/13844")]
         public async Task WaitForServerProcessExitAsync_CompletesWhenServerMutexIsNotOpen()
         {
