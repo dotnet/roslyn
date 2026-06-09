@@ -2932,7 +2932,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
-  IL_001a:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
   IL_001f:  ret
 }
 """;
@@ -2975,7 +2975,7 @@ public class C
   IL_0017:  stelem.i
   IL_0018:  dup
   IL_0019:  stsfld     "nint[] <PrivateImplementationDetails>.A2C70538651A7E9296B097E8C3DFC1B195A945802FFE45AA471868FBA6F1042E_B8"
-  IL_001e:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
+  IL_001e:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
   IL_0023:  ret
 }
 """;
@@ -3025,7 +3025,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
-  IL_001a:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(System.UIntPtr[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
   IL_001f:  ret
 }
 """;
@@ -3068,7 +3068,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.AD95131BC0B799C0B1AF477FB14FCF26A6A9F76079E48BF090ACB7E8367BFD0E_B16"
-  IL_001a:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(System.UIntPtr[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
   IL_001f:  ret
 }
 """;
@@ -3115,7 +3115,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nuint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B16"
-  IL_001a:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(System.UIntPtr[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<nuint>..ctor(nuint[])"
   IL_001f:  ret
 }
 """);
@@ -3136,7 +3136,7 @@ public class C
   IL_0013:  stelem.i
   IL_0014:  dup
   IL_0015:  stsfld     "nint[] <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA450_B8"
-  IL_001a:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(System.IntPtr[])"
+  IL_001a:  newobj     "System.ReadOnlySpan<nint>..ctor(nint[])"
   IL_001f:  ret
 }
 """);
@@ -3425,7 +3425,7 @@ class Test
   IL_003f:  call       "void System.Console.Write(bool)"
   IL_0044:  ret
 }
-""", ilFormat: SymbolDisplayFormat.ILVisualizationFormat.RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType));
+""");
         }
 
         [Theory]

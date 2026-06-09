@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -51,10 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         internal static readonly ConversionKind[] ExplicitNullableIdentity = new[] { ConversionKind.ExplicitNullable, ConversionKind.Identity };
 
         internal static readonly SymbolDisplayFormat TestFormat = SymbolDisplayFormat.TestFormat
-            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
-
-        internal static readonly SymbolDisplayFormat ILFormat = SymbolDisplayFormat.ILVisualizationFormat
-            .RemoveCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
+            .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         internal static bool IsNoConversion(ConversionKind[] conversionKinds)
         {
@@ -575,9 +571,9 @@ class Program
                 var actualMembers = members.SelectAsArray(m => m.ToDisplayString(TestFormat));
                 var expectedMembers = new[]
                 {
-                    $"System.Boolean {type}.Equals(System.Object obj)",
-                    $"System.Int32 {type}.GetHashCode()",
-                    $"System.String {type}.ToString()",
+                    $"bool {type}.Equals(object obj)",
+                    $"int {type}.GetHashCode()",
+                    $"string {type}.ToString()",
                     $"{type}..ctor()",
                 };
                 AssertEx.Equal(expectedMembers, actualMembers);
@@ -1347,7 +1343,7 @@ class Program
   IL_0021:  sizeof     ""nuint""
   IL_0027:  call       ""void System.Console.Write(int)""
   IL_002c:  ret
-}", ilFormat: ILFormat);
+}");
         }
 
         [Fact]
@@ -1474,7 +1470,7 @@ class Program
   IL_0009:  ldsfld     ""nuint Program.F2""
   IL_000e:  add
   IL_000f:  ret
-}", ilFormat: ILFormat);
+}");
         }
 
         [Fact]
@@ -1508,7 +1504,7 @@ class Program
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""string nint.ToString()""
   IL_0007:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.F2",
 @"{
   // Code size        7 (0x7)
@@ -1516,7 +1512,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  box        ""nint""
   IL_0006:  ret
-}", ilFormat: ILFormat);
+}");
         }
 
         /// <summary>
@@ -1682,7 +1678,7 @@ public class A
   IL_0034:  call       ""readonly nuint nuint?.GetValueOrDefault()""
   IL_0039:  pop
   IL_003a:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("B.M2",
 @"{
   // Code size       95 (0x5f)
@@ -1726,7 +1722,7 @@ public class A
   IL_0054:  newobj     ""nuint?..ctor(nuint)""
   IL_0059:  stsfld     ""nuint? A.F4""
   IL_005e:  ret
-}", ilFormat: ILFormat);
+}");
         }
 
         [Theory, CombinatorialData]
@@ -1851,7 +1847,7 @@ public class A
   IL_00ec:  newobj     ""nuint?..ctor(nuint)""
   IL_00f1:  stsfld     ""nuint? A.F4""
   IL_00f6:  ret
-}", ilFormat: ILFormat);
+}");
         }
 
         [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
@@ -1985,17 +1981,17 @@ $@"class Program
                 $"{nativeType} {nativeType}.op_Multiply({nativeType} left, {nativeType} right)",
                 $"{nativeType} {nativeType}.op_Division({nativeType} left, {nativeType} right)",
                 $"{nativeType} {nativeType}.op_Modulus({nativeType} left, {nativeType} right)",
-                $"System.Boolean {nativeType}.op_LessThan({nativeType} left, {nativeType} right)",
-                $"System.Boolean {nativeType}.op_LessThanOrEqual({nativeType} left, {nativeType} right)",
-                $"System.Boolean {nativeType}.op_GreaterThan({nativeType} left, {nativeType} right)",
-                $"System.Boolean {nativeType}.op_GreaterThanOrEqual({nativeType} left, {nativeType} right)",
-                $"System.Boolean {nativeType}.op_Equality({nativeType} left, {nativeType} right)",
-                $"System.Boolean {nativeType}.op_Inequality({nativeType} left, {nativeType} right)",
+                $"bool {nativeType}.op_LessThan({nativeType} left, {nativeType} right)",
+                $"bool {nativeType}.op_LessThanOrEqual({nativeType} left, {nativeType} right)",
+                $"bool {nativeType}.op_GreaterThan({nativeType} left, {nativeType} right)",
+                $"bool {nativeType}.op_GreaterThanOrEqual({nativeType} left, {nativeType} right)",
+                $"bool {nativeType}.op_Equality({nativeType} left, {nativeType} right)",
+                $"bool {nativeType}.op_Inequality({nativeType} left, {nativeType} right)",
                 $"{nativeType} {nativeType}.op_BitwiseAnd({nativeType} left, {nativeType} right)",
                 $"{nativeType} {nativeType}.op_BitwiseOr({nativeType} left, {nativeType} right)",
                 $"{nativeType} {nativeType}.op_ExclusiveOr({nativeType} left, {nativeType} right)",
-                $"{nativeType} {nativeType}.op_LeftShift({nativeType} left, System.Int32 right)",
-                $"{nativeType} {nativeType}.op_RightShift({nativeType} left, System.Int32 right)",
+                $"{nativeType} {nativeType}.op_LeftShift({nativeType} left, int right)",
+                $"{nativeType} {nativeType}.op_RightShift({nativeType} left, int right)",
             };
             AssertEx.Equal(expectedOperators, actualOperators);
         }
@@ -2568,7 +2564,7 @@ $@"class Program
   IL_00cb:  call       ""void Program.F(nint)""
   IL_00d0:  ret
 }";
-            verifier.VerifyIL("Program.Main", expectedIL, ilFormat: ILFormat);
+            verifier.VerifyIL("Program.Main", expectedIL);
         }
 
         [Theory]
@@ -2681,7 +2677,7 @@ $@"class Program
   IL_0087:  call       ""void Program.F(nuint)""
   IL_008c:  ret
 }";
-            verifier.VerifyIL("Program.Main", expectedIL, ilFormat: ILFormat);
+            verifier.VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact]
@@ -3243,7 +3239,7 @@ default: 0
       IL_00c7:  ldarg.0
       IL_00c8:  ret
     }
-    ", ilFormat: ILFormat);
+    ");
         }
 
         [Fact]
@@ -3405,7 +3401,7 @@ default: 0
       IL_00b6:  ldarg.0
       IL_00b7:  ret
     }
-", ilFormat: ILFormat);
+");
         }
 
         [Fact]
@@ -6029,7 +6025,7 @@ enum E {{ }}
                 if (expectedIL != null)
                 {
                     var verifier = CompileAndVerify(comp, verify: useUnsafeContext ? Verification.Skipped : Verification.FailsPEVerify);
-                    verifier.VerifyIL("Program.Convert", expectedIL, ilFormat: ILFormat);
+                    verifier.VerifyIL("Program.Convert", expectedIL);
                 }
 
                 static bool useUnsafe(string type) => type == "void*" || type == "delegate*<void>";
@@ -6258,7 +6254,7 @@ $@"class Program
                 if (expectedDiagnostics.Length == 0)
                 {
                     var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
-                    verifier.VerifyIL("Program.Evaluate", expectedIL, ilFormat: ILFormat);
+                    verifier.VerifyIL("Program.Evaluate", expectedIL);
                 }
             }
         }
@@ -6634,7 +6630,7 @@ class Program
                 if (expectedDiagnostics.Length == 0)
                 {
                     var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
-                    verifier.VerifyIL("Program.Evaluate", expectedIL, ilFormat: ILFormat);
+                    verifier.VerifyIL("Program.Evaluate", expectedIL);
                 }
             }
         }
@@ -6866,7 +6862,7 @@ class Program
                 if (expectedDiagnostics.Length == 0)
                 {
                     var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
-                    verifier.VerifyIL("Program.Evaluate", expectedIL, ilFormat: ILFormat);
+                    verifier.VerifyIL("Program.Evaluate", expectedIL);
                 }
             }
         }
@@ -8215,7 +8211,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  add
   IL_0003:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.Subtract",
 @"{
   // Code size        4 (0x4)
@@ -8224,7 +8220,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  sub
   IL_0003:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.Multiply",
 @"{
   // Code size        4 (0x4)
@@ -8233,7 +8229,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  mul
   IL_0003:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.Divide",
 @"{
   // Code size        4 (0x4)
@@ -8242,7 +8238,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  div
   IL_0003:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.Mod",
 @"{
   // Code size        4 (0x4)
@@ -8251,7 +8247,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  rem
   IL_0003:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.Equals",
 @"{
   // Code size        5 (0x5)
@@ -8260,7 +8256,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  ceq
   IL_0004:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.NotEquals",
 @"{
   // Code size        8 (0x8)
@@ -8271,7 +8267,7 @@ False
   IL_0004:  ldc.i4.0
   IL_0005:  ceq
   IL_0007:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.LessThan",
 @"{
   // Code size        5 (0x5)
@@ -8280,7 +8276,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  clt
   IL_0004:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.LessThanOrEqual",
 @"{
   // Code size        8 (0x8)
@@ -8291,7 +8287,7 @@ False
   IL_0004:  ldc.i4.0
   IL_0005:  ceq
   IL_0007:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.GreaterThan",
 @"{
   // Code size        5 (0x5)
@@ -8300,7 +8296,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  cgt
   IL_0004:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.GreaterThanOrEqual",
 @"{
   // Code size        8 (0x8)
@@ -8311,7 +8307,7 @@ False
   IL_0004:  ldc.i4.0
   IL_0005:  ceq
   IL_0007:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.And",
 @"{
   // Code size        4 (0x4)
@@ -8320,7 +8316,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  and
   IL_0003:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.Or",
 @"{
   // Code size        4 (0x4)
@@ -8329,7 +8325,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  or
   IL_0003:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.Xor",
 @"{
   // Code size        4 (0x4)
@@ -8338,7 +8334,7 @@ False
   IL_0001:  ldarg.1
   IL_0002:  xor
   IL_0003:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.ShiftLeft",
 @"{
   // Code size       15 (0xf)
@@ -8353,7 +8349,7 @@ False
   IL_000c:  and
   IL_000d:  shl
   IL_000e:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.ShiftRight",
 @"{
   // Code size       15 (0xf)
@@ -8368,7 +8364,7 @@ False
   IL_000c:  and
   IL_000d:  shr
   IL_000e:  ret
-}", ilFormat: ILFormat);
+}");
         }
 
         [Fact]
@@ -8579,7 +8575,7 @@ False
   IL_000c:  and
   IL_000d:  shl
   IL_000e:  ret
-}", ilFormat: ILFormat);
+}");
             verifier.VerifyIL("Program.ShiftRight",
 @"{
   // Code size       15 (0xf)
@@ -8594,7 +8590,7 @@ False
   IL_000c:  and
   IL_000d:  shr.un
   IL_000e:  ret
-}", ilFormat: ILFormat);
+}");
         }
 
         [Fact]
@@ -10394,18 +10390,14 @@ interface I
             {
                 Assert.Equal(SpecialType.System_IntPtr, type.SpecialType);
                 Assert.Equal("nint", type.ToDisplayString(TestFormat));
-                Assert.Equal("nint", type.ToDisplayString(TestFormat));
-                Assert.Equal("System.IntPtr", type.ToDisplayString(TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType)));
-                Assert.Equal("nint", type.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal("System.IntPtr", type.ToDisplayString(TestFormat.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
             }
 
             static void verifyUIntPtr(TypeSymbol type)
             {
                 Assert.Equal(SpecialType.System_UIntPtr, type.SpecialType);
                 Assert.Equal("nuint", type.ToDisplayString(TestFormat));
-                Assert.Equal("nuint", type.ToDisplayString(TestFormat));
-                Assert.Equal("System.UIntPtr", type.ToDisplayString(TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType)));
-                Assert.Equal("nuint", type.ToDisplayString(TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+                Assert.Equal("System.UIntPtr", type.ToDisplayString(TestFormat.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
             }
 
             static void verifyCommon(TypeSymbol type)
@@ -10561,8 +10553,8 @@ class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var returnStatements = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().ToArray();
-            Assert.Equal("nint nint.op_Implicit(System.String s)", model.GetConversion(returnStatements[0].Expression).Method.ToDisplayString(TestFormat));
-            Assert.Equal("nuint nuint.op_Implicit(System.String s)", model.GetConversion(returnStatements[1].Expression).Method.ToDisplayString(TestFormat));
+            Assert.Equal("nint nint.op_Implicit(string s)", model.GetConversion(returnStatements[0].Expression).Method.ToDisplayString(TestFormat));
+            Assert.Equal("nuint nuint.op_Implicit(string s)", model.GetConversion(returnStatements[1].Expression).Method.ToDisplayString(TestFormat));
         }
 
         [Fact]
@@ -11001,12 +10993,12 @@ public class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
-            verifier.VerifyIL("C.M1", shiftRight("nint"), ilFormat: ILFormat);
-            verifier.VerifyIL("C.M2", shiftRight("nuint"), ilFormat: ILFormat);
-            verifier.VerifyIL("C.M3", shiftRight("nint"), ilFormat: ILFormat);
-            verifier.VerifyIL("C.M4", shiftRight("nuint"), ilFormat: ILFormat);
-            verifier.VerifyIL("C.M5", shiftRight("nint"), ilFormat: ILFormat);
-            verifier.VerifyIL("C.M6", shiftRight("nuint"), ilFormat: ILFormat);
+            verifier.VerifyIL("C.M1", shiftRight("nint"));
+            verifier.VerifyIL("C.M2", shiftRight("nuint"));
+            verifier.VerifyIL("C.M3", shiftRight("nint"));
+            verifier.VerifyIL("C.M4", shiftRight("nuint"));
+            verifier.VerifyIL("C.M5", shiftRight("nint"));
+            verifier.VerifyIL("C.M6", shiftRight("nuint"));
 
             return;
 
@@ -11440,7 +11432,7 @@ class C
   IL_002b:  newobj     ""nint?..ctor(nint)""
   IL_0030:  ret
 }
-", ilFormat: ILFormat);
+");
 
             // lifted value and lifted count
             compileAndVerify("""
@@ -11484,7 +11476,7 @@ class C
   IL_0039:  newobj     ""nint?..ctor(nint)""
   IL_003e:  ret
 }
-", ilFormat: ILFormat);
+");
             return;
 
             static string nint_shr(int count) => shift(count, "nint", "shr");
@@ -11702,7 +11694,7 @@ class C
 """;
                 var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
                 var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("RAN"));
-                verifier.VerifyIL("C.M", expectedIL, ilFormat: ILFormat);
+                verifier.VerifyIL("C.M", expectedIL);
             }
         }
 
@@ -11735,7 +11727,7 @@ static class C
   IL_000e:  shr
   IL_000f:  ret
 }
-", ilFormat: ILFormat);
+");
         }
 
         [WorkItem(63348, "https://github.com/dotnet/roslyn/issues/63348")]

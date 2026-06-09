@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 SymbolDisplayMemberOptions.IncludeParameters |
                 SymbolDisplayMemberOptions.IncludeType |
                 SymbolDisplayMemberOptions.IncludeRef |
-                SymbolDisplayMemberOptions.IncludeExplicitInterface).
-            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
+                SymbolDisplayMemberOptions.IncludeExplicitInterface);
 
         protected override bool TypeRequiresAttribute(TypeSymbol? type) => type?.ContainsNativeIntegerWrapperType() == true;
 

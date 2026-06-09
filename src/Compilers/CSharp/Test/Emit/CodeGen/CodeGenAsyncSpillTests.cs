@@ -4290,7 +4290,7 @@ class TestCase
                   IL_0012:  pop
                   IL_0013:  ldsfld     "TestCase.<>c TestCase.<>c.<>9"
                   IL_0018:  ldftn      "int TestCase.<>c.<Run>b__1_0()"
-                  IL_001e:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_001e:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0023:  dup
                   IL_0024:  stsfld     "System.Func<int> TestCase.<>c.<>9__1_0"
                   IL_0029:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -4665,7 +4665,7 @@ class Driver
                   IL_0025:  pop
                   IL_0026:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_002b:  ldftn      "int Driver.<>c.<Run>b__1_0()"
-                  IL_0031:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0031:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0036:  dup
                   IL_0037:  stsfld     "System.Func<int> Driver.<>c.<>9__1_0"
                   IL_003c:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -4738,7 +4738,7 @@ class Driver
                   IL_001d:  pop
                   IL_001e:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_0023:  ldftn      "int Driver.<>c.<Run>b__1_0()"
-                  IL_0029:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0029:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_002e:  dup
                   IL_002f:  stsfld     "System.Func<int> Driver.<>c.<>9__1_0"
                   IL_0034:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -4761,7 +4761,7 @@ class Driver
                   IL_0056:  pop
                   IL_0057:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_005c:  ldftn      "int Driver.<>c.<Run>b__1_1()"
-                  IL_0062:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0062:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0067:  dup
                   IL_0068:  stsfld     "System.Func<int> Driver.<>c.<>9__1_1"
                   IL_006d:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -4844,7 +4844,7 @@ class Driver
                   IL_0014:  pop
                   IL_0015:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_001a:  ldftn      "int Driver.<>c.<Run>b__0_0()"
-                  IL_0020:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0020:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0025:  dup
                   IL_0026:  stsfld     "System.Func<int> Driver.<>c.<>9__0_0"
                   IL_002b:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -4875,7 +4875,7 @@ class Driver
                   IL_0069:  pop
                   IL_006a:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_006f:  ldftn      "int Driver.<>c.<Run>b__0_1()"
-                  IL_0075:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0075:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_007a:  dup
                   IL_007b:  stsfld     "System.Func<int> Driver.<>c.<>9__0_1"
                   IL_0080:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -4896,7 +4896,7 @@ class Driver
                   IL_00ae:  pop
                   IL_00af:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_00b4:  ldftn      "int Driver.<>c.<Run>b__0_2()"
-                  IL_00ba:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_00ba:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_00bf:  dup
                   IL_00c0:  stsfld     "System.Func<int> Driver.<>c.<>9__0_2"
                   IL_00c5:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -4985,7 +4985,7 @@ class Driver
                   IL_0014:  pop
                   IL_0015:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_001a:  ldftn      "int Driver.<>c.<Run>b__0_0()"
-                  IL_0020:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0020:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0025:  dup
                   IL_0026:  stsfld     "System.Func<int> Driver.<>c.<>9__0_0"
                   IL_002b:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -5018,7 +5018,7 @@ class Driver
                   IL_006e:  pop
                   IL_006f:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_0074:  ldftn      "int Driver.<>c.<Run>b__0_1()"
-                  IL_007a:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_007a:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_007f:  dup
                   IL_0080:  stsfld     "System.Func<int> Driver.<>c.<>9__0_1"
                   IL_0085:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -5050,7 +5050,7 @@ class Driver
                   IL_00cd:  pop
                   IL_00ce:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_00d3:  ldftn      "int Driver.<>c.<Run>b__0_2()"
-                  IL_00d9:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_00d9:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_00de:  dup
                   IL_00df:  stsfld     "System.Func<int> Driver.<>c.<>9__0_2"
                   IL_00e4:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -5085,7 +5085,7 @@ class Driver
                   IL_0134:  pop
                   IL_0135:  ldsfld     "Driver.<>c Driver.<>c.<>9"
                   IL_013a:  ldftn      "int Driver.<>c.<Run>b__0_3()"
-                  IL_0140:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0140:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0145:  dup
                   IL_0146:  stsfld     "System.Func<int> Driver.<>c.<>9__0_3"
                   IL_014b:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -6113,7 +6113,7 @@ class Test
                   IL_000d:  pop
                   IL_000e:  ldsfld     "Test.<>c Test.<>c.<>9"
                   IL_0013:  ldftn      "int Test.<>c.<Run>b__0_0()"
-                  IL_0019:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0019:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_001e:  dup
                   IL_001f:  stsfld     "System.Func<int> Test.<>c.<>9__0_0"
                   IL_0024:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -6360,7 +6360,7 @@ class Driver
                   IL_0017:  pop
                   IL_0018:  ldsfld     "Test.<>c Test.<>c.<>9"
                   IL_001d:  ldftn      "int Test.<>c.<Run>b__2_0()"
-                  IL_0023:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0023:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0028:  dup
                   IL_0029:  stsfld     "System.Func<int> Test.<>c.<>9__2_0"
                   IL_002e:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -7755,7 +7755,7 @@ static class Driver
                   IL_001a:  pop
                   IL_001b:  ldsfld     "TestCase.<>c TestCase.<>c.<>9"
                   IL_0020:  ldftn      "int TestCase.<>c.<Run>b__1_0()"
-                  IL_0026:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0026:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_002b:  dup
                   IL_002c:  stsfld     "System.Func<int> TestCase.<>c.<>9__1_0"
                   IL_0031:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -9759,7 +9759,7 @@ class C
                   IL_0036:  pop
                   IL_0037:  ldsfld     "C.<>c C.<>c.<>9"
                   IL_003c:  ldftn      "int C.<>c.<F2>b__2_1()"
-                  IL_0042:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0042:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0047:  dup
                   IL_0048:  stsfld     "System.Func<int> C.<>c.<>9__2_1"
                   IL_004d:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"
@@ -10131,7 +10131,7 @@ public class AsyncBug {
                   IL_0006:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
                   IL_000b:  box        "int"
                   IL_0010:  ldftn      "System.Type object.GetType()"
-                  IL_0016:  newobj     "System.Func<System.Type>..ctor(object, System.IntPtr)"
+                  IL_0016:  newobj     "System.Func<System.Type>..ctor(object, nint)"
                   IL_001b:  callvirt   "System.Type System.Func<System.Type>.Invoke()"
                   IL_0020:  call       "void System.Console.WriteLine(object)"
                   IL_0025:  ret
@@ -10209,7 +10209,7 @@ namespace AsyncBug
                   IL_001c:  stloc.0
                   IL_001d:  ldloc.0
                   IL_001e:  ldftn      "bool AsyncBug.Program.SomeClass.Method(int)"
-                  IL_0024:  newobj     "System.Func<int, bool>..ctor(object, System.IntPtr)"
+                  IL_0024:  newobj     "System.Func<int, bool>..ctor(object, nint)"
                   IL_0029:  call       "System.Collections.Generic.IEnumerable<bool> System.Linq.Enumerable.Select<int, bool>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)"
                   IL_002e:  ret
                 }

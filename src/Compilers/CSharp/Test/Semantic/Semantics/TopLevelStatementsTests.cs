@@ -7953,7 +7953,7 @@ return 11;
                   IL_0017:  pop
                   IL_0018:  ldsfld     "Program.<>c Program.<>c.<>9"
                   IL_001d:  ldftn      "int Program.<>c.<<Main>$>b__0_0()"
-                  IL_0023:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0023:  newobj     "System.Func<int>..ctor(object, nint)"
                   IL_0028:  dup
                   IL_0029:  stsfld     "System.Func<int> Program.<>c.<>9__0_0"
                   IL_002e:  callvirt   "System.Threading.Tasks.Task<int> System.Threading.Tasks.TaskFactory.StartNew<int>(System.Func<int>)"

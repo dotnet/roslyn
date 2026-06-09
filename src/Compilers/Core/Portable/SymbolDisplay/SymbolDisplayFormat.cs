@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -200,7 +198,6 @@ namespace Microsoft.CodeAnalysis
                 compilerInternalOptions:
                     SymbolDisplayCompilerInternalOptions.IncludeScriptType |
                     SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames |
-                    SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType |
                     SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes |
                     SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers |
                     SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
@@ -258,7 +255,7 @@ namespace Microsoft.CodeAnalysis
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.ExpandValueTuple,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames | SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
 
         /// <summary>
         /// Used to normalize explicit interface implementation member names.

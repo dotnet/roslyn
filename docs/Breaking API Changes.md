@@ -118,3 +118,11 @@ A new required parameter `Compilation` has been added. Existing overloads withou
 ### Changes in `Microsoft.CodeAnalysis.Emit.SemanticEdit` constructors
 
 The value of `preserveLocalVariables` passed to the constructors is no longer used.
+
+# Version 5.4.0
+
+### Symbol display now honors `SymbolDisplayMiscellaneousOptions.UseSpecialTypes` option for native integers on supported platforms
+
+On platforms with `NumericIntPtr` capability (.NET 7 and beyond) `n[u]int` and `System.[U]IntPtr` represent the same types. Now on such platforms `SymbolDisplayMiscellaneousOptions.UseSpecialTypes` controls whether they are represented as keywords or respective type names in symbol display routines (`ToDisplayString`, `ToDisplayParts` etc.). On platforms without `NumericIntPtr` capability they are different types thus behavior is unchanged: native integers are represented as `n[u]int` keywords and `System.[U]IntPtr` as type names regardless of `SymbolDisplayMiscellaneousOptions.UseSpecialTypes` option.
+
+PR: https://github.com/dotnet/roslyn/pull/83583
