@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -15,7 +17,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Remote.Razor.FindAllReferences;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -73,7 +74,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
 
         // Finally, call into C#.
         var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
+            .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
         var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
         var metadataAsSourceFileService = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IMetadataAsSourceFileService>();
@@ -113,7 +114,14 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 continue;
             }
 
-            var (mappedUri, mappedRange) = await DocumentMappingService.MapToHostDocumentUriAndRangeAsync(context.Snapshot, UriExtensions.GetRequiredSystemUri(location.DocumentUri), location.Range.ToLinePositionSpan(), cancellationToken).ConfigureAwait(false);
+            var generatedDocumentUri = UriExtensions.GetRequiredSystemUri(location.DocumentUri);
+            var (mappedUri, mappedRange) = await DocumentMappingService
+                .MapToHostDocumentUriAndRangeAsync(
+                    context.Snapshot,
+                    generatedDocumentUri,
+                    location.Range.ToLinePositionSpan(),
+                    cancellationToken)
+                .ConfigureAwait(false);
 
             if (_filePathService.IsVirtualCSharpFile(mappedUri))
             {
@@ -132,7 +140,13 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                     referenceItem.DisplayPath = mappedUri.AbsolutePath;
                     referenceItem.DocumentName = mappedUri.AbsolutePath;
 
-                    var fixedResultText = await FindAllReferencesHelper.GetResultTextAsync(DocumentMappingService, context.GetSolutionQueryOperations(), mappedRange.Start.Line, mappedUri.GetDocumentFilePathFromUri(), cancellationToken).ConfigureAwait(false);
+                    var fixedResultText = await GetResultTextAsync(
+                        context,
+                        generatedDocumentUri,
+                        mappedRange.Start.Line,
+                        mappedUri.GetDocumentFilePathFromUri(),
+                        cancellationToken)
+                        .ConfigureAwait(false);
                     referenceItem.Text = fixedResultText ?? referenceItem.Text;
                 }
             }
@@ -144,5 +158,55 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
         }
 
         return Results(mappedResults.ToArrayAndClear());
+    }
+
+    private async Task<string?> GetResultTextAsync(
+        RemoteDocumentContext context,
+        Uri generatedDocumentUri,
+        int lineNumber,
+        string filePath,
+        CancellationToken cancellationToken)
+    {
+        // Roslyn will have sent us back text that comes from the .g.cs file, but that is often not helpful. For example give:
+        //
+        // <SurveyPrompt Title="Blah" />
+        //
+        // A FAR for the Title property will return just the word "Title" in the Text of the reference item, which does not
+        // help the user reason about the result. For such cases, its better to return the text from the Razor file, even
+        // though it will be unclassified, as it will help the user.
+        //
+        // However, for cases where the result comes from a C# block, for example:
+        //
+        // @code {
+        //    public string Title { get; set; }
+        // }
+        //
+        // A FAR for the Title property here will return the full line of code, classified by Roslyn, so we don't want to
+        // do anything for those.
+        //
+        // To identify which situation we're in, we try to map the start and the end of the line to C#, as an indicator. If
+        // either start or end fail to map, it means the entire line is not C#
+
+        // TODO: Note the call to ISolutionQueryOperations.GetProjectsContainingDocument(...) will be removed with the introduction of solution snapshots.
+        if (context.GetSolutionQueryOperations().GetProjectsContainingDocument(filePath).FirstOrDefault() is { } project &&
+            project.TryGetDocument(filePath, out var document))
+        {
+            var codeDoc = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+            var line = codeDoc.Source.Text.Lines[lineNumber];
+            if (!context.Snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
+            {
+                return null;
+            }
+
+            var csharpDocument = codeDoc.GetCSharpDocumentForHintName(identity.HintName);
+            if (!DocumentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, line.Start, out _, out _) ||
+                !DocumentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, line.End, out _, out _))
+            {
+                var start = line.GetFirstNonWhitespacePosition() ?? line.Start;
+                return codeDoc.Source.Text.ToString(TextSpan.FromBounds(start, line.End));
+            }
+        }
+
+        return null;
     }
 }
