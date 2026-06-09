@@ -5494,7 +5494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingHashCodeMethod))
                 {
-                    var abstractBaseGetHashCode = getAbstractBaseGetHashCodeMethod();
+                    var abstractBaseGetHashCode = getAbstractBaseGetHashCodeMethodIfTargetedBySynthesizedBody();
                     if (abstractBaseGetHashCode is not null)
                     {
                         getHashCode = abstractBaseGetHashCode;
@@ -5631,7 +5631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return thisEquals;
             }
 
-            MethodSymbol? getAbstractBaseGetHashCodeMethod()
+            MethodSymbol? getAbstractBaseGetHashCodeMethodIfTargetedBySynthesizedBody()
             {
                 var objectGetHashCode = this.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode);
                 var currentBaseType = this.BaseTypeNoUseSiteDiagnostics;
@@ -5640,12 +5640,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var member in currentBaseType.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectGetHashCode))
                     {
                         if (member is MethodSymbol method &&
-                            method.IsAbstract &&
                             !method.IsStatic &&
                             method.ParameterCount == 0 &&
                             method.GetLeastOverriddenMethod(null) == objectGetHashCode)
                         {
-                            return method;
+                            return method.IsAbstract ? method : null;
                         }
                     }
 
