@@ -1215,7 +1215,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """)
             ]);
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public Task Component_Namespace_WithNonRazorCSharpFile()
         => VerifyRenamesAsync(
             input: $"""

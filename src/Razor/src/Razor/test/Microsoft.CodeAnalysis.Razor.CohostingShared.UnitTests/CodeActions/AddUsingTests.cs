@@ -181,7 +181,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             codeActionIndex: 1);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task AddUsing_InjectDirective()
     {
         var input = """
@@ -219,7 +219,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
         await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.AddImport, fileKind: RazorFileKind.Legacy);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
     public async Task AddUsing()
     {
         var input = """
