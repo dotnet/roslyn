@@ -4488,12 +4488,12 @@ Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.Accept``1(Microsoft.
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.WithKeyword(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken)
-Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.WithUnsafeKeyword(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.get_CloseParenToken
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.get_Expression
+Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.get_Keyword
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.get_OpenParenToken
-Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.get_UnsafeKeyword
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeStatementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
 Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeStatementSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
