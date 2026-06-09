@@ -49,19 +49,12 @@ internal static partial class RazorCodeDocumentExtensions
     /// </remarks>
     public static RazorCSharpDocument GetCSharpDocumentForHintName(this RazorCodeDocument document, string hintName)
     {
-        return GetCSharpDocumentForHintName(document, hintName, out _);
-    }
-
-    public static RazorCSharpDocument GetCSharpDocumentForHintName(this RazorCodeDocument document, string hintName, out bool isDeclDocument)
-    {
         if (hintName.EndsWith(".decl.g.cs", System.StringComparison.Ordinal) &&
             document.GetCSharpDocument(declarationDocument: true) is { } declDocument)
         {
-            isDeclDocument = true;
             return declDocument;
         }
 
-        isDeclDocument = false;
         return document.GetRequiredCSharpDocument(declarationDocument: false);
     }
 
