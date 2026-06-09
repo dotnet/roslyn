@@ -838,6 +838,12 @@ class C
                     TestParenthesizedArgument(checkedSyntax.OpenParenToken, checkedSyntax.Expression, checkedSyntax.CloseParenToken);
                     break;
 
+                case SyntaxKind.UnsafeExpression:
+                    var unsafeSyntax = (UnsafeExpressionSyntax)expr;
+                    TestFunctionKeyword(kind, unsafeSyntax.Keyword);
+                    TestParenthesizedArgument(unsafeSyntax.OpenParenToken, unsafeSyntax.Expression, unsafeSyntax.CloseParenToken);
+                    break;
+
                 case SyntaxKind.TypeOfExpression:
                     var typeOfSyntax = (TypeOfExpressionSyntax)expr;
                     TestFunctionKeyword(kind, typeOfSyntax.Keyword);
@@ -865,6 +871,7 @@ class C
             TestSingleParamFunctionalOperator(SyntaxKind.RefTypeKeyword);
             TestSingleParamFunctionalOperator(SyntaxKind.CheckedKeyword);
             TestSingleParamFunctionalOperator(SyntaxKind.UncheckedKeyword);
+            TestSingleParamFunctionalOperator(SyntaxKind.UnsafeKeyword);
             TestSingleParamFunctionalOperator(SyntaxKind.SizeOfKeyword);
             TestSingleParamFunctionalOperator(SyntaxKind.TypeOfKeyword);
             TestSingleParamFunctionalOperator(SyntaxKind.DefaultKeyword);
@@ -8125,6 +8132,37 @@ select t";
                     }
                     N(SyntaxKind.CloseBracketToken);
                 }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UnsafeExpression_Statement()
+        {
+            UsingTree("""
+                unsafe(x);
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.UnsafeExpression);
+                        {
+                            N(SyntaxKind.UnsafeKeyword);
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }

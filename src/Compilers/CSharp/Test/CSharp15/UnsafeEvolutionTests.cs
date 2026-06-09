@@ -3763,24 +3763,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void UnsafeExpression_IOperation()
+    public void UnsafeExpression_IOperation_01()
     {
         var source = """
             class C
             {
-                int M(int* p)
+                int M(int i)
                 {
-                    /*<bind>*/return unsafe(*p);/*</bind>*/
+                    /*<bind>*/return unsafe(i);/*</bind>*/
                 }
             }
             """;
 
         var expectedOperationTree = """
-            IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return unsafe(*p);')
+            IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return unsafe(i);')
               ReturnedValue:
-                IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '*p')
-                  Children(1):
-                      IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'p')
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             """;
 
         var expectedDiagnostics = DiagnosticDescription.None;
@@ -3789,7 +3787,52 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             source,
             expectedOperationTree,
             expectedDiagnostics,
-            compilationOptions: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+            compilationOptions: TestOptions.UnsafeReleaseDll);
+    }
+
+    [Fact]
+    public void UnsafeExpression_IOperation_02()
+    {
+        var source = """
+            class C
+            {
+                int M(int i)
+                {
+                    return /*<bind>*/unsafe(i)/*</bind>*/;
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+        comp.VerifyDiagnostics();
+        var (operation, _) = GetOperationAndSyntaxForTest<UnsafeExpressionSyntax>(comp);
+        Assert.Null(operation);
+    }
+
+    [Fact]
+    public void UnsafeExpression_IOperation_03()
+    {
+        var source = """
+            class C
+            {
+                int M(int i)
+                {
+                    return unsafe(/*<bind>*/i/*</bind>*/);
+                }
+            }
+            """;
+
+        var expectedOperationTree = """
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+            """;
+
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(
+            source,
+            expectedOperationTree,
+            expectedDiagnostics,
+            compilationOptions: TestOptions.UnsafeReleaseDll);
     }
 
     [Fact]
@@ -3798,9 +3841,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var source = """
             class C
             {
-                int M(int* p)
+                int M(int i)
                 /*<bind>*/{
-                    return unsafe(*p);
+                    return unsafe(i);
                 }/*</bind>*/
             }
             """;
@@ -3813,9 +3856,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Predecessors: [B0]
                 Statements (0)
                 Next (Return) Block[B2]
-                    IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '*p')
-                      Children(1):
-                          IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'p')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Block[B2] - Exit
                 Predecessors: [B1]
                 Statements (0)
@@ -3879,6 +3920,32 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         Assert.True(conversion.Exists);
         Assert.True(conversion.IsImplicit);
         Assert.True(conversion.IsNumeric);
+    }
+
+    [Fact]
+    public void UnsafeExpression_SemanticModel_EnclosingBinder()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    int local = 1;
+                    _ = unsafe(local + 1);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var unsafeExpression = tree.GetRoot().DescendantNodes().OfType<UnsafeExpressionSyntax>().Single();
+
+        var binder = ((CSharpSemanticModel)model).GetEnclosingBinder(unsafeExpression.Expression.SpanStart);
+        Assert.True(binder.InUnsafeRegion);
+        Assert.True(binder.IsSemanticModelBinder);
     }
 
     [Fact]
@@ -3985,6 +4052,26 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (7,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
             // [A(C.U())]
             Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.U()").WithLocation(7, 4));
+    }
+
+    [Fact]
+    public void UnsafeExpression_AttributeArgument_DefaultParameterValue()
+    {
+        var source = """
+            using System.Runtime.InteropServices;
+
+            class C
+            {
+                void M([Optional, DefaultParameterValue(unsafe(1))] int x) { }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+        comp.VerifyEmitDiagnostics();
+
+        var parameter = comp.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        Assert.True(parameter.HasExplicitDefaultValue);
+        Assert.Equal(1, parameter.ExplicitDefaultValue);
     }
 
     [Fact]

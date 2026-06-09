@@ -8529,12 +8529,12 @@ done:
         // Checking for brace or parenthesis to disambiguate between unsafe statement, unsafe expression, and unsafe local function
         private StatementSyntax TryParseStatementStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
         {
-            if (PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+            return PeekToken(1).Kind switch
             {
-                return ParseExpressionStatement(attributes);
-            }
-
-            return IsPossibleUnsafeStatement() ? ParseUnsafeStatement(attributes) : null;
+                SyntaxKind.OpenParenToken => ParseExpressionStatement(attributes),
+                SyntaxKind.OpenBraceToken => ParseUnsafeStatement(attributes),
+                _ => null,
+            };
         }
 
         private bool IsPossibleAwaitUsing()
@@ -8543,11 +8543,6 @@ done:
         private bool IsPossibleLabeledStatement()
         {
             return this.PeekToken(1).Kind == SyntaxKind.ColonToken && this.IsTrueIdentifier();
-        }
-
-        private bool IsPossibleUnsafeStatement()
-        {
-            return this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken;
         }
 
         private bool IsPossibleYieldStatement()
