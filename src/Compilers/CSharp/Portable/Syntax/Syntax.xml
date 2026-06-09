@@ -1068,7 +1068,7 @@
   </Node>
   <Node Name="UnsafeExpressionSyntax" Base="ExpressionSyntax" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/82789">
     <Kind Name="UnsafeExpression"/>
-    <Field Name="UnsafeKeyword" Type="SyntaxToken">
+    <Field Name="Keyword" Type="SyntaxToken">
       <Kind Name="UnsafeKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the unsafe keyword.</summary>

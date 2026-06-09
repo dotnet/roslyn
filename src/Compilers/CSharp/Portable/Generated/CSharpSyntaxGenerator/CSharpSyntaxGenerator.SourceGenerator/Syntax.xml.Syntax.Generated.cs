@@ -2324,7 +2324,7 @@ public sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the unsafe keyword.</summary>
-    public SyntaxToken UnsafeKeyword => new SyntaxToken(this, ((InternalSyntax.UnsafeExpressionSyntax)this.Green).unsafeKeyword, Position, 0);
+    public SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.UnsafeExpressionSyntax)this.Green).keyword, Position, 0);
 
     /// <summary>SyntaxToken representing open parenthesis.</summary>
     public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.UnsafeExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
@@ -2343,11 +2343,11 @@ public sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUnsafeExpression(this);
 
     [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
-    public UnsafeExpressionSyntax Update(SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    public UnsafeExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
-        if (unsafeKeyword != this.UnsafeKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
+        if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
         {
-            var newNode = SyntaxFactory.UnsafeExpression(unsafeKeyword, openParenToken, expression, closeParenToken);
+            var newNode = SyntaxFactory.UnsafeExpression(keyword, openParenToken, expression, closeParenToken);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
@@ -2355,10 +2355,10 @@ public sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
         return this;
     }
 
-    public UnsafeExpressionSyntax WithUnsafeKeyword(SyntaxToken unsafeKeyword) => Update(unsafeKeyword, this.OpenParenToken, this.Expression, this.CloseParenToken);
-    public UnsafeExpressionSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(this.UnsafeKeyword, openParenToken, this.Expression, this.CloseParenToken);
-    public UnsafeExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(this.UnsafeKeyword, this.OpenParenToken, expression, this.CloseParenToken);
-    public UnsafeExpressionSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.UnsafeKeyword, this.OpenParenToken, this.Expression, closeParenToken);
+    public UnsafeExpressionSyntax WithKeyword(SyntaxToken keyword) => Update(keyword, this.OpenParenToken, this.Expression, this.CloseParenToken);
+    public UnsafeExpressionSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(this.Keyword, openParenToken, this.Expression, this.CloseParenToken);
+    public UnsafeExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(this.Keyword, this.OpenParenToken, expression, this.CloseParenToken);
+    public UnsafeExpressionSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.Keyword, this.OpenParenToken, this.Expression, closeParenToken);
 }
 
 /// <summary>Class which represents the syntax node for Default expression.</summary>

@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateUnsafeExpression();
 
-            Assert.Equal(SyntaxKind.UnsafeKeyword, node.UnsafeKeyword.Kind);
+            Assert.Equal(SyntaxKind.UnsafeKeyword, node.Keyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
@@ -11731,11 +11731,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateUnsafeExpression();
 
-            Assert.Equal(SyntaxKind.UnsafeKeyword, node.UnsafeKeyword.Kind());
+            Assert.Equal(SyntaxKind.UnsafeKeyword, node.Keyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
-            var newNode = node.WithUnsafeKeyword(node.UnsafeKeyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken);
+            var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
         }
 

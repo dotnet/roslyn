@@ -3685,17 +3685,17 @@ internal sealed partial class CheckedExpressionSyntax : ExpressionSyntax
 /// <summary>Class which represents the syntax node for Unsafe expression.</summary>
 internal sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
 {
-    internal readonly SyntaxToken unsafeKeyword;
+    internal readonly SyntaxToken keyword;
     internal readonly SyntaxToken openParenToken;
     internal readonly ExpressionSyntax expression;
     internal readonly SyntaxToken closeParenToken;
 
-    internal UnsafeExpressionSyntax(SyntaxKind kind, SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+    internal UnsafeExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 4;
-        this.AdjustFlagsAndWidth(unsafeKeyword);
-        this.unsafeKeyword = unsafeKeyword;
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
         this.AdjustFlagsAndWidth(openParenToken);
         this.openParenToken = openParenToken;
         this.AdjustFlagsAndWidth(expression);
@@ -3704,13 +3704,13 @@ internal sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
         this.closeParenToken = closeParenToken;
     }
 
-    internal UnsafeExpressionSyntax(SyntaxKind kind, SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxFactoryContext context)
+    internal UnsafeExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxFactoryContext context)
       : base(kind)
     {
         this.SetFactoryContext(context);
         this.SlotCount = 4;
-        this.AdjustFlagsAndWidth(unsafeKeyword);
-        this.unsafeKeyword = unsafeKeyword;
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
         this.AdjustFlagsAndWidth(openParenToken);
         this.openParenToken = openParenToken;
         this.AdjustFlagsAndWidth(expression);
@@ -3719,12 +3719,12 @@ internal sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
         this.closeParenToken = closeParenToken;
     }
 
-    internal UnsafeExpressionSyntax(SyntaxKind kind, SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    internal UnsafeExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
       : base(kind)
     {
         this.SlotCount = 4;
-        this.AdjustFlagsAndWidth(unsafeKeyword);
-        this.unsafeKeyword = unsafeKeyword;
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
         this.AdjustFlagsAndWidth(openParenToken);
         this.openParenToken = openParenToken;
         this.AdjustFlagsAndWidth(expression);
@@ -3734,7 +3734,7 @@ internal sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
     }
 
     /// <summary>SyntaxToken representing the unsafe keyword.</summary>
-    public SyntaxToken UnsafeKeyword => this.unsafeKeyword;
+    public SyntaxToken Keyword => this.keyword;
     /// <summary>SyntaxToken representing open parenthesis.</summary>
     public SyntaxToken OpenParenToken => this.openParenToken;
     /// <summary>Argument of the primary function.</summary>
@@ -3745,7 +3745,7 @@ internal sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
     internal override GreenNode? GetSlot(int index)
         => index switch
         {
-            0 => this.unsafeKeyword,
+            0 => this.keyword,
             1 => this.openParenToken,
             2 => this.expression,
             3 => this.closeParenToken,
@@ -3757,11 +3757,11 @@ internal sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnsafeExpression(this);
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnsafeExpression(this);
 
-    public UnsafeExpressionSyntax Update(SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    public UnsafeExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
-        if (unsafeKeyword != this.UnsafeKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
+        if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
         {
-            var newNode = SyntaxFactory.UnsafeExpression(unsafeKeyword, openParenToken, expression, closeParenToken);
+            var newNode = SyntaxFactory.UnsafeExpression(keyword, openParenToken, expression, closeParenToken);
             var diags = GetDiagnostics();
             if (diags?.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -3775,10 +3775,10 @@ internal sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-        => new UnsafeExpressionSyntax(this.Kind, this.unsafeKeyword, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
+        => new UnsafeExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-        => new UnsafeExpressionSyntax(this.Kind, this.unsafeKeyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
+        => new UnsafeExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
 }
 
 /// <summary>Class which represents the syntax node for Default expression.</summary>
@@ -28012,7 +28012,7 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
         => node.Update((SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseParenToken));
 
     public override CSharpSyntaxNode VisitUnsafeExpression(UnsafeExpressionSyntax node)
-        => node.Update((SyntaxToken)Visit(node.UnsafeKeyword), (SyntaxToken)Visit(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseParenToken));
+        => node.Update((SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseParenToken));
 
     public override CSharpSyntaxNode VisitDefaultExpression(DefaultExpressionSyntax node)
         => node.Update((SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.OpenParenToken), (TypeSyntax)Visit(node.Type), (SyntaxToken)Visit(node.CloseParenToken));
@@ -29707,11 +29707,11 @@ internal partial class ContextAwareSyntax
         return new CheckedExpressionSyntax(kind, keyword, openParenToken, expression, closeParenToken, this.context);
     }
 
-    public UnsafeExpressionSyntax UnsafeExpression(SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    public UnsafeExpressionSyntax UnsafeExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
 #if DEBUG
-        if (unsafeKeyword == null) throw new ArgumentNullException(nameof(unsafeKeyword));
-        if (unsafeKeyword.Kind != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(unsafeKeyword));
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(keyword));
         if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
         if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
         if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -29719,7 +29719,7 @@ internal partial class ContextAwareSyntax
         if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
 #endif
 
-        return new UnsafeExpressionSyntax(SyntaxKind.UnsafeExpression, unsafeKeyword, openParenToken, expression, closeParenToken, this.context);
+        return new UnsafeExpressionSyntax(SyntaxKind.UnsafeExpression, keyword, openParenToken, expression, closeParenToken, this.context);
     }
 
     public DefaultExpressionSyntax DefaultExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
@@ -35149,11 +35149,11 @@ internal static partial class SyntaxFactory
         return new CheckedExpressionSyntax(kind, keyword, openParenToken, expression, closeParenToken);
     }
 
-    public static UnsafeExpressionSyntax UnsafeExpression(SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    public static UnsafeExpressionSyntax UnsafeExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
 #if DEBUG
-        if (unsafeKeyword == null) throw new ArgumentNullException(nameof(unsafeKeyword));
-        if (unsafeKeyword.Kind != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(unsafeKeyword));
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(keyword));
         if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
         if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
         if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -35161,7 +35161,7 @@ internal static partial class SyntaxFactory
         if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
 #endif
 
-        return new UnsafeExpressionSyntax(SyntaxKind.UnsafeExpression, unsafeKeyword, openParenToken, expression, closeParenToken);
+        return new UnsafeExpressionSyntax(SyntaxKind.UnsafeExpression, keyword, openParenToken, expression, closeParenToken);
     }
 
     public static DefaultExpressionSyntax DefaultExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)

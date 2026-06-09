@@ -1655,7 +1655,7 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
     public override SyntaxNode? VisitUnsafeExpression(UnsafeExpressionSyntax node)
-        => node.Update(VisitToken(node.UnsafeKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
+        => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
 
     public override SyntaxNode? VisitDefaultExpression(DefaultExpressionSyntax node)
         => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.CloseParenToken));
@@ -3098,13 +3098,13 @@ public static partial class SyntaxFactory
 
     /// <summary>Creates a new UnsafeExpressionSyntax instance.</summary>
     [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82789")]
-    public static UnsafeExpressionSyntax UnsafeExpression(SyntaxToken unsafeKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    public static UnsafeExpressionSyntax UnsafeExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
     {
-        if (unsafeKeyword.Kind() != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(unsafeKeyword));
+        if (keyword.Kind() != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(keyword));
         if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
         if (expression == null) throw new ArgumentNullException(nameof(expression));
         if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-        return (UnsafeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.UnsafeExpression((Syntax.InternalSyntax.SyntaxToken)unsafeKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
+        return (UnsafeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.UnsafeExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
     }
 
     /// <summary>Creates a new UnsafeExpressionSyntax instance.</summary>
