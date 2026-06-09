@@ -134,7 +134,7 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
         // The decl writer suppresses diagnostic collection because every diagnostic on the
         // decl tree is also reachable from the original tree the impl half lowers from;
         // letting both writers report would surface every Razor-detected issue twice.
-        var declDocument = RazorCSharpDocumentWriter.Write(declDocNode, codeDocument, reportDiagnostics: false, cancellationToken);
+        var declDocument = RazorCSharpDocumentWriter.Write(declDocNode, codeDocument, reportDiagnostics: false, cancellationToken, isDeclarationDocument: true);
 
         return codeDocument.WithDeclCSharpDocument(declDocument);
     }

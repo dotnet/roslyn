@@ -20,7 +20,8 @@ internal static class RazorCSharpDocumentWriter
         DocumentIntermediateNode documentNode,
         RazorCodeDocument codeDocument,
         bool reportDiagnostics = true,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool isDeclarationDocument = false)
     {
         ArgHelper.ThrowIfNull(codeDocument);
 
@@ -44,7 +45,8 @@ internal static class RazorCSharpDocumentWriter
             text,
             context.GetDiagnostics(),
             context.GetSourceMappings(),
-            context.GetLinePragmas());
+            context.GetLinePragmas(),
+            isDeclarationDocument);
     }
 
     /// <summary>
