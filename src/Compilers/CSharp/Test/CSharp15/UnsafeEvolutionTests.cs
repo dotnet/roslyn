@@ -3569,17 +3569,23 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             _ = unsafe(1);
             """;
 
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe)
+            .VerifyDiagnostics(
+            // (1,5): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // _ = unsafe(1);
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 5),
+            // (1,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = unsafe(1);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(1, 5));
+
         var expectedDiagnostics = new[]
         {
             // (1,5): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // _ = unsafe(1);
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 5),
         };
-
-        CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseExe)
-            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             parseOptions: TestOptions.RegularNext,

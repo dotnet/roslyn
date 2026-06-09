@@ -7611,10 +7611,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_IllegalUnsafe, node.UnsafeKeyword);
             }
-            else
-            {
-                CheckFeatureAvailability(node.UnsafeKeyword, MessageID.IDS_FeatureUnsafeEvolution, diagnostics);
-            }
+
+            CheckFeatureAvailability(node.UnsafeKeyword, MessageID.IDS_FeatureUnsafeEvolution, diagnostics);
 
             return binder.BindParenthesizedExpression(node.Expression, diagnostics);
         }
