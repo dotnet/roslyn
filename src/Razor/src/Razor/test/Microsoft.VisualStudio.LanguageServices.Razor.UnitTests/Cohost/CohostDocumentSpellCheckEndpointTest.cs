@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task Handle()
     {
         var input = """
@@ -55,7 +56,77 @@ public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHe
         await VerifySpellCheckableRangesAsync(input);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
+    public async Task Handle_ComponentWithoutCodeBlocks()
+    {
+        var input = """
+            @page [|"this is csharp"|]
+
+            <div>[|
+
+                Eat more chickin.
+
+            |]</div>
+
+            <script>
+                // no spell checking of script tags
+                @([|"unless they contain csharp"|])
+            </script>
+
+            <style>
+                // no spell checking of style tags
+                @([|"unless they contain csharp"|])
+            </style>
+
+            @*[| Eat more chickin. |]*@
+
+            <div class="[|fush|]" />
+            """;
+
+        await VerifySpellCheckableRangesAsync(input);
+    }
+
+    [Fact]
+    public async Task Handle_Legacy()
+    {
+        var input = """
+            @page [|"this is csharp"|]
+
+            <div>[|
+
+                Eat more chickin.
+
+            |]</div>
+
+            <script>
+                // no spell checking of script tags
+                @([|"unless they contain csharp"|])
+            </script>
+
+            <style>
+                // no spell checking of style tags
+                @([|"unless they contain csharp"|])
+            </style>
+
+            @{ var [|x|] = [|"csharp"|];
+
+            @*[| Eat more chickin. |]*@
+
+            <div class="[|fush|]" />
+
+            @functions
+            {
+                void [|M|]()
+                {
+                    [|// Eat more chickin|]
+                }
+            }
+            """;
+
+        await VerifySpellCheckableRangesAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task ComponentAttributes()
     {
         await VerifySpellCheckableRangesAsync(
@@ -86,9 +157,9 @@ public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHe
                     """)]);
     }
 
-    private async Task VerifySpellCheckableRangesAsync(TestCode input, (string file, string contents)[]? additionalFiles = null)
+    private async Task VerifySpellCheckableRangesAsync(TestCode input, (string file, string contents)[]? additionalFiles = null, RazorFileKind fileKind = RazorFileKind.Component)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var endpoint = new CohostDocumentSpellCheckEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
