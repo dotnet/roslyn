@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,13 +19,28 @@ internal sealed class CSharpSpellCheckRangeProvider() : ICSharpSpellCheckRangePr
 {
     public async Task<ImmutableArray<SpellCheckRange>> GetCSharpSpellCheckRangesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken)
     {
-        // We have a razor document, lets find the generated C# document
         var snapshot = documentContext.Snapshot;
-        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        using var ranges = new PooledArrayBuilder<SpellCheckRange>();
 
-        var csharpRanges = await GetSpellCheckSpansAsync(generatedDocument, cancellationToken).ConfigureAwait(false);
+        // Spell-check spans can come from either generated C# document. Keep track of which document produced each range
+        // so the service can map it back through the matching source mappings later.
+        var implGeneratedDocument = await snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+        var implCsharpRanges = await GetSpellCheckSpansAsync(implGeneratedDocument, cancellationToken).ConfigureAwait(false);
+        foreach (var range in implCsharpRanges)
+        {
+            ranges.Add(new((int)range.Kind, range.StartIndex, range.Length, InDeclDocument: false));
+        }
 
-        return csharpRanges.SelectAsArray(static r => new SpellCheckRange((int)r.Kind, r.StartIndex, r.Length));
+        if (await snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false) is { } declGeneratedDocument)
+        {
+            var declCsharpRanges = await GetSpellCheckSpansAsync(declGeneratedDocument, cancellationToken).ConfigureAwait(false);
+            foreach (var range in declCsharpRanges)
+            {
+                ranges.Add(new((int)range.Kind, range.StartIndex, range.Length, InDeclDocument: true));
+            }
+        }
+
+        return ranges.ToImmutable();
     }
 
     private static async Task<ImmutableArray<SpellCheckSpan>> GetSpellCheckSpansAsync(Document document, CancellationToken cancellationToken)
