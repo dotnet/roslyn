@@ -206,6 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ClosedSubtypeInfo INamedTypeSymbol.GetClosedSubtypes(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!UnderlyingNamedTypeSymbol.IsClosed)
                 throw new InvalidOperationException();
 
