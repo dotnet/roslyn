@@ -266,27 +266,45 @@ class D
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
 
             comp.VerifyDiagnostics(
+                // (6,26): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         ref int i1 = ref c.Field1();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(6, 26),
                 // (6,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i1 = ref c.Field1();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<ref int>").WithLocation(6, 26),
                 // (6,28): error CS0570: 'C.Field1' is not supported by the language
                 //         ref int i1 = ref c.Field1();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(6, 28),
+                // (7,26): error CS9363: 'C.Field2' must be used in an unsafe context because it has pointers in its signature
+                //         ref int i2 = ref c.Field2();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field2").WithArguments("C.Field2").WithLocation(7, 26),
                 // (7,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i2 = ref c.Field2();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<ref int>").WithLocation(7, 26),
                 // (7,28): error CS0570: 'C.Field2' is not supported by the language
                 //         ref int i2 = ref c.Field2();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(7, 28),
+                // (8,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1 = c.Field1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(8, 9),
                 // (8,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 11),
+                // (8,20): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1 = c.Field1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(8, 20),
                 // (8,22): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 22),
+                // (9,9): error CS9363: 'C.Field2' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field2 = c.Field2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field2").WithArguments("C.Field2").WithLocation(9, 9),
                 // (9,11): error CS0570: 'C.Field2' is not supported by the language
                 //         c.Field2 = c.Field2;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(9, 11),
+                // (9,20): error CS9363: 'C.Field2' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field2 = c.Field2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field2").WithArguments("C.Field2").WithLocation(9, 20),
                 // (9,22): error CS0570: 'C.Field2' is not supported by the language
                 //         c.Field2 = c.Field2;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(9, 22)
@@ -342,27 +360,42 @@ class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
             comp.VerifyDiagnostics(
+                // (7,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1(ref i);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(7, 9),
                 // (7,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
                 //         c.Field1(ref i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(ref i)").WithArguments("delegate*<in int, void>").WithLocation(7, 9),
                 // (7,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1(ref i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(7, 11),
+                // (8,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1(in i);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(8, 9),
                 // (8,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
                 //         c.Field1(in i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(in i)").WithArguments("delegate*<in int, void>").WithLocation(8, 9),
                 // (8,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1(in i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 11),
+                // (9,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1(out i);
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(9, 9),
                 // (9,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
                 //         c.Field1(out i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(out i)").WithArguments("delegate*<in int, void>").WithLocation(9, 9),
                 // (9,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1(out i);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(9, 11),
+                // (10,9): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1 = c.Field1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(10, 9),
                 // (10,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(10, 11),
+                // (10,20): error CS9363: 'C.Field1' must be used in an unsafe context because it has pointers in its signature
+                //         c.Field1 = c.Field1;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field1").WithArguments("C.Field1").WithLocation(10, 20),
                 // (10,22): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(10, 22)

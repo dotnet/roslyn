@@ -8824,13 +8824,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
+        var expectedDiagnostics = new[]
+        {
+            // (2,12): error CS9363: 'C.F' must be used in an unsafe context because it has pointers in its signature
+            // string s = c.F();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.F").WithArguments("C.F").WithLocation(2, 12),
+            // (2,12): error CS9360: This operation may only be used in an unsafe context
+            // string s = c.F();
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "c.F()").WithLocation(2, 12),
+        };
+
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics(
-            // (2,12): error CS9360: This operation may only be used in an unsafe context
-            // string s = c.F();
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "c.F()").WithLocation(2, 12));
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
@@ -8845,10 +8852,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics(
-            // (2,12): error CS9360: This operation may only be used in an unsafe context
-            // string s = c.F();
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "c.F()").WithLocation(2, 12));
+            .VerifyDiagnostics(expectedDiagnostics);
 
         static Symbol getFunctionPointerType(ModuleSymbol module)
         {
@@ -9164,10 +9168,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source,
-            [libRef],
-            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (3,5): error CS9363: 'C.F2' must be used in an unsafe context because it has pointers in its signature
             // _ = c.F2;
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.F2").WithArguments("C.F2").WithLocation(3, 5),
@@ -9176,7 +9178,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.F2").WithArguments("C.F2").WithLocation(4, 1),
             // (5,13): error CS9363: 'C.F2' must be used in an unsafe context because it has pointers in its signature
             // _ = new C { F2 = default };
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "F2").WithArguments("C.F2").WithLocation(5, 13));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "F2").WithArguments("C.F2").WithLocation(5, 13),
+        };
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CompileAndVerify("""
             var c = new C();
@@ -9220,13 +9228,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             [libRef],
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
             [libRef],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
