@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/pull/84076")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84072")]
         public async Task ServerDisconnectWhileReadingResponse()
         {
             var pipeName = ServerUtil.GetPipeName();
