@@ -16,7 +16,6 @@ internal static class LspTestWorkspaces
                   </PropertyGroup>
                 </Project>
                 """)
-            .WithMarkupFile("Code.cs", "")
-                .WithLoadPath("Project.csproj")
-                .WithRestore();
+            .WithLoadPath("Project.csproj")
+            .WithRestore();
 }

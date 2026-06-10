@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
 public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelper testOutputHelper) : IDisposable
 {
     protected ILoggerFactory LoggerFactory => new LoggerFactory([new TestOutputLoggerProvider(testOutputHelper)]);
-    protected TempRoot TempRoot => new();
+    protected TempRoot TempRoot { get; } = new();
     protected TempDirectory ExtensionLogsDirectory => TempRoot.CreateDirectory();
 
     public void Dispose()

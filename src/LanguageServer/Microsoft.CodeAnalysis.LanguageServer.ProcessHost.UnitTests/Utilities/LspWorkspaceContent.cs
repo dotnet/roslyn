@@ -43,8 +43,18 @@ internal readonly record struct LspWorkspaceContent(
 
     public LspWorkspaceContent WithCSharp([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup)
     {
-        var csharpFilePath = Files.Keys.Single(path => PathUtilities.GetExtension(path) == ".cs");
-        return WithMarkupFile(csharpFilePath, markup);
+        const string codeFileName = "Code.cs";
+        if (!Files.ContainsKey(codeFileName))
+            return WithMarkupFile(codeFileName, markup);
+
+        for (var index = 1L; index <= int.MaxValue; index++)
+        {
+            var fileName = $"Code{index}.cs";
+            if (!Files.ContainsKey(fileName))
+                return WithMarkupFile(fileName, markup);
+        }
+
+        throw ExceptionUtilities.Unreachable();
     }
 
     public LspWorkspaceContent WithLoadPath(string path)

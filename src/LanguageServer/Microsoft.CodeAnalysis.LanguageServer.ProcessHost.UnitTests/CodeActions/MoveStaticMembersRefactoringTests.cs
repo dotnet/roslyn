@@ -67,7 +67,7 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
             {
                 public static int Baz() => 3;
             }
-            """, testLspServer.GetFileText("Code.cs"));
+            """, testLspServer.GetFileText(selectionLocation.DocumentUri));
 
         AssertEx.Equal("""
             internal static class AHelpers

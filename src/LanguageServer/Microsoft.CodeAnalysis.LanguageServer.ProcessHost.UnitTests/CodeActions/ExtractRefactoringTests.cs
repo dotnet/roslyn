@@ -87,7 +87,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
 
         testLspClient.ApplyWorkspaceEdit(resolvedCodeAction.Edit);
 
-        var updatedCode = testLspClient.GetFileText("Code.cs");
+        var updatedCode = testLspClient.GetFileText(caretLocation.DocumentUri);
 
         AssertEx.Equal(expected, updatedCode);
     }

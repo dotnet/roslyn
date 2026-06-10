@@ -420,6 +420,8 @@ public partial class AbstractLanguageServerClientTests
 
         public string GetFileText(string path) => _workspaceContent.GetFileText(path);
 
+        public string GetFileText(DocumentUri documentUri) => _workspaceContent.GetFileText(GetRelativePath(documentUri));
+
         public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 
         public async Task WaitForProjectInitializationAsync()
