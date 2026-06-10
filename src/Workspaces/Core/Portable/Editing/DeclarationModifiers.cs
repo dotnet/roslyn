@@ -74,10 +74,11 @@ public readonly record struct DeclarationModifiers
             var method = symbol as IMethodSymbol;
             var type = symbol as INamedTypeSymbol;
             var isConst = field?.IsConst == true;
+            var isClosed = type?.IsClosed == true;
 
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic && !isConst,
-                isAbstract: symbol.IsAbstract,
+                isAbstract: symbol.IsAbstract && !isClosed,
                 isReadOnly: field?.IsReadOnly == true || property?.IsReadOnly == true || type?.IsReadOnly == true || method?.IsReadOnly == true,
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
@@ -91,7 +92,8 @@ public readonly record struct DeclarationModifiers
                 isRequired: symbol.IsRequired(),
                 isFile: type?.IsFileLocal == true,
                 isFixed: field?.IsFixedSizeBuffer == true,
-                isPartial: symbol.IsPartial());
+                isPartial: symbol.IsPartial(),
+                isClosed: isClosed);
         }
 
         // Only named types, members of named types, and local functions have modifiers.

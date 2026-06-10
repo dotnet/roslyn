@@ -5158,6 +5158,15 @@ public sealed class SyntaxGeneratorTests
             }|]
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65834")]
+    public void TestClassModifiers2()
+        => TestModifiersAsync(DeclarationModifiers.Closed,
+            """
+            public closed class [|C|]
+            {
+            }
+            """);
+
     [Fact, WorkItem(" https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
     public void TestMethodModifiers()
         => TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
