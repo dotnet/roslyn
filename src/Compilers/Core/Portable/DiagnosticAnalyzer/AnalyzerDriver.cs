@@ -2572,7 +2572,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxNode declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
             SyntaxNode topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
             ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
-            ImmutableArray<DeclarationInfo> declarationInfos = builder.ToImmutableAndFree();
+            ImmutableArray<DeclarationInfo> declarationInfos = builder.ToImmutableAndClear();
 
             bool isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
             var data = new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, isPartialDeclAnalysis);
