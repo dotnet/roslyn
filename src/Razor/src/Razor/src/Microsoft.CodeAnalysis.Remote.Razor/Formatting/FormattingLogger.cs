@@ -7,7 +7,7 @@ using System.Text.Json;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 internal sealed class FormattingLogger(string logFolder) : IFormattingLogger
 {

@@ -6,7 +6,7 @@ using System;
 #endif
 using Microsoft.AspNetCore.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 internal static class IndentCache
 {

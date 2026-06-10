@@ -27,7 +27,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Threading;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 /// <summary>
 /// Gets edits in C# files, and returns edits to Razor files, with nicely formatted Html

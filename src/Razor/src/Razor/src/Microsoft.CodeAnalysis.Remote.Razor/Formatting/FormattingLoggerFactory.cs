@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 internal class FormattingLoggerFactory : IFormattingLoggerFactory
 {

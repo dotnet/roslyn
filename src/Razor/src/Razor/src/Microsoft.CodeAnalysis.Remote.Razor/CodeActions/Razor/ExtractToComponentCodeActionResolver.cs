@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
