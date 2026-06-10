@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal sealed class XunitCompilerServerLogger : ICompilerServerLogger
     {
+        private readonly object _messagesGate = new object();
+
         public ITestOutputHelper TestOutputHelper { get; }
         public List<string> Messages { get; } = new List<string>();
         public bool IsLogging => true;
@@ -21,7 +23,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public void Log(string message)
         {
-            Messages.Add(message);
+            lock (_messagesGate)
+            {
+                Messages.Add(message);
+            }
+
             TestOutputHelper.WriteLine(message);
         }
     }
