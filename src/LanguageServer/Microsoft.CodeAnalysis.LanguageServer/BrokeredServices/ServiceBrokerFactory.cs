@@ -21,10 +21,10 @@ internal sealed class ServiceBrokerFactory : ILspService
     [ExportCSharpVisualBasicLspServiceFactory(typeof(ServiceBrokerFactory)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private class ServiceBrokerFactoryFactory([ImportMany] IEnumerable<IServiceBrokerInitializer> onServiceBrokerInitialized,
-        ExportProvider exportProvider, ILoggerFactory loggerFactory) : ILspServiceFactory
+    private class ServiceBrokerFactoryFactory(ExportProvider exportProvider, ILoggerFactory loggerFactory) : ILspServiceFactory
     {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new ServiceBrokerFactory(onServiceBrokerInitialized, exportProvider, loggerFactory);
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+            => new ServiceBrokerFactory(lspServices.GetRequiredServices<IServiceBrokerInitializer>(), exportProvider, loggerFactory);
     }
 
     private readonly ExportProvider _exportProvider;

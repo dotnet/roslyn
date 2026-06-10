@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
@@ -138,12 +138,21 @@ internal sealed partial class CSharpFormattingPass(
             csharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions with
             {
                 Spacing = csharpSyntaxFormattingOptions.Spacing
-                    & ~RazorSpacePlacement.AfterMethodCallName
-                    & ~RazorSpacePlacement.AfterDot
+                    & ~SpacePlacement.AfterMethodCallName
+                    & ~SpacePlacement.AfterDot
             };
         }
 
-        var csharpChanges = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(helper.HostWorkspaceServices, csharpRoot, csharpRoot.FullSpan, options.ToIndentationOptions(), csharpSyntaxFormattingOptions, cancellationToken);
+        var formattingOptions = CSharpFormatter.GetResolvedCSharpSyntaxFormattingOptions(
+            helper.HostWorkspaceServices.SolutionServices,
+            options,
+            csharpSyntaxFormattingOptions);
+        var csharpChanges = Formatter.GetFormattedTextChanges(
+            csharpRoot,
+            csharpRoot.FullSpan,
+            helper.HostWorkspaceServices.SolutionServices,
+            formattingOptions,
+            cancellationToken);
 
         return generatedCSharpText.WithChanges(csharpChanges);
     }

@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,7 +25,7 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
     }
 
     public ValueTask<ImmutableArray<TextChange>> GetRemoveAndSortUsingsEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -71,7 +70,7 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
     }
 
     public ValueTask<ImmutableArray<TextChange>> GetSortUsingsEditsAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId documentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(

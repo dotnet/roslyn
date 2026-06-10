@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
@@ -122,11 +123,12 @@ internal sealed class RoslynPackage : AbstractPackage
 
         var hotReloadFactory = ComponentModel.GetService<ManagedHotReloadLanguageServiceFactory>();
         var solutionSnapshotProvider = ComponentModel.GetService<ISolutionSnapshotProvider>();
+        var hostWorkspaceProvider = ComponentModel.GetService<IHostWorkspaceProvider>();
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
             (_, _, serviceBroker, _) =>
             {
-                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider);
+                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider);
                 return ValueTask.FromResult<object?>(service);
             });
     }

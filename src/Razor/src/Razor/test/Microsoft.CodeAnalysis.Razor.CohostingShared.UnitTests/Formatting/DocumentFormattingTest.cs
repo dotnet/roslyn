@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Xunit;
@@ -538,9 +538,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                Spacing = RazorSpacePlacement.AfterDot
+                Spacing = SpacePlacement.AfterDot
             });
     }
 
@@ -599,9 +599,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                Spacing = RazorSpacePlacement.AfterMethodCallName
+                Spacing = SpacePlacement.AfterMethodCallName
             });
     }
 
@@ -660,9 +660,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                Spacing = RazorSpacePlacement.AfterMethodCallName | RazorSpacePlacement.AfterMethodDeclarationName
+                Spacing = SpacePlacement.AfterMethodCallName | SpacePlacement.AfterMethodDeclarationName
             });
     }
 
@@ -717,9 +717,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.None
+                NewLines = default
             });
     }
 
@@ -773,9 +773,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.None
+                NewLines = default
             });
     }
 
@@ -810,9 +810,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
+                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
             });
     }
 
@@ -850,9 +850,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
+                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
             });
     }
 
@@ -890,9 +890,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
+                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
             });
     }
 
@@ -936,9 +936,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 </div>
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.BeforeOpenBraceInMethods
+                NewLines = NewLinePlacement.BeforeOpenBraceInMethods
             });
     }
 
@@ -972,9 +972,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorNewLinePlacement.None
+                NewLines = default
             });
     }
 
@@ -1529,6 +1529,85 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             inGlobalNamespace: inGlobalNamespace);
     }
 
+    [Fact]
+    public async Task CodeBlock_TopLevel_WithMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                """,
+            htmlFormatted: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                """,
+            expected: """
+                @code
+                {
+                    private int currentCount = 0;
+                }
+
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    public async Task CodeBlock_TopLevel_WithRazorMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @code
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            expected: """
+                @code
+                {
+                    private int currentCount = 0;
+                }
+
+                @if (currentCount > 0)
+                {
+                    <div>
+                        <p>Current count: @currentCount</p>
+                    </div>
+                }
+                """);
+    }
+
     [Theory, CombinatorialData]
     public async Task CodeBlock_IndentedBlock_MaintainsIndent(bool inGlobalNamespace)
     {
@@ -2028,6 +2107,50 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     {
                         currentCount++;
                     }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task FunctionsBlock_TopLevel_WithRazorMarkupBelow()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @functions
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @functions
+                        {
+                    private int currentCount = 0;
+                }
+
+                @if(currentCount>0){
+                <div>
+                    <p>Current count: @currentCount</p>
+                </div>
+                }
+                """,
+            expected: """
+                @functions
+                {
+                    private int currentCount = 0;
+                }
+
+                @if (currentCount > 0)
+                {
+                    <div>
+                        <p>Current count: @currentCount</p>
+                    </div>
                 }
                 """,
             fileKind: RazorFileKind.Legacy);
@@ -10383,11 +10506,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10469,11 +10592,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </PageTitle>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10552,11 +10675,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10635,11 +10758,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10718,11 +10841,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </text>;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10807,11 +10930,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -10872,11 +10995,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ;
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
                 NewLines = newLineBeforeBraceInLambda
-                    ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                    : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                    : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
             });
     }
 
@@ -13012,9 +13135,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
+                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
             });
 
     [Fact]
@@ -13050,9 +13173,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 }
                 """,
-            csharpSyntaxFormattingOptions: RazorCSharpSyntaxFormattingOptions.Default with
+            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
             {
-                NewLines = RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
+                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers
             });
 
     [Fact]
@@ -13494,11 +13617,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
     }
 
-    private static RazorCSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
-        => RazorCSharpSyntaxFormattingOptions.Default with
+    private static CSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
+        => CSharpSyntaxFormattingOptions.Default with
         {
             NewLines = newLineBeforeBraceInLambda
-                ? RazorCSharpSyntaxFormattingOptions.Default.NewLines | RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
-                : RazorCSharpSyntaxFormattingOptions.Default.NewLines & ~RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                ? CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
+                : CSharpSyntaxFormattingOptions.Default.NewLines & ~NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody
         };
 }
