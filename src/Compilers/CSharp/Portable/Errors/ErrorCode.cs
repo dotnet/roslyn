@@ -2483,8 +2483,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnsafeMeaningless = 9377,
 
         ERR_PPShebangNotOnFirstLine = 9378,
-        ERR_NoBreakId = 9379,
-        ERR_NoContinueId = 9380,
 
         ERR_RequiresUnsafeAttributeInSource = 9379,
 
@@ -2497,6 +2495,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingUnionCaseTypes = 9385,
         ERR_MissingUnionValueProperty = 9386,
         ERR_MemberProviderInUnionDeclaration = 9387,
+
+        ERR_NoBreakId = 9388,
+        ERR_NoContinueId = 9389,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
