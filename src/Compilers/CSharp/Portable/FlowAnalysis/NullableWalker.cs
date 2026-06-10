@@ -2771,6 +2771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (possibleBase is null)
             {
+                Debug.Assert(false, "If this assert fires, please add a unit test for the scenario.");
                 return false;
             }
 
