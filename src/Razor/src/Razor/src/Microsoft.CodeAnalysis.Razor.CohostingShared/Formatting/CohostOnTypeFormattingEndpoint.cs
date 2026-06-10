@@ -35,9 +35,9 @@ internal sealed class CohostOnTypeFormattingEndpoint(
     ILoggerFactory loggerFactory)
     : AbstractCohostDocumentEndpoint<DocumentOnTypeFormattingParams, TextEdit[]?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
-    private const string FirstTriggerCharacter = "}";
-    private static readonly string[] MoreTriggerCharacters = [";", "\n", "{"];
-    private static readonly FrozenSet<string> AllTriggerCharacterSet = FrozenSet.ToFrozenSet([FirstTriggerCharacter, .. MoreTriggerCharacters], StringComparer.Ordinal);
+    internal const string FirstTriggerCharacter = "}";
+    internal static readonly string[] MoreTriggerCharacters = [";", "\n", "{"];
+    internal static readonly FrozenSet<string> AllTriggerCharacterSet = FrozenSet.ToFrozenSet([FirstTriggerCharacter, .. MoreTriggerCharacters], StringComparer.Ordinal);
 
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;

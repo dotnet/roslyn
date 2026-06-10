@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 using AssertEx = Roslyn.Test.Utilities.AssertEx;

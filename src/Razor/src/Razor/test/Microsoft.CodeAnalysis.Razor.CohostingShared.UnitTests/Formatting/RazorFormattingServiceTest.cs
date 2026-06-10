@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -44,7 +45,7 @@ public class RazorFormattingServiceTest(ITestOutputHelper testOutput) : ToolingT
     {
         foreach (var character in RazorFormattingService.TestAccessor.GetCSharpTriggerCharacterSet())
         {
-            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet.ToList());
+            Assert.Contains(character, CohostOnTypeFormattingEndpoint.AllTriggerCharacterSet.ToList());
         }
     }
 
@@ -53,7 +54,7 @@ public class RazorFormattingServiceTest(ITestOutputHelper testOutput) : ToolingT
     {
         foreach (var character in RazorFormattingService.TestAccessor.GetHtmlTriggerCharacterSet())
         {
-            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet.ToList());
+            Assert.Contains(character, CohostOnTypeFormattingEndpoint.AllTriggerCharacterSet.ToList());
         }
     }
 }

@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
