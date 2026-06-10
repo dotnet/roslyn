@@ -62,7 +62,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
 
         // Don't catch IO exceptions as it's better to fail to build the catalog than give back
         // a partial catalog that will surely blow up later.
-        assemblyPathsBuilder.AddRange(FilterFiles(baseDirectory));
+        assemblyPathsBuilder.AddRange(FindMefAssemblies(baseDirectory));
 
         // The Razor extension ships with Roslyn and so needs to be in our MEF composition
         assemblyPathsBuilder.Add(Path.Combine(baseDirectory, "Microsoft.VisualStudioCode.RazorExtension.dll"));
@@ -102,7 +102,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
     }
 
-    private static IEnumerable<string> FilterFiles(string baseDirectory)
+    private static IEnumerable<string> FindMefAssemblies(string baseDirectory)
     {
         foreach (var file in Directory.EnumerateFiles(baseDirectory, "*.dll"))
         {
@@ -159,8 +159,8 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         public static Task? GetCacheWriteTask() => s_cacheWriteTask_forTestingPurposesOnly;
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
 
-        public static ImmutableArray<string> FilterFiles(string baseDirectory)
-            => LanguageServerExportProviderBuilder.FilterFiles(baseDirectory).ToImmutableArray();
+        public static ImmutableArray<string> FindMefAssemblies(string baseDirectory)
+            => LanguageServerExportProviderBuilder.FindMefAssemblies(baseDirectory).ToImmutableArray();
 
         public static void InitializeManualExports(ExportProvider exportProvider, ExtensionAssemblyManager extensionManager, ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration)
             => LanguageServerExportProviderBuilder.InitializeManualExports(exportProvider, extensionManager, loggerFactory, serverConfiguration);

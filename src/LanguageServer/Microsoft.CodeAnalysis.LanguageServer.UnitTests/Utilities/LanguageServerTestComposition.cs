@@ -40,7 +40,7 @@ internal sealed class LanguageServerTestComposition
     private static TestComposition CreateBaseComposition()
     {
         var languageServerDirectory = TestPaths.GetLanguageServerDirectory();
-        var languageServerDlls = LanguageServerExportProviderBuilder.TestAccessor.FilterFiles(languageServerDirectory);
+        var languageServerDlls = LanguageServerExportProviderBuilder.TestAccessor.FindMefAssemblies(languageServerDirectory);
 
         return TestComposition.Empty.AddAssemblies(languageServerDlls.Select(Assembly.LoadFrom));
     }
