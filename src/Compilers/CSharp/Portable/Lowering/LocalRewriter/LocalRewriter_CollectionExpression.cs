@@ -624,10 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.Convert(interfaceType, collection, resultConversion);
         }
 
-        /// <summary>
-        /// Populate a dictionary from a collection expression.
-        /// The collection may or may not have a known length.
-        /// </summary>
         private BoundExpression VisitCollectionBuilderCollectionExpression(BoundCollectionExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
@@ -1434,6 +1430,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return PopulateDictionary(node, collectionType, rewrittenReceiver);
         }
 
+        /// <summary>
+        /// Populate a dictionary from a collection expression.
+        /// The collection may or may not have a known length.
+        /// </summary>
         private BoundExpression PopulateDictionary(BoundCollectionExpression node, NamedTypeSymbol collectionType, BoundExpression rewrittenReceiver)
         {
             var elements = node.Elements;
@@ -1441,8 +1441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
 
             // Create a temp for the dictionary.
-            BoundAssignmentOperator assignmentToTemp;
-            BoundLocal dictionaryTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
+            BoundLocal dictionaryTemp = _factory.StoreToTemp(rewrittenReceiver, out BoundAssignmentOperator assignmentToTemp);
             localsBuilder.Add(dictionaryTemp.LocalSymbol);
             sideEffects.Add(assignmentToTemp);
 
@@ -1550,8 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var rewrittenExpression = VisitExpression(expression);
 
-                BoundAssignmentOperator assignmentToTemp;
-                BoundLocal exprTemp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
+                BoundLocal exprTemp = _factory.StoreToTemp(rewrittenExpression, out BoundAssignmentOperator assignmentToTemp);
                 localsBuilder.Add(exprTemp.LocalSymbol);
                 sideEffects.Add(assignmentToTemp);
 
@@ -1584,8 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rewrittenExpression = VisitExpression(keyValuePairConversion.Expression);
 
-            BoundAssignmentOperator assignmentToTemp;
-            BoundLocal exprTemp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
+            BoundLocal exprTemp = _factory.StoreToTemp(rewrittenExpression, out BoundAssignmentOperator assignmentToTemp);
             localsBuilder.Add(exprTemp.LocalSymbol);
             sideEffects.Add(assignmentToTemp);
 
@@ -1625,6 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             constructor = constructor.AsMember(type);
             return _factory.New(constructor, key, value);
         }
+
         private BoundExpression VisitAndRewriteCollectionElementExpression(BoundNode element, bool allowSpreadElement)
         {
             switch (element)
@@ -1666,8 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < numberIncludingLastSpread; i++)
             {
                 var rewrittenExpression = VisitAndRewriteCollectionElementExpression(elements[i], allowSpreadElement: true);
-                BoundAssignmentOperator assignmentToTemp;
-                BoundLocal temp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
+                BoundLocal temp = _factory.StoreToTemp(rewrittenExpression, out BoundAssignmentOperator assignmentToTemp);
                 locals.Add(temp);
                 sideEffects.Add(assignmentToTemp);
             }
@@ -1868,6 +1865,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create(statement),
                 result: _factory.Literal(0)); // result is unused
         }
-
     }
 }
