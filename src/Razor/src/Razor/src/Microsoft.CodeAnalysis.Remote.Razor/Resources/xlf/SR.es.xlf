@@ -127,6 +127,11 @@
         <target state="translated">Se intentó visitar un RazorMetaCode distinto de '{' or '}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unknown_mapping_behavior">
+        <source>Unknown mapping behavior</source>
+        <target state="new">Unknown mapping behavior</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unsupported_type_0">
         <source>Unsupported type: '{0}'.</source>
         <target state="translated">Tipo no compatible: '{0}'.</target>

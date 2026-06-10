@@ -136,9 +136,6 @@
   <data name="PositionLine_Outside_Range" xml:space="preserve">
     <value>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</value>
   </data>
-  <data name="Unknown_mapping_behavior" xml:space="preserve">
-    <value>Unknown mapping behavior</value>
-  </data>
   <data name="Format_operation_changed_nonwhitespace" xml:space="preserve">
     <value>A format operation is being abandoned because it would add or delete non-whitespace content.</value>
   </data>

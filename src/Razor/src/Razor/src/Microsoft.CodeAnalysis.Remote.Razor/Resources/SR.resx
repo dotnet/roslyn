@@ -199,4 +199,7 @@
   <data name="Unknown_RazorMetaCode" xml:space="preserve">
     <value>Attempted to visit a RazorMetaCode other than '{' or '}'.</value>
   </data>
+  <data name="Unknown_mapping_behavior" xml:space="preserve">
+    <value>Unknown mapping behavior</value>
+  </data>
 </root>

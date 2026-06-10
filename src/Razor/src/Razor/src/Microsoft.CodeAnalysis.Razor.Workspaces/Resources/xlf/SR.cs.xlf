@@ -139,11 +139,6 @@
         <target state="translated">Aktivovat znovu dokončení…</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Neznámé chování mapování</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
         <source>Unsupported Razor extension: '{0}'.</source>
         <target state="translated">Nepodporované rozšíření Razor: {0}.</target>

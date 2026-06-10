@@ -139,11 +139,6 @@
         <target state="translated">"Volver a desencadenar las finalizaciones..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Comportamiento de asignación desconocido</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
         <source>Unsupported Razor extension: '{0}'.</source>
         <target state="translated">Extensión Razor no admitida: '{0}'.</target>

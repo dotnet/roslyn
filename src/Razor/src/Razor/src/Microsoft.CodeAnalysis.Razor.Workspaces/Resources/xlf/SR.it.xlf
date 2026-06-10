@@ -139,11 +139,6 @@
         <target state="translated">"Riattiva i completamenti..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Comportamento di mapping sconosciuto</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
         <source>Unsupported Razor extension: '{0}'.</source>
         <target state="translated">Estensione Razor non supportata: '{0}'.</target>

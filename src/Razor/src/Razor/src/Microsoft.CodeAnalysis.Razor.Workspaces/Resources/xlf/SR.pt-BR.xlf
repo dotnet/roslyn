@@ -139,11 +139,6 @@
         <target state="translated">"Disparar conclusões novamente..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Comportamento de mapeamento desconhecido</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
         <source>Unsupported Razor extension: '{0}'.</source>
         <target state="translated">Extensão Razor sem suporte: '{0}'.</target>

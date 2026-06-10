@@ -139,11 +139,6 @@
         <target state="translated">"Повторный запуск завершений..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Неизвестное поведение сопоставления</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
         <source>Unsupported Razor extension: '{0}'.</source>
         <target state="translated">Неподдерживаемое расширение Razor: "{0}".</target>

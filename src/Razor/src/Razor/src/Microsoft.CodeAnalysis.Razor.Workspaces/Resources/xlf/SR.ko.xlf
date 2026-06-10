@@ -139,11 +139,6 @@
         <target state="translated">"완료된 항목 다시 트리거"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">알 수 없는 매핑 동작</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
         <source>Unsupported Razor extension: '{0}'.</source>
         <target state="translated">지원되지 않는 Razor 확장: '{0}'.</target>

@@ -139,11 +139,6 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
         <target state="translated">"Ponownie wyzwalaj uzupełniania..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Nieznane zachowanie mapowania</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
         <source>Unsupported Razor extension: '{0}'.</source>
         <target state="translated">Nieobsługiwane rozszerzenie Razor: „{0}”.</target>

@@ -139,11 +139,6 @@
         <target state="translated">"重新觸發完成..."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">未知的對應行為</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
         <source>Unsupported Razor extension: '{0}'.</source>
         <target state="translated">不支援的 Razor 延伸模組: '{0}'。</target>
