@@ -112,7 +112,7 @@ internal sealed class CohostOnTypeFormattingEndpoint(
             htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
         }
 
-        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
         var options = RazorFormattingOptions.From(request.Options, clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine, clientSettings.AdvancedSettings.AttributeIndentStyle, csharpSyntaxFormattingOptions);
 
         _logger.LogDebug($"Calling OOP with the {htmlChanges.Length} html edits, so it can fill in the rest");

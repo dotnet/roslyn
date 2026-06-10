@@ -13,46 +13,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 internal sealed class CSharpFormatter
 {
     private const string MarkerId = "RazorMarker";
-
-    internal static CSharpSyntaxFormattingOptions GetCSharpSyntaxFormattingOptions(
-        SolutionServices services,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions)
-    {
-        csharpSyntaxFormattingOptions
-            ??= (CSharpSyntaxFormattingOptions)(services.GetService<ILegacyGlobalOptionsWorkspaceService>()?.GetSyntaxFormattingOptions(services.GetLanguageServices(LanguageNames.CSharp))
-                ?? CSharpSyntaxFormattingOptions.Default);
-
-        return csharpSyntaxFormattingOptions;
-    }
-
-    internal static CSharpSyntaxFormattingOptions GetResolvedCSharpSyntaxFormattingOptions(
-        SolutionServices services,
-        RazorFormattingOptions options,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
-    {
-        csharpSyntaxFormattingOptions = GetCSharpSyntaxFormattingOptions(
-            services,
-            csharpSyntaxFormattingOptions ?? options.CSharpSyntaxFormattingOptions);
-
-        return csharpSyntaxFormattingOptions with
-        {
-            LineFormatting = csharpSyntaxFormattingOptions.LineFormatting with
-            {
-                UseTabs = !options.InsertSpaces,
-                TabSize = options.TabSize,
-                IndentationSize = options.TabSize,
-                NewLine = CSharpSyntaxFormattingOptions.Default.NewLine
-            }
-        };
-    }
 
     internal static IndentationOptions GetIndentationOptions(
         SolutionServices services,
@@ -61,7 +29,7 @@ internal sealed class CSharpFormatter
         FormattingOptions2.IndentStyle indentStyle,
         CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
     {
-        var resolvedCSharpSyntaxFormattingOptions = GetResolvedCSharpSyntaxFormattingOptions(
+        var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(
             services,
             options,
             csharpSyntaxFormattingOptions);
@@ -107,7 +75,7 @@ internal sealed class CSharpFormatter
 
         // At this point, we have added all the necessary markers and attached annotations.
         // Let's invoke the C# formatter and hope for the best.
-        var formattingOptions = GetResolvedCSharpSyntaxFormattingOptions(
+        var formattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(
             hostWorkspaceServices.SolutionServices,
             context.Options);
         var formattedRoot = Formatter.Format(
