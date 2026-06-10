@@ -5852,6 +5852,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
+            // ??= cannot be used with events that are not field-like or whose backing field is not accessible
+            // from the current location. Unlike += and -=, which call add/remove accessors, ??= requires
+            // direct access to the backing field to read and conditionally assign the value.
+            if (!leftOperand.HasAnyErrors && leftOperand is BoundEventAccess { IsUsableAsField: false } badEventAccess)
+            {
+                Error(diagnostics, GetBadEventUsageDiagnosticInfo(badEventAccess.EventSymbol), GetEventName(badEventAccess));
+                leftOperand = BindToTypeForErrorRecovery(leftOperand);
+                rightOperand = BindToTypeForErrorRecovery(rightOperand);
+                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+            }
+
             // Prevent more cascading errors if there are any on either operand
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {

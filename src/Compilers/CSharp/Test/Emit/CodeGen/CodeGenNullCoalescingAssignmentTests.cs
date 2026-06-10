@@ -2917,5 +2917,49 @@ struct S
 1
 1", options: TestOptions.DebugExe);
         }
+
+        [Fact]
+        public void EventLvalue_ExternalEvent_NullCoalescingAssignment()
+        {
+            // https://github.com/dotnet/roslyn/issues/78573
+            // Compiler used to crash with NullReferenceException when ??= was applied to a field-like
+            // event from an external assembly. It should instead report CS0079.
+            var lib = CreateCompilation(@"
+public class C
+{
+    public event System.Action E;
+}");
+
+            CreateCompilation(@"
+class D
+{
+    static void M()
+    {
+        new C().E ??= null;
+    }
+}", references: [lib.EmitToImageReference()]).VerifyDiagnostics(
+                // (6,17): error CS0079: The event 'C.E' can only appear on the left hand side of += or -=
+                //         new C().E ??= null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("C.E").WithLocation(6, 17));
+        }
+
+        [Fact]
+        public void EventLvalue_ExplicitAccessors_NullCoalescingAssignment()
+        {
+            // ??= cannot be used with events that have explicit add/remove accessors since there is no backing field to read.
+            CreateCompilation(@"
+class C
+{
+    public event System.Action E { add { } remove { } }
+
+    void M()
+    {
+        E ??= null;
+    }
+}").VerifyDiagnostics(
+                // (8,9): error CS0079: The event 'C.E' can only appear on the left hand side of += or -=
+                //         E ??= null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("C.E").WithLocation(8, 9));
+        }
     }
 }
