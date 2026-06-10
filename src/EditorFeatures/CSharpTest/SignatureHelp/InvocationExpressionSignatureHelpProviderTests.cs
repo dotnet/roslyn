@@ -2425,15 +2425,15 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """;
-        var markup = string.Format("""
+        var markup = $$"""
             <Workspace>
                 <Project Language="C#" CommonReferencesNetCoreApp="true">
-                    <Document FilePath="SourceDocument">
-            {0}
-                    </Document>
+                    <Document FilePath="SourceDocument"><![CDATA[
+            {{source}}
+                    ]]></Document>
                 </Project>
             </Workspace>
-            """, System.Security.SecurityElement.Escape(source));
+            """;
 
         await VerifyItemWithReferenceWorkerAsync(markup, [
             new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) bool IEnumerable<int>.SequenceEqual<int>(IEnumerable<int> second)", currentParameterIndex: 0),
