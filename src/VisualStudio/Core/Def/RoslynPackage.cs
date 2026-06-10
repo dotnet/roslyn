@@ -46,6 +46,7 @@ internal sealed class RoslynPackage : AbstractPackage
     private ThreadSafeMenuCommandService? _menuCommandService;
     private RuleSetEventHandler? _ruleSetEventHandler;
     private SolutionEventMonitor? _solutionEventMonitor;
+    private PdbMatchingSourceTextProvider? _sourceTextProvider;
 
     internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
@@ -125,14 +126,12 @@ internal sealed class RoslynPackage : AbstractPackage
         var solutionSnapshotProvider = ComponentModel.GetService<ISolutionSnapshotProvider>();
         var hostWorkspaceProvider = ComponentModel.GetService<IHostWorkspaceProvider>();
 
-        // In devenv there is a single host workspace, so a single source text provider observing it suffices.
-        // It lives for the lifetime of the process, matching the brokered service it backs.
-        var sourceTextProvider = new PdbMatchingSourceTextProvider(hostWorkspaceProvider.Workspace);
+        _sourceTextProvider = new PdbMatchingSourceTextProvider(hostWorkspaceProvider.Workspace);
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
             (_, _, serviceBroker, _) =>
             {
-                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, sourceTextProvider);
+                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, _sourceTextProvider);
                 return ValueTask.FromResult<object?>(service);
             });
     }
@@ -188,6 +187,8 @@ internal sealed class RoslynPackage : AbstractPackage
 
         _solutionEventMonitor?.Dispose();
         _solutionEventMonitor = null;
+        _sourceTextProvider?.Dispose();
+        _sourceTextProvider = null;
 
         base.Dispose(disposing);
     }

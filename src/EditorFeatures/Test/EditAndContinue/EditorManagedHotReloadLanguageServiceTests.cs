@@ -272,7 +272,8 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         var localFactory = localWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
         var localBroker = localWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker;
         var localSnapshotProvider = localWorkspace.GetService<ISolutionSnapshotProvider>();
-        var localService = localFactory.Create(localBroker, localSnapshotProvider, localWorkspace.GetService<IHostWorkspaceProvider>(), new PdbMatchingSourceTextProvider(localWorkspace));
+        using var pdbMatchingSourceTextProvider = new PdbMatchingSourceTextProvider(localWorkspace);
+        var localService = localFactory.Create(localBroker, localSnapshotProvider, localWorkspace.GetService<IHostWorkspaceProvider>(), pdbMatchingSourceTextProvider);
 
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
             .AddTestProject("proj", out var projectId)
@@ -517,6 +518,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, Encoding.UTF8);
 
         using var workspace = CreateEditorWorkspace(out var solution, out var service, out var languageService, out var sourceTextProvider);
+        using var _1 = sourceTextProvider;
 
         var projectId = ProjectId.CreateNewId();
         var documentId = DocumentId.CreateNewId(projectId);
