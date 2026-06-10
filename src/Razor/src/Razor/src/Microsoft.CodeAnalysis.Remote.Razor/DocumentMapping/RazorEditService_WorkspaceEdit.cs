@@ -81,6 +81,11 @@ internal partial class RazorEditService
         }
 
         var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
+        var codeDocument = await razorDocumentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        if (!codeDocument.TryGetCSharpDocumentForGeneratedUri(solution, generatedDocumentUri, out var csharpDocument))
+        {
+            return;
+        }
 
         var edits = new TextEdit[entry.Edits.Length];
         for (var i = 0; i < entry.Edits.Length; i++)
@@ -89,7 +94,7 @@ internal partial class RazorEditService
             edits[i] = (TextEdit)entry.Edits[i];
         }
 
-        var mappedEdits = await GetMappedTextEditsAsync(razorDocumentSnapshot, edits, cancellationToken).ConfigureAwait(false);
+        var mappedEdits = await GetMappedTextEditsAsync(razorDocumentSnapshot, csharpDocument, edits, cancellationToken).ConfigureAwait(false);
 
         // Update the entry in-place
         entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
@@ -129,8 +134,13 @@ internal partial class RazorEditService
             }
 
             var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
+            var codeDocument = await razorDocumentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+            if (!codeDocument.TryGetCSharpDocumentForGeneratedUri(solution, generatedDocumentUri, out var csharpDocument))
+            {
+                continue;
+            }
 
-            var mappedEdits = await GetMappedTextEditsAsync(razorDocumentSnapshot, edits, cancellationToken).ConfigureAwait(false);
+            var mappedEdits = await GetMappedTextEditsAsync(razorDocumentSnapshot, csharpDocument, edits, cancellationToken).ConfigureAwait(false);
             if (mappedEdits.Length == 0)
             {
                 // Nothing to do.
@@ -143,14 +153,12 @@ internal partial class RazorEditService
         return mappedChanges;
     }
 
-    private async Task<ImmutableArray<TextEdit>> GetMappedTextEditsAsync(RemoteDocumentSnapshot snapshot, TextEdit[] edits, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<TextEdit>> GetMappedTextEditsAsync(RemoteDocumentSnapshot snapshot, RazorCSharpDocument csharpDocument, TextEdit[] edits, CancellationToken cancellationToken)
     {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-
-        var razorSourceText = codeDocument.Source.Text;
-        var csharpSourceText = codeDocument.GetCSharpSourceText();
+        var razorSourceText = csharpDocument.CodeDocument.Source.Text;
+        var csharpSourceText = csharpDocument.Text;
         var textChanges = edits.SelectAsArray(csharpSourceText.GetRazorTextChange);
-        var mappedEdits = await MapCSharpEditsAsync(textChanges, snapshot, includeCSharpLanguageFeatureEdits: true, directlyMappedEditFilter: null, cancellationToken).ConfigureAwait(false);
+        var mappedEdits = await MapCSharpEditsAsync(textChanges, snapshot, csharpDocument.IsDeclarationDocument, includeCSharpLanguageFeatureEdits: true, directlyMappedEditFilter: null, cancellationToken).ConfigureAwait(false);
 
         return mappedEdits.SelectAsArray(razorSourceText.GetTextEdit);
     }

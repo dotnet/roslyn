@@ -44,6 +44,7 @@ internal sealed partial class RazorEditService(
     public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
+        bool declarationDocument,
         bool includeCSharpLanguageFeatureEdits,
         Func<RazorTextChange, bool>? directlyMappedEditFilter,
         CancellationToken cancellationToken)
@@ -51,13 +52,13 @@ internal sealed partial class RazorEditService(
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
-        AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, directlyMappedEditFilter, cancellationToken, out var skippedEdits);
+        AddDirectlyMappedEdits(ref edits.AsRef(), declarationDocument, textChanges, codeDocument, directlyMappedEditFilter, cancellationToken, out var skippedEdits);
 
         if (includeCSharpLanguageFeatureEdits && skippedEdits.Length != 0)
         {
             // If there was something that didn't map, and the caller wants us to, we need to process the generated C# document
             // that Roslyn wanted to produce, and look for changes that we can translate into their Razor equivalents.
-            var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
             var originalCSharpSourceText = await originalCSharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var originalCSharpSyntaxRoot = await originalCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -296,6 +297,7 @@ internal sealed partial class RazorEditService(
     /// </summary>
     private void AddDirectlyMappedEdits(
         ref PooledArrayBuilder<RazorTextChange> edits,
+        bool declarationDocument,
         ImmutableArray<RazorTextChange> csharpEdits,
         RazorCodeDocument codeDocument,
         Func<RazorTextChange, bool>? directlyMappedEditFilter,
@@ -303,7 +305,7 @@ internal sealed partial class RazorEditService(
         out ImmutableArray<RazorTextChange> skippedEdits)
     {
         var root = codeDocument.GetRequiredSyntaxRoot();
-        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument);
         using var skipped = new PooledArrayBuilder<RazorTextChange>();
 
         foreach (var csharpEdit in csharpEdits)

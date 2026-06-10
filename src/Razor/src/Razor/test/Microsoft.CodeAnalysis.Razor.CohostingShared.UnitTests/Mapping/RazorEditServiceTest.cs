@@ -2033,6 +2033,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         var responseTextChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(
             changes.SelectAsArray(static c => c.ToRazorTextChange()),
             snapshot,
+            declarationDocument: false,
             includeCSharpLanguageFeatureEdits: true,
             directlyMappedEditFilter: null,
             CancellationToken.None);
