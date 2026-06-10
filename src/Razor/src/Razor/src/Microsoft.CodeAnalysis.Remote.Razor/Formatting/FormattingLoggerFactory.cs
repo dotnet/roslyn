@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Composition;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
-internal class FormattingLoggerFactory : IFormattingLoggerFactory
+[Export(typeof(IFormattingLoggerFactory)), Shared]
+internal sealed class FormattingLoggerFactory : IFormattingLoggerFactory
 {
     private const string LogDirEnvVar = "RazorFormattingLogPath";
     private static string? BaseLogDir { get; } = Environment.GetEnvironmentVariable(LogDirEnvVar);

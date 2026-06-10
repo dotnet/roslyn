@@ -5,6 +5,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
-internal class RazorFormattingService : IRazorFormattingService
+[Export(typeof(IRazorFormattingService)), Shared]
+internal sealed class RazorFormattingService : IRazorFormattingService
 {
     private static readonly FrozenSet<string> s_csharpTriggerCharacterSet = FrozenSet.ToFrozenSet(["}", ";"], StringComparer.Ordinal);
     private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
@@ -34,6 +36,7 @@ internal class RazorFormattingService : IRazorFormattingService
 
     private IFormattingLoggerFactory _formattingLoggerFactory;
 
+    [ImportingConstructor]
     public RazorFormattingService(
         IDocumentMappingService documentMappingService,
         IRazorEditService razorEditService,
