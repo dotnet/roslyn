@@ -92,7 +92,7 @@ internal sealed class CohostWrapWithTagEndpoint(
             }
 
             var htmlSourceText = htmlDocument.Snapshot.AsText();
-            htmlResponse.TextEdits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edits);
+            htmlResponse.TextEdits = htmlSourceText.FixHtmlTextEdits(edits);
         }
 
         return htmlResponse;

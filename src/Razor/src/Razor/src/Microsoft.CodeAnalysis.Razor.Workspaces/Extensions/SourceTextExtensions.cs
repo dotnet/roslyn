@@ -370,4 +370,33 @@ internal static class SourceTextExtensions
 
         return list.ToImmutableArray();
     }
+
+    /// <summary>
+    /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
+    /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
+    /// minimal text edits
+    /// </summary>
+    public static TextEdit[] FixHtmlTextEdits(this SourceText htmlSourceText, TextEdit[] edits)
+    {
+        // Avoid computing a minimal diff if we don't need to
+        if (!edits.Any(static e => e.NewText.Contains('~')))
+            return edits;
+
+        var changes = edits.SelectAsArray(htmlSourceText.GetTextChange);
+
+        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
+        return fixedChanges.SelectAsPlainArray(htmlSourceText.GetTextEdit);
+    }
+
+    public static SumType<TextEdit, AnnotatedTextEdit>[] FixHtmlTextEdits(this SourceText htmlSourceText, SumType<TextEdit, AnnotatedTextEdit>[] edits)
+    {
+        // Avoid computing a minimal diff if we don't need to
+        if (!edits.Any(static e => ((TextEdit)e).NewText.Contains('~')))
+            return edits;
+
+        var changes = edits.SelectAsArray(e => htmlSourceText.GetTextChange((TextEdit)e));
+
+        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
+        return fixedChanges.SelectAsPlainArray<TextChange, SumType<TextEdit, AnnotatedTextEdit>>(c => htmlSourceText.GetTextEdit(c));
+    }
 }

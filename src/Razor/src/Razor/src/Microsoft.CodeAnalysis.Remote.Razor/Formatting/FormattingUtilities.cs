@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Formatting;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 internal static class FormattingUtilities
 {
@@ -206,35 +206,6 @@ internal static class FormattingUtilities
 
             return builder.ToImmutableAndClear();
         }
-    }
-
-    /// <summary>
-    /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
-    /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
-    /// minimal text edits
-    /// </summary>
-    public static TextEdit[] FixHtmlTextEdits(SourceText htmlSourceText, TextEdit[] edits)
-    {
-        // Avoid computing a minimal diff if we don't need to
-        if (!edits.Any(static e => e.NewText.Contains('~')))
-            return edits;
-
-        var changes = edits.SelectAsArray(htmlSourceText.GetTextChange);
-
-        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
-        return fixedChanges.SelectAsPlainArray(htmlSourceText.GetTextEdit);
-    }
-
-    internal static SumType<TextEdit, AnnotatedTextEdit>[] FixHtmlTextEdits(SourceText htmlSourceText, SumType<TextEdit, AnnotatedTextEdit>[] edits)
-    {
-        // Avoid computing a minimal diff if we don't need to
-        if (!edits.Any(static e => ((TextEdit)e).NewText.Contains('~')))
-            return edits;
-
-        var changes = edits.SelectAsArray(e => htmlSourceText.GetTextChange((TextEdit)e));
-
-        var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
-        return fixedChanges.SelectAsPlainArray<TextChange, SumType<TextEdit, AnnotatedTextEdit>>(c => htmlSourceText.GetTextEdit(c));
     }
 
     public static void GetOriginalDocumentChangesFromLineInfo(FormattingContext context, SourceText originalText, ImmutableArray<LineInfo> formattedLineInfo, SourceText formattedText, ILogger logger, Func<int, bool>? shouldKeepInsertedNewlineAtPosition, ref PooledArrayBuilder<TextChange> formattingChanges, out int lastFormattedTextLine)
