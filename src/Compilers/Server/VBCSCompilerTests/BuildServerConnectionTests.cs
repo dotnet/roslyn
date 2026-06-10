@@ -167,6 +167,37 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.DoesNotContain(Logger.Messages, m => m.StartsWith("Error:"));
         }
 
+        [Fact]
+        public void LogException_CanLogNonFatalException()
+        {
+            Logger.Messages.Clear();
+            Logger.LogException(CreateException(), "Testing", nonFatal: true);
+
+            Assert.DoesNotContain(Logger.Messages, m => m.Contains("Error:"));
+            Assert.Contains(Logger.Messages, m => m.Contains("Exception: 'InvalidOperationException' 'boom' occurred during 'Testing'"));
+        }
+
+        [Fact]
+        public void LogException_LogsFatalExceptionAsError()
+        {
+            Logger.Messages.Clear();
+            Logger.LogException(CreateException(), "Testing");
+
+            Assert.Contains(Logger.Messages, m => m.Contains("Error: 'InvalidOperationException' 'boom' occurred during 'Testing'"));
+        }
+
+        private static Exception CreateException()
+        {
+            try
+            {
+                throw new InvalidOperationException("boom", new Exception("inner"));
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/13844")]
         public async Task WaitForServerProcessExitAsync_CompletesWhenServerMutexIsNotOpen()
         {

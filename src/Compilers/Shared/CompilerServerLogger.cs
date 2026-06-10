@@ -56,50 +56,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Log an exception. Also logs information about inner exceptions.
         /// </summary>
-        internal static void LogException(this ICompilerServerLogger logger, Exception exception, string reason)
+        internal static void LogException(this ICompilerServerLogger logger, Exception exception, string reason, bool nonFatal = false)
         {
             if (!logger.IsLogging)
             {
                 return;
             }
 
+            var prefix = nonFatal ? "Exception: " : "Error: ";
             var builder = new StringBuilder();
-            builder.Append("Error ");
-            AppendException(exception, prefix: "Error: ");
-
-            int innerExceptionLevel = 0;
-            Exception? e = exception.InnerException;
-            while (e != null)
+            if (!nonFatal)
             {
-                builder.Append($"Inner exception[{innerExceptionLevel}]  ");
-                AppendException(e, prefix: "Error: ");
-                e = e.InnerException;
-                innerExceptionLevel += 1;
+                builder.Append("Error ");
             }
 
-            logger.Log(builder.ToString());
-
-            void AppendException(Exception ex, string prefix)
-            {
-                builder.AppendLine($"{prefix}'{ex.GetType().Name}' '{ex.Message}' occurred during '{reason}'");
-                builder.AppendLine("Stack trace:");
-                builder.AppendLine(ex.StackTrace);
-            }
-        }
-
-        /// <summary>
-        /// Log a non-fatal exception (e.g., a recoverable failure) including its type, message,
-        /// and stack trace, but without an "Error:" prefix. This avoids tools like MSBuild's Exec
-        /// task treating the log line as a canonical build error.
-        /// </summary>
-        internal static void LogNonFatalException(this ICompilerServerLogger logger, Exception exception, string reason)
-        {
-            if (!logger.IsLogging)
-            {
-                return;
-            }
-
-            var builder = new StringBuilder();
             AppendException(exception);
 
             int innerExceptionLevel = 0;
@@ -116,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             void AppendException(Exception ex)
             {
-                builder.AppendLine($"Exception: '{ex.GetType().Name}' '{ex.Message}' occurred during '{reason}'");
+                builder.AppendLine($"{prefix}'{ex.GetType().Name}' '{ex.Message}' occurred during '{reason}'");
                 builder.AppendLine("Stack trace:");
                 builder.AppendLine(ex.StackTrace);
             }
