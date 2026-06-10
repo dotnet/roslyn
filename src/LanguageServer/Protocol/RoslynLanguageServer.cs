@@ -199,6 +199,45 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         OnInitialized();
+
+        // Monitor the client process and shut down the server if the client process exits.
+        var clientProcessMonitor = context.GetService<IClientProcessMonitor>();
+        if (clientProcessMonitor != null && clientProcessMonitor.GetClientProcessId() is { } processId)
+        {
+            _ = MonitorClientProcessAsync(processId, clientProcessMonitor.Strategy);
+        }
+    }
+
+    private async Task MonitorClientProcessAsync(int processId, IClientProcessMonitor.ShutdownStrategy strategy)
+    {
+        try
+        {
+            var clientProcessExitTask = new TaskCompletionSource<bool>();
+
+            using var clientProcess = Process.GetProcessById(processId);
+            clientProcess.EnableRaisingEvents = true;
+            clientProcess.Exited += (sender, args) => clientProcessExitTask.SetResult(true);
+
+            if (!clientProcess.HasExited)
+            {
+                // Wait for the client process to exit.
+                await clientProcessExitTask.Task.ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            // The process didn't exist, exited, or we ran into
+            // issues checking whether the process had exited.
+            if (strategy == IClientProcessMonitor.ShutdownStrategy.ProcessExit)
+            {
+                Environment.Exit(ServerExitCodes.ClientProcessExited);
+            }
+            else
+            {
+                await ShutdownAsync().ConfigureAwait(false);
+                await ExitAsync().ConfigureAwait(false);
+            }
+        }
     }
 
     public override bool TryGetLanguageForRequest(string methodName, object? serializedParameters, [NotNullWhen(true)] out string? language)

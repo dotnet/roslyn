@@ -132,6 +132,7 @@
       "src\\LanguageServer\\Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests\\Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.csproj",
       "src\\LanguageServer\\Microsoft.CodeAnalysis.LanguageServer.UnitTests\\Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj",
       "src\\LanguageServer\\Microsoft.CodeAnalysis.LanguageServer\\Microsoft.CodeAnalysis.LanguageServer.csproj",
+      "src\\LanguageServer\\roslyn-language-server\\roslyn-language-server.csproj",
       "src\\LanguageServer\\Microsoft.CommonLanguageServerProtocol.Framework.Example\\Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj",
       "src\\LanguageServer\\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests\\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.csproj",
       "src\\LanguageServer\\Microsoft.CommonLanguageServerProtocol.Framework\\Microsoft.CommonLanguageServerProtocol.Framework.Package.csproj",

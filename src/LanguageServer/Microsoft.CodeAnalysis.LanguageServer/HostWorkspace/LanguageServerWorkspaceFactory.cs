@@ -68,6 +68,14 @@ internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspa
             miscellaneousFilesWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
         miscellaneousFilesWorkspace.ProjectSystemProjectFactory = MiscellaneousFilesWorkspaceProjectFactory;
 
+        // Register this server's Host and miscellaneous-files workspaces directly with its own registration
+        // service, rather than relying on the process-wide event listener (which, in the standalone server, only
+        // tracks the shared MetadataAsSource workspace). This keeps these per-server workspaces visible only to
+        // this server so concurrent daemon-mode servers stay isolated from one another.
+        var workspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
+        workspaceRegistrationService.Register(workspace);
+        workspaceRegistrationService.Register(miscellaneousFilesWorkspace);
+
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             AnalyzerAssemblyRedirectors: [.. assemblyRedirectors]);
     }

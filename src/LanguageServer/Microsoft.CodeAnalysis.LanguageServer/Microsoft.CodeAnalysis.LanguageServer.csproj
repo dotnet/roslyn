@@ -7,12 +7,10 @@
 
     <ServerGarbageCollection>true</ServerGarbageCollection>
 
-    <!-- .NET Tool configuration -->
-    <IsPackable>true</IsPackable>
-    <PackAsTool>true</PackAsTool>
-    <PackageId>roslyn-language-server</PackageId>
-    <ToolCommandName>roslyn-language-server</ToolCommandName>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- This project is not packed as a .NET tool. The roslyn-language-server thin client is the
+         tool entry point and package; it bundles this project's full published output side-by-side and
+         launches it. See ..\roslyn-language-server\roslyn-language-server.csproj. -->
+    <IsPackable>false</IsPackable>
 
     <!-- Publishing settings -->
     <SelfContained>false</SelfContained>
@@ -26,8 +24,10 @@
 
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="" />
+  <ItemGroup Label="Shared daemon connection files">
+    <!-- Source-shared (linked) with the roslyn-language-server thin client so both compute identical
+         pipe/mutex names and use the same pipe options. Keep these dependency-light and AOT/trim-safe. -->
+    <Compile Include="..\DaemonConnection\*.cs" LinkBase="DaemonConnection" />
   </ItemGroup>
 
   <ItemGroup>

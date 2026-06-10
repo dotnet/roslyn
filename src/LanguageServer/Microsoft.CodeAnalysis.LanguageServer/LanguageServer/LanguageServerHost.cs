@@ -78,6 +78,13 @@ internal sealed class LanguageServerHost
         return _roslynLanguageServer.WaitForExitAsync();
     }
 
+    /// <summary>
+    /// Completes when this server has processed the <c>initialized</c> notification, after which the client's
+    /// initialize params (e.g. its process id) are available via the server's <c>IInitializeManager</c>.
+    /// </summary>
+    public Task WaitForInitializedAsync()
+        => _roslynLanguageServer.WaitForInitializedAsync();
+
     public ILspServices GetLspServices()
         => _roslynLanguageServer.GetLspServices();
 }

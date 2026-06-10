@@ -19,10 +19,16 @@ internal static class TestPaths
     /// Build places RoslynLSP files to this subdirectory.
     /// </summary>
     private const string LanguageServerSubdirectory = "RoslynLSP";
-    private const string LanguageServerAssemblyFileName = "Microsoft.CodeAnalysis.LanguageServer.dll";
+
+    /// <summary>
+    /// The thin client (dotnet tool entry point) is deployed into the same directory as the language server it
+    /// bundles, so that its <c>ServerExecutableResolver</c> finds the server next to itself.
+    /// </summary>
+    private const string ThinClientAssemblyFileName = "roslyn-language-server.dll";
 
     public static string GetLanguageServerDirectory()
         => Path.Combine(AppContext.BaseDirectory, LanguageServerSubdirectory);
-    public static string GetLanguageServerPath()
-        => Path.Combine(GetLanguageServerDirectory(), LanguageServerAssemblyFileName);
+
+    public static string GetThinClientPath()
+        => Path.Combine(GetLanguageServerDirectory(), ThinClientAssemblyFileName);
 }

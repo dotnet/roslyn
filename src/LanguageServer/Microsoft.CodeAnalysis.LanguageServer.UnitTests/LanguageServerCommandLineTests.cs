@@ -9,9 +9,10 @@ public sealed class LanguageServerCommandLineTests
     private static async Task<ServerConfiguration?> ParseAsync(params string[] args)
     {
         ServerConfiguration? configuration = null;
-        var command = LanguageServerCommandLine.CreateCommand(async (c, _) =>
+        var command = LanguageServerCommandLine.CreateCommand((c, _) =>
         {
             configuration = c;
+            return Task.FromResult(0);
         });
 
         var exitCode = await command.Parse(args).InvokeAsync(cancellationToken: CancellationToken.None);
