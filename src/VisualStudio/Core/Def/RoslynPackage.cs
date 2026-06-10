@@ -124,11 +124,15 @@ internal sealed class RoslynPackage : AbstractPackage
         var hotReloadFactory = ComponentModel.GetService<ManagedHotReloadLanguageServiceFactory>();
         var solutionSnapshotProvider = ComponentModel.GetService<ISolutionSnapshotProvider>();
         var hostWorkspaceProvider = ComponentModel.GetService<IHostWorkspaceProvider>();
+
+        // In devenv there is a single host workspace, so a single source text provider observing it suffices.
+        // It lives for the lifetime of the process, matching the brokered service it backs.
+        var sourceTextProvider = new PdbMatchingSourceTextProvider(hostWorkspaceProvider.Workspace);
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
             (_, _, serviceBroker, _) =>
             {
-                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider);
+                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, sourceTextProvider);
                 return ValueTask.FromResult<object?>(service);
             });
     }
