@@ -631,6 +631,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(propertyOrEvent.IsExtern, accessor.IsExtern);
             Assert.Equal(propertyOrEvent.IsStatic, accessor.IsStatic);
         }
+
+        internal static bool IsMetadataNewSlot(this MethodSymbol method)
+        {
+            return method.IsMetadataNewSlot(context: method.ContainingModule);
+        }
+
+        internal static bool IsMetadataVirtual(this MethodSymbol method)
+        {
+            return method.IsMetadataVirtual(context: method.ContainingModule);
+        }
     }
 }
 

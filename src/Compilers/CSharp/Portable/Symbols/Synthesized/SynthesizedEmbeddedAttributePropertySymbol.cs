@@ -9,12 +9,12 @@ using Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
-internal sealed class SynthesizedPropertySymbol : PropertySymbol
+internal sealed class SynthesizedEmbeddedAttributePropertySymbol : PropertySymbol
 {
     private readonly string _name;
     private readonly SynthesizedFieldSymbol _backingField;
 
-    public SynthesizedPropertySymbol(string name, SynthesizedFieldSymbol backingField)
+    public SynthesizedEmbeddedAttributePropertySymbol(string name, SynthesizedFieldSymbol backingField)
     {
         _name = name;
         _backingField = backingField;
@@ -50,9 +50,9 @@ internal sealed class SynthesizedPropertySymbol : PropertySymbol
     internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
     internal override int TryGetOverloadResolutionPriority() => 0;
 
-    private sealed partial class GetAccessorMethodSymbol(SynthesizedPropertySymbol property) : SynthesizedMethodSymbol
+    private sealed partial class GetAccessorMethodSymbol(SynthesizedEmbeddedAttributePropertySymbol property) : SynthesizedMethodSymbol
     {
-        private readonly SynthesizedPropertySymbol _property = property;
+        private readonly SynthesizedEmbeddedAttributePropertySymbol _property = property;
 
         public override string Name => $"get_{_property.Name}";
         internal override bool HasSpecialName => true;
@@ -113,7 +113,7 @@ internal sealed class SynthesizedPropertySymbol : PropertySymbol
         public override DllImportData? GetDllImportData() => null;
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => [];
         internal override IEnumerable<SecurityAttribute>? GetSecurityInformation() => null;
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
+        internal override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
     }
 }

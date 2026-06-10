@@ -7,6 +7,21 @@
         <target state="translated">值不能為 Null 或空字串。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Baseline_Newly_Available">
+        <source>🆕 Newly available across major browsers{0}</source>
+        <target state="new">🆕 Newly available across major browsers{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Since">
+        <source> (Baseline since {0})</source>
+        <target state="new"> (Baseline since {0})</target>
+        <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Widely_Available">
+        <source>✅ Widely available across major browsers{0}</source>
+        <target state="new">✅ Widely available across major browsers{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
       <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
         <source>{0} (and req'd attributes...)</source>
         <target state="translated">{0} (和必要屬性...)</target>
@@ -88,6 +103,11 @@
         <source>Razor language services not configured properly, missing language service '{0}'.</source>
         <target state="translated">未正確設定 Razor 語言服務，遺漏語言服務 '{0}'。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="MDN_Reference">
+        <source>MDN Reference</source>
+        <target state="new">MDN Reference</target>
+        <note>Link text for MDN documentation URL in HTML completion tooltips</note>
       </trans-unit>
       <trans-unit id="Not_Available_In">
         <source>Not available in</source>

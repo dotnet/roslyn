@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
         <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="new">Attempted to visit a RazorMetaCode other than '{' or '}'.</target>
+        <target state="translated">È stato effettuato un tentativo di visitare un elemento RazorMetaCode diverso da '{' or '}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_type_0">
