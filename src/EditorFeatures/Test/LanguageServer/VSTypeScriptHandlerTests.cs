@@ -66,9 +66,11 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
             </Workspace>
             """;
 
-        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
-        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-        var simplifierOptions = testLspServer.TestWorkspace.GlobalOptions.GetSimplifierOptions(document.Project.Services);
+        using var testWorkspace = await CreateWorkspaceAsync(options: null, mutatingLspWorkspace: false, workspaceKind: null);
+        testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
+
+        var document = testWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        var simplifierOptions = testWorkspace.GlobalOptions.GetSimplifierOptions(document.Project.Services);
         Assert.Same(SimplifierOptions.CommonDefaults, simplifierOptions);
     }
 
