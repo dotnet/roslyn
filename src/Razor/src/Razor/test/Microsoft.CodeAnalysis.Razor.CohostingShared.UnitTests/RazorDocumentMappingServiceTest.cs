@@ -8,8 +8,10 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,7 +21,11 @@ namespace Microsoft.CodeAnalysis.Razor;
 public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     private IDocumentMappingService CreateMappingService()
-        => new TestDocumentMappingService(LoggerFactory.GetOrCreateLogger(nameof(TestDocumentMappingService)));
+    {
+        var filePathService = new RemoteFilePathService();
+        var snapshotManager = new RemoteSnapshotManager(filePathService, NoOpTelemetryReporter.Instance);
+        return new DocumentMappingService(filePathService, snapshotManager, LoggerFactory);
+    }
 
     [Fact]
     public void TryMapToHostDocumentRange_Strict_StartOnlyMaps_ReturnsFalse()
@@ -828,6 +834,4 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         return codeDocument;
     }
-
-    private sealed class TestDocumentMappingService(ILogger logger) : AbstractDocumentMappingService(logger);
 }

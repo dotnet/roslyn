@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
@@ -73,7 +74,7 @@ internal partial class RazorEditService
             return;
         }
 
-        if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, entry.TextDocument.GetProjectContext(), out var documentContext))
+        if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, out var documentContext))
         {
             return;
         }
@@ -123,7 +124,7 @@ internal partial class RazorEditService
                 continue;
             }
 
-            if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, projectContext: null, out var documentContext))
+            if (!TryGetDocumentContext(contextDocumentSnapshot, razorDocumentUri, out var documentContext))
             {
                 continue;
             }
@@ -153,7 +154,40 @@ internal partial class RazorEditService
         return mappedEdits.SelectAsArray(razorSourceText.GetTextEdit);
     }
 
-    protected abstract bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext);
+    private bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, [NotNullWhen(true)] out DocumentContext? documentContext)
+    {
+        if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
+        {
+            throw new InvalidOperationException("RemoteRazorEditService can only be used with RemoteDocumentSnapshot instances.");
+        }
 
-    protected abstract Task<Uri?> GetRazorDocumentUriAsync(IDocumentSnapshot contextDocumentSnapshot, Uri uri, CancellationToken cancellationToken);
+        var solution = originSnapshot.TextDocument.Project.Solution;
+        if (!solution.TryGetRazorDocument(razorDocumentUri, out var razorDocument))
+        {
+            documentContext = null;
+            return false;
+        }
+
+        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
+
+        documentContext = new RemoteDocumentContext(razorDocumentUri.CreateDocumentUriFromSystemUri(), razorDocumentSnapshot);
+        return true;
+    }
+
+    private async Task<Uri?> GetRazorDocumentUriAsync(IDocumentSnapshot contextDocumentSnapshot, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
+        {
+            throw new InvalidOperationException("RemoteRazorEditService can only be used with RemoteDocumentSnapshot instances.");
+        }
+
+        var solution = originSnapshot.TextDocument.Project.Solution;
+        var razorCodeDocument = await _snapshotManager.TryGetRazorCodeDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+        if (razorCodeDocument is null)
+        {
+            return null;
+        }
+
+        return solution.GetRazorDocumentUri(razorCodeDocument);
+    }
 }

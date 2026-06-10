@@ -25,7 +25,7 @@ internal static class IDocumentMappingServiceExtensions
         LinePositionSpan generatedDocumentRange,
         CancellationToken cancellationToken)
     {
-        if (service is RemoteDocumentMappingService remoteService)
+        if (service is DocumentMappingService remoteService)
         {
             return remoteService.MapToHostDocumentUriAndRangeAsync(originSnapshot, generatedDocumentUri, generatedDocumentRange, cancellationToken);
         }
