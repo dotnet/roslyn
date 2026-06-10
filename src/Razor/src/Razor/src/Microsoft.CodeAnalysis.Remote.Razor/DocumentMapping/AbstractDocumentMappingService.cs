@@ -8,11 +8,12 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
+namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocumentMappingService
 {

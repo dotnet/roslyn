@@ -4,11 +4,12 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
+namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 internal static class IRazorEditServiceExtensions
 {

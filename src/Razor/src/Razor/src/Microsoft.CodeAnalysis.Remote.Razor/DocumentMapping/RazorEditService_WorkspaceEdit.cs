@@ -10,9 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
+namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 internal partial class RazorEditService
 {

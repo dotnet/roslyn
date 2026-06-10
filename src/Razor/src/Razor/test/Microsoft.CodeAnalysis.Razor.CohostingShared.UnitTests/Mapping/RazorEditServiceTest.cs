@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -2030,13 +2031,15 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         var snapshot = TestDocumentSnapshot.Create(razorPath, codeDocument);
 
         var responseTextChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(
-            changes,
+            changes.SelectAsArray(static c => c.ToRazorTextChange()),
             snapshot,
+            includeCSharpLanguageFeatureEdits: true,
+            directlyMappedEditFilter: null,
             CancellationToken.None);
 
         Assert.NotEmpty(responseTextChanges);
 
-        var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges);
+        var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges.SelectAsArray(static c => c.ToTextChange()));
         AssertEx.EqualOrDiff(expectedRazorSource, newRazorSourceText.ToString());
     }
 
