@@ -32,16 +32,6 @@
         <target state="translated">Blazor 지시문 특성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">다음 이후 진단:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">다음 이전 진단:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
         <target state="translated">지시문</target>
@@ -52,31 +42,6 @@
 [Tab] to navigate between elements, [Enter] to complete</source>
         <target state="translated">지시문 코드 조각 삽입
 요소 간에 탐색하려면 [Tab], 완료하려면 [Enter]</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">{0}에서 편집은 공백이 아닌 콘텐츠 '{1}'을(를) 추가합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">{0}에서 편집은 공백이 아닌 콘텐츠 '{1}'을(를) 삭제합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="translated">서식 작업이 중단되는 이유는 진단 중 하나를 더 도입하거나 제거할 수 있기 때문입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">공백이 아닌 콘텐츠를 추가하거나 삭제하기 때문에 형식 작업이 중단됩니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">서식 오류입니다. 파일이 손상되지 않도록 추가 작업을 중단합니다. 이 문제를 보고하세요. 참조: https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
