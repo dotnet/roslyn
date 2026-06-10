@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool INamedTypeSymbol.IsClosed => UnderlyingNamedTypeSymbol.IsClosed;
 
-        ClosedSubtypeInfo INamedTypeSymbol.GetClosedSubtypes(CancellationToken cancellationToken)
+        ClosedDerivedTypeInfo INamedTypeSymbol.GetClosedDerivedTypes(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 throw new InvalidOperationException();
 
             var isComplete = UnderlyingNamedTypeSymbol.TryGetClosedSubtypes(out var subtypes);
-            return new ClosedSubtypeInfo(subtypes.GetPublicSymbols(), isComplete);
+            return new ClosedDerivedTypeInfo(subtypes.GetPublicSymbols(), isComplete);
         }
 
         INamedTypeSymbol INamedTypeSymbol.NativeIntegerUnderlyingType => UnderlyingNamedTypeSymbol.NativeIntegerUnderlyingType.GetPublicSymbol();

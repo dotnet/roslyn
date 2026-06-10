@@ -132,6 +132,6 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
     public IParameterSymbol ExtensionParameter => null;
 
     public bool IsClosed => Modifiers.IsClosed;
-    public ClosedSubtypeInfo GetClosedSubtypes(CancellationToken cancellationToken) => throw new NotImplementedException();
+    public ClosedDerivedTypeInfo GetClosedDerivedTypes(CancellationToken cancellationToken) => throw new NotImplementedException();
 #endif
 }

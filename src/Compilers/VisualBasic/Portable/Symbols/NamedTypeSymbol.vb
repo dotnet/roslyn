@@ -1458,7 +1458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function INamedTypeSymbol_GetClosedSubtypes(cancellationToken As CancellationToken) As ClosedSubtypeInfo Implements INamedTypeSymbol.GetClosedSubtypes
+        Private Function INamedTypeSymbol_GetClosedDerivedTypes(cancellationToken As CancellationToken) As ClosedDerivedTypeInfo Implements INamedTypeSymbol.GetClosedDerivedTypes
             Throw New InvalidOperationException()
         End Function
 

@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis
         bool IsClosed { get; }
 
         /// <summary>
-        /// Gets the subtypes of a closed type.
+        /// Gets the derived types of a closed type.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If this is not a closed type.</exception>
         [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
-        ClosedSubtypeInfo GetClosedSubtypes(CancellationToken cancellationToken);
+        ClosedDerivedTypeInfo GetClosedDerivedTypes(CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns collection of names of members declared within this type.

@@ -11,23 +11,23 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
-    public readonly struct ClosedSubtypeInfo
+    public readonly struct ClosedDerivedTypeInfo
     {
         /// <summary>
         /// Possible direct subtypes of the closed type.
         /// </summary>
-        public ImmutableArray<INamedTypeSymbol> ClosedSubtypes { get; }
+        public ImmutableArray<INamedTypeSymbol> ClosedDerivedTypes { get; }
 
         /// <summary>
-        /// Indicates whether <see cref="ClosedSubtypes" /> represents all possible subtypes (i.e. it is a complete set).
-        /// This will be false, for example, when a generic closed type has an unspeakable subtype.
+        /// Indicates whether <see cref="ClosedDerivedTypes" /> represents all possible derived types (i.e. it is a complete set).
+        /// This will be false, for example, when a generic closed type has an unspeakable derived type.
         /// </summary>
         public bool IsComplete { get; }
 
-        internal ClosedSubtypeInfo(ImmutableArray<INamedTypeSymbol> closedSubtypes, bool isComplete)
+        internal ClosedDerivedTypeInfo(ImmutableArray<INamedTypeSymbol> closedDerivedTypes, bool isComplete)
         {
-            Debug.Assert(!closedSubtypes.IsDefault);
-            ClosedSubtypes = closedSubtypes;
+            Debug.Assert(!closedDerivedTypes.IsDefault);
+            ClosedDerivedTypes = closedDerivedTypes;
             IsComplete = isComplete;
         }
     }

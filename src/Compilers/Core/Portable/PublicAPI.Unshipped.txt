@@ -1,10 +1,10 @@
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha384 = 3 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedSubtypeInfo
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedSubtypeInfo.ClosedSubtypeInfo() -> void
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedSubtypeInfo.ClosedSubtypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedSubtypeInfo.IsComplete.get -> bool
-[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.INamedTypeSymbol.GetClosedSubtypes(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ClosedSubtypeInfo
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypeInfo() -> void
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.IsComplete.get -> bool
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.INamedTypeSymbol.GetClosedDerivedTypes(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.INamedTypeSymbol.IsClosed.get -> bool
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.OperationKind.CollectionExpressionElementsPlaceholder = 129 -> Microsoft.CodeAnalysis.OperationKind
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
