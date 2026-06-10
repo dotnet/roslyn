@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 cancellationToken: default);
 
             await serverTask;
-            Assert.True(response is CannotConnectResponse);
+            Assert.True(response is RejectedBuildResponse);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/13844")]
