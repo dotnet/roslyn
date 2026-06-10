@@ -22,11 +22,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtocolTests, IDisposable
 {
     private readonly TestOutputLoggerProvider _loggerProvider;
+    private readonly ILoggerFactory _loggerFactory;
     protected readonly TempRoot TempRoot;
 
     public AbstractLspMiscellaneousFilesWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
         _loggerProvider = new TestOutputLoggerProvider(testOutputHelper);
+        _loggerFactory = new LoggerFactory([_loggerProvider]);
         TempRoot = new();
     }
 
@@ -34,12 +36,13 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
     {
         TempRoot.Dispose();
         _loggerProvider.Dispose();
+        _loggerFactory.Dispose();
     }
 
     protected override ValueTask<ExportProvider> CreateExportProviderAsync()
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
-        return new(LanguageServerTestComposition.GetSharedExportProvider(AbstractLanguageServerHostTests.DefaultServerConfiguration, new LoggerFactory([_loggerProvider])));
+        return new(LanguageServerTestComposition.GetSharedExportProvider(AbstractLanguageServerHostTests.DefaultServerConfiguration, _loggerFactory));
     }
 
     private protected Workspace GetHostWorkspace(TestLspServer testLspServer)

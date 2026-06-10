@@ -39,7 +39,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     protected override ValueTask<ExportProvider> CreateExportProviderAsync()
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
-        return new(LanguageServerTestComposition.GetSharedExportProvider(AbstractLanguageServerHostTests.DefaultServerConfiguration, new LoggerFactory([_loggerProvider])));
+        return new(LanguageServerTestComposition.GetSharedExportProvider(AbstractLanguageServerHostTests.DefaultServerConfiguration, _loggerFactory));
     }
 
     public void Dispose()

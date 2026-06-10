@@ -168,7 +168,7 @@ public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelpe
 
     private void AssertCachedCompositionCountEquals(int expectedCount)
     {
-        var mefCompositions = Directory.EnumerateFiles(MefCachedDirectory.Path, "*.mef-composition", SearchOption.AllDirectories);
+        var mefCompositions = Directory.EnumerateFiles(MefCacheDirectory.Path, "*.mef-composition", SearchOption.AllDirectories);
 
         Assert.Equal(expectedCount, mefCompositions.Count());
     }

@@ -64,9 +64,6 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         // a partial catalog that will surely blow up later.
         assemblyPathsBuilder.AddRange(FindMefAssemblies(baseDirectory));
 
-        // The Razor extension ships with Roslyn and so needs to be in our MEF composition
-        assemblyPathsBuilder.Add(Path.Combine(baseDirectory, "Microsoft.VisualStudioCode.RazorExtension.dll"));
-
         // DevKit assemblies are not shipped in the main language server folder
         // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
         // So manually add them to the MEF catalog here.

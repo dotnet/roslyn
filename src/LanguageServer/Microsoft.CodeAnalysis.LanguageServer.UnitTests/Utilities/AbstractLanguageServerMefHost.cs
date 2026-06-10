@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 /// </summary>
 public abstract class AbstractLanguageServerMefHost : AbstractLanguageServerHostTests
 {
-    protected readonly TempDirectory MefCachedDirectory;
+    protected readonly TempDirectory MefCacheDirectory;
 
     protected AbstractLanguageServerMefHost(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
-        MefCachedDirectory = TempRoot.CreateDirectory();
+        MefCacheDirectory = TempRoot.CreateDirectory();
     }
 
     private protected override Task<ExportProvider> CreateExportProviderAsync(
@@ -30,6 +30,6 @@ public abstract class AbstractLanguageServerMefHost : AbstractLanguageServerHost
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader)
     {
-        return LanguageServerTestComposition.CreateLanguageServerExportProviderAsync(serverConfiguration, loggerFactory, extensionManager, assemblyLoader, MefCachedDirectory.Path);
+        return LanguageServerTestComposition.CreateLanguageServerExportProviderAsync(serverConfiguration, loggerFactory, extensionManager, assemblyLoader, MefCacheDirectory.Path);
     }
 }
