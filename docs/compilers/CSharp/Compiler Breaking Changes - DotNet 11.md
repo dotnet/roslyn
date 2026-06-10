@@ -264,3 +264,29 @@ class C
     @safe M2() => new safe(); // workaround
 }
 ```
+
+## `unsafe` required for more members
+
+***Introduced in Visual Studio 2026 version 18.9***
+
+Previously, C# compiler did not report errors for calling some members with pointers even outside the `unsafe` context.
+This has been fixed under `langversion:preview`.
+For example:
+
+```cs
+var c = new C();
+int a = c.M(null); // error always
+int b = c[null]; // error previously missing
+
+class C
+{
+    public unsafe int M(int* x) => 0;
+    public unsafe int this[int* x] => 0;
+}
+```
+
+To fix the violations, use the `unsafe` block or expression, for example:
+
+```cs
+int b = unsafe(c[null]);
+```
