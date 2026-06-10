@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     public readonly struct ClosedSubtypeInfo
     {
         /// <summary>
-        /// Possible subtypes of the closed type.
+        /// Possible direct subtypes of the closed type.
         /// </summary>
         public ImmutableArray<INamedTypeSymbol> ClosedSubtypes { get; }
 
@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ClosedSubtypeInfo(ImmutableArray<INamedTypeSymbol> closedSubtypes, bool isComplete)
         {
+            Debug.Assert(!closedSubtypes.IsDefault);
             ClosedSubtypes = closedSubtypes;
             IsComplete = isComplete;
         }
