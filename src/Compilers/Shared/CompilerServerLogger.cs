@@ -56,20 +56,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Log an exception. Also logs information about inner exceptions.
         /// </summary>
-        internal static void LogException(this ICompilerServerLogger logger, Exception exception, string reason, bool nonFatal = false)
+        internal static void LogException(this ICompilerServerLogger logger, Exception exception, string reason)
         {
             if (!logger.IsLogging)
             {
                 return;
             }
 
-            var prefix = nonFatal ? "Exception: " : "Error: ";
             var builder = new StringBuilder();
-            if (!nonFatal)
-            {
-                builder.Append("Error ");
-            }
-
             AppendException(exception);
 
             int innerExceptionLevel = 0;
@@ -84,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             logger.Log(builder.ToString());
 
-            void AppendException(Exception ex)
+            void AppendException(Exception exception)
             {
-                builder.AppendLine($"{prefix}'{ex.GetType().Name}' '{ex.Message}' occurred during '{reason}'");
+                builder.AppendLine($"Exception: '{exception.GetType().Name}' '{exception.Message}' occurred during '{reason}'");
                 builder.AppendLine("Stack trace:");
-                builder.AppendLine(ex.StackTrace);
+                builder.AppendLine(exception.StackTrace);
             }
         }
     }

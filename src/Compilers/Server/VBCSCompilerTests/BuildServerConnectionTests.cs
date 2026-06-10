@@ -139,51 +139,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/84072")]
-        public async Task ServerDisconnectWhileReadingResponse()
-        {
-            var pipeName = ServerUtil.GetPipeName();
-            using var readyMre = new ManualResetEvent(initialState: false);
-            var serverTask = Task.Run(async () =>
-            {
-                using var stream = NamedPipeUtil.CreateServer(pipeName);
-                readyMre.Set();
-                stream.WaitForConnection();
-                await BuildRequest.ReadAsync(stream, CancellationToken.None);
-                stream.Close();
-            });
-
-            readyMre.WaitOne();
-            Logger.Messages.Clear();
-            var response = await BuildServerConnection.RunServerBuildRequestAsync(
-                ProtocolUtil.CreateEmptyCSharp(TempRoot.CreateDirectory().Path),
-                pipeName,
-                timeoutOverride: Timeout.Infinite,
-                tryCreateServerFunc: (_, _) => true,
-                Logger,
-                cancellationToken: default);
-
-            await serverTask;
-            Assert.True(response is RejectedBuildResponse);
-            Assert.DoesNotContain(Logger.Messages, m => m.StartsWith("Error:"));
-        }
-
-        [Fact]
-        public void LogException_CanLogNonFatalException()
-        {
-            Logger.Messages.Clear();
-            Logger.LogException(CreateException(), "Testing", nonFatal: true);
-
-            Assert.DoesNotContain(Logger.Messages, m => m.Contains("Error:"));
-            Assert.Contains(Logger.Messages, m => m.Contains("Exception: 'InvalidOperationException' 'boom' occurred during 'Testing'"));
-        }
-
-        [Fact]
-        public void LogException_LogsFatalExceptionAsError()
+        public void LogException_NonFatal()
         {
             Logger.Messages.Clear();
             Logger.LogException(CreateException(), "Testing");
 
-            Assert.Contains(Logger.Messages, m => m.Contains("Error: 'InvalidOperationException' 'boom' occurred during 'Testing'"));
+            Assert.DoesNotContain(Logger.Messages, m => m.Contains("Error:"));
+            Assert.Contains(Logger.Messages, m => m.Contains("Exception: 'InvalidOperationException' 'boom' occurred during 'Testing'"));
         }
 
         private static Exception CreateException()

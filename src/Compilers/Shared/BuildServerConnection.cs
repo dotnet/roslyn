@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 catch (Exception e)
                 {
-                    logger.LogException(e, $"Error writing build request for {request.RequestId}", nonFatal: true);
+                    logger.LogException(e, $"Error writing build request for {request.RequestId}");
                     return new RejectedBuildResponse($"Error writing build request: {e.Message}");
                 }
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
                     catch (Exception e)
                     {
-                        logger.LogException(e, $"Reading response for {request.RequestId}", nonFatal: true);
+                        logger.LogException(e, $"Reading response for {request.RequestId}");
                         response = new RejectedBuildResponse($"Error reading response: {e.Message}");
                     }
                 }
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // IOException: The server is connected to another client and the
                     //              time-out period has expired.
 
-                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms", nonFatal: true);
+                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
                     pipeStream.Dispose();
                     return null;
                 }
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
-                logger.LogException(e, "Exception while connecting to process", nonFatal: true);
+                logger.LogException(e, "Exception while connecting to process");
                 pipeStream?.Dispose();
                 return null;
             }
