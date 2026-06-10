@@ -1522,6 +1522,16 @@
         <target state="translated">“{0}”不包含“{1}”的定义，且找不到任何可访问的扩展方法“{1}”，其中该方法接受类型为“{0}”的第一个参数(是否想用 "await foreach" 来循环访问异步集合?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
         <target state="translated">无法通过隐式引用或装箱转换将类型 "{0}" 转换为 "object"</target>
@@ -3045,6 +3055,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">"nameof" 中的实例成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="new">labeled break and continue</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
