@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/84076")]
         public async Task ServerDisconnectWhileReadingResponse()
         {
             var pipeName = ServerUtil.GetPipeName();
@@ -152,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             });
 
             readyMre.WaitOne();
+            Logger.Messages.Clear();
             var response = await BuildServerConnection.RunServerBuildRequestAsync(
                 ProtocolUtil.CreateEmptyCSharp(TempRoot.CreateDirectory().Path),
                 pipeName,
@@ -162,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             await serverTask;
             Assert.True(response is RejectedBuildResponse);
+            Assert.DoesNotContain(Logger.Messages, m => m.StartsWith("Error:"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/13844")]
