@@ -20082,10 +20082,17 @@ unsafe static class E
             // D d = object.M;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "object.M").WithLocation(1, 7));
 
+        DiagnosticDescription[] expectedPreviewDiagnostics =
+        [
+            // (1,7): error CS9363: 'E.extension(object).M()' must be used in an unsafe context because it has pointers in its signature
+            // D d = object.M;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "object.M").WithArguments("E.extension(object).M()").WithLocation(1, 7),
+        ];
+
         comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
     }
 
     [Fact]

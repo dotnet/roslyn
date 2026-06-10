@@ -11139,8 +11139,15 @@ unsafe struct S<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.Field").WithLocation(3, 5)
             );
 
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (3,5): error CS9363: 'S<int>.Field' must be used in an unsafe context because it has pointers in its signature
+                // _ = c.Field is null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.Field").WithArguments("S<int>.Field").WithLocation(3, 5),
+            };
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
         #endregion Pointer comparison tests

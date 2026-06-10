@@ -11725,8 +11725,15 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default").WithLocation(11, 4)
                 );
 
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (11,2): error CS9363: 'A.A(B<delegate*<void>[]>.E)' must be used in an unsafe context because it has pointers in its signature
+                // [A(default)]
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "A(default)").WithArguments("A.A(B<delegate*<void>[]>.E)").WithLocation(11, 2),
+            };
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11786,10 +11793,20 @@ class C<T> {}
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = default)]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default)").WithLocation(11, 2));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,4): error CS9363: 'A.P.set' must be used in an unsafe context because it has pointers in its signature
+                // [A(P = default)]
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "P = default").WithArguments("A.P.set").WithLocation(11, 4),
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
