@@ -10,8 +10,6 @@
 Param(
   # Standard options
   [string]$configuration = "",
-  [string]$branchName = "",
-  [string]$releaseName = "",
   [switch]$test,
   [switch]$prValidation,
 
@@ -38,27 +36,9 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     # Retrieve the feed name to source mapping.
     $feedData = GetFeedPublishData
     
-    # Let packageFeeds default to the default set of feeds
-    $packageFeeds = "default"
-    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
-      $packageFeeds = $publishData.packageFeeds
-    }
-
-    # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
-    if ($packageFeeds.equals("arcade") -and -not $prValidation) {
-      Write-Host "    Skipping publishing for all packages as they will be published by arcade"
-      continue
-    }
-
-    # Let packageFeeds default to the default set of feeds
-    $packageFeeds = "default"
-    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
-      $packageFeeds = $publishData.packageFeeds
-    }
-
     # Each branch stores the name of the package to feed map it should use.
     # Retrieve the correct map for this particular branch.
-    $packagesData = GetPackagesPublishData $packageFeeds
+    $packagesData = GetPackagesPublishData
 
     foreach ($package in Get-ChildItem *.nupkg) {
       Write-Host ""
@@ -117,19 +97,17 @@ function Publish-Nuget($publishData, [string]$packageDir) {
 }
 
 # Do basic verification on the values provided in the publish configuration
-function Test-Entry($publishData, [switch]$isBranch) {
-  if ($isBranch) {
-    foreach ($nugetKind in $publishData.nugetKind) {
-      if ($nugetKind -ne "PerBuildPreRelease" -and $nugetKind -ne "Shipping" -and $nugetKind -ne "NonShipping") {
-                    throw "Branches are only allowed to publish Shipping, NonShipping, or PerBuildPreRelease"
-      }
+function Test-Entry($publishData) {
+  foreach ($nugetKind in $publishData.nugetKind) {
+    if ($nugetKind -ne "PerBuildPreRelease" -and $nugetKind -ne "Shipping" -and $nugetKind -ne "NonShipping") {
+                  throw "Branches are only allowed to publish Shipping, NonShipping, or PerBuildPreRelease"
     }
   }
 }
 
 # Publish a given entry: branch or release.
-function Publish-Entry($publishData, [switch]$isBranch) {
-  Test-Entry $publishData -isBranch:$isBranch
+function Publish-Entry($publishData) {
+  Test-Entry $publishData
 
   # First publish the NuGet packages to the specified feeds
   foreach ($nugetKind in $publishData.nugetKind) {
@@ -149,33 +127,9 @@ try {
 
   $dotnet = Ensure-DotnetSdk
 
-  if ($branchName -ne "" -and $releaseName -ne "") {
-    Write-Host "Can only specify -branchName or -releaseName, not both"
-    exit 1
-  }
+  $data = GetBranchPublishData
 
-  if ($branchName -ne "") {
-    $data = GetBranchPublishData $branchName
-    if ($data -eq $null) {
-      Write-Host "Branch $branchName not listed for publishing."
-      exit 0
-    }
-
-    Publish-Entry $data -isBranch:$true
-  }
-  elseif ($releaseName -ne "") {
-    $data = GetReleasePublishData $releaseName
-    if ($data -eq $null) {
-      Write-Host "Release $releaseName not listed for publishing."
-      exit 1
-    }
-
-    Publish-Entry $data -isBranch:$false
-  }
-  else {
-    Write-Host "Need to specify -branchName or -releaseName"
-    exit 1
-  }
+  Publish-Entry $data
 }
 catch {
   Write-Host $_
