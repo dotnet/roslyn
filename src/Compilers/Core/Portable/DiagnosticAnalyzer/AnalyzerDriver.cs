@@ -2568,11 +2568,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _ = ArrayBuilder<DeclarationInfo>.GetInstance(out var builder);
-            SyntaxNode declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
-            SyntaxNode topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
-            ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
-            ImmutableArray<DeclarationInfo> declarationInfos = builder.ToImmutableAndClear();
+            SyntaxNode declaringReferenceSyntax;
+            SyntaxNode topmostNodeForAnalysis;
+            ImmutableArray<DeclarationInfo> declarationInfos;
+            using (ArrayBuilder<DeclarationInfo>.GetInstance(out var builder))
+            {
+                declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
+                topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
+                ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
+                declarationInfos = builder.ToImmutableAndClear();
+            }
 
             bool isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
             var data = new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, isPartialDeclAnalysis);
