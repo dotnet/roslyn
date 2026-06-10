@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
+namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 /// <summary>
 /// A projection strategy that, when given a position that occurs anywhere in an attribute name, will return the projection

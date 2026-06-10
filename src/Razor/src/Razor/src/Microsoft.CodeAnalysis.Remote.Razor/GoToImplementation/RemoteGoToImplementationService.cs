@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;

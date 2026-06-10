@@ -3,9 +3,10 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
-namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
+namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 // The main reason for this service is auto-insert of empty double quotes when a user types
 // equals "=" after Blazor component attribute. We think this is C# (correctly I guess)
