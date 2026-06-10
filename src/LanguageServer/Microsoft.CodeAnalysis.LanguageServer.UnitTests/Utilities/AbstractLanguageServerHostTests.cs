@@ -148,13 +148,17 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         internal T GetRequiredLspService<T>() where T : class
         {
-            T? result = null;
-            _connectionManager.ForEachStartedServer(server =>
+            var servers = _connectionManager.GetStartedServers();
+            Contract.ThrowIfTrue(servers.IsEmpty, "No started servers found.");
+
+            foreach (var server in servers)
             {
-                result = server.GetLspServices().GetRequiredService<T>();
-                return true;
-            });
-            return result ?? throw new InvalidOperationException("No started server found.");
+                var result = server.GetLspServices().GetRequiredService<T>();
+                if (result is not null)
+                    return result;
+            }
+
+            throw new InvalidOperationException($"No started servers contain the requested service of type {typeof(T).FullName}.");
         }
 
         public async ValueTask DisposeAsync()

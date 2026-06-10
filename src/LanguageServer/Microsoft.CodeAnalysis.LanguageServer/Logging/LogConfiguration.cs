@@ -8,20 +8,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LogConfiguration
 {
-    private int _currentLogLevel;
+    private LogLevel _currentLogLevel;
+
+    public LogLevel LogLevel => _currentLogLevel;
 
     public LogConfiguration(LogLevel initialLogLevel)
     {
-        _currentLogLevel = (int)(initialLogLevel);
+        _currentLogLevel = initialLogLevel;
     }
 
     public void UpdateLogLevel(LogLevel level)
     {
-        Interlocked.Exchange(ref _currentLogLevel, (int)level);
-    }
-
-    public LogLevel GetLogLevel()
-    {
-        return (LogLevel)_currentLogLevel;
+        Interlocked.Exchange(ref _currentLogLevel, level);
     }
 }

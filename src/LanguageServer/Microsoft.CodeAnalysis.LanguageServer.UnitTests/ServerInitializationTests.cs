@@ -117,7 +117,7 @@ public sealed class ServerInitializationTests : AbstractLanguageServerHostTests
 
         async Task WaitForLogLevelUpdate(TestLspServer server, LogLevel newLevel)
         {
-            while (!server.GetRequiredLspService<LspLoggerFactory>().LogConfiguration.GetLogLevel().Equals(newLevel))
+            while (!server.GetRequiredLspService<LspLoggerFactory>().LogConfiguration.LogLevel.Equals(newLevel))
             {
                 await Task.Delay(50);
             }

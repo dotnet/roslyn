@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -45,35 +46,31 @@ internal sealed class LanguageServerConnectionManager
         }
     }
 
-    public bool ForEachStartedServer(Func<LanguageServerHost, bool> action)
+    public ImmutableArray<LanguageServerHost> GetStartedServers()
     {
-        var startedServers = GetStartedServers();
-
-        foreach (var server in startedServers)
+        lock (_gate)
         {
-            if (!action(server))
-                break;
-        }
+            var builder = ImmutableArray.CreateBuilder<LanguageServerHost>();
 
-        return !startedServers.IsEmpty;
+            return _servers.Where(entry => entry.Server is { HasStarted: true }).SelectAsArray(entry => entry.Server!);
+        }
     }
 
     public async Task WaitForExitAsync()
     {
         while (true)
         {
-            Task[] serverExitTasks;
+            Task exitTask;
 
             lock (_gate)
             {
                 if (_servers.IsEmpty)
                     return;
 
-                serverExitTasks = [.. _servers.Select(static entry => entry.Exited.Task)];
+                exitTask = _servers[0].Exited.Task;
             }
 
-            var completedTask = await Task.WhenAny(serverExitTasks).ConfigureAwait(false);
-            await completedTask.ConfigureAwait(false);
+            await exitTask.ConfigureAwait(false);
         }
     }
 
@@ -91,22 +88,6 @@ internal sealed class LanguageServerConnectionManager
         {
             Unregister(entry);
             entry.Exited.TrySetException(ex);
-        }
-    }
-
-    private ImmutableArray<LanguageServerHost> GetStartedServers()
-    {
-        lock (_gate)
-        {
-            var builder = ImmutableArray.CreateBuilder<LanguageServerHost>();
-
-            foreach (var entry in _servers)
-            {
-                if (entry.Server is { HasStarted: true } server)
-                    builder.Add(server);
-            }
-
-            return builder.ToImmutable();
         }
     }
 

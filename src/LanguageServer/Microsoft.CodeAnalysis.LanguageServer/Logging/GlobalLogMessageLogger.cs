@@ -25,53 +25,55 @@ internal sealed class GlobalLogMessageLogger(
     public bool IsEnabled(LogLevel logLevel)
     {
         var enabled = false;
-        var hasStartedServer = connectionManager.ForEachStartedServer(server =>
+        var servers = connectionManager.GetStartedServers();
+        if (servers.IsEmpty)
+        {
+            // If there are no started servers, then we should use the fallback logger's log level to determine if logging is enabled.
+            return fallbackLogConfiguration.LogLevel <= logLevel;
+        }
+
+        foreach (var server in connectionManager.GetStartedServers())
         {
             try
             {
                 if (server.GlobalLogger.IsEnabled(logLevel))
                 {
                     enabled = true;
-                    return false;
+                    break;
                 }
             }
             catch (ObjectDisposedException)
             {
             }
+        }
 
-            return true;
-        });
-
-        return hasStartedServer
-            ? enabled
-            : fallbackLogConfiguration.GetLogLevel() <= logLevel;
+        return enabled;
     }
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        if (!IsEnabled(logLevel) || logLevel == LogLevel.None)
+        if (logLevel == LogLevel.None || !IsEnabled(logLevel))
         {
             return;
         }
 
-        var logged = false;
-        connectionManager.ForEachStartedServer(server =>
+        var servers = connectionManager.GetStartedServers();
+        if (servers.IsEmpty)
+        {
+            // If there are no started servers, then we should log to the fallback logger.
+            _fallbackLogger.Value.Log(logLevel, eventId, state, exception, formatter);
+            return;
+        }
+
+        foreach (var server in connectionManager.GetStartedServers())
         {
             try
             {
                 server.GlobalLogger.Log(logLevel, eventId, state, exception, formatter);
-                logged = true;
             }
             catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
             {
             }
-
-            return true;
-        });
-
-        if (logged)
-            return;
-
-        _fallbackLogger.Value.Log(logLevel, eventId, state, exception, formatter);
+        }
     }
 }

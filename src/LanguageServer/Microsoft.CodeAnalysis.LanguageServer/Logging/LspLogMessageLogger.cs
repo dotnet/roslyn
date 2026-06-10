@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 /// <summary>
 /// Implements an <see cref="ILogger"/> that sends log messages to the client via LSP's window/logMessage notification.
 /// </summary>
-internal sealed partial class LspLogMessageLogger(
+internal sealed class LspLogMessageLogger(
     string categoryName,
     IClientLanguageServerManager clientLanguageServerManager,
     LogConfiguration logConfiguration,
@@ -21,7 +21,7 @@ internal sealed partial class LspLogMessageLogger(
     private readonly IExternalScopeProvider? _externalScopeProvider = externalScopeProvider;
 
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => _externalScopeProvider?.Push(state);
-    public bool IsEnabled(LogLevel logLevel) => logConfiguration.GetLogLevel() <= logLevel;
+    public bool IsEnabled(LogLevel logLevel) => logConfiguration.LogLevel <= logLevel;
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {

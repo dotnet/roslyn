@@ -170,7 +170,7 @@ internal sealed class RunTestsHandler(TestDiscoverer testDiscoverer, TestRunner 
 
     private static TraceLevel GetTraceLevel(LogConfiguration logConfiguration)
     {
-        var level = logConfiguration.GetLogLevel();
+        var level = logConfiguration.LogLevel;
         return level switch
         {
             Microsoft.Extensions.Logging.LogLevel.Trace or Microsoft.Extensions.Logging.LogLevel.Debug => TraceLevel.Verbose,
