@@ -229,6 +229,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             var d1 = subtypeInfo.ClosedSubtypes[0];
             Assert.False(d1.IsClosed);
             Assert.Throws<InvalidOperationException>(() => d1.GetClosedSubtypes(CancellationToken.None));
+
+            var source = new CancellationTokenSource();
+            source.Cancel();
+            Assert.Throws<OperationCanceledException>(() => classC.GetClosedSubtypes(source.Token));
         }
     }
 
