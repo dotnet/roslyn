@@ -3,17 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public sealed class ServerInitializationTests : AbstractLanguageServerHostTests
+/// <summary>
+/// Test using <see cref="AbstractLanguageServerMefHost"/> to ensure server initialization works correctly
+/// with the real MEF export provider and composition logic. 
+/// </summary>
+public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerMefHost(testOutputHelper)
 {
-    public ServerInitializationTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
     [Fact]
     public async Task TestServerHandlesTextSyncRequestsAsync()
     {

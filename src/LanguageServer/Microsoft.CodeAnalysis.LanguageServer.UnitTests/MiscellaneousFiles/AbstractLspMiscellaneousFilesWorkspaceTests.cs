@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,16 +22,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtocolTests, IDisposable
 {
     private readonly TestOutputLoggerProvider _loggerProvider;
-    private readonly ILoggerFactory _loggerFactory;
-    private readonly TempDirectory _mefCacheDirectory;
     protected readonly TempRoot TempRoot;
 
     public AbstractLspMiscellaneousFilesWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
         _loggerProvider = new TestOutputLoggerProvider(testOutputHelper);
-        _loggerFactory = new LoggerFactory([_loggerProvider]);
         TempRoot = new();
-        _mefCacheDirectory = TempRoot.CreateDirectory();
     }
 
     public void Dispose()
@@ -39,17 +36,10 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         _loggerProvider.Dispose();
     }
 
-    protected override async ValueTask<ExportProvider> CreateExportProviderAsync()
+    protected override ValueTask<ExportProvider> CreateExportProviderAsync()
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
-
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            _loggerFactory,
-            includeDevKitComponents: false,
-            cacheDirectory: _mefCacheDirectory.Path,
-            extensionPaths: []);
-
-        return exportProvider;
+        return new(LanguageServerTestComposition.GetSharedExportProvider(AbstractLanguageServerHostTests.DefaultServerConfiguration, new LoggerFactory([_loggerProvider])));
     }
 
     private protected Workspace GetHostWorkspace(TestLspServer testLspServer)

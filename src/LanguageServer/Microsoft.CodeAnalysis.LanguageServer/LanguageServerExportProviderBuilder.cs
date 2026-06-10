@@ -20,7 +20,13 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
     // For testing purposes, track the last cache write task.
     private static Task? s_cacheWriteTask_forTestingPurposesOnly;
 
-    private static readonly FrozenSet<string> s_dllsToExcludeFromMef = FrozenSet.ToFrozenSet(
+    private static readonly FrozenSet<string> s_dllsToIncludeInMef = FrozenSet.ToFrozenSet(
+    [
+        // The Razor extension ships with Roslyn and so needs to be in our MEF composition.
+        "Microsoft.VisualStudioCode.RazorExtension.dll",
+    ], StringComparer.OrdinalIgnoreCase);
+
+    internal static readonly FrozenSet<string> s_dllsToExcludeFromMef = FrozenSet.ToFrozenSet(
     [
         // These DLLs are part of Razor, but should only be in their MEF composition not ours
         "Microsoft.CodeAnalysis.Razor.Workspaces.dll",
@@ -46,7 +52,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         string baseDirectory,
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader,
-        string? devKitDependencyPath,
+        ServerConfiguration serverConfiguration,
         string cacheDirectory,
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
@@ -56,8 +62,7 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
 
         // Don't catch IO exceptions as it's better to fail to build the catalog than give back
         // a partial catalog that will surely blow up later.
-        assemblyPathsBuilder.AddRange(FilterFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll"));
-        assemblyPathsBuilder.AddRange(FilterFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
+        assemblyPathsBuilder.AddRange(FilterFiles(baseDirectory));
 
         // The Razor extension ships with Roslyn and so needs to be in our MEF composition
         assemblyPathsBuilder.Add(Path.Combine(baseDirectory, "Microsoft.VisualStudioCode.RazorExtension.dll"));
@@ -65,8 +70,8 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
         // DevKit assemblies are not shipped in the main language server folder
         // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
         // So manually add them to the MEF catalog here.
-        if (devKitDependencyPath != null)
-            assemblyPathsBuilder.Add(devKitDependencyPath);
+        if (serverConfiguration.DevKitDependencyPath != null)
+            assemblyPathsBuilder.Add(serverConfiguration.DevKitDependencyPath);
 
         // Add the extension assemblies to the MEF catalog.
         assemblyPathsBuilder.AddRange(extensionManager.ExtensionAssemblyPaths);
@@ -80,21 +85,35 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
             loggerFactory);
         var exportProvider = await builder.CreateExportProviderAsync(cancellationToken);
 
-        // Also add the ExtensionAssemblyManager so it will be available for the rest of the composition.
-        exportProvider.GetExportedValue<ExtensionAssemblyManagerMefProvider>().SetMefExtensionAssemblyManager(extensionManager);
-
-        // Immediately set the logger factory, so that way it'll be available for the rest of the composition
-        exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
+        InitializeManualExports(exportProvider, extensionManager, loggerFactory, serverConfiguration);
 
         return exportProvider;
     }
 
-    private static IEnumerable<string> FilterFiles(string baseDirectory, string filter)
+    private static void InitializeManualExports(
+        ExportProvider exportProvider,
+        ExtensionAssemblyManager extensionManager,
+        ILoggerFactory loggerFactory,
+        ServerConfiguration serverConfiguration)
     {
-        foreach (var file in Directory.EnumerateFiles(baseDirectory, filter))
+        // Initialize exports that require manual setup.
+        exportProvider.GetExportedValue<ExtensionAssemblyManagerMefProvider>().SetMefExtensionAssemblyManager(extensionManager);
+        exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
+        exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
+    }
+
+    private static IEnumerable<string> FilterFiles(string baseDirectory)
+    {
+        foreach (var file in Directory.EnumerateFiles(baseDirectory, "*.dll"))
         {
-            if (!s_dllsToExcludeFromMef.Contains(Path.GetFileName(file)))
+            var fileName = Path.GetFileName(file);
+            if ((fileName.StartsWith("Microsoft.CodeAnalysis", StringComparison.OrdinalIgnoreCase) ||
+                 fileName.StartsWith("Microsoft.ServiceHub", StringComparison.OrdinalIgnoreCase) ||
+                 s_dllsToIncludeInMef.Contains(fileName)) &&
+                !s_dllsToExcludeFromMef.Contains(fileName))
+            {
                 yield return file;
+            }
         }
     }
 
@@ -139,5 +158,11 @@ internal sealed class LanguageServerExportProviderBuilder : ExportProviderBuilde
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public static Task? GetCacheWriteTask() => s_cacheWriteTask_forTestingPurposesOnly;
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+
+        public static ImmutableArray<string> FilterFiles(string baseDirectory)
+            => LanguageServerExportProviderBuilder.FilterFiles(baseDirectory).ToImmutableArray();
+
+        public static void InitializeManualExports(ExportProvider exportProvider, ExtensionAssemblyManager extensionManager, ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration)
+            => LanguageServerExportProviderBuilder.InitializeManualExports(exportProvider, extensionManager, loggerFactory, serverConfiguration);
     }
 }
