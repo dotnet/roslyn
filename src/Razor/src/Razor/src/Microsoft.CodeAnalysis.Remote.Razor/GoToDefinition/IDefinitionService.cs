@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
+namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 
 /// <summary>
 ///  Go to Definition support for Razor tag helpers (Mvc tag helpers and components).

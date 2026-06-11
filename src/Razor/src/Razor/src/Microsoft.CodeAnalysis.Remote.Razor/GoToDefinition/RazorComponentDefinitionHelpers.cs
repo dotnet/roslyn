@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -19,9 +19,7 @@ using RazorSyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
 
-namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
-
-internal sealed record BoundTagHelperResult(TagHelperDescriptor ElementDescriptor, BoundAttributeDescriptor? AttributeDescriptor);
+namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 
 internal static class RazorComponentDefinitionHelpers
 {

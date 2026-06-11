@@ -4,7 +4,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.GoToDefinition;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -13,3 +13,5 @@ internal interface ITagHelperSearchEngine
 {
     Task<LspLocation[]?> TryLocateTagHelperDefinitionsAsync(ImmutableArray<BoundTagHelperResult> boundTagHelpers, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken);
 }
+
+internal sealed record BoundTagHelperResult(TagHelperDescriptor ElementDescriptor, BoundAttributeDescriptor? AttributeDescriptor);
