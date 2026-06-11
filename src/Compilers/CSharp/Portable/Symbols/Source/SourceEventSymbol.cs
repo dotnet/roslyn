@@ -901,12 +901,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     modifyCompilation: true);
             }
 
-            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, location));
-            }
-
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();
 
             if (explicitlyImplementedEvent is object)
@@ -919,8 +913,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 PartialEventChecks(implementation, diagnostics);
             }
-
-            bool hasExplicitOrExtendedLayoutField() => AssociatedField != null && !IsStatic && (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended);
         }
 
         private void CheckExplicitImplementationAccessor(MethodSymbol? thisAccessor, MethodSymbol? otherAccessor, EventSymbol explicitlyImplementedEvent, BindingDiagnosticBag diagnostics)
@@ -980,6 +972,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberExtendedModDifference, implementation.GetFirstLocation());
             }
+        }
+
+        internal sealed override void AfterTypeMembersCompletedChecks(BindingDiagnosticBag diagnostics)
+        {
+            base.AfterTypeMembersCompletedChecks(diagnostics);
+
+            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
+            {
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
+            }
+
+            return;
+
+            bool hasExplicitOrExtendedLayoutField() => AssociatedField != null && !IsStatic && (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended);
         }
 
         internal bool IsPartial => (this.Modifiers & DeclarationModifiers.Partial) != 0;

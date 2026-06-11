@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract TypeSyntax TypeSyntax { get; }
 
-        protected abstract SyntaxTokenList ModifiersTokenList { get; }
+        internal abstract SyntaxTokenList ModifiersTokenList { get; }
 
         protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
@@ -152,12 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     ModifiersTokenList.GetModifierLocation(SyntaxKind.UnsafeKeyword, ErrorLocation),
                     modifyCompilation: true);
-            }
-
-            if (HasSafeModifier && ((ContainingType.Layout.Kind != LayoutKind.Explicit && ContainingType.Layout.Kind != LayoutKind.Extended) || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    ModifiersTokenList.GetModifierLocation(SyntaxKind.SafeKeyword, ErrorLocation));
             }
 
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
@@ -436,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected sealed override SyntaxTokenList ModifiersTokenList
+        internal sealed override SyntaxTokenList ModifiersTokenList
         {
             get
             {

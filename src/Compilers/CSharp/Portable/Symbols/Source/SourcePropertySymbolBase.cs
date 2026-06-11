@@ -1064,12 +1064,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     modifyCompilation: true);
             }
 
-            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
-            }
-
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
@@ -1096,6 +1090,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
             }
+        }
+
+        internal sealed override void AfterTypeMembersCompletedChecks(BindingDiagnosticBag diagnostics)
+        {
+            base.AfterTypeMembersCompletedChecks(diagnostics);
+
+            if (HasSafeModifier && (!(IsExtern || hasExplicitOrExtendedLayoutField()) || HasUnsafeModifier))
+            {
+                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
+                    (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.SafeKeyword, GetFirstLocation()));
+            }
+
+            return;
 
             bool hasExplicitOrExtendedLayoutField() => BackingField != null && !IsStatic && (ContainingType.Layout.Kind == LayoutKind.Explicit || ContainingType.Layout.Kind == LayoutKind.Extended);
         }
