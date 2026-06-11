@@ -84,7 +84,7 @@ public class DocumentFormattingBenchmark
         var documentMappingService = new DocumentMappingService(filePathService, snapshotManager, EmptyLoggerFactory.Instance);
         var razorEditService = new RazorEditService(documentMappingService, clientSettingsManager, filePathService, snapshotManager, NoOpTelemetryReporter.Instance);
 
-        _formattingService = new RemoteRazorFormattingService(
+        _formattingService = new RazorFormattingService(
             documentMappingService,
             razorEditService,
             hostServicesProvider,
