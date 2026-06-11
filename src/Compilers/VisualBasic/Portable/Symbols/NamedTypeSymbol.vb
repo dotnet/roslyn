@@ -1452,16 +1452,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property INamedTypeSymbol_IsClosed As Boolean Implements INamedTypeSymbol.IsClosed
-            Get
-                Return False
-            End Get
-        End Property
-
-        Private Function INamedTypeSymbol_GetClosedDerivedTypes(cancellationToken As CancellationToken) As ClosedDerivedTypeInfo Implements INamedTypeSymbol.GetClosedDerivedTypes
-            Throw New InvalidOperationException()
-        End Function
-
         Private ReadOnly Property INamedTypeSymbol_NativeIntegerUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.NativeIntegerUnderlyingType
             Get
                 Return Nothing

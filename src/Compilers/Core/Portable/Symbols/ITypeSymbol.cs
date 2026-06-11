@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -151,6 +152,19 @@ namespace Microsoft.CodeAnalysis
             [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
             get;
         }
+
+        /// <summary>
+        /// Indicates that the type is restricted from being inherited from outside its containing module.
+        /// </summary>
+        [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
+        bool IsClosed { get; }
+
+        /// <summary>
+        /// Gets the derived types of a closed type.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If this is not a closed type.</exception>
+        [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
+        ClosedDerivedTypeInfo GetClosedDerivedTypes(CancellationToken cancellationToken);
 
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.

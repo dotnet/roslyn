@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
@@ -131,7 +130,6 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
     public string ExtensionMarkerName => null;
     public IParameterSymbol ExtensionParameter => null;
 
-    public bool IsClosed => Modifiers.IsClosed;
-    public ClosedDerivedTypeInfo GetClosedDerivedTypes(CancellationToken cancellationToken) => throw new NotImplementedException();
+    public override bool IsClosed => Modifiers.IsClosed;
 #endif
 }

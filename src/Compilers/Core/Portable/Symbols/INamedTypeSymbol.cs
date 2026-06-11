@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -62,19 +61,6 @@ namespace Microsoft.CodeAnalysis
         /// Indicates the type is declared in source and is only visible in the file it is declared in.
         /// </summary>
         bool IsFileLocal { get; }
-
-        /// <summary>
-        /// Indicates that the type is restricted from being inherited from outside its containing module.
-        /// </summary>
-        [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
-        bool IsClosed { get; }
-
-        /// <summary>
-        /// Gets the derived types of a closed type.
-        /// </summary>
-        /// <exception cref="System.InvalidOperationException">If this is not a closed type.</exception>
-        [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
-        ClosedDerivedTypeInfo GetClosedDerivedTypes(CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns collection of names of members declared within this type.

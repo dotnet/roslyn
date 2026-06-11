@@ -217,7 +217,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         void verifySymbols(ModuleSymbol module)
         {
-            var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetPublicSymbol();
+            ITypeSymbol classC = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetPublicSymbol();
             Assert.True(classC.IsClosed);
             // attribute is filtered out of source and metadata symbols.
             Assert.Empty(classC.GetAttributes());
