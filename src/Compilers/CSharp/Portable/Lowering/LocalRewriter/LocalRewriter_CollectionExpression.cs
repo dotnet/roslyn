@@ -1498,7 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             assignItemFromExpression(expressionElement, dictionaryTemp, setMethod, localsBuilder, sideEffects);
                                             break;
                                         default:
-                                            throw ExceptionUtilities.UnexpectedValue(element);
+                                            throw ExceptionUtilities.UnexpectedValue(expr);
                                     }
                                     var locals = localsBuilder.ToImmutableAndFree();
                                     var statements = sideEffects.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));

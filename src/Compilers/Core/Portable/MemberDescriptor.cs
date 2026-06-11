@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
                     case MemberFlags.Constructor:
                     case MemberFlags.Method:
                     case MemberFlags.PropertyGet:
+                    case MemberFlags.PropertySet:
                     case MemberFlags.Property:
                         return Signature[0];
                     default:
