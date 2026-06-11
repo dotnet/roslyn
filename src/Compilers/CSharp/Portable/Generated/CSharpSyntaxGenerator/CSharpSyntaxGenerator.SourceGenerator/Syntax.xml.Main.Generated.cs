@@ -229,6 +229,7 @@ public partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult? VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a KeyValuePairElementSyntax node.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/84112")]
     public virtual TResult? VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
@@ -980,6 +981,7 @@ public partial class CSharpSyntaxVisitor
     public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a KeyValuePairElementSyntax node.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/84112")]
     public virtual void VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
@@ -1730,6 +1732,7 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     public override SyntaxNode? VisitSpreadElement(SpreadElementSyntax node)
         => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/84112")]
     public override SyntaxNode? VisitKeyValuePairElement(KeyValuePairElementSyntax node)
         => node.Update((ExpressionSyntax?)Visit(node.KeyExpression) ?? throw new ArgumentNullException("keyExpression"), VisitToken(node.ColonToken), (ExpressionSyntax?)Visit(node.ValueExpression) ?? throw new ArgumentNullException("valueExpression"));
 
@@ -3458,6 +3461,7 @@ public static partial class SyntaxFactory
         => SyntaxFactory.SpreadElement(SyntaxFactory.Token(SyntaxKind.DotDotToken), expression);
 
     /// <summary>Creates a new KeyValuePairElementSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/84112")]
     public static KeyValuePairElementSyntax KeyValuePairElement(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
     {
         if (keyExpression == null) throw new ArgumentNullException(nameof(keyExpression));
@@ -3467,6 +3471,7 @@ public static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new KeyValuePairElementSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/84112")]
     public static KeyValuePairElementSyntax KeyValuePairElement(ExpressionSyntax keyExpression, ExpressionSyntax valueExpression)
         => SyntaxFactory.KeyValuePairElement(keyExpression, SyntaxFactory.Token(SyntaxKind.ColonToken), valueExpression);
 
