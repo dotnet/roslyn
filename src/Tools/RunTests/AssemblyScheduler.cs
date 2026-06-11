@@ -20,13 +20,13 @@ namespace RunTests
     {
 
         /// <summary>
-        /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
+        /// The target number of work items to create when partitioning by test count.
         /// </summary>
-        private static readonly int s_maxMethodCount = 500;
+        private const int TargetWorkItemCount = 25;
 
         public static ImmutableArray<HelixWorkItem> Schedule(
             IEnumerable<string> assemblyFilePaths,
-            ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>? testHistory)
         {
             var orderedTypeInfos = assemblyFilePaths.ToImmutableSortedDictionary(x => x, GetTypeInfoList);
             ConsoleUtil.WriteLine($"Scheduling {orderedTypeInfos.Count} assemblies");
@@ -37,19 +37,41 @@ namespace RunTests
                 ConsoleUtil.WriteLine($"\tAssembly: {Path.GetFileName(kvp.Key)}, Test Type Count: {typeCount}, Test Count: {testCount}");
             }
 
-            if (testHistory.IsEmpty)
+            if (testHistory is null)
             {
-                // We didn't have any test history from azure devops, just partition by test count.
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
-                var workItemsByMethodCount = BuildWorkItems(
-                    orderedTypeInfos,
-                    getWeightFunc: static test => 1,
-                    limit: s_maxMethodCount);
-
-                LogWorkItems(workItemsByMethodCount);
-                return workItemsByMethodCount;
+                return ScheduleByCount(orderedTypeInfos);
             }
 
+            return ScheduleByTime(orderedTypeInfos, testHistory);
+        }
+
+        /// <summary>
+        /// Partition tests evenly by count into a target number of work items.
+        /// Used as a fallback when test history is unavailable.
+        /// </summary>
+        private static ImmutableArray<HelixWorkItem> ScheduleByCount(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos)
+        {
+            var totalTestCount = orderedTypeInfos.Values.Sum(types => types.Sum(t => t.Tests.Length));
+            var testsPerWorkItem = Math.Max(1, totalTestCount / TargetWorkItemCount);
+            var workItems = BuildWorkItems(
+                orderedTypeInfos,
+                getWeightFunc: static test => 1,
+                limit: testsPerWorkItem);
+
+            LogWorkItems(workItems);
+            return workItems;
+        }
+
+        /// <summary>
+        /// Partition tests by historical execution time with the goal of each work item
+        /// running under the time limit.
+        /// </summary>
+        private static ImmutableArray<HelixWorkItem> ScheduleByTime(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos,
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+        {
             LogLongTests(testHistory);
 
             // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
@@ -67,7 +89,7 @@ namespace RunTests
             return workItems;
         }
 
-        private static void LogLongTests(ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+        private static void LogLongTests(Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
             var longTests = testHistory
                 .Where(kvp => kvp.Value.Duration > HelixTestRunner.WorkItemScheduleTime)
@@ -85,7 +107,7 @@ namespace RunTests
 
         private static ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> assemblyTypes,
-            ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
             // In xUnit v2, the ExecutionTimer in TestInvoker does NOT include IAsyncLifetime
             // .InitializeAsync() or .DisposeAsync() in DurationInMs. Test base classes that

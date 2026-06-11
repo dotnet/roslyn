@@ -879,6 +879,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
             return _initializeResult.Capabilities;
         }
 
+        public LSP.InitializeResult GetInitializeResult()
+        {
+            Contract.ThrowIfNull(_initializeResult, "Initialize has not been called");
+            return _initializeResult;
+        }
+
         public async Task AssertServerShuttingDownAsync()
         {
             var queueAccessor = GetQueueAccessor()!.Value;

@@ -22,8 +22,12 @@ using DebuggerContracts = Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
+/// <summary>
+/// These tests verify specifics around LSP service MEF lifetimes and availability, so utilize the real
+/// MEF composition via <see cref="AbstractLanguageServerMefHost"/> 
+/// </summary>
 public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper)
-    : AbstractLanguageServerHostTests(testOutputHelper)
+    : AbstractLanguageServerMefHost(testOutputHelper)
 {
     private const string ServiceBrokerConnectMethodName = "serviceBroker/connect";
     private const string ServiceBrokerChannelName = "serviceBroker";

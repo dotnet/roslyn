@@ -8071,12 +8071,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (24,21): error CS9362: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe'
                 // unsafe class D2() : B();
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "B()").WithArguments("B.B()").WithLocation(24, 21),
-                // (28,5): error CS9362: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe'
-                //     unsafe public C5() { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "unsafe public C5() { }").WithArguments("B.B()").WithLocation(28, 5),
-                // (29,29): error CS9362: 'B.B()' must be used in an unsafe context because it is marked as 'unsafe'
-                //     unsafe public C5(int x) : base() { }
-                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ": base()").WithArguments("B.B()").WithLocation(29, 29),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -8113,10 +8107,38 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (6,19): error CS9362: 'C.C(int)' must be used in an unsafe context because it is marked as 'unsafe'
             //     public C(C c) : this(0) { }
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ": this(0)").WithArguments("C.C(int)").WithLocation(6, 19),
-            // (7,30): error CS9362: 'C.C(int)' must be used in an unsafe context because it is marked as 'unsafe'
-            //     unsafe public C(int[] a) : this(0) { }
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ": this(0)").WithArguments("C.C(int)").WithLocation(7, 30));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ": this(0)").WithArguments("C.C(int)").WithLocation(6, 19));
+
+        CreateCompilation([source],
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Member_Constructor_UnsafeContextInInitializer(bool updatedRules)
+    {
+        var source = """
+            class B
+            {
+                protected B(int x) { }
+            }
+            class C : B
+            {
+                C(int x) : base(*default(int*)) { }
+                unsafe C(long x) : base(*default(int*)) { }
+                C(short x) : this(*default(int*)) { }
+                unsafe C(byte x) : this(*default(int*)) { }
+            }
+            """;
+        CreateCompilation([source],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (7,21): error CS9360: This operation may only be used in an unsafe context
+            //     C(int x) : base(*default(int*)) { }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(7, 21),
+            // (9,23): error CS9360: This operation may only be used in an unsafe context
+            //     C(short x) : this(*default(int*)) { }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(9, 23));
     }
 
     [Fact]

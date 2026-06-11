@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.Extensions.Logging;
@@ -12,30 +10,57 @@ using System.IO.Pipelines;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
+[UseExportProvider]
 public abstract class AbstractLanguageServerHostTests : IDisposable
 {
     protected ITestOutputHelper TestOutputHelper { get; }
     protected ILoggerFactory LoggerFactory { get; }
     protected TempRoot TempRoot { get; }
-    protected TempDirectory MefCacheDirectory { get; }
+
+    internal static ServerConfiguration DefaultServerConfiguration => new(
+        LaunchDebugger: false,
+        InitialLogLevel: LogLevel.Trace,
+        TelemetryLevel: null,
+        SessionId: null,
+        ExtensionAssemblyPaths: Array.Empty<string>(),
+        DevKitDependencyPath: TestPaths.GetDevKitExtensionPath(),
+        CSharpDesignTimePath: null,
+        ExtensionLogDirectory: string.Empty,
+        ServerPipeName: null,
+        UseStdIo: false,
+        AutoLoadProjects: null,
+        SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
+        ClientProcessId: null);
+
+    internal static ServerConfiguration ServerConfigurationWithoutDevKit => DefaultServerConfiguration with { DevKitDependencyPath = null };
+
+    private protected virtual Task<ExportProvider> CreateExportProviderAsync(
+        ServerConfiguration serverConfiguration,
+        ILoggerFactory loggerFactory,
+        ExtensionAssemblyManager extensionManager,
+        IAssemblyLoader assemblyLoader)
+    {
+        var provider = LanguageServerTestComposition.GetSharedExportProvider(serverConfiguration, loggerFactory);
+        return Task.FromResult(provider);
+    }
 
     protected AbstractLanguageServerHostTests(ITestOutputHelper testOutputHelper)
     {
         TestOutputHelper = testOutputHelper;
         LoggerFactory = new LoggerFactory([new TestOutputLoggerProvider(testOutputHelper)]);
         TempRoot = new();
-        MefCacheDirectory = TempRoot.CreateDirectory();
     }
 
     private protected Task<TestLspServer> CreateLanguageServerAsync(
         ClientCapabilities? clientCapabilities = null,
-        bool includeDevKitComponents = true,
-        string[]? extensionPaths = null)
+        ServerConfiguration? serverConfiguration = null)
     {
-        return TestLspServer.CreateAsync(clientCapabilities ?? new ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path, includeDevKitComponents, extensionPaths, testOutputHelper: TestOutputHelper);
+        return TestLspServer.CreateAsync(clientCapabilities ?? new ClientCapabilities(), LoggerFactory, serverConfiguration ?? DefaultServerConfiguration, this);
     }
 
     public void Dispose()
@@ -50,11 +75,18 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         private readonly Pipe _clientToServerPipe;
         private readonly Pipe _serverToClientPipe;
 
-        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILoggerFactory loggerFactory, string cacheDirectory, bool includeDevKitComponents, string[]? extensionPaths, ITestOutputHelper testOutputHelper)
+        internal static async Task<TestLspServer> CreateAsync(
+            ClientCapabilities clientCapabilities,
+            ILoggerFactory loggerFactory,
+            ServerConfiguration serverConfiguration,
+            AbstractLanguageServerHostTests hostTests)
         {
-            var (exportProvider, assemblyLoader) = await LanguageServerTestComposition.CreateExportProviderAsync(
-                loggerFactory, includeDevKitComponents, cacheDirectory, extensionPaths);
-            var testLspServer = new TestLspServer(exportProvider, loggerFactory, assemblyLoader, testOutputHelper);
+            var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
+            var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
+
+            var exportProvider = await hostTests.CreateExportProviderAsync(serverConfiguration, loggerFactory, extensionManager, assemblyLoader);
+            var testLspServer = new TestLspServer(exportProvider, loggerFactory, assemblyLoader, hostTests.TestOutputHelper);
+
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
             testLspServer.ServerCapabilities = initializeResponse.Capabilities;
