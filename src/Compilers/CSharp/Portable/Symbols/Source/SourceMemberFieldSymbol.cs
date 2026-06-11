@@ -197,12 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool HasSafeModifier
-            => (Modifiers & DeclarationModifiers.Safe) != 0;
-
-        private bool HasUnsafeModifier
-            => (Modifiers & DeclarationModifiers.Unsafe) != 0;
-
         internal sealed override CallerUnsafeMode CallerUnsafeMode
         {
             get

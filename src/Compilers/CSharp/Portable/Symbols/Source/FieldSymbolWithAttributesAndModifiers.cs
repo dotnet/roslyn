@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsFixedSizeBuffer
             => (Modifiers & DeclarationModifiers.Fixed) != 0;
 
+        protected bool HasSafeModifier
+            => (Modifiers & DeclarationModifiers.Safe) != 0;
+
+        protected bool HasUnsafeModifier
+            => (Modifiers & DeclarationModifiers.Unsafe) != 0;
+
         /// <summary>
         /// Gets the attributes applied on this symbol.
         /// Returns an empty array if there are no attributes.
@@ -356,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 SourcePropertySymbolBase prop => prop.HasUnsafeModifier || prop.HasSafeModifier,
                 SourceEventSymbol evt => evt.HasUnsafeModifier || evt.HasSafeModifier,
-                null => (Modifiers & (DeclarationModifiers.Unsafe | DeclarationModifiers.Safe)) != 0,
+                null => HasUnsafeModifier || HasSafeModifier,
                 _ => throw ExceptionUtilities.UnexpectedValue(AssociatedSymbol),
             };
         }
