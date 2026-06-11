@@ -3,13 +3,12 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteRenameService : IRemoteJsonService
 {
-    ValueTask<RemoteResponse<LspRange?>> GetPrepareRenameRangeAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId documentId, Position position, CancellationToken cancellationToken);
-    ValueTask<RemoteResponse<WorkspaceEdit?>> GetRenameEditAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId documentId, Position position, string newName, CancellationToken cancellationToken);
-    ValueTask<WorkspaceEdit?> GetFileRenameEditAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, RenameFilesParams fileRenameRequest, CancellationToken cancellationToken);
+    ValueTask<RemoteResponse<LspRange?>> GetPrepareRenameRangeAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId documentId, Position position, CancellationToken cancellationToken);
+    ValueTask<RemoteResponse<WorkspaceEdit?>> GetRenameEditAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId documentId, Position position, string newName, CancellationToken cancellationToken);
+    ValueTask<WorkspaceEdit?> GetFileRenameEditAsync(JsonSerializableRazorSolutionWrapper solutionInfo, RenameFilesParams fileRenameRequest, CancellationToken cancellationToken);
 }

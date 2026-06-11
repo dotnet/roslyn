@@ -223,7 +223,23 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         }
     }
 
+    /// <summary>
+    /// Waits for the server to exit. Unlike <see cref="EnsureExitAsync"/>, this does not require
+    /// that a prior shutdown request was received - it can safely be awaited from server startup
+    /// and will simply remain incomplete until exit actually happens (either via the LSP
+    /// <c>exit</c> notification, or via the framework's JSON-RPC disconnect handling).
+    /// </summary>
     public Task WaitForExitAsync()
+    {
+        return _serverExitedSource.Task;
+    }
+
+    /// <summary>
+    /// Like <see cref="WaitForExitAsync"/>, but throws <see cref="ServerNotShutDownException"/>
+    /// if the server has not yet been asked to shut down. Useful for callers that need to assert
+    /// a prior shutdown request as part of their lifecycle contract.
+    /// </summary>
+    public Task EnsureExitAsync()
     {
         lock (_lifeCycleLock)
         {

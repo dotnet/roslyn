@@ -495,50 +495,48 @@ internal static partial class ProtocolConversions
         }
 
         // Now process source generated documents that might have changed, via the source generated document mapping service
-        var sourceGeneratedDocumentMappingService = newSolution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>();
-        if (sourceGeneratedDocumentMappingService is not null)
+        // We have to ensure the old solution has run the generators so the mapper has something to compare to, but we only do
+        // it for FrozenSourceGeneratedDocumentStates, so only documents that the rename engine thought were worthy of touching,
+        // which in practical terms at time of writing this comment, means Razor.
+        foreach (var (docId, state) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
         {
-            // Since we're mapping changes to source generated documents, we have to ensure the old solution has run the generators
-            // so the mapper has something to compare to.
-            foreach (var (docId, state) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
-            {
-                var document = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
-            }
+            var document = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
+        }
 
-            foreach (var docId in solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments())
-            {
-                var oldDocument = solutionChanges.OldSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
-                var newDocument = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+        var sourceGeneratedDocumentMappingService = newSolution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>();
+        foreach (var docId in solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments())
+        {
+            var oldDocument = solutionChanges.OldSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+            var newDocument = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
 
-                if (sourceGeneratedDocumentMappingService.CanMapSpans(oldDocument))
+            if (sourceGeneratedDocumentMappingService?.CanMapSpans(oldDocument) == true)
+            {
+                var mappedTextChanges = await sourceGeneratedDocumentMappingService.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                foreach (var (filePath, textChange) in mappedTextChanges)
                 {
-                    var mappedTextChanges = await sourceGeneratedDocumentMappingService.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-                    foreach (var (filePath, textChange) in mappedTextChanges)
-                    {
-                        var mappedDocId = oldSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(d => d.ProjectId == oldDocument.Id.ProjectId);
-                        // Can't map to an edit in an unknown document
-                        if (mappedDocId is null)
-                            continue;
+                    var mappedDocId = oldSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(d => d.ProjectId == oldDocument.Id.ProjectId);
+                    // Can't map to an edit in an unknown document
+                    if (mappedDocId is null)
+                        continue;
 
-                        var mappedDoc = oldSolution.GetRequiredTextDocument(mappedDocId);
-                        var mappedText = await mappedDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        uriToTextEdits.Add((CreateAbsoluteDocumentUri(filePath), new LSP.TextEdit
-                        {
-                            Range = TextSpanToRange(textChange.Span, mappedText),
-                            NewText = textChange.NewText ?? string.Empty
-                        }));
-                    }
+                    var mappedDoc = oldSolution.GetRequiredTextDocument(mappedDocId);
+                    var mappedText = await mappedDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    uriToTextEdits.Add((CreateAbsoluteDocumentUri(filePath), new LSP.TextEdit
+                    {
+                        Range = TextSpanToRange(textChange.Span, mappedText),
+                        NewText = textChange.NewText ?? string.Empty
+                    }));
                 }
-                else
+            }
+            else
+            {
+                // There's no span mapping available, just create text edits from the original text changes.
+                var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var textChanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                foreach (var textChange in textChanges)
                 {
-                    // There's no span mapping available, just create text edits from the original text changes.
-                    var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                    var textChanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-                    foreach (var textChange in textChanges)
-                    {
-                        uriToTextEdits.Add((oldDocument.GetURI(), TextChangeToTextEdit(textChange, oldText)));
-                    }
+                    uriToTextEdits.Add((oldDocument.GetURI(), TextChangeToTextEdit(textChange, oldText)));
                 }
             }
         }
