@@ -23,5 +23,6 @@ internal interface IDefinitionService
     Task<LspLocation[]?> TryGetDefinitionFromStringLiteralAsync(
         IDocumentSnapshot documentSnapshot,
         Position position,
+        bool inDeclDocument,
         CancellationToken cancellationToken);
 }

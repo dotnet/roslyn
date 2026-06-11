@@ -110,12 +110,13 @@ internal sealed class DefinitionService(
     public async Task<LspLocation[]?> TryGetDefinitionFromStringLiteralAsync(
         IDocumentSnapshot documentSnapshot,
         Position position,
+        bool inDeclDocument,
         CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Attempting to get definition from string literal at position {position}.");
 
         // Get the C# syntax tree to analyze the string literal
-        var syntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 

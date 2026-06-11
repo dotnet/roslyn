@@ -39,7 +39,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         await VerifyGoToDefinitionAsync(input);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_Local()
     {
         var input = """
@@ -60,7 +60,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         await VerifyGoToDefinitionAsync(input);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_MetadataReference()
     {
         var input = """
@@ -159,7 +159,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(range, location.Range);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task Component_FromCSharp()
     {
         TestCode input = """
