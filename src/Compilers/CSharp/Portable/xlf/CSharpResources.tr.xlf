@@ -2498,8 +2498,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.</source>
-        <target state="new">The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.</target>
+        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
+        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">

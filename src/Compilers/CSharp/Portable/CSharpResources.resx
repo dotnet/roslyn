@@ -8120,7 +8120,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_SafeModifierUnsupportedTarget" xml:space="preserve">
-    <value>The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.</value>
+    <value>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</value>
     <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_ExternMemberRequiresUnsafeOrSafe" xml:space="preserve">

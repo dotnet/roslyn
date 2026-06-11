@@ -9188,13 +9188,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (6,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (6,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public int F;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 5),
-            // (7,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (7,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public int P { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
-            // (8,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (8,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public event System.Action E;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5));
     }
@@ -12421,13 +12421,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (1,7): warning CS8981: The type name 'safe' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // class safe { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "safe").WithArguments("safe").WithLocation(1, 7),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe M1() => new safe();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
             // (5,10): error CS1520: Method must have a return type
             //     safe M1() => new safe();
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "M1").WithLocation(5, 10),
-            // (6,12): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (6,12): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public safe M2() => new safe();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 12),
             // (6,17): error CS1520: Method must have a return type
@@ -12545,28 +12545,28 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(),
             targetFramework: TargetFramework.Net100)
             .VerifyDiagnostics(
-            // (3,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (3,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe void M();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(3, 5),
-            // (4,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe int P { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe event System.Action E;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,13): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (6,13): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     int A { safe get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 13),
-            // (10,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (10,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe void I1.M() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (11,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (11,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe int I1.P { get => 0; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(11, 5),
             // (12,33): error CS0106: The modifier 'safe' is not valid for this item
             //     safe event System.Action I1.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("safe").WithLocation(12, 33),
-            // (13,16): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (13,16): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     int I1.A { safe get => 0; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(13, 16),
             // (20,40): error CS0106: The modifier 'extern' is not valid for this item
@@ -12584,10 +12584,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (21,45): error CS0106: The modifier 'extern' is not valid for this item
             //     int I1.A { safe extern get; safe extern set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(21, 45),
-            // (21,16): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (21,16): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     int I1.A { safe extern get; safe extern set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 16),
-            // (21,33): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (21,33): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     int I1.A { safe extern get; safe extern set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 33));
     }
@@ -12624,25 +12624,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
-            // (4,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public void M1() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public int P1 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (6,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public int this[int i] { get => i; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 5),
-            // (7,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (7,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public event System.Action E1;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
-            // (8,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (8,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public C() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (9,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (9,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public static C operator +(C x, C y) => x;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
-            // (10,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (10,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public static explicit operator int(C c) => 0;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
             // (11,5): error CS9388: The 'safe' modifier may only be used on extern members or fields in explicit or extended layout structs that are not marked 'unsafe'.
@@ -12663,19 +12663,19 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (16,31): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public delegate void D();
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("safe").WithLocation(16, 31),
-            // (19,9): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (19,9): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //         safe void Local() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(19, 9),
-            // (21,21): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (21,21): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public int P2 { safe get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 21),
-            // (22,36): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (22,36): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public string this[string s] { safe get => s; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(22, 36),
-            // (23,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (23,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe ~C() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(23, 5),
-            // (24,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (24,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public const int CONST = 0;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(24, 5));
     }
@@ -12713,7 +12713,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,30): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe partial void M1() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M1").WithLocation(4, 30),
-            // (6,12): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (6,12): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public safe partial void M2();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 12),
             // (7,25): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
@@ -12834,25 +12834,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
-            // (4,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe public extern void M1();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe public extern int P1 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,33): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (6,33): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public safe extern int P2 { safe unsafe get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 33),
-            // (7,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (7,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe public static extern event System.Action E1;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
-            // (8,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (8,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe public extern C(int x);
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (9,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (9,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe extern ~C();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
-            // (12,9): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            // (12,9): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //         safe unsafe static extern void Local1();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 9));
     }
