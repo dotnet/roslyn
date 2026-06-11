@@ -7349,7 +7349,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("Dictionary", "collection").WithLocation(10, 22));
     }
 
-
     [Theory]
     [CombinatorialData]
     public void CollectionArguments_CapacityAndComparer_02(
