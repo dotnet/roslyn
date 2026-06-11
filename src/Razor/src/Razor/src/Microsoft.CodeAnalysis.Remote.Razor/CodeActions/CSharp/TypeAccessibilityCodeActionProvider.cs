@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
@@ -163,7 +163,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
         foreach (var codeAction in codeActions)
         {
-            if (codeAction.Name is not null && codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
+            if (codeAction.Name is not null && codeAction.Name.Equals(PredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
             {
                 string action;
 
@@ -196,7 +196,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             }
             // For add using suggestions, the code action title is of the form:
             // `using System.Net;`
-            else if (codeAction.Name is not null && codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
+            else if (codeAction.Name is not null && codeAction.Name.Equals(PredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
                 UsingDirectiveHelper.TryExtractNamespace(codeAction.Title, out var @namespace, out var prefix))
             {
                 codeAction.Title = $"{prefix}@using {@namespace}";

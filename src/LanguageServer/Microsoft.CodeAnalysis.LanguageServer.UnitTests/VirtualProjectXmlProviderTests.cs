@@ -2,14 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Uncomment this to test run-api locally.
-// Eventually when a new enough SDK is adopted in-repo we can remove this
-//#define RoslynTestRunApi
-
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
-using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -22,29 +17,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 /// - Thorough behavioral testing.
 /// - Testing of more intricate behaviors which are subject to change.
 /// </summary>
-public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostTests
+public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    public VirtualProjectXmlProviderTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
-    private class EnableRunApiTests : ExecutionCondition
-    {
-        // https://github.com/dotnet/roslyn/issues/78879: Enable these tests unconditionally
-        public override bool ShouldSkip =>
-#if RoslynTestRunApi
-            false;
-#else
-            true;
-#endif
-
-        public override string SkipReason => $"Compilation symbol 'RoslynTestRunApi' is not defined.";
-    }
-
     private async Task<VirtualProjectXmlProvider> GetProjectXmlProviderAsync()
     {
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, extensionPaths: null);
+        var exportProvider = LanguageServerTestComposition.GetSharedExportProvider(DefaultServerConfiguration, LoggerFactory);
         return exportProvider.GetExportedValue<VirtualProjectXmlProvider>();
     }
 
@@ -72,7 +49,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Null(contentNullable);
     }
 
-    [ConditionalFact(typeof(EnableRunApiTests))]
+    [Fact]
     public async Task GetProjectXml_FileBasedProgram_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -104,7 +81,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Empty(content.Diagnostics);
     }
 
-    [ConditionalFact(typeof(EnableRunApiTests))]
+    [Fact]
     public async Task GetProjectXml_NonFileBasedProgram_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -136,7 +113,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Empty(content.Diagnostics);
     }
 
-    [ConditionalFact(typeof(EnableRunApiTests))]
+    [Fact]
     public async Task GetProjectXml_BadPath_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -156,7 +133,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Null(content);
     }
 
-    [ConditionalFact(typeof(EnableRunApiTests))]
+    [Fact]
     public async Task GetProjectXml_BadDirective_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -185,8 +162,6 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Contains("Unrecognized directive 'BAD'", diagnostic.Message);
         Assert.Equal(appFile.Path, diagnostic.Location.Path);
 
-        // LinePositionSpan is not deserializing properly.
-        // Address when implementing editor squiggles. https://github.com/dotnet/roslyn/issues/78688
-        Assert.Equal("(0,0)-(0,0)", diagnostic.Location.Span.ToString());
+        Assert.Equal("(1,0)-(2,0)", diagnostic.Location.Span.ToLinePositionSpan().ToString());
     }
 }

@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Host;
+using System.Reflection;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
@@ -11,31 +13,41 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 internal sealed class LanguageServerTestComposition
 {
-    public static async Task<(ExportProvider exportProvider, IAssemblyLoader assemblyLoader)> CreateExportProviderAsync(
+    public static Task<ExportProvider> CreateLanguageServerExportProviderAsync(
+        ServerConfiguration serverConfiguration,
         ILoggerFactory loggerFactory,
-        bool includeDevKitComponents,
-        string cacheDirectory,
-        string[]? extensionPaths)
+        ExtensionAssemblyManager extensionManager,
+        IAssemblyLoader assemblyLoader,
+        string cacheDirectory)
     {
-        var devKitDependencyPath = includeDevKitComponents ? TestPaths.GetDevKitExtensionPath() : null;
-        var serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
-            LogConfiguration: new LogConfiguration(LogLevel.Trace),
-            TelemetryLevel: null,
-            SessionId: null,
-            ExtensionAssemblyPaths: extensionPaths ?? [],
-            DevKitDependencyPath: devKitDependencyPath,
-            CSharpDesignTimePath: null,
-            ExtensionLogDirectory: string.Empty,
-            ServerPipeName: null,
-            UseStdIo: false,
-            AutoLoadProjects: false,
-            SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
-            ClientProcessId: null);
-        var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
-        var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
+        return LanguageServerExportProviderBuilder.CreateExportProviderAsync(TestPaths.GetLanguageServerDirectory(), extensionManager, assemblyLoader, serverConfiguration, cacheDirectory, loggerFactory, CancellationToken.None);
+    }
 
-        var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(TestPaths.GetLanguageServerDirectory(), extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
-        exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
-        return (exportProvider, assemblyLoader);
+    public static ExportProvider GetSharedExportProvider(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+    {
+        Contract.ThrowIfTrue(serverConfiguration.ExtensionAssemblyPaths.Any(), "Tests that require extension assemblies should use AbstractLanguageServerMefHost instead");
+        var exportProvider = serverConfiguration.DevKitDependencyPath != null
+            ? s_devKit.ExportProviderFactory.CreateExportProvider()
+            : s_languageServer.ExportProviderFactory.CreateExportProvider();
+
+        LanguageServerExportProviderBuilder.TestAccessor.InitializeManualExports(exportProvider, new ExtensionAssemblyManager([], [], []), loggerFactory, serverConfiguration);
+        return exportProvider;
+    }
+
+    private static readonly TestComposition s_languageServer = CreateBaseComposition();
+    private static readonly TestComposition s_devKit = CreateDevKitComposition();
+
+    private static TestComposition CreateBaseComposition()
+    {
+        var languageServerDirectory = TestPaths.GetLanguageServerDirectory();
+        var languageServerDlls = LanguageServerExportProviderBuilder.TestAccessor.FindMefAssemblies(languageServerDirectory);
+
+        return TestComposition.Empty.AddAssemblies(languageServerDlls.Select(Assembly.LoadFrom));
+    }
+
+    private static TestComposition CreateDevKitComposition()
+    {
+        var devKitDirectory = TestPaths.GetDevKitExtensionPath();
+        return s_languageServer.AddAssemblies(Assembly.LoadFrom(devKitDirectory));
     }
 }

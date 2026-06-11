@@ -262,13 +262,13 @@ namespace System.Runtime.CompilerServices
             {
                 Assert.True(method.IsOverride);
                 Assert.False(method.IsVirtual);
-                Assert.True(method.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges));
+                Assert.True(method.IsMetadataVirtual(context: null, ignoreInterfaceImplementationChanges: true));
                 var isCovariant = !method.ReturnType.Equals(overriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions);
                 var checkMetadata = hasReturnConversion(method.ReturnType, overriddenMethod.ReturnType);
                 if (checkMetadata)
                 {
                     requiresMethodimpl = isCovariant | requiresMethodimpl;
-                    Assert.Equal(requiresMethodimpl, method.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
+                    Assert.Equal(requiresMethodimpl, method.IsMetadataNewSlot(context: null, ignoreInterfaceImplementationChanges: true));
                     Assert.Equal(requiresMethodimpl, method.RequiresExplicitOverride(out _));
                     if (method.OriginalDefinition is PEMethodSymbol originalMethod &&
                         comp.GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
@@ -308,7 +308,7 @@ namespace System.Runtime.CompilerServices
                     if (checkMetadata)
                     {
                         requiresMethodimpl = isCovariant | requiresMethodimpl;
-                        Assert.Equal(requiresMethodimpl, getMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
+                        Assert.Equal(requiresMethodimpl, getMethod.IsMetadataNewSlot(context: null, ignoreInterfaceImplementationChanges: true));
                         Assert.Equal(requiresMethodimpl, getMethod.RequiresExplicitOverride(out _)); // implies the presence of a methodimpl
                         if (getMethod.OriginalDefinition is PEMethodSymbol originalMethod &&
                             comp.GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
@@ -319,7 +319,7 @@ namespace System.Runtime.CompilerServices
                 }
                 if (property.SetMethod is MethodSymbol setMethod && overriddenProperty.SetMethod is MethodSymbol overriddenSetMethod)
                 {
-                    Assert.False(setMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
+                    Assert.False(setMethod.IsMetadataNewSlot(context: null, ignoreInterfaceImplementationChanges: true));
                     Assert.False(setMethod.RequiresExplicitOverride(out _));
                     Assert.Equal(!isCovariant, overriddenSetMethod.Equals(setMethod.GetOverriddenMember(), TypeCompareKind.AllIgnoreOptions));
                 }

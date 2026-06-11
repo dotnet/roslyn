@@ -94,7 +94,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
 
         // if the symbol could be bound, replace that item in the symbol list
         if (currentSymbol?.IsGenericMethod == true)
-            methods = methods.SelectAsArray(m => Equals(currentSymbol.OriginalDefinition, m) ? currentSymbol : m);
+            methods = methods.SelectAsArray(m => Equals(currentSymbol.OriginalDefinition, m.OriginalDefinition) ? currentSymbol : m);
 
         // present items and select
         var (items, selectedItem) = await GetMethodGroupItemsAndSelectionAsync(

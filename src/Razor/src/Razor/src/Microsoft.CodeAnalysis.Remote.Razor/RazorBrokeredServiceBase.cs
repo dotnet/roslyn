@@ -5,9 +5,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.ServiceHub.Framework;
 
@@ -43,17 +42,17 @@ internal abstract partial class RazorBrokeredServiceBase : IDisposable
 
     private static ValueTask RunBrokeredServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
     {
-        return RazorBrokeredServiceImplementation.RunServiceAsync(implementation, cancellationToken);
+        return BrokeredServiceBase.RunServiceImplAsync(implementation, cancellationToken);
     }
 
-    protected ValueTask<T> RunServiceAsync<T>(RazorPinnedSolutionInfoWrapper solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+    protected ValueTask<T> RunServiceAsync<T>(RazorSolutionWrapper solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
         => _interceptor is not null
             ? _interceptor.RunServiceAsync(solutionInfo, implementation, cancellationToken)
             : RunBrokeredServiceAsync(solutionInfo, implementation, cancellationToken);
 
-    private ValueTask<T> RunBrokeredServiceAsync<T>(RazorPinnedSolutionInfoWrapper solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+    private ValueTask<T> RunBrokeredServiceAsync<T>(RazorSolutionWrapper solutionInfo, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
     {
-        return RazorBrokeredServiceImplementation.RunServiceAsync(solutionInfo, _serviceBrokerClient.AssumeNotNull(), implementation, cancellationToken);
+        return RemoteWorkspaceManager.Default.RunServiceAsync(_serviceBrokerClient.AssumeNotNull(), solutionInfo.Checksum, implementation, cancellationToken);
     }
 
     public void Dispose()

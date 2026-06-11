@@ -7,7 +7,7 @@ using System.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
@@ -119,7 +119,7 @@ internal class DefaultLSPRequestInvoker : LSPRequestInvoker
             new GeneralRequest<TIn, TOut>() { LanguageServerName = null, Method = method, Request = parameters },
             cancellationToken).ConfigureAwait(false);
 
-        using var responses = new PooledArrayBuilder<ReinvokeResponse<TOut>>();
+        using var _ = ArrayBuilder<ReinvokeResponse<TOut>>.GetInstance(out var responses);
         await foreach (var reinvokeResponse in reinvokeResponses)
         {
             // No callers actually use the languageClient when handling the response.

@@ -111,6 +111,9 @@ internal static class Program
             var resourcesDir = Path.Combine(projectDir, "Resources");
             Directory.CreateDirectory(resourcesDir);
             var resxFile = Path.Combine(resourcesDir, "HtmlDescriptions.resx");
+            // Normalize to CRLF so the .resx file has consistent line endings for git,
+            // even though description values may contain embedded newlines from the schema.
+            resxContent = resxContent.Replace("\r\n", "\n").Replace("\n", "\r\n");
             File.WriteAllText(resxFile, resxContent, utf8);
 
             // Emit descriptions accessor class (generated code that reads from resources)

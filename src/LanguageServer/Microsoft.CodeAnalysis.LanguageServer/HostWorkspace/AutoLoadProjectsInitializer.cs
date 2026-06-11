@@ -15,21 +15,34 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Shared]
-[ExportCSharpVisualBasicStatelessLspService(typeof(AutoLoadProjectsInitializer))]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(AutoLoadProjectsInitializer)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AutoLoadProjectsInitializerFactory(
+    ILoggerFactory loggerFactory,
+    ServerConfiguration serverConfiguration,
+    IGlobalOptionService globalOptionService) : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new AutoLoadProjectsInitializer(
+            lspServices.GetRequiredService<LanguageServerProjectSystem>(),
+            loggerFactory,
+            serverConfiguration,
+            globalOptionService);
+}
+
 internal sealed class AutoLoadProjectsInitializer(
     LanguageServerProjectSystem projectSystem,
     ILoggerFactory loggerFactory,
     ServerConfiguration serverConfiguration,
     IGlobalOptionService globalOptionService) : ILspService, IOnInitialized
 {
+    private static readonly EnumerationOptions s_recursiveEnumerationOptions = new() { RecurseSubdirectories = true, IgnoreInaccessible = true };
     private readonly ILogger _logger = loggerFactory.CreateLogger<AutoLoadProjectsInitializer>();
 
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        if (!serverConfiguration.AutoLoadProjects)
+        if (serverConfiguration.AutoLoadProjects is not int projectAutoLoadMaximum)
         {
             return;
         }
@@ -57,7 +70,7 @@ internal sealed class AutoLoadProjectsInitializer(
         {
             _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionPath);
             await StartAndReportProgressAsync(
-                () => projectSystem.OpenSolutionAsync(solutionPath),
+                (reporter) => projectSystem.OpenSolutionAsync(solutionPath, reporter),
                 startMessage: string.Format(LanguageServerResources.Loading_0, solutionPath),
                 endMessage: string.Format(LanguageServerResources.Loaded_0, solutionPath));
             return;
@@ -77,7 +90,7 @@ internal sealed class AutoLoadProjectsInitializer(
                 {
                     _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
                     await StartAndReportProgressAsync(
-                        () => projectSystem.OpenSolutionAsync(solutionFiles[0]),
+                        (reporter) => projectSystem.OpenSolutionAsync(solutionFiles[0], reporter),
                         startMessage: string.Format(LanguageServerResources.Loading_0, solutionFiles[0]),
                         endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFiles[0]));
                     return;
@@ -91,18 +104,38 @@ internal sealed class AutoLoadProjectsInitializer(
             _logger.LogTrace("Searching for projects to load in workspace folder: {FolderUri}", folder.DocumentUri);
             if (TryGetFolderPath(folder, _logger, out var folderPath))
             {
-                projectFiles.AddRange(Directory.EnumerateFiles(folderPath, "*.csproj", SearchOption.AllDirectories));
+                projectFiles.AddRange(Directory.EnumerateFiles(folderPath, "*.csproj", s_recursiveEnumerationOptions));
             }
         }
 
         _logger.LogInformation("Discovered {count} projects to auto load", projectFiles.Count);
 
+        if (projectFiles.Count > projectAutoLoadMaximum)
+        {
+            _logger.LogWarning("Number of projects exceeds the auto-load maximum of {ProjectAutoLoadMaximum}", projectAutoLoadMaximum);
+
+            // We're going to trim the project count down a bit; rather than trimming arbitrarily let's try to first trim out tests on the rationale that some repos can have a
+            // lot of test projects, but it's better to get the core projects loaded rather than the test projects (that then don't have functional references).
+            projectFiles.RemoveAll(f =>
+            {
+                var fileComponents = f.Split(Path.DirectorySeparatorChar);
+                return fileComponents.Contains("test", StringComparer.OrdinalIgnoreCase) ||
+                    fileComponents.Contains("tests", StringComparer.OrdinalIgnoreCase);
+            });
+
+            if (projectFiles.Count > projectAutoLoadMaximum)
+            {
+                _logger.LogWarning("Even after trimming test projects, number of projects still exceeds the auto-load maximum. Trimming to first {ProjectAutoLoadMaximum} projects.", projectAutoLoadMaximum);
+                projectFiles.RemoveRange(projectAutoLoadMaximum, projectFiles.Count - projectAutoLoadMaximum);
+            }
+        }
+
         await StartAndReportProgressAsync(
-            () => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable()),
+            (reporter) => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable(), reporter),
             startMessage: string.Format(LanguageServerResources.Loading_0_projects, projectFiles.Count),
             endMessage: string.Format(LanguageServerResources.Loaded_0_projects, projectFiles.Count));
 
-        async Task StartAndReportProgressAsync(Func<Task> loadOperation, string startMessage, string endMessage)
+        async Task StartAndReportProgressAsync(Func<IWorkDoneProgressReporter, Task> loadOperation, string startMessage, string endMessage)
         {
             var workDoneProgressManager = context.GetRequiredLspService<WorkDoneProgressManager>();
 
@@ -119,7 +152,7 @@ internal sealed class AutoLoadProjectsInitializer(
                 {
                     try
                     {
-                        await loadOperation();
+                        await loadOperation(progressReporter);
                     }
                     catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                     {

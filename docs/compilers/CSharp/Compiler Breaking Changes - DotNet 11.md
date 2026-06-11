@@ -246,3 +246,21 @@ If your code is impacted by the ambiguity change, add explicit parameter types t
 ```cs
 M((int x) => { }); // Resolves to M(F2)
 ```
+
+## `safe` is a contextual keyword
+
+***Introduced in Visual Studio 2026 version 18.9***
+
+In a future C# version (currently in `langversion:preview`), `safe` is a keyword when placed as a modifier on member declarations.
+That can break cases where it was previously referring to a type.
+To mitigate the break, it is possible to use `@`.
+
+```cs
+class safe { }
+
+class C
+{
+    safe M1() => new safe(); // previously `safe` refers to a type, now it is a keyword
+    @safe M2() => new safe(); // workaround
+}
+```

@@ -52,7 +52,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
         var templatePath = Path.Combine(directoryName, "Component.razor");
         var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
         var componentName = Path.GetFileNameWithoutExtension(componentPath);
-        var newComponentUri = new DocumentUri(LspFactory.CreateFilePathUri(componentPath, _languageServerFeatureOptions));
+        var newComponentUri = LspFactory.CreateFilePathUri(componentPath, _languageServerFeatureOptions);
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -88,7 +88,7 @@ internal sealed class ExtractToComponentCodeActionResolver(
             new CreateFile { DocumentUri = newComponentUri },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(documentContext.Uri) },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentContext.Uri },
                 Edits =
                 [
                     new TextEdit

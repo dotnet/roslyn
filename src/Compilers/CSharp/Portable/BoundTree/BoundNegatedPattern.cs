@@ -11,18 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-            if (IsUnionMatching)
-            {
-                Debug.Assert(NarrowedType.IsObjectType());
-                Debug.Assert(Negated.InputType.IsObjectType());
-            }
-            else
-            {
-                Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
-                Debug.Assert(Negated.InputType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
-            }
-
+            Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(Negated.InputType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(Negated is not BoundPatternWithUnionMatching);
+            Debug.Assert(!IsUnionMatching);
         }
     }
 }

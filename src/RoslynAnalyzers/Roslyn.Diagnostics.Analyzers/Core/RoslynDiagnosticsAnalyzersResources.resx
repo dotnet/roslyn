@@ -428,8 +428,8 @@
     <comment>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</comment>
   </data>
   <data name="IRemoteJsonServiceParameterDescription" xml:space="preserve">
-    <value>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</value>
-    <comment>{Locked="IRemoteJsonService"}{Locked="RazorPinnedSolutionInfoWrapper"}{Locked="DocumentId"}{Locked="JSON"}</comment>
+    <value>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorSolutionWrapper or DocumentId as they are not JSON serializable.</value>
+    <comment>{Locked="IRemoteJsonService"}{Locked="RazorSolutionWrapper"}{Locked="DocumentId"}{Locked="JSON"}</comment>
   </data>
   <data name="IRemoteJsonServiceParameterMessage" xml:space="preserve">
     <value>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</value>
