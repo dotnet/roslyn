@@ -42,6 +42,10 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         {
             Capabilities = serverCapabilities,
             ProcessId = RoslynLanguageServer.ServerProcessId,
+            ServerInfo = new ServerInfo
+            {
+                Name = context.ServerKind.ToTelemetryString(),
+            },
         };
     }
 }
