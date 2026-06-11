@@ -222,6 +222,7 @@ internal abstract class LanguageServerProjectLoader
         public required ProjectSystemProjectFactory ProjectFactory { get; init; }
         public required bool IsFileBasedProgram { get; init; }
         public required bool IsMiscellaneousFile { get; init; }
+        public required bool HasFileBasedAppDirectives { get; init; }
         public required bool HasAllInformation { get; init; }
         public required BuildHostProcessKind PreferredBuildHostKind { get; init; }
         public required BuildHostProcessKind ActualBuildHostKind { get; init; }
@@ -318,6 +319,7 @@ internal abstract class LanguageServerProjectLoader
                             HasSolutionFile = _workspaceFactory.HostProjectFactory.SolutionPath is not null,
                             IsMiscellaneousFile = isMiscellaneousFile,
                             IsFileBasedProgram = remoteProjectLoadResult.IsFileBasedProgram,
+                            HasFileBasedAppDirectives = remoteProjectLoadResult.HasFileBasedAppDirectives,
                         };
                     }
                 }
