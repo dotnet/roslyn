@@ -8942,15 +8942,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("unsafe").WithLocation(3, 29));
     }
 
-    [Fact]
-    public void Member_Field_ExplicitLayout()
+    [Theory, CombinatorialData]
+    public void Member_Field_ExplicitLayout([CombinatorialValues("struct", "class ")] string kind)
     {
         CompileAndVerifyUnsafe(
-            lib: """
+            lib: $$"""
                 using System.Runtime.InteropServices;
 
                 [StructLayout(LayoutKind.Explicit)]
-                public struct S
+                public {{kind}} S
                 {
                     [FieldOffset(0)] safe public int F1;
                     [FieldOffset(4)] unsafe public int F2;
@@ -8992,11 +8992,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("S.E2.add").WithLocation(7, 6),
             ]);
 
-        var source = """
+        var source = $$"""
             using System.Runtime.InteropServices;
 
             [StructLayout(LayoutKind.Explicit)]
-            struct S
+            {{kind}} S
             {
                 [FieldOffset(0)] public int F1;
                 public const int F2 = 0;
@@ -9010,16 +9010,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
 
             [StructLayout(LayoutKind.Explicit)]
-            public record struct R([field: FieldOffset(0)] int X);
+            public record {{kind}} R([field: FieldOffset(0)] int X);
 
             [StructLayout(LayoutKind.Explicit)]
-            public struct P([field: FieldOffset(0)] int x)
+            public {{kind}} P([field: FieldOffset(0)] int x)
             {
                 public int X => x;
             }
             """;
 
-        CreateCompilation(source,
+        CreateCompilation([source, IsExternalInitTypeDefinition],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (6,33): error CS9391: Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.
@@ -9047,7 +9047,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // public struct P([field: FieldOffset(0)] int x)
             Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(21, 45));
 
-        CreateCompilation(source,
+        CreateCompilation([source, IsExternalInitTypeDefinition],
             options: TestOptions.ReleaseDll)
             .VerifyDiagnostics(
             // (21,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
@@ -9165,6 +9165,38 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net110,
             options: TestOptions.ReleaseDll)
             .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Member_Field_OtherLayout(
+        bool updatedRules,
+        [CombinatorialValues("struct", "class")] string kind,
+        [CombinatorialValues("LayoutKind.Sequential", "LayoutKind.Auto")] string layoutKind)
+    {
+        var source = $$"""
+            using System.Runtime.InteropServices;
+
+            [StructLayout({{layoutKind}})]
+            public {{kind}} S
+            {
+                safe public int F;
+                safe public int P { get; set; }
+                safe public event System.Action E;
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (6,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            //     safe public int F;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 5),
+            // (7,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            //     safe public int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
+            // (8,5): error CS9388: The 'safe' modifier may only be used on 'extern' members or fields in explicit or extended layout structs that are not marked 'unsafe'.
+            //     safe public event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5));
     }
 
     [Fact]
