@@ -330,7 +330,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 ProjectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
                 IsFileBasedProgram = isFileBasedProgram,
                 HasFileBasedAppDirectives = false,
-                IsMiscellaneousFile = !isFileBasedProgram,
+                IsMiscellaneousFile = true,
                 HasAllInformation = documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors,
                 PreferredBuildHostKind = BuildHostProcessKind.NetCore,
                 ActualBuildHostKind = BuildHostProcessKind.NetCore,
