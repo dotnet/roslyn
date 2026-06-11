@@ -10,8 +10,8 @@
       <trans-unit id="HtmlAttribute_accept-charset">
         <source>A space- or comma-delimited list of character encodings that the server accepts. The browser uses them in the order in which they are listed. The default value, the reserved string `"UNKNOWN"`, indicates the same encoding as that of the document containing the form element. 
 In previous versions of HTML, the different character encodings could be delimited by spaces or commas. In HTML5, only spaces are allowed as delimiters.</source>
-        <target state="new">A space- or comma-delimited list of character encodings that the server accepts. The browser uses them in the order in which they are listed. The default value, the reserved string `"UNKNOWN"`, indicates the same encoding as that of the document containing the form element. 
-In previous versions of HTML, the different character encodings could be delimited by spaces or commas. In HTML5, only spaces are allowed as delimiters.</target>
+        <target state="translated">サーバーが受け入れる文字エンコーディングのスペースまたはコンマ区切りの一覧。ブラウザーでは、一覧に表示されている順序で使用されます。既定値の予約文字列 `"UNKNOWN"` は、フォーム要素を含むドキュメントのエンコードと同じエンコードを示します。
+以前のバージョンの HTML では、異なる文字エンコーディングをスペースまたはコンマで区切る可能性があります。HTML5 では、スペースのみを区切り記号として使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_accesskey">
@@ -35,16 +35,16 @@ In previous versions of HTML, the different character encodings could be delimit
 
 * **Do not use this attribute**, as it has been deprecated. The [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "The HTML &lt;table&gt; element represents tabular data — that is, information presented in a two-dimensional table comprised of rows and columns of cells containing data.") element should be styled using [CSS](https://developer.mozilla.org/en-US/docs/CSS). Set [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "The margin-left CSS property sets the margin area on the left side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.") and [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "The margin-right CSS property sets the margin area on the right side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.") to `auto` or [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "The margin CSS property sets the margin area on all four sides of an element. It is a shorthand for margin-top, margin-right, margin-bottom, and margin-left.") to `0 auto` to achieve an effect that is similar to the align attribute.
 * Prior to Firefox 4, Firefox also supported the `middle`, `absmiddle`, and `abscenter` values as synonyms of `center`, in quirks mode only.</source>
-        <target state="new">This enumerated attribute indicates how the table must be aligned inside the containing document. It may have the following values:
+        <target state="translated">この列挙属性は、テーブルを含むドキュメント内でどのように配置する必要があることを示します。次の値が含まれる場合があります:
 
-* left: the table is displayed on the left side of the document;
-* center: the table is displayed in the center of the document;
-* right: the table is displayed on the right side of the document.
+* left: テーブルはドキュメントの左側に表示されます。
+* center: 表は文書の中央に表示されます。
+* right: テーブルはドキュメントの右側に表示されます。
 
-**Usage Note**
+**使用法に関する注意**
 
-* **Do not use this attribute**, as it has been deprecated. The [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "The HTML &lt;table&gt; element represents tabular data — that is, information presented in a two-dimensional table comprised of rows and columns of cells containing data.") element should be styled using [CSS](https://developer.mozilla.org/en-US/docs/CSS). Set [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "The margin-left CSS property sets the margin area on the left side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.") and [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "The margin-right CSS property sets the margin area on the right side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.") to `auto` or [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "The margin CSS property sets the margin area on all four sides of an element. It is a shorthand for margin-top, margin-right, margin-bottom, and margin-left.") to `0 auto` to achieve an effect that is similar to the align attribute.
-* Prior to Firefox 4, Firefox also supported the `middle`, `absmiddle`, and `abscenter` values as synonyms of `center`, in quirks mode only.</target>
+* **この属性は使用しないでください**。これは非推奨とされているためです。[`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "HTML &lt;table&gt; 要素は表形式のデータを表します。つまり、データを含むセルの行と列で構成される2次元テーブルとして提示される情報のこと") 要素は、[CSS](https://developer.mozilla.org/en-US/docs/CSS) を使用してスタイルを設定する必要があります。[`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "margin-left CSS プロパティは、要素の左側の余白領域を設定します。正の値を設定すると隣接要素から離れ、負の値を設定すると近づきます。") および [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "margin-right CSS プロパティは、要素の右側の余白領域を設定します。正の値は近隣の値から遠く離れた場所に配置され、負の値では近い位置に配置されます。") から `auto` または [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "Margin CSS プロパティは、要素の 4 つの辺すべてに余白領域を設定します。余白-上、余白-右、余白-下、余白 -左の短縮形です。") を `0 auto` に変換して、align 属性に似た効果を実現します。
+* Firefox 4 より前の Firefox では、`middle`、`absmiddle`、`abscenter` の各値も`center` のシノニムとしてサポートされています (風変わりなモードのみ)。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_allow">
@@ -55,8 +55,8 @@ In previous versions of HTML, the different character encodings could be delimit
       <trans-unit id="HtmlAttribute_allowfullscreen">
         <source>Set to `true` if the `&lt;iframe&gt;` can activate fullscreen mode by calling the [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "The Element.requestFullscreen() method issues an asynchronous request to make the element be displayed in full-screen mode.") method.
 This attribute is considered a legacy attribute and redefined as `allow="fullscreen"`.</source>
-        <target state="new">Set to `true` if the `&lt;iframe&gt;` can activate fullscreen mode by calling the [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "The Element.requestFullscreen() method issues an asynchronous request to make the element be displayed in full-screen mode.") method.
-This attribute is considered a legacy attribute and redefined as `allow="fullscreen"`.</target>
+        <target state="translated">`&lt;iframe&gt;` が [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "The Element.requestfullscreen() メソッドが非同期要求を発行して、要素を全画面表示モードで表示します。) " メソッドを呼び出すことによって全画面表示モードをアクティブ化できる場合は、`true` に設定します。
+この属性はレガシ属性と見なされ、`allow="fullscreen"` として再定義されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_alt">
@@ -65,11 +65,11 @@ This attribute is considered a legacy attribute and redefined as `allow="fullscr
 **Note:** Browsers do not always display the image referenced by the element. This is the case for non-graphical browsers (including those used by people with visual impairments), if the user chooses not to display images, or if the browser cannot display the image because it is invalid or an [unsupported type](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats). In these cases, the browser may replace the image with the text defined in this element's `alt` attribute. You should, for these reasons and others, provide a useful value for `alt` whenever possible.
 
 **Note:** Omitting this attribute altogether indicates that the image is a key part of the content, and no textual equivalent is available. Setting this attribute to an empty string (`alt=""`) indicates that this image is _not_ a key part of the content (decorative), and that non-visual browsers may omit it from rendering.</source>
-        <target state="new">This attribute defines an alternative text description of the image.
+        <target state="translated">この属性は、画像の代替テキストの説明を定義します。
 
-**Note:** Browsers do not always display the image referenced by the element. This is the case for non-graphical browsers (including those used by people with visual impairments), if the user chooses not to display images, or if the browser cannot display the image because it is invalid or an [unsupported type](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats). In these cases, the browser may replace the image with the text defined in this element's `alt` attribute. You should, for these reasons and others, provide a useful value for `alt` whenever possible.
+**注:** ブラウザーでは、要素によって参照されている画像が常に表示されるとは限りません。これは、グラフィカルでないブラウザー (視覚障突のあるユーザーが使用するものを含む) の場合、ユーザーが画像を表示しないことを選択した場合、またはブラウザーが無効または [サポートされていない種類](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats) であるために画像を表示できない場合に該当します。このような場合、ブラウザーは画像をこの要素の `alt` 属性で定義されているテキストに置き換えることができます。このような理由や他の理由から、可能な限り `alt` に役立つ値を指定する必要があります。
 
-**Note:** Omitting this attribute altogether indicates that the image is a key part of the content, and no textual equivalent is available. Setting this attribute to an empty string (`alt=""`) indicates that this image is _not_ a key part of the content (decorative), and that non-visual browsers may omit it from rendering.</target>
+**注:** この属性を完全に省略すると、画像がコンテンツの重要な部分であり、同等のテキストが使用できないことが示されます。この属性を空の文字列 (`alt=""`) に設定すると、この画像はコンテンツの重要な部分 (装飾) であり、ビジュアル以外のブラウザーではレンダリングが省略される可能性があることを示します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_as">
@@ -87,15 +87,15 @@ Browsers usually assume the worst case scenario and load scripts synchronously, 
 Dynamically inserted scripts (using [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.")) load asynchronously by default, so to turn on synchronous loading (i.e. scripts load in the order they were inserted) set `async="false"`.
 
 See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) for notes on browser support. See also [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</source>
-        <target state="new">This is a Boolean attribute indicating that the browser should, if possible, load the script asynchronously.
+        <target state="translated">これは、可能であれば、ブラウザーがスクリプトを非同期的に読み込む必要があることを示すブール型属性です。
 
-This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts). If it is included in this case it will have no effect.
+`src` 属性が存在しない場合 (インライン スクリプトの場合) は、この属性を使用しないでください。この場合に含まれている場合、効果はありません。
 
-Browsers usually assume the worst case scenario and load scripts synchronously, (i.e. `async="false"`) during HTML parsing.
+ブラウザーは通常、最悪のシナリオを想定し、HTML 解析中にスクリプトを同期的に読み込みます (例: `async="false"`)。
 
-Dynamically inserted scripts (using [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.")) load asynchronously by default, so to turn on synchronous loading (i.e. scripts load in the order they were inserted) set `async="false"`.
+動的に挿入されたスクリプト ([`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "HTML ドキュメントでは、document.createElement() メソッドは tagName で指定された HTML 要素、または tagName が認識されない場合は HTMLUnknownElement を作成します。")) は既定で非同期的に読み込まれるため、同期読み込みを有効にするため (つまり、スクリプトが挿入された順序で読み込まれる) には、`async="false"` を設定します。
 
-See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) for notes on browser support. See also [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</target>
+ブラウザーのサポートに関する注意事項については、[Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) を参照してください。また、[asm.js の非同期スクリプト](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts) も参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocapitalize">
@@ -105,12 +105,12 @@ See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Referenc
 * `on` or `sentences`, the first letter of each sentence defaults to a capital letter; all other letters default to lowercase
 * `words`, the first letter of each word defaults to a capital letter; all other letters default to lowercase
 * `characters`, all letters should default to uppercase</source>
-        <target state="new">Controls whether and how text input is automatically capitalized as it is entered/edited by the user. It can have the following values:
+        <target state="translated">ユーザーが入力/編集するテキスト入力を自動的に大文字にするかどうかを制御します。次の値を指定できます:
 
-* `off` or `none`, no autocapitalization is applied (all letters default to lowercase)
-* `on` or `sentences`, the first letter of each sentence defaults to a capital letter; all other letters default to lowercase
-* `words`, the first letter of each word defaults to a capital letter; all other letters default to lowercase
-* `characters`, all letters should default to uppercase</target>
+* `off` または `none`、自動キャプチャは適用されません (すべての文字の既定値は小文字)
+* `on` または `sentences`、各文の最初の文字は既定で大文字になります。その他のすべての文字の既定値は小文字になります
+* `words`、各単語の最初の文字は既定で大文字になります。その他のすべての文字の既定値は小文字になります
+* `characters`、すべての文字は既定で大文字にする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocomplete">
@@ -121,13 +121,13 @@ See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Referenc
 
 For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) setting the autocomplete attribute will not prevent a browser's password manager from asking the user if they want to store login fields (username and password), if the user permits the storage the browser will autofill the login the next time the user visits the page. See [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
 **Note:** If you set `autocomplete` to `off` in a form because the document provides its own auto-completion, then you should also set `autocomplete` to `off` for each of the form's `input` elements that the document can auto-complete. For details, see the note regarding Google Chrome in the [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</source>
-        <target state="new">Indicates whether input elements can by default have their values automatically completed by the browser. This setting can be overridden by an `autocomplete` attribute on an element belonging to the form. Possible values are:
+        <target state="translated">既定で input 要素の値をブラウザーで自動的に完了できるかどうかを示します。この設定は、フォームに属する要素の `autocomplete` 属性によってオーバーライドされる可能性があります。使用可能な値:
 
-* `off`: The user must explicitly enter a value into each field for every use, or the document provides its own auto-completion method; the browser does not automatically complete entries.
-* `on`: The browser can automatically complete values based on values that the user has previously entered in the form.
+* `off`: ユーザーは、使用するたびに各フィールドに値を明示的に入力する必要があります。または、ドキュメントには独自のオートコンプリートメソッドが用意されています。ブラウザーはエントリを自動的に完了しません。
+* `on`: ブラウザーは、ユーザーが以前にフォームに入力した値に基づいて値を自動的に入力できます。
 
-For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) setting the autocomplete attribute will not prevent a browser's password manager from asking the user if they want to store login fields (username and password), if the user permits the storage the browser will autofill the login the next time the user visits the page. See [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
-**Note:** If you set `autocomplete` to `off` in a form because the document provides its own auto-completion, then you should also set `autocomplete` to `off` for each of the form's `input` elements that the document can auto-complete. For details, see the note regarding Google Chrome in the [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</target>
+ほとんどの最新のブラウザー (Firefox 38+、Google Chrome 34+、IE 11 以降を含む) では、オートコンプリート属性を設定しても、ユーザーがログイン フィールド (ユーザー名とパスワード) を保存するかどうかをブラウザーのパスワード マネージャーがユーザーに尋ねないようにすることはできません。ユーザーがストレージを許可した場合、次回ユーザーがページにアクセスすると、ブラウザーはログインをオートフィルします。[The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields)」を参照してください。
+**注:** 文書が独自のオートコンプリートを提供するため、フォームで `autocomplete` を `off` に設定している場合は、ドキュメントがオートコンプリートできるフォームの `input` 要素ごとに `autocomplete` を `off` に設定する必要もあります。詳細については、[Browse Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart) の Google Chrome に関するメモを参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocorrect">
@@ -144,9 +144,9 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
         <source>This attribute contains a list of space-separated strings. Each string is the `id` of a group of cells that this header applies to.
 
 **Note:** Do not use this attribute as it is obsolete in the latest standard: use the [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) attribute instead.</source>
-        <target state="new">This attribute contains a list of space-separated strings. Each string is the `id` of a group of cells that this header applies to.
+        <target state="translated">この属性には、スペース区切りの文字列の一覧が含まれています。各文字列は、このヘッダーが適用されるセルのグループの `id` です。
 
-**Note:** Do not use this attribute as it is obsolete in the latest standard: use the [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) attribute instead.</target>
+**注:** 最新の標準では古い属性であるため、この属性は使用しないでください。代わりに [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) 属性を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_charset">
@@ -167,23 +167,23 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 * This [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element is only one part of the [algorithm to determine a page's character set](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page"). The [`Content-Type` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) and any [Byte-Order Marks](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "The definition of that term (Byte-Order Marks) has not been written yet; please consider contributing it!") override this element.
 * It is strongly recommended to define the character encoding. If a page's encoding is undefined, cross-scripting techniques are possible, such as the [`UTF-7` fallback cross-scripting technique](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
 * The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element with a `charset` attribute is a synonym for the pre-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, where _`IANAcharset`_ contains the value of the equivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute. This syntax is still allowed, although no longer recommended.</source>
-        <target state="new">This attribute declares the page's character encoding. It must contain a [standard IANA MIME name for character encodings](https://www.iana.org/assignments/character-sets). Although the standard doesn't request a specific encoding, it suggests:
+        <target state="translated">この属性は、ページの文字エンコーディングを宣言します。[文字エンコーディングの標準 IANA MIME 名](https://www.iana.org/assignments/character-sets) を含める必要があります。標準では特定のエンコードは要求されませんが、
 
-* Authors are encouraged to use [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8).
-* Authors should not use ASCII-incompatible encodings to avoid security risk: browsers not supporting them may interpret harmful content as HTML. This happens with the `JIS_C6226-1983`, `JIS_X0212-1990`, `HZ-GB-2312`, `JOHAB`, the ISO-2022 family and the EBCDIC family.
+* 作成者は [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8) を使用することを提案しています。
+* 作成者は、セキュリティ上のリスクを回避するために ASCII と互換性のないエンコードを使用しないでください。サポートしていないブラウザーは、有害なコンテンツを HTML として解釈する可能性があります。これは、`JIS_C6226-1983`、`JIS_X0212-1990`、`HZ-GB-2312`、`JOHAB`、ISO-2022 ファミリ、EBCDIC ファミリで発生します。
 
-**Note:** ASCII-incompatible encodings are those that don't map the 8-bit code points `0x20` to `0x7E` to the `0x0020` to `0x007E` Unicode code points)
+**注:** ASCII と互換性のないエンコードは、8 ビット コード ポイント `0x20` を `0x7E` に `0x0020` から `0x007E` Unicode コード ポイントにマップしないエンコードです)
 
-* Authors **must not** use `CESU-8`, `UTF-7`, `BOCU-1` and/or `SCSU` as [cross-site scripting](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) attacks with these encodings have been demonstrated.
-* Authors should not use `UTF-32` because not all HTML5 encoding algorithms can distinguish it from `UTF-16`.
+* 作成者**は、`CESU-8`、`UTF-7`、`BOCU-1`、および/または `SCSU` を使用しては**いけません**。これらのエンコーディングを用いた [クロスサイト スクリプティング](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) 攻撃が実証されているためです。
+* すべての HTML5 エンコード アルゴリズムが `UTF-16` と区別できるわけではないため、作成者は `UTF-32` を使用しないでください。
 
-**Notes:**
+**注:**
 
-* The declared character encoding must match the one the page was saved with to avoid garbled characters and security holes.
-* The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element declaring the encoding must be inside the [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "The HTML &lt;head&gt; element provides general information (metadata) about the document, including its title and links to its scripts and style sheets.") element and **within the first 1024 bytes** of the HTML as some browsers only look at those bytes before choosing an encoding.
-* This [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element is only one part of the [algorithm to determine a page's character set](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Algorithm charset page"). The [`Content-Type` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) and any [Byte-Order Marks](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "The definition of that term (Byte-Order Marks) has not been written yet; please consider contributing it!") override this element.
-* It is strongly recommended to define the character encoding. If a page's encoding is undefined, cross-scripting techniques are possible, such as the [`UTF-7` fallback cross-scripting technique](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
-* The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element with a `charset` attribute is a synonym for the pre-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, where _`IANAcharset`_ contains the value of the equivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute. This syntax is still allowed, although no longer recommended.</target>
+* 文字化けやセキュリティ上の脆弱性を防ぐため、宣言された文字エンコーディングは、ページが保存された際のエンコーディングと一致している必要があります。
+* エンコーディングを宣言する [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML の &lt;meta&gt; 要素は、&lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt;、または &lt;title&gt; などの他の HTML メタ関連要素では表現できないメタデータを表します。") 要素は、[`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "HTML の &lt;head&gt; 要素は、ドキュメントのタイトルやスクリプト、スタイルシートへのリンクなど、ドキュメントに関する一般的な情報 (メタデータ) を提供します。") 要素の内側に配置し、かつ HTML の **最初の1024バイト以内** に配置する必要があります。これは、一部のブラウザーがエンコーディングを選択する前に、その範囲のバイトのみを参照するためです。
+* この [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTMLの &lt;meta&gt; 要素は、&lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt;、または &lt;title&gt; などの他の HTML meta 関連要素では表現できないメタデータを表します。") 要素は、[ページの文字セットを決定するアルゴリズム](https://www.whatwg.org/specs/web-apps/) の一部に過ぎません。[`Content-Type` ヘッダー](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) および [バイト順マーク](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "この用語 (バイト順マーク) の定義はまだ作成されていません。ぜひ寄稿をご検討ください!") は、この要素よりも優先されます。
+* 文字エンコーディングを定義することを強く推奨します。ページのエンコーディングが未定義の場合、[`UTF-7` フォールバック クロススクリプティング手法](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7) のようなクロススクリプティング攻撃が可能になります。
+* [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML の &lt;meta&gt; 要素は、&lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt;、または &lt;title&gt; といった他のHTMLメタ関連要素では表現できないメタデータを表します。") 要素に `charset` 属性を指定することは、HTML5 以前の `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`と同義です。ここで、_`IANAcharset`_ には、同等の [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 属性の値が含まれます。この構文は、もはや推奨されていませんが、依然として使用可能です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_cite">
@@ -216,10 +216,10 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 
 * `true` or the _empty string_, which indicates that the element must be editable;
 * `false`, which indicates that the element must not be editable.</source>
-        <target state="new">An enumerated attribute indicating if the element should be editable by the user. If so, the browser modifies its widget to allow editing. The attribute must take one of the following values:
+        <target state="translated">要素をユーザーが編集可能にするかどうかを示す列挙属性。その場合、ブラウザーはウィジェットを変更して編集を許可します。属性は次のいずれかの値を受け取る必要があります:
 
-* `true` or the _empty string_, which indicates that the element must be editable;
-* `false`, which indicates that the element must not be editable.</target>
+* `true` または _empty string_、これは、要素が編集可能である必要があることを示します。
+* `false`、要素を編集できないことを示します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_contextmenu">
@@ -239,17 +239,17 @@ A cross-origin request (i.e. with an [`Origin`](https://developer.mozilla.org/en
 A cross-origin request (i.e. with an `Origin` HTTP header) is performed along with a credential sent (i.e. a cookie, certificate, and/or HTTP Basic authentication is performed). If the server does not give credentials to the origin site (through [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to frontend JavaScript code when the request's credentials mode (Request.credentials) is "include".") HTTP header), the resource will be _tainted_ and its usage restricted.
 
 If the attribute is not present, the resource is fetched without a [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") request (i.e. without sending the `Origin` HTTP header), preventing its non-tainted usage. If invalid, it is handled as if the enumerated keyword **anonymous** was used. See [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for additional information.</source>
-        <target state="new">This enumerated attribute indicates whether [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") must be used when fetching the resource. [CORS-enabled images](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image) can be reused in the [`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas "Use the HTML &lt;canvas&gt; element with either the canvas scripting API or the WebGL API to draw graphics and animations.") element without being _tainted_. The allowed values are:
+        <target state="translated">この列挙型属性は、[CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (クロスオリジン リソース共有) は HTTP ヘッダーの送信で構成されるシステムであり、ブラウザーがフロントエンド JavaScript コードがクロスオリジン要求の応答にアクセスすることをブロックするかどうかを決定するシステムである" かどうかを示します。) は、リソースをフェッチするときに使用する必要があります。[CORS 対応イメージ](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image) は、[`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas "キャンバス スクリプト API または WebGL API を使用して HTML &lt;canvas&gt; 要素を使用してグラフィックスとアニメーションを描画する" 要素で再利用できます。使用できる値は次のとおりです:
 
 `anonymous`
 
-A cross-origin request (i.e. with an [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "The Origin request header indicates where a fetch originates from. It doesn't include any path information, but only the server name. It is sent with CORS requests, as well as with POST requests. It is similar to the Referer header, but, unlike this header, it doesn't disclose the whole path.") HTTP header) is performed, but no credential is sent (i.e. no cookie, X.509 certificate, or HTTP Basic authentication). If the server does not give credentials to the origin site (by not setting the [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given origin.") HTTP header) the image will be tainted and its usage restricted.
+クロスオリジン要求 (つまり[`Origin`)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "Origin 要求ヘッダーは、フェッチの送信元を示します。パス情報は含まれませんが、サーバー名のみが含まれます。CORS 要求と POST 要求で送信されます。これは Referer ヘッダーに似ていますが、このヘッダーとは異なり、パス全体は開示されません。) HTTP ヘッダー) は実行されますが、(Cookie、X.509 証明書、HTTP 基本認証など) 資格情報は送信されません。サーバーがオリジン サイトへの認証情報を提供しない場合 ([`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "Access-Control-Allow-Origin レスポンスヘッダーは、指定されたオリジンからの要求コードとレスポンスを共有できるかどうかを示す。") HTTPヘッダー) を設定しない場合、画像は汚染され、その使用が制限されます。
 
 `use-credentials`
 
-A cross-origin request (i.e. with an `Origin` HTTP header) is performed along with a credential sent (i.e. a cookie, certificate, and/or HTTP Basic authentication is performed). If the server does not give credentials to the origin site (through [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to frontend JavaScript code when the request's credentials mode (Request.credentials) is "include".") HTTP header), the resource will be _tainted_ and its usage restricted.
+クロスオリジン要求 (つまり、`Origin` HTTPヘッダーを含む要求) が、認証情報 (Cookie、証明書、および/またはHTTP Basic認証など) を送信して実行されます。サーバーがオリジンサイトに対して認証情報を提供しない場合 ([`Access-Control-Allow-Credentials`](https://developer mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "Access-Control-Allow-Credentials 応答ヘッダーは、要求の認証情報モード (Request.credentials) が "include" の場合に、応答をフロントエンドの JavaScript コードに公開するかどうかをブラウザーに指示する。") を通じて) オリジンサイトに認証情報を提供しない場合、リソースは _tainted_ となり、その使用が制限されます。
 
-If the attribute is not present, the resource is fetched without a [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") request (i.e. without sending the `Origin` HTTP header), preventing its non-tainted usage. If invalid, it is handled as if the enumerated keyword **anonymous** was used. See [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for additional information.</target>
+属性が存在しない場合、リソースは [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (クロスオリジン リソース共有) は、HTTP ヘッダーの送信で構成されるシステムであり、ブラウザーがフロントエンド JavaScript コードがクロスオリジン要求の応答にアクセスすることをブロックするかどうかを決定するシステムです。) 要求 (つまり、`Origin` HTTP ヘッダーを送信せずに) がフェッチされ、その使用が妨げられます。無効な場合は、列挙されたキーワード **anonymous** が使用されたかのように処理されます。詳細については、[CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) を参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_csp">
@@ -280,18 +280,18 @@ Decode the image asynchronously to reduce delay in presenting other content.
 `auto`
 
 Default mode, which indicates no preference for the decoding mode. The browser decides what is best for the user.</source>
-        <target state="new">Provides an image decoding hint to the browser. The allowed values are:
+        <target state="translated">ブラウザーに画像デコード ヒントを提供します。指定できる値は次のとおりです:
 `sync`
 
-Decode the image synchronously for atomic presentation with other content.
+他のコンテンツとのアトミックプレゼンテーションのためにイメージを同期的にデコードします。
 
 `async`
 
-Decode the image asynchronously to reduce delay in presenting other content.
+他のコンテンツの表示の遅延を減らすために、イメージを非同期的にデコードします。
 
 `auto`
 
-Default mode, which indicates no preference for the decoding mode. The browser decides what is best for the user.</target>
+既定モード。デコード モードが優先されていないことを示します。ブラウザーは、ユーザーに最適なものを決定します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_default">
@@ -307,13 +307,13 @@ Scripts with the `defer` attribute will prevent the `DOMContentLoaded` event fro
 This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts), in this case it would have no effect.
 
 To achieve a similar effect for dynamically inserted scripts use `async="false"` instead. Scripts with the `defer` attribute will execute in the order in which they appear in the document.</source>
-        <target state="new">This Boolean attribute is set to indicate to a browser that the script is meant to be executed after the document has been parsed, but before firing [`DOMContentLoaded`](https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded "/en-US/docs/Web/Events/DOMContentLoaded").
+        <target state="translated">このブール型属性は、ドキュメントが解析された後で[`DOMContentLoaded`](https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded "/en-US/docs/Web/Events/DOMContentLoaded") を起動する前にスクリプトが実行されることをブラウザーに示すように設定されています。
 
-Scripts with the `defer` attribute will prevent the `DOMContentLoaded` event from firing until the script has loaded and finished evaluating.
+`defer` 属性を持つスクリプトは、スクリプトが読み込まれ、評価が完了するまで、`DOMContentLoaded` イベントが発生するのを防ぎます。
 
-This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts), in this case it would have no effect.
+この属性は、`src` 属性が存在しない場合 (インライン スクリプトの場合) には使用しないでください。
 
-To achieve a similar effect for dynamically inserted scripts use `async="false"` instead. Scripts with the `defer` attribute will execute in the order in which they appear in the document.</target>
+この場合、効果はありません。動的に挿入されるスクリプトに対して同様の効果を実現するには、代わりに `async="false"` を使用します。`defer` 属性を持つスクリプトは、ドキュメントに表示される順序で実行されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_dir">
@@ -322,11 +322,11 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * `ltr`, which means _left to right_ and is to be used for languages that are written from the left to the right (like English);
 * `rtl`, which means _right to left_ and is to be used for languages that are written from the right to the left (like Arabic);
 * `auto`, which lets the user agent decide. It uses a basic algorithm as it parses the characters inside the element until it finds a character with a strong directionality, then it applies that directionality to the whole element.</source>
-        <target state="new">An enumerated attribute indicating the directionality of the element's text. It can have the following values:
+        <target state="translated">要素のテキストの方向性を示す列挙型属性です。以下の値を指定できます:
 
-* `ltr`, which means _left to right_ and is to be used for languages that are written from the left to the right (like English);
-* `rtl`, which means _right to left_ and is to be used for languages that are written from the right to the left (like Arabic);
-* `auto`, which lets the user agent decide. It uses a basic algorithm as it parses the characters inside the element until it finds a character with a strong directionality, then it applies that directionality to the whole element.</target>
+* `ltr`: _lef to right_ を意味し、左から右に書かれる言語 (英語など) に使用します。
+* `rtl`：_right to left_ を意味し、右から左に書く言語 (アラビア語など) に使用します。* `auto`: ユーザー エージェントに決定を委ねます。
+ユーザー エージェントは、要素内の文字を解析し、明確な方向性を持つ文字が見つかるまで処理を進め、その方向性を要素全体に適用します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_disabled">
@@ -343,14 +343,14 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * Although HTTP(s) URLs need to be in the same-origin, [`blob:` URLs](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) and [`data:` URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) are allowed so that content generated by JavaScript, such as pictures created in an image-editor Web app, can be downloaded.
 * If the HTTP header [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) gives a different filename than this attribute, the HTTP header takes priority over this attribute.
 * If `Content-Disposition:` is set to `inline`, Firefox prioritizes `Content-Disposition`, like the filename case, while Chrome prioritizes the `download` attribute.</source>
-        <target state="new">This attribute instructs browsers to download a URL instead of navigating to it, so the user will be prompted to save it as a local file. If the attribute has a value, it is used as the pre-filled file name in the Save prompt (the user can still change the file name if they want). There are no restrictions on allowed values, though `/` and `\` are converted to underscores. Most file systems limit some punctuation in file names, and browsers will adjust the suggested name accordingly.
+        <target state="translated">この属性は、ブラウザーに移動する代わりに URL をダウンロードするように指示するため、ユーザーは URL をローカル ファイルとして保存するように求められます。属性に値がある場合は、保存プロンプトで事前入力されたファイル名として使用されます (ユーザーは必要に応じてファイル名を変更できます)。許可される値に制限はありませんが、`/` と `\` はアンダースコアに変換されます。ほとんどのファイル システムでは、ファイル名の一部の句読点が制限されており、ブラウザーではそれに応じて推奨される名前が調整されます。
 
-**Notes:**
+**注:**
 
-* This attribute only works for [same-origin URLs](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
-* Although HTTP(s) URLs need to be in the same-origin, [`blob:` URLs](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) and [`data:` URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) are allowed so that content generated by JavaScript, such as pictures created in an image-editor Web app, can be downloaded.
-* If the HTTP header [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) gives a different filename than this attribute, the HTTP header takes priority over this attribute.
-* If `Content-Disposition:` is set to `inline`, Firefox prioritizes `Content-Disposition`, like the filename case, while Chrome prioritizes the `download` attribute.</target>
+* この属性は、[同じ配信元 URL](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) でのみ機能します。
+* HTTP URL は同じオリジンに存在する必要がありますが、[`blob:` URL](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) と [`data:` URL](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) を使用して、画像エディター Web アプリで作成された画像などの JavaScript によって生成されたコンテンツをダウンロードできます。
+* HTTP ヘッダー [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) がこの属性と異なるファイル名を指定した場合、HTTP ヘッダーはこの属性よりも優先されます。
+* `Content-Disposition:` が `inline` に設定されている場合、Firefox ではファイル名のケースのように `Content-Disposition` が優先され、Chrome では `download` 属性が優先されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_draggable">
@@ -358,10 +358,10 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 
 * `true`, which indicates that the element may be dragged
 * `false`, which indicates that the element may not be dragged.</source>
-        <target state="new">An enumerated attribute indicating whether the element can be dragged, using the [Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). It can have the following values:
+        <target state="translated">[Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop) を使用して、要素をドラッグできるかどうかを示す列挙属性。次の値を指定できます:
 
-* `true`, which indicates that the element may be dragged
-* `false`, which indicates that the element may not be dragged.</target>
+* `true`。これは、要素をドラッグできる可能性があることを示します
+* `false`。これは、要素をドラッグできない可能性があることを示します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_dropzone">
@@ -370,11 +370,11 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * `copy`, which indicates that dropping will create a copy of the element that was dragged
 * `move`, which indicates that the element that was dragged will be moved to this new location.
 * `link`, will create a link to the dragged data.</source>
-        <target state="new">An enumerated attribute indicating what types of content can be dropped on an element, using the [Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). It can have the following values:
+        <target state="translated">[ドラッグ アンド ドロップ API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop) を使用して、要素にドロップできるコンテンツの種類を示す列挙属性。次の値を指定できます: 
 
-* `copy`, which indicates that dropping will create a copy of the element that was dragged
-* `move`, which indicates that the element that was dragged will be moved to this new location.
-* `link`, will create a link to the dragged data.</target>
+* `copy`。ドロップすると、ドラッグされた要素のコピーが作成されることを示します
+* `move`。これは、ドラッグされた要素がこの新しい場所に移動されることを示します。
+* `link` は、ドラッグされたデータへのリンクを作成します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_enctype">
@@ -385,13 +385,13 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * `text/plain`: (HTML5)
 
 This value can be overridden by a [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="new">When the value of the `method` attribute is `post`, enctype is the [MIME type](https://en.wikipedia.org/wiki/Mime_type) of content that is used to submit the form to the server. Possible values are:
+        <target state="translated">`method` 属性の値が `post` の場合、enctype はフォームをサーバーに送信するために使用されるコンテンツの [MIME type](https://en.wikipedia.org/wiki/Mime_type) です。指定できる値は次のとおりです:
 
-* `application/x-www-form-urlencoded`: The default value if the attribute is not specified.
-* `multipart/form-data`: The value used for an [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element with the `type` attribute set to "file".
-* `text/plain`: (HTML5)
+* `application/x-www-form-urlencoded`: 属性が指定されていない場合の既定値。
+* `multipart/form-data`: [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTMLの &lt;input&gt; 要素は、ユーザーからのデータを受け取るために Web ベースのフォーム用の対話型コントロールを作成するために使用されます。デバイスやユーザーエージェントに応じて、多種多様な入力データやコントロール ウィジェットが利用可能です。") 要素の `type` 属性が "file" に設定されている場合に使用される値です。*
+`text/plain`: (HTML5)
 
-This value can be overridden by a [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</target>
+この値は、[`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML の &lt;button&gt; 要素は、クリック可能なボタンを表します。これはフォーム内や、シンプルで標準的なボタン機能が必要なドキュメント内のどこでも使用できます。") の [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) によりオーバーライドされる可能性があります、または [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML の &lt;input&gt; 要素は、ユーザーからのデータを受け取るための Web ベースのフォームにおける対話型コントロールを作成するために使用されます。デバイスやユーザー エージェントに応じて、多種多様な入力データやコントロール ウィジェットが利用可能です。") 要素の attr-formenctype 属性です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_enterkeyhint">
@@ -413,9 +413,9 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
         <source>The [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) of a [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) form-related element in the same document as the `&lt;label&gt;` element. The first element in the document with an `id` matching the value of the `for` attribute is the _labeled control_ for this label element, if it is a labelable element. If it is not labelable then the `for` attribute has no effect. If there are other elements which also match the `id` value, later in the document, they are not considered.
 
 **Note**: A `&lt;label&gt;` element can have both a `for` attribute and a contained control element, as long as the `for` attribute points to the contained control element.</source>
-        <target state="new">The [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) of a [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) form-related element in the same document as the `&lt;label&gt;` element. The first element in the document with an `id` matching the value of the `for` attribute is the _labeled control_ for this label element, if it is a labelable element. If it is not labelable then the `for` attribute has no effect. If there are other elements which also match the `id` value, later in the document, they are not considered.
+        <target state="translated">`&lt;label&gt;` 要素と同じドキュメント内の [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) フォーム関連要素の [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) です。`for` 属性の値と一致する `id` を持つドキュメント内の最初の要素は、ラベル付け可能な要素の場合、このラベル要素の _labeled control_ です。ラベル付けできない場合 `for` 属性は無効です。`id` 値にも一致する他の要素がある場合、ドキュメントの後半では考慮されません。
 
-**Note**: A `&lt;label&gt;` element can have both a `for` attribute and a contained control element, as long as the `for` attribute points to the contained control element.</target>
+**注**: `&lt;label&gt;` 要素は、`for` 属性と包含コントロール要素の両方を持つことができます。ただし、`for` 属性が含まれているコントロール要素を指している限りです。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_form">
@@ -436,13 +436,13 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
 * `text/plain`
 
 If this attribute is specified, it overrides the [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) attribute of the button's form owner.</source>
-        <target state="new">If the button is a submit button, this attribute specifies the type of content that is used to submit the form to the server. Possible values are:
+        <target state="translated">ボタンが送信ボタンの場合、この属性は、フォームをサーバーに送信するために使用されるコンテンツの種類を指定します。指定可能な値は以下の通りです:
 
-* `application/x-www-form-urlencoded`: The default value if the attribute is not specified.
-* `multipart/form-data`: Use this value if you are using an [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element with the [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) attribute set to `file`.
+* `application/x-www-form-urlencoded`: この属性が指定されていない場合の既定値です。
+* `multipart/form-data`: [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "&lt;input&gt; 要素は、ユーザーからのデータを受け付けるための Web フォーム用インタラクティブ コントロールの作成に使用されます。デバイスやユーザー エージェントに応じて、多種多様な入力データやコントロールウィジェットが利用可能です。") 要素を使用し、[`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) 属性を `file` に設定している場合に使用します。
 * `text/plain`
 
-If this attribute is specified, it overrides the [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) attribute of the button's form owner.</target>
+この属性が指定されている場合、ボタンのフォーム所有者の [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) 属性よりも優先されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formmethod">
@@ -452,12 +452,12 @@ If this attribute is specified, it overrides the [`enctype`](https://developer.m
 * `get`: The data from the form are appended to the **form** attribute URI, with a '?' as a separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
 
 If specified, this attribute overrides the [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) attribute of the button's form owner.</source>
-        <target state="new">If the button is a submit button, this attribute specifies the HTTP method that the browser uses to submit the form. Possible values are:
+        <target state="translated">ボタンが送信ボタンの場合、この属性はブラウザーがフォームの送信に使用する HTTP メソッドを指定します。使用可能な値は次のとおりです:
 
-* `post`: The data from the form are included in the body of the form and sent to the server.
-* `get`: The data from the form are appended to the **form** attribute URI, with a '?' as a separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
+* `post`: フォームのデータはフォームの本文に含まれ、サーバーに送信されます。
+* `get`: フォームのデータが **form** 属性 URI に追加され、区切り記号として '?' が付き、結果の URI がサーバーに送信されます。フォームに副作用がなく、ASCII 文字のみが含まれている場合は、このメソッドを使用します。
 
-If specified, this attribute overrides the [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) attribute of the button's form owner.</target>
+指定した場合、この属性はボタンのフォーム所有者の [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) 属性をオーバーライドします。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_formnovalidate">
@@ -472,12 +472,12 @@ If specified, this attribute overrides the [`method`](https://developer.mozilla.
 * `_blank`: Load the response into a new unnamed browsing context.
 * `_parent`: Load the response into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
 * `_top`: Load the response into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.</source>
-        <target state="new">If the button is a submit button, this attribute is a name or keyword indicating where to display the response that is received after submitting the form. This is a name of, or keyword for, a _browsing context_ (for example, tab, window, or inline frame). If this attribute is specified, it overrides the [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) attribute of the button's form owner. The following keywords have special meanings:
+        <target state="translated">ボタンが送信ボタンの場合、この属性はフォームの送信後に受信した応答を表示する場所を示す名前またはキーワードです。これは、_browsing context_ (タブ、ウィンドウ、インライン フレームなど) の名前またはキーワードです。この属性を指定すると、ボタンのフォーム所有者の [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) 属性がオーバーライドされます。次のキーワードには特別な意味があります:
 
-* `_self`: Load the response into the same browsing context as the current one. This value is the default if the attribute is not specified.
-* `_blank`: Load the response into a new unnamed browsing context.
-* `_parent`: Load the response into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
-* `_top`: Load the response into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.</target>
+* `_self`: 現在のコンテキストと同じ参照コンテキストに応答を読み込みます。この値は、属性が指定されていない場合の既定値です。
+* `_blank`: 新しい名前のない参照コンテキストに応答を読み込みます。
+* `_parent`: 現在の参照コンテキストの親参照コンテキストに応答を読み込みます。親がない場合、このオプションは `_self` と同じように動作します。
+* `_top`: 最上位の参照コンテキスト (つまり、現在のコンテキストの先祖であり、親を持たない閲覧コンテキスト) に応答を読み込みます。親がない場合、このオプションは `_self` と同じように動作します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_height">
@@ -530,30 +530,30 @@ This instruction specifies:
 Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page. Its content must follow the syntax defined in the [IETF HTTP Cookie Specification](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14).
 
 **Warning:** Do not use this instruction, as it is obsolete. Use the HTTP header [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie) instead.</source>
-        <target state="new">Defines a pragma directive. The attribute is named `**http-equiv**(alent)` because all the allowed values are names of particular HTTP headers:
+        <target state="translated">プラグマ ディレクティブを定義します。許可されているすべての値が特定の HTTP ヘッダーの名前であるため、属性の名前は `**http-equiv**(alent)` です:
 
 * `"content-language"` 
-Defines the default language of the page. It can be overridden by the [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) attribute on any element.
+ページの既定の言語を定義します。任意の要素の [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) 属性でオーバーライドされる可能性があります。
 
-**Warning:** Do not use this value, as it is obsolete. Prefer the `lang` attribute on the [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "The HTML &lt;html&gt; element represents the root (top-level element) of an HTML document, so it is also referred to as the root element. All other elements must be descendants of this element.") element.
+**警告:** この値は古い形式であるため、使用しないでください。[`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html ”HTML の &lt;html&gt; 要素は、HTML ドキュメントのルート (最上位要素) を表すため、ルート要素とも呼ばれます。他のすべての要素は、この要素の子孫でなければなりません。”) 要素には、`lang` 属性を使用することを推奨します。
 
 * `"content-security-policy"` 
-Allows page authors to define a [content policy](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) for the current page. Content policies mostly specify allowed server origins and script endpoints which help guard against cross-site scripting attacks.
-* `"content-type"` 
-Defines the [MIME type](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) of the document, followed by its character encoding. It follows the same syntax as the HTTP `content-type` entity-header field, but as it is inside a HTML page, most values other than `text/html` are impossible. Therefore the valid syntax for its `content` is the string '`text/html`' followed by a character set with the following syntax: '`; charset=_IANAcharset_`', where `IANAcharset` is the _preferred MIME name_ for a character set as [defined by the IANA.](https://www.iana.org/assignments/character-sets)
+ページ作成者が現在のページの [content policy](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) を定義できるようにします。コンテンツ ポリシーでは、ほとんどの場合、許可されているサーバー オリジンとスクリプト エンドポイントが指定されています。これは、クロスサイト スクリプティング攻撃から保護するのに役立ちます。
+* `"content-type"`
+ドキュメントの [MIME type](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) を定義し、その後に文字エンコーディングが続きます。これはHTTPの `content-type` エンティティヘッダーフィールドと同じ構文を採用していますが、HTML ページ内にあるため、`text/html` 以外の値はほとんど使用できません。したがって、その `content` の有効な構文は、文字列 '`text/html`' の後に、次の構文を持つ文字セットが続くものです: "`; charset=_IANAcharset_`'。ここで、`IANAcharset` は、[defined by the IANA (IANA によって定義された)](https://www.iana.org/assignments/character-sets) 文字セットの _preferred MIME name_ です。
 
-**Warning:** Do not use this value, as it is obsolete. Use the [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute on the [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element.
+**警告：** この値は廃止されているため、使用しないでください。[`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML の &lt;meta&gt; 要素は、&lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt;、または &lt;title&gt; といった他の HTML メタ関連要素では表現できないメタデータを表します。") 要素で [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 属性を使用してください。
 
-**Note:** As [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") can't change documents' types in XHTML or HTML5's XHTML serialization, never set the MIME type to an XHTML MIME type with `&lt;meta&gt;`.
+**注: ** [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTMLの &lt;meta&gt; 要素は、&lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt;、または &lt;title&gt; など で表現できないメタデータを表します。") は、XHTML や HTML5 の XHTML シリアライゼーションにおいてドキュメントのタイプを変更できないため、`&lt;meta&gt;` を使用して MIME タイプを XHTML の MIME タイプに設定してはいけません。
 
-* `"refresh"` 
-This instruction specifies:
-* The number of seconds until the page should be reloaded - only if the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute contains a positive integer.
-* The number of seconds until the page should redirect to another - only if the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute contains a positive integer followed by the string '`;url=`', and a valid URL.
+* `"refresh"`
+この命令は以下を意味します:
+* ページが再読み込みされるまでの秒数。ただし、[`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 属性に正の整数が含まれている場合のみ。
+* ページが別のページにリダイレクトされるまでの秒数 - [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 属性に、正の整数の後に文字列 "`;url=`" および有効な URL が続く場合のみ。
 * `"set-cookie"` 
-Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page. Its content must follow the syntax defined in the [IETF HTTP Cookie Specification](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14).
+このページ用の [cookie](https://developer.mozilla.org/en-US/docs/cookie) を定義します。その内容は、[IETF HTTP Cookie Specification](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14) で定義されている構文に従う必要があります。
 
-**Warning:** Do not use this instruction, as it is obsolete. Use the HTTP header [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie) instead.</target>
+**警告:** この命令は廃止されているため、使用しないでください。代わりに、HTTPヘッダー [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie) を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_id">
@@ -585,9 +585,9 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
         <source>This Boolean attribute indicates that the image is part of a server-side map. If so, the precise coordinates of a click are sent to the server.
 
 **Note:** This attribute is allowed only if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") element with a valid [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute.</source>
-        <target state="new">This Boolean attribute indicates that the image is part of a server-side map. If so, the precise coordinates of a click are sent to the server.
+        <target state="translated">このブール型属性は、画像がサーバーサイドの地図の一部であることを示します。その場合、クリックされた正確な座標がサーバーに送信されます。
 
-**Note:** This attribute is allowed only if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") element with a valid [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute.</target>
+**注：** この属性は、`&lt;img&gt;` 要素が、有効な [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "HTML &lt;a&gt; 要素 (またはアンカー要素) は、他の Web ページ、ファイル、同じページ内の場所、メール アドレス、またはその他の URL へのハイパーリンクを作成します。") 要素の子要素であり、かつ有効な [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) 属性を持つ場合にのみ使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_itemid">
@@ -632,22 +632,22 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * Chapter titles are intended to be used when the user is navigating the media resource.
 * `metadata`
 * Tracks used by scripts. Not visible to the user.</source>
-        <target state="new">How the text track is meant to be used. If omitted the default kind is `subtitles`. If the attribute is not present, it will use the `subtitles`. If the attribute contains an invalid value, it will use `metadata`. (Versions of Chrome earlier than 52 treated an invalid value as `subtitles`.) The following keywords are allowed:
+        <target state="translated">テキスト トラックの使用方法。省略した場合、既定の種類は `subtitles` です。属性が存在しない場合は、`subtitles` が使用されます。属性に無効な値が含まれている場合は、`metadata` が使用されます。(52 より前のバージョンの Chrome では、無効な値が `subtitles` として扱われます。) 次のキーワードを使用できます:
 
 * `subtitles`
-* Subtitles provide translation of content that cannot be understood by the viewer. For example dialogue or text that is not English in an English language film.
-* Subtitles may contain additional content, usually extra background information. For example the text at the beginning of the Star Wars films, or the date, time, and location of a scene.
+* Subtitles は、ビューアーでは認識できないコンテンツの翻訳を提供します。たとえば、英語の映画で英語ではない会話やテキストなどです。
+* 字幕には、追加のコンテンツ (通常は追加の背景情報) が含まれている場合があります。たとえば、Star Wars 映画の冒頭のテキストや、シーンの日付、時刻、場所などです。
 * `captions`
-* Closed captions provide a transcription and possibly a translation of audio.
-* It may include important non-verbal information such as music cues or sound effects. It may indicate the cue's source (e.g. music, text, character).
-* Suitable for users who are deaf or when the sound is muted.
+* クローズド キャプションは、文字起こしと場合によってはオーディオの翻訳を提供します。
+* 音楽キューやサウンド エフェクトなどの重要な非音声情報が含まれる場合があります。キューのソース (音楽、テキスト、文字など) を示している場合があります。
+* 聴覚障碍のあるユーザー、または音がミュートになっているユーザーに適しています。
 * `descriptions`
-* Textual description of the video content.
-* Suitable for users who are blind or where the video cannot be seen.
+* ビデオ コンテンツのテキストの説明。
+* 視覚に障碍のあるユーザー、またはビデオを見ることができないユーザーに適しています。
 * `chapters`
-* Chapter titles are intended to be used when the user is navigating the media resource.
+* Chapter タイトルは、ユーザーがメディア リソースを移動するときに使用することを目的としています。
 * `metadata`
-* Tracks used by scripts. Not visible to the user.</target>
+* スクリプトで使用されるトラック。ユーザーには表示されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -692,12 +692,12 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 
 * In HTML 4, this can only be a simple white-space-separated list of media description literals, i.e., [media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), where defined and allowed as values for this attribute, such as `print`, `screen`, `aural`, `braille`. HTML5 extended this to any kind of [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), which are a superset of the allowed values of HTML 4.
 * Browsers not supporting [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) won't necessarily recognize the adequate link; do not forget to set fallback links, the restricted set of media queries defined in HTML 4.</source>
-        <target state="new">This attribute specifies the media that the linked resource applies to. Its value must be a media type / [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries). This attribute is mainly useful when linking to external stylesheets — it allows the user agent to pick the best adapted one for the device it runs on.
+        <target state="translated">この属性は、リンクされたリソースが適用されるメディアを指定します。その値は、メディアの種類 /[メディア クエリ](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) である必要があります。この属性は主に外部スタイルシートにリンクする場合に便利です — ユーザー エージェントは、実行するデバイスに最適なスタイルシートを選択できます。
 
-**Notes:**
+**注:**
 
-* In HTML 4, this can only be a simple white-space-separated list of media description literals, i.e., [media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), where defined and allowed as values for this attribute, such as `print`, `screen`, `aural`, `braille`. HTML5 extended this to any kind of [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), which are a superset of the allowed values of HTML 4.
-* Browsers not supporting [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) won't necessarily recognize the adequate link; do not forget to set fallback links, the restricted set of media queries defined in HTML 4.</target>
+* HTML 4 では、これは単に空白で区切られたメディア記述リテラル (すなわち、[media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media)) のリストに限られます。これらは、`print`、`screen`、`aural`、`braille` など、この属性の値として定義され、許可されているものです。HTML5 では、これがあらゆる種類の [メディアクエリ](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) に拡張されました。これらはHTML 4で許可されていた値のスーパーセットです。
+* [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) をサポートしていないブラウザーでは、適切なリンクが認識されない場合があります。HTML 4 で定義されている限定的なメディア クエリのセットを、フォールバック リンクとして設定することを忘れないでください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_method">
@@ -708,13 +708,13 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * `dialog`: Use when the form is inside a [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "The HTML &lt;dialog&gt; element represents a dialog box or other interactive component, such as an inspector or window.") element to close the dialog when submitted.
 
 This value can be overridden by a [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
-        <target state="new">The [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) method that the browser uses to submit the form. Possible values are:
+        <target state="translated">ブラウザーがフォームの送信に使用する [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) メソッド。使用可能な値は次のとおりです:
 
-* `post`: Corresponds to the HTTP [POST method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) ; form data are included in the body of the form and sent to the server.
-* `get`: Corresponds to the HTTP [GET method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3); form data are appended to the `action` attribute URI with a '?' as separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
-* `dialog`: Use when the form is inside a [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "The HTML &lt;dialog&gt; element represents a dialog box or other interactive component, such as an inspector or window.") element to close the dialog when submitted.
+* `post`: HTTP [POST メソッド](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) に対応します。フォーム データはフォームの本文に含まれ、サーバーに送信されます。
+* `get`: HTTP [GET メソッド](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3); に対応します。フォーム データは、区切り記号として '?' を持つ `action` 属性 URI に追加され、結果の URI がサーバーに送信されます。フォームに副作用がなく、ASCII 文字のみが含まれている場合は、このメソッドを使用します。
+* `dialog`: フォームが [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "HTML の &lt;dialog&gt; 要素は、ダイアログ ボックスや、インスペクターやウィンドウなどのその他の対話型コンポーネントを表します。") 要素内にあり、送信時にダイアログを閉じる場合に使用します。
 
-This value can be overridden by a [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</target>
+この値は、[`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML の &lt;button&gt; 要素は、クリック可能なボタンを表します。これは、フォームや、単純で標準的なボタン機能が必要なドキュメント内のあらゆる場所で使用できます。") 上の [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) によってオーバーライドされる可能性があります。または [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML の &lt;input&gt; 要素は、ユーザーからのデータを受け取るために Web ベースのフォーム用の対話型コントロールを作成するために使用されます。デバイスやユーザーエージェントに応じて、多種多様な入力データやコントロールウィジェットが利用可能です。") 要素に対して設定されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_min">
@@ -941,7 +941,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * Though unstandardized, this declaration is respected by most mobile browsers due to de-facto dominance.
 * The default values may vary between devices and browsers.
 * To learn about this declaration in Firefox for Mobile, see [this article](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag").</source>
-        <target state="new">This attribute defines the name of a piece of document-level metadata. It should not be set if one of the attributes [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop), [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) is also set.
+        <target state="translated">This attribute defines the name of a piece of document-level metadata. It should not be set if one of the attributes [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop), [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) is also set.
 
 This metadata name is associated with the value contained by the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute. The possible values for the name attribute are:
 
@@ -1515,9 +1515,9 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <source>A hint to the user of what can be entered in the control. Carriage returns or line-feeds within the placeholder text must be treated as line breaks when rendering the hint.
 
 **Note:** Placeholders should only be used to show an example of the type of data that should be entered into a form; they are _not_ a substitute for a proper [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") element tied to the input. See [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") in [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") for a full explanation.</source>
-        <target state="new">A hint to the user of what can be entered in the control. Carriage returns or line-feeds within the placeholder text must be treated as line breaks when rendering the hint.
+        <target state="translated">コントロールに入力できる内容のヒント。プレースホルダー テキスト内の復帰または改行は、ヒントをレンダリングするときに改行として扱う必要があります。
 
-**Note:** Placeholders should only be used to show an example of the type of data that should be entered into a form; they are _not_ a substitute for a proper [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") element tied to the input. See [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") in [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") for a full explanation.</target>
+**注:** プレースホルダーは、フォームに入力する必要があるデータの種類の例を示すためにのみ使用する必要があります。入力に関連付けられた適切な [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "HTML &lt;label&gt; 要素はユーザー インターフェイス内の項目のキャプションを表します。") 要素の代わりに _not_ を指定します。[Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "HTML の &lt;input&gt; 要素は、ユーザーからのデータを受け付けるための Web フォーム用インタラクティブ コントロールの作成に使用されます。デバイスやユーザー エージェントに応じて、多種多様な入力データやコントロール ウィジェットが利用可能です。") の [&lt;input&gt;: Input (フォーム入力) 要素](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML の &lt;input&gt; 要素は、ユーザーからのデータを受け付けるための Web ベースのフォーム用インタラクティブ コントロールを作成するために使用されます。デバイスやユーザー エージェントに応じて、多種多様な入力データやコントロール ウィジェットが利用可能です。") を参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_popover">
@@ -1543,13 +1543,13 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * `origin` means that the referrer will be the origin of the page, which is roughly the scheme, the host, and the port.
 * `origin-when-cross-origin` means that navigating to other origins will be limited to the scheme, the host, and the port, while navigating on the same origin will include the referrer's path.
 * `unsafe-url` means that the referrer will include the origin and the path (but not the fragment, password, or username). This case is unsafe because it can leak origins and paths from TLS-protected resources to insecure origins.</source>
-        <target state="new">A string indicating which referrer to use when fetching the resource:
+        <target state="translated">リソースのフェッチ時に使用する参照元を示す文字列:
 
-* `no-referrer` means that the [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.") header will not be sent.
-* `no-referrer-when-downgrade` means that no [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.") header will be sent when navigating to an origin without TLS (HTTPS). This is a user agent’s default behavior, if no policy is otherwise specified.
-* `origin` means that the referrer will be the origin of the page, which is roughly the scheme, the host, and the port.
-* `origin-when-cross-origin` means that navigating to other origins will be limited to the scheme, the host, and the port, while navigating on the same origin will include the referrer's path.
-* `unsafe-url` means that the referrer will include the origin and the path (but not the fragment, password, or username). This case is unsafe because it can leak origins and paths from TLS-protected resources to insecure origins.</target>
+* `no-referrer` とは、[`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "Referer 要求ヘッダーには、現在要求されているページへのリンクが張られていた前の Web ページのアドレスが含まれます。Referer ヘッダーにより、サーバーはユーザーがどこからアクセスしてきたかを特定でき、そのデータを、例えば分析、ログ記録、またはキャッシュの最適化などに利用することができます。") ヘッダーが送信されないことを意味します。
+* `no-referrer-when-downgrade` とは、TLS (HTTPS) を使用していないオリジン (HTTPS) にアクセスする際、[`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "Referer 要求ヘッダーには、現在要求されているページへのリンクが張られていた前の Web ページのアドレスが含まれます。Referer ヘッダーにより、サーバーはユーザーがどこからアクセスしているかを特定でき、そのデータを、例えば分析、ログ記録、またはキャッシュの最適化などに利用できます。") ヘッダーが送信されません。これは、特にポリシーが指定されていない場合のユーザー エージェントの既定の動作です。
+* `origin` は、参照元がページの原点であることを意味します。これは、概してスキーム、ホスト、ポートです。
+* `origin-when-cross-origin` は、他の配信元への移動がスキーム、ホスト、ポートに制限されることを意味します。一方、同じオリジンでの移動には参照元のパスが含まれます。
+* `unsafe-url` は、参照元とパス (フラグメント、パスワード、またはユーザー名は含まない) が参照元に含まれていることを意味します。このケースは、TLS で保護されたリソースから安全でない配信元に配信元とパスをリークする可能性があるため、安全ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_rel">
@@ -1593,35 +1593,35 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * When the embedded document has the same origin as the embedding page, it is **strongly discouraged** to use both `allow-scripts` and `allow-same-origin`, as that lets the embedded document remove the `sandbox` attribute — making it no more secure than not using the `sandbox` attribute at all.
 * Sandboxing is useless if the attacker can display content outside a sandboxed `iframe` — such as if the viewer opens the frame in a new tab. Such content should be also served from a _separate origin_ to limit potential damage.
 * The `sandbox` attribute is unsupported in Internet Explorer 9 and earlier.</source>
-        <target state="new">Applies extra restrictions to the content in the frame. The value of the attribute can either be empty to apply all restrictions, or space-separated tokens to lift particular restrictions:
+        <target state="translated">フレーム内のコンテンツに追加の制限を適用します。属性の値は、すべての制限を適用するために空にすることも、スペースで区切られたトークンを使用して特定の制限を解除することもできます。
 
-* `allow-forms`: Allows the resource to submit forms. If this keyword is not used, form submission is blocked.
-* `allow-modals`: Lets the resource [open modal windows](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag).
-* `allow-orientation-lock`: Lets the resource [lock the screen orientation](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation).
-* `allow-pointer-lock`: Lets the resource use the [Pointer Lock API](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock).
-* `allow-popups`: Allows popups (such as `window.open()`, `target="_blank"`, or `showModalDialog()`). If this keyword is not used, the popup will silently fail to open.
-* `allow-popups-to-escape-sandbox`: Lets the sandboxed document open new windows without those windows inheriting the sandboxing. For example, this can safely sandbox an advertisement without forcing the same restrictions upon the page the ad links to.
-* `allow-presentation`: Lets the resource start a [presentation session](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest).
-* `allow-same-origin`: If this token is not used, the resource is treated as being from a special origin that always fails the [same-origin policy](https://developer.mozilla.org/en-US/docs/Glossary/same-origin_policy "same-origin policy: The same-origin policy is a critical security mechanism that restricts how a document or script loaded from one origin can interact with a resource from another origin.").
-* `allow-scripts`: Lets the resource run scripts (but not create popup windows).
-* `allow-storage-access-by-user-activation` : Lets the resource request access to the parent's storage capabilities with the [Storage Access API](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API).
-* `allow-top-navigation`: Lets the resource navigate the top-level browsing context (the one named `_top`).
-* `allow-top-navigation-by-user-activation`: Lets the resource navigate the top-level browsing context, but only if initiated by a user gesture.
+* `allow-forms`: リソースがフォームを送信できるようにします。このキーワードを使用しない場合、フォームの送信はブロックされます。
+* `allow-modals`: リソースが [open modal windows (モーダル ウィンドウで開ける)](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag) ようにします。
+* `allow-orientation-lock`: リソースの [lock the screen orientation (画面の向きをロック)](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation) します。
+* `allow-pointer-lock`: リソースで [Pointer Lock API](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock) を使用できるようにします。
+* `allow-popups`: ポップアップ (`window.open()`、`target="_blank"`、`showModalDialog()` など) を許可します。このキーワードを使用しない場合、ポップアップはサイレントで開かなくなります。
+* `allow-popups-to-escape-sandbox`: サンドボックス化されたドキュメントで、サンドボックスを継承するウィンドウなしで新しいウィンドウを開くことができます。たとえば、広告がリンクされているページに同じ制限を適用することなく、広告を安全にサンドボックス化できます。
+* `allow-presentation`: リソースが [プレゼンテーション セッション](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest) を開始できるようにします。
+* `allow-same-origin`: このトークンを使用しない場合、リソースは常に [同じ配信元ポリシー](https://developer.mozilla.org/en-US/docs/Glossary/same-origin_policy "同じ配信元ポリシー: 同じ配信元ポリシー: 同じ配信元ポリシーは、ある配信元から読み込まれたドキュメントまたはスクリプトが別の配信元のリソースと対話する方法を制限する重要なセキュリティ メカニズムです") に失敗する特殊な配信元からのリソースとして扱われます。
+* `allow-scripts`: リソースでスクリプトを実行できるようにします (ただし、ポップアップ ウィンドウは作成できません)。
+* `allow-storage-access-by-user-activation`: リソースが [Storage Access API](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API) を使用して親のストレージ機能へのアクセスを要求できるようにします。
+* `allow-top-navigation`: リソースが最上位の参照コンテキスト (`_top` という名前のコンテキスト) を移動できるようにします。
+* `allow-top-navigation-by-user-activation`: リソースがトップレベルの閲覧コンテキストを移動できるようにしますが、ユーザー ジェスチャによって開始された場合にのみ可能です。
 
-**Notes about sandboxing:**
+**サンドボックス化に関する注意:**
 
-* When the embedded document has the same origin as the embedding page, it is **strongly discouraged** to use both `allow-scripts` and `allow-same-origin`, as that lets the embedded document remove the `sandbox` attribute — making it no more secure than not using the `sandbox` attribute at all.
-* Sandboxing is useless if the attacker can display content outside a sandboxed `iframe` — such as if the viewer opens the frame in a new tab. Such content should be also served from a _separate origin_ to limit potential damage.
-* The `sandbox` attribute is unsupported in Internet Explorer 9 and earlier.</target>
+* 埋め込みドキュメントの配信元が埋め込みページと同じである場合は、`allow-scripts` と `allow-same-origin` の両方を使用することを**強くお勧めします。これは、埋め込みドキュメントで `sandbox` 属性を削除できるため、`sandbox` 属性を使用しないよりも安全です。
+* 攻撃者がサンドボックス化された `iframe` の外部 (ビューアーが新しいタブでフレームを開く場合など) にコンテンツを表示できる場合、サンドボックス化は役に立ちません。このようなコンテンツは、潜在的な損傷を制限するために、_separate origin_ からも提供する必要があります。
+* `sandbox` 属性は、Internet Explorer 9 以前ではサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_scheme">
         <source>This attribute defines the scheme in which metadata is described. A scheme is a context leading to the correct interpretations of the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) value, like a format.
 
 **Warning:** Do not use this value, as it is obsolete. There is no replacement as there was no real usage for it.</source>
-        <target state="new">This attribute defines the scheme in which metadata is described. A scheme is a context leading to the correct interpretations of the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) value, like a format.
+        <target state="translated">この属性は、メタデータを記述するスキームを定義します。スキームは、[`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) 値の正しい解釈につながるコンテキストです。形式などです。
 
-**Warning:** Do not use this value, as it is obsolete. There is no replacement as there was no real usage for it.</target>
+**警告:** この値は古い形式であるため、使用しないでください。実際の使用がなかったため、置き換えはありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_selected">
@@ -1633,9 +1633,9 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <source>If the control is presented as a scrolling list box (e.g. when `multiple` is specified), this attribute represents the number of rows in the list that should be visible at one time. Browsers are not required to present a select element as a scrolled list box. The default value is 0.
 
 **Note:** According to the HTML5 specification, the default value for size should be 1; however, in practice, this has been found to break some web sites, and no other browser currently does that, so Mozilla has opted to continue to return 0 for the time being with Firefox.</source>
-        <target state="new">If the control is presented as a scrolling list box (e.g. when `multiple` is specified), this attribute represents the number of rows in the list that should be visible at one time. Browsers are not required to present a select element as a scrolled list box. The default value is 0.
+        <target state="translated">コントロールがスクロール リスト ボックスとして表示される場合 (たとえば、`multiple` が指定されている場合)、この属性は一度に表示されるリスト内の行数を表します。ブラウザーは、select 要素をスクロールされたリスト ボックスとして表示する必要はありません。既定値は 0 です。
 
-**Note:** According to the HTML5 specification, the default value for size should be 1; however, in practice, this has been found to break some web sites, and no other browser currently does that, so Mozilla has opted to continue to return 0 for the time being with Firefox.</target>
+**注:** HTML5 の仕様によると、サイズの既定値は 1 である必要があります。ただし、実際には、これにより一部の Web サイトが中断されることが判明しており、他のブラウザーでは現在これを行っていないため、Mozilla は Firefox で当面は 0 を返し続けようとしています。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">
@@ -1645,12 +1645,12 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * a white-space separated list of sizes, each in the format `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` or `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Each of these sizes must be contained in the resource.
 
 **Note:** Most icon formats are only able to store one single icon; therefore most of the time the [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) contains only one entry. MS's ICO format does, as well as Apple's ICNS. ICO is more ubiquitous; you should definitely use it.</source>
-        <target state="new">This attribute defines the sizes of the icons for visual media contained in the resource. It must be present only if the [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) contains a value of `icon` or a non-standard type such as Apple's `apple-touch-icon`. It may have the following values:
+        <target state="translated">この属性は、リソースに含まれるビジュアル メディアのアイコンのサイズを定義します。[`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) に値 `icon` が含まれている場合、または Apple の `apple-touch-icon` などの非標準型が含まれている場合にのみ存在する必要があります。次の値が含まれる場合があります:
 
-* `any`, meaning that the icon can be scaled to any size as it is in a vector format, like `image/svg+xml`.
-* a white-space separated list of sizes, each in the format `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` or `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Each of these sizes must be contained in the resource.
+* `any`。つまり、アイコンは`image/svg+xml` のようなベクター形式で任意のサイズにスケーリングできます。
+* サイズの空白で区切られたリスト。それぞれ `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_`、または `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_` です。これらの各サイズは、リソースに含まれている必要があります。
 
-**Note:** Most icon formats are only able to store one single icon; therefore most of the time the [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) contains only one entry. MS's ICO format does, as well as Apple's ICNS. ICO is more ubiquitous; you should definitely use it.</target>
+**注:** ほとんどのアイコン形式では、1 つのアイコンのみを格納できます。したがって、ほとんどの場合、[`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) には 1 つのエントリのみが含まれます。MS の ICO 形式は、Apple の ICNS と同様です。ICO は、よりユビキタスです。間違いなく使用する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_slot">
@@ -1663,19 +1663,19 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 
 * `true`, which indicates that the element should be, if possible, checked for spelling errors;
 * `false`, which indicates that the element should not be checked for spelling errors.</source>
-        <target state="new">An enumerated attribute defines whether the element may be checked for spelling errors. It may have the following values:
+        <target state="translated">列挙された属性は、要素がスペル ミスをチェックできるかどうかを定義します。次の値が含まれる場合があります:
 
-* `true`, which indicates that the element should be, if possible, checked for spelling errors;
-* `false`, which indicates that the element should not be checked for spelling errors.</target>
+* `true`、これは、要素が可能な場合はスペル ミスをチェックする必要があることを示します。
+* `false`、要素のスペル ミスをチェックしないことを示します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_src">
         <source>This attribute specifies the URI of an external script; this can be used as an alternative to embedding a script directly within a document.
 
 If a `script` element has a `src` attribute specified, it should not have a script embedded inside its tags.</source>
-        <target state="new">This attribute specifies the URI of an external script; this can be used as an alternative to embedding a script directly within a document.
+        <target state="translated">この属性は、外部スクリプトの URI を指定します。これは、ドキュメント内にスクリプトを直接埋め込む代わりに使用できます。
 
-If a `script` element has a `src` attribute specified, it should not have a script embedded inside its tags.</target>
+`script` 要素に `src` 属性が指定されている場合は、タグ内にスクリプトを埋め込むべきではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcdoc">
@@ -1701,27 +1701,27 @@ If no descriptor is specified, the source is assigned the default descriptor: `1
 It is incorrect to mix width descriptors and pixel density descriptors in the same `srcset` attribute. Duplicate descriptors (for instance, two sources in the same `srcset` which are both described with '`2x`') are also invalid.
 
 The user agent selects any one of the available sources at its discretion. This provides them with significant leeway to tailor their selection based on things like user preferences or bandwidth conditions. See our [Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) tutorial for an example.</source>
-        <target state="new">A list of one or more strings separated by commas indicating a set of possible image sources for the user agent to use. Each string is composed of:
+        <target state="translated">ユーザー エージェントが使用できる画像ソースのセットを示すコンマで区切られた 1 つ以上の文字列の一覧。各文字列は次から構成されます:
 
-1. a URL to an image,
-2. optionally, whitespace followed by one of:
-* A width descriptor, or a positive integer directly followed by '`w`'. The width descriptor is divided by the source size given in the `sizes` attribute to calculate the effective pixel density.
-* A pixel density descriptor, which is a positive floating point number directly followed by '`x`'.
+1. 画像への URL、
+2. 必要に応じて、空白の後に次のいずれかの文字列が続きます:
+* 幅記述子、または正の整数の直後に '`w`' が続きます。幅記述子は、有効なピクセル密度を計算するために、`sizes` 属性で指定されたソース サイズで除算されます。
+* ピクセル密度記述子。正の浮動小数点数で、その直後に '`x`' が続きます。
 
-If no descriptor is specified, the source is assigned the default descriptor: `1x`.
+記述子が指定されていない場合、ソースには既定の記述子 `1x` が割り当てられます。
 
-It is incorrect to mix width descriptors and pixel density descriptors in the same `srcset` attribute. Duplicate descriptors (for instance, two sources in the same `srcset` which are both described with '`2x`') are also invalid.
+幅記述子とピクセル密度記述子を同じ `srcset` 属性に混在させるのは正しくありません。重複する記述子 (たとえば、両方とも '`2x`' で記述されている同じ `srcset` 内の 2 つのソース) も無効です。
 
-The user agent selects any one of the available sources at its discretion. This provides them with significant leeway to tailor their selection based on things like user preferences or bandwidth conditions. See our [Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) tutorial for an example.</target>
+ユーザー エージェントは、任意の判断で利用可能なソースのいずれかを選択します。これにより、ユーザー設定や帯域幅の条件などに基づいて選択を調整するための重要な余裕が提供されます。例については、[Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) チュートリアルを参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_start">
         <source>This integer attribute specifies the start value for numbering the individual list items. Although the ordering type of list elements might be Roman numerals, such as XXXI, or letters, the value of start is always represented as a number. To start numbering elements from the letter "C", use `&lt;ol start="3"&gt;`.
 
 **Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.</source>
-        <target state="new">This integer attribute specifies the start value for numbering the individual list items. Although the ordering type of list elements might be Roman numerals, such as XXXI, or letters, the value of start is always represented as a number. To start numbering elements from the letter "C", use `&lt;ol start="3"&gt;`.
+        <target state="translated">この整数属性は、個々のリスト項目に番号を付けるための開始値を指定します。リスト要素の順序付けの種類は、XXXI や文字などのローマ数字である場合がありますが、start の値は常に数値として表されます。文字 "C" から要素の番号付けを開始するには、`&lt;ol start="3"&gt;` を使用します。
 
-**Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.</target>
+**注**: この属性は HTML4 では非推奨とされましたが、HTML5 で再導入されました。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_style">
@@ -1735,11 +1735,11 @@ The user agent selects any one of the available sources at its discretion. This 
 * a _negative value_ means that the element should be focusable, but should not be reachable via sequential keyboard navigation;
 * `0` means that the element should be focusable and reachable via sequential keyboard navigation, but its relative order is defined by the platform convention;
 * a _positive value_ means that the element should be focusable and reachable via sequential keyboard navigation; the order in which the elements are focused is the increasing value of the [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex). If several elements share the same tabindex, their relative order follows their relative positions in the document.</source>
-        <target state="new">An integer attribute indicating if the element can take input focus (is _focusable_), if it should participate to sequential keyboard navigation, and if so, at what position. It can take several values:
+        <target state="translated">要素が入力フォーカスを取得できるかどうかを示す整数属性 (_focusable_)、シーケンシャル キーボード ナビゲーションに参加する必要があるかどうか、その場合はどの位置にあるかを示します。いくつかの値を取る可能性があります:
 
-* a _negative value_ means that the element should be focusable, but should not be reachable via sequential keyboard navigation;
-* `0` means that the element should be focusable and reachable via sequential keyboard navigation, but its relative order is defined by the platform convention;
-* a _positive value_ means that the element should be focusable and reachable via sequential keyboard navigation; the order in which the elements are focused is the increasing value of the [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex). If several elements share the same tabindex, their relative order follows their relative positions in the document.</target>
+* _negative value_ は、要素がフォーカス可能である必要がありますが、シーケンシャル キーボード ナビゲーションを介して到達できないことを意味します。
+* `0` は、要素がシーケンシャル キーボード ナビゲーションを介してフォーカス可能で到達可能である必要があることを意味しますが、その相対順序はプラットフォーム規則によって定義されます。
+* _positive value_ は、要素がシーケンシャル キーボード ナビゲーションを介してフォーカス可能で到達可能であることを意味します。要素がフォーカスされる順序は、[**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex) の増加値です。複数の要素が同じ tabindex を共有する場合、その相対順序はドキュメント内の相対的な位置に従います。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_target">
@@ -1751,14 +1751,14 @@ The user agent selects any one of the available sources at its discretion. This 
 * `_top`: Load the result into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.
 
 If this attribute is specified, this element must come before any other elements with attributes whose values are URLs.</source>
-        <target state="new">A name or keyword indicating the default location to display the result when hyperlinks or forms cause navigation, for elements that do not have an explicit target reference. It is a name of, or keyword for, a _browsing context_ (for example: tab, window, or inline frame). The following keywords have special meanings:
+        <target state="translated">明示的なターゲット参照を持たない要素のハイパーリンクまたはフォームがナビゲーションを引き起こしたときに結果を表示する既定の場所を示す名前またはキーワード。これは、_browsing context_ (タブ、ウィンドウ、インライン フレームなど) の名前またはキーワードです。次のキーワードには特別な意味があります:
 
-* `_self`: Load the result into the same browsing context as the current one. This value is the default if the attribute is not specified.
-* `_blank`: Load the result into a new unnamed browsing context.
-* `_parent`: Load the result into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
-* `_top`: Load the result into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.
+* `_self`: 結果を現在の参照コンテキストと同じ参照コンテキストに読み込みます。この値は、属性が指定されていない場合の既定値です。
+* `_blank`: 名前のない新しい参照コンテキストに結果を読み込みます。
+* `_parent`: 現在の参照コンテキストの親参照コンテキストに結果を読み込みます。親がない場合、このオプションは `_self` と同じように動作します。
+* `_top`: 最上位の閲覧コンテキスト (つまり、現在の参照コンテキストの先祖であり、親を持たない参照コンテキスト) に結果を読み込みます。親がない場合、このオプションは `_self` と同じように動作します。
 
-If this attribute is specified, this element must come before any other elements with attributes whose values are URLs.</target>
+この属性を指定する場合、この要素は、値が URL である属性を持つ他の要素の前に存在する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_title">
@@ -1771,10 +1771,10 @@ If this attribute is specified, this element must come before any other elements
 
 * empty string and `yes`, which indicates that the element will be translated.
 * `no`, which indicates that the element will not be translated.</source>
-        <target state="new">An enumerated attribute that is used to specify whether an element's attribute values and the values of its [`Text`](https://developer.mozilla.org/docs/Web/API/Text "The Text interface represents the textual content of Element or Attr. If an element has no markup within its content, it has a single child implementing Text that contains the element's text. However, if the element contains markup, it is parsed into information items and Text nodes that form its children.") node children are to be translated when the page is localized, or whether to leave them unchanged. It can have the following values:
+        <target state="translated">要素の属性値およびその [`Text`](https://developer.mozilla.org/docs/Web/API/Text "Text インターフェースは、Element または Attr のテキスト コンテンツを表します。要素のコンテンツ内にマークアップが含まれていない場合、その要素には Text を実装する単一の子要素があり、そこに要素のテキストが含まれます。ただし、要素にマークアップが含まれている場合、それらは情報項目および Text ノードに解析され、子要素を形成します。") ノードの子要素を、ページのローカライズ時に翻訳するか、それとも変更しないかを指定するために使用される列挙型属性です。以下の値を取ることができます:
 
-* empty string and `yes`, which indicates that the element will be translated.
-* `no`, which indicates that the element will not be translated.</target>
+* 空の文字列および `yes`: 要素が翻訳されることを示します。
+* `no`: 要素が翻訳されないことを示します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_type">
@@ -1786,9 +1786,9 @@ If this attribute is specified, this element must come before any other elements
         <source>The partial URL (starting with '#') of an [image map](https://developer.mozilla.org/en-US/docs/HTML/Element/map) associated with the element.
 
 **Note:** You cannot use this attribute if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") or [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") element.</source>
-        <target state="new">The partial URL (starting with '#') of an [image map](https://developer.mozilla.org/en-US/docs/HTML/Element/map) associated with the element.
+        <target state="translated">要素に関連付けられている [image map](https://developer.mozilla.org/en-US/docs/HTML/Element/map) の部分的な URL ('#' で始まる)。
 
-**Note:** You cannot use this attribute if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") or [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") element.</target>
+**注:** `&lt;img&gt;` 要素が [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "HTML の &lt;a&gt; 要素 (アンカー要素) は、他の Web ページ、ファイル、同じページ内の場所、メール アドレス、またはその他の URL へのハイパーリンクを作成します。") または [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML の &lt;button&gt; 要素は、クリック可能なボタンを表します。これは、フォームや、シンプルで標準的なボタン機能が必要なドキュメント内の任意の場所で使用できます。") 要素の子孫である場合、この属性は使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_value">
@@ -1797,11 +1797,11 @@ If this attribute is specified, this element must come before any other elements
 **Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.
 
 **Note:** Prior to Gecko 9.0, negative values were incorrectly converted to 0. Starting in Gecko 9.0 all integer values are correctly parsed.</source>
-        <target state="new">This integer attribute indicates the current ordinal value of the list item as defined by the [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "The HTML &lt;ol&gt; element represents an ordered list of items, typically rendered as a numbered list.") element. The only allowed value for this attribute is a number, even if the list is displayed with Roman numerals or letters. List items that follow this one continue numbering from the value set. The **value** attribute has no meaning for unordered lists ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "The HTML &lt;ul&gt; element represents an unordered list of items, typically rendered as a bulleted list.")) or for menus ([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.")).
+        <target state="translated">この整数属性は、[`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "HTML の &lt;ol&gt; 要素は、通常は番号付きリストとして表示される、順序付きリストを表します。") 要素で定義されたリスト項目の現在の順序番号を示します。この属性に使用できる値は、リストがローマ数字または文字で表示されている場合でも、数値のみです。この後の項目を一覧表示すると、値セットから番号が引き続き表示されます。**value** 属性は、順序指定されていないリスト ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "HTML &lt;ul&gt; 要素は順序なしリストを表し、通常は箇条書きリストとしてレンダリングされます。))、またはメニュー ([`&lt;menu&gt;`)](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "HTML &lt;menu&gt; 要素は、ユーザーが実行またはアクティブ化できるコマンドのグループを表します。これには、画面の上部に表示される可能性があるリスト メニューとコンテキスト メニュー (クリック後にボタンの下に表示されるメニューなど) の両方が含まれます)。
 
-**Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.
+**注**: この属性は HTML4 では非推奨とされましたが、HTML5 で再導入されました。
 
-**Note:** Prior to Gecko 9.0, negative values were incorrectly converted to 0. Starting in Gecko 9.0 all integer values are correctly parsed.</target>
+**注:** Gecko 9.0 より前のバージョンでは、負の値が正しく 0 に変換されませんでした。Gecko 9.0 以降では、すべての整数値が正しく解析されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_valuetype">
@@ -1810,11 +1810,11 @@ If this attribute is specified, this element must come before any other elements
 * data: Default value. The value is passed to the object's implementation as a string.
 * ref: The value is a URI to a resource where run-time values are stored.
 * object: An ID of another [`&lt;object&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object "The HTML &lt;object&gt; element represents an external resource, which can be treated as an image, a nested browsing context, or a resource to be handled by a plugin.") in the same document.</source>
-        <target state="new">Specifies the type of the `value` attribute. Possible values are:
+        <target state="translated">`value` 属性の型を指定します。使用可能な値は次のとおりです:
 
-* data: Default value. The value is passed to the object's implementation as a string.
-* ref: The value is a URI to a resource where run-time values are stored.
-* object: An ID of another [`&lt;object&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object "The HTML &lt;object&gt; element represents an external resource, which can be treated as an image, a nested browsing context, or a resource to be handled by a plugin.") in the same document.</target>
+* data: 既定値。値は、オブジェクトの実装に文字列として渡されます。
+* ref: 値は、ランタイム値が格納されているリソースの URI です。
+* object: 同じドキュメント内の別の [`&lt;object&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object "HTML &lt;object&gt; 要素は外部リソースを表します。これは、画像、入れ子になった参照コンテキスト、またはプラグインによって処理されるリソースとして扱うことができます"。) の ID です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_virtualkeyboardpolicy">
@@ -1835,13 +1835,13 @@ If this attribute is specified, this element must come before any other elements
 * `off` : Like `soft` but changes appearance to `white-space: pre` so line segments exceeding `cols` are not wrapped and the `&lt;textarea&gt;` becomes horizontally scrollable.
 
 If this attribute is not specified, `soft` is its default value.</source>
-        <target state="new">Indicates how the control wraps text. Possible values are:
+        <target state="translated">コントロールがテキストを折り返す方法を示します。使用可能な値は次のとおりです:
 
-* `hard`: The browser automatically inserts line breaks (CR+LF) so that each line has no more than the width of the control; the `cols` attribute must also be specified for this to take effect.
-* `soft`: The browser ensures that all line breaks in the value consist of a CR+LF pair, but does not insert any additional line breaks.
-* `off` : Like `soft` but changes appearance to `white-space: pre` so line segments exceeding `cols` are not wrapped and the `&lt;textarea&gt;` becomes horizontally scrollable.
+* `hard`: ブラウザーは自動的に改行 (CR+LF) を挿入し、各行がコントロールの幅を超えないようにします。これを有効にするには、`cols` 属性も指定する必要があります。
+* `soft`: ブラウザーは、値のすべての改行が CR+LF ペアで構成されるようにしますが、追加の改行は挿入しません。
+* `off`: `soft` に似ていますが、`white-space: pre` に外観が変更されるため、`cols` を超えるセグメントは折り返されず、`&lt;textarea&gt;` は水平方向にスクロール可能になります。
 
-If this attribute is not specified, `soft` is its default value.</target>
+この属性が指定されていない場合、`soft` は既定値です。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_a">
