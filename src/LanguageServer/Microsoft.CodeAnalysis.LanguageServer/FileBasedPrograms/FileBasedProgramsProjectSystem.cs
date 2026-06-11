@@ -318,8 +318,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             // The project system doesn't determine this with 100% certainty and instead just ensures we provide semantic info which is satisfactory for the 99% case.
             // For telemetry purposes, we will consider this file a file-based app, if we see that build artifacts exist for it in the default location.
             // This implies that the user used a command like `dotnet run app.cs` with it recently.
-var isFileBasedProgram = PathUtilities.IsAbsolute(documentPath) &&
-    Directory.Exists(VirtualProjectXmlProvider.GetArtifactsPath(documentPath));
+            var isFileBasedProgram = PathUtilities.IsAbsolute(documentPath)
+                && Directory.Exists(VirtualProjectXmlProvider.GetArtifactsPath(documentPath));
 
             return new RemoteProjectLoadResult
             {
