@@ -52,7 +52,7 @@ internal sealed class LanguageServerConnectionManager
         {
             var builder = ImmutableArray.CreateBuilder<LanguageServerHost>();
 
-            return _servers.Where(entry => entry.Server is { HasStarted: true }).SelectAsArray(entry => entry.Server!);
+            return _servers.SelectAsArray(entry => entry.Server is { HasStarted: true }, entry => entry.Server!);
         }
     }
 
