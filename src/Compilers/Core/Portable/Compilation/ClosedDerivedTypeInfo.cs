@@ -10,11 +10,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>Information about derived types of a closed type.</summary>
     [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
     public readonly struct ClosedDerivedTypeInfo
     {
         /// <summary>
-        /// Possible direct subtypes of the closed type.
+        /// Possible direct derived types of the closed type.
         /// </summary>
         public ImmutableArray<INamedTypeSymbol> ClosedDerivedTypes { get; }
 

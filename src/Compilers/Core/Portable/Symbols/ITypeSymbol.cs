@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
         bool IsClosed { get; }
 
         /// <summary>
-        /// Gets the derived types of a closed type.
+        /// Gets the direct derived types of a closed type.
         /// </summary>
         /// <exception cref="InvalidOperationException">If this is not a closed type.</exception>
         [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
