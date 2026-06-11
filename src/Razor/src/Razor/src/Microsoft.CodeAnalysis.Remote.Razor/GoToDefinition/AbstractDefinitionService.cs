@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -16,16 +17,18 @@ using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 
-internal abstract class AbstractDefinitionService(
+[Export(typeof(IDefinitionService)), Shared]
+[method: ImportingConstructor]
+internal sealed class DefinitionService(
     IRazorComponentSearchEngine componentSearchEngine,
     ITagHelperSearchEngine? tagHelperSearchEngine,
     IDocumentMappingService documentMappingService,
-    ILogger logger) : IDefinitionService
+    ILoggerFactory loggerFactory) : IDefinitionService
 {
     private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
     private readonly ITagHelperSearchEngine? _tagHelperSearchEngine = tagHelperSearchEngine;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
-    private readonly ILogger _logger = logger;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DefinitionService>();
 
     public async Task<LspLocation[]?> GetDefinitionAsync(
         IDocumentSnapshot documentSnapshot,
