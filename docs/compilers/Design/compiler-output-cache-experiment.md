@@ -17,7 +17,7 @@ The current implementation is intentionally scoped as an experiment:
 
 ## Security
 
-The cache folder is an input to the compilation. When a cache hit occurs, the cached outputs are restored and used as the result of the compilation, so the contents of the cache directly affect what the build produces. Users of this feature must add appropriate access controls to the cache folder to ensure it is trusted to the same degree as any other compilation input, such as source files, references, and analyzers. A cache folder that can be written to by untrusted parties should be treated as an untrusted input.
+The contents of the cache folder are an input to the compilation. When a cache hit occurs, the cached outputs (and their associated metadata) are restored and used as the result of the compilation, so what is stored in the cache directly affects what the build produces. Users of this feature must add appropriate access controls to the cache folder to ensure its contents are trusted to the same degree as any other compilation input, such as source files, references, and analyzers. A cache whose contents can be written or modified by untrusted parties should be treated as an untrusted input.
 
 ## Goals
 
