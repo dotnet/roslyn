@@ -550,9 +550,9 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                     RazorDiagnosticFactory.CreateTagHelper_CannotHaveNonTagContent(
                         child.Source ?? SourceSpan.Undefined, parentTagName, allowedChildrenString));
             }
-            else if (child is CSharpCodeIntermediateNode or MarkupBlockIntermediateNode)
+            else if (child is CSharpCodeIntermediateNode)
             {
-                // Razor blocks can contain markup children, so validate their children instead of the block itself.
+                // Razor code blocks can contain markup children, so validate their children instead of the block itself.
                 ValidateAllowedChildren(parentTagName, child.Children, in allowedNames, allowedChildrenString, prefix);
             }
         }
