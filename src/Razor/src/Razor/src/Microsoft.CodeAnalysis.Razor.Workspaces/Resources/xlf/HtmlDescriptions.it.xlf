@@ -1832,8 +1832,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_article">
-        <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</source>
-        <target state="translated">L'elemento article rappresenta una composizione completa e autosufficiente riportata in un documento, una pagina, un'applicazione o un sito ed è, in linea di principio, distribuibile o riutilizzabile in modo indipendente (ad esempio, in un'agenzia di stampa). Può essere un post di un forum, un articolo di rivista o giornale, una voce di blog, un commento inserito da un utente, un widget o gadget interattivo o qualsiasi altro elemento di contenuto indipendente.</target>
+        <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content. Each article should be identified, typically by including a heading (h1–h6 element) as a child of the article element.</source>
+        <target state="needs-review-translation">L'elemento article rappresenta una composizione completa e autosufficiente riportata in un documento, una pagina, un'applicazione o un sito ed è, in linea di principio, distribuibile o riutilizzabile in modo indipendente (ad esempio, in un'agenzia di stampa). Può essere un post di un forum, un articolo di rivista o giornale, una voce di blog, un commento inserito da un utente, un widget o gadget interattivo o qualsiasi altro elemento di contenuto indipendente.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_aside">
@@ -1857,13 +1857,13 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdi">
-        <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</source>
-        <target state="translated">L'elemento bdi rappresenta una sezione di testo che deve essere isolata dagli elementi circostanti per la formattazione di testo bidirezionale.</target>
+        <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting. [BIDI]</source>
+        <target state="needs-review-translation">L'elemento bdi rappresenta una sezione di testo che deve essere isolata dagli elementi circostanti per la formattazione di testo bidirezionale.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdo">
-        <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</source>
-        <target state="translated">L'elemento bdo rappresenta un controllo esplicito di formattazione dell'orientamento del testo per i relativi elementi figlio. Consente agli autori di sostituire l'algoritmo bidirezionale Unicode specificando esplicitamente un cambiamento di direzione.</target>
+        <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override. [BIDI]</source>
+        <target state="needs-review-translation">L'elemento bdo rappresenta un controllo esplicito di formattazione dell'orientamento del testo per i relativi elementi figlio. Consente agli autori di sostituire l'algoritmo bidirezionale Unicode specificando esplicitamente un cambiamento di direzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_blockquote">
@@ -1897,8 +1897,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_cite">
-        <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</source>
-        <target state="translated">L'elemento cite rappresenta un riferimento a un'opera creativa. Deve includere il titolo dell'opera o il nome dell'autore (individuo, gruppo di individui o organizzazione) o un riferimento URL, che può essere in forma abbreviata in base alle convenzioni usate per l'aggiunta di metadati di citazione.</target>
+        <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, or a reference in abbreviated form as per the conventions used for the addition of citation metadata.</source>
+        <target state="needs-review-translation">L'elemento cite rappresenta un riferimento a un'opera creativa. Deve includere il titolo dell'opera o il nome dell'autore (individuo, gruppo di individui o organizzazione) o un riferimento URL, che può essere in forma abbreviata in base alle convenzioni usate per l'aggiunta di metadati di citazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_code">
@@ -1924,6 +1924,11 @@ If this attribute is not specified, `soft` is its default value.</target>
       <trans-unit id="HtmlElement_content">
         <source>The content element represents an insertion point in the shadow tree.</source>
         <target state="translated">L'elemento content rappresenta un punto di inserimento nella struttura dell'ombreggiatura.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_data">
+        <source>The data element links a given piece of content with a machine-readable translation.</source>
+        <target state="new">The data element links a given piece of content with a machine-readable translation.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_datalist">
@@ -2002,43 +2007,43 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h1">
-        <source>These elements represent headings for their sections.</source>
-        <target state="translated">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
+        <source>The h1 element represents a section heading.</source>
+        <target state="needs-review-translation">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h2">
-        <source>These elements represent headings for their sections.</source>
-        <target state="translated">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
+        <source>The h2 element represents a section heading.</source>
+        <target state="needs-review-translation">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h3">
-        <source>These elements represent headings for their sections.</source>
-        <target state="translated">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
+        <source>The h3 element represents a section heading.</source>
+        <target state="needs-review-translation">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h4">
-        <source>These elements represent headings for their sections.</source>
-        <target state="translated">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
+        <source>The h4 element represents a section heading.</source>
+        <target state="needs-review-translation">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h5">
-        <source>These elements represent headings for their sections.</source>
-        <target state="translated">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
+        <source>The h5 element represents a section heading.</source>
+        <target state="needs-review-translation">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h6">
-        <source>These elements represent headings for their sections.</source>
-        <target state="translated">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
+        <source>The h6 element represents a section heading.</source>
+        <target state="needs-review-translation">Questi elementi rappresentano le intestazioni delle relative sezioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_head">
-        <source>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</source>
-        <target state="translated">L'elemento head rappresenta una raccolta di metadati del documento. L'elemento head deve essere il primo in un elemento html.</target>
+        <source>The head element represents a collection of metadata for the Document.</source>
+        <target state="needs-review-translation">L'elemento head rappresenta una raccolta di metadati del documento. L'elemento head deve essere il primo in un elemento html.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_header">
-        <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</source>
-        <target state="translated">L'elemento header rappresenta contenuto introduttivo per l'elemento radice della sezione o il contenuto di sezione predecessore più vicino. Un'intestazione contiene in genere un gruppo di sussidi introduttivi o di navigazione.</target>
+        <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids. When the nearest ancestor sectioning content or sectioning root element is the body element, then it applies to the whole page.</source>
+        <target state="needs-review-translation">L'elemento header rappresenta contenuto introduttivo per l'elemento radice della sezione o il contenuto di sezione predecessore più vicino. Un'intestazione contiene in genere un gruppo di sussidi introduttivi o di navigazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_hr">
@@ -2092,8 +2097,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_li">
-        <source>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
-        <target state="translated">L'elemento li rappresenta una voce di elenco. Se il proprio elemento padre è di tipo ol o ul, l'elemento è una voce dell'elenco dell'elemento padre, in base alla definizione di tali elementi. In caso contrario, la voce di elenco non ha alcuna relazione di elenco determinata con qualsiasi altro elemento li.</target>
+        <source>The li element represents a list item. If its parent element is an ol, ul, or menu element, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
+        <target state="needs-review-translation">L'elemento li rappresenta una voce di elenco. Se il proprio elemento padre è di tipo ol o ul, l'elemento è una voce dell'elenco dell'elemento padre, in base alla definizione di tali elementi. In caso contrario, la voce di elenco non ha alcuna relazione di elenco determinata con qualsiasi altro elemento li.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_link">
@@ -2122,8 +2127,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menu">
-        <source>The menu element represents a list of commands.</source>
-        <target state="translated">L'elemento menu rappresenta un elenco di comandi.</target>
+        <source>The menu element represents an unordered list of interactive items.</source>
+        <target state="needs-review-translation">L'elemento menu rappresenta un elenco di comandi.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menuitem">
@@ -2197,8 +2202,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_output">
-        <source>The output element represents the result of a calculation or user action.</source>
-        <target state="translated">L'elemento output rappresenta il risultato di un calcolo o di un'azione dell'utente.</target>
+        <source>The output element represents the result of a calculation performed by the application, or the result of a user action.</source>
+        <target state="needs-review-translation">L'elemento output rappresenta il risultato di un calcolo o di un'azione dell'utente.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_p">
@@ -2212,8 +2217,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_picture">
-        <source>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
-        <target state="translated">L'elemento picture è un contenitore che offre più origini all'elemento img in esso contenuto per consentire agli autori di controllare in modo dichiarativo o fornire suggerimenti all'agente utente sulla risorsa immagine da usare, in base alla densità dei pixel, alla dimensione del riquadro di visualizzazione, al formato dell'immagine e ad altri fattori. Rappresenta i relativi elementi figlio.</target>
+        <source>The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
+        <target state="needs-review-translation">L'elemento picture è un contenitore che offre più origini all'elemento img in esso contenuto per consentire agli autori di controllare in modo dichiarativo o fornire suggerimenti all'agente utente sulla risorsa immagine da usare, in base alla densità dei pixel, alla dimensione del riquadro di visualizzazione, al formato dell'immagine e ad altri fattori. Rappresenta i relativi elementi figlio.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_polymer-element">
@@ -2252,8 +2257,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_ruby">
-        <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</source>
-        <target state="translated">L'elemento ruby consente di contrassegnare una o più sezioni di contenuto di enunciazione con annotazioni ruby. Le annotazioni ruby sono brevi parti di testo presentate insieme al testo di base. In precedenza, venivano usate nella tipografia asiatica come guida per la pronuncia o per l'inserimento di altre annotazioni.</target>
+        <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations. In Japanese, this form of typography is also known as furigana. Ruby text can appear on either side, and sometimes both sides, of the base text, and it is possible to control its position using CSS. A more complete introduction to ruby can be found in the Use Cases &amp; Exploratory Approaches for Ruby Markup document as well as in CSS Ruby Module Level 1. [RUBY-UC] [CSSRUBY]</source>
+        <target state="needs-review-translation">L'elemento ruby consente di contrassegnare una o più sezioni di contenuto di enunciazione con annotazioni ruby. Le annotazioni ruby sono brevi parti di testo presentate insieme al testo di base. In precedenza, venivano usate nella tipografia asiatica come guida per la pronuncia o per l'inserimento di altre annotazioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_s">
@@ -2262,8 +2267,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_samp">
-        <source>The samp element represents (sample) output from a program or computing system.</source>
-        <target state="translated">L'elemento samp rappresenta l'output (di esempio) di un programma o di un sistema di calcolo.</target>
+        <source>The samp element represents sample or quoted output from another program or computing system.</source>
+        <target state="needs-review-translation">L'elemento samp rappresenta l'output (di esempio) di un programma o di un sistema di calcolo.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_script">
@@ -2271,9 +2276,14 @@ If this attribute is not specified, `soft` is its default value.</target>
         <target state="translated">L'elemento script consente agli autori di includere script dinamico e blocchi di dati nei documenti. Non rappresenta contenuto destinato all'utente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="HtmlElement_search">
+        <source>The search element represents the parts of the document or application with form controls or other content related to performing a search or filtering operation.</source>
+        <target state="new">The search element represents the parts of the document or application with form controls or other content related to performing a search or filtering operation.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HtmlElement_section">
-        <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</source>
-        <target state="translated">L'elemento section rappresenta una sezione generica di un documento o di un'applicazione. Una sezione, in questo contesto, è un raggruppamento tematico di contenuti. Il tema di ogni sezione deve essere identificato, in genere includendo un'intestazione (elemento h1-h6) come figlio dell'elemento section.</target>
+        <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. Each section should be identified, typically by including a heading ( h1- h6 element) as a child of the section element.</source>
+        <target state="needs-review-translation">L'elemento section rappresenta una sezione generica di un documento o di un'applicazione. Una sezione, in questo contesto, è un raggruppamento tematico di contenuti. Il tema di ogni sezione deve essere identificato, in genere includendo un'intestazione (elemento h1-h6) come figlio dell'elemento section.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_select">
@@ -2284,6 +2294,11 @@ If this attribute is not specified, `soft` is its default value.</target>
       <trans-unit id="HtmlElement_shadow">
         <source>The shadow element represents an shadow insertion point in a shadow tree.</source>
         <target state="translated">L'elemento shadow rappresenta un punto di inserimento dell'ombreggiatura in una struttura dell'ombreggiatura.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HtmlElement_slot">
+        <source>The slot element is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.</source>
+        <target state="new">The slot element is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_small">
@@ -2312,8 +2327,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_sub">
-        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="translated">L'elemento sup rappresenta un apice e l'elemento sub rappresenta un pedice.</target>
+        <source>The sub element represents a subscript.</source>
+        <target state="needs-review-translation">L'elemento sup rappresenta un apice e l'elemento sub rappresenta un pedice.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_summary">
@@ -2322,8 +2337,8 @@ If this attribute is not specified, `soft` is its default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_sup">
-        <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="translated">L'elemento sup rappresenta un apice e l'elemento sub rappresenta un pedice.</target>
+        <source>The sup element represents a superscript.</source>
+        <target state="needs-review-translation">L'elemento sup rappresenta un apice e l'elemento sub rappresenta un pedice.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_svg">
