@@ -105,7 +105,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task CloseCurly_Class_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -123,7 +123,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task CloseCurly_Class_SingleLine_UseTabsAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -142,7 +142,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task CloseCurly_Class_SingleLine_AdjustTabSizeAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -161,7 +161,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task CloseCurly_Class_MultiLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -181,7 +181,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task CloseCurly_Method_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -199,7 +199,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task CloseCurly_Method_MultiLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -219,7 +219,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task CloseCurly_Property_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -236,7 +236,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task CloseCurly_Property_MultiLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -257,7 +257,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task CloseCurly_Property_StartOfBlockAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -273,7 +273,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task Semicolon_ClassField_SingleLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -290,7 +290,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: ';');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task Semicolon_ClassField_MultiLineAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -309,7 +309,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: ';');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task Semicolon_MethodVariableAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -366,7 +366,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: ';');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task ClosingBrace_MatchesCSharpIndentationAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -414,7 +414,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task ClosingBrace_DoesntMatchCSharpIndentationAsync()
     {
         await RunOnTypeFormattingTestAsync(
@@ -716,7 +716,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
         await RunOnTypeFormattingTestAsync(input, input.Replace("$$", ""), triggerCharacter: ';');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
     public async Task Semicolon_NoDocumentChanges2()
     {
@@ -870,7 +870,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: ';');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6158")]
     public async Task Format_NestedLambdas()
     {
@@ -1071,7 +1071,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: ';');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task Semicolon_PropertyGet()
     {
         await RunOnTypeFormattingTestAsync(
@@ -1135,7 +1135,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             fileKind: RazorFileKind.Legacy);
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     public async Task OnTypeFormatting_Enabled()
     {
         await RunOnTypeFormattingTestAsync(
@@ -1161,7 +1161,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}');
     }
 
-    [FormattingTestFact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/razor/issues/11117")]
     public async Task SemiColon_DoesntBreakHtmlAttributes()
     {
