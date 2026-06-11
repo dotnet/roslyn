@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer;
     "CS7043", // ErrorCode.ERR_EncUpdateFailedMissingSymbol
     "CS7096", // ErrorCode.ERR_EncNoPIAReference
     "CS7101", // ErrorCode.ERR_EncReferenceToAddedMember
-    "CS9346"  // ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
+    "CS9346", // ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
+    "CS9391"  // ErrorCode.ERR_AbstractBaseRecordImplementation
     )]
 [Shared]
 [method: ImportingConstructor]

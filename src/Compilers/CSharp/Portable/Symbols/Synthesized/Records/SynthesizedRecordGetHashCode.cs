@@ -85,6 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return;
                     }
 
+                    if (overridden.IsAbstract)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AbstractBaseRecordImplementation, GetFirstLocation(), this, overridden);
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     currentHashValue = F.Call(F.Base(overridden.ContainingType), overridden);
                 }
 
