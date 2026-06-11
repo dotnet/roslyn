@@ -312,6 +312,15 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferences or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors)
         {
             var projectInfos = await _canonicalProjectProvider.GetProjectInfoAsync(documentPath, cancellationToken).ConfigureAwait(false);
+
+            // Note: We might enter this path when loading a file-based app with no directives.
+            // i.e. whether a file with no directives in it, depends on how user is using the file.
+            // The project system doesn't determine this with 100% certainty and instead just ensures we provide semantic info which is satisfactory for the 99% case.
+            // For telemetry purposes, we will consider this file a file-based app, if we see that build artifacts exist for it in the default location.
+            // This implies that the user used a command like `dotnet run app.cs` with it recently.
+            var fileBasedArtifactsPath = VirtualProjectXmlProvider.GetArtifactsPath(documentPath);
+            var isFileBasedProgram = Directory.Exists(fileBasedArtifactsPath);
+
             return new RemoteProjectLoadResult
             {
                 ProjectFileInfos = projectInfos,
@@ -319,8 +328,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 // This points to the Canonical.csproj, which always exists on disk and can be restored regardless of SDK.
                 ProjectRestorePath = projectInfos.FirstOrDefault()?.FilePath,
                 ProjectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
-                IsFileBasedProgram = false,
-                IsMiscellaneousFile = true,
+                IsFileBasedProgram = isFileBasedProgram,
+                IsMiscellaneousFile = !isFileBasedProgram,
                 HasAllInformation = documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors,
                 PreferredBuildHostKind = BuildHostProcessKind.NetCore,
                 ActualBuildHostKind = BuildHostProcessKind.NetCore,
