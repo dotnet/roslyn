@@ -52,4 +52,16 @@ internal sealed class ElementData
     /// Examples: script (JavaScript), style (CSS).
     /// </summary>
     public bool HasExternalCompletion { get; init; }
+
+    /// <summary>
+    /// Baseline availability level: "high" (widely available) or "low" (newly available), or empty.
+    /// Read from the <c>vs:baseline</c> attribute in the XSD schema.
+    /// </summary>
+    public string Baseline { get; init; } = "";
+
+    /// <summary>
+    /// The year the feature reached baseline status, or empty if not available.
+    /// Read from the <c>vs:baselinedate</c> attribute in the XSD schema.
+    /// </summary>
+    public string BaselineDate { get; init; } = "";
 }

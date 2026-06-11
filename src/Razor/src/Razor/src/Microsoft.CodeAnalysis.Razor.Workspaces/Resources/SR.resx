@@ -203,4 +203,20 @@
   <data name="Formatting_Error" xml:space="preserve">
     <value>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</value>
   </data>
+  <data name="Baseline_Widely_Available" xml:space="preserve">
+    <value>✅ Widely available across major browsers{0}</value>
+    <comment>{0} is " (Baseline since YYYY)" or empty</comment>
+  </data>
+  <data name="Baseline_Newly_Available" xml:space="preserve">
+    <value>🆕 Newly available across major browsers{0}</value>
+    <comment>{0} is " (Baseline since YYYY)" or empty</comment>
+  </data>
+  <data name="MDN_Reference" xml:space="preserve">
+    <value>MDN Reference</value>
+    <comment>Link text for MDN documentation URL in HTML completion tooltips</comment>
+  </data>
+  <data name="Baseline_Since" xml:space="preserve">
+    <value> (Baseline since {0})</value>
+    <comment>{0} is the year the feature reached baseline status (e.g., "2015")</comment>
+  </data>
 </root>
