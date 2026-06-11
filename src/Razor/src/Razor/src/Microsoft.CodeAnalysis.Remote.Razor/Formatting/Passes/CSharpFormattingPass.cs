@@ -34,14 +34,21 @@ internal sealed partial class CSharpFormattingPass(
         // Process changes from previous passes
         var changedText = context.SourceText.WithChanges(changes);
         var changedContext = await context.WithTextAsync(changedText, cancellationToken).ConfigureAwait(false);
-        context.Logger?.LogObject("SourceMappings", changedContext.CodeDocument.GetRequiredImplCSharpDocument().SourceMappingsSortedByGenerated);
+        context.Logger?.LogObject("ImplSourceMappings", changedContext.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false).SourceMappingsSortedByGenerated);
 
-        var csharpSyntaxTrue = await changedContext.CurrentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var csharpSyntaxRoot = await csharpSyntaxTrue.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        SyntaxNode? declSyntaxRoot = null;
+        if (changedContext.CodeDocument.GetCSharpDocument(declarationDocument: true) is { } declarationDocument)
+        {
+            var declSyntaxTree = await changedContext.CurrentSnapshot.GetCSharpSyntaxTreeAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false);
+            declSyntaxRoot = await declSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        var csharpSyntaxTree = await changedContext.CurrentSnapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+        var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         // To format C# code we generate a C# document that represents the indentation semantics the user would be
         // expecting in their Razor file. See the doc comments on CSharpDocumentGenerator for more info
-        var generatedDocument = CSharpDocumentGenerator.Generate(changedContext.CodeDocument, csharpSyntaxRoot, context.Options, _documentMappingService);
+        var generatedDocument = CSharpDocumentGenerator.Generate(changedContext.CodeDocument, csharpSyntaxRoot, declSyntaxRoot, context.Options, _documentMappingService);
 
         var generatedCSharpText = generatedDocument.SourceText;
         context.Logger?.LogSourceText("FormattingDocument", generatedCSharpText);
@@ -159,6 +166,6 @@ internal sealed partial class CSharpFormattingPass(
     }
 
     [Obsolete("Only for the syntax visualizer, do not call")]
-    internal static string GetFormattingDocumentContentsForSyntaxVisualizer(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, IDocumentMappingService documentMappingService)
-        => CSharpDocumentGenerator.Generate(codeDocument, csharpSyntaxRoot, new(), documentMappingService).SourceText.ToString();
+    internal static string GetFormattingDocumentContentsForSyntaxVisualizer(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, SyntaxNode? declSyntaxRoot, IDocumentMappingService documentMappingService)
+        => CSharpDocumentGenerator.Generate(codeDocument, csharpSyntaxRoot, declSyntaxRoot, new(), documentMappingService).SourceText.ToString();
 }

@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -23,9 +24,12 @@ internal sealed class FormattingContext
     private ImmutableArray<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
+    private readonly RazorCSharpDocument? _csharpDocument;
+
     private FormattingContext(
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
+        bool? declarationDocument,
         IDocumentSnapshot currentSnapshot,
         RazorFormattingOptions options,
         IFormattingLogger? logger,
@@ -41,6 +45,11 @@ internal sealed class FormattingContext
         IncludeCSharpLanguageFeatureEdits = includeCSharpLanguageFeatureEdits;
         HostDocumentIndex = hostDocumentIndex;
         TriggerCharacter = triggerCharacter;
+
+        if (declarationDocument is { } declDoc)
+        {
+            _csharpDocument = codeDocument.GetRequiredCSharpDocument(declDoc);
+        }
     }
 
     public static bool SkipValidateComponents { get; set; }
@@ -56,7 +65,7 @@ internal sealed class FormattingContext
 
     public SourceText SourceText => CodeDocument.Source.Text;
 
-    public SourceText CSharpSourceText => CodeDocument.GetCSharpSourceText();
+    public RazorCSharpDocument CSharpDocument => _csharpDocument.AssumeNotNull("Cannot get C# source text when declaration document is not specified.");
 
     public string NewLineString => Environment.NewLine;
 
@@ -241,6 +250,7 @@ internal sealed class FormattingContext
         var newContext = new FormattingContext(
             OriginalSnapshot,
             codeDocument,
+            _csharpDocument?.IsDeclarationDocument,
             currentSnapshot: changedSnapshot,
             Options,
             Logger,
@@ -272,6 +282,7 @@ internal sealed class FormattingContext
     public static FormattingContext CreateForOnTypeFormatting(
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
+        bool? declarationDocument,
         RazorFormattingOptions options,
         IFormattingLogger? logger,
         bool includeCSharpLanguageFeatureEdits,
@@ -281,6 +292,7 @@ internal sealed class FormattingContext
         return new FormattingContext(
             originalSnapshot,
             codeDocument,
+            declarationDocument,
             currentSnapshot: originalSnapshot,
             options,
             logger,
@@ -298,6 +310,7 @@ internal sealed class FormattingContext
         return new FormattingContext(
             originalSnapshot,
             codeDocument,
+            declarationDocument: null,
             currentSnapshot: originalSnapshot,
             options,
             logger,

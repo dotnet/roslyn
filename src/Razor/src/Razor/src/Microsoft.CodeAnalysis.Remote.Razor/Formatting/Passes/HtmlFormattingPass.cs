@@ -88,11 +88,16 @@ internal sealed partial class HtmlFormattingPass(
     private async Task<ImmutableArray<TextChange>> FilterIncomingChangesAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
         var codeDocument = context.CodeDocument;
-        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
         var originalText = codeDocument.Source.Text;
 
-        var csharpSyntaxTree = await context.OriginalSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSyntaxTree = await context.OriginalSnapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        SyntaxNode? declSyntaxRoot = null;
+        if (context.CodeDocument.GetCSharpDocument(declarationDocument: true) is { } declarationDocument)
+        {
+            var declSyntaxTree = await context.OriginalSnapshot.GetCSharpSyntaxTreeAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false);
+            declSyntaxRoot = await declSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         // Apply all changes to create the formatted document
         var formattedText = originalText.WithChanges(changes);
@@ -194,11 +199,17 @@ internal sealed partial class HtmlFormattingPass(
 
         bool IsInStringLiteral(int position)
         {
-            if (_documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, position, out _, out var csharpIndex) &&
-                csharpSyntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
-                csharpNode.IsStringLiteral())
+
+            if (_documentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, position, out _, out var csharpIndex, out var inDeclDocument))
             {
-                return true;
+                var syntaxRoot = inDeclDocument
+                    ? declSyntaxRoot.AssumeNotNull()
+                    : csharpSyntaxRoot;
+                if (syntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
+                    csharpNode.IsStringLiteral())
+                {
+                    return true;
+                }
             }
 
             return false;

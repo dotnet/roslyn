@@ -49,18 +49,19 @@ internal sealed class CSharpOnTypeFormattingPass(
 
         // Normalize and re-map the C# edits.
         var codeDocument = context.CodeDocument;
-        var csharpText = codeDocument.GetCSharpSourceText();
+        var csharpDocument = context.CSharpDocument;
+        var csharpText = csharpDocument.Text;
 
         if (changes.Length == 0)
         {
-            if (!_documentMappingSerivce.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredImplCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
+            if (!_documentMappingSerivce.TryMapToCSharpDocumentPosition(csharpDocument, context.HostDocumentIndex, out _, out var projectedIndex))
             {
                 _logger.LogWarning($"Failed to map to projected position for document {context.OriginalSnapshot.FilePath}.");
                 return [];
             }
 
             // Ask C# for formatting changes.
-            var document = roslynWorkspaceHelper.CreateCSharpDocument(context.CodeDocument);
+            var document = roslynWorkspaceHelper.CreateCSharpDocument(context.CSharpDocument);
             var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
             var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -117,7 +118,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var mappedChanges = await _razorEditService.MapCSharpEditsAsync(
             normalizedChanges.SelectAsArray(static c => c.ToRazorTextChange()),
             context.CurrentSnapshot,
-            declarationDocument: false, // PROTOTYPE: Still to fix
+            declarationDocument: csharpDocument.IsDeclarationDocument,
             context.IncludeCSharpLanguageFeatureEdits,
             directlyMappedEditFilter: change => ShouldKeepDirectlyMappedEdit(context, indent, change),
             cancellationToken).ConfigureAwait(false);
@@ -133,7 +134,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var originalText = codeDocument.Source.Text;
         context.Logger?.LogSourceText("OriginalRazor", originalText);
 
-        context.Logger?.LogMessage($"Source Mappings:\r\n{RenderSourceMappings(context.CodeDocument)}");
+        context.Logger?.LogMessage($"Source Mappings:\r\n{RenderSourceMappings(context.CSharpDocument)}");
 
         // Apply the format on type edits sent over by the client.
         var formattedText = ApplyChangesAndTrackChange(originalText, filteredChanges, out _, out var spanAfterFormatting);
@@ -282,7 +283,7 @@ internal sealed class CSharpOnTypeFormattingPass(
     private static ImmutableArray<TextChange> CleanupDocument(FormattingContext context, LinePositionSpan spanAfterFormatting)
     {
         var text = context.SourceText;
-        var csharpDocument = context.CodeDocument.GetRequiredImplCSharpDocument();
+        var csharpDocument = context.CSharpDocument;
 
         using var changes = new PooledArrayBuilder<TextChange>();
         foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
@@ -561,7 +562,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         // 2. The indentation due to Razor and HTML constructs
 
         var text = context.SourceText;
-        var csharpDocument = context.CodeDocument.GetRequiredImplCSharpDocument();
+        var csharpDocument = context.CSharpDocument;
 
         // To help with figuring out the correct indentation, first we will need the indentation
         // that the C# formatter wants to apply in the following locations,
@@ -1148,14 +1149,14 @@ internal sealed class CSharpOnTypeFormattingPass(
         }
     }
 
-    private static string RenderSourceMappings(RazorCodeDocument codeDocument)
+    private static string RenderSourceMappings(RazorCSharpDocument csharpDocument)
     {
         using var pooledBuilder = AspNetCore.Razor.PooledObjects.StringBuilderPool.GetPooledObject();
         var builder = pooledBuilder.Object;
 
-        var documentText = codeDocument.Source.Text.ToString();
+        var documentText = csharpDocument.CodeDocument.Source.Text.ToString();
         var lastIndex = 0;
-        foreach (var mapping in codeDocument.GetRequiredImplCSharpDocument().SourceMappingsSortedByOriginal)
+        foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
         {
             var originalStart = mapping.OriginalSpan.AbsoluteIndex;
             var originalEnd = originalStart + mapping.OriginalSpan.Length;

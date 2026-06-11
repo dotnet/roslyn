@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -85,13 +86,13 @@ internal partial class CSharpFormattingPass
     /// </remarks>
     private sealed class CSharpDocumentGenerator
     {
-        public static FormattedDocument Generate(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, RazorFormattingOptions options, IDocumentMappingService documentMappingService)
+        public static FormattedDocument Generate(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, SyntaxNode? declSyntaxRoot, RazorFormattingOptions options, IDocumentMappingService documentMappingService)
         {
             using var _1 = StringBuilderPool.GetPooledObject(out var builder);
             using var _2 = ArrayBuilderPool<LineInfo>.GetPooledObject(out var lineInfoBuilder);
             lineInfoBuilder.SetCapacityIfLarger(codeDocument.Source.Text.Lines.Count);
 
-            var generator = new Generator(codeDocument, csharpSyntaxRoot, options, builder, lineInfoBuilder, documentMappingService);
+            var generator = new Generator(codeDocument, csharpSyntaxRoot, declSyntaxRoot, options, builder, lineInfoBuilder, documentMappingService);
 
             generator.Generate();
 
@@ -149,6 +150,7 @@ internal partial class CSharpFormattingPass
         private sealed class Generator(
             RazorCodeDocument codeDocument,
             SyntaxNode csharpSyntaxRoot,
+            SyntaxNode? declSyntaxRoot,
             RazorFormattingOptions options,
             StringBuilder builder,
             ImmutableArray<LineInfo>.Builder lineInfoBuilder,
@@ -160,6 +162,7 @@ internal partial class CSharpFormattingPass
             private readonly SourceText _sourceText = codeDocument.Source.Text;
             private readonly RazorCodeDocument _codeDocument = codeDocument;
             private readonly SyntaxNode _csharpSyntaxRoot = csharpSyntaxRoot;
+            private readonly SyntaxNode? _declSyntaxRoot = declSyntaxRoot;
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
@@ -167,7 +170,6 @@ internal partial class CSharpFormattingPass
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
             private readonly IDocumentMappingService _documentMappingService = documentMappingService;
-            private readonly RazorCSharpDocument _csharpDocument = codeDocument.GetImplCSharpDocument().AssumeNotNull();
 
             private TextLine _currentLine;
             private int _currentFirstNonWhitespacePosition;
@@ -200,7 +202,7 @@ internal partial class CSharpFormattingPass
                 using var _ = StringBuilderPool.GetPooledObject(out var additionalLinesBuilder);
 
                 var root = _codeDocument.GetRequiredSyntaxRoot();
-                var sourceMappings = _codeDocument.GetRequiredImplCSharpDocument().SourceMappingsSortedByOriginal;
+                var sourceMappings = GetAllSourceMappingOriginalSpans();
                 var iMapping = 0;
                 foreach (var line in _sourceText.Lines)
                 {
@@ -218,7 +220,7 @@ internal partial class CSharpFormattingPass
                         // If there are C# mappings on this line, we want to output additional lines that represent the C# blocks.
                         while (iMapping < sourceMappings.Length)
                         {
-                            var originalSpan = sourceMappings[iMapping].OriginalSpan;
+                            var originalSpan = sourceMappings[iMapping];
                             if (originalSpan.AbsoluteIndex < _currentFirstNonWhitespacePosition)
                             {
                                 iMapping++;
@@ -264,6 +266,29 @@ internal partial class CSharpFormattingPass
 
                 _builder.AppendLine();
                 _builder.AppendLine(additionalLinesBuilder.ToString());
+            }
+
+            /// <summary>
+            /// Source mappings are stored separately for each C# document, but for the purposes of finding C# code in the middle of a line
+            /// of Razor code, we want to treat them as one combined list sorted by their position in the original Razor document. As long
+            /// as we know which C# document they came from, we can still find the relevant syntax nodes in the C# syntax tree.
+            /// </summary>
+            private ImmutableArray<SourceSpan> GetAllSourceMappingOriginalSpans()
+            {
+                var csharpDoc = _codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+
+                using var _ = HashSetPool<SourceSpan>.GetPooledObject(out var mappings);
+                mappings.AddRange(csharpDoc.SourceMappingsSortedByOriginal.Select(static m => m.OriginalSpan));
+
+                if (_declSyntaxRoot is not null)
+                {
+                    var declDoc = _codeDocument.GetRequiredCSharpDocument(declarationDocument: true);
+                    mappings.AddRange(declDoc.SourceMappingsSortedByOriginal.Select(static m => m.OriginalSpan));
+                }
+
+                // We assume that if there is a location in a Razor document that maps to both C# documents, it's because it maps to the
+                // same construct (ie, a using directive that appears in both C# documents) and so we can just include one.
+                return mappings.OrderAsArray(static (lhs, rhs) => lhs.AbsoluteIndex.CompareTo(rhs.AbsoluteIndex));
             }
 
             private void AddAdditionalLineFormattingContent(StringBuilder additionalLinesBuilder, RazorSyntaxNode node, SourceSpan originalSpan)
@@ -563,12 +588,17 @@ internal partial class CSharpFormattingPass
                 // If we're here, it means this is a "normal" line of C#, so we can just emit it as is. The exception to this is
                 // when we're inside a string literal. We still want to emit it as is, but we need to make sure we tell the formatter
                 // to ignore any existing indentation too.
-                if (_documentMappingService.TryMapToCSharpDocumentPosition(_csharpDocument, _currentToken.SpanStart, out _, out var csharpIndex) &&
-                    _csharpSyntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
-                    csharpNode.IsStringLiteral(multilineOnly: true))
+                if (_documentMappingService.TryMapToCSharpDocumentLinePosition(_codeDocument, _currentToken.SpanStart, out _, out var csharpIndex, out var inDeclDocument))
                 {
-                    _builder.AppendLine(_currentLine.ToString());
-                    return CreateLineInfo(processIndentation: false, processFormatting: true, checkForNewLines: true);
+                    var csharpSyntaxRoot = inDeclDocument
+                        ? _declSyntaxRoot.AssumeNotNull()
+                        : _csharpSyntaxRoot;
+                    if (csharpSyntaxRoot.FindNode(new TextSpan(csharpIndex, 0), getInnermostNodeForTie: true) is { } csharpNode &&
+                        csharpNode.IsStringLiteral(multilineOnly: true))
+                    {
+                        _builder.AppendLine(_currentLine.ToString());
+                        return CreateLineInfo(processIndentation: false, processFormatting: true, checkForNewLines: true);
+                    }
                 }
 
                 return EmitCurrentLineAsCSharp();

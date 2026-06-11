@@ -14,11 +14,10 @@ internal sealed class RoslynWorkspaceHelper(IHostServicesProvider hostServicesPr
 
     public HostWorkspaceServices HostWorkspaceServices => _lazyWorkspace.Value.Services;
 
-    public Document CreateCSharpDocument(RazorCodeDocument codeDocument)
+    public Document CreateCSharpDocument(RazorCSharpDocument csharpDocument)
     {
         var project = _lazyWorkspace.Value.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp);
-        var csharpSourceText = codeDocument.GetCSharpSourceText();
-        return project.AddDocument("TestDocument", csharpSourceText);
+        return project.AddDocument("TestDocument", csharpDocument.Text);
     }
 
     private static AdhocWorkspace CreateWorkspace(IHostServicesProvider hostServicesProvider)

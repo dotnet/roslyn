@@ -286,7 +286,7 @@ internal sealed class CSharpFormatter
 
         using var changes = new PooledArrayBuilder<TextChange>();
 
-        var syntaxTree = await context.CurrentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await context.CurrentSnapshot.GetCSharpSyntaxTreeAsync(context.CSharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         var previousMarkerOffset = 0;
@@ -328,7 +328,7 @@ internal sealed class CSharpFormatter
             }
         }
 
-        var changedText = context.CSharpSourceText.WithChanges(changes.ToImmutable());
+        var changedText = context.CSharpDocument.Text.WithChanges(changes.ToImmutable());
         return (indentationMap, syntaxTree.WithChangedText(changedText));
     }
 

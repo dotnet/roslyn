@@ -86,7 +86,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         var sourceText = codeDocument.Source.Text;
         if (range is { } span)
         {
-            if (codeDocument.GetRequiredImplCSharpDocument().Diagnostics.Any(d => d.Span != SourceSpan.Undefined && span.OverlapsWith(sourceText.GetLinePositionSpan(d.Span))))
+            if (codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics.Any(d => d.Span != SourceSpan.Undefined && span.OverlapsWith(sourceText.GetLinePositionSpan(d.Span))))
             {
                 return [];
             }
@@ -135,7 +135,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         return originalText.MinimizeTextChanges(normalizedChanges);
     }
 
-    public async Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, bool declarationDocument, CancellationToken cancellationToken)
     {
         var documentSnapshot = documentContext.Snapshot;
 
@@ -144,6 +144,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         return await ApplyFormattedChangesAsync(
                 documentSnapshot,
                 codeDocument,
+                declarationDocument,
                 generatedDocumentChanges: [],
                 options,
                 hostDocumentIndex,
@@ -166,6 +167,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         return await ApplyFormattedChangesAsync(
                 documentSnapshot,
                 codeDocument,
+                declarationDocument: null,
                 htmlChanges,
                 options,
                 hostDocumentIndex,
@@ -178,7 +180,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<TextChange?> TryGetSingleCSharpEditAsync(DocumentContext documentContext, TextChange csharpEdit, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetSingleCSharpEditAsync(DocumentContext documentContext, TextChange csharpEdit, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var documentSnapshot = documentContext.Snapshot;
         // Since we've been provided with an edit from the C# generated doc, forcing design time would make things not line up
@@ -187,6 +189,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         var razorChanges = await ApplyFormattedChangesAsync(
             documentSnapshot,
             codeDocument,
+            declarationDocument,
             [csharpEdit],
             options,
             hostDocumentIndex: 0,
@@ -203,7 +206,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
             : null;
     }
 
-    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var documentSnapshot = documentContext.Snapshot;
         // Since we've been provided with edits from the C# generated doc, forcing design time would make things not line up
@@ -212,6 +215,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         var razorChanges = await ApplyFormattedChangesAsync(
             documentSnapshot,
             codeDocument,
+            declarationDocument,
             csharpChanges,
             options,
             hostDocumentIndex: 0,
@@ -228,7 +232,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
             : null;
     }
 
-    public async Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         csharpChanges = WrapCSharpSnippets(csharpChanges);
 
@@ -239,6 +243,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         var razorChanges = await ApplyFormattedChangesAsync(
             documentSnapshot,
             codeDocument,
+            declarationDocument,
             csharpChanges,
             options,
             hostDocumentIndex: 0,
@@ -272,6 +277,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
     private async Task<ImmutableArray<TextChange>> ApplyFormattedChangesAsync(
         IDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument,
+        bool? declarationDocument,
         ImmutableArray<TextChange> generatedDocumentChanges,
         RazorFormattingOptions options,
         int hostDocumentIndex,
@@ -290,7 +296,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         var logger = _formattingLoggerFactory.CreateLogger(documentSnapshot.FilePath, formattingType);
         logger?.LogObject("FileKind", documentSnapshot.FileKind);
         logger?.LogObject("Options", options);
-        logger?.LogObject("Parameters", new { hostDocumentIndex, triggerCharacter, collapseChanges, includeCSharpLanguageFeatureEdits, validate });
+        logger?.LogObject("Parameters", new { hostDocumentIndex, triggerCharacter, collapseChanges, includeCSharpLanguageFeatureEdits, validate, declarationDocument });
         logger?.LogObject("GeneratedDocumentChanges", generatedDocumentChanges);
         logger?.LogSourceText("InitialDocument", codeDocument.Source.Text);
         LogSyntaxTree(logger, codeDocument);
@@ -298,6 +304,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         var context = FormattingContext.CreateForOnTypeFormatting(
             documentSnapshot,
             codeDocument,
+            declarationDocument,
             options,
             logger,
             includeCSharpLanguageFeatureEdits: includeCSharpLanguageFeatureEdits,
