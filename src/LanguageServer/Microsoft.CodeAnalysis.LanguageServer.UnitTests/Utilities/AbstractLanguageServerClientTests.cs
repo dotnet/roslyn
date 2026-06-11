@@ -34,6 +34,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
     private protected async Task<TestLspClient> CreateCSharpLanguageServerAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markupCode,
         bool includeDevKitComponents,
+        ClientCapabilities? clientCapabilities = null,
         bool debugLsp = false)
     {
         string code;
@@ -67,7 +68,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
 
         // Create server and open the project
         var lspClient = await TestLspClient.CreateAsync(
-            new ClientCapabilities(),
+            clientCapabilities ?? new ClientCapabilities(),
             ExtensionLogsDirectory.Path,
             includeDevKitComponents,
             debugLsp,

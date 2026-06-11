@@ -476,11 +476,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
-            LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
-            LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
-
             bool negated = pattern.IsNegated(out var innerPattern);
+
+            // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
+            LabelSymbol whenTrueLabel = new GeneratedLabelSymbol(negated ? "isPatternFailure" : "isPatternSuccess");
+            LabelSymbol whenFalseLabel = new GeneratedLabelSymbol(negated ? "isPatternSuccess" : "isPatternFailure");
+
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
                 this.Compilation, pattern.Syntax, expression, innerPattern, hasUnionMatching, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
 
@@ -2134,6 +2135,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundPropertySubpatternMember? member;
                 TypeSymbol memberType;
                 bool isLengthOrCount = false;
+                NamedTypeSymbol? unionType = null;
+
                 if (expr == null)
                 {
                     if (!hasErrors)
@@ -2145,7 +2148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors);
+                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors, out unionType);
                     memberType = member.Type;
                     // If we're dealing with the member that makes the type countable, and the type is also indexable, then it will be assumed to always return a non-negative value
                     if (memberType.SpecialType == SpecialType.System_Int32 &&
@@ -2160,21 +2163,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                NamedTypeSymbol? unionType = null;
+                if (unionType is not null)
+                {
+                    Debug.Assert(expr is not null);
+
+                    // Matching a union Value.
+                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, expr is MemberAccessExpressionSyntax memberAccess ? memberAccess.Name : expr); // Since new exhaustiveness rules will be used by DecisionDagBuilder.
+                }
+
                 BoundPattern boundPattern = BindPattern(pattern, ref unionType, memberType, permitDesignations, hasErrors, diagnostics, out bool patternHasUnionMatching);
                 hasUnionMatching |= patternHasUnionMatching;
                 var subpattern = new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern);
-
-                if (subpattern is { Member: { Receiver: null, Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property }, IsLengthOrCount: false } &&
-                    inputType is NamedTypeSymbol { IsUnionType: true } inputUnionType &&
-                    Binder.IsUnionTypeValueProperty(inputUnionType, property))
-                {
-                    // https://github.com/dotnet/roslyn/issues/82636: The condition above matches the logic in DecisionDagBuilder.MakeTestsAndBindingsForRecursivePattern
-                    //                                                and, at the moment, it doesn't accept qualified names for the value property. However, it probably should.
-                    //                                                Once that is changed, this place should be updated to match the new logic.
-                    MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, subpattern.Member.Syntax); // Since new exhaustiveness rules will be used by DecisionDagBuilder.
-                }
-
                 builder.Add(subpattern);
             }
 
@@ -2182,7 +2181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundPropertySubpatternMember LookupMembersForPropertyPattern(
-            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref bool hasErrors)
+            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref bool hasErrors, out NamedTypeSymbol? unionType)
         {
             BoundPropertySubpatternMember? receiver = null;
             Symbol? symbol = null;
@@ -2192,8 +2191,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
                     break;
                 case MemberAccessExpressionSyntax { Name: IdentifierNameSyntax name } memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref hasErrors);
-                    symbol = BindPropertyPatternMember(receiver.Type.StrippedType(), name, ref hasErrors, diagnostics);
+                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref hasErrors, unionType: out _);
+                    inputType = receiver.Type.StrippedType();
+                    symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
                     break;
                 default:
                     Error(diagnostics, ErrorCode.ERR_InvalidNameInSubpattern, expr);
@@ -2201,12 +2201,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            TypeSymbol memberType = symbol switch
+            unionType = null;
+            TypeSymbol memberType;
+
+            switch (symbol)
             {
-                FieldSymbol field => field.Type,
-                PropertySymbol property => property.Type,
-                _ => CreateErrorType()
-            };
+                case FieldSymbol field:
+                    memberType = field.Type;
+                    break;
+
+                case PropertySymbol property:
+                    memberType = property.Type;
+
+                    if (property.Name == WellKnownMemberNames.ValuePropertyName &&
+                        inputType is NamedTypeSymbol { IsUnionType: true } inputUnionType &&
+                        Binder.IsUnionTypeValueProperty(inputUnionType, property))
+                    {
+                        unionType = inputUnionType;
+                    }
+                    break;
+
+                default:
+                    memberType = CreateErrorType();
+                    break;
+            }
 
             return new BoundPropertySubpatternMember(expr, receiver, symbol, type: memberType, hasErrors);
         }
@@ -2407,27 +2425,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool underIsPattern,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionMatchingInputType = PrepareForUnionMatchingIfAppropriateAndReturnUnionMatchingInputType(node, ref inputType, ref unionType, diagnostics);
-            bool isUnionMatching = unionMatchingInputType is not null;
-
-            if (unionMatchingInputType is not null && (unionMatchingInputType.TypeKind != TypeKind.Struct || unionMatchingInputType.IsNullableType()))
-            {
-                // When we are not 'underIsPattern', we don't 'permitDesignations'. See an assignment and a comment below.
-                // Only 'BindIsPatternExpression' passes true for 'underIsPattern' and only 'BindUnaryPattern' propagates it. 
-                // Since we are doing Union matching, we are effectively in a sub-pattern, thus we are not directly under
-                // "is pattern", but we can still make things work for struct types (excluding Nullable<T>), because they
-                // do not have an implicit null check for the Union instance itself.
-                // The effect of this logic can be observed in unit-tests 'UnionMatching_15_Negated' and 'UnionMatching_16_Negated', for example.   
-                underIsPattern = false;
-            }
-
             MessageID.IDS_FeatureNotPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
             bool permitDesignations = underIsPattern; // prevent designators under 'not' except under an is-pattern
             NamedTypeSymbol? currentUnionType = unionType;
             var subPattern = BindPattern(node.Pattern, ref currentUnionType, inputType, permitDesignations, hasErrors, diagnostics, out hasUnionMatching, underIsPattern);
-            hasUnionMatching |= isUnionMatching;
-            return new BoundNegatedPattern(node, subPattern, isUnionMatching: isUnionMatching, inputType: unionMatchingInputType ?? inputType, narrowedType: inputType, hasErrors);
+            return new BoundNegatedPattern(node, subPattern, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
         private BoundPattern BindBinaryPattern(

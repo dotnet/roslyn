@@ -1865,7 +1865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // In some cases CanUseCallOnRefTypeReceiver returns true which means that 
                     // null check is unnecessary and we can use "call"
                     if (receiver.SuppressVirtualCalls ||
-                        (!method.IsMetadataVirtual() && CanUseCallOnRefTypeReceiver(receiver)))
+                        (!method.IsMetadataVirtual(this._module.SourceModule) && CanUseCallOnRefTypeReceiver(receiver)))
                     {
                         callKind = CallKind.Call;
                     }
@@ -1884,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         addressKind = IsReadOnlyCall(method, methodContainingType) ?
                                                                         AddressKind.ReadOnly :
                                                                         AddressKind.Writeable;
-                        if (MayUseCallForStructMethod(method))
+                        if (MayUseCallForStructMethod(this._module.SourceModule, method))
                         {
                             // NOTE: this should be either a method which overrides some abstract method or 
                             //       does not override anything (with few exceptions, see MayUseCallForStructMethod); 
@@ -1905,7 +1905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         // When calling a method that is virtual in metadata on a struct receiver,
                         // we use a constrained virtual call. If possible, it will skip boxing.
-                        if (method.IsMetadataVirtual())
+                        if (method.IsMetadataVirtual(this._module.SourceModule))
                         {
                             // For readonly value type receivers, we only need readonly access since
                             // readonly structs guarantee non-mutation for all their methods, and the
@@ -2326,11 +2326,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// It basically checks if the method overrides any other and method's defining type
         /// is not a 'special' or 'special-by-ref' type. 
         /// </summary>
-        internal static bool MayUseCallForStructMethod(MethodSymbol method)
+        internal static bool MayUseCallForStructMethod(ModuleSymbol context, MethodSymbol method)
         {
             Debug.Assert(method.ContainingType.IsVerifierValue(), "this is not a value type");
 
-            if (!method.IsMetadataVirtual() || method.IsStatic)
+            if (method.IsStatic || !method.IsMetadataVirtual(context))
             {
                 return true;
             }

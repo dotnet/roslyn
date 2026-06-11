@@ -276,6 +276,12 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             var lastToken = node.GetLastToken(includeZeroWidth: true);
             var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
 
+            // If the collection expression / list pattern is at the very start of the file there is no
+            // preceding token to align to.  Skip the relative-indentation operation in that case to avoid
+            // passing a default SyntaxToken (RawKind == 0) into the formatting engine.
+            if (baseToken.RawKind == 0)
+                return;
+
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
     }

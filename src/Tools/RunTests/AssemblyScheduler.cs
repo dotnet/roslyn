@@ -20,13 +20,13 @@ namespace RunTests
     {
 
         /// <summary>
-        /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
+        /// The target number of work items to create when partitioning by test count.
         /// </summary>
-        private static readonly int s_maxMethodCount = 500;
+        private const int TargetWorkItemCount = 25;
 
         public static ImmutableArray<HelixWorkItem> Schedule(
             IEnumerable<string> assemblyFilePaths,
-            ImmutableDictionary<string, TimeSpan> testHistory)
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>? testHistory)
         {
             var orderedTypeInfos = assemblyFilePaths.ToImmutableSortedDictionary(x => x, GetTypeInfoList);
             ConsoleUtil.WriteLine($"Scheduling {orderedTypeInfos.Count} assemblies");
@@ -37,19 +37,41 @@ namespace RunTests
                 ConsoleUtil.WriteLine($"\tAssembly: {Path.GetFileName(kvp.Key)}, Test Type Count: {typeCount}, Test Count: {testCount}");
             }
 
-            if (testHistory.IsEmpty)
+            if (testHistory is null)
             {
-                // We didn't have any test history from azure devops, just partition by test count.
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
-                var workItemsByMethodCount = BuildWorkItems(
-                    orderedTypeInfos,
-                    getWeightFunc: static test => 1,
-                    limit: s_maxMethodCount);
-
-                LogWorkItems(workItemsByMethodCount);
-                return workItemsByMethodCount;
+                return ScheduleByCount(orderedTypeInfos);
             }
 
+            return ScheduleByTime(orderedTypeInfos, testHistory);
+        }
+
+        /// <summary>
+        /// Partition tests evenly by count into a target number of work items.
+        /// Used as a fallback when test history is unavailable.
+        /// </summary>
+        private static ImmutableArray<HelixWorkItem> ScheduleByCount(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos)
+        {
+            var totalTestCount = orderedTypeInfos.Values.Sum(types => types.Sum(t => t.Tests.Length));
+            var testsPerWorkItem = Math.Max(1, totalTestCount / TargetWorkItemCount);
+            var workItems = BuildWorkItems(
+                orderedTypeInfos,
+                getWeightFunc: static test => 1,
+                limit: testsPerWorkItem);
+
+            LogWorkItems(workItems);
+            return workItems;
+        }
+
+        /// <summary>
+        /// Partition tests by historical execution time with the goal of each work item
+        /// running under the time limit.
+        /// </summary>
+        private static ImmutableArray<HelixWorkItem> ScheduleByTime(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos,
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+        {
             LogLongTests(testHistory);
 
             // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
@@ -67,16 +89,16 @@ namespace RunTests
             return workItems;
         }
 
-        private static void LogLongTests(ImmutableDictionary<string, TimeSpan> testHistory)
+        private static void LogLongTests(Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
             var longTests = testHistory
-                .Where(kvp => kvp.Value > HelixTestRunner.WorkItemScheduleTime)
+                .Where(kvp => kvp.Value.Duration > HelixTestRunner.WorkItemScheduleTime)
                 .OrderBy(kvp => kvp.Key)
                 .ToList();
             if (longTests.Count > 0)
             {
                 ConsoleUtil.Warning($"There are {longTests.Count} tests have execution times greater than the maximum execution time of {HelixTestRunner.WorkItemScheduleTime:hh\\:mm\\:ss}.  These tests will be scheduled in their own individual work items and may indicate tests that should be optimized or removed if they are no longer providing value.");
-                foreach (var (test, time) in longTests)
+                foreach (var (test, (time, _)) in longTests)
                 {
                     ConsoleUtil.WriteLine($"\t{test} - {time:hh\\:mm\\:ss}");
                 }
@@ -85,10 +107,16 @@ namespace RunTests
 
         private static ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> assemblyTypes,
-            ImmutableDictionary<string, TimeSpan> testHistory)
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
+            // In xUnit v2, the ExecutionTimer in TestInvoker does NOT include IAsyncLifetime
+            // .InitializeAsync() or .DisposeAsync() in DurationInMs. Test base classes that
+            // perform expensive per-test async setup/teardown (MEF composition, workspace creation)
+            // will have overhead not reflected in the reported duration. We add an empirical
+            // adjustment per test theory instance for tests whose class implements IAsyncLifetime.
+
             // Determine the average execution time so that we can use it for tests that do not have any history.
-            var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.TotalMilliseconds));
+            var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.Duration.TotalMilliseconds));
 
             // Store the tests we found locally that were missing remote historical data.
             var unmatchedLocalTests = new HashSet<string>();
@@ -114,16 +142,34 @@ namespace RunTests
                 // Match by fully qualified test method name to azure devops historical data.
                 // Note for combinatorial tests, azure devops helpfully groups all sub-runs under a top level method (with combined test run times) with the same fully qualified method name
                 // that we get during test discovery.  Since we only filter by the single method name (and not individual combinatorial runs) we do want the combined execution time.
-                if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var executionTime))
+                if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var historyEntry))
                 {
                     matchedRemoteTests.Add(methodInfo.FullyQualifiedName);
+                    var executionTime = historyEntry.Duration;
+
+                    // If the test class implements IAsyncLifetime, add overhead per theory instance
+                    // to account for InitializeAsync/DisposeAsync time not captured in DurationInMs.
+                    if (methodInfo.HasAsyncLifetime)
+                    {
+                        executionTime += TimeSpan.FromMilliseconds(historyEntry.TestTheoryInstances * HelixTestRunner.AsyncLifetimeInstanceOverhead.TotalMilliseconds);
+                    }
+
                     return methodInfo with { ExecutionTime = executionTime };
                 }
 
                 // We didn't find the local type from our assembly in test run historical data.
                 // This usually occurs when tests have been added in between the last passing branch run and this PR.
                 unmatchedLocalTests.Add(methodInfo.FullyQualifiedName);
-                return methodInfo with { ExecutionTime = averageExecutionTime };
+                var fallbackExecutionTime = averageExecutionTime;
+
+                // If the test class implements IAsyncLifetime, add overhead for at least one instance
+                // to account for InitializeAsync/DisposeAsync time not captured in the average duration.
+                if (methodInfo.HasAsyncLifetime)
+                {
+                    fallbackExecutionTime += HelixTestRunner.AsyncLifetimeInstanceOverhead;
+                }
+
+                return methodInfo with { ExecutionTime = fallbackExecutionTime };
             }
 
             void WriteResults()
@@ -245,14 +291,17 @@ namespace RunTests
                 throw new ArgumentException($"{testListPath} does not exist");
             }
 
-            var deserialized = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(testListPath));
-            if (deserialized == null)
+            var deserialized = JsonSerializer.Deserialize<List<TestDiscoveryEntry>>(File.ReadAllText(testListPath));
+            if (deserialized is null)
             {
                 throw new InvalidOperationException($"Could not deserialize {testListPath}");
             }
 
-            var tests = deserialized.GroupBy(GetTypeName)
-                .Select(group => new TypeInfo(GetName(group.Key), group.Key, group.Select(test => new TestMethodInfo(GetName(test), test, TimeSpan.Zero)).ToImmutableArray()))
+            var tests = deserialized.GroupBy(e => GetTypeName(e.MethodName!))
+                .Select(group => new TypeInfo(
+                    GetName(group.Key),
+                    group.Key,
+                    group.Select(e => new TestMethodInfo(GetName(e.MethodName!), e.MethodName!, TimeSpan.Zero, e.HasAsyncLifetime)).ToImmutableArray()))
                 .ToImmutableArray();
             return tests;
 
@@ -267,6 +316,12 @@ namespace RunTests
                 var lastPeriod = fullyQualifiedName.LastIndexOf(".");
                 return fullyQualifiedName[(lastPeriod + 1)..];
             }
+        }
+
+        private sealed class TestDiscoveryEntry
+        {
+            public string? MethodName { get; set; }
+            public bool HasAsyncLifetime { get; set; }
         }
 
         /// <summary>

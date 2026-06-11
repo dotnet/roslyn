@@ -1799,7 +1799,7 @@ class Program
         [Fact]
         public void Unary_028_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1)
@@ -1828,7 +1828,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = $$$"""
 class Program
 {
     static void Main()
@@ -1852,8 +1853,11 @@ class Program
 }
 """;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -7822,7 +7826,7 @@ class Program
         [Fact]
         public void Increment_059_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1)
@@ -7851,7 +7855,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = """
 class Program
 {
     static void Main()
@@ -7875,14 +7880,17 @@ class Program
 }
 """;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
         public void Increment_060_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1 x)
@@ -7908,7 +7916,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = """
 class Program
 {
     static void Main()
@@ -7931,10 +7940,13 @@ class Program
     }
 }
 
-""" + CompilerFeatureRequiredAttribute;
+""";
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -13279,7 +13291,7 @@ class Program
         [Fact]
         public void Binary_036_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1)
@@ -13308,7 +13320,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = $$$"""
 class Program
 {
     static void Main()
@@ -13332,8 +13345,11 @@ class Program
 }
 """;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -23938,7 +23954,7 @@ class Program
         [Fact]
         public void CompoundAssignment_067_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1)
@@ -23966,7 +23982,8 @@ public static class Extensions1
 
 public class C1;
 public class C2 : C1;
-
+""";
+            var src2 = $$$"""
 class Program
 {
     static void Main()
@@ -23990,14 +24007,17 @@ class Program
 }
 """;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
         public void CompoundAssignment_068_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1 x)
@@ -24023,7 +24043,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = $$$"""
 class Program
 {
     static void Main()
@@ -24046,10 +24067,13 @@ class Program
     }
 }
 
-""" + CompilerFeatureRequiredAttribute;
+""";
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -30112,6 +30136,55 @@ public class C1 { }
                 // (2,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(C1).operator ++()' and 'E2.extension(C1).operator ++()'
                 // _ = ++c1;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("E1.extension(C1).operator ++()", "E2.extension(C1).operator ++()").WithLocation(2, 5));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82977")]
+        public void Issue82977()
+        {
+            var src1 = $$$"""
+public struct V<T> 
+{
+    public T Value;
+    public V(T value) => this.Value = value;
+}
+
+public static class Extensions
+{
+    extension(V<float>)
+    {
+        public static V<float> operator /(V<float> a, V<float> b)
+        {
+            throw null;
+        }
+        
+        public static V<float> operator checked /(V<float> a, V<float> b)
+        {
+            System.Console.WriteLine("checked");
+            return new V<float>(checked(a.Value / b.Value));
+        }
+    }
+}
+""";
+            var src2 = $$$"""
+public static class Program
+{
+    public static void Main()
+    {
+        var x = new V<float>(1f);
+        checked
+        {
+            x = x / x;
+        }
+    }
+}
+""";
+
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "checked").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "checked").VerifyDiagnostics();
         }
     }
 }

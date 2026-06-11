@@ -4,13 +4,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+using Microsoft.CodeAnalysis.Razor.Remote;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 /// <summary>
-/// An abstraction to avoid calling the static <see cref="RazorBrokeredServiceImplementation"/> helper defined in Roslyn.
+/// An abstraction for hosts that intercept Razor brokered-service calls instead of routing them through Roslyn OOP.
 /// </summary>
 internal interface IRazorBrokeredServiceInterceptor
 {
@@ -19,7 +18,7 @@ internal interface IRazorBrokeredServiceInterceptor
         CancellationToken cancellationToken);
 
     ValueTask<T> RunServiceAsync<T>(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         Func<Solution, ValueTask<T>> implementation,
         CancellationToken cancellationToken);
 }
