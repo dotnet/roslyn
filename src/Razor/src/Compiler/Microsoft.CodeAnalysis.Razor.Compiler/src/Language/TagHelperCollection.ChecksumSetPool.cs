@@ -11,7 +11,13 @@ public abstract partial class TagHelperCollection
 {
     private sealed class ChecksumSetPool : CustomObjectPool<HashSet<Checksum>>
     {
-        private const int MaximumObjectSize = 2048;
+        // Large projects can have thousands of tag helpers, causing the HashSet to grow well past
+        // the LOH threshold (85KB) during document compilation. With a small retention limit, the
+        // set is trimmed on return and must re-grow (through multiple LOH-allocating resizes) on
+        // every subsequent use. Traces have shown GBs of allocation pressure from this resize churn.
+        // A higher limit retains the grown set in the pool — trading a few MB of stable potentially LOH memory
+        // (across ~20 pool slots, most of which remain empty) for eliminating repeated resize allocations.
+        private const int MaximumObjectSize = 16384;
 
         public static readonly ChecksumSetPool Default = new(Policy.Instance, DefaultPoolSize);
 
