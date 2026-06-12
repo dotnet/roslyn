@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ITypeSymbol.IsClosed => UnderlyingTypeSymbol is Symbols.NamedTypeSymbol { IsClosed: true };
 
-        ClosedDerivedTypeInfo ITypeSymbol.GetClosedDerivedTypes(CancellationToken cancellationToken)
+        ClosedDerivedTypeInfo ITypeSymbol.GetClosedDerivedTypeInfo(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

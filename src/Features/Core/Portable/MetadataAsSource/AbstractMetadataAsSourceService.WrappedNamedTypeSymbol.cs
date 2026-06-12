@@ -154,7 +154,7 @@ internal abstract partial class AbstractMetadataAsSourceService
         public bool IsFileLocal => _symbol.IsFileLocal;
 
         public bool IsClosed => _symbol.IsClosed;
-        public ClosedDerivedTypeInfo GetClosedDerivedTypes(CancellationToken cancellationToken) => _symbol.GetClosedDerivedTypes(cancellationToken);
+        public ClosedDerivedTypeInfo GetClosedDerivedTypeInfo(CancellationToken cancellationToken) => _symbol.GetClosedDerivedTypeInfo(cancellationToken);
 
         public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;
 

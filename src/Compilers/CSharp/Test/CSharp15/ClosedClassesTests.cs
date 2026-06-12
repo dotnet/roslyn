@@ -222,17 +222,17 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // attribute is filtered out of source and metadata symbols.
             Assert.Empty(classC.GetAttributes());
 
-            var derivedTypeInfo = classC.GetClosedDerivedTypes(CancellationToken.None);
+            var derivedTypeInfo = classC.GetClosedDerivedTypeInfo(CancellationToken.None);
             Assert.Equal(["D1", "D2"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
             Assert.True(derivedTypeInfo.IsComplete);
 
             var d1 = derivedTypeInfo.ClosedDerivedTypes[0];
             Assert.False(d1.IsClosed);
-            Assert.Throws<InvalidOperationException>(() => d1.GetClosedDerivedTypes(CancellationToken.None));
+            Assert.Throws<InvalidOperationException>(() => d1.GetClosedDerivedTypeInfo(CancellationToken.None));
 
             var source = new CancellationTokenSource();
             source.Cancel();
-            Assert.Throws<OperationCanceledException>(() => classC.GetClosedDerivedTypes(source.Token));
+            Assert.Throws<OperationCanceledException>(() => classC.GetClosedDerivedTypeInfo(source.Token));
         }
     }
 
@@ -259,20 +259,20 @@ public sealed class ClosedClassesTests : CSharpTestBase
             var classC = comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol();
             Assert.Equal("C<T>", classC.ToTestDisplayString());
 
-            var derivedTypeInfo = classC.GetClosedDerivedTypes(CancellationToken.None);
+            var derivedTypeInfo = classC.GetClosedDerivedTypeInfo(CancellationToken.None);
             Assert.False(derivedTypeInfo.IsComplete);
             Assert.Equal(["D1<T>", "D3"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
 
             var cOfIntArray = classC.Construct(comp.CreateArrayTypeSymbol(comp.GetSpecialType(SpecialType.System_Int32)));
             Assert.Equal("C<System.Int32[]>", cOfIntArray.ToTestDisplayString());
 
-            derivedTypeInfo = cOfIntArray.GetClosedDerivedTypes(CancellationToken.None);
+            derivedTypeInfo = cOfIntArray.GetClosedDerivedTypeInfo(CancellationToken.None);
             Assert.True(derivedTypeInfo.IsComplete);
             Assert.Equal(["D1<System.Int32[]>", "D2<System.Int32>"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
 
             var cOfString = classC.Construct(comp.GetSpecialType(SpecialType.System_String));
             Assert.Equal("C<System.String>", cOfString.ToTestDisplayString());
-            derivedTypeInfo = cOfString.GetClosedDerivedTypes(CancellationToken.None);
+            derivedTypeInfo = cOfString.GetClosedDerivedTypeInfo(CancellationToken.None);
             Assert.True(derivedTypeInfo.IsComplete);
             Assert.Equal(["D1<System.String>", "D3"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
         }

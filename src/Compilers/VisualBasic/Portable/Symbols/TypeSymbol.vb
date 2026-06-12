@@ -624,7 +624,7 @@ Done:
             End Get
         End Property
 
-        Private Function ITypeSymbol_GetClosedDerivedTypes(cancellationToken As CancellationToken) As ClosedDerivedTypeInfo Implements ITypeSymbol.GetClosedDerivedTypes
+        Private Function ITypeSymbol_GetClosedDerivedTypeInfo(cancellationToken As CancellationToken) As ClosedDerivedTypeInfo Implements ITypeSymbol.GetClosedDerivedTypeInfo
             Throw New InvalidOperationException()
         End Function
 

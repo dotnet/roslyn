@@ -87,7 +87,7 @@ internal abstract class CodeGenerationTypeSymbol(
     public virtual bool IsClosed => false;
 
 #if !OLDER_ROSLYN
-    public ClosedDerivedTypeInfo GetClosedDerivedTypes(CancellationToken cancellationToken) => throw new NotImplementedException();
+    public ClosedDerivedTypeInfo GetClosedDerivedTypeInfo(CancellationToken cancellationToken) => throw new NotImplementedException();
 #endif
 
     public NullableAnnotation NullableAnnotation { get; } = nullableAnnotation;
