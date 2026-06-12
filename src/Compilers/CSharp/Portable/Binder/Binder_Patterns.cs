@@ -35,68 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static PropertySymbol? GetUnionTypeValueProperty(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(inputUnionType.IsUnionType);
-
-            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
-
-            if (membersInterfaceForDefinition is not null)
-            {
-                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(inputUnionType);
-
-                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
-                {
-                    if (isSuitableProperty(member, out PropertySymbol? valueProperty))
-                    {
-                        return reportDiagnosticAndReturnProperty(membersInterface, valueProperty.AsMember(membersInterface), ref useSiteInfo);
-                    }
-                }
-
-                PropertySymbol? match = null;
-
-                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
-                {
-                    foreach (var member in baseInterfaceForDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
-                    {
-                        if (isSuitableProperty(member, out PropertySymbol? valueProperty))
-                        {
-                            if (match is null)
-                            {
-                                match = valueProperty;
-                            }
-                            else if (!match.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(baseInterfaceForDefinition, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
-                            {
-                                // Ambiguity
-                                return reportDiagnosticAndReturnProperty(membersInterface, null, ref useSiteInfo);
-                            }
-                            else
-                            {
-                                // Shadowed
-                            }
-
-                            break;
-                        }
-                    }
-                }
-
-                if (match is not null)
-                {
-                    if (!inputUnionType.IsDefinition)
-                    {
-                        match = match.OriginalDefinition.AsMember(inputUnionType.TypeSubstitution.SubstituteNamedType(match.ContainingType));
-                    }
-
-                    return reportDiagnosticAndReturnProperty(membersInterface, match, ref useSiteInfo);
-                }
-
-                return reportDiagnosticAndReturnProperty(membersInterface, null, ref useSiteInfo);
-            }
-            else
-            {
-                return reportDiagnosticAndReturnProperty(
-                    inputUnionType,
-                    TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo),
-                    ref useSiteInfo);
-            }
+            (NamedTypeSymbol container, PropertySymbol? valueProperty) = TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo);
+            return reportDiagnosticAndReturnProperty(
+                container,
+                valueProperty,
+                ref useSiteInfo);
 
             static PropertySymbol? reportDiagnosticAndReturnProperty(NamedTypeSymbol memberProvider, PropertySymbol? valueProperty, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
@@ -140,35 +83,86 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private delegate bool IsSuitableUnionProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? member);
 
-        private static PropertySymbol? TryGetOwnOrInheritedUnionProperty(NamedTypeSymbol inputUnionType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static (NamedTypeSymbol, PropertySymbol?) TryGetOwnOrInheritedUnionProperty(NamedTypeSymbol inputUnionType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
-                 declaringType is not null;
-                 declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
-            {
-                if (getMemberDeclaredInType(declaringType, memberName, isSuitableUnionMember, out PropertySymbol? member))
-                {
-                    if (!inputUnionType.IsDefinition)
-                    {
-                        NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+            Debug.Assert(inputUnionType.IsUnionType);
 
-                        if (declaringType == (object)inputUnionType.OriginalDefinition)
+            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
+            PropertySymbol? member;
+
+            if (membersInterfaceForDefinition is not null)
+            {
+                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(inputUnionType);
+
+                if (getMemberDeclaredInType(membersInterfaceForDefinition, memberName, isSuitableUnionMember, out member))
+                {
+                    return (membersInterface, member.AsMember(membersInterface));
+                }
+
+                PropertySymbol? match = null;
+
+                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                {
+                    if (getMemberDeclaredInType(baseInterfaceForDefinition, memberName, isSuitableUnionMember, out member))
+                    {
+                        if (match is null)
                         {
-                            possiblyConstructedOrSubstitutedType = inputUnionType;
+                            match = member;
+                        }
+                        else if (!match.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(baseInterfaceForDefinition, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                        {
+                            // Ambiguity
+                            return (membersInterface, null);
                         }
                         else
                         {
-                            possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                            // Shadowed
                         }
+                    }
+                }
 
-                        member = member.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedType);
+                if (match is not null)
+                {
+                    if (!inputUnionType.IsDefinition)
+                    {
+                        match = match.OriginalDefinition.AsMember(inputUnionType.TypeSubstitution.SubstituteNamedType(match.ContainingType));
                     }
 
-                    return member;
+                    return (membersInterface, match);
                 }
-            }
 
-            return null;
+                return (membersInterface, null);
+            }
+            else
+            {
+                for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
+                     declaringType is not null;
+                     declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                {
+                    if (getMemberDeclaredInType(declaringType, memberName, isSuitableUnionMember, out member))
+                    {
+                        if (!inputUnionType.IsDefinition)
+                        {
+                            NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+
+                            if (declaringType == (object)inputUnionType.OriginalDefinition)
+                            {
+                                possiblyConstructedOrSubstitutedType = inputUnionType;
+                            }
+                            else
+                            {
+                                possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                            }
+
+                            member = member.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedType);
+                        }
+
+                        return (inputUnionType, member);
+                    }
+                }
+
+                return (inputUnionType, null);
+            }
 
             static bool getMemberDeclaredInType(NamedTypeSymbol declaringType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, [NotNullWhen(true)] out PropertySymbol? member)
             {
@@ -198,27 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static PropertySymbol? GetUnionTypeHasValueProperty(NamedTypeSymbol inputUnionType)
         {
-            Debug.Assert(inputUnionType.IsUnionType);
-
-            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
-
-            if (membersInterfaceForDefinition is not null)
-            {
-                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.HasValuePropertyName))
-                {
-                    if (isSuitableProperty(member, out PropertySymbol? valueProperty))
-                    {
-                        return checkAndReturnProperty(valueProperty.AsMember(membersInterfaceForDefinition.AsMember(inputUnionType)));
-                    }
-                }
-
-                return null;
-            }
-            else
-            {
-                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                return checkAndReturnProperty(TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo));
-            }
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            (_, PropertySymbol? hasValueProperty) = TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo);
+            return checkAndReturnProperty(hasValueProperty);
 
             static PropertySymbol? checkAndReturnProperty(PropertySymbol? hasValueProperty)
             {
@@ -247,8 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return property is
                 {
                     IsStatic: false,
-                    DeclaredAccessibility: Accessibility.Public,
-                    GetMethod: not null, // PROTOTYPE: Must be public
+                    GetMethod: { DeclaredAccessibility: Accessibility.Public },
                     RefKind: RefKind.None,
                     ParameterCount: 0,
                     Type.SpecialType: SpecialType.System_Boolean
