@@ -199,4 +199,28 @@
   <data name="Unknown_RazorMetaCode" xml:space="preserve">
     <value>Attempted to visit a RazorMetaCode other than '{' or '}'.</value>
   </data>
+  <data name="Unknown_mapping_behavior" xml:space="preserve">
+    <value>Unknown mapping behavior</value>
+  </data>
+  <data name="Formatting_Error" xml:space="preserve">
+    <value>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</value>
+  </data>
+  <data name="Format_operation_changed_diagnostics" xml:space="preserve">
+    <value>A format operation is being abandoned because it would introduce or remove one or more diagnostics.</value>
+  </data>
+  <data name="Format_operation_changed_nonwhitespace" xml:space="preserve">
+    <value>A format operation is being abandoned because it would add or delete non-whitespace content.</value>
+  </data>
+  <data name="Diagnostics_after" xml:space="preserve">
+    <value>Diagnostics after:</value>
+  </data>
+  <data name="Diagnostics_before" xml:space="preserve">
+    <value>Diagnostics before:</value>
+  </data>
+  <data name="Edit_at_adds" xml:space="preserve">
+    <value>Edit at {0} adds the non-whitespace content '{1}'.</value>
+  </data>
+  <data name="Edit_at_deletes" xml:space="preserve">
+    <value>Edit at {0} deletes the non-whitespace content '{1}'.</value>
+  </data>
 </root>

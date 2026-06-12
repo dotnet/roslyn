@@ -1,11 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
@@ -49,20 +51,25 @@ internal static partial class RazorCodeDocumentExtensions
     /// </remarks>
     public static RazorCSharpDocument GetCSharpDocumentForHintName(this RazorCodeDocument document, string hintName)
     {
-        return GetCSharpDocumentForHintName(document, hintName, out _);
-    }
-
-    public static RazorCSharpDocument GetCSharpDocumentForHintName(this RazorCodeDocument document, string hintName, out bool isDeclDocument)
-    {
         if (hintName.EndsWith(".decl.g.cs", System.StringComparison.Ordinal) &&
             document.GetCSharpDocument(declarationDocument: true) is { } declDocument)
         {
-            isDeclDocument = true;
             return declDocument;
         }
 
-        isDeclDocument = false;
         return document.GetRequiredCSharpDocument(declarationDocument: false);
+    }
+
+    public static bool TryGetCSharpDocumentForGeneratedUri(this RazorCodeDocument codeDocument, Solution solution, Uri generatedDocumentUri, [NotNullWhen(true)] out RazorCSharpDocument? csharpDocument)
+    {
+        if (solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
+        {
+            csharpDocument = GetCSharpDocumentForHintName(codeDocument, identity.HintName);
+            return true;
+        }
+
+        csharpDocument = null;
+        return false;
     }
 
     public static SourceText GetHtmlSourceText(this RazorCodeDocument document, CancellationToken cancellationToken)

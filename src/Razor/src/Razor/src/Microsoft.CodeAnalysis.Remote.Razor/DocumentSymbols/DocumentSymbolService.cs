@@ -20,11 +20,12 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
     {
         if (csharpSymbols.TryGetFirst(out var documentSymbols))
         {
-            return RemapDocumentSymbols(fileKind, csharpDocument, documentSymbols);
+            return RemapDocumentSymbols(fileKind, csharpDocument, documentSymbols, synthesizeRenderMethodIfEmpty: true);
         }
         else if (csharpSymbols.TryGetSecond(out var symbolInformations))
         {
             using var _ = ListPool<SymbolInformation>.GetPooledObject(out var mappedSymbols);
+            var foundRenderMethodSymbol = false;
 
             foreach (var symbolInformation in symbolInformations)
             {
@@ -32,6 +33,7 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 #pragma warning disable CS0618 // Type or member is obsolete
                 if (symbolInformation.Name == RenderMethodSignature(fileKind))
                 {
+                    foundRenderMethodSymbol = true;
                     symbolInformation.Name = RenderMethodDisplay(fileKind);
                     symbolInformation.Location.Range = LspFactory.DefaultRange;
                     symbolInformation.Location.DocumentUri = razorDocumentUri;
@@ -46,6 +48,11 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 #pragma warning restore CS0618 // Type or member is obsolete
             }
 
+            if (!foundRenderMethodSymbol)
+            {
+                mappedSymbols.Insert(0, CreateRenderMethodSymbolInformation(fileKind, razorDocumentUri));
+            }
+
             return mappedSymbols.ToArray();
         }
         else
@@ -55,7 +62,7 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
         }
     }
 
-    private DocumentSymbol[]? RemapDocumentSymbols(RazorFileKind fileKind, RazorCSharpDocument csharpDocument, DocumentSymbol[]? documentSymbols)
+    private DocumentSymbol[]? RemapDocumentSymbols(RazorFileKind fileKind, RazorCSharpDocument csharpDocument, DocumentSymbol[]? documentSymbols, bool synthesizeRenderMethodIfEmpty)
     {
         if (documentSymbols is null)
         {
@@ -68,17 +75,22 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
         {
             if (TryRemapRanges(csharpDocument, documentSymbol))
             {
-                documentSymbol.Children = RemapDocumentSymbols(fileKind, csharpDocument, documentSymbol.Children);
+                documentSymbol.Children = RemapDocumentSymbols(fileKind, csharpDocument, documentSymbol.Children, synthesizeRenderMethodIfEmpty: false);
 
                 mappedSymbols.Add(documentSymbol);
             }
             else if (documentSymbol.Children is [_, ..] &&
-                RemapDocumentSymbols(fileKind, csharpDocument, documentSymbol.Children) is [_, ..] mappedChildren)
+                RemapDocumentSymbols(fileKind, csharpDocument, documentSymbol.Children, synthesizeRenderMethodIfEmpty: false) is [_, ..] mappedChildren)
             {
                 // This range didn't map, but some/all of its children did, so we promote them to this level so we don't
                 // lose any information.
                 mappedSymbols.AddRange(mappedChildren);
             }
+        }
+
+        if (synthesizeRenderMethodIfEmpty && mappedSymbols.Count == 0)
+        {
+            mappedSymbols.Add(CreateRenderMethodDocumentSymbol(fileKind));
         }
 
         return mappedSymbols.ToArray();
@@ -116,5 +128,31 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
         => fileKind == RazorFileKind.Legacy
             ? "ExecuteAsync()"
             : "BuildRenderTree()"; // We hide __builder because it can be misleading to users: https://github.com/dotnet/razor/issues/11960
+
+    private static SymbolInformation CreateRenderMethodSymbolInformation(RazorFileKind fileKind, DocumentUri razorDocumentUri)
+    {
+        // SymbolInformation is obsolete, but things still return it so we have to handle it
+#pragma warning disable CS0618 // Type or member is obsolete
+        return new SymbolInformation
+        {
+            Name = RenderMethodDisplay(fileKind),
+            Kind = Roslyn.LanguageServer.Protocol.SymbolKind.Method,
+            Location = new()
+            {
+                DocumentUri = razorDocumentUri,
+                Range = LspFactory.DefaultRange,
+            },
+        };
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
+    private static DocumentSymbol CreateRenderMethodDocumentSymbol(RazorFileKind fileKind)
+        => new()
+        {
+            Name = RenderMethodDisplay(fileKind),
+            Kind = Roslyn.LanguageServer.Protocol.SymbolKind.Method,
+            Range = LspFactory.DefaultRange,
+            SelectionRange = LspFactory.DefaultRange,
+        };
 
 }

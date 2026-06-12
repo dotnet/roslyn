@@ -41,18 +41,22 @@ internal sealed class RemoteFoldingRangeService(in ServiceArgs args) : RazorDocu
         ImmutableArray<RemoteFoldingRange> htmlRanges,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
-            .ConfigureAwait(false);
-
         var lineFoldingOnly = _clientCapabilitiesService.ClientCapabilities.TextDocument?.FoldingRange?.LineFoldingOnly ?? false;
-        var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var globalOptions = context.TextDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var csharpRanges = await FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, generatedDocument, lineFoldingOnly, cancellationToken).ConfigureAwait(false);
+
+        FoldingRange[]? declCSharpRanges = null;
+        if (await context.Snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false) is SourceGeneratedDocument declGeneratedDocument)
+        {
+            declCSharpRanges = await FoldingRangesHandler.GetFoldingRangesAsync(globalOptions, declGeneratedDocument, lineFoldingOnly, cancellationToken).ConfigureAwait(false);
+        }
 
         var convertedHtml = htmlRanges.SelectAsArray(RemoteFoldingRange.ToLspFoldingRange);
 
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        return _foldingRangeService.GetFoldingRanges(codeDocument, csharpRanges, convertedHtml, cancellationToken)
+        return _foldingRangeService.GetFoldingRanges(codeDocument, csharpRanges, declCSharpRanges, convertedHtml, cancellationToken)
             .SelectAsArray(RemoteFoldingRange.FromLspFoldingRange);
     }
 }
