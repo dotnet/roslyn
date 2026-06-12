@@ -32,16 +32,6 @@
         <target state="translated">Blazor ディレクティブ属性</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">次の時間が経過した後の診断:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">次の時間以前の診断:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
         <target state="translated">ディレクティブ</target>
@@ -52,31 +42,6 @@
 [Tab] to navigate between elements, [Enter] to complete</source>
         <target state="translated">ディレクティブ コード スニペットを挿入する
 [Tab] を挿入して要素間を移動し、[Enter] を押して完了します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">{0} で編集すると空白以外のスペース '{1}' が追加されます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">{0} で削除すると空白以外のスペース '{1}' が追加されます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="translated">書式設定操作は、さらに診断の 1 つを導入または削除するため、破棄されています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">書式設定操作は、空白以外のコンテンツを追加または削除するため、破棄されています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">書式設定エラーです。ファイルを破損しないようにこれ以上の作業を中止してください。この問題を報告してください。参照: https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">

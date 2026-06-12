@@ -32,16 +32,6 @@
         <target state="translated">Атрибуты директивы Blazor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">Диагностика после:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">Диагностика до:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
         <target state="translated">директива</target>
@@ -52,31 +42,6 @@
 [Tab] to navigate between elements, [Enter] to complete</source>
         <target state="translated">Вставьте фрагмент кода директивы
 [TAB] для перемещения между элементами, нажмите [ВВОД] для завершения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">Редактирование {0} добавляет содержимое, не являющееся пробелами "{1}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">Редактирование {0} удаляет содержимое, не являющееся пробелами "{1}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="translated">Операция форматирования отменяется, поскольку она вводит или удаляет одну или несколько диагностик.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">Операция форматирования отменяется, поскольку она может добавить или удалить содержимое, отличное от пробелов.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">Ошибка форматирования. Дальнейшая работа прекращается, чтобы не повредить файл. Сообщите об этой проблеме. См.: https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">

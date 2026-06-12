@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -125,7 +126,9 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
         // to create a code block if one doesn't exist, or put the method in an existing one, and it will also ensure the method gets properly formatted.
         var csharpSourceText = code.GetCSharpSourceText();
         var csharpTextChanges = edits.SelectAsArray(csharpSourceText.GetTextChange);
-        var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentContext, csharpTextChanges, options, cancellationToken).ConfigureAwait(false);
+        var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentContext, csharpTextChanges,
+            declarationDocument: false, // PROTOTYPE(sonic): Pass in the right value to this
+            options, cancellationToken).ConfigureAwait(false);
         if (formattedChange is not { } razorChange)
         {
             return null;

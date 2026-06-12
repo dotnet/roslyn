@@ -32,16 +32,6 @@
         <target state="translated">Attributo per la direttiva Blazor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">Diagnostica dopo:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">Diagnostica prima di:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
         <target state="translated">direttiva</target>
@@ -52,31 +42,6 @@
 [Tab] to navigate between elements, [Enter] to complete</source>
         <target state="translated">Consente di inserire un frammento di codice di direttiva
 [TAB] per spostarsi tra gli elementi, [INVIO] per completare</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">La modifica in {0} aggiunge contenuti diversi da spazi vuoti '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">La modifica in {0} elimina contenuti diversi da spazi vuoti '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="translated">È in corso l'abbandono di un'operazione di formato perché comporterebbe l'introduzione o la rimozione di una o più operazioni di diagnostica.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">È in corso l'abbandono di un'operazione di formattazione perché aggiungerebbe o eliminerebbe contenuto diverso da spazi vuoti.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">Errore di formattazione. Per evitare di danneggiare il file, interrompere l'operazione e segnalare il problema. Vedere: https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">

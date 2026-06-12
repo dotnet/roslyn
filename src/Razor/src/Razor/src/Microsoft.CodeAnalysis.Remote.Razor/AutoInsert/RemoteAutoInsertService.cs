@@ -173,12 +173,14 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             ? await _razorFormattingService.TryGetCSharpSnippetFormattingEditAsync(
                 remoteDocumentContext,
                 [csharpTextChange],
+                declarationDocument: false, // PROTOTYPE(sonic): Pass in the right value to this
                 options,
                 cancellationToken)
             .ConfigureAwait(false)
             : await _razorFormattingService.TryGetSingleCSharpEditAsync(
                 remoteDocumentContext,
                 csharpTextChange,
+                declarationDocument: false, // PROTOTYPE(sonic): Pass in the right value to this
                 options,
                 cancellationToken)
             .ConfigureAwait(false);

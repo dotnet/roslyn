@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -94,8 +95,13 @@ internal sealed class RemoteFormattingService(in ServiceArgs args) : RazorDocume
             return await _formattingService.GetHtmlOnTypeFormattingChangesAsync(context, htmlChanges, options, hostDocumentIndex, triggerCharacter[0], cancellationToken).ConfigureAwait(false);
         }
 
+        if (!DocumentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, hostDocumentIndex, out _, out _, out var inDeclDocument))
+        {
+            return [];
+        }
+
         Debug.Assert(triggerCharacterKind is RazorLanguageKind.CSharp);
-        return await _formattingService.GetCSharpOnTypeFormattingChangesAsync(context, options, hostDocumentIndex, triggerCharacter[0], cancellationToken).ConfigureAwait(false);
+        return await _formattingService.GetCSharpOnTypeFormattingChangesAsync(context, options, hostDocumentIndex, triggerCharacter[0], inDeclDocument, cancellationToken).ConfigureAwait(false);
     }
 
     public ValueTask<Response> GetOnTypeFormattingTriggerKindAsync(

@@ -136,24 +136,6 @@
   <data name="PositionLine_Outside_Range" xml:space="preserve">
     <value>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</value>
   </data>
-  <data name="Format_operation_changed_nonwhitespace" xml:space="preserve">
-    <value>A format operation is being abandoned because it would add or delete non-whitespace content.</value>
-  </data>
-  <data name="Edit_at_adds" xml:space="preserve">
-    <value>Edit at {0} adds the non-whitespace content '{1}'.</value>
-  </data>
-  <data name="Edit_at_deletes" xml:space="preserve">
-    <value>Edit at {0} deletes the non-whitespace content '{1}'.</value>
-  </data>
-  <data name="Format_operation_changed_diagnostics" xml:space="preserve">
-    <value>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</value>
-  </data>
-  <data name="Diagnostics_before" xml:space="preserve">
-    <value>Diagnostics before:</value>
-  </data>
-  <data name="Diagnostics_after" xml:space="preserve">
-    <value>Diagnostics after:</value>
-  </data>
   <data name="Language_Services_Missing_Service" xml:space="preserve">
     <value>Razor language services not configured properly, missing language service '{0}'.</value>
   </data>
@@ -196,9 +178,6 @@
   </data>
   <data name="KeywordDescription" xml:space="preserve">
     <value>{0} Keyword</value>
-  </data>
-  <data name="Formatting_Error" xml:space="preserve">
-    <value>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</value>
   </data>
   <data name="Baseline_Widely_Available" xml:space="preserve">
     <value>✅ Widely available across major browsers{0}</value>

@@ -32,16 +32,6 @@
         <target state="translated">Blazor 指令特性</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">诊断后:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">诊断前:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
         <target state="translated">指令</target>
@@ -52,31 +42,6 @@
 [Tab] to navigate between elements, [Enter] to complete</source>
         <target state="translated">插入指令代码片段
 按 [Tab] 在元素之间导航，按 [Enter] 以完成</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">于 {0} 编辑，添加非空格内容“{1}”。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">于 {0} 编辑，删除非空格内容“{1}”。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="translated">正在放弃格式操作，因为它会引入或删除其他诊断之一。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">正在放弃格式操作，因为它会添加或删除非空格内容。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">格式错误。为避免文件损坏，已停止后续操作，请报告此问题。详情请见：https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
