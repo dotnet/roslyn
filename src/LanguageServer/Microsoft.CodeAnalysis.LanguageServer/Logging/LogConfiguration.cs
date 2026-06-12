@@ -6,9 +6,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
+/// <summary>
+/// Holds the current log level for the language server - the initial level is specified by the
+/// server arguments, but clients can update the log level at runtime.
+/// </summary>
 internal sealed class LogConfiguration
 {
-    private LogLevel _currentLogLevel;
+    private volatile LogLevel _currentLogLevel;
 
     public LogLevel LogLevel => _currentLogLevel;
 
@@ -19,6 +23,6 @@ internal sealed class LogConfiguration
 
     public void UpdateLogLevel(LogLevel level)
     {
-        Interlocked.Exchange(ref _currentLogLevel, level);
+        _currentLogLevel = level;
     }
 }

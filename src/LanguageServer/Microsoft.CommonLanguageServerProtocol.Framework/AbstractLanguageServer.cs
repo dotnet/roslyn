@@ -21,6 +21,10 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 internal abstract class AbstractLanguageServer<TRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
+
+    /// <summary>
+    /// Lazy as construction requires access to the lazy <see cref="_lspServices"/>  
+    /// </summary>
     protected readonly Lazy<ILspLogger> Logger;
 
     /// <summary>

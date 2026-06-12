@@ -25,17 +25,7 @@ public sealed class RequestExecutionQueueTests
         {
         }
 
-        protected override ILspServices ConstructLspServices()
-        {
-            var serviceCollection = new ServiceCollection();
-
-            var _ = serviceCollection
-                .AddSingleton<ILspLogger>(NoOpLspLogger.Instance);
-
-            var lspServices = new ExampleLspServices(serviceCollection);
-
-            return lspServices;
-        }
+        protected override ILspServices ConstructLspServices() => RequestExecutionQueueTests.GetLspServices();
     }
 
     private static RequestExecutionQueue<TestRequestContext> GetRequestExecutionQueue(
@@ -53,7 +43,7 @@ public sealed class RequestExecutionQueueTests
     private static ILspServices GetLspServices()
         => TestLspServices.Create(
             services: [
-                (typeof(AbstractRequestContextFactory<TestRequestContext>),(object)TestRequestContext.Factory.Instance),
+                (typeof(AbstractRequestContextFactory<TestRequestContext>), (object)TestRequestContext.Factory.Instance),
                 (typeof(ILspLogger), NoOpLspLogger.Instance)
             ],
             supportsMethodHandlerProvider: false);
