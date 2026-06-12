@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -9,11 +10,11 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.Location[]?>;
@@ -100,6 +101,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             var stringLiteralLocations = await _definitionService.TryGetDefinitionFromStringLiteralAsync(
                 context.Snapshot,
                 positionInfo.Position,
+                positionInfo.InDeclDocument,
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -117,7 +119,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
 
         // Finally, call into C#.
         var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
+            .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
 
         var locations = await GetDefinitionsAsync(
@@ -135,6 +137,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
 
         // Map the C# locations back to the Razor file.
         using var mappedLocations = new PooledArrayBuilder<LspLocation>(locations.Length);
+        using var _ = HashSetPool<(Uri DocumentUri, LinePositionSpan Range)>.GetPooledObject(out var seenLocations);
 
         foreach (var location in locations)
         {
@@ -143,6 +146,12 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             var (mappedDocumentUri, mappedRange) = await DocumentMappingService
                 .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, range.ToLinePositionSpan(), cancellationToken)
                 .ConfigureAwait(false);
+
+            // Impl and decl generated documents can both contain a generated class declaration that maps to the same Razor location.
+            if (!seenLocations.Add((mappedDocumentUri, mappedRange)))
+            {
+                continue;
+            }
 
             var mappedLocation = LspFactory.CreateLocation(mappedDocumentUri.CreateDocumentUriFromSystemUri(), mappedRange);
 

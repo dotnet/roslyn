@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -19,9 +19,7 @@ using RazorSyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
 
-namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
-
-internal sealed record BoundTagHelperResult(TagHelperDescriptor ElementDescriptor, BoundAttributeDescriptor? AttributeDescriptor);
+namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 
 internal static class RazorComponentDefinitionHelpers
 {
@@ -171,17 +169,22 @@ internal static class RazorComponentDefinitionHelpers
         //      will error, but allowing them to Go To Def on that property regardless, actually helps
         //      them fix the error.
 
-        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var root = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
+        // By definition, properties will be part of the declaration document when it exists.
+        // Legacy documents don't have a declaration document, so they fall back to the implementation document.
+        var csharpDocument = codeDocument.GetCSharpDocument(declarationDocument: true)
+            ?? codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+
+        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
+        var root = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (root.TryGetClassDeclaration(out var classDeclaration))
         {
             var property = classDeclaration
                 .Members
                 .OfType<PropertyDeclarationSyntax>()
-                .Where(p => p.Identifier.ValueText.Equals(propertyName, StringComparison.Ordinal))
-                .FirstOrDefault();
+                .FirstOrDefault(p => p.Identifier.ValueText.Equals(propertyName, StringComparison.Ordinal));
 
             if (property is null)
             {
@@ -190,7 +193,6 @@ internal static class RazorComponentDefinitionHelpers
                 return null;
             }
 
-            var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
             var range = csharpDocument.Text.GetRange(property.Identifier.Span);
             if (documentMappingService.TryMapToRazorDocumentRange(csharpDocument, range, out var originalRange))
             {
