@@ -2767,7 +2767,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsSlotMember(int slot, Symbol possibleMember)
         {
-            TypeSymbol possibleBase = possibleMember.ContainingType;
+            TypeSymbol? possibleBase = possibleMember.ContainingType;
+
+            if (possibleBase is null)
+            {
+                Debug.Assert(false, "If this assert fires, please add a unit test for the scenario.");
+                return false;
+            }
+
             TypeSymbol possibleDerived = NominalSlotType(slot);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var conversionsWithoutNullability = _conversions.WithNullability(false);
