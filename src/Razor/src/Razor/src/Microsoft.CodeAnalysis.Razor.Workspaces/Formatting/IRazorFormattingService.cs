@@ -33,23 +33,27 @@ internal interface IRazorFormattingService
       RazorFormattingOptions options,
       int hostDocumentIndex,
       char triggerCharacter,
+      bool declarationDocument,
       CancellationToken cancellationToken);
 
     Task<TextChange?> TryGetSingleCSharpEditAsync(
         DocumentContext documentContext,
         TextChange csharpEdit,
+        bool declarationDocument,
         RazorFormattingOptions options,
         CancellationToken cancellationToken);
 
     Task<TextChange?> TryGetCSharpCodeActionEditAsync(
        DocumentContext documentContext,
        ImmutableArray<TextChange> csharpEdits,
+       bool declarationDocument,
        RazorFormattingOptions options,
        CancellationToken cancellationToken);
 
     Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(
        DocumentContext documentContext,
        ImmutableArray<TextChange> csharpEdits,
+       bool declarationDocument,
        RazorFormattingOptions options,
        CancellationToken cancellationToken);
 

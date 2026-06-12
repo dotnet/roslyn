@@ -32,16 +32,6 @@
         <target state="translated">Blazor yönergesi öznitelikleri</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">Şundan sonraki tanılama:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">Şundan önceki tanılama:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
         <target state="translated">yönerge</target>
@@ -52,31 +42,6 @@
 [Tab] to navigate between elements, [Enter] to complete</source>
         <target state="translated">Yönerge kod parçacığı ekle
 Öğeler arasında gezinmek için [Tab], tamamlamak için [Enter]</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">{0} konumunda düzenleme, '{1}' boşluk dışı içeriğini ekler.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">{0} konumunda düzenleme, '{1}' boşluk dışı içeriğini siler.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="translated">Bir veya daha fazla tanılamayı ortaya çıkarabileceği veya kaldırabileceği için biçimlendirme işlemi bırakılıyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">Boşluk dışı içeriği ekleyebileceği veya silebileceği için biçimlendirme işlemi bırakıl.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">Biçimlendirme hatası. Dosyanın bozulmaması için çalışmaya devam etmeyin ve lütfen bu sorunu bildirin. Bkz.: https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
@@ -137,11 +102,6 @@
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">"Tamamlamaları yeniden tetikleyin..."</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Bilinmeyen eşleme davranışı</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">

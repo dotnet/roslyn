@@ -27,6 +27,16 @@
         <target state="translated">Создание компонента из тега</target>
         <note />
       </trans-unit>
+      <trans-unit id="Diagnostics_after">
+        <source>Diagnostics after:</source>
+        <target state="new">Diagnostics after:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Diagnostics_before">
+        <source>Diagnostics before:</source>
+        <target state="new">Diagnostics before:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_does_not_belong_to_this_project">
         <source>Document does not belong to this project.</source>
         <target state="translated">Документ не принадлежит этому проекту.</target>
@@ -35,6 +45,16 @@
       <trans-unit id="Document_is_not_a_Razor_document">
         <source>Document is not a Razor document.</source>
         <target state="translated">Документ не является документом Razor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_at_adds">
+        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
+        <target state="new">Edit at {0} adds the non-whitespace content '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_at_deletes">
+        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
+        <target state="new">Edit at {0} deletes the non-whitespace content '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
@@ -50,6 +70,21 @@
       <trans-unit id="ExtractTo_Css_Title">
         <source>Extract to {0}.css</source>
         <target state="translated">Извлечь в {0}.css</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_operation_changed_diagnostics">
+        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
+        <target state="new">A format operation is being abandoned because it would introduce or remove one of more diagnostics.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_operation_changed_nonwhitespace">
+        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
+        <target state="new">A format operation is being abandoned because it would add or delete non-whitespace content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_Error">
+        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
+        <target state="new">Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
@@ -125,6 +160,11 @@
       <trans-unit id="Unknown_RazorMetaCode">
         <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
         <target state="translated">Предпринята попытка посетить RazorMetaCode, отличный от "{' or '}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_mapping_behavior">
+        <source>Unknown mapping behavior</source>
+        <target state="new">Unknown mapping behavior</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_type_0">
