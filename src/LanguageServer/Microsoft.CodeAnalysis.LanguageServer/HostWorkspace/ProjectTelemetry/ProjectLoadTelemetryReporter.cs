@@ -36,6 +36,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
         public bool IsSdkStyle { get; init; }
         public bool HasSolutionFile { get; init; }
         public bool IsFileBasedProgram { get; init; }
+        public bool HasFileBasedAppDirectives { get; init; }
         public bool IsMiscellaneousFile { get; init; }
     }
 
@@ -91,6 +92,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
                 SdkStyleProject: isSdkStyleProject,
                 HasSolutionFile: telemetryInfo.HasSolutionFile,
                 IsFileBasedProgram: telemetryInfo.IsFileBasedProgram,
+                HasFileBasedAppDirectives: telemetryInfo.HasFileBasedAppDirectives,
                 IsMiscellaneousFile: telemetryInfo.IsMiscellaneousFile);
 
             await ReportEventAsync(projectEvent, cancellationToken);
