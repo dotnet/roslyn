@@ -45,7 +45,7 @@ public abstract partial class TagHelperCollection
 
                 if (list.Capacity > MaximumCapacity)
                 {
-                    list.Capacity = InitialCapacity;
+                    list.Capacity = MaximumCapacity;
                 }
 
                 return true;
