@@ -1,0 +1,16 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [77] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [77] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    var value = new { X = 1, Y = 2 };\n    _ = value is { X: 1, Y: > 0 };\n
+                CSharpCode - (85:5,1 [35] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (85:5,1 [35] x:\dir\subdir\Test\TestComponent.razor) - CSharp - if (value is { X: 1, Y: > 0 })\n{\n
+                MarkupBlock -  - <p>Pattern matched!</p>
+                CSharpCode - (149:8,0 [1] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (149:8,0 [1] x:\dir\subdir\Test\TestComponent.razor) - CSharp - }

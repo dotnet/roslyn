@@ -305,7 +305,11 @@ public abstract class IntegrationTestBase
                 };
             }
 
-            return new CompiledAssembly(compilation, code.CodeDocument, Assembly.Load(peStream.ToArray()));
+            var imageBytes = peStream.ToArray();
+            return new CompiledAssembly(compilation, code.CodeDocument, Assembly.Load(imageBytes))
+            {
+                ImageBytes = imageBytes,
+            };
         }
     }
 

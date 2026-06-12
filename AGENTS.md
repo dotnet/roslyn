@@ -72,7 +72,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - **MEF Lifecycle**: Use `[ImportingConstructor]` with `[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]`
 - **Null checks**: Use `Contract.ThrowIfNull()` instead of manual null checks
 - **Private fields**: `_camelCase` naming
-- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches — disallowed in main branch
+- **PROTOTYPE Comments**: Used to track follow-up work in feature branches. Do not flag them in feature-branch PR reviews solely for their existence; they are disallowed in PRs targeting `main` (CI enforces removal).
 - **Code Formatting**: Avoid trailing spaces. Blank lines must be completely empty (no whitespace characters).
 - **Public API Tracking**: Update `PublicAPI.Unshipped.txt` when adding/changing public APIs
 

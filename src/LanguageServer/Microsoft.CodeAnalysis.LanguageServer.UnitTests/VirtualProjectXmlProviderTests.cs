@@ -5,7 +5,6 @@
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
-using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -18,16 +17,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 /// - Thorough behavioral testing.
 /// - Testing of more intricate behaviors which are subject to change.
 /// </summary>
-public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostTests
+public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    public VirtualProjectXmlProviderTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
     private async Task<VirtualProjectXmlProvider> GetProjectXmlProviderAsync()
     {
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, extensionPaths: null);
+        var exportProvider = LanguageServerTestComposition.GetSharedExportProvider(DefaultServerConfiguration, LoggerFactory);
         return exportProvider.GetExportedValue<VirtualProjectXmlProvider>();
     }
 

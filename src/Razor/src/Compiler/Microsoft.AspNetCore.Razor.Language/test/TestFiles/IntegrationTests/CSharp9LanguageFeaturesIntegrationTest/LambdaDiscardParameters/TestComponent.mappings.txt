@@ -1,0 +1,11 @@
+﻿Source Location: (2:0,2 [76] x:\dir\subdir\Test\TestComponent.razor)
+|
+    System.Func<int, int, int> func = (_, _) => 42;
+    _ = func(1, 2);
+|
+Generated Location: (733:21,0 [76] )
+|
+    System.Func<int, int, int> func = (_, _) => 42;
+    _ = func(1, 2);
+|
+

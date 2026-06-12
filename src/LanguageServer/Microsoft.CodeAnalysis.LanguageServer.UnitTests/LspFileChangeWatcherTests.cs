@@ -29,7 +29,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task LspFileWatcherNotSupportedWithoutClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(new ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path);
+        await using var testLspServer = await CreateLanguageServerAsync(new ClientCapabilities());
 
         AssertFileWatcherKind<DefaultFileChangeWatcher>(testLspServer);
     }
@@ -37,7 +37,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task LspFileWatcherSupportedWithClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
+        await using var testLspServer = await CreateLanguageServerAsync(_clientCapabilitiesWithFileWatcherSupport);
 
         AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
     }
@@ -47,7 +47,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
+        await using var testLspServer = await CreateLanguageServerAsync(_clientCapabilitiesWithFileWatcherSupport);
         var lspFileChangeWatcher = AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
 
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();
@@ -75,7 +75,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
+        await using var testLspServer = await CreateLanguageServerAsync(_clientCapabilitiesWithFileWatcherSupport);
         var lspFileChangeWatcher = AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
 
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();

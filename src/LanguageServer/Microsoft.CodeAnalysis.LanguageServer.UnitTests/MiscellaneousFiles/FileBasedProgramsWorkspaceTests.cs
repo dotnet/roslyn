@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -495,6 +496,40 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     {
         _ = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileWatchesReleasedOnServerShutdown(bool mutatingLspWorkspace)
+    {
+        // Regression test ensuring the project loader disposes the projects (and hence their file watches) it created
+        // when the server shuts down. Each file watch holds an operating system handle (e.g. an inotify instance on
+        // Linux); leaking them across server restarts eventually exhausts the per-user limit.
+        var tempDir = TempRoot.CreateDirectory();
+        var sourceText = """
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World!");
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+
+        DefaultFileChangeWatcher watcher;
+
+        await using (var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }))
+        {
+            await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+            await WaitForProjectLoad(looseFileUri, testLspServer);
+
+            // Loading the file-based program project should have created file watches on the in-process watcher.
+            var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
+            var delegatingWatcher = Assert.IsType<DelegatingFileChangeWatcher>(fileChangeWatcher);
+            watcher = Assert.IsType<DefaultFileChangeWatcher>(delegatingWatcher.GetTestAccessor().UnderlyingFileWatcher);
+
+            Assert.NotEmpty(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
+        }
+
+        // Once the server has shut down, the project loader must have disposed its loaded projects and the workspace
+        // factory must have disposed its reference trackers, releasing every file watch.
+        Assert.Empty(DefaultFileChangeWatcher.TestAccessor.GetWatchedDirectories(watcher));
     }
 
     [Theory, CombinatorialData]

@@ -11202,6 +11202,751 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                         Foo();
+                         Bar();
+                     }) title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                     Foo();
+                     Bar();
+                     }) title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                    style=@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    }) title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                     Foo();
+                     Bar();
+                     }) title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                        style=@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        }) title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style=@(() =>
+                     {
+                     Foo();
+                     Bar();
+                     }) title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                     style="@(() =>
+                     {
+                         Foo();
+                         Bar();
+                     })" title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style="@(() =>
+                         {
+                             Foo();
+                             Bar();
+                         })" title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                    style="@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    })" title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <div class="foo"
+                        style="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" title="bar"></div>
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <div class="foo"
+                     style="@(() =>
+                            {
+                                Foo();
+                                Bar();
+                            })" title="bar"></div>
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                                {
+                                    Foo();
+                                    Bar();
+                                }" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: $$"""
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                                    {
+                                        Foo();
+                                        Bar();
+                                    }" ImgSize=24 />
+                }
+
+                @code {
+                    private bool inChatMember = true;
+
+                    private void Foo()
+                    {
+                    }
+
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                    OnClick="() =>
+                    {
+                        Foo();
+                        Bar();
+                    }" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                        {
+                            Foo();
+                            Bar();
+                        }" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                        OnClick="() =>
+                        {
+                            Foo();
+                            Bar();
+                        }" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="() =>
+                            {
+                                Foo();
+                                Bar();
+                            }" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                    Foo();
+                                    Bar();
+                                }) ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                Foo();
+                                Bar();
+                                }) ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                    OnClick=@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    }) ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                Foo();
+                                Bar();
+                                }) ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                        OnClick=@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        }) ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick=@(() =>
+                                {
+                                Foo();
+                                Bar();
+                                }) ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                                {
+                                    Foo();
+                                    Bar();
+                                })" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: $$"""
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                                    {
+                                        Foo();
+                                        Bar();
+                                    })" ImgSize=24 />
+                }
+
+                @code {
+                    private bool inChatMember = true;
+
+                    private void Foo()
+                    {
+                    }
+
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                    OnClick="@(() =>
+                    {
+                        Foo();
+                        Bar();
+                    })" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
+    public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
+    {
+        var code = """
+            @if (inChatMember)
+            {
+                <CheckBoxButton ImageContentSource="foo"
+                        OnClick="@(() =>
+                        {
+                            Foo();
+                            Bar();
+                        })" ImgSize=24 />
+            }
+
+            @code {
+                private bool inChatMember = true;
+
+                private void Foo()
+                {
+                }
+
+                private void Bar()
+                {
+                }
+            }
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: """
+                @if (inChatMember)
+                {
+                <CheckBoxButton ImageContentSource="foo"
+                                OnClick="@(() =>
+                            {
+                                Foo();
+                                Bar();
+                            })" ImgSize=24 />
+                }
+                
+                @code {
+                    private bool inChatMember = true;
+                
+                    private void Foo()
+                    {
+                    }
+                
+                    private void Bar()
+                    {
+                    }
+                }
+                """,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13064")]
     public async Task RenderFragment_Multiline_ComponentAttributesWithExplicitExpression_IndentByOne()
     {
@@ -13686,6 +14431,20 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </div>
                 """);
     }
+
+    private (string fileName, string contents)[] GetCheckBoxButtonComponentFiles()
+        =>
+        [
+            (FilePath("CheckBoxButton.razor"), """
+                @using Microsoft.AspNetCore.Components
+
+                @code {
+                    [Parameter] public string? ImageContentSource { get; set; }
+                    [Parameter] public EventCallback OnClick { get; set; }
+                    [Parameter] public int ImgSize { get; set; }
+                }
+                """)
+        ];
 
     private static CSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
         => CSharpSyntaxFormattingOptions.Default with
