@@ -19,7 +19,9 @@ public abstract partial class TagHelperCollection
         // potentially LOH memory (across ~20 pool slots, most of which remain empty) for
         // eliminating repeated resize allocations. The initial capacity is kept smaller so that
         // small projects don't immediately allocate LOH-sized arrays.
+#if NET
         private const int InitialCapacity = 2048;
+#endif
         private const int MaximumRetainedCapacity = 16384;
 
         public static readonly ChecksumSetPool Default = new(Policy.Instance, DefaultPoolSize);
