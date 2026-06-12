@@ -30,9 +30,6 @@ internal interface IDocumentSnapshot
     /// <summary>
     ///  Gets the Roslyn syntax tree for the generated C# for this Razor document
     /// </summary>
-    /// <remarks>
-    ///  ⚠️ Should be used sparingly in language server scenarios.
-    /// </remarks>
     ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(bool declarationDocument, CancellationToken cancellationToken);
 
     bool TryGetText([NotNullWhen(true)] out SourceText? result);

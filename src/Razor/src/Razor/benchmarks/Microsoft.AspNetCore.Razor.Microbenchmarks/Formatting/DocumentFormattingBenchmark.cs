@@ -81,10 +81,10 @@ public class DocumentFormattingBenchmark
         hostServicesProvider.SetWorkspaceProvider(new WorkspaceProvider(_workspace));
 
         var clientSettingsManager = new RemoteClientSettingsManager();
-        var documentMappingService = new RemoteDocumentMappingService(filePathService, snapshotManager, EmptyLoggerFactory.Instance);
-        var razorEditService = new RemoteRazorEditService(documentMappingService, clientSettingsManager, filePathService, snapshotManager, NoOpTelemetryReporter.Instance);
+        var documentMappingService = new DocumentMappingService(filePathService, snapshotManager, EmptyLoggerFactory.Instance);
+        var razorEditService = new RazorEditService(documentMappingService, clientSettingsManager, filePathService, snapshotManager, NoOpTelemetryReporter.Instance);
 
-        _formattingService = new RemoteRazorFormattingService(
+        _formattingService = new RazorFormattingService(
             documentMappingService,
             razorEditService,
             hostServicesProvider,

@@ -4,8 +4,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
@@ -23,7 +23,7 @@ internal static class HtmlCodeActionHelpers
 
         foreach (var edit in codeAction.Edit.EnumerateTextDocumentEdits())
         {
-            edit.Edits = FormattingUtilities.FixHtmlTextEdits(htmlSourceText, edit.Edits);
+            edit.Edits = htmlSourceText.FixHtmlTextEdits(edit.Edits);
         }
     }
 }

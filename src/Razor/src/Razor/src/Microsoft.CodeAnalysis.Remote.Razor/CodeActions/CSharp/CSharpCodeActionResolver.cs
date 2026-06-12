@@ -76,6 +76,7 @@ internal sealed class CSharpCodeActionResolver(
             var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(
                 editDocumentContext,
                 csharpTextChanges,
+                declarationDocument: false, // PROTOTYPE(sonic): Pass in the right value to this
                 formattingOptions,
                 cancellationToken).ConfigureAwait(false);
 

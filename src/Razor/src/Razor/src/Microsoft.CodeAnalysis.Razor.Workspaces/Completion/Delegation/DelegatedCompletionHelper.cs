@@ -447,6 +447,7 @@ internal static class DelegatedCompletionHelper
         var formattedTextChange = await formattingService.TryGetCSharpSnippetFormattingEditAsync(
             documentContext,
             changes,
+            declarationDocument: false, // PROTOTYPE(sonic): Pass in the right value to this
             options,
             cancellationToken).ConfigureAwait(false);
 

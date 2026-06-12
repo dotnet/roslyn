@@ -32,16 +32,6 @@
         <target state="translated">Attribute für Blazor-Direktiven</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">Diagnose nach:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">Diagnose vor:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
         <target state="translated">Direktive</target>
@@ -52,31 +42,6 @@
 [Tab] to navigate between elements, [Enter] to complete</source>
         <target state="translated">Fügen Sie einen Anweisungscodeschnipsel
 [Registerkarte] ein, um zwischen Elementen zu navigieren, [EINGABETASTE], um den Vorgang abzuschließen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">Das Bearbeiten bei {0} fügt den Nicht-Leerraum-Inhalt "{1}" hinzu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">Das Bearbeiten bei {0} löscht den Nicht-Leerraum-Inhalt "{1}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="translated">Ein Formatierungsvorgang wird abgebrochen, weil er eine oder mehrere Diagnosen einführen oder entfernen würde.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">Ein Formatierungsvorgang wird abgebrochen, da er Nicht-Leerraum-Inhalte hinzufügen oder löschen würde.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">Formatierungsfehler Die weitere Bearbeitung wird abgebrochen, um die Datei nicht zu beschädigen. Melden Sie dieses Problem. Weitere Informationen unter https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
@@ -137,11 +102,6 @@
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
         <target state="translated">"Abschlüsse erneut auslösen..."</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">Unbekanntes Zuordnungsverhalten</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">
