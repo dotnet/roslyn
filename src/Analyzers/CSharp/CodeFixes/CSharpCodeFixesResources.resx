@@ -234,6 +234,9 @@
   <data name="Make_method_async" xml:space="preserve">
     <value>Make method async</value>
   </data>
+  <data name="Make_method_async_for_event_handler" xml:space="preserve">
+    <value>Make method async (prefer 'async void' for event handlers)</value>
+  </data>
   <data name="Make_method_async_remain_void" xml:space="preserve">
     <value>Make method async (stay void)</value>
   </data>

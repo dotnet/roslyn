@@ -37,6 +37,11 @@
         <target state="translated">Rendi asincrona la funzione</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_Async_Function_for_event_handler">
+        <source>Make Async Function (prefer 'Async Sub' for event handlers)</source>
+        <target state="new">Make Async Function (prefer 'Async Sub' for event handlers)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Rendi asincrona la funzione sub</target>

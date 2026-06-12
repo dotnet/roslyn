@@ -21,6 +21,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
 
     protected abstract string GetMakeAsyncTaskFunctionResource();
+    protected abstract string GetMakeAsyncTaskFunctionForEventHandlerResource();
     protected abstract string GetMakeAsyncVoidFunctionResource();
 
     protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTypes);
@@ -66,11 +67,15 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         // Heuristic to recognize the common case for entry point method
         var isEntryPoint = methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
         var canOfferAsyncVoid = methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint;
+
+        // For perf, avoid FindReferences and approximate event-handler usage from signature.
+        var isLikelyEventHandlerMethod = canOfferAsyncVoid && IsLikelyEventHandlerMethodSignature(methodSymbol, compilation);
+
         if (canOfferAsyncVoid)
         {
-            // For perf, avoid FindReferences and approximate event-handler usage from signature.
-            // If it looks like an event-handler method, prefer the async-void fixer first.
-            var isLikelyEventHandlerMethod = IsLikelyEventHandlerMethodSignature(methodSymbol, compilation);
+            // If it looks like an event-handler method, prefer the async-void fixer first and
+            // surface the async-Task fixer second with a warning that it is not the recommended
+            // choice for event handlers.
             if (isLikelyEventHandlerMethod)
                 RegisterAsyncVoidFix();
 
@@ -86,8 +91,11 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         void RegisterTaskFix()
         {
-            // Offer to convert to a Task return type.
-            var taskTitle = GetMakeAsyncTaskFunctionResource();
+            // When the method looks like an event handler, use a title that warns the user
+            // that converting to async Task is unusual for event handlers.
+            var taskTitle = isLikelyEventHandlerMethod
+                ? GetMakeAsyncTaskFunctionForEventHandlerResource()
+                : GetMakeAsyncTaskFunctionResource();
             context.RegisterCodeFix(
                 CodeAction.Create(
                     taskTitle,

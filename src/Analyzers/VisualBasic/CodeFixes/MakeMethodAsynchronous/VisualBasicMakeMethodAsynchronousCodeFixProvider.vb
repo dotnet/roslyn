@@ -45,6 +45,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return VisualBasicCodeFixesResources.Make_Async_Function
         End Function
 
+        Protected Overrides Function GetMakeAsyncTaskFunctionForEventHandlerResource() As String
+            Return VisualBasicCodeFixesResources.Make_Async_Function_for_event_handler
+        End Function
+
         Protected Overrides Function GetMakeAsyncVoidFunctionResource() As String
             Return VisualBasicCodeFixesResources.Make_Async_Sub
         End Function
