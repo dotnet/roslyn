@@ -73,8 +73,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="new">A format operation is being abandoned because it would introduce or remove one of more diagnostics.</target>
+        <source>A format operation is being abandoned because it would introduce or remove one or more diagnostics.</source>
+        <target state="new">A format operation is being abandoned because it would introduce or remove one or more diagnostics.</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_operation_changed_nonwhitespace">

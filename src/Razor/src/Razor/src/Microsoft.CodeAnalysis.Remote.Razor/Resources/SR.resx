@@ -206,7 +206,7 @@
     <value>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</value>
   </data>
   <data name="Format_operation_changed_diagnostics" xml:space="preserve">
-    <value>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</value>
+    <value>A format operation is being abandoned because it would introduce or remove one or more diagnostics.</value>
   </data>
   <data name="Format_operation_changed_nonwhitespace" xml:space="preserve">
     <value>A format operation is being abandoned because it would add or delete non-whitespace content.</value>
