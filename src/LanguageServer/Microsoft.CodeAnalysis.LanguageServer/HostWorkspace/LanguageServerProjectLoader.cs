@@ -240,10 +240,10 @@ internal abstract class LanguageServerProjectLoader : IDisposable
         var projectPath = projectToLoad.Path;
 
         // Before doing any work, check if the project has already been unloaded
-        // or if the loader itself has been disposed (indicating the server is shutting down).
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
-            if (_isDisposed || !_loadedProjects.ContainsKey(projectPath))
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!_loadedProjects.ContainsKey(projectPath))
             {
                 return null;
             }
@@ -291,6 +291,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
 
             using (await _gate.DisposableWaitAsync(cancellationToken))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!_loadedProjects.TryGetValue(projectPath, out var currentLoadState))
                 {
                     // Project was unloaded. Do not proceed with reloading it.

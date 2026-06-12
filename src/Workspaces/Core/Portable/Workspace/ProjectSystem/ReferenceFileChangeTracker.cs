@@ -170,8 +170,6 @@ internal sealed class ReferenceFileChangeTracker : IDisposable
 
     public void Dispose()
     {
-        IFileChangeContext? fileReferenceChangeContext = null;
-
         lock (_gate)
         {
             if (_isDisposed)
@@ -181,9 +179,7 @@ internal sealed class ReferenceFileChangeTracker : IDisposable
             _isDisposed = true;
 
             if (_fileReferenceChangeContext.IsValueCreated)
-                fileReferenceChangeContext = _fileReferenceChangeContext.Value;
+                _fileReferenceChangeContext.Value.Dispose();
         }
-
-        fileReferenceChangeContext?.Dispose();
     }
 }
