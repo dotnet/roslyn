@@ -11132,6 +11132,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight()
     {
         var code = """
@@ -11165,6 +11166,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
     {
         var code = """
@@ -11199,6 +11201,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
     {
         var code = """
@@ -11233,6 +11236,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight()
     {
         var code = """
@@ -11266,6 +11270,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight_IndentByOne()
     {
         var code = """
@@ -11300,6 +11305,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaQuotedExplicitExpressionInAttribute_DoesNotShiftRight_IndentByTwo()
     {
         var code = """
@@ -11334,6 +11340,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight()
     {
         var code = """
@@ -11392,6 +11399,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
     {
         var code = """
@@ -11451,6 +11459,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaQuotedImplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
     {
         var code = """
@@ -11510,6 +11519,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight()
     {
         var code = """
@@ -11568,6 +11578,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
     {
         var code = """
@@ -11627,6 +11638,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
     {
         var code = """
@@ -11686,6 +11698,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight()
     {
         var code = """
@@ -11744,6 +11757,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByOne()
     {
         var code = """
@@ -11803,6 +11817,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84105")]
     public async Task MultilineLambdaQuotedExplicitExpressionInComponentAttribute_DoesNotShiftRight_IndentByTwo()
     {
         var code = """
