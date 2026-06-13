@@ -295,22 +295,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // over generic null patterns (e.g., "(null, _)"). This addresses issue #84100.
                 
                 // Check if any sample looks like it mentions a specific case:
-                // - Starts with '(' followed by a letter or digit (not "null" or whitespace)
-                var specificCaseSamples = samples.Where(s => 
-                    s.pattern.Length > 2 && 
-                    s.pattern[0] == '(' && 
-                    !s.pattern.StartsWith("(null") && 
-                    (char.IsLetterOrDigit(s.pattern[1]) || s.pattern[1] == '_')
-                ).ToList();
+                // - Starts with '(' followed by a letter, digit, or underscore (indicating a named case or discard)
+                // - But not starting with "(null" which is the generic pattern we want to avoid
+                (string pattern, bool requiresFalseWhenClause, bool unnamedEnumValue) bestSpecific = default;
+                int bestSpecificLength = int.MaxValue;
+                bool foundSpecific = false;
                 
-                if (specificCaseSamples.Count > 0)
+                for (int i = 0; i < samples.Count; i++)
                 {
-                    // If we have specific case samples, prefer the shortest one among them
-                    return specificCaseSamples.OrderBy(s => s.pattern.Length).First();
+                    var sample = samples[i];
+                    if (sample.pattern.Length > 2 && 
+                        sample.pattern[0] == '(' && 
+                        !sample.pattern.StartsWith("(null") && 
+                        (char.IsLetterOrDigit(sample.pattern[1]) || sample.pattern[1] == '_'))
+                    {
+                        if (sample.pattern.Length < bestSpecificLength)
+                        {
+                            bestSpecific = sample;
+                            bestSpecificLength = sample.pattern.Length;
+                            foundSpecific = true;
+                        }
+                    }
                 }
                 
-                // Otherwise, return the shortest sample (first one is from the shortest path)
-                return samples.OrderBy(s => s.pattern.Length).First();
+                if (foundSpecific)
+                {
+                    return bestSpecific;
+                }
+                
+                // Otherwise, find and return the shortest sample
+                var shortest = samples[0];
+                for (int i = 1; i < samples.Count; i++)
+                {
+                    if (samples[i].pattern.Length < shortest.pattern.Length)
+                    {
+                        shortest = samples[i];
+                    }
+                }
+                return shortest;
             }
 
             static void gatherConstraintsAndEvaluations(Binder binder, BoundDecisionDagNode targetNode, ImmutableArray<BoundDecisionDagNode> pathToNode,
