@@ -2147,21 +2147,8 @@ internal static partial class SyntaxTreeExtensions
         var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             .GetPreviousTokenIfTouchingWord(position);
 
-        var gotoStatement = token.GetAncestor<GotoStatementSyntax>();
-        if (gotoStatement != null)
-        {
-            if (gotoStatement.GotoKeyword == token)
-            {
-                return true;
-            }
-
-            if (gotoStatement.Expression is IdentifierNameSyntax { IsMissing: false, Identifier: var identifier } &&
-                identifier == token &&
-                token.IntersectsWith(position))
-            {
-                return true;
-            }
-        }
+        if (token.IsKind(SyntaxKind.GotoKeyword) && token.Parent is GotoStatementSyntax)
+            return true;
 
         if (token.IsKind(SyntaxKind.BreakKeyword) && token.Parent is BreakStatementSyntax)
             return true;
