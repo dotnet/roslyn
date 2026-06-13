@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (samples.Count > 0)
             {
                 // Select the best sample: prefer non-null patterns at the root or first tuple position
-                var bestSample = selectBestSample(samples);
+                var bestSample = SelectBestSample(samples);
                 samples.Free();
 
                 unnamedEnumValue = bestSample.unnamedEnumValue;
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             samples.Free();
             throw ExceptionUtilities.Unreachable();
 
-            static (string pattern, bool requiresFalseWhenClause, bool unnamedEnumValue) selectBestSample(
+            static (string pattern, bool requiresFalseWhenClause, bool unnamedEnumValue) SelectBestSample(
                 ArrayBuilder<(string pattern, bool requiresFalseWhenClause, bool unnamedEnumValue)> samples)
             {
                 if (samples.Count == 1)
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var sample = samples[i];
                     if (sample.pattern.Length > 2 && 
                         sample.pattern[0] == '(' && 
-                        !sample.pattern.StartsWith("(null") && 
+                        !sample.pattern.StartsWith("(null", StringComparison.Ordinal) && 
                         (char.IsLetterOrDigit(sample.pattern[1]) || sample.pattern[1] == '_'))
                     {
                         if (sample.pattern.Length < bestSpecificLength)
