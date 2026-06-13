@@ -3237,6 +3237,11 @@
         <target state="translated">구조체 필드 이니셜라이저</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureTypeParameterInferenceFromConstraints">
+        <source>type parameter inference from constraints</source>
+        <target state="new">type parameter inference from constraints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">nameof 연산자의 바인딩되지 않은 제네릭 형식</target>

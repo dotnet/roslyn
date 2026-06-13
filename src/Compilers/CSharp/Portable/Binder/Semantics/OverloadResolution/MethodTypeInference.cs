@@ -1151,6 +1151,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
             }
+
+            // SPEC EXTENSION (type parameter inference from constraints):
+            // SPEC: Xi depends directly on Xj if Xi occurs in a constraint for Xj.
+            // This lets the bounds inferred for Xj (e.g. from an argument) flow into the
+            // type parameters mentioned in Xj's constraints, by ensuring Xj is fixed first.
+            if (IsFeatureTypeParameterInferenceFromConstraintsEnabled &&
+                ConstraintContainsTypeParameter(_methodTypeParameters[jParam], _methodTypeParameters[iParam]))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ConstraintContainsTypeParameter(TypeParameterSymbol constrainedTypeParameter, TypeParameterSymbol typeParameter)
+        {
+            foreach (var constraintType in constrainedTypeParameter.ConstraintTypesNoUseSiteDiagnostics)
+            {
+                if (constraintType.Type.ContainsTypeParameter(typeParameter))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -1733,6 +1757,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Note: when Compilation is null, we assume latest LangVersion.
                 return _compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != false;
+            }
+        }
+
+        private readonly bool IsFeatureTypeParameterInferenceFromConstraintsEnabled
+        {
+            get
+            {
+                // Note: when Compilation is null, we assume latest LangVersion.
+                return _compilation?.IsFeatureEnabled(MessageID.IDS_FeatureTypeParameterInferenceFromConstraints) != false;
             }
         }
 
@@ -2853,6 +2886,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
 
             _fixedResults[iParam] = best;
+
+            // SPEC EXTENSION (type parameter inference from constraints):
+            // SPEC: When Xi is fixed to V, a lower-bound inference is performed from V to
+            // SPEC: each of the types in Xi's constraints, if any. This lets the type
+            // SPEC: parameters mentioned in those constraints (which depend on Xi, and so
+            // SPEC: are fixed after Xi) pick up bounds from the type Xi was fixed to.
+            if (IsFeatureTypeParameterInferenceFromConstraintsEnabled)
+            {
+                foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                {
+                    LowerBoundInference(best.Type, constraintType, ref useSiteInfo);
+                }
+            }
+
             UpdateDependenciesAfterFix(iParam);
             return true;
         }
