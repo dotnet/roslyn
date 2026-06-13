@@ -21,7 +21,7 @@ internal static class TaskListDiagnosticProvider
 
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
-        foreach (var node in root.DescendantNodes())
+        foreach (var node in root.EnumerateDescendantNodes())
         {
             if (node is RazorCommentBlockSyntax comment)
             {

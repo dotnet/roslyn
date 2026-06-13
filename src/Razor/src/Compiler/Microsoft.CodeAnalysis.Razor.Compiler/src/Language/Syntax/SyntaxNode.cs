@@ -290,6 +290,16 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     }
 
     /// <summary>
+    /// Gets a struct-based enumerable over descendant nodes in prefix document order.
+    /// Unlike <see cref="DescendantNodes(Func{SyntaxNode, bool}?)"/>, this does not allocate a state machine.
+    /// </summary>
+    /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+    internal DescendantNodeEnumerable EnumerateDescendantNodes(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    {
+        return new DescendantNodeEnumerable(this, descendIntoChildren);
+    }
+
+    /// <summary>
     /// Gets a list of descendant nodes in prefix document order.
     /// </summary>
     /// <param name="span">The span the node's full span must intersect.</param>

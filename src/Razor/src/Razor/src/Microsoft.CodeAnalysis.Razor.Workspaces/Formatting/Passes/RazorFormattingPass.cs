@@ -57,7 +57,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
         using var changes = new PooledArrayBuilder<TextChange>();
         var source = syntaxTree.Source;
 
-        foreach (var node in syntaxTree.Root.DescendantNodes())
+        foreach (var node in syntaxTree.Root.EnumerateDescendantNodes())
         {
             // Disclaimer: CSharpCodeBlockSyntax is used a _lot_ in razor so these methods are probably
             // being overly careful to only try to format syntax forms they care about.

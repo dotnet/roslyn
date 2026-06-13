@@ -190,32 +190,13 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         private void VisitDirective(BaseRazorDirectiveSyntax node)
         {
-            if (node.DirectiveBody is not { } directiveBody)
+            foreach (var child in node.EnumerateDescendantNodes())
             {
-                return;
-            }
+                _cancellationToken.ThrowIfCancellationRequested();
 
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            // For @using directives, the chunk generator is on the Keyword node directly
-            // (CSharpCode is null in that case).
-            if (directiveBody.Keyword is CSharpStatementLiteralSyntax { ChunkGenerator: { } keywordChunkGenerator })
-            {
-                ProcessChunkGenerator(node, keywordChunkGenerator);
-            }
-
-            // For @addTagHelper/@removeTagHelper/@tagHelperPrefix, chunk generators are
-            // in the CSharpCode children.
-            if (directiveBody.CSharpCode is { } csharpCode)
-            {
-                foreach (var child in csharpCode.Children)
+                if (child is CSharpStatementLiteralSyntax { ChunkGenerator: { } chunkGenerator })
                 {
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    if (child is CSharpStatementLiteralSyntax { ChunkGenerator: { } chunkGenerator })
-                    {
-                        ProcessChunkGenerator(node, chunkGenerator);
-                    }
+                    ProcessChunkGenerator(node, chunkGenerator);
                 }
             }
         }

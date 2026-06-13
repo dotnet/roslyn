@@ -28,13 +28,14 @@ internal sealed class RazorCSharpStatementKeywordFoldingProvider : AbstractSynta
     protected override ImmutableArray<CSharpCodeBlockSyntax> GetFoldableNodes(RazorSyntaxTree syntaxTree)
     {
         return syntaxTree.Root
-            .DescendantNodes(static node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax)
+            .EnumerateDescendantNodes(static node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax)
             .OfType<CSharpStatementLiteralSyntax>()
-            .Where(n => n is
-            {
-                Parent: CSharpCodeBlockSyntax,
-                LiteralTokens: [{ Kind: SyntaxKind.Keyword }, ..]
-            })
-            .SelectAsArray(d => (CSharpCodeBlockSyntax)d.Parent);
+            .SelectWhereAsArray(
+                static d => (CSharpCodeBlockSyntax)d.Parent,
+                static n => n is
+                {
+                    Parent: CSharpCodeBlockSyntax,
+                    LiteralTokens: [{ Kind: SyntaxKind.Keyword }, ..]
+                });
     }
 }

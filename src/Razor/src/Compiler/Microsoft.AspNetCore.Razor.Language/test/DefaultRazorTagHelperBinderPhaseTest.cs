@@ -43,7 +43,8 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         ProjectEngine.ExecutePhase<DefaultRazorTagHelperContextDiscoveryPhase>(codeDocument);
 
         // Assert
-        var erroredNode = codeDocument.GetSyntaxTree().Root.DescendantNodes().First(n => n.GetChunkGenerator() is AddTagHelperChunkGenerator);
+        var erroredNode = codeDocument.GetSyntaxTree().Root.EnumerateDescendantNodes().FirstOrDefault(n => n.GetChunkGenerator() is AddTagHelperChunkGenerator);
+        Assert.NotNull(erroredNode);
         var chunkGenerator = Assert.IsType<AddTagHelperChunkGenerator>(erroredNode.GetChunkGenerator());
         Assert.Equal(expectedDiagnostics, chunkGenerator.Diagnostics);
     }
@@ -72,7 +73,8 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         ProjectEngine.ExecutePhase<DefaultRazorTagHelperContextDiscoveryPhase>(codeDocument);
 
         // Assert
-        var erroredNode = codeDocument.GetSyntaxTree().Root.DescendantNodes().First(n => n.GetChunkGenerator() is RemoveTagHelperChunkGenerator);
+        var erroredNode = codeDocument.GetSyntaxTree().Root.EnumerateDescendantNodes().FirstOrDefault(n => n.GetChunkGenerator() is RemoveTagHelperChunkGenerator);
+        Assert.NotNull(erroredNode);
         var chunkGenerator = Assert.IsType<RemoveTagHelperChunkGenerator>(erroredNode.GetChunkGenerator());
         Assert.Equal(expectedDiagnostics, chunkGenerator.Diagnostics);
     }
@@ -101,7 +103,8 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         ProjectEngine.ExecutePhase<DefaultRazorTagHelperContextDiscoveryPhase>(codeDocument);
 
         // Assert
-        var erroredNode = codeDocument.GetSyntaxTree().Root.DescendantNodes().First(n => n.GetChunkGenerator() is TagHelperPrefixDirectiveChunkGenerator);
+        var erroredNode = codeDocument.GetSyntaxTree().Root.EnumerateDescendantNodes().FirstOrDefault(n => n.GetChunkGenerator() is TagHelperPrefixDirectiveChunkGenerator);
+        Assert.NotNull(erroredNode);
         var chunkGenerator = Assert.IsType<TagHelperPrefixDirectiveChunkGenerator>(erroredNode.GetChunkGenerator());
         Assert.Equal(expectedDiagnostics, chunkGenerator.Diagnostics);
     }
@@ -1014,7 +1017,9 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         Assert.Null(visitor.TagHelperPrefix);
         var result = Assert.Single(results);
         Assert.Same(componentDescriptor, result);
-        var directiveChunkGenerator = (TagHelperPrefixDirectiveChunkGenerator)tree.Root.DescendantNodes().First(n => n is CSharpStatementLiteralSyntax).GetChunkGenerator();
+        var erroredNode = tree.Root.EnumerateDescendantNodes().FirstOrDefault(n => n is CSharpStatementLiteralSyntax);
+        Assert.NotNull(erroredNode);
+        var directiveChunkGenerator = (TagHelperPrefixDirectiveChunkGenerator)erroredNode.GetChunkGenerator();
         var diagnostic = Assert.Single(directiveChunkGenerator.Diagnostics);
         Assert.Equal("RZ9978", diagnostic.Id);
     }

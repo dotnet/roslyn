@@ -97,7 +97,7 @@ internal partial class RazorEditService
         {
             var root = codeDocument.GetRequiredSyntaxRoot();
             var nodeToInsertAfter = root
-                .DescendantNodes()
+                .EnumerateDescendantNodes()
                 .LastOrDefault(t => t is RazorDirectiveSyntax directiveNode
                 && (directiveNode.IsDirective(ComponentPageDirective.Directive)
                     || directiveNode.IsDirective(NamespaceDirective.Directive)
@@ -329,7 +329,7 @@ internal partial class RazorEditService
         using var remainingUsingsBuilder = new PooledArrayBuilder<RazorUsingDirectiveSyntax>();
         var allUsingsInSameBlock = true;
 
-        foreach (var node in root.DescendantNodes())
+        foreach (var node in root.EnumerateDescendantNodes())
         {
             cancellationToken.ThrowIfCancellationRequested();
 

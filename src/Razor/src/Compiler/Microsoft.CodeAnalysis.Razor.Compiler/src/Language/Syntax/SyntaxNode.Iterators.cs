@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -176,5 +177,173 @@ internal abstract partial class SyntaxNode
                 StackPool.Return(stack);
             }
         }
+    }
+
+    /// <summary>
+    /// A struct-based enumerable that iterates descendant nodes without allocating a state machine.
+    /// </summary>
+    internal readonly ref struct DescendantNodeEnumerable(SyntaxNode root, Func<SyntaxNode, bool>? descendIntoChildren)
+    {
+        private readonly SyntaxNode _root = root;
+        private readonly Func<SyntaxNode, bool>? _descendIntoChildren = descendIntoChildren;
+
+        public DescendantNodeEnumerator GetEnumerator() => new(_root, _descendIntoChildren);
+
+        public DescendantNodeSelectWhereEnumerable<T> OfType<T>() where T : SyntaxNode
+            => new(_root, _descendIntoChildren, static n => n is T, static n => (T)n);
+
+        public bool Any(Func<SyntaxNode, bool> predicate)
+        {
+            foreach (var node in this)
+            {
+                if (predicate(node))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public SyntaxNode? FirstOrDefault(Func<SyntaxNode, bool> predicate)
+        {
+            foreach (var node in this)
+            {
+                if (predicate(node))
+                {
+                    return node;
+                }
+            }
+
+            return null;
+        }
+
+        public SyntaxNode? LastOrDefault(Func<SyntaxNode, bool> predicate)
+        {
+            SyntaxNode? last = null;
+
+            foreach (var node in this)
+            {
+                if (predicate(node))
+                {
+                    last = node;
+                }
+            }
+
+            return last;
+        }
+    }
+
+    /// <summary>
+    /// A struct-based enumerable that iterates descendant nodes with a filter and projection.
+    /// </summary>
+    internal readonly ref struct DescendantNodeSelectWhereEnumerable<TResult>(
+        SyntaxNode root,
+        Func<SyntaxNode, bool>? descendIntoChildren,
+        Func<SyntaxNode, bool> predicate,
+        Func<SyntaxNode, TResult> selector)
+    {
+        private readonly SyntaxNode _root = root;
+        private readonly Func<SyntaxNode, bool>? _descendIntoChildren = descendIntoChildren;
+        private readonly Func<SyntaxNode, bool> _predicate = predicate;
+        private readonly Func<SyntaxNode, TResult> _selector = selector;
+
+        public readonly DescendantNodeSelectWhereEnumerator<TResult> GetEnumerator()
+            => new(_root, _descendIntoChildren, _predicate, _selector);
+
+        public readonly TResult? FirstOrDefault(Func<TResult, bool>? predicate = null)
+        {
+            using var enumerator = new DescendantNodeSelectWhereEnumerator<TResult>(_root, _descendIntoChildren, _predicate, _selector);
+
+            while (enumerator.MoveNext())
+            {
+                if (predicate is null || predicate(enumerator.Current))
+                {
+                    return enumerator.Current;
+                }
+            }
+
+            return default;
+        }
+
+        public readonly ImmutableArray<TOut> SelectWhereAsArray<TOut>(Func<TResult, TOut> projection, Func<TResult, bool>? filter = null)
+        {
+            using var builder = new PooledArrayBuilder<TOut>();
+            using var enumerator = new DescendantNodeSelectWhereEnumerator<TResult>(_root, _descendIntoChildren, _predicate, _selector);
+
+            while (enumerator.MoveNext())
+            {
+                if (filter is null || filter(enumerator.Current))
+                {
+                    builder.Add(projection(enumerator.Current));
+                }
+            }
+
+            return builder.ToImmutableAndClear();
+        }
+    }
+
+    /// <summary>
+    /// A struct-based enumerator that iterates descendant nodes without allocating a state machine.
+    /// Uses a pooled stack internally (same as <see cref="DescendantNodes()"/>).
+    /// </summary>
+    internal ref struct DescendantNodeEnumerator(SyntaxNode root, Func<SyntaxNode, bool>? descendIntoChildren)
+    {
+        private ChildSyntaxListEnumeratorStack _stack = new(root, descendIntoChildren);
+        private readonly Func<SyntaxNode, bool>? _descendIntoChildren = descendIntoChildren;
+        private readonly TextSpan _span = root.Span;
+        private SyntaxNode? _current = null;
+
+        public readonly SyntaxNode Current => _current!;
+
+        public bool MoveNext()
+        {
+            while (_stack.IsNotEmpty)
+            {
+                var node = _stack.TryGetNextAsNodeInSpan(in _span);
+                if (node != null)
+                {
+                    _stack.PushChildren(node, _descendIntoChildren);
+                    _current = node;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void Dispose() => _stack.Dispose();
+    }
+
+    /// <summary>
+    /// A struct-based enumerator that iterates descendant nodes with a filter and projection.
+    /// </summary>
+    internal ref struct DescendantNodeSelectWhereEnumerator<TResult>(
+        SyntaxNode root,
+        Func<SyntaxNode, bool>? descendIntoChildren,
+        Func<SyntaxNode, bool> predicate,
+        Func<SyntaxNode, TResult> selector)
+    {
+        private DescendantNodeEnumerator _inner = new(root, descendIntoChildren);
+        private readonly Func<SyntaxNode, bool> _predicate = predicate;
+        private readonly Func<SyntaxNode, TResult> _selector = selector;
+
+        public TResult Current { get; private set; } = default!;
+
+        public bool MoveNext()
+        {
+            while (_inner.MoveNext())
+            {
+                if (_predicate(_inner.Current))
+                {
+                    Current = _selector(_inner.Current);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void Dispose() => _inner.Dispose();
     }
 }
