@@ -233,53 +233,84 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             unnamedEnumValue = false;
 
-            // Compute the path to the node, excluding the node itself.
-            var shortestPathToNode = ShortestPathToNode(nodes, targetNode, nullPaths, out requiresFalseWhenClause);
+            // Collect all possible samples and select the best one.
+            // We prefer samples that don't have `null` at the root or as the first tuple element,
+            // as those are less actionable counterexamples when dealing with unions or nullable value types.
+            var samples = ArrayBuilder<(string pattern, bool requiresFalseWhenClause, bool unnamedEnumValue)>.GetInstance();
+
+            // Try the shortest path first
+            var shortestPathToNode = ShortestPathToNode(nodes, targetNode, nullPaths, out bool shortestRequiresFalseWhenClause);
             gatherConstraintsAndEvaluations(binder, targetNode, shortestPathToNode, out var constraints, out var evaluations);
 
             try
             {
-                return SamplePatternForTemp(binder, rootIdentifier, constraints, evaluations, requireExactType: false, ref unnamedEnumValue);
+                bool shortestUnnamedEnumValue = false;
+                var shortestPattern = SamplePatternForTemp(binder, rootIdentifier, constraints, evaluations, requireExactType: false, ref shortestUnnamedEnumValue);
+                samples.Add((shortestPattern, shortestRequiresFalseWhenClause, shortestUnnamedEnumValue));
             }
             catch (NoRemainingValuesException)
             {
             }
 
-            // In rare cases, the shortest path isn't the one that yields a sample
-            return samplePatternFromOtherPaths(binder, rootIdentifier, nodes[0], targetNode, nullPaths, out requiresFalseWhenClause, out unnamedEnumValue);
-
-            static string samplePatternFromOtherPaths(Binder binder, BoundDagTemp rootIdentifier, BoundDecisionDagNode rootNode,
-                BoundDecisionDagNode targetNode, bool nullPaths, out bool requiresFalseWhenClause, out bool unnamedEnumValue)
+            // In rare cases, the shortest path isn't the one that yields a sample, or isn't the best one.
+            // Try all other paths and collect additional samples.
+            VisitPathsToNode(nodes[0], targetNode, nullPaths, handler: (currentPathToNode, currentRequiresFalseWhenClause) =>
             {
-                string altSamplePatternForTemp = null;
-                bool altRequiresFalseWhenClause = false;
-                bool altUnnamedEnumValue = false;
+                gatherConstraintsAndEvaluations(binder, targetNode, currentPathToNode, out var currentConstraints, out var currentEvaluations);
 
-                VisitPathsToNode(rootNode, targetNode, nullPaths, handler: (currentPathToNode, currentRequiresFalseWhenClause) =>
+                try
                 {
-                    altRequiresFalseWhenClause = currentRequiresFalseWhenClause;
-                    gatherConstraintsAndEvaluations(binder, targetNode, currentPathToNode, out var constraints, out var evaluations);
-
-                    try
-                    {
-                        altUnnamedEnumValue = false;
-                        altSamplePatternForTemp = SamplePatternForTemp(binder, rootIdentifier, constraints, evaluations, requireExactType: false, ref altUnnamedEnumValue);
-                        return false; // we've successfully produced a sample, so stop exploring paths
-                    }
-                    catch (NoRemainingValuesException)
-                    {
-                        return true;
-                    }
-                });
-
-                if (altSamplePatternForTemp is not null)
-                {
-                    unnamedEnumValue = altUnnamedEnumValue;
-                    requiresFalseWhenClause = altRequiresFalseWhenClause;
-                    return altSamplePatternForTemp;
+                    bool currentUnnamedEnumValue = false;
+                    var samplePattern = SamplePatternForTemp(binder, rootIdentifier, currentConstraints, currentEvaluations, requireExactType: false, ref currentUnnamedEnumValue);
+                    samples.Add((samplePattern, currentRequiresFalseWhenClause, currentUnnamedEnumValue));
+                    return true; // continue exploring to collect all samples
                 }
+                catch (NoRemainingValuesException)
+                {
+                    return true;
+                }
+            });
 
-                throw ExceptionUtilities.Unreachable();
+            if (samples.Count > 0)
+            {
+                // Select the best sample: prefer non-null patterns at the root or first tuple position
+                var bestSample = selectBestSample(samples);
+                samples.Free();
+
+                unnamedEnumValue = bestSample.unnamedEnumValue;
+                requiresFalseWhenClause = bestSample.requiresFalseWhenClause;
+                return bestSample.pattern;
+            }
+
+            samples.Free();
+            throw ExceptionUtilities.Unreachable();
+
+            static (string pattern, bool requiresFalseWhenClause, bool unnamedEnumValue) selectBestSample(
+                ArrayBuilder<(string pattern, bool requiresFalseWhenClause, bool unnamedEnumValue)> samples)
+            {
+                if (samples.Count == 1)
+                    return samples[0];
+
+                // Rank samples by preferring those that don't start with "null" or "(null, "
+                // This addresses the issue where tuple patterns with conditional matches on one element
+                // would report (null, _) instead of (SomeCase, null) as the counterexample.
+                var ranked = samples.OrderBy(sample => rankSample(sample.pattern)).First();
+                return ranked;
+
+                static int rankSample(string pattern)
+                {
+                    // Lower rank is better
+                    if (pattern == "null")
+                        return 100; // worst: bare null pattern
+
+                    if (pattern.StartsWith("(null,"))
+                        return 50; // bad: tuple with null at first position
+
+                    if (pattern.Contains("null"))
+                        return 10; // okay: null somewhere else in the pattern
+
+                    return 0; // best: no null in the pattern
+                }
             }
 
             static void gatherConstraintsAndEvaluations(Binder binder, BoundDecisionDagNode targetNode, ImmutableArray<BoundDecisionDagNode> pathToNode,

@@ -3300,5 +3300,79 @@ class Container<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(8, 5)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84100")]
+        public void TupleSwitchPreferNonNullCounterexample_Union()
+        {
+            // Test that when a tuple pattern has a conditional match on one element,
+            // the exhaustiveness warning prefers to report a non-null counterexample
+            // rather than (null, _) when the first element is a union with all cases covered.
+            var source = """
+                #nullable enable
+                public record A;
+                public record B;
+                public union U(A, B);
+
+                public static class Repro
+                {
+                    // 1. Direct union switch: no warning (default-state input is waived)
+                    public static string Direct(U u) => u switch { A => "a", B => "b" };
+
+                    // 2. Tuple pattern, every case covered unconditionally: no warning
+                    public static string Unconditional(U u, string? s) => (u, s) switch
+                    {
+                        (A, _) => "a",
+                        (B, _) => "b",
+                    };
+
+                    // 3. Tuple pattern, one case covered conditionally: should report (B, null) not (null, _)
+                    public static string Conditional(U u, string? s) => (u, s) switch
+                    {
+                        (A, _) => "a",
+                        (B, { } t) => t,
+                    };
+                }
+                """;
+
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], targetFramework: TargetFramework.Net100);
+            comp.VerifyDiagnostics(
+                // (19,64): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(B, null)' is not covered.
+                //     public static string Conditional(U u, string? s) => (u, s) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(B, null)").WithLocation(19, 64)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84100")]
+        public void TupleSwitchPreferNonNullCounterexample_BoolNullable()
+        {
+            // Test that when a tuple pattern has a conditional match on one element,
+            // the exhaustiveness warning prefers to report a non-null counterexample
+            // rather than (null, _) when the first element is a nullable value type with all cases covered.
+            var source = """
+                #nullable enable
+                public static class Repro
+                {
+                    public static string ConditionalBool(bool? u, string? s)
+                    {
+                        if (u is null) return "";
+
+                        u.Value.ToString();
+
+                        return (u, s) switch
+                        {
+                            (true, _) => "a",
+                            (false, { } t) => t,
+                        };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,23): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(false, null)' is not covered.
+                //         return (u, s) switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(false, null)").WithLocation(10, 23)
+                );
+        }
     }
 }
