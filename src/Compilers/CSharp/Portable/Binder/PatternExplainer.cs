@@ -291,26 +291,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (samples.Count == 1)
                     return samples[0];
 
-                // Rank samples by preferring those that don't start with "null" or "(null, "
-                // This addresses the issue where tuple patterns with conditional matches on one element
-                // would report (null, _) instead of (SomeCase, null) as the counterexample.
-                var ranked = samples.OrderBy(sample => rankSample(sample.pattern)).First();
-                return ranked;
-
-                static int rankSample(string pattern)
+                // Prefer patterns that mention specific cases (e.g., union/enum cases like "(B, null)" or "(false, null)")
+                // over generic null patterns (e.g., "(null, _)"). This addresses issue #84100.
+                
+                // Check if any sample looks like it mentions a specific case:
+                // - Starts with '(' followed by a letter or digit (not "null" or whitespace)
+                var specificCaseSamples = samples.Where(s => 
+                    s.pattern.Length > 2 && 
+                    s.pattern[0] == '(' && 
+                    !s.pattern.StartsWith("(null") && 
+                    (char.IsLetterOrDigit(s.pattern[1]) || s.pattern[1] == '_')
+                ).ToList();
+                
+                if (specificCaseSamples.Count > 0)
                 {
-                    // Lower rank is better
-                    if (pattern == "null")
-                        return 100; // worst: bare null pattern
-
-                    if (pattern.StartsWith("(null,"))
-                        return 50; // bad: tuple with null at first position
-
-                    if (pattern.Contains("null"))
-                        return 10; // okay: null somewhere else in the pattern
-
-                    return 0; // best: no null in the pattern
+                    // If we have specific case samples, prefer the shortest one among them
+                    return specificCaseSamples.OrderBy(s => s.pattern.Length).First();
                 }
+                
+                // Otherwise, return the shortest sample (first one is from the shortest path)
+                return samples.OrderBy(s => s.pattern.Length).First();
             }
 
             static void gatherConstraintsAndEvaluations(Binder binder, BoundDecisionDagNode targetNode, ImmutableArray<BoundDecisionDagNode> pathToNode,
