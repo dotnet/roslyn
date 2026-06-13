@@ -1,0 +1,11 @@
+﻿Source Location: (7:0,7 [61] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public string Capture()
+        => nameof(ToString);
+|
+Generated Location: (556:18,0 [61] )
+|
+    public string Capture()
+        => nameof(ToString);
+|
+
