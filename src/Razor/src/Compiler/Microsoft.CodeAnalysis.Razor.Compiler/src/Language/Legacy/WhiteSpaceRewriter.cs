@@ -53,7 +53,7 @@ internal sealed class WhitespaceRewriter(CancellationToken cancellationToken = d
 
         if (codeBlock.Children is [CSharpStatementLiteralSyntax literal, CSharpExplicitExpressionSyntax or CSharpImplicitExpressionSyntax, ..])
         {
-            var containsNonWhitespace = literal.DescendantTokens().Any(static t => !string.IsNullOrWhiteSpace(t.Content));
+            var containsNonWhitespace = literal.EnumerateDescendantTokens().Any(static t => !string.IsNullOrWhiteSpace(t.Content));
 
             if (!containsNonWhitespace)
             {

@@ -346,4 +346,76 @@ internal abstract partial class SyntaxNode
 
         public void Dispose() => _inner.Dispose();
     }
+
+    /// <summary>
+    /// A struct-based enumerable that iterates descendant tokens without allocating a state machine.
+    /// </summary>
+    internal readonly ref struct DescendantTokenEnumerable(SyntaxNode root, Func<SyntaxNode, bool>? descendIntoChildren)
+    {
+        private readonly SyntaxNode _root = root;
+        private readonly Func<SyntaxNode, bool>? _descendIntoChildren = descendIntoChildren;
+
+        public DescendantTokenEnumerator GetEnumerator() => new(_root, _descendIntoChildren);
+
+        public readonly bool Any(Func<SyntaxToken, bool> predicate)
+        {
+            foreach (var token in this)
+            {
+                if (predicate(token))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public readonly ImmutableArray<SyntaxToken> ToImmutableArray()
+        {
+            using var builder = new PooledArrayBuilder<SyntaxToken>();
+
+            foreach (var token in this)
+            {
+                builder.Add(token);
+            }
+
+            return builder.ToImmutableAndClear();
+        }
+    }
+
+    /// <summary>
+    /// A struct-based enumerator that iterates descendant tokens without allocating a state machine.
+    /// </summary>
+    internal ref struct DescendantTokenEnumerator(SyntaxNode root, Func<SyntaxNode, bool>? descendIntoChildren)
+    {
+        private ChildSyntaxListEnumeratorStack _stack = new(root, descendIntoChildren);
+        private readonly Func<SyntaxNode, bool>? _descendIntoChildren = descendIntoChildren;
+        private readonly TextSpan _span = root.Span;
+        private SyntaxToken _current = default;
+
+        public readonly SyntaxToken Current => _current;
+
+        public bool MoveNext()
+        {
+            while (_stack.IsNotEmpty)
+            {
+                if (_stack.TryGetNextInSpan(in _span, out var value))
+                {
+                    if (value.IsNode)
+                    {
+                        _stack.PushChildren(value.AsNode()!, _descendIntoChildren);
+                    }
+                    else
+                    {
+                        _current = value.AsToken();
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public void Dispose() => _stack.Dispose();
+    }
 }

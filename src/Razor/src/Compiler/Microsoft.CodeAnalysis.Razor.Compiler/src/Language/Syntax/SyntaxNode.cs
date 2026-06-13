@@ -385,6 +385,16 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
             .Select(static x => x.AsToken());
     }
 
+    /// <summary>
+    /// Gets a struct-based enumerable over descendant tokens in prefix document order.
+    /// Unlike <see cref="DescendantTokens(Func{SyntaxNode, bool}?)"/>, this does not allocate a state machine.
+    /// </summary>
+    /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+    internal DescendantTokenEnumerable EnumerateDescendantTokens(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    {
+        return new DescendantTokenEnumerable(this, descendIntoChildren);
+    }
+
     protected internal abstract SyntaxNode ReplaceCore<TNode>(
         IEnumerable<TNode>? nodes = null,
         Func<TNode, TNode, SyntaxNode>? computeReplacementNode = null,
