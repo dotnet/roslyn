@@ -2148,6 +2148,14 @@ internal static partial class SyntaxTreeExtensions
             .FindTokenOnLeftOfPosition(position, cancellationToken)
             .GetPreviousTokenIfTouchingWord(position);
 
+        // goto |
+        // goto x|
+        //
+        // break |
+        // break x|
+        //
+        // continue |
+        // continue x|
         return token.Kind() is SyntaxKind.GotoKeyword or SyntaxKind.BreakKeyword or SyntaxKind.ContinueKeyword &&
                token.Parent is GotoStatementSyntax or BreakStatementSyntax or ContinueStatementSyntax;
     }
