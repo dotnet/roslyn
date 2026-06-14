@@ -318,7 +318,11 @@ internal abstract partial class SyntaxNode
             return false;
         }
 
-        public void Dispose() => _stack.Dispose();
+        public void Dispose()
+        {
+            _stack.Dispose();
+            _stack = default;
+        }
     }
 
     /// <summary>
@@ -422,6 +426,10 @@ internal abstract partial class SyntaxNode
             return false;
         }
 
-        public void Dispose() => _stack.Dispose();
+        public void Dispose()
+        {
+            _stack.Dispose();
+            _stack = default;
+        }
     }
 }
