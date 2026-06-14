@@ -219,6 +219,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("M:Acme.ValueType.op_Explicit(System.Byte)~Acme.ValueType", _acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("op_Explicit").Single().GetDocumentationCommentId());
         }
 
+        [Fact]
+        public void GetDocumentationCommentXml_InvalidXmlCharInCref_ReturnsRawXml()
+        {
+            // The cref contains a comma which is invalid in XML element names.
+            // Previously this would trigger an XmlException in ParseAndGetException,
+            // discarding the entire comment. Now, the single-symbol API skips XML
+            // validation and returns raw XML so callers can still extract <summary>.
+            var source = @"
+class Test
+{
+    /// <summary>
+    /// Gets a value.
+    /// </summary>
+    /// <seealso cref=""System.Collections.Generic.Dictionary{TKey, TValue}""/>
+    static void Main() {}
+}
+";
+            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
+            var main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
+
+            var xml = main.GetDocumentationCommentXml();
+            Assert.Contains("<summary>", xml);
+            Assert.Contains("Gets a value.", xml);
+            Assert.DoesNotContain("Badly formed", xml);
+        }
+
         [WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
         [WorkItem(25781, "https://github.com/dotnet/roslyn/issues/25781")]
         [ConditionalFact(typeof(IsEnglishLocal))]
@@ -234,15 +260,27 @@ class Test
     static void Main() {}
 }
 ";
+            // When using the single-symbol API (GetDocumentationCommentXml), malformed XML is passed
+            // through as-is rather than being replaced with a "Badly formed" comment. This avoids
+            // expensive XmlException throws and allows callers to still extract valid portions
+            // (e.g., <summary> content) via string matching.
+            var expectedRawXml =
+@"<member name=""M:Test.Main"">
+    <summary>
+    Info
+    <!-- comment
+    </summary
+</member>
+";
             var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
             var main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
-            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull).Trim());
+            Assert.Equal(expectedRawXml, main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull));
 
             compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
-            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull).Trim());
+            Assert.Equal(expectedRawXml, main.GetDocumentationCommentXml(EnsureEnglishUICulture.PreferredOrNull));
 
             compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");

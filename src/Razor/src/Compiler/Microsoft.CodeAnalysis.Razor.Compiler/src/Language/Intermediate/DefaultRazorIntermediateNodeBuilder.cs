@@ -5,17 +5,26 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-internal class DefaultRazorIntermediateNodeBuilder : IntermediateNodeBuilder
+internal class DefaultRazorIntermediateNodeBuilder : IntermediateNodeBuilder, IPoolableObject
 {
+    internal static readonly ObjectPool<DefaultRazorIntermediateNodeBuilder> s_pool = DefaultPool.Create<DefaultRazorIntermediateNodeBuilder>();
+
     private readonly List<IntermediateNode> _stack;
     private int _depth;
 
     public DefaultRazorIntermediateNodeBuilder()
     {
         _stack = new List<IntermediateNode>();
+    }
+
+    void IPoolableObject.Reset()
+    {
+        _stack.Clear();
+        _depth = 0;
     }
 
     public override IntermediateNode Current

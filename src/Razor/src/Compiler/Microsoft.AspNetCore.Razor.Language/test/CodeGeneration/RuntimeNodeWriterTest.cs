@@ -116,7 +116,7 @@ using System
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(node);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
         builder.Add(IntermediateNodeFactory.CSharpToken("i++"));
 
         // Act
@@ -140,7 +140,7 @@ using System
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(node);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
         builder.Add(IntermediateNodeFactory.CSharpToken("i++", new SourceSpan("test.cshtml", 0, 0, 0, 3, 0, 3)));
 
         // Act
@@ -172,7 +172,7 @@ Write(i++
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(node);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
         builder.Add(IntermediateNodeFactory.CSharpToken("i"));
 
         builder.Add(new MyExtensionIntermediateNode());
@@ -201,7 +201,7 @@ Write(i++
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(node);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
         builder.Add(IntermediateNodeFactory.CSharpToken("i", new SourceSpan("test.cshtml", 0, 0, 0, 1, 0, 1)));
 
         builder.Add(new MyExtensionIntermediateNode());
@@ -244,8 +244,8 @@ Render Children
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
-        IntermediateNodeBuilder.Create(node)
-            .Add(IntermediateNodeFactory.CSharpToken("  \t"));
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
+        builder.Add(IntermediateNodeFactory.CSharpToken("  \t"));
 
         // Act
         writer.WriteCSharpCode(context, node);
@@ -263,8 +263,8 @@ Render Children
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
-        IntermediateNodeBuilder.Create(node)
-            .Add(IntermediateNodeFactory.CSharpToken("if (true) { }"));
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
+        builder.Add(IntermediateNodeFactory.CSharpToken("if (true) { }"));
 
         // Act
         writer.WriteCSharpCode(context, node);
@@ -286,8 +286,8 @@ Render Children
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
-        IntermediateNodeBuilder.Create(node)
-            .Add(IntermediateNodeFactory.CSharpToken("if (true) { }", new SourceSpan("test.cshtml", 0, 0, 0, 13)));
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
+        builder.Add(IntermediateNodeFactory.CSharpToken("if (true) { }", new SourceSpan("test.cshtml", 0, 0, 0, 13)));
 
         // Act
         writer.WriteCSharpCode(context, node);
@@ -317,8 +317,8 @@ if (true) { }
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
-        IntermediateNodeBuilder.Create(node)
-            .Add(IntermediateNodeFactory.CSharpToken("    if (true) { }", new SourceSpan("test.cshtml", 0, 0, 0, 17)));
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
+        builder.Add(IntermediateNodeFactory.CSharpToken("    if (true) { }", new SourceSpan("test.cshtml", 0, 0, 0, 17)));
 
         // Act
         writer.WriteCSharpCode(context, node);
@@ -695,4 +695,3 @@ if(@true){ }
         }
     }
 }
-

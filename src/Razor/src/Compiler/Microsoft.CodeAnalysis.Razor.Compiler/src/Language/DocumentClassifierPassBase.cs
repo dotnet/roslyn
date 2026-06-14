@@ -74,15 +74,15 @@ public abstract class DocumentClassifierPassBase : IntermediateNodePassBase, IRa
             IsPrimaryMethod = true
         };
 
-        var documentBuilder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooled1 = IntermediateNodeBuilder.GetPooledObject(documentNode, out var documentBuilder);
 
-        var namespaceBuilder = IntermediateNodeBuilder.Create(documentBuilder.Current);
+        using var _pooled2 = IntermediateNodeBuilder.GetPooledObject(documentBuilder.Current, out var namespaceBuilder);
         namespaceBuilder.Push(@namespace);
 
-        var classBuilder = IntermediateNodeBuilder.Create(namespaceBuilder.Current);
+        using var _pooled3 = IntermediateNodeBuilder.GetPooledObject(namespaceBuilder.Current, out var classBuilder);
         classBuilder.Push(@class);
 
-        var methodBuilder = IntermediateNodeBuilder.Create(classBuilder.Current);
+        using var _pooled4 = IntermediateNodeBuilder.GetPooledObject(classBuilder.Current, out var methodBuilder);
         methodBuilder.Push(method);
 
         var visitor = new Visitor(namespaceBuilder, classBuilder, methodBuilder);

@@ -16,7 +16,7 @@ public class LiteralRuntimeNodeWriterTest
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(node);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
         builder.Add(IntermediateNodeFactory.CSharpToken("i++", new SourceSpan("test.cshtml", 0, 0, 0, 3, 0, 3)));
 
         // Act
@@ -47,7 +47,7 @@ WriteLiteral(i++
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(node);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
         builder.Add(IntermediateNodeFactory.CSharpToken("i++;", new SourceSpan("test.cshtml", 0, 0, 0, 4, 0, 4)));
         builder.Add(IntermediateNodeFactory.CSharpToken("j++;", new SourceSpan("test.cshtml", 5, 0, 5, 4, 0, 9)));
         builder.Add(IntermediateNodeFactory.CSharpToken("k++;", new SourceSpan("test.cshtml", 10, 0, 10, 4, 0, 14)));

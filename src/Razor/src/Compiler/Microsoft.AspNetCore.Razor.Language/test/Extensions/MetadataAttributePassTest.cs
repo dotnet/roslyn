@@ -100,7 +100,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
@@ -149,7 +149,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
@@ -181,7 +181,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
 
         var documentNode = new DocumentIntermediateNode();
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
@@ -218,7 +218,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
@@ -255,7 +255,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
@@ -303,7 +303,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,
@@ -363,7 +363,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
             IsPrimaryNamespace = true,

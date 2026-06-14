@@ -129,7 +129,7 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new UsingDirectiveIntermediateNode());
 
         // Act
@@ -154,7 +154,7 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new HtmlContentIntermediateNode());
         builder.Add(new CSharpCodeIntermediateNode());
 
@@ -182,7 +182,7 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new HtmlContentIntermediateNode());
         builder.Add(new CSharpCodeIntermediateNode());
 
@@ -217,7 +217,7 @@ public class DocumentClassifierPassBaseTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new HtmlContentIntermediateNode());
         builder.Add(new CSharpCodeIntermediateNode());
 

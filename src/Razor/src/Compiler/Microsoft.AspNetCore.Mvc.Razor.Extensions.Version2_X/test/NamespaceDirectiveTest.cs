@@ -119,7 +119,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
 
         var documentNode = new DocumentIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new DirectiveIntermediateNode()
         {
@@ -155,7 +155,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
 
         var documentNode = new DocumentIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         // This will be ignored.
         builder.Push(new DirectiveIntermediateNode()
@@ -203,7 +203,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
 
         var documentNode = new DocumentIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new DirectiveIntermediateNode()
         {
@@ -239,7 +239,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
 
         var documentNode = new DocumentIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         // This will be ignored.
         builder.Push(new DirectiveIntermediateNode()
@@ -287,7 +287,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
 
         var documentNode = new DocumentIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new DirectiveIntermediateNode()
         {
@@ -322,7 +322,7 @@ public class NamespaceDirectiveTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
 
         var documentNode = new DocumentIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new DirectiveIntermediateNode()
         {

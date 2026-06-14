@@ -19,7 +19,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new HtmlContentIntermediateNode()
         {
@@ -48,7 +48,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new HtmlContentIntermediateNode());
 
@@ -72,7 +72,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new CSharpExpressionIntermediateNode()
         {
@@ -99,7 +99,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new CSharpExpressionIntermediateNode());
 
@@ -121,7 +121,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new TagHelperIntermediateNode()
         {
@@ -170,7 +170,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new TagHelperIntermediateNode()
         {
@@ -219,7 +219,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Add(new TagHelperIntermediateNode()
         {
@@ -246,7 +246,7 @@ public class InstrumentationPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         builder.Push(new TagHelperIntermediateNode()
         {

@@ -25,11 +25,8 @@ public class DefaultRazorIntermediateNodeBuilderTest
     public void Push_WhenEmpty_AddsNode()
     {
         // Arrange
-        var builder = new DefaultRazorIntermediateNodeBuilder();
         var node = new BasicIntermediateNode();
-
-        // Act
-        builder.Push(node);
+        using var _ = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
 
         // Assert
         Assert.Same(node, builder.Current);
@@ -39,10 +36,8 @@ public class DefaultRazorIntermediateNodeBuilderTest
     public void Push_WhenNonEmpty_SetsUpChild()
     {
         // Arrange
-        var builder = new DefaultRazorIntermediateNodeBuilder();
-
         var parent = new BasicIntermediateNode();
-        builder.Push(parent);
+        using var _ = IntermediateNodeBuilder.GetPooledObject(parent, out var builder);
 
         var node = new BasicIntermediateNode();
 
@@ -72,10 +67,8 @@ public class DefaultRazorIntermediateNodeBuilderTest
     public void Pop_SingleNodeDepth_RemovesAndReturnsNode()
     {
         // Arrange
-        var builder = new DefaultRazorIntermediateNodeBuilder();
-
         var node = new BasicIntermediateNode();
-        builder.Push(node);
+        using var _ = IntermediateNodeBuilder.GetPooledObject(node, out var builder);
 
         // Act
         var result = builder.Pop();
@@ -89,10 +82,8 @@ public class DefaultRazorIntermediateNodeBuilderTest
     public void Pop_MultipleNodeDepth_RemovesAndReturnsNode()
     {
         // Arrange
-        var builder = new DefaultRazorIntermediateNodeBuilder();
-
         var parent = new BasicIntermediateNode();
-        builder.Push(parent);
+        using var _ = IntermediateNodeBuilder.GetPooledObject(parent, out var builder);
 
         var node = new BasicIntermediateNode();
         builder.Push(node);
@@ -109,10 +100,8 @@ public class DefaultRazorIntermediateNodeBuilderTest
     public void Add_AddsToChildrenAndSetsParent()
     {
         // Arrange
-        var builder = new DefaultRazorIntermediateNodeBuilder();
-
         var parent = new BasicIntermediateNode();
-        builder.Push(parent);
+        using var _ = IntermediateNodeBuilder.GetPooledObject(parent, out var builder);
 
         var node = new BasicIntermediateNode();
 
@@ -128,10 +117,8 @@ public class DefaultRazorIntermediateNodeBuilderTest
     public void Insert_AddsToChildren_EmptyCollection()
     {
         // Arrange
-        var builder = new DefaultRazorIntermediateNodeBuilder();
-
         var parent = new BasicIntermediateNode();
-        builder.Push(parent);
+        using var _ = IntermediateNodeBuilder.GetPooledObject(parent, out var builder);
 
         var node = new BasicIntermediateNode();
 
@@ -147,10 +134,8 @@ public class DefaultRazorIntermediateNodeBuilderTest
     public void Insert_AddsToChildren_NonEmpyCollection()
     {
         // Arrange
-        var builder = new DefaultRazorIntermediateNodeBuilder();
-
         var parent = new BasicIntermediateNode();
-        builder.Push(parent);
+        using var _ = IntermediateNodeBuilder.GetPooledObject(parent, out var builder);
 
         var child = new BasicIntermediateNode();
         builder.Add(child);
@@ -169,10 +154,8 @@ public class DefaultRazorIntermediateNodeBuilderTest
     public void Insert_AddsToChildren_NonEmpyCollection_AtEnd()
     {
         // Arrange
-        var builder = new DefaultRazorIntermediateNodeBuilder();
-
         var parent = new BasicIntermediateNode();
-        builder.Push(parent);
+        using var _ = IntermediateNodeBuilder.GetPooledObject(parent, out var builder);
 
         var child = new BasicIntermediateNode();
         builder.Add(child);
@@ -191,10 +174,8 @@ public class DefaultRazorIntermediateNodeBuilderTest
     public void Build_PopsMultipleLevels()
     {
         // Arrange
-        var builder = new DefaultRazorIntermediateNodeBuilder();
-
         var document = new DocumentIntermediateNode();
-        builder.Push(document);
+        using var _ = IntermediateNodeBuilder.GetPooledObject(document, out var builder);
 
         var node = new BasicIntermediateNode();
         builder.Push(node);

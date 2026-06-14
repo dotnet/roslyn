@@ -226,7 +226,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         codeDocument = codeDocument.WithDocumentNode(documentNode);
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new NamespaceDeclarationIntermediateNode()
         {
             Name = "TestNamespace",
@@ -266,7 +266,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         codeDocument = codeDocument.WithDocumentNode(documentNode);
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new ClassDeclarationIntermediateNode()
         {
             Modifiers = ["internal"],
@@ -312,7 +312,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         codeDocument = codeDocument.WithDocumentNode(documentNode);
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new ClassDeclarationIntermediateNode()
         {
             Modifiers = ["internal"],
@@ -361,7 +361,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         codeDocument = codeDocument.WithDocumentNode(documentNode);
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new ClassDeclarationIntermediateNode()
         {
             Modifiers = ["internal"],
@@ -409,7 +409,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         codeDocument = codeDocument.WithDocumentNode(documentNode);
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new MethodDeclarationIntermediateNode()
         {
             Modifiers = ["internal", "virtual", "async"],
@@ -456,7 +456,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         codeDocument = codeDocument.WithDocumentNode(documentNode);
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new FieldDeclarationIntermediateNode()
         {
             Modifiers = ["internal", "readonly"],
@@ -495,7 +495,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         codeDocument = codeDocument.WithDocumentNode(documentNode);
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         builder.Add(new PropertyDeclarationIntermediateNode()
         {
             Modifiers = ["internal", "virtual"],

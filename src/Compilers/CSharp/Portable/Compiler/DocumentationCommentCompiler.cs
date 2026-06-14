@@ -534,21 +534,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes)
         {
             string? withUnprocessedIncludes;
-            bool haveParseError;
             HashSet<TypeParameterSymbol>? documentedTypeParameters;
             HashSet<ParameterSymbol>? documentedParameters;
             ImmutableArray<CSharpSyntaxNode> includeElementNodes;
-            if (!tryProcessDocumentationCommentTriviaNodes(symbol, shouldSkipPartialDefinitionComments, docCommentNodes, out withUnprocessedIncludes, out haveParseError, out documentedTypeParameters, out documentedParameters, out includeElementNodes))
+            if (!tryProcessDocumentationCommentTriviaNodes(symbol, shouldSkipPartialDefinitionComments, docCommentNodes, out withUnprocessedIncludes, out documentedTypeParameters, out documentedParameters, out includeElementNodes))
             {
-                return;
-            }
-
-            if (haveParseError)
-            {
-                // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
-                // just write a comment saying that info was lost for this symbol.
-                string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
-                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetEscapedDocumentationCommentId()));
                 return;
             }
 
@@ -629,7 +619,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool shouldSkipPartialDefinitionComments,
                 ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
                 [NotNullWhen(true)] out string? withUnprocessedIncludes,
-                out bool haveParseError,
                 out HashSet<TypeParameterSymbol>? documentedTypeParameters,
                 out HashSet<ParameterSymbol>? documentedParameters,
                 out ImmutableArray<CSharpSyntaxNode> includeElementNodes)
@@ -644,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 documentedTypeParameters = null;
 
                 // Saw an XmlException while parsing one of the DocumentationCommentTriviaSyntax nodes.
-                haveParseError = false;
+                var haveParseError = false;
 
                 if (symbol is SynthesizedRecordPropertySymbol recordProperty)
                 {
@@ -687,17 +676,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string formattedXml = FormatComment(substitutedText);
 
-                    // It would be preferable to just parse the concatenated XML at the end of the loop (we wouldn't have
-                    // to wrap it in a root element and we wouldn't have to reparse in the IncludeElementExpander), but
-                    // then we wouldn't know whether or where to report a diagnostic.
-                    XmlException e = XmlDocumentationCommentTextReader.ParseAndGetException(formattedXml);
-                    if (e != null)
+                    // When diagnostics are not being accumulated (e.g., the single-symbol API path used
+                    // by IDE features), skip XML validation entirely. This avoids expensive XmlException
+                    // throws for malformed doc comments.
+                    //
+                    // Without validation, haveParseError stays false and the raw XML (even if malformed)
+                    // is returned to the caller instead of the "Badly formed XML comment ignored"
+                    // placeholder. For example, a doc comment with an unresolved cref like
+                    // <see cref="Dictionary{TKey, TValue}"/> would previously produce an XmlException
+                    // and discard the entire comment. Now, the raw XML passes through and callers (e.g.,
+                    // Razor's tooltip factory) can still extract <summary> content via string matching.
+                    if (_diagnostics.AccumulatesDiagnostics)
                     {
-                        haveParseError = true;
-                        if (reportDiagnosticsForCurrentTrivia)
+                        // It would be preferable to just parse the concatenated XML at the end of the loop (we wouldn't have
+                        // to wrap it in a root element and we wouldn't have to reparse in the IncludeElementExpander), but
+                        // then we wouldn't know whether or where to report a diagnostic.
+                        XmlException e = XmlDocumentationCommentTextReader.ParseAndGetException(formattedXml);
+                        if (e != null)
                         {
-                            Location location = new SourceLocation(trivia.SyntaxTree, new TextSpan(trivia.SpanStart, 0));
-                            _diagnostics.Add(ErrorCode.WRN_XMLParseError, location, GetDescription(e));
+                            haveParseError = true;
+                            if (reportDiagnosticsForCurrentTrivia)
+                            {
+                                Location location = new SourceLocation(trivia.SyntaxTree, new TextSpan(trivia.SpanStart, 0));
+                                _diagnostics.Add(ErrorCode.WRN_XMLParseError, location, GetDescription(e));
+                            }
                         }
                     }
 
@@ -728,6 +730,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Free the builder, even if there was an error.
                 includeElementNodes = _processIncludes ? includeElementNodesBuilder!.ToImmutableAndFree() : default(ImmutableArray<CSharpSyntaxNode>);
+
+                if (haveParseError)
+                {
+                    // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and
+                    // just write a comment saying that info was lost for this symbol.
+                    string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
+                    WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetEscapedDocumentationCommentId()));
+                    return false;
+                }
 
                 return true;
             }
@@ -838,7 +849,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<DocumentationCommentTriviaSyntax> triviaList = SourceDocumentationCommentUtils.GetDocumentationCommentTriviaFromSyntaxNode((CSharpSyntaxNode)reference.GetSyntax(), diagnosticBag);
                 foreach (var trivia in triviaList)
                 {
-                    if (ContainsXmlParseDiagnostic(trivia))
+                    // When diagnostics are not being accumulated (single-symbol API path),
+                    // skip parse error detection to avoid discarding comments that callers
+                    // can still partially extract via string matching.
+                    if (_diagnostics.AccumulatesDiagnostics && ContainsXmlParseDiagnostic(trivia))
                     {
                         if (builder != null)
                         {

@@ -26,9 +26,8 @@ public class IntermediateNodeWalkerTest
                 new BasicIntermediateNode("Root->C"),
         };
 
-        var builder = new DefaultRazorIntermediateNodeBuilder();
+        using var _pooled = IntermediateNodeBuilder.GetPooledObject(nodes[0], out var builder);
 
-        builder.Push(nodes[0]);
         builder.Add(nodes[1]);
 
         builder.Push(nodes[2]);
@@ -82,9 +81,8 @@ public class IntermediateNodeWalkerTest
             Assert.Equal(ancestors[basicNode.Name].FirstOrDefault(), parent?.Name);
         };
 
-        var builder = new DefaultRazorIntermediateNodeBuilder();
+        using var _pooled = IntermediateNodeBuilder.GetPooledObject(nodes[0], out var builder);
 
-        builder.Push(nodes[0]);
         builder.Add(nodes[1]);
 
         builder.Push(nodes[2]);

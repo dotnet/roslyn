@@ -32,7 +32,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode()
         {
             Name = string.Empty,
@@ -56,7 +56,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "SomeNamespace" };
         builder.Push(@namespace);
 
@@ -75,7 +75,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
         var documentNode = new DocumentIntermediateNode() { Options = codeDocument.CodeGenerationOptions };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         var @namespace = new NamespaceDeclarationIntermediateNode()
         {
@@ -109,7 +109,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
         var @namespace = new NamespaceDeclarationIntermediateNode() { Name = "SomeNamespace" };
         builder.Push(@namespace);
 
@@ -144,7 +144,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
@@ -190,7 +190,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
@@ -237,7 +237,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         var pageDirective = new DirectiveIntermediateNode
         {
@@ -292,7 +292,7 @@ public class AssemblyAttributeInjectionPassTest : RazorProjectEngineTestBase
             Options = codeDocument.CodeGenerationOptions
         };
 
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         var @namespace = new NamespaceDeclarationIntermediateNode
         {

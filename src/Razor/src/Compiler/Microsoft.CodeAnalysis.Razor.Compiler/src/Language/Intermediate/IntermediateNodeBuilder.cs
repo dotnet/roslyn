@@ -4,21 +4,23 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 internal abstract class IntermediateNodeBuilder
 {
-    public static IntermediateNodeBuilder Create(IntermediateNode root)
+    public static PooledObject<DefaultRazorIntermediateNodeBuilder> GetPooledObject(IntermediateNode root, out IntermediateNodeBuilder builder)
     {
         if (root == null)
         {
             throw new ArgumentNullException(nameof(root));
         }
 
-        var builder = new DefaultRazorIntermediateNodeBuilder();
-        builder.Push(root);
-        return builder;
+        var pooled = DefaultRazorIntermediateNodeBuilder.s_pool.GetPooledObject(out var instance);
+        instance.Push(root);
+        builder = instance;
+        return pooled;
     }
 
     public abstract IntermediateNode Current { get; }

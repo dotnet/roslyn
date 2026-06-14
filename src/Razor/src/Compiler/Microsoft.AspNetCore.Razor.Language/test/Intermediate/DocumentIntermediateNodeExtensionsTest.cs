@@ -19,7 +19,7 @@ public class DocumentIntermediateNodeExtensionsTest
             IsPrimaryClass = true
         };
 
-        var builder = IntermediateNodeBuilder.Create(document);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(document, out var builder);
         builder.Add(@class);
 
         // Act
@@ -39,7 +39,7 @@ public class DocumentIntermediateNodeExtensionsTest
             IsPrimaryMethod = true
         };
 
-        var builder = IntermediateNodeBuilder.Create(document);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(document, out var builder);
         builder.Add(method);
 
         // Act
@@ -59,7 +59,7 @@ public class DocumentIntermediateNodeExtensionsTest
             IsPrimaryNamespace = true
         };
 
-        var builder = IntermediateNodeBuilder.Create(document);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(document, out var builder);
         builder.Add(@namespace);
 
         // Act
@@ -79,7 +79,7 @@ public class DocumentIntermediateNodeExtensionsTest
         var document = new DocumentIntermediateNode();
         var @namespace = new NamespaceDeclarationIntermediateNode();
 
-        var builder = IntermediateNodeBuilder.Create(document);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(document, out var builder);
         builder.Push(@namespace);
 
         var match1 = new DirectiveIntermediateNode()

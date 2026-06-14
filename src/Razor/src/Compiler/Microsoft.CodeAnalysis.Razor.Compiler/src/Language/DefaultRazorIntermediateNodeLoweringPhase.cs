@@ -42,7 +42,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         ThrowForMissingDocumentDependency(syntaxTree);
 
         var documentNode = new DocumentIntermediateNode();
-        var builder = IntermediateNodeBuilder.Create(documentNode);
+        using var _pooledBuilder = IntermediateNodeBuilder.GetPooledObject(documentNode, out var builder);
 
         documentNode.Options = codeDocument.CodeGenerationOptions;
 
