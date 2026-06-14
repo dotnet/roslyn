@@ -199,4 +199,35 @@ public class SyntaxNodeEnumeratorTest
         Assert.True(root.EnumerateDescendantNodes().Any(static n => n is MarkupElementSyntax));
         Assert.False(root.EnumerateDescendantNodes().Any(static n => n is RazorCommentBlockSyntax));
     }
+
+    [Fact]
+    public void EnumerateDescendantTokens_MatchesDescendantTokens()
+    {
+        // Arrange
+        var tree = ParseDocument("@if (true) { <div>Hello</div> }");
+        var root = tree.Root;
+
+        // Act
+        var expected = root.DescendantTokens().ToArray();
+        var actual = root.EnumerateDescendantTokens().ToImmutableArray();
+
+        // Assert
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void EnumerateDescendantTokens_WithDescendIntoChildren_MatchesDescendantTokens()
+    {
+        // Arrange
+        var tree = ParseDocument("@if (true) { <div>Hello</div> }");
+        var root = tree.Root;
+        bool filter(SyntaxNode n) => n is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax;
+
+        // Act
+        var expected = root.DescendantTokens(filter).ToArray();
+        var actual = root.EnumerateDescendantTokens(filter).ToImmutableArray();
+
+        // Assert
+        Assert.Equal(expected, actual);
+    }
 }
