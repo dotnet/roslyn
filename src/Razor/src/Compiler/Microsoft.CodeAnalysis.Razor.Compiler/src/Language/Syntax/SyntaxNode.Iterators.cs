@@ -192,6 +192,15 @@ internal abstract partial class SyntaxNode
         public DescendantNodeSelectWhereEnumerable<T> OfType<T>() where T : SyntaxNode
             => new(_root, _descendIntoChildren, static n => n is T, static n => (T)n);
 
+        public DescendantNodeSelectWhereEnumerable<TResult> Select<TResult>(Func<SyntaxNode, TResult> selector)
+            => new(_root, _descendIntoChildren, predicate: static _ => true, selector);
+
+        public DescendantNodeSelectWhereEnumerable<SyntaxNode> Where(Func<SyntaxNode, bool> predicate)
+            => new(_root, _descendIntoChildren, predicate, selector: static n => n);
+
+        public DescendantNodeSelectWhereEnumerable<TResult> SelectWhere<TResult>(Func<SyntaxNode, TResult> selector, Func<SyntaxNode, bool> predicate)
+            => new(_root, _descendIntoChildren, predicate, selector);
+
         public bool Any(Func<SyntaxNode, bool> predicate)
         {
             foreach (var node in this)
@@ -266,17 +275,14 @@ internal abstract partial class SyntaxNode
             return default;
         }
 
-        public readonly ImmutableArray<TOut> SelectWhereAsArray<TOut>(Func<TResult, TOut> projection, Func<TResult, bool>? filter = null)
+        public readonly ImmutableArray<TResult> ToImmutableArray()
         {
-            using var builder = new PooledArrayBuilder<TOut>();
+            using var builder = new PooledArrayBuilder<TResult>();
             using var enumerator = new DescendantNodeSelectWhereEnumerator<TResult>(_root, _descendIntoChildren, _predicate, _selector);
 
             while (enumerator.MoveNext())
             {
-                if (filter is null || filter(enumerator.Current))
-                {
-                    builder.Add(projection(enumerator.Current));
-                }
+                builder.Add(enumerator.Current);
             }
 
             return builder.ToImmutableAndClear();

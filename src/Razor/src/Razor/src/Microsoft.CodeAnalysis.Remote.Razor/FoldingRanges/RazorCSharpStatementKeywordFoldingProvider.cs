@@ -27,13 +27,13 @@ internal sealed class RazorCSharpStatementKeywordFoldingProvider : AbstractSynta
     {
         return syntaxTree.Root
             .EnumerateDescendantNodes(static node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax)
-            .OfType<CSharpStatementLiteralSyntax>()
-            .SelectWhereAsArray(
-                static d => (CSharpCodeBlockSyntax)d.Parent,
-                static n => n is
+            .SelectWhere(
+                static n => (CSharpCodeBlockSyntax)n.Parent,
+                static n => n is CSharpStatementLiteralSyntax
                 {
                     Parent: CSharpCodeBlockSyntax,
                     LiteralTokens: [{ Kind: SyntaxKind.Keyword }, ..]
-                });
+                })
+            .ToImmutableArray();
     }
 }

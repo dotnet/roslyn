@@ -22,6 +22,6 @@ internal sealed class RazorCSharpStatementFoldingProvider : AbstractSyntaxNodeFo
         return syntaxTree.Root
             .EnumerateDescendantNodes(static node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax)
             .OfType<CSharpStatementSyntax>()
-            .SelectWhereAsArray(d => d);
+            .ToImmutableArray();
     }
 }
