@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -991,7 +992,7 @@ public class FindTokenTests
         """;
         var (tree, position) = ParseWithPosition(text);
 
-        var token = tree.Root.DescendantTokens().Single(t => t.Kind == SyntaxKind.Whitespace);
+        var token = tree.Root.EnumerateDescendantTokens().ToImmutableArray().Single(t => t.Kind == SyntaxKind.Whitespace);
         var parent = token.Parent;
         Assert.NotNull(parent);
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => parent.FindToken(position, includeWhitespace: false));
@@ -1007,7 +1008,7 @@ public class FindTokenTests
         """;
         var (tree, position) = ParseWithPosition(text);
 
-        var token = tree.Root.DescendantTokens().Last(t => t.Kind == SyntaxKind.Whitespace);
+        var token = tree.Root.EnumerateDescendantTokens().ToImmutableArray().Last(t => t.Kind == SyntaxKind.Whitespace);
         var parent = token.Parent;
         Assert.NotNull(parent);
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => parent.FindToken(position, includeWhitespace: false));

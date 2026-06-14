@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -541,6 +542,6 @@ public class RazorCodeDocumentExtensionsTest
     private static RazorUsingDirectiveSyntax[] GetUsingDirectives(RazorCodeDocument codeDocument)
     {
         var syntaxTree = RazorSyntaxTree.Parse(codeDocument.Source);
-        return [.. syntaxTree.Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>()];
+        return [.. syntaxTree.Root.EnumerateDescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()];
     }
 }
