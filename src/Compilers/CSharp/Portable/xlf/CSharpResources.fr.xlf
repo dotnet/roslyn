@@ -22,6 +22,11 @@
         <target state="translated">Impossible de créer un type générique construit à partir d'un type non générique.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractBaseRecordImplementation">
+        <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
+        <target state="new">Record member '{0}' must be declared explicitly because '{1}' is abstract.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">La conversion définie par l'utilisateur dans une interface doit convertir vers ou depuis un paramètre de type sur le type englobant contraint au type englobant.</target>
