@@ -294,9 +294,9 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     /// Unlike <see cref="DescendantNodes(Func{SyntaxNode, bool}?)"/>, this does not allocate a state machine.
     /// </summary>
     /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
-    internal DescendantNodeEnumerable EnumerateDescendantNodes(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    internal DescendantNodeEnumerable<SyntaxNode> EnumerateDescendantNodes(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
-        return new DescendantNodeEnumerable(this, descendIntoChildren);
+        return new DescendantNodeEnumerable<SyntaxNode>(this, descendIntoChildren, predicate: null, selector: null);
     }
 
     /// <summary>

@@ -181,31 +181,86 @@ internal abstract partial class SyntaxNode
 
     /// <summary>
     /// A struct-based enumerable that iterates descendant nodes without allocating a state machine.
+    /// Supports filtering and projection via <see cref="Where"/>, <see cref="Select{TNew}"/>,
+    /// and <see cref="OfType{T}"/>.
     /// </summary>
-    internal readonly ref struct DescendantNodeEnumerable(SyntaxNode root, Func<SyntaxNode, bool>? descendIntoChildren)
+    internal readonly ref struct DescendantNodeEnumerable<TResult>(
+        SyntaxNode root,
+        Func<SyntaxNode, bool>? descendIntoChildren,
+        Func<SyntaxNode, bool>? predicate,
+        Func<SyntaxNode, TResult>? selector)
     {
         private readonly SyntaxNode _root = root;
         private readonly Func<SyntaxNode, bool>? _descendIntoChildren = descendIntoChildren;
+        private readonly Func<SyntaxNode, bool>? _predicate = predicate;
+        private readonly Func<SyntaxNode, TResult>? _selector = selector;
 
-        public DescendantNodeEnumerator GetEnumerator() => new(_root, _descendIntoChildren);
-
-        public DescendantNodeSelectWhereEnumerable<T> OfType<T>() where T : SyntaxNode
-            => new(_root, _descendIntoChildren, static n => n is T, static n => (T)n);
-
-        public DescendantNodeSelectWhereEnumerable<TResult> Select<TResult>(Func<SyntaxNode, TResult> selector)
-            => new(_root, _descendIntoChildren, predicate: static _ => true, selector);
-
-        public DescendantNodeSelectWhereEnumerable<SyntaxNode> Where(Func<SyntaxNode, bool> predicate)
-            => new(_root, _descendIntoChildren, predicate, selector: static n => n);
-
-        public DescendantNodeSelectWhereEnumerable<TResult> SelectWhere<TResult>(Func<SyntaxNode, TResult> selector, Func<SyntaxNode, bool> predicate)
-            => new(_root, _descendIntoChildren, predicate, selector);
-
-        public bool Any(Func<SyntaxNode, bool> predicate)
+        public DescendantNodeEnumerator<TResult> GetEnumerator()
         {
-            foreach (var node in this)
+            Debug.Assert(_selector is not null || typeof(TResult) == typeof(SyntaxNode),
+                "selector can only be null when TResult is SyntaxNode (identity projection)");
+
+            return new(_root, _descendIntoChildren, _predicate, _selector);
+        }
+
+        public DescendantNodeEnumerable<TNew> Select<TNew>(Func<TResult, TNew> newSelector)
+        {
+            if (_selector is null)
             {
-                if (predicate(node))
+                return new(_root, _descendIntoChildren, _predicate, (Func<SyntaxNode, TNew>)(object)newSelector);
+            }
+
+            return Composed(_root, _descendIntoChildren, _predicate, _selector, newSelector);
+
+            static DescendantNodeEnumerable<TNew> Composed(SyntaxNode root, Func<SyntaxNode, bool>? descendIntoChildren, Func<SyntaxNode, bool>? predicate, Func<SyntaxNode, TResult> outerSelector, Func<TResult, TNew> newSelector)
+            {
+                return new(root, descendIntoChildren, predicate, n => newSelector(outerSelector(n)));
+            }
+        }
+
+        public DescendantNodeEnumerable<TResult> Where(Func<TResult, bool> newPredicate)
+        {
+            if (_predicate is null && _selector is null)
+            {
+                return new(_root, _descendIntoChildren, (Func<SyntaxNode, bool>)(object)newPredicate, _selector);
+            }
+
+            return Composed(_root, _descendIntoChildren, _predicate, _selector, newPredicate);
+
+            static DescendantNodeEnumerable<TResult> Composed(SyntaxNode root, Func<SyntaxNode, bool>? descendIntoChildren, Func<SyntaxNode, bool>? outerPredicate, Func<SyntaxNode, TResult>? outerSelector, Func<TResult, bool> newPredicate)
+            {
+                if (outerSelector is null)
+                {
+                    // No selector: compose predicate directly on the raw node.
+                    Func<SyntaxNode, bool> composedPredicate = outerPredicate is not null
+                        ? n => outerPredicate(n) && newPredicate((TResult)(object)n!)
+                        : throw new InvalidOperationException(); // unreachable: (null, null) handled by caller
+
+                    return new(root, descendIntoChildren, composedPredicate, outerSelector);
+                }
+                else
+                {
+                    // Selector exists: evaluate it once in the predicate, cache the result,
+                    // and use a trivial selector that returns the cached value.
+                    TResult cached = default!;
+
+                    Func<SyntaxNode, bool> composedPredicate = outerPredicate is not null
+                        ? n => outerPredicate(n) && newPredicate(cached = outerSelector(n))
+                        : n => newPredicate(cached = outerSelector(n));
+
+                    return new(root, descendIntoChildren, composedPredicate, _ => cached);
+                }
+            }
+        }
+
+        public DescendantNodeEnumerable<T> OfType<T>() where T : SyntaxNode
+            => Where(static n => n is T).Select(static n => (T)(object)n!);
+
+        public bool Any(Func<TResult, bool> predicate)
+        {
+            foreach (var item in this)
+            {
+                if (predicate(item))
                 {
                     return true;
                 }
@@ -214,75 +269,41 @@ internal abstract partial class SyntaxNode
             return false;
         }
 
-        public SyntaxNode? FirstOrDefault(Func<SyntaxNode, bool> predicate)
+        public TResult? FirstOrDefault(Func<TResult, bool>? predicate = null)
         {
-            foreach (var node in this)
+            foreach (var item in this)
             {
-                if (predicate(node))
+                if (predicate is null || predicate(item))
                 {
-                    return node;
-                }
-            }
-
-            return null;
-        }
-
-        public SyntaxNode? LastOrDefault(Func<SyntaxNode, bool> predicate)
-        {
-            SyntaxNode? last = null;
-
-            foreach (var node in this)
-            {
-                if (predicate(node))
-                {
-                    last = node;
-                }
-            }
-
-            return last;
-        }
-    }
-
-    /// <summary>
-    /// A struct-based enumerable that iterates descendant nodes with a filter and projection.
-    /// </summary>
-    internal readonly ref struct DescendantNodeSelectWhereEnumerable<TResult>(
-        SyntaxNode root,
-        Func<SyntaxNode, bool>? descendIntoChildren,
-        Func<SyntaxNode, bool> predicate,
-        Func<SyntaxNode, TResult> selector)
-    {
-        private readonly SyntaxNode _root = root;
-        private readonly Func<SyntaxNode, bool>? _descendIntoChildren = descendIntoChildren;
-        private readonly Func<SyntaxNode, bool> _predicate = predicate;
-        private readonly Func<SyntaxNode, TResult> _selector = selector;
-
-        public readonly DescendantNodeSelectWhereEnumerator<TResult> GetEnumerator()
-            => new(_root, _descendIntoChildren, _predicate, _selector);
-
-        public readonly TResult? FirstOrDefault(Func<TResult, bool>? predicate = null)
-        {
-            using var enumerator = new DescendantNodeSelectWhereEnumerator<TResult>(_root, _descendIntoChildren, _predicate, _selector);
-
-            while (enumerator.MoveNext())
-            {
-                if (predicate is null || predicate(enumerator.Current))
-                {
-                    return enumerator.Current;
+                    return item;
                 }
             }
 
             return default;
         }
 
-        public readonly ImmutableArray<TResult> ToImmutableArray()
+        public TResult? LastOrDefault(Func<TResult, bool>? predicate = null)
+        {
+            TResult? last = default;
+
+            foreach (var item in this)
+            {
+                if (predicate is null || predicate(item))
+                {
+                    last = item;
+                }
+            }
+
+            return last;
+        }
+
+        public ImmutableArray<TResult> ToImmutableArray()
         {
             using var builder = new PooledArrayBuilder<TResult>();
-            using var enumerator = new DescendantNodeSelectWhereEnumerator<TResult>(_root, _descendIntoChildren, _predicate, _selector);
 
-            while (enumerator.MoveNext())
+            foreach (var item in this)
             {
-                builder.Add(enumerator.Current);
+                builder.Add(item);
             }
 
             return builder.ToImmutableAndClear();
@@ -293,14 +314,20 @@ internal abstract partial class SyntaxNode
     /// A struct-based enumerator that iterates descendant nodes without allocating a state machine.
     /// Uses a pooled stack internally (same as <see cref="DescendantNodes()"/>).
     /// </summary>
-    internal ref struct DescendantNodeEnumerator(SyntaxNode root, Func<SyntaxNode, bool>? descendIntoChildren)
+    internal ref struct DescendantNodeEnumerator<TResult>(
+        SyntaxNode root,
+        Func<SyntaxNode, bool>? descendIntoChildren,
+        Func<SyntaxNode, bool>? predicate,
+        Func<SyntaxNode, TResult>? selector)
     {
         private ChildSyntaxListEnumeratorStack _stack = new(root, descendIntoChildren);
         private readonly Func<SyntaxNode, bool>? _descendIntoChildren = descendIntoChildren;
+        private readonly Func<SyntaxNode, bool>? _predicate = predicate;
+        private readonly Func<SyntaxNode, TResult>? _selector = selector;
         private readonly TextSpan _span = root.Span;
-        private SyntaxNode? _current = null;
+        private TResult? _current = default;
 
-        public readonly SyntaxNode Current => _current!;
+        public readonly TResult Current => _current!;
 
         public bool MoveNext()
         {
@@ -310,8 +337,14 @@ internal abstract partial class SyntaxNode
                 if (node != null)
                 {
                     _stack.PushChildren(node, _descendIntoChildren);
-                    _current = node;
-                    return true;
+
+                    if (_predicate is null || _predicate(node))
+                    {
+                        _current = _selector is not null
+                            ? _selector(node)
+                            : (TResult)(object)node;
+                        return true;
+                    }
                 }
             }
 
@@ -323,38 +356,6 @@ internal abstract partial class SyntaxNode
             _stack.Dispose();
             _stack = default;
         }
-    }
-
-    /// <summary>
-    /// A struct-based enumerator that iterates descendant nodes with a filter and projection.
-    /// </summary>
-    internal ref struct DescendantNodeSelectWhereEnumerator<TResult>(
-        SyntaxNode root,
-        Func<SyntaxNode, bool>? descendIntoChildren,
-        Func<SyntaxNode, bool> predicate,
-        Func<SyntaxNode, TResult> selector)
-    {
-        private DescendantNodeEnumerator _inner = new(root, descendIntoChildren);
-        private readonly Func<SyntaxNode, bool> _predicate = predicate;
-        private readonly Func<SyntaxNode, TResult> _selector = selector;
-
-        public TResult Current { get; private set; } = default!;
-
-        public bool MoveNext()
-        {
-            while (_inner.MoveNext())
-            {
-                if (_predicate(_inner.Current))
-                {
-                    Current = _selector(_inner.Current);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public void Dispose() => _inner.Dispose();
     }
 
     /// <summary>
