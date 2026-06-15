@@ -25,7 +25,6 @@ internal partial class RazorEditService
             throw new InvalidOperationException("RemoteRazorEditService can only be used with RemoteDocumentSnapshot instances.");
         }
 
-
         // Collect both workspace edit shapes into TextDocumentEdits so URI coalescing and duplicate
         // edit handling run once across the whole edit.
         using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
