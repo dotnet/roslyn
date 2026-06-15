@@ -3491,8 +3491,8 @@ class C
         outer: while (true)
         {
             break$$ outer;
-        }
-    [||]}
+        }[||]
+    }
 }
         </Document>
     </Project>
@@ -3540,8 +3540,8 @@ class C
             {
                 break$$ outer;
             }
-        }
-    [||]}
+        }[||]
+    }
 }
         </Document>
     </Project>
@@ -3632,11 +3632,11 @@ class C
 {
     void M()
     {
-        [|outer|]: for (int i = 0; i <10; i++)
+        [|outer|]: for (int i = 0; i < 10; i++)
         {
             while (true)
             {
-                Continue ou$$ter;
+                continue ou$$ter;
             }
         }
     }
@@ -3650,8 +3650,8 @@ class C
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_AtEndOfFile_WithBraces() As Task
-            ' The loop is the last thing in the file, so there is no token after it to jump to.
-            ' Navigation falls back to the end of the construct being broken out of.
+            ' Top-level loop that is the last thing in the file. Break navigates to the end of the
+            ' construct being exited.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -3669,8 +3669,8 @@ outer: while (true)
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_AtEndOfFile_WithoutBraces() As Task
-            ' The loop is the last thing in the file, so there is no token after it to jump to.
-            ' Navigation falls back to the end of the construct being broken out of.
+            ' Top-level loop that is the last thing in the file. Break navigates to the end of the
+            ' construct being exited.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">

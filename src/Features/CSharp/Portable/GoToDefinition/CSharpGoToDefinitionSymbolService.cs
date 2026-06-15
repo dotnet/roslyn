@@ -85,18 +85,11 @@ internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefiniti
             if (corresponding is null)
                 return null;
 
+            // 'break' transfers control to just past the construct it exits, so navigate to its end.
             // 'continue' transfers control back to the construct itself, so navigate to its start.
-            if (!isBreak)
-                return corresponding.Syntax.GetFirstToken().Span.Start;
-
-            // 'break' resumes control at whatever follows the construct, so navigate to the start of the
-            // next token after it. If the construct is the last thing in the file (nothing but
-            // end-of-file follows), there's nothing to jump to, so fall back to the end of the construct.
-            var lastToken = corresponding.Syntax.GetLastToken();
-            var nextToken = lastToken.GetNextToken();
-            return nextToken.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken
-                ? lastToken.Span.End
-                : nextToken.Span.Start;
+            return isBreak
+                ? corresponding.Syntax.GetLastToken().Span.End
+                : corresponding.Syntax.GetFirstToken().Span.Start;
         }
 
         static SyntaxNode? TryFindContainingReturnableConstruct(SyntaxNode? node)
