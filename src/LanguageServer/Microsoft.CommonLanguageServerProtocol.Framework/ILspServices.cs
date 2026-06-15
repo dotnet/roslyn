@@ -18,5 +18,5 @@ internal interface ILspServices : IDisposable
 
     bool TryGetService(Type type, [NotNullWhen(true)] out object? service);
 
-    IEnumerable<T> GetRequiredServices<T>();
+    IEnumerable<T> GetServices<T>();
 }

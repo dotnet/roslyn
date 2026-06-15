@@ -188,7 +188,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 
             // Client supports textDocumentContent - register the schemes from all providers so the client
             // can use workspace/textDocumentContent to retrieve virtual document contents.
-            var schemes = lspServices.GetRequiredServices<ITextDocumentContentProvider>().Select(p => p.Scheme).ToArray();
+            var schemes = lspServices.GetServices<ITextDocumentContentProvider>().Select(p => p.Scheme).ToArray();
             if (schemes.Length == 0)
                 return null;
 

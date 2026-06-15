@@ -24,7 +24,7 @@ internal sealed class ServiceBrokerFactory : ILspService
     private class ServiceBrokerFactoryFactory(ExportProvider exportProvider, ILoggerFactory loggerFactory) : ILspServiceFactory
     {
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new ServiceBrokerFactory(lspServices.GetRequiredServices<IServiceBrokerInitializer>(), exportProvider, loggerFactory);
+            => new ServiceBrokerFactory(lspServices.GetServices<IServiceBrokerInitializer>(), exportProvider, loggerFactory);
     }
 
     private readonly ExportProvider _exportProvider;

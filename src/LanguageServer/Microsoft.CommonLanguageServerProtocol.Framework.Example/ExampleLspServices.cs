@@ -50,11 +50,4 @@ internal sealed class ExampleLspServices : ILspServices
     public void Dispose()
     {
     }
-
-    public IEnumerable<T> GetRequiredServices<T>()
-    {
-        var services = _serviceProvider.GetServices<T>();
-
-        return services;
-    }
 }
