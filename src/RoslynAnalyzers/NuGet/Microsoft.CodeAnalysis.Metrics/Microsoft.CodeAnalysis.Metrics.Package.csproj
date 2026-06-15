@@ -17,7 +17,8 @@
     <NoWarn>$(NoWarn);NU5100</NoWarn>
     <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
 
-    <SQLitePCLRawVersion>1.1.2</SQLitePCLRawVersion>
+    <SQLitePCLRawCoreVersion>3.0.3</SQLitePCLRawCoreVersion>
+    <SQLite3MCPCLRawVersion>2.3.5</SQLite3MCPCLRawVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -45,11 +46,9 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="$(MicrosoftBuildVersionForMetrics)" ExcludeAssets="Runtime" />
     <PackageReference Include="System.Text.Json" VersionOverride="$(SystemTextJsonVersionForMetrics)" />
 
-    <PackageReference Include="SQLitePCLRaw.bundle_green" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.linux" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.osx" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3.net45" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawCoreVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLite3MC.PCLRaw.bundle" VersionOverride="$(SQLite3MCPCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLite3MC.PCLRaw.lib" VersionOverride="$(SQLite3MCPCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLite3MC.PCLRaw.provider" VersionOverride="$(SQLite3MCPCLRawVersion)" ExcludeAssets="All" />
   </ItemGroup>
 </Project>
