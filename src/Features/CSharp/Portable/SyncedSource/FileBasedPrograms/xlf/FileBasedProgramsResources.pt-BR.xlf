@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../FileBasedProgramsResources.resx">
     <body>
@@ -17,6 +17,11 @@
         <target state="translated">Não foi possível encontrar o projeto ou diretório ‘{0}’.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CouldNotFindRefFile">
+        <source>Could not find file '{0}'.</source>
+        <target state="translated">Não foi possível encontrar arquivo "{0}".</target>
+        <note>{0} is the file path.</note>
+      </trans-unit>
       <trans-unit id="DirectiveError">
         <source>error</source>
         <target state="translated">erro</target>
@@ -27,10 +32,25 @@
         <target state="translated">Diretivas duplicadas não são suportadas:{0}</target>
         <note>{0} is the directive type and name.</note>
       </trans-unit>
+      <trans-unit id="EmptyTempPath">
+        <source>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</source>
+        <target state="new">Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExperimentalFeatureDisabled">
+        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
+        <target state="new">This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</target>
+        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
+      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">Extensão de arquivo não reconhecida na diretiva '{0}'. Somente estas extensões são reconhecidas atualmente: {1}</target>
         <note>{0} is the directive - '#:include' or '#:exclude'. {1} is a comma-separated list of file extensions, like: '.cs', '.resx'</note>
+      </trans-unit>
+      <trans-unit id="IncludedFileNotFound">
+        <source>File included via #:include directive (or Compile item) not found: {0}</source>
+        <target state="new">File included via #:include directive (or Compile item) not found: {0}</target>
+        <note>{Locked="#:include"}{Locked="Compile"}. {0} is file path.</note>
       </trans-unit>
       <trans-unit id="InvalidDirectiveName">
         <source>The directive should contain a name without special characters and an optional value separated by '{1}' like '#:{0} Name{1}Value'.</source>
@@ -40,12 +60,12 @@
       <trans-unit id="InvalidIncludeExcludeMappingEntry">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</source>
         <target state="translated">Cada entrada na propriedade MSBuild 'FileBasedProgramsItemMapping' deve ter duas partes separadas por '='. A entrada '{0}' é inválida.</target>
-        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="="}</note>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'='"}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingExtension">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</source>
         <target state="translated">Cada entrada na propriedade MSBuild 'FileBasedProgramsItemMapping' deve mapear a partir de uma extensão de arquivo não vazia que comece com '.'. A extensão '{0}' na entrada '{1}' é inválida.</target>
-        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="."}</note>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'.'"}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingItemType">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
@@ -56,6 +76,11 @@
         <source>The '#:project' directive is invalid: {0}</source>
         <target state="translated">A diretiva '#:project' é inválida:{0}</target>
         <note>{0} is the inner error message.</note>
+      </trans-unit>
+      <trans-unit id="InvalidRefDirective">
+        <source>The '#:ref' directive is invalid: {0}</source>
+        <target state="translated">A diretiva ''#:ref'' é inválida: {0}</target>
+        <note>{Locked="#:ref"}{0} is the inner error message.</note>
       </trans-unit>
       <trans-unit id="MissingDirectiveName">
         <source>Missing name of '{0}'.</source>

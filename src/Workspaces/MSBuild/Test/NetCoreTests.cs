@@ -587,6 +587,35 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp()
+    {
+        var sourceText = """
+            Console.WriteLine("Hello World!");
+            """;
+
+        CreateFiles(new FileSet((@"Program.cs", sourceText)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        // Assert that there is a single project loaded.
+        Assert.Single(workspace.CurrentSolution.ProjectIds);
+
+        // Assert that the project contains the source file.
+        var document = project.Documents.Single(static d => d.Name == "Program.cs");
+
+        // Assert that the document content matches.
+        var text = await document.GetTextAsync();
+        Assert.Equal(sourceText, text.ToString());
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
     [UseCulture("en-EN", "en-EN")]
     public Task TestBuildHostLocale_EN()
         => AssertInvalidTfmDiagnosticMessageContains("The TargetFramework value 'Invalid' was not recognized. It may be misspelled.");

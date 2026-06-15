@@ -45,12 +45,18 @@ internal sealed class ProjectFileExtensionRegistry
 
     public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName)
     {
+        return TryGetLanguageNameFromProjectPath(projectFilePath, mode, out languageName, out _);
+    }
+
+    public bool TryGetLanguageNameFromProjectPath(string? projectFilePath, DiagnosticReportingMode mode, [NotNullWhen(true)] out string? languageName, out bool isFileBasedApp)
+    {
         using (_dataGuard.DisposableWait())
         {
             var extension = Path.GetExtension(projectFilePath);
             if (extension is null)
             {
                 languageName = null;
+                isFileBasedApp = false;
                 _diagnosticReporter.Report(mode, $"Project file path was 'null'");
                 return false;
             }
@@ -59,8 +65,20 @@ internal sealed class ProjectFileExtensionRegistry
                 extension = rest;
 
             if (_extensionToLanguageMap.TryGetValue(extension, out languageName))
+            {
+                isFileBasedApp = false;
                 return true;
+            }
 
+            // TODO: support extensionless file-based apps too
+            if ("cs".Equals(extension, StringComparison.OrdinalIgnoreCase))
+            {
+                languageName = LanguageNames.CSharp;
+                isFileBasedApp = true;
+                return true;
+            }
+
+            isFileBasedApp = false;
             _diagnosticReporter.Report(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
             return false;
         }
