@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Nullable<R> when R is a non-nullable value type, left alone for reference types /
                 // already-nullable value types / dynamic, and errors out (ERR_CannotBeMadeNullable)
                 // when R is an unconstrained type parameter and the result is used.
-                awaitExpressionType = ComputeConditionalAccessResultType(node, awaitExpressionType, awaitExpressionType, node.QuestionToken.GetLocation(), diagnostics, out bool cannotBeMadeNullable);
+                awaitExpressionType = ComputeConditionalAccessResultType(
+                    node, awaitExpressionType, awaitExpressionType, node.QuestionToken.GetLocation(), diagnostics, out bool cannotBeMadeNullable);
                 hasErrors |= cannotBeMadeNullable;
             }
 
