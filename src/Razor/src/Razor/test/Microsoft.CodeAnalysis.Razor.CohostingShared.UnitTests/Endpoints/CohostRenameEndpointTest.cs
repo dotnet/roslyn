@@ -74,22 +74,21 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 The end.
                 """,
             newName: "CallThisFunction",
-            expected: string.Join("\r\n", new[]
-            {
-                "This is a Razor document.",
-                "",
-                "<h1>@CallThisFunction()</h1>",
-                "",
-                "@code",
-                "{",
-                "    public string CallThisFunction()",
-                "    {",
-                "        return CallThisFunction();",
-                "    }",
-                "}",
-                "",
-                "The end.",
-            }));
+            expected: """
+                This is a Razor document.
+
+                <h1>@CallThisFunction()</h1>
+
+                @code
+                {
+                    public string CallThisFunction()
+                    {
+                        return CallThisFunction();
+                    }
+                }
+
+                The end.
+                """);
 
     [Fact]
     public Task CSharp_WithOtherFile()
