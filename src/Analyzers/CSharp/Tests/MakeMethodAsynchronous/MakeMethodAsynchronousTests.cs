@@ -1487,7 +1487,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
             index: 0,
-            parameters: new TestParameters(globalOptions: Option(
+            parameters: new TestParameters(options: Option(
                 CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
                 new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.Signature, NotificationOption2.Silent))));
 
@@ -1521,7 +1521,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
             index: 0,
-            parameters: new TestParameters(globalOptions: Option(
+            parameters: new TestParameters(options: Option(
                 CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
                 new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.Signature, NotificationOption2.Silent))));
 
@@ -1555,7 +1555,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
             index: 0,
-            parameters: new TestParameters(globalOptions: Option(
+            parameters: new TestParameters(options: Option(
                 CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
                 new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.Off, NotificationOption2.Silent))));
 
@@ -1588,7 +1588,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
             index: 1,
-            parameters: new TestParameters(globalOptions: Option(
+            parameters: new TestParameters(options: Option(
                 CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
                 new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.Off, NotificationOption2.Silent))));
 
@@ -1622,7 +1622,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
             index: 0,
-            parameters: new TestParameters(globalOptions: Option(
+            parameters: new TestParameters(options: Option(
                 CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
                 new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.References, NotificationOption2.Silent))));
 
@@ -1678,7 +1678,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
             index: 0,
-            parameters: new TestParameters(globalOptions: Option(
+            parameters: new TestParameters(options: Option(
                 CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
                 new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.References, NotificationOption2.Silent))));
 }
