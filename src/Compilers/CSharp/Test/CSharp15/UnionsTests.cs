@@ -39699,54 +39699,71 @@ class Program
             CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
         }
 
-        [Theory]
+        [Theory(Skip = "There is metadata vs. source difference for this scenario")] // https://github.com/dotnet/roslyn/issues/82636
         [CombinatorialData]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_37_BoxingConversion_Vs_Identity(
-            [CombinatorialValues(new string[] { "System.IComparable", "int" }, new string[] { "int", "System.IComparable" })] string[] types)
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82636")]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_37_ImplicitReferenceConversion_Determinism(
+            [CombinatorialValues(new string[] { "C1", "C0" }, new string[] { "C0", "C1" })] string[] types)
         {
-            var src = @"
+            var src1 = @"
 [System.Runtime.CompilerServices.Union]
-struct S1 : S1.IUnionMembers
+public struct S1 : S1.IUnionMembers
 {
     private readonly object _value;
-    public S1(System.IComparable x) { _value = x; }
-    public S1(int x) { _value = x; }
+    public S1(C1 x) { _value = x; }
+    public S1(C0 x) { _value = x; }
     public object Value => throw null;
 
-    public bool TryGetValue(out System.IComparable value) => throw null;
-    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+    public bool TryGetValue(out " + types[0] + @" value) { if (_value is " + types[0] + @") { value = (" + types[0] + @")_value; return true; } else { value = null; return false; } }
+    public bool TryGetValue(out " + types[1] + @" value) => throw null;
 
-    public interface IUnionMembers : IUnionMembersBase
-    {
-        public static S1 Create(System.IComparable x) => new S1(x);
-        public static S1 Create(int x) => new S1(x);
+    public interface IUnionMembers : IBase0, IBase2
+    { 
+        public static S1 Create(C1 x) => new S1(x);
+        public static S1 Create(C0 x) => new S1(x);
         public object Value { get; }
-        public bool TryGetValue(out " + types[0] + @" value);
     }
 
-    public interface IUnionMembersBase
+    public interface IBase2 : IBase1, IBase0
+    {
+    }
+
+    public interface IBase1
     {
         public bool TryGetValue(out " + types[1] + @" value);
     }
+
+    public interface IBase0
+    {
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
 }
 
+public class C0;
+public class C1 : C0;
+public class C2 : C1;
+";
+            var src2 = @"
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new S1("""")));
+        System.Console.Write(Test1(new S1(new C1())));
         System.Console.Write(Test1(default));
-        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1(new C2())));
     }
 
     static bool Test1(S1 u)
     {
-        return u is 1;
+        return u is C2;
     }   
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
         }
 
         [Theory]
@@ -39766,6 +39783,56 @@ struct S1 : S1.IUnionMembers
     public bool TryGetValue(out System.IComparable value) => throw null;
     public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
 
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(System.IComparable x) => new S1(x);
+        public static S1 Create(int x) => new S1(x);
+        public object Value { get; }
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IUnionMembersBase
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1("""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_39_BoxingConversion_Vs_Identity(
+            [CombinatorialValues(new string[] { "System.IComparable", "int" }, new string[] { "int", "System.IComparable" })] string[] types)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(System.IComparable x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out System.IComparable value) => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+
     public interface IUnionMembers : IBase2
     {
         public static S1 Create(System.IComparable x) => new S1(x);
@@ -39805,7 +39872,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_39_BoxingConversion_Determinism(
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_40_BoxingConversion_Determinism(
             [CombinatorialValues(new string[] { "System.IComparable", "System.IConvertible" }, new string[] { "System.IConvertible", "System.IComparable" })] string[] types)
         {
             var src1 = @"
@@ -39859,7 +39926,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_40_BoxingConversion_Determinism(
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_41_BoxingConversion_Determinism(
             [CombinatorialValues(new string[] { "System.IComparable", "System.IConvertible" }, new string[] { "System.IConvertible", "System.IComparable" })] string[] types)
         {
             var src1 = @"
@@ -39913,6 +39980,130 @@ class Program
 
             var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_42_BoxingConversion_Determinism(
+            [CombinatorialValues(new string[] { "System.IComparable", "System.IConvertible" }, new string[] { "System.IConvertible", "System.IComparable" })] string[] types)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(System.IComparable x) { _value = x; }
+    public S1(System.IConvertible x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out " + types[0] + @" value) { if (_value is " + types[0] + @") { value = (" + types[0] + @")_value; return true; } else { value = null; return false; } }
+    public bool TryGetValue(out " + types[1] + @" value) => throw null;
+
+    public interface IUnionMembers : IBase2
+    {
+        public static S1 Create(System.IComparable x) => new S1(x);
+        public static S1 Create(System.IConvertible x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1, IBase0
+    {
+    }
+
+    public interface IBase1
+    {
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IBase0
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1((System.IComparable)"""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1((System.IComparable)1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_43_Identity_Determinism()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    int IBase2.TryGetValue(out int x) => throw null;
+    bool IBase1.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IBase2, IBase1
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public new int TryGetValue(out int x);
+    }
+
+    public interface IBase1  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IBase1.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
         }
 
         [Fact]
