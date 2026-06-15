@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -68,30 +70,20 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var isEntryPoint = methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
         var canOfferAsyncVoid = methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint;
 
-        // For perf, avoid FindReferences and approximate event-handler usage from signature.
-        var isLikelyEventHandlerMethod = canOfferAsyncVoid && IsLikelyEventHandlerMethodSignature(methodSymbol, compilation);
+        // Use FindAllReferences to check whether the method is actually used as an event handler.
+        var isLikelyEventHandlerMethod = canOfferAsyncVoid &&
+            await IsReferencedAsEventHandlerAsync(document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
 
+        // Always register the Task fix first, with a warning title when the method is an event handler.
+        RegisterTaskFix();
+
+        // Also offer async void if the method is void-returning and not an entry point.
         if (canOfferAsyncVoid)
-        {
-            // If it looks like an event-handler method, prefer the async-void fixer first and
-            // surface the async-Task fixer second with a warning that it is not the recommended
-            // choice for event handlers.
-            if (isLikelyEventHandlerMethod)
-                RegisterAsyncVoidFix();
-
-            RegisterTaskFix();
-
-            if (!isLikelyEventHandlerMethod)
-                RegisterAsyncVoidFix();
-        }
-        else
-        {
-            RegisterTaskFix();
-        }
+            RegisterAsyncVoidFix();
 
         void RegisterTaskFix()
         {
-            // When the method looks like an event handler, use a title that warns the user
+            // When the method is an event handler, use a title that warns the user
             // that converting to async Task is unusual for event handlers.
             var taskTitle = isLikelyEventHandlerMethod
                 ? GetMakeAsyncTaskFunctionForEventHandlerResource()
@@ -116,17 +108,36 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         }
     }
 
-    private static bool IsLikelyEventHandlerMethodSignature(IMethodSymbol methodSymbol, Compilation compilation)
+    private static async Task<bool> IsReferencedAsEventHandlerAsync(
+        Solution solution,
+        IMethodSymbol methodSymbol,
+        CancellationToken cancellationToken)
     {
-        if (!methodSymbol.ReturnsVoid || methodSymbol.MethodKind != MethodKind.Ordinary || methodSymbol.Parameters.Length != 2)
-            return false;
+        var references = await SymbolFinder.FindReferencesAsync(
+            methodSymbol,
+            solution,
+            cancellationToken).ConfigureAwait(false);
 
-        if (methodSymbol.Parameters[0].Type.SpecialType != SpecialType.System_Object)
-            return false;
+        foreach (var referencingSymbol in references)
+        {
+            foreach (var location in referencingSymbol.Locations)
+            {
+                if (location.IsImplicit || location.Document is null)
+                    continue;
 
-        var eventArgsType = compilation.GetTypeByMetadataName("System.EventArgs");
-        return eventArgsType is not null &&
-            methodSymbol.Parameters[1].Type.InheritsFromOrEquals(eventArgsType);
+                var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
+                var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var operation = semanticModel.GetOperation(syntaxNode, cancellationToken);
+                for (var current = operation; current != null; current = current.Parent)
+                {
+                    if (current is IEventAssignmentOperation)
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static IMethodSymbol? GetMethodSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
