@@ -228,11 +228,9 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return null;
         }
 
-        // Component file rename updates the generated component class declaration, which lives in the
-        // declaration document under SONIC. Fall back to implementation for legacy documents that do
-        // not have a separate declaration document.
-        var generatedDocument = await context.Snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false)
-            ?? await context.Snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+        // We're renaming the class declaration of a generated C# class, which exists in both decl and impl documents, so we can just work from
+        // the impl document since that will always exists. Decl may not.
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var text = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var tree = await generatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var declaration = tree.AssumeNotNull().DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
