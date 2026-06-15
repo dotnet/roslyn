@@ -52,7 +52,7 @@ namespace IdeCoreBenchmarks;
 public class MakeMethodAsynchronousCodeFixBenchmarks
 {
     // Number of extra classes that carry a same-named method in the CommonName scenario.
-    private const int ClassCount = 100;
+    private const int ClassCount = 1000;
 
     // Name used in the CommonName scenario – intentionally common for event handlers.
     private const string CommonMethodName = "OnClick";
