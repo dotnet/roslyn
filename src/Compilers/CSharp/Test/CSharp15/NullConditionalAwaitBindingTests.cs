@@ -19,6 +19,10 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     // internal bound-tree state. NRT is enabled at the compilation level for every test that
     // cares about reference-type `?` annotations; tests that observe NRT output also assert
     // the NRT-disabled case to show the annotation isn't leaking through.
+    //
+    // Success cases use [ConditionalFact(typeof(NoUsedAssembliesValidation))] because the
+    // ROSLYN_TEST_USEDASSEMBLIES leg emits each compilation, and await? lowering is not
+    // implemented yet (it lands in dotnet/roslyn#83235). Switch these back to [Fact] then.
 
     private static string InAsyncMethod(string statement, string parameterList = "") => $$"""
         using System.Threading.Tasks;
@@ -70,7 +74,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             .OfType<VariableDeclaratorSyntax>()
             .Single(d => d.Identifier.ValueText == localName);
         var local = (ILocalSymbol)model.GetDeclaredSymbol(declarator)!;
-        return local.Type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
+        return local.Type.ToTestDisplayString();
     }
 
     private static ITypeSymbol TypeOfAwaitExpression(CSharpCompilation comp)
@@ -83,7 +87,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Feature availability
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void FeatureAvailability_Preview_NoDiagnostic()
     {
         // `Task<int>` (not annotated) — the operand-nullability rule allows reference types
@@ -216,7 +220,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     }
 
     // Non-annotated Task operand — walker sees t as non-null; no NRT warning.
-    [Fact] public void Operand_TaskOfInt_ResultIsNullableInt() => AssertTaskOfIntResultIsNullableInt("Task<int>");
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] public void Operand_TaskOfInt_ResultIsNullableInt() => AssertTaskOfIntResultIsNullableInt("Task<int>");
     [Fact] public void Operand_TaskOfNullableInt_ResultIsNullableInt() => AssertTaskOfIntResultIsNullableInt("Task<int?>");
 
     private void AssertTaskOfIntResultIsNullableInt(string operandType)
@@ -229,31 +233,31 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
         compNrtOn.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOn, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
         compNrtOff.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOff, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
     // NRT-annotated Task operand. In NRT-off mode the outer `?` annotation on the parameter
     // type is invalid outside an NRT context, so CS8632 fires; in NRT-on mode no warning
     // fires because the whole point of `await?` is to accept a null receiver. Either way
     // the result type is int?.
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Operand_NrtAnnotatedTaskOfInt_ResultIsNullableInt()
     {
         var source = InAsyncMethod("var v = await? t;", "Task<int>? t");
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
         compNrtOn.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOn, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
         compNrtOff.VerifyDiagnostics(
             // (5,34): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
             Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 34));
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOff, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
     [Fact]
@@ -263,13 +267,13 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
         compNrtOn.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOn, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
         compNrtOff.VerifyDiagnostics(
             // (5,35): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
             Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 35));
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOff, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
     // Reference-type R = string. The result-type rule leaves R unchanged; in NRT-on mode
@@ -283,12 +287,12 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
         compNrtOn.VerifyDiagnostics();
-        Assert.Equal("string?", TypeOfLocalSymbol(compNrtOn, "v"));
+        Assert.Equal("System.String?", TypeOfLocalSymbol(compNrtOn, "v"));
         Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, TypeOfAwaitExpression(compNrtOn).NullableAnnotation);
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
         compNrtOff.VerifyDiagnostics();
-        Assert.Equal("string", TypeOfLocalSymbol(compNrtOff, "v"));
+        Assert.Equal("System.String", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
     [Fact]
@@ -298,13 +302,13 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
         compNrtOn.VerifyDiagnostics();
-        Assert.Equal("string?", TypeOfLocalSymbol(compNrtOn, "v"));
+        Assert.Equal("System.String?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
         compNrtOff.VerifyDiagnostics(
             // (5,36): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
             Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 36));
-        Assert.Equal("string", TypeOfLocalSymbol(compNrtOff, "v"));
+        Assert.Equal("System.String", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
     [Fact]
@@ -314,13 +318,13 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
         compNrtOn.VerifyDiagnostics();
-        Assert.Equal("string?", TypeOfLocalSymbol(compNrtOn, "v"));
+        Assert.Equal("System.String?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
         compNrtOff.VerifyDiagnostics(
             // (5,37): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
             Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 37));
-        Assert.Equal("string", TypeOfLocalSymbol(compNrtOff, "v"));
+        Assert.Equal("System.String", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
     [Fact]
@@ -330,7 +334,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
         compNrtOn.VerifyDiagnostics();
-        Assert.Equal("string?", TypeOfLocalSymbol(compNrtOn, "v"));
+        Assert.Equal("System.String?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
         compNrtOff.VerifyDiagnostics(
@@ -338,19 +342,20 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 36),
             // (5,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
             Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 38));
-        Assert.Equal("string", TypeOfLocalSymbol(compNrtOff, "v"));
+        Assert.Equal("System.String", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Operand_NullableOfValueTask_ResultIsNothing()
     {
         // Nullable<ValueTask>: GetResult() -> void; classification is *nothing* in statement position.
         var source = InAsyncMethod("await? t;", "ValueTask? t");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics();
+        Assert.Equal("System.Void", TypeOfAwaitExpression(comp).ToTestDisplayString());
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Operand_NullableOfValueTaskOfInt_ResultIsNullableInt()
     {
         // Nullable<ValueTask<int>>: GetResult() -> int; lifted to Nullable<int> regardless of NRT.
@@ -358,14 +363,14 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
         compNrtOn.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOn, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
         compNrtOff.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOff, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Operand_TypeParameter_ClassConstraint_AwaitableInstance()
     {
         var source = """
@@ -382,11 +387,11 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
         compNrtOn.VerifyDiagnostics();
         // R is int (from Task<int>.GetAwaiter().GetResult()), lifted to int?.
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOn, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
         compNrtOff.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(compNrtOff, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
     [Fact]
@@ -480,7 +485,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void ResultType_TypeParameterStructConstraintResult_Lifted()
     {
         // Result R = T where T : struct. Lifted to Nullable<T>. Value-type lifting is
@@ -651,11 +656,37 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await? t").WithArguments("NotAwaitable", "GetAwaiter").WithLocation(7, 17));
     }
 
+    [Fact]
+    public void ContextError_InCatchFilter()
+    {
+        // `await` inside a catch filter (exception-filter expression) is always illegal,
+        // regardless of async mode. `await?` inherits the same rule.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task M(Task<bool> t)
+                {
+                    try { }
+                    catch (Exception e) when (await? t) { }
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (8,26): warning CS0168: The variable 'e' is declared but never used
+            Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(8, 26),
+            // (8,35): error CS7094: Cannot await in the filter expression of a catch clause
+            //         catch (Exception e) when (await? t) { }
+            Diagnostic(ErrorCode.ERR_BadAwaitInCatchFilter, "await? t").WithLocation(8, 35));
+    }
+
     #endregion
 
     #region Interaction
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Interaction_ExtensionGetAwaiterOnUnderlyingType()
     {
         // GetAwaiter is an extension method on MyStruct. The operand is MyStruct? (Nullable<MyStruct>).
@@ -689,7 +720,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(comp, "v"));
 
         // Confirm the GetAwaiter binding resolved to the extension method.
         var tree = comp.SyntaxTrees.Single();
@@ -714,7 +745,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("System.Runtime.CompilerServices.ConfiguredTaskAwaitable").WithLocation(7, 14));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Interaction_ConfigureAwaitOnNullableTaskViaNullConditional_IsOK()
     {
         // `task?.ConfigureAwait(false)` returns `Nullable<ConfiguredTaskAwaitable>`, which
@@ -728,7 +759,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Conversions applied to the await? result
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Conversion_TaskOfInt_ToObject_Succeeds()
     {
         // `await? Task<int>` has static type `int?`. Assignment to `object` (non-nullable)
@@ -744,7 +775,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "await? t").WithLocation(7, 20));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Conversion_TaskOfInt_ToNullableObject_Succeeds()
     {
         // Same as above but the target is `object?`, matching the null-conditional semantics.
@@ -753,7 +784,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Conversion_TaskOfInt_ToNullableLong_Succeeds()
     {
         // `int?` has an implicit conversion to `long?` (lifted numeric widening). The
@@ -777,6 +808,18 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             // (7,18): warning CS8629: Nullable value type may be null.
             //         long x = await? t;
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "await? t").WithLocation(7, 18));
+    }
+
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    public void Conversion_TaskOfInt_ToLong_WithExplicitCast()
+    {
+        // The explicit cast supplies the int? -> long conversion CS0266 asked for above.
+        var source = InAsyncMethod("long x = (long)await? t;", "Task<int> t");
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (7,18): warning CS8629: Nullable value type may be null.
+            //         long x = (long)await? t;
+            Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(long)await? t").WithLocation(7, 18));
     }
 
     [Fact]
@@ -806,7 +849,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Lambdas and expression-bodied members
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void InAsyncLambda_ExplicitReturnType()
     {
         // Async lambda with explicit return type `Task<int?>`. The lambda body's `await?`
@@ -826,7 +869,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void InAsyncLambda_InferredReturnType()
     {
         // No explicit return type on the lambda — the compiler infers the element return type
@@ -847,7 +890,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void InExpressionBodiedAsyncMethod()
     {
         // Expression-bodied async method returning `Task<int?>`. The expression body is the
@@ -863,7 +906,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void InExpressionBodiedAsyncLocalFunction()
     {
         var source = """
@@ -881,17 +924,17 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void InTernaryBranch()
     {
         // Both ternary branches use `await?`; the branches' types unify to `int?`.
         var source = InAsyncMethod("var v = flag ? await? a : await? b;", "bool flag, Task<int> a, Task<int> b");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(comp, "v"));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void Nested_AwaitQuestion_AwaitQuestion()
     {
         // Two stacked `await?` applications. Inner awaits Task<Task<int>> producing Task<int>
@@ -901,10 +944,10 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         var source = InAsyncMethod("var v = await? await? outer;", "Task<Task<int>> outer");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(comp, "v"));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void NullableAnalysis_OperandIsStillAnalyzed()
     {
         // The `await?` null-receiver suppression must not leak outward and silence nullable
@@ -926,7 +969,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             // (7,34): warning CS8625: Cannot convert null literal to non-nullable reference type.
             //         var v = await? Something(null);
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 34));
-        Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(comp, "v"));
     }
 
     #endregion
@@ -1021,7 +1064,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("dynamic?", TypeOfLocalSymbol(comp, "v"));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void ExtensionGetAwaiter_OnReferenceTypeUnderlying()
     {
         // GetAwaiter is an extension on a reference-type awaitable wrapper. Nothing about the
@@ -1056,44 +1099,26 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(comp, "v"));
     }
 
-    #endregion
-
-    #region Additional await-context restrictions
-
     [Fact]
-    public void ContextError_InCatchFilter()
+    public void Result_NotAnLValue()
     {
-        // `await` inside a catch filter (exception-filter expression) is always illegal,
-        // regardless of async mode. `await?` inherits the same rule.
-        var source = """
-            using System;
-            using System.Threading.Tasks;
-            public class C
-            {
-                public async Task M(Task<bool> t)
-                {
-                    try { }
-                    catch (Exception e) when (await? t) { }
-                }
-            }
-            """;
+        // `await? t` is a value, not a variable, so it cannot be assigned to.
+        var source = InAsyncMethod("await? t = default;", "Task<int> t");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
-            // (8,26): warning CS0168: The variable 'e' is declared but never used
-            Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(8, 26),
-            // (8,35): error CS7094: Cannot await in the filter expression of a catch clause
-            //         catch (Exception e) when (await? t) { }
-            Diagnostic(ErrorCode.ERR_BadAwaitInCatchFilter, "await? t").WithLocation(8, 35));
+            // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            //         await? t = default;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "await? t").WithLocation(7, 9));
     }
 
     #endregion
 
     #region Semantic model API for ordinary (non-extension) GetAwaiter
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void GetAwaitExpressionInfo_OrdinaryInstance_TaskOfInt()
     {
         // For a plain Task<int> operand, GetAwaitExpressionInfo should surface the instance
@@ -1198,7 +1223,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await? t").WithLocation(22, 21));
         // Despite the error the binder still assigns a type to `v`: pointers are left
         // unchanged (no Nullable<int*> wrapping).
-        Assert.Equal("int*", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.Int32*", TypeOfLocalSymbol(comp, "v"));
     }
 
     [Fact]
@@ -1218,7 +1243,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source, options: TestOptions.UnsafeReleaseDll);
         comp.VerifyDiagnostics();
-        Assert.Equal("int*", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.Int32*", TypeOfLocalSymbol(comp, "v"));
     }
 
     [Fact]
@@ -1242,7 +1267,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             // (22,21): error CS4004: Cannot await in an unsafe context
             //             var v = await? t;
             Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await? t").WithLocation(22, 21));
-        Assert.Equal("delegate*<int>", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("delegate*<System.Int32>", TypeOfLocalSymbol(comp, "v"));
     }
 
     [Fact]
@@ -1262,7 +1287,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source, options: TestOptions.UnsafeReleaseDll);
         comp.VerifyDiagnostics();
-        Assert.Equal("delegate*<int>", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("delegate*<System.Int32>", TypeOfLocalSymbol(comp, "v"));
     }
 
     [Fact]
@@ -1344,7 +1369,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Type inference and overload resolution
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void TypeInference_GenericMethodArg_InfersLiftedResult()
     {
         // `M<T>(T x)` called with `await? taskOfInt` — T should be inferred from the
@@ -1362,7 +1387,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics();
-        Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.Int32?", TypeOfLocalSymbol(comp, "v"));
     }
 
     [Fact]
@@ -1382,10 +1407,10 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             """;
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics();
-        Assert.Equal("string?", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.String?", TypeOfLocalSymbol(comp, "v"));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void OverloadResolution_IntVsNullableInt_PrefersNullableInt()
     {
         // `F(int) / F(int?)` called with `await? taskOfInt` (result type int?).
@@ -1406,7 +1431,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
         // `var` inference under NRT annotates the local as `string?` because the result
         // of F flows from a MaybeDefault argument.
-        Assert.Equal("string?", TypeOfLocalSymbol(comp, "v"));
+        Assert.Equal("System.String?", TypeOfLocalSymbol(comp, "v"));
 
         // Pin which overload was picked via the semantic model.
         var tree = comp.SyntaxTrees.Single();
@@ -1417,7 +1442,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("System.String C.F(System.Int32? x)", resolved!.ToTestDisplayString());
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void OverloadResolution_ObjectVsNullableInt_PrefersNullableInt()
     {
         // `F(object) / F(int?)` called with `await? taskOfInt` (result type int?).
@@ -1502,7 +1527,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Pattern matching and deconstruction on the await? result
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void PatternMatching_IsConstantPattern_OnLiftedResult()
     {
         // `(await? t) is 42` on a Task<int> operand — the pattern is matched against int?.
@@ -1517,7 +1542,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void PatternMatching_IsTypePattern_OnLiftedNullableResult()
     {
         // `(await? t) is int value` — declaration pattern narrows int? to int.
@@ -1589,7 +1614,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void PatternMatching_SwitchExpression_OnLiftedResult()
     {
         // Switch on `await? t` with explicit `null` arm and a declaration arm.
@@ -1642,6 +1667,29 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, "await? t").WithArguments("(int, int)?", "2").WithLocation(6, 22));
     }
 
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    public void Deconstruction_TupleResult_ViaGetValueOrDefault_Works()
+    {
+        // Same operand as above, but use `.GetValueOrDefault()` to get the tuple value.
+        // This is the workaround and should compile cleanly.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task M(Task<(int, int)> t)
+                {
+                    var (a, b) = (await? t).GetValueOrDefault();
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    #endregion
+
+    #region Null-forgiving operator on the await? result
+
     [Fact]
     public void NullForgiving_OnReferenceResult_AllowsMemberAccess()
     {
@@ -1658,7 +1706,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void NullForgiving_OnLiftedValueResult_AllowsValueAccess()
     {
         // `(await? t)!.Value` on Task<int>. The result is int?; `!` narrows the flow state
@@ -1693,7 +1741,11 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "await? t").WithLocation(4, 50));
     }
 
-    [Fact]
+    #endregion
+
+    #region Definite assignment through the await? operand
+
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
     public void OutVar_InsideAwaitQuestionOperand_DefiniteAssignment()
     {
         // `await? GetTask(out var x)` — `out var x` introduces `x` as definitely assigned
@@ -1746,6 +1798,10 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             //         System.Console.WriteLine(x);
             Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(11, 34));
     }
+
+    #endregion
+
+    #region Forbidden contexts
 
     [Fact]
     public void ForbiddenContext_DefaultParameterValue()
@@ -1856,6 +1912,10 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 21));
     }
 
+    #endregion
+
+    #region Expression trees
+
     [Fact]
     public void ExpressionTree_AsyncLambda_WithAwaitQuestion_IsRejected()
     {
@@ -1880,6 +1940,10 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             //         Expression<Func<Task<int?>>> e = async () => await? t;
             Diagnostic(ErrorCode.ERR_BadAsyncExpressionTree, "async () => await? t").WithLocation(8, 42));
     }
+
+    #endregion
+
+    #region Awaitable-pattern errors match plain await
 
     [Fact]
     public void AwaitablePattern_MissingGetResult_SameErrorAsAwait()
@@ -2000,25 +2064,6 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             // (18,13): error CS1986: 'await' requires that the type MyTask have a suitable 'GetAwaiter' method
             //         _ = await? t;
             Diagnostic(ErrorCode.ERR_BadAwaitArg, "await? t").WithArguments("MyTask").WithLocation(18, 13));
-    }
-
-    [Fact]
-    public void Deconstruction_TupleResult_ViaGetValueOrDefault_Works()
-    {
-        // Same operand as above, but use `.GetValueOrDefault()` to get the tuple value.
-        // This is the workaround and should compile cleanly.
-        var source = """
-            using System.Threading.Tasks;
-            public class C
-            {
-                public async Task M(Task<(int, int)> t)
-                {
-                    var (a, b) = (await? t).GetValueOrDefault();
-                }
-            }
-            """;
-        var comp = CreateWithNullableReferenceTypesEnabled(source);
-        comp.VerifyDiagnostics();
     }
 
     #endregion
