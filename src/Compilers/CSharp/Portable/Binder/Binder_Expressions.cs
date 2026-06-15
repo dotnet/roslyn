@@ -5503,7 +5503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode BindKeyValuePairElement(KeyValuePairElementSyntax syntax, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.ColonToken.GetLocation());
+            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax.ColonToken);
             var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
             var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
             return new BoundKeyValuePairElement(syntax, key, value);
