@@ -59,7 +59,7 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         => CSharpCodeFixesResources.Make_method_async;
 
     protected override string GetMakeAsyncTaskFunctionForEventHandlerResource()
-        => CSharpCodeFixesResources.Make_method_async_for_event_handler;
+        => CSharpCodeFixesResources.Async_event_handlers_require_async_void;
 
     protected override string GetMakeAsyncVoidFunctionResource()
         => CSharpCodeFixesResources.Make_method_async_remain_void;

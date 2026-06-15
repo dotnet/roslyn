@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Make_Async_Function_for_event_handler">
-        <source>Make Async Function (prefer 'Async Sub' for event handlers)</source>
-        <target state="new">Make Async Function (prefer 'Async Sub' for event handlers)</target>
+        <source>Make Async Function (event handlers require 'Async Sub')</source>
+        <target state="new">Make Async Function (event handlers require 'Async Sub')</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_Async_Sub">

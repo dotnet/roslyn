@@ -71,7 +71,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var canOfferAsyncVoid = methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint;
 
         // Use FindAllReferences to check whether the method is actually used as an event handler.
-        var isLikelyEventHandlerMethod = canOfferAsyncVoid &&
+        var isKnownEventHandlerMethod = canOfferAsyncVoid &&
             await IsReferencedAsEventHandlerAsync(document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
 
         // Always register the Task fix first.
@@ -88,7 +88,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 CodeAction.Create(
                     taskTitle,
                     cancellationToken => FixNodeAsync(
-                        document, diagnostic, keepVoid: false, isEntryPoint, addWarningAnnotation: isLikelyEventHandlerMethod, cancellationToken),
+                        document, diagnostic, keepVoid: false, isEntryPoint, addWarningAnnotation: isKnownEventHandlerMethod, cancellationToken),
                     taskTitle),
                 context.Diagnostics);
         }
@@ -111,6 +111,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
     {
+        // Bloom filter minimizes perf impact here
         var references = await SymbolFinder.FindReferencesAsync(
             methodSymbol,
             solution,

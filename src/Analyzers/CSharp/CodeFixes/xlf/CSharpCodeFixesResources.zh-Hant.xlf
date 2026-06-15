@@ -107,10 +107,10 @@
         <target state="translated">讓方法非同步</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async_for_event_handler">
-        <source>Make method async (prefer 'async void' for event handlers)</source>
-        <target state="new">Make method async (prefer 'async void' for event handlers)</target>
-        <note />
+      <trans-unit id="Async_event_handlers_require_async_void">
+        <source>Async event handlers require 'async void'</source>
+        <target state="new">Async event handlers require 'async void'</target>
+        <note>{Locked="async void"} "async" and "void" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
