@@ -62,6 +62,13 @@ internal sealed class RemoteBuildHost
         return new RemoteProjectFile(_client, remoteProjectFileTargetObject);
     }
 
+    public async Task<RemoteProjectInstance> LoadProjectInstanceAsync(string projectFilePath, string projectContent, CancellationToken cancellationToken)
+    {
+        var remoteProjectInstanceTargetObject = await _client.InvokeAsync<int>(BuildHostTargetObject, nameof(IBuildHost.LoadProjectInstance), parameters: [projectFilePath, projectContent], cancellationToken).ConfigureAwait(false);
+
+        return new RemoteProjectInstance(_client, remoteProjectInstanceTargetObject);
+    }
+
     public Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken)
         => _client.InvokeNullableAsync<string>(BuildHostTargetObject, nameof(IBuildHost.TryGetProjectOutputPathAsync), parameters: [projectFilePath], cancellationToken);
 

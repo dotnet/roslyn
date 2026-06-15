@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 using Roslyn.Utilities;
@@ -197,6 +198,12 @@ internal sealed class BuildHost : IBuildHost
         return LoadProjectCore(projectFilePath, projectContent, languageName);
     }
 
+    public int LoadProjectInstance(string projectFilePath, string projectContent)
+    {
+        EnsureMSBuildLoaded(projectFilePath);
+        return LoadProjectInstanceCore(projectFilePath, projectContent);
+    }
+
     // When using the Mono runtime, the MSBuild types used in this method must be available
     // to the JIT during compilation of the method, so they have to be loaded by the caller;
     // therefore this method must not be inlined.
@@ -231,6 +238,22 @@ internal sealed class BuildHost : IBuildHost
 
         var (project, log) = _buildManager.LoadProject(projectFilePath, stream);
         return AddProjectFileTarget(project, languageName, log);
+    }
+
+    // When using the Mono runtime, the MSBuild types used in this method must be available
+    // to the JIT during compilation of the method, so they have to be loaded by the caller;
+    // therefore this method must not be inlined.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private int LoadProjectInstanceCore(string projectFilePath, string projectContent)
+    {
+        CreateBuildManager();
+
+        _logger.LogInformation($"Loading an in-memory project instance with the path {projectFilePath}");
+
+        using var reader = new StringReader(projectContent);
+        using var xmlReader = XmlReader.Create(reader);
+        var (projectInstance, log) = _buildManager.LoadProjectInstance(projectFilePath, xmlReader);
+        return _server.AddTarget(new ProjectInstance(projectInstance, log));
     }
 
     private int AddProjectFileTarget(Build.Evaluation.Project? project, string languageName, DiagnosticLog log)

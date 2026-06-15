@@ -45,6 +45,8 @@ internal interface IBuildHost
     /// <param name="projectContent">The project file XML content.</param>
     int LoadProject(string projectFilePath, string projectContent, string languageName);
 
+    int LoadProjectInstance(string projectFilePath, string projectContent);
+
     Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken);
     Task ShutdownAsync();
 }

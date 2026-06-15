@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Xml;
 using Microsoft.DotNet.FileBasedPrograms;
+using IProjectInstance = Microsoft.DotNet.FileBasedPrograms.IProjectInstance;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -42,7 +43,7 @@ file sealed class ProjectCollection : IProjectCollection
     public IDictionary<string, string> GlobalProperties => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 }
 
-file sealed class ProjectInstance() : IProjectInstance
+file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance) : IProjectInstance
 {
     public static ProjectInstance FromProjectRootElement(
         RemoteBuildHost buildHost,
@@ -53,12 +54,13 @@ file sealed class ProjectInstance() : IProjectInstance
         // TODO: pass global properties
         // TODO: DoOperationAndReportProgressAsync
         // TODO: make async?
-        // var remoteProjectFile = buildHost.LoadProjectAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), LanguageNames.CSharp, CancellationToken.None).Result;
-        return new ProjectInstance();
+        // TODO: report diagnostics
+        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), CancellationToken.None).Result;
+        return new ProjectInstance(remoteProjectInstance);
     }
 
     public IEnumerable<IProjectItemInstance> GetItems(string itemType) => []; // TODO
-    public string GetPropertyValue(string propertyName) => string.Empty; // TODO
+    public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, CancellationToken.None).Result;
     public string ExpandString(string value) => string.Empty; // TODO
 }
 

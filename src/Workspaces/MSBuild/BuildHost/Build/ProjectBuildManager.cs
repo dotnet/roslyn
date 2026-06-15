@@ -144,6 +144,18 @@ internal sealed class ProjectBuildManager
         }
     }
 
+    private static (MSB.Execution.ProjectInstance? projectInstance, DiagnosticLog log) LoadProjectInstanceCore(
+        string path, XmlReader content, MSB.Evaluation.ProjectCollection? projectCollection, DiagnosticLog log)
+    {
+        var projectRootElement = MSB.Construction.ProjectRootElement.Create(content, projectCollection);
+        projectRootElement.FullPath = path;
+        var projectInstance = MSB.Execution.ProjectInstance.FromProjectRootElement(projectRootElement, new MSB.Definition.ProjectOptions
+        {
+            ProjectCollection = projectCollection,
+        });
+        return (projectInstance, log);
+    }
+
     public Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
         string path, CancellationToken cancellationToken)
     {
@@ -201,6 +213,40 @@ internal sealed class ProjectBuildManager
         {
             log.Add(e, path);
             return (project: null, log);
+        }
+    }
+
+    public (MSB.Execution.ProjectInstance? projectInstance, DiagnosticLog log) LoadProjectInstance(string path, XmlReader content)
+    {
+        var log = new DiagnosticLog();
+        try
+        {
+            if (BatchBuildStarted)
+            {
+                return LoadProjectInstanceCore(path, content, _batchBuildProjectCollection, log);
+            }
+            else
+            {
+                var projectCollection = new MSB.Evaluation.ProjectCollection(
+                    AllGlobalProperties,
+                    // https://github.com/dotnet/msbuild/issues/11867: workaround LoggerException when passing binary logger to both evaluation and build
+                    loggers: [],
+                    MSB.Evaluation.ToolsetDefinitionLocations.Default);
+                try
+                {
+                    return LoadProjectInstanceCore(path, content, projectCollection, log);
+                }
+                finally
+                {
+                    // unload project so collection will release global strings
+                    projectCollection.UnloadAllProjects();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            log.Add(e, path);
+            return (projectInstance: null, log);
         }
     }
 
