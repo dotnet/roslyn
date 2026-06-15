@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
-internal sealed partial class ProjectSystemProjectFactory
+internal sealed partial class ProjectSystemProjectFactory : IDisposable
 {
     /// <summary>
     /// The main gate to synchronize updates to this solution.
@@ -96,6 +96,12 @@ internal sealed partial class ProjectSystemProjectFactory
 
     public FileTextLoader CreateFileTextLoader(string fullPath)
         => new WorkspaceFileTextLoader(this.SolutionServices, fullPath, defaultEncoding: null);
+
+    public void Dispose()
+    {
+        PortableExecutableReferenceFileChangeTracker.Dispose();
+        AnalyzerReferenceFileChangeTracker.Dispose();
+    }
 
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo, CancellationToken cancellationToken = default)
     {

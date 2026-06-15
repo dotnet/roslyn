@@ -1,0 +1,27 @@
+﻿Source Location: (7:0,7 [248] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public interface IValue<TSelf>
+        where TSelf : IValue<TSelf>
+    {
+        static abstract TSelf Zero { get; }
+    }
+    
+    public readonly struct Value : IValue<Value>
+    {
+        public static Value Zero => new();
+    }
+|
+Generated Location: (783:23,0 [248] )
+|
+    public interface IValue<TSelf>
+        where TSelf : IValue<TSelf>
+    {
+        static abstract TSelf Zero { get; }
+    }
+    
+    public readonly struct Value : IValue<Value>
+    {
+        public static Value Zero => new();
+    }
+|
+

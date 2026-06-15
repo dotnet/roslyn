@@ -1,0 +1,19 @@
+﻿Source Location: (2:0,2 [100] x:\dir\subdir\Test\TestComponent.razor)
+|
+    [System.Diagnostics.DebuggerStepThrough]
+    void Local()
+    {
+    }
+    
+    Local();
+|
+Generated Location: (733:21,0 [100] )
+|
+    [System.Diagnostics.DebuggerStepThrough]
+    void Local()
+    {
+    }
+    
+    Local();
+|
+
