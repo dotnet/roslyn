@@ -128,11 +128,14 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
                 var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var operation = semanticModel.GetOperation(syntaxNode, cancellationToken);
-                for (var current = operation; current != null; current = current.Parent)
+                for (var currentNode = syntaxNode; currentNode != null; currentNode = currentNode.Parent)
                 {
-                    if (current is IEventAssignmentOperation)
-                        return true;
+                    var operation = semanticModel.GetOperation(currentNode, cancellationToken);
+                    for (var current = operation; current != null; current = current.Parent)
+                    {
+                        if (current is IEventAssignmentOperation)
+                            return true;
+                    }
                 }
             }
         }
