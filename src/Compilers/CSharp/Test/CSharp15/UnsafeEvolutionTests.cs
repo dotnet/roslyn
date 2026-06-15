@@ -9006,7 +9006,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public int P3 => 0;
                 public static int P4 { get; set; }
                 [field: FieldOffset(0)] public event System.Action E1;
-                public event System.Action E2 { add { } remove { } }
+                public static event System.Action E2;
+                public event System.Action E3 { add { } remove { } }
             }
 
             [StructLayout(LayoutKind.Explicit)]
@@ -9016,6 +9017,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             public {{kind}} P([field: FieldOffset(0)] int x)
             {
                 public int X => x;
+            }
+
+            [StructLayout(LayoutKind.Explicit)]
+            {{kind}} S2
+            {
+                safe public const int F1 = 0;
+                safe public static int F2 = 0;
+                safe public static int P { get; set; }
+                safe public static event System.Action E;
             }
             """;
 
@@ -9034,28 +9044,52 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (13,56): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
             //     [field: FieldOffset(0)] public event System.Action E1;
             Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 56),
-            // (18,52): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
-            // public record struct R([field: FieldOffset(0)] int X);
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(18, 52),
-            // (21,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
-            // public struct P([field: FieldOffset(0)] int x)
-            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(21, 18),
-            // (21,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
-            // public struct P([field: FieldOffset(0)] int x)
-            Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(21, 45),
-            // (21,45): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
-            // public struct P([field: FieldOffset(0)] int x)
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(21, 45));
+            // (19,52): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // public record class  R([field: FieldOffset(0)] int X);
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 52),
+            // (22,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(22, 18),
+            // (22,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(22, 45),
+            // (22,45): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 45),
+            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public const int F1 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
+            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int F2 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
+            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
+            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
 
         CreateCompilation([source, IsExternalInitTypeDefinition],
             options: TestOptions.ReleaseDll)
             .VerifyDiagnostics(
-            // (21,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
-            // public struct P([field: FieldOffset(0)] int x)
-            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(21, 18),
-            // (21,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
-            // public struct P([field: FieldOffset(0)] int x)
-            Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(21, 45));
+            // (22,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(22, 18),
+            // (22,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(22, 45),
+            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public const int F1 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
+            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int F2 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
+            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
+            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
     }
 
     [Fact]
@@ -9125,7 +9159,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public int P3 => 0;
                 public static int P4 { get; set; }
                 public event System.Action E1;
-                public event System.Action E2 { add { } remove { } }
+                public static event System.Action E2;
+                public event System.Action E3 { add { } remove { } }
             }
 
             [ExtendedLayout(ExtendedLayoutKind.CStruct)]
@@ -9135,6 +9170,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             public struct P(int x)
             {
                 public int X => x;
+            }
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+            struct S2
+            {
+                safe public const int F1 = 0;
+                safe public static int F2 = 0;
+                safe public static int P { get; set; }
+                safe public static event System.Action E;
             }
             """;
 
@@ -9154,17 +9198,86 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (13,32): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
             //     public event System.Action E1;
             Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 32),
-            // (18,28): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // (19,28): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
             // public record struct R(int X);
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(18, 28),
-            // (21,21): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 28),
+            // (22,21): error CS9391: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
             // public struct P(int x)
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(21, 21));
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 21),
+            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public const int F1 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
+            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int F2 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
+            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
+            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
 
         CreateCompilation(source,
             targetFramework: TargetFramework.Net110,
             options: TestOptions.ReleaseDll)
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(
+            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public const int F1 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
+            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int F2 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
+            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
+            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
+    }
+
+    [Theory, CombinatorialData]
+    public void Member_Field_ExtendedLayout_Class(bool updatedRules)
+    {
+        var source = """
+            #pragma warning disable CS0649, CS0067 // unused field, event
+
+            using System.Runtime.InteropServices;
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)] class S
+            {
+                public int F1;
+                public const int F2 = 0;
+                public static int F3 = 0;
+                public int P1 { get; set; }
+                public int P2 => field;
+                public int P3 => 0;
+                public static int P4 { get; set; }
+                public event System.Action E1;
+                public static event System.Action E2;
+                public event System.Action E3 { add { } remove { } }
+            }
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)] public record R(int X);
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)] public class P(int x)
+            {
+                public int X => x;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (5,2): error CS0592: Attribute 'ExtendedLayout' is not valid on this declaration type. It is only valid on 'struct' declarations.
+            // [ExtendedLayout(ExtendedLayoutKind.CStruct)] class S
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtendedLayout").WithArguments("ExtendedLayout", "struct").WithLocation(5, 2),
+            // (19,2): error CS0592: Attribute 'ExtendedLayout' is not valid on this declaration type. It is only valid on 'struct' declarations.
+            // [ExtendedLayout(ExtendedLayoutKind.CStruct)] public record R(int X);
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtendedLayout").WithArguments("ExtendedLayout", "struct").WithLocation(19, 2),
+            // (21,2): error CS0592: Attribute 'ExtendedLayout' is not valid on this declaration type. It is only valid on 'struct' declarations.
+            // [ExtendedLayout(ExtendedLayoutKind.CStruct)] public class P(int x)
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtendedLayout").WithArguments("ExtendedLayout", "struct").WithLocation(21, 2));
     }
 
     [Theory, CombinatorialData]

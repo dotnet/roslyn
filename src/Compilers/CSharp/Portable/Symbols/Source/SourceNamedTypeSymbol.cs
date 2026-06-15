@@ -2107,7 +2107,7 @@ next:;
             foreach (var field in fields)
             {
                 if (field is SourceMemberFieldSymbol { AssociatedSymbol: null, HasSafeModifier: true } sourceField &&
-                    (!hasExplicitOrExtendedLayout || sourceField.HasUnsafeModifier))
+                    (!hasExplicitOrExtendedLayout || field.IsStatic || field.IsConst || sourceField.HasUnsafeModifier))
                 {
                     diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
                         sourceField.ModifiersTokenList.GetModifierLocation(SyntaxKind.SafeKeyword, field.GetFirstLocation()));
