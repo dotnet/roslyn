@@ -57,6 +57,7 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
     public CodeStyleOption2<bool> PreferSimplifiedInterpolation => GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation);
     public CodeStyleOption2<bool> PreferSystemHashCode => GetOption(CodeStyleOptions2.PreferSystemHashCode);
     public CodeStyleOption2<UnusedParametersPreference> UnusedParameters => GetOption(CodeStyleOptions2.UnusedParameters);
+    public CodeStyleOption2<EventHandlerDetectionMode> MakeMethodAsyncEventHandlerDetection => GetOption(CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection);
     public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers => GetOption(CodeStyleOptions2.AccessibilityModifiersRequired);
     public CodeStyleOption2<bool> PreferReadonly => GetOption(CodeStyleOptions2.PreferReadonly);
     public CodeStyleOption2<ParenthesesPreference> ArithmeticBinaryParentheses => GetOption(CodeStyleOptions2.ArithmeticBinaryParentheses);

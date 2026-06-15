@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1453,4 +1454,231 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """, index: 1);
+
+    // ── EventHandlerDetectionMode tests ─────────────────────────────────────
+
+    /// <summary>
+    /// With the default (Signature) mode, a method that looks like an event handler
+    /// should have async void listed first (index 0) and async Task second (index 1).
+    /// </summary>
+    [Fact]
+    public Task EventHandlerDetection_Signature_PrefersAsyncVoid()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void OnClick(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }
+            }
+            """,
+            index: 0,
+            parameters: new TestParameters(globalOptions: Option(
+                CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
+                new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.Signature, NotificationOption2.Silent))));
+
+    /// <summary>
+    /// With Signature mode, a method that does NOT look like an event handler should
+    /// have async Task listed first (index 0) and async void second (index 1).
+    /// </summary>
+    [Fact]
+    public Task EventHandlerDetection_Signature_NonEventHandler_TaskFirst()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void DoWork(string s)
+                {
+                    [|await Task.Delay(1);|]
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task DoWorkAsync(string s)
+                {
+                    await Task.Delay(1);
+                }
+            }
+            """,
+            index: 0,
+            parameters: new TestParameters(globalOptions: Option(
+                CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
+                new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.Signature, NotificationOption2.Silent))));
+
+    /// <summary>
+    /// With Off mode, even an event-handler-shaped method should list async Task first
+    /// (index 0) regardless of its signature.
+    /// </summary>
+    [Fact]
+    public Task EventHandlerDetection_Off_TaskFirst()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task OnClickAsync(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }
+            }
+            """,
+            index: 0,
+            parameters: new TestParameters(globalOptions: Option(
+                CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
+                new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.Off, NotificationOption2.Silent))));
+
+    /// <summary>
+    /// With Off mode, async void is still offered but at index 1.
+    /// </summary>
+    [Fact]
+    public Task EventHandlerDetection_Off_AsyncVoidStillOffered()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void OnClick(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }
+            }
+            """,
+            index: 1,
+            parameters: new TestParameters(globalOptions: Option(
+                CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
+                new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.Off, NotificationOption2.Silent))));
+
+    /// <summary>
+    /// With References mode and no actual event subscription in the compilation,
+    /// async Task should be listed first (index 0) even for an event-handler-shaped method.
+    /// </summary>
+    [Fact]
+    public Task EventHandlerDetection_References_NoSubscription_TaskFirst()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task OnClickAsync(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }
+            }
+            """,
+            index: 0,
+            parameters: new TestParameters(globalOptions: Option(
+                CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
+                new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.References, NotificationOption2.Silent))));
+
+    /// <summary>
+    /// With References mode and an actual event subscription present, async void should
+    /// be listed first (index 0).
+    /// </summary>
+    [Fact]
+    public Task EventHandlerDetection_References_WithSubscription_PrefersAsyncVoid()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class Button
+            {
+                public event EventHandler Clicked;
+            }
+
+            class C
+            {
+                void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                void Wire()
+                {
+                    var b = new Button();
+                    b.Clicked += OnClick;
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class Button
+            {
+                public event EventHandler Clicked;
+            }
+
+            class C
+            {
+                async void OnClick(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }
+
+                void Wire()
+                {
+                    var b = new Button();
+                    b.Clicked += OnClick;
+                }
+            }
+            """,
+            index: 0,
+            parameters: new TestParameters(globalOptions: Option(
+                CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
+                new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.References, NotificationOption2.Silent))));
 }

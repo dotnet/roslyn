@@ -350,6 +350,35 @@ internal static class CodeStyleOptions2
         "dotnet_style_allow_statement_immediately_after_block_experimental",
         defaultValue: CodeStyleOption2.TrueWithSilentEnforcement);
 
+    private static readonly BidirectionalMap<string, EventHandlerDetectionMode> s_eventHandlerDetectionModeMap =
+        new(
+        [
+            KeyValuePair.Create("signature", EventHandlerDetectionMode.Signature),
+            KeyValuePair.Create("references", EventHandlerDetectionMode.References),
+            KeyValuePair.Create("off", EventHandlerDetectionMode.Off),
+        ]);
+
+    internal static readonly Option2<CodeStyleOption2<EventHandlerDetectionMode>> MakeMethodAsyncEventHandlerDetection = CreateOption(
+        CodeStyleOptionGroups.Parameter,
+        "dotnet_make_method_async_event_handler_detection",
+        defaultValue: new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.Signature, NotificationOption2.Silent),
+        defaultValue => new(
+            parseValue: str =>
+            {
+                if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(str, defaultValue.Notification, out var value, out var notification))
+                {
+                    return new CodeStyleOption2<EventHandlerDetectionMode>(s_eventHandlerDetectionModeMap.GetValueOrDefault(value), notification);
+                }
+
+                return defaultValue;
+            },
+            serializeValue: option =>
+            {
+                Debug.Assert(s_eventHandlerDetectionModeMap.ContainsValue(option.Value));
+                var value = s_eventHandlerDetectionModeMap.GetKeyOrDefault(option.Value) ?? s_eventHandlerDetectionModeMap.GetKeyOrDefault(defaultValue.Value);
+                return $"{value}{CodeStyleHelpers.GetEditorConfigStringNotificationPart(option, defaultValue)}";
+            }));
+
     /// <summary>
     /// Options that we expect the user to set in editorconfig.
     /// </summary>
