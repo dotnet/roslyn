@@ -26,8 +26,6 @@ namespace IdeCoreBenchmarks
                 AddExporter(DefaultConfig.Instance.GetExporters().ToArray());
                 AddColumnProvider(DefaultConfig.Instance.GetColumnProviders().ToArray());
                 AddDiagnoser(MemoryDiagnoser.Default);
-                // Roslyn's dependency graph takes longer than the 2-minute default to build.
-                WithBuildTimeout(TimeSpan.FromMinutes(10));
             }
         }
 
@@ -42,7 +40,7 @@ namespace IdeCoreBenchmarks
         private static void Main(string[] args)
         {
             Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
-            new BenchmarkSwitcher(typeof(Program).Assembly).Run(args, new IgnoreReleaseOnly());
+            new BenchmarkSwitcher(typeof(Program).Assembly).Run(args);
         }
     }
 }
