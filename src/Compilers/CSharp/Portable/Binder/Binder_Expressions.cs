@@ -11667,13 +11667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
-            accessType = ComputeConditionalAccessResultType(
-                node,
-                accessType,
-                access.Display,
-                access.Syntax.Location,
-                diagnostics,
-                out bool cannotBeMadeNullable);
+            accessType = ComputeConditionalAccessResultType(node, accessType, access.Display, access.Syntax.Location, diagnostics, out bool cannotBeMadeNullable);
 
             if (cannotBeMadeNullable)
             {

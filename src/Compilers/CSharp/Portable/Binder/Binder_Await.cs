@@ -61,12 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For `await?` the operand's static type (S) can differ from the awaitable-pattern lookup
             // type (U = V when S = Nullable<V>). GetAwaitableExpressionInfo asserts the two BoundExpression
             // args it receives have equal Types, so for this case we pass the placeholder as both.
-            var info = BindAwaitInfo(
-                placeholder,
-                node,
-                diagnostics,
-                ref hasErrors,
-                expressionOpt: isNullConditional ? placeholder : expression);
+            var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: isNullConditional ? placeholder : expression);
 
             // Spec 7.7.7.2:
             // The expression await t is classified the same way as the expression (t).GetAwaiter().GetResult(). Thus,
@@ -80,13 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Nullable<R> when R is a non-nullable value type, left alone for reference types /
                 // already-nullable value types / dynamic, and errors out (ERR_CannotBeMadeNullable)
                 // when R is an unconstrained type parameter and the result is used.
-                awaitExpressionType = ComputeConditionalAccessResultType(
-                    node,
-                    awaitExpressionType,
-                    awaitExpressionType,
-                    node.QuestionToken.GetLocation(),
-                    diagnostics,
-                    out bool cannotBeMadeNullable);
+                awaitExpressionType = ComputeConditionalAccessResultType(node, awaitExpressionType, awaitExpressionType, node.QuestionToken.GetLocation(), diagnostics, out bool cannotBeMadeNullable);
                 hasErrors |= cannotBeMadeNullable;
             }
 
