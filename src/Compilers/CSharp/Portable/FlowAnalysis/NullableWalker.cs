@@ -13067,9 +13067,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // For `await? e`, node.Type is the lifted result type (Nullable<R> for a
                 // non-nullable value-type R, R with NRT annotation for a reference type, etc.
-                // per spec §12.9.8.3). Use it directly; the proper null-flow modeling of the
-                // short-circuit lands with a later phase. This tracks as MaybeDefault because
+                // per spec §12.9.8.3). Use it directly; it tracks as MaybeDefault because
                 // `await? e` evaluates to null when e is null.
+                // PROTOTYPE(null-conditional-await): model the short-circuit null-flow properly; deferred to a later phase.
                 SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.MaybeDefault));
             }
             else if (awaitableInfo is { GetResult: null, RuntimeAsyncAwaitCall: not null })
