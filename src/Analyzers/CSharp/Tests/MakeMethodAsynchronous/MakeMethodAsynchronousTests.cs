@@ -1678,7 +1678,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
             index: 0,
-            parameters: new TestParameters(globalOptions: Option(
+            parameters: new TestParameters(options: Option(
                 CodeStyleOptions2.MakeMethodAsyncEventHandlerDetection,
                 new CodeStyleOption2<EventHandlerDetectionMode>(EventHandlerDetectionMode.References, NotificationOption2.Silent))));
 }

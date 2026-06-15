@@ -161,20 +161,19 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                     continue;
 
                 var refNode = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                var operation = semanticModel.GetOperation(refNode, cancellationToken);
 
-                // Walk up the IOperation tree looking for an event assignment (+=)
-                var current = operation?.Parent;
-                while (current != null)
+                // GetOperation on an identifier (method-group) node often returns null.
+                // Walk up the syntax tree instead and get the operation at each ancestor level
+                // until we confirm an event subscription (+=) or reach a statement boundary.
+                for (var ancestor = refNode.Parent; ancestor != null; ancestor = ancestor.Parent)
                 {
-                    if (current is IEventAssignmentOperation { Adds: true })
+                    var op = semanticModel.GetOperation(ancestor, cancellationToken);
+                    if (op is IEventAssignmentOperation { Adds: true })
                         return true;
 
-                    // Stop once we leave the surrounding expression context
-                    if (current is IExpressionStatementOperation or IBlockOperation)
+                    // Stop at statement / block boundaries.
+                    if (op is IExpressionStatementOperation or IBlockOperation or IMethodBodyOperation)
                         break;
-
-                    current = current.Parent;
                 }
             }
         }
