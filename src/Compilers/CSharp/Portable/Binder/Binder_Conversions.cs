@@ -1198,22 +1198,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // From this point out, all the remaining collection types end up converting all their elements
-                // to their actual element type and passing those along.
-
-                ImmutableArray<BoundNode> elements = collectionTypeKind == CollectionExpressionTypeKind.DictionaryInterface
-                    ? default
-                    : BindElements(elementType);
+                // to their actual element type and passing those along. Each helper binds its own elements (via
+                // BindElements / BindDictionaryInterfaceElements) so that all non-shared logic lives in the helper.
 
                 return collectionTypeKind switch
                 {
                     CollectionExpressionTypeKind.Array or CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan
-                        => TryConvertCollectionExpressionArrayOrSpanType(collectionTypeKind, elements),
+                        => TryConvertCollectionExpressionArrayOrSpanType(collectionTypeKind, elementType),
 
                     CollectionExpressionTypeKind.ArrayInterface
-                        => TryConvertCollectionExpressionArrayInterfaceType(elements),
+                        => TryConvertCollectionExpressionArrayInterfaceType(elementType),
 
                     CollectionExpressionTypeKind.CollectionBuilder
-                        => TryConvertCollectionExpressionBuilderType(elements),
+                        => TryConvertCollectionExpressionBuilderType(elementType),
 
                     CollectionExpressionTypeKind.DictionaryInterface
                         => TryConvertCollectionExpressionDictionaryInterfaceType(elementType),
@@ -1614,9 +1611,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayOrSpanType(
                 CollectionExpressionTypeKind collectionTypeKind,
-                ImmutableArray<BoundNode> elements)
+                TypeSymbol elementType)
             {
                 var syntax = _node.Syntax;
+                var elements = BindElements(elementType);
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.Span:
@@ -1641,8 +1639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateCollectionExpression(collectionTypeKind, elements);
             }
 
-            private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayInterfaceType(ImmutableArray<BoundNode> elements)
+            private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayInterfaceType(TypeSymbol elementType)
             {
+                var elements = BindElements(elementType);
                 if (_node.WithElement?.Arguments.Length > 0 &&
                     _targetType.IsReadOnlyArrayInterface(out _))
                 {
@@ -1729,8 +1728,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private readonly BoundCollectionExpression? TryConvertCollectionExpressionBuilderType(ImmutableArray<BoundNode> elements)
+            private readonly BoundCollectionExpression? TryConvertCollectionExpressionBuilderType(TypeSymbol elementType)
             {
+                var elements = BindElements(elementType);
                 var (collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder) = bindCollectionBuilderInfo(in this);
                 if (collectionCreation is null || collectionBuilderMethod is null || collectionBuilderElementsPlaceholder is null)
                     return null;
