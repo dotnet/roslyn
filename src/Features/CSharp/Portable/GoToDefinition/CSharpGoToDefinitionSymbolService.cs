@@ -85,6 +85,15 @@ internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefiniti
             if (corresponding is null)
                 return null;
 
+            // break/continue cannot cross a lambda, anonymous method, or local function. If one of those
+            // sits between the statement and the loop/switch that GetCorrespondingOperation found, the jump
+            // is not actually valid (e.g. 'break' inside a lambda nested in a switch), so don't navigate.
+            for (var current = node; current is not null && current != corresponding.Syntax; current = current.Parent)
+            {
+                if (current.IsReturnableConstruct())
+                    return null;
+            }
+
             // 'break' transfers control to just past the construct it exits, so navigate to its end.
             // 'continue' transfers control back to the construct itself, so navigate to its start.
             return isBreak
