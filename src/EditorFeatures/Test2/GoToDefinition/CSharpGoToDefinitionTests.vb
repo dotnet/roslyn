@@ -3627,21 +3627,21 @@ class C
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
-        <Document>
+        <Document><![CDATA[
 class C
 {
     void M()
     {
-        [|outer|]: for (int i = 0; i < 10; i++)
+        [|outer|]: for (int i = 0; i <10; i++)
         {
             while (true)
             {
-                continue ou$$ter;
+                Continue ou$$ter;
             }
         }
     }
 }
-        </Document>
+        ]]></Document>
     </Project>
 </Workspace>
 
