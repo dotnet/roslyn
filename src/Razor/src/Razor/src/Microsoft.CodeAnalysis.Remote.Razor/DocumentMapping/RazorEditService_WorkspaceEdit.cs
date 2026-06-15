@@ -296,6 +296,12 @@ internal partial class RazorEditService
             }
         }
 
+        if (builder.Count == edits.Length)
+        {
+            // No duplicates, return original array to avoid unnecessary allocations.
+            return edits;
+        }
+
         return builder.ToArrayAndClear();
     }
 }
