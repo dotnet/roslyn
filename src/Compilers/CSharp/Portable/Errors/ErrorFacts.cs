@@ -649,6 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_EncNoPIAReference
                 or ErrorCode.ERR_EncReferenceToAddedMember
                 or ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
+                or ErrorCode.ERR_AbstractBaseRecordImplementation
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.

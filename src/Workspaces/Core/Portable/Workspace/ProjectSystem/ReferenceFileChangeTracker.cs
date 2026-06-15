@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem;
 
-internal sealed class ReferenceFileChangeTracker
+internal sealed class ReferenceFileChangeTracker : IDisposable
 {
     private readonly object _gate = new();
 
@@ -36,6 +36,7 @@ internal sealed class ReferenceFileChangeTracker
     private readonly Dictionary<string, (IWatchedFile Token, int RefCount)> _referenceFileWatchingTokens = [];
     private readonly AsyncBatchingWorkQueue<string> _workQueue;
     private readonly Func<string, CancellationToken, Task> _callback;
+    private bool _isDisposed;
 
     public ReferenceFileChangeTracker(
         IFileChangeWatcher fileChangeWatcher,
@@ -103,6 +104,9 @@ internal sealed class ReferenceFileChangeTracker
     {
         lock (_gate)
         {
+            if (_isDisposed)
+                return;
+
             var (token, count) = _referenceFileWatchingTokens.GetOrAdd(fullFilePath, _ =>
             {
                 var fileToken = _fileReferenceChangeContext.Value.EnqueueWatchingFile(fullFilePath);
@@ -122,6 +126,9 @@ internal sealed class ReferenceFileChangeTracker
     {
         lock (_gate)
         {
+            if (_isDisposed)
+                return;
+
             if (!_referenceFileWatchingTokens.TryGetValue(fullFilePath, out var watchedFileReference))
                 throw new ArgumentException("Attempting to stop watching a file that we never started watching. This is a bug.");
 
@@ -155,6 +162,24 @@ internal sealed class ReferenceFileChangeTracker
     private async ValueTask ProcessWorkAsync(ImmutableSegmentedList<string> list, CancellationToken cancellationToken)
     {
         foreach (var filePath in list)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             await _callback(filePath, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            if (_isDisposed)
+                return;
+
+            _workQueue.Dispose();
+            _isDisposed = true;
+
+            if (_fileReferenceChangeContext.IsValueCreated)
+                _fileReferenceChangeContext.Value.Dispose();
+        }
     }
 }
