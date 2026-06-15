@@ -11685,7 +11685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Applies the null-conditional result-type rule (§11.7.7 for <c>?.</c>, §11.8.8.3 for <c>await?</c>)
+        /// Applies the null-conditional result-type rule (§12.8.8 for <c>?.</c>, §12.9.8.3 for <c>await?</c>)
         /// to lift <paramref name="accessType"/> to <c>Nullable&lt;T&gt;</c> when it is a non-nullable value
         /// type, keep it unchanged when it is a reference type / already-nullable value type / pointer /
         /// <c>dynamic</c>, or report <see cref="ErrorCode.ERR_CannotBeMadeNullable"/> when it is a type that

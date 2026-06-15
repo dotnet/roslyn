@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MessageID.IDS_FeatureNullConditionalAwait.CheckFeatureAvailability(diagnostics, node.QuestionToken);
 
-                // Operand-nullability rule (spec §11.8.8.5). Reject non-nullable value-type operands —
+                // Operand-nullability rule (spec §12.9.8.5). Reject non-nullable value-type operands —
                 // concrete structs like ValueTask / ValueTask<T>, and type parameters with a `struct`
                 // or `unmanaged` constraint. Reference types, Nullable<V>, type parameters without a
                 // `struct` constraint (class, interface, notnull, unconstrained), and `dynamic` all
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false;
 
             // For `await? t` with operand of type Nullable<V>, the awaitable pattern is resolved on V
-            // (spec §11.8.8.2). For every other case — reference types, type parameters without a
+            // (spec §12.9.8.2). For every other case — reference types, type parameters without a
             // `struct` constraint, and `dynamic` — the pattern is resolved on the operand's static
             // type unchanged. StrippedType() strips Nullable<V> to V and is a no-op otherwise.
             TypeSymbol? placeholderType = isNullConditional
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isNullConditional)
             {
-                // Apply the result-type rule (spec §11.8.8.3). R (awaitExpressionType) is lifted to
+                // Apply the result-type rule (spec §12.9.8.3). R (awaitExpressionType) is lifted to
                 // Nullable<R> when R is a non-nullable value type, left alone for reference types /
                 // already-nullable value types / dynamic, and errors out (ERR_CannotBeMadeNullable)
                 // when R is an unconstrained type parameter and the result is used.
