@@ -21,18 +21,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, node.AwaitKeyword);
 
-            BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
+            BoundExpression operand = BindRValueWithoutTargetType(node.Expression, diagnostics);
 
-            return BindAwait(expression, node, diagnostics);
+            bool isNullConditional = node.QuestionToken.IsKind(SyntaxKind.QuestionToken);
+            if (isNullConditional)
+            {
+                MessageID.IDS_FeatureNullConditionalAwait.CheckFeatureAvailability(diagnostics, node.QuestionToken);
+
+                // Operand-nullability rule (spec §12.9.8.5). Reject non-nullable value-type operands —
+                // concrete structs like ValueTask / ValueTask<T>, and type parameters with a `struct`
+                // or `unmanaged` constraint. Reference types, Nullable<V>, type parameters without a
+                // `struct` constraint (class, interface, notnull, unconstrained), and `dynamic` all
+                // proceed.
+                if (operand.Type is { IsValueType: true } operandType && !operandType.IsNullableType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_AwaitConditionalNonNullableValueType, node.QuestionToken.GetLocation(), operandType);
+                    return BadExpression(node, operand);
+                }
+            }
+
+            return BindAwait(operand, node, diagnostics, isNullConditional);
         }
 
-        private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, BindingDiagnosticBag diagnostics)
+        private BoundAwaitExpression BindAwait(BoundExpression expression, AwaitExpressionSyntax node, BindingDiagnosticBag diagnostics, bool isNullConditional)
         {
             bool hasErrors = false;
-            var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
+
+            // For `await? t` with operand of type Nullable<V>, the awaitable pattern is resolved on V
+            // (spec §12.9.8.2). For every other case — reference types, type parameters without a
+            // `struct` constraint, and `dynamic` — the pattern is resolved on the operand's static
+            // type unchanged. StrippedType() strips Nullable<V> to V and is a no-op otherwise.
+            TypeSymbol? placeholderType = isNullConditional
+                ? expression.Type?.StrippedType()
+                : expression.Type;
+            var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, placeholderType);
 
             ReportBadAwaitDiagnostics(node, diagnostics, ref hasErrors);
-            var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: expression);
+
+            // For `await?` the operand's static type (S) can differ from the awaitable-pattern lookup
+            // type (U = V when S = Nullable<V>). GetAwaitableExpressionInfo asserts the two BoundExpression
+            // args it receives have equal Types, so for this case we pass the placeholder as both.
+            var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: isNullConditional ? placeholder : expression);
 
             // Spec 7.7.7.2:
             // The expression await t is classified the same way as the expression (t).GetAwaiter().GetResult(). Thus,
@@ -40,7 +69,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // non-void return type T, the await-expression is classified as a value of type T.
             TypeSymbol awaitExpressionType = (info.GetResult ?? info.RuntimeAsyncAwaitCall?.Method)?.ReturnType ?? (hasErrors ? CreateErrorType() : Compilation.DynamicType);
 
-            return new BoundAwaitExpression(node, expression, info, debugInfo: default, awaitExpressionType, hasErrors);
+            if (isNullConditional)
+            {
+                // Apply the result-type rule (spec §12.9.8.3). R (awaitExpressionType) is lifted to
+                // Nullable<R> when R is a non-nullable value type, left alone for reference types /
+                // already-nullable value types / dynamic, and errors out (ERR_CannotBeMadeNullable)
+                // when R is an unconstrained type parameter and the result is used.
+                awaitExpressionType = ComputeConditionalAccessResultType(
+                    node, awaitExpressionType, awaitExpressionType, node.QuestionToken.GetLocation(), diagnostics, out bool cannotBeMadeNullable);
+                hasErrors |= cannotBeMadeNullable;
+            }
+
+            return new BoundAwaitExpression(node, expression, info, debugInfo: default, isNullConditional, awaitExpressionType, hasErrors);
         }
 
         internal void ReportBadAwaitDiagnostics(SyntaxNodeOrToken nodeOrToken, BindingDiagnosticBag diagnostics, ref bool hasErrors)

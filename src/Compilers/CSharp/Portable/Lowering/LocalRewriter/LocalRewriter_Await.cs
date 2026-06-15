@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -22,7 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteAwaitExpression(SyntaxNode syntax, BoundExpression rewrittenExpression, BoundAwaitableInfo awaitableInfo, TypeSymbol type, BoundAwaitExpressionDebugInfo debugInfo, bool used)
         {
-            return RewriteAwaitExpression(new BoundAwaitExpression(syntax, rewrittenExpression, awaitableInfo, debugInfo, type) { WasCompilerGenerated = true }, used);
+            // This factory only builds compiler-synthesized awaits (foreach MoveNextAsync/DisposeAsync, using DisposeAsync),
+            // which are never the null-conditional `await?` form; that form keeps IsNullConditional on its own bound node.
+            Debug.Assert(syntax is not AwaitExpressionSyntax { QuestionToken.RawKind: (int)SyntaxKind.QuestionToken });
+            return RewriteAwaitExpression(new BoundAwaitExpression(syntax, rewrittenExpression, awaitableInfo, debugInfo, isNullConditional: false, type) { WasCompilerGenerated = true }, used);
         }
 
         /// <summary>

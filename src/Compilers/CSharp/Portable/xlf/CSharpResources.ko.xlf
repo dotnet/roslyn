@@ -162,6 +162,11 @@
         <target state="translated">자동 구현 'set' 접근자 '{0}'을(를) 'readonly'로 표시할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AwaitConditionalNonNullableValueType">
+        <source>'await?' cannot be applied to an operand of non-nullable value type '{0}'.</source>
+        <target state="new">'await?' cannot be applied to an operand of non-nullable value type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance or extension definition for '{1}'</source>
         <target state="translated">'{0}' 형식 변수에서 비동기 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 적합한 공개 인스턴스 또는 확장 정의가 없기 때문입니다.</target>
@@ -3085,6 +3090,11 @@
       <trans-unit id="IDS_FeatureNullConditionalAssignment">
         <source>null conditional assignment</source>
         <target state="translated">null 조건부 할당</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNullConditionalAwait">
+        <source>null conditional await</source>
+        <target state="new">null conditional await</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
