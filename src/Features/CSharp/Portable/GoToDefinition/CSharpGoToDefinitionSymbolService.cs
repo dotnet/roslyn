@@ -30,14 +30,14 @@ internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefiniti
 
         switch (token.Kind())
         {
+            case SyntaxKind.ContinueKeyword:
+                return GetBreakOrContinueTargetPosition(semanticModel, node, isBreak: false);
+
             case SyntaxKind.BreakKeyword:
                 if (token.GetPreviousToken().IsKind(SyntaxKind.YieldKeyword))
                     goto case SyntaxKind.YieldKeyword;
 
                 return GetBreakOrContinueTargetPosition(semanticModel, node, isBreak: true);
-
-            case SyntaxKind.ContinueKeyword:
-                return GetBreakOrContinueTargetPosition(semanticModel, node, isBreak: false);
 
             case SyntaxKind.YieldKeyword:
             case SyntaxKind.ReturnKeyword:
