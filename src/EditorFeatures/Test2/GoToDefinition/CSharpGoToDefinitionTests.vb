@@ -3491,8 +3491,8 @@ class C
         outer: while (true)
         {
             break$$ outer;
-        }[||]
-    }
+        }
+    [||]}
 }
         </Document>
     </Project>
@@ -3540,8 +3540,8 @@ class C
             {
                 break$$ outer;
             }
-        }[||]
-    }
+        }
+    [||]}
 }
         </Document>
     </Project>
@@ -3641,6 +3641,42 @@ class C
         }
     }
 }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_AtEndOfFile_WithBraces() As Task
+            ' The loop is the last thing in the file, so there is no token after it to jump to.
+            ' Navigation falls back to the end of the construct being broken out of.
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+outer: while (true)
+{
+    break$$ outer;
+}[||]
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_AtEndOfFile_WithoutBraces() As Task
+            ' The loop is the last thing in the file, so there is no token after it to jump to.
+            ' Navigation falls back to the end of the construct being broken out of.
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+outer: while (true)
+    break$$ outer;[||]
         </Document>
     </Project>
 </Workspace>
