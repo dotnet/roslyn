@@ -94,7 +94,7 @@ namespace BuildBoss
             // Load PublishData.json
             var publishDataPath = Path.Combine(RepositoryDirectory, "eng", "config", "PublishData.json");
             var publishDataRoot = JObject.Parse(File.ReadAllText(publishDataPath));
-            var publishDataPackages = publishDataRoot["packages"]["default"] as JObject;
+            var publishDataPackages = publishDataRoot["packages"] as JObject;
 
             // Check all shipping packages have an entry in PublishData.json
             var regex = new Regex(@"^(.*?)\.\d.*\.nupkg$");

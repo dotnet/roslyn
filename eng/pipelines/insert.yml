@@ -20,6 +20,7 @@ parameters:
 
   - name: devDivAzdoToken
     type: string
+    default: ''
   - name: dncEngAzureSubscription
     type: string
     default: 'DncEng Insertion: Roslyn and Razor'
@@ -61,12 +62,7 @@ steps:
       $authorization = if ("" -ne $Env:PublishDataAccessToken) { "Bearer $Env:PublishDataAccessToken" } else { "" }
       $response = Invoke-RestMethod -Headers @{Authorization = $authorization} "${{ parameters.publishDataURI }}"
       $branchName = "${{ parameters.sourceBranch }}"
-      $branchData = $response.branches.$branchName
-      if (!$branchData)
-      {
-        Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main'."
-        $branchData = $response.branches.main
-      }
+      $insertionData = $response.branchInfo
 
       # Set our template variables to reasonable defaults
       Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
@@ -80,27 +76,27 @@ steps:
       Write-Host "##vso[task.setvariable variable=Template.CherryPick]$('')"
 
       Write-Host "##vso[task.setvariable variable=Template.ComponentBranchName]$branchName"
-      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($branchData.vsBranch)"
+      Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($insertionData.vsBranch)"
 
       # Overwrite the default template variables with the values from PublishData for this sourceBranch
-      if ($null -ne $branchData.insertionCreateDraftPR)
+      if ($null -ne $insertionData.insertionCreateDraftPR)
       {
-        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($branchData.insertionCreateDraftPR)"
+        Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($insertionData.insertionCreateDraftPR)"
       }
 
-      if ($null -ne $branchData.insertionCreateDraftPR)
+      if ($null -ne $insertionData.insertionCreateDraftPR)
       {
-        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(-not $branchData.insertionCreateDraftPR)"
+        Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(-not $insertionData.insertionCreateDraftPR)"
       }
 
-      if ($null -ne $branchData.insertionTitlePrefix)
+      if ($null -ne $insertionData.insertionTitlePrefix)
       {
-        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$($branchData.insertionTitlePrefix)"
+        Write-Host "##vso[task.setvariable variable=Template.TitlePrefix]$($insertionData.insertionTitlePrefix)"
       }
 
-      if ($null -ne $branchData.insertToolset)
+      if ($null -ne $insertionData.insertToolset)
       {
-        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($branchData.insertToolset)"
+        Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($insertionData.insertToolset)"
       }
 
     displayName: Set Variables from PublishData
@@ -185,11 +181,16 @@ steps:
       inlineScript: |
         # Acquire AzDO token explicitly from the WIF SP login context.
         # DefaultAzureCredential is unreliable on hosted agents (picks up agent MI).
-        $dncEngAzdoToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
-        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($dncEngAzdoToken)) {
-          Write-Error 'Failed to acquire dnceng AzDO access token via WIF service connection.'
+        # The WIF SP (Roslyn-Razor-Insertion-DncEng) is enrolled in both dnceng and devdiv,
+        # so a single token works for both orgs.
+        $azdoToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($azdoToken)) {
+          Write-Error 'Failed to acquire AzDO access token via WIF service connection.'
           exit 1
         }
+
+        # Use WIF token for DevDiv unless a legacy PAT is explicitly provided.
+        $devDivToken = if ([string]::IsNullOrWhiteSpace($Env:DevDivToken)) { $azdoToken } else { $Env:DevDivToken }
 
         $arguments = @(
           "create-insertion"
@@ -205,8 +206,8 @@ steps:
           "--run-speedometer-in-validation", "${{ parameters.queueSpeedometerValidation }}"
           "--retain-inserted-build", "${{ parameters.retainInsertedBuild }}"
           "--reviewer-guid", "6c25b447-1d90-4840-8fde-d8b22cb8733e"
-          "--devdiv-azdo-token", $Env:DevDivToken
-          "--dnceng-azdo-token", $dncEngAzdoToken
+          "--devdiv-azdo-token", $devDivToken
+          "--dnceng-azdo-token", $azdoToken
           "--ci"
         )
 

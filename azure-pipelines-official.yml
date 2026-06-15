@@ -7,6 +7,8 @@ trigger:
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
+    - release/insiders
+    - release/stable
     - features/lsp_tools_host
     - features/runtime-async
     exclude:
@@ -39,11 +41,15 @@ parameters:
 
 - name: SkipApplyOptimizationData
   type: boolean
-  default: true
+  default: false
 
 - name: SkipTests
   type: boolean
   default: true
+
+- name: PMEOverride
+  type: boolean
+  default: false
 
 # An optional VS commit SHA that will be automatically cherry-picked
 # to the insertion PR created by this build.
@@ -55,32 +61,37 @@ schedules:
   - cron: "0 8 23-29 * 0"
     displayName: "Monthly smoke test"
     branches:
-      include: 
+      include:
         - main
         - release/*
-      exclude: 
+      exclude:
         - ""
     always: true # Run even if there have been no source code changes since the last successful scheduled run
     batch: false # Do not run the pipeline if the previously scheduled run is in-progress
 
 variables:
+  # Defines $(DncEngInternalBuildPool)
+  - template: /eng/common/templates-official/variables/pool-providers.yml@self
+
   - group: DotNet-Roslyn-SDLValidation-Params
   - name: Codeql.Enabled
     value: true
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
-  # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
+  # DevDiv drop access token is acquired via WIF service connection (dnceng-devdiv-drop-rw-code-rw-wif)
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
+    value: ''
   - name: ArtifactServices.Drop.PAT
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
-  - group: DotNet-Roslyn-Insertion-Variables
+    value: ''
   - group: AzureDevOps-Artifact-Feeds-Pats
+
+  - name: BranchName
+    value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
 
   - name: BuildConfiguration
     value: release
@@ -100,9 +111,6 @@ variables:
   - name: Insertion.TitleSuffix
     value: ''
 
-  - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
-    - name: enableSourceIndex
-      value: true
   - name: VSCodeOptimizationDataRoot
     value: $(Pipeline.Workspace)/profilingInputs/merged mibc
 
@@ -118,21 +126,21 @@ extends:
       autoEnableRoslynWithNewRuleset: false
     sdl:
       sourceAnalysisPool:
-        name: NetCore1ESPool-Svc-Internal
+        name: $(DncEngInternalBuildPool)
         image: 1es-windows-2022
         os: windows
       sbom:
         enabled: false
       suppression:
-        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
+        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppress
       policheck:
           enabled: true
       tsa:
         enabled: true
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
-      name: NetCore1ESPool-Svc-Internal
-      image: windows.vs2022.amd64
+      name: $(DncEngInternalBuildPool)
+      image: windows.vs2026.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -142,11 +150,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev18.0') }}:
+      - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev18.0
+            MirrorBranch: $(BranchName)
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -170,7 +178,7 @@ extends:
             displayName: 'Publish Logs'
             condition: succeededOrFailed()
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
-            artifactName: 'Build Diagnostic Files'
+            artifactName: 'Build Diagnostic Files - $(System.JobAttempt)'
             publishLocation: Container
 
           - output: pipelineArtifact
@@ -225,7 +233,7 @@ extends:
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
           displayName: Disable Real-time Monitoring
-          
+
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
@@ -260,6 +268,18 @@ extends:
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
           displayName: Setting VisualStudio.DropName variable
 
+        - task: AzureCLI@2
+          displayName: Get DevDiv Drop Access Token
+          inputs:
+            azureSubscription: 'dnceng-devdiv-drop-rw-code-rw-wif'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+              Write-Host "##vso[task.setvariable variable=_DevDivDropAccessToken;issecret=true]$token"
+              Write-Host "##vso[task.setvariable variable=ArtifactServices.Drop.PAT;issecret=true]$token"
+          condition: succeeded()
+
         - task: NodeTool@0
           inputs:
             versionSpec: '16.x'
@@ -272,7 +292,13 @@ extends:
         # Authenticate with service connections to be able to publish packages to external nuget feeds.
         - task: NuGetAuthenticate@1
           inputs:
-            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/dotnet-core-internal-tooling
+
+        # Authenticate to DevDiv engineering feed via WIF service connection
+        - task: NuGetAuthenticate@1
+          inputs:
+            azureDevOpsServiceConnection: devdiv-engineering-feed-r-wif
+            feedUrl: https://devdiv.pkgs.visualstudio.com/_packaging/Engineering/nuget/v3/index.json
 
         # Needed for SBOM tool
         - task: UseDotNet@2
@@ -296,7 +322,7 @@ extends:
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
             # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
-            ${{ if eq(variables['Build.Reason'], 'IndividualCI') }}:
+            ${{ if or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Schedule'), parameters.PMEOverride) }}:
               ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
           condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 
@@ -338,11 +364,11 @@ extends:
           displayName: Publish Assets
           inputs:
             filePath: 'eng\publish-assets.ps1'
-            arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
+            arguments: '-configuration $(BuildConfiguration)'
           condition: succeeded()
 
         # Publish OptProf configuration files to the artifact service
-        # This uses the ArtifactServices.Drop.PAT build variable which is required to enable cross account access using PAT (dnceng -> devdiv)
+        # ArtifactServices.Drop.PAT is set via WIF service connection for cross account access (dnceng -> devdiv)
         - task: 1ES.PublishArtifactsDrop@1
           inputs:
             dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
@@ -367,20 +393,12 @@ extends:
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
         parameters:
           publishUsingPipelines: true
+          publishAssetsImmediately: true
           dependsOn:
           - OfficialBuild
           pool:
-            name: NetCore1ESPool-Svc-Internal
+            name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals windows.vs2022.amd64
-
-      - ${{ if eq(variables.enableSourceIndex, 'true') }}:
-        - template: /eng/common/templates-official/job/source-index-stage1.yml@self
-          parameters:
-            sourceIndexBuildCommand: powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "eng\build.ps1 -configuration Release -prepareMachine -ci -restore -build -binaryLogName Build.binlog -skipDocumentation -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false"
-            binlogPath: artifacts/log/$(BuildConfiguration)/Build.binlog
-            pool:
-              name: $(DncEngInternalBuildPool)
-              demands: ImageOverride -equals 1es-windows-2022
 
     - stage: insert
       trigger: manual
@@ -398,7 +416,6 @@ extends:
           displayName: Get Branch Name
         - template: /eng/pipelines/insert.yml@self
           parameters:
-            devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
             dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
@@ -411,6 +428,9 @@ extends:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
           publishingInfraVersion: 3
+          publishAssetsImmediately: true
+          enableSigningValidation: false
+          enableNugetValidation: false
           enableSourceLinkValidation: false
           # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
           SDLValidationParameters:
