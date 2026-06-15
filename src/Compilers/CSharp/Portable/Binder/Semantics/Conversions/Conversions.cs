@@ -242,15 +242,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 return elementConversion;
                             }
-                            else if (elementKeyValueTypes is (var keyType, var valueType) &&
-                                IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
+                            else if (elementKeyValueTypes is { } keyValueTypes)
                             {
-                                var keyConversion = ClassifyImplicitConversionFromType(itemKeyType, keyType, ref useSiteInfo);
-                                var valueConversion = ClassifyImplicitConversionFromType(itemValueType, valueType, ref useSiteInfo);
-                                if (keyConversion.Exists && valueConversion.Exists)
+                                var keyValuePairConversion = classifyKeyValuePairElementConversionFromType(enumeratorInfo.ElementType, keyValueTypes, ref useSiteInfo);
+                                if (keyValuePairConversion.Exists)
                                 {
-                                    Debug.Assert(!keyConversion.IsIdentity || !valueConversion.IsIdentity);
-                                    return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
+                                    Debug.Assert(!keyValuePairConversion.IsIdentity);
+                                    return keyValuePairConversion;
                                 }
                             }
                         }
@@ -276,16 +274,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return elementConversion;
                         }
-                        else if (expressionElement.Type is { } &&
-                                 elementKeyValueTypes is (var keyType, var valueType) &&
-                                 IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
+                        else if (expressionElement.Type is { } expressionType &&
+                                 elementKeyValueTypes is { } keyValueTypes)
                         {
-                            var keyConversion = ClassifyImplicitConversionFromType(elementKeyType, keyType, ref useSiteInfo);
-                            var valueConversion = ClassifyImplicitConversionFromType(elementValueType, valueType, ref useSiteInfo);
-                            if (keyConversion.Exists && valueConversion.Exists)
+                            var keyValuePairConversion = classifyKeyValuePairElementConversionFromType(expressionType, keyValueTypes, ref useSiteInfo);
+                            if (keyValuePairConversion.Exists)
                             {
-                                Debug.Assert(!keyConversion.IsIdentity || !valueConversion.IsIdentity);
-                                return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
+                                return keyValuePairConversion;
                             }
                         }
                     }
@@ -293,19 +288,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.NoConversion;
-        }
 
-        internal Conversion GetCollectionExpressionSpreadElementConversion(
-            BoundCollectionExpressionSpreadElement element,
-            TypeSymbol targetType,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            var enumeratorInfo = element.EnumeratorInfoOpt;
-            if (enumeratorInfo is null)
+            // Classifies the conversion of a spread item or expression element of type 'sourceType' to a dictionary
+            // element when the collection's element type is KeyValuePair<K, V>. Per the dictionary-expressions spec
+            // (https://github.com/dotnet/csharplang/blob/main/proposals/dictionary-expressions.md), a value of type
+            // KeyValuePair<K1, V1> converts to the dictionary element type KeyValuePair<K, V> when there is an implicit
+            // conversion from K1 to K and from V1 to V.
+            Conversion classifyKeyValuePairElementConversionFromType(
+                TypeSymbol sourceType,
+                (TypeSymbol Key, TypeSymbol Value) keyValueTypes,
+                ref CompoundUseSiteInfo<AssemblySymbol> elementUseSiteInfo)
             {
+                if (IsKeyValuePairType(Compilation, sourceType, out var sourceKeyType, out var sourceValueType))
+                {
+                    var keyConversion = ClassifyImplicitConversionFromType(sourceKeyType, keyValueTypes.Key, ref elementUseSiteInfo);
+                    var valueConversion = ClassifyImplicitConversionFromType(sourceValueType, keyValueTypes.Value, ref elementUseSiteInfo);
+                    if (keyConversion.Exists && valueConversion.Exists)
+                    {
+                        // The key and value conversions cannot both be identity conversions. If they were, the source
+                        // type would be identical to the element type KeyValuePair<K, V>, and the direct element
+                        // conversion attempted by the caller would already have succeeded, so this key-value pair
+                        // fallback would never be reached.
+                        Debug.Assert(!keyConversion.IsIdentity || !valueConversion.IsIdentity);
+                        return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
+                    }
+                }
+
                 return Conversion.NoConversion;
             }
-            return GetCollectionExpressionSpreadElementConversion(element.Syntax, targetType, enumeratorInfo, ref useSiteInfo);
         }
 
         internal Conversion GetCollectionExpressionSpreadElementConversion(
