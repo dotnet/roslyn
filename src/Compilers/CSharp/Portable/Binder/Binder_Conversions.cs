@@ -946,6 +946,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CollectionInitializerAddMethodBinder? collectionInitializerAddMethodBinder,
             BindingDiagnosticBag diagnostics)
         {
+            // A KeyValuePair conversion is only ever classified when the dictionary-expressions feature is available
+            // (see ConversionsBase.TryGetCollectionKeyValuePairTypes), so reaching this branch implies the element is
+            // being added to a dictionary-like target via separate key/value conversions.
             if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
                 elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
             {
@@ -1004,6 +1007,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CollectionInitializerAddMethodBinder? collectionInitializerAddMethodBinder,
             BindingDiagnosticBag diagnostics)
         {
+            // Case 1: a KeyValuePair<K1, V1> source element/spread item flowing into a dictionary-like target.
+            // Decompose it and convert the key and value separately into the target's K and V.
             if (elementKeyValueTypes is (var elementKeyType, var elementValueType) &&
                 elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
             {
@@ -1044,6 +1049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return keyValuePairConversion;
                 }
             }
+            // Case 2: a regular IEnumerable-based collection that adds elements via an Add method.
             else if (collectionInitializerAddMethodBinder is { })
             {
                 Debug.Assert(implicitReceiver is { });
@@ -1055,6 +1061,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics,
                     implicitReceiver);
             }
+            // Case 3: a direct element conversion (array/span/interface targets, or indexer assignment for
+            // dictionary targets, in which case we also need the KeyValuePair key/value accessors during lowering).
             else
             {
                 if (useIndexer)
