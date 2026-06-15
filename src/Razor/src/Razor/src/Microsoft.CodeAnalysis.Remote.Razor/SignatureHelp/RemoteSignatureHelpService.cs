@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -35,12 +36,10 @@ internal sealed class RemoteSignatureHelpService(in ServiceArgs args) : RazorDoc
         var linePosition = new LinePosition(position.Line, position.Character);
         var absoluteIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(linePosition);
 
-        var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        if (DocumentMappingService.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredImplCSharpDocument(), absoluteIndex, out var mappedPosition, out _))
+        if (DocumentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, absoluteIndex, out var mappedPosition, out _, out var inDeclDocument))
         {
+            var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
+
             var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
             var signatureHelpService = generatedDocument.Project.Solution.Services.ExportProvider.GetService<SignatureHelpService>();
             return await SignatureHelpHandler.GetSignatureHelpAsync(signatureHelpService, generatedDocument, mappedPosition, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
