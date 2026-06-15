@@ -28,7 +28,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
         await using var testLspServer = await CreateLanguageServerAsync(workspaceContent, new() { IncludeDevKitComponents = includeDevKitComponents });
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
-        await TestCodeActionAsync(testLspServer, caretLocation, "Extract base class...", """
+        await TestCodeActionAsync(testLspServer, caretLocation, FeaturesResources.Extract_base_class, """
             internal class NewBaseType
             {
                 public void M()
@@ -58,7 +58,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
         await using var testLspServer = await CreateLanguageServerAsync(workspaceContent, new() { IncludeDevKitComponents = includeDevKitComponents });
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
-        await TestCodeActionAsync(testLspServer, caretLocation, "Extract interface...", """
+        await TestCodeActionAsync(testLspServer, caretLocation, FeaturesResources.Extract_interface, """
             interface IA
             {
                 void M();

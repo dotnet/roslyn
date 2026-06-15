@@ -27,7 +27,7 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
 
         var codeActionResults = await testLspServer.RunGetCodeActionsAsync(CreateCodeActionParams(caretLocation));
 
-        Assert.Contains(codeActionResults, action => action.Title == "Move static members to another type...");
+        Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Move_static_members_to_another_type);
     }
 
     [Theory, CombinatorialData]
@@ -57,7 +57,7 @@ public sealed class MoveStaticMembersRefactoringTests(ITestOutputHelper testOutp
         var selectionLocation = testLspServer.GetLocations("selection").Single();
 
         var codeActionResults = await testLspServer.RunGetCodeActionsAsync(CreateCodeActionParams(selectionLocation));
-        var unresolvedCodeAction = Assert.Single(codeActionResults, action => action.Title == "Move static members to another type...");
+        var unresolvedCodeAction = Assert.Single(codeActionResults, action => action.Title == FeaturesResources.Move_static_members_to_another_type);
 
         var resolvedCodeAction = await testLspServer.RunGetCodeActionResolveAsync(unresolvedCodeAction);
         testLspServer.ApplyWorkspaceEdit(resolvedCodeAction.Edit);
