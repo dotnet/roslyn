@@ -72,6 +72,8 @@ internal sealed class GlobalLogMessageLogger(
             }
             catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
             {
+                // Ignore failures due to a server shutting down while we're trying to log.
+                // This is inherently racy, the best we can do is catch and move on.
             }
         }
     }

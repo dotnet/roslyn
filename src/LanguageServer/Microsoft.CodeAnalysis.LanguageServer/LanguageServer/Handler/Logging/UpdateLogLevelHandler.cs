@@ -23,11 +23,12 @@ internal sealed class UpdateLogLevelHandler() : ILspServiceNotificationHandler<U
 
     public bool RequiresLSPSolution => false;
 
-    public async Task HandleNotificationAsync(UpdateLogLevelParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    public Task HandleNotificationAsync(UpdateLogLevelParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
         var level = Enum.Parse<LogLevel>(request.LogLevelValue);
         var loggerFactory = requestContext.GetRequiredService<LspLoggerFactory>();
         loggerFactory.LogConfiguration.UpdateLogLevel(level);
+        return Task.CompletedTask;
     }
 }
 
