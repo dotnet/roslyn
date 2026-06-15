@@ -8128,7 +8128,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe" xml:space="preserve">
-    <value>Field in an explicit or extended layout struct must be marked 'unsafe' or 'safe'.</value>
+    <value>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</value>
     <comment>'unsafe' and 'safe' should not be localized.</comment>
   </data>
   <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
