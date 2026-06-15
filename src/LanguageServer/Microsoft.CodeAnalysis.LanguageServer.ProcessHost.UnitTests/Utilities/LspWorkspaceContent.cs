@@ -47,7 +47,7 @@ internal readonly record struct LspWorkspaceContent(
         if (!Files.ContainsKey(codeFileName))
             return WithMarkupFile(codeFileName, markup);
 
-        for (var index = 1L; index <= int.MaxValue; index++)
+        for (var index = 1UL; index <= ulong.MaxValue; index++)
         {
             var fileName = $"Code{index}.cs";
             if (!Files.ContainsKey(fileName))
