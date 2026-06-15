@@ -17,16 +17,20 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace IdeCoreBenchmarks;
 
 /// <summary>
-/// Benchmarks comparing two approaches for detecting whether a void method is likely used as
+/// Benchmarks comparing three approaches for detecting whether a void method is likely used as
 /// an event handler, in the context of the "Make method async" code fix:
 ///
-///   1. <b>FAR-based</b>: calls <see cref="SymbolFinder.FindReferencesAsync(ISymbol, Solution, CancellationToken)"/> and walks each
-///      reference location looking for an <see cref="IEventAssignmentOperation"/> ancestor.
-///      This is the original, semantically accurate approach.
+///   1. <b>NoDetection (prod baseline)</b>: performs no event-handler detection at all —
+///      equivalent to the current production code on <c>main</c>, which skips this check
+///      entirely and always returns <see langword="false"/>.
 ///
-///   2. <b>Signature-based heuristic</b>: inspects only the method's parameter types
+///   2. <b>FAR-based</b>: calls <see cref="SymbolFinder.FindReferencesAsync(ISymbol, Solution, CancellationToken)"/> and walks each
+///      reference location looking for an <see cref="IEventAssignmentOperation"/> ancestor.
+///      This is the semantically accurate (but expensive) approach.
+///
+///   3. <b>Signature-based heuristic</b>: inspects only the method's parameter types
 ///      (<c>object, EventArgs</c>) without touching the call graph.
-///      This is the current, cheaper approximation.
+///      This is a cheap approximation.
 ///
 /// Two parameterized scenarios stress-test how method-name frequency affects FAR cost:
 ///
@@ -118,6 +122,14 @@ public class MakeMethodAsynchronousCodeFixBenchmarks
     }
 
     /// <summary>
+    /// Measures the prod-main baseline: no event-handler detection at all.
+    /// This is what the current production code on <c>main</c> does — it skips
+    /// the check entirely, effectively treating every method as a non-event-handler.
+    /// </summary>
+    [Benchmark(Baseline = true)]
+    public bool NoDetection() => false;
+
+    /// <summary>
     /// Measures the original FAR-based event-handler detection.
     /// Calls <see cref="SymbolFinder.FindReferencesAsync(ISymbol, Solution, CancellationToken)"/> and walks each reference
     /// for an <see cref="IEventAssignmentOperation"/> ancestor.
@@ -127,11 +139,11 @@ public class MakeMethodAsynchronousCodeFixBenchmarks
         => await IsReferencedAsEventHandlerAsync(_solution, _methodSymbol, CancellationToken.None).ConfigureAwait(false);
 
     /// <summary>
-    /// Measures the current signature-based heuristic:
+    /// Measures the signature-based heuristic:
     /// checks only that the method has exactly two parameters of types
     /// <c>object</c> and a type derived from <see cref="System.EventArgs"/>.
     /// </summary>
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public bool SignatureBasedDetection()
         => IsLikelyEventHandlerMethodSignature(_methodSymbol, _compilation);
 
