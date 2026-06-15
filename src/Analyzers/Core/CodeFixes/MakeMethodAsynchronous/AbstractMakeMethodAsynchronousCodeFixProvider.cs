@@ -74,7 +74,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var isLikelyEventHandlerMethod = canOfferAsyncVoid &&
             await IsReferencedAsEventHandlerAsync(document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
 
-        // Always register the Task fix first, with a warning title when the method is an event handler.
+        // Always register the Task fix first.
         RegisterTaskFix();
 
         // Also offer async void if the method is void-returning and not an entry point.
@@ -83,15 +83,12 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         void RegisterTaskFix()
         {
-            // When the method is an event handler, use a title that warns the user
-            // that converting to async Task is unusual for event handlers.
-            var taskTitle = isLikelyEventHandlerMethod
-                ? GetMakeAsyncTaskFunctionForEventHandlerResource()
-                : GetMakeAsyncTaskFunctionResource();
+            var taskTitle = GetMakeAsyncTaskFunctionResource();
             context.RegisterCodeFix(
                 CodeAction.Create(
                     taskTitle,
-                    cancellationToken => FixNodeAsync(document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
+                    cancellationToken => FixNodeAsync(
+                        document, diagnostic, keepVoid: false, isEntryPoint, addWarningAnnotation: isLikelyEventHandlerMethod, cancellationToken),
                     taskTitle),
                 context.Diagnostics);
         }
@@ -102,7 +99,8 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
             context.RegisterCodeFix(
                 CodeAction.Create(
                     asyncVoidTitle,
-                    cancellationToken => FixNodeAsync(document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken),
+                    cancellationToken => FixNodeAsync(
+                        document, diagnostic, keepVoid: true, isEntryPoint: false, addWarningAnnotation: false, cancellationToken),
                     asyncVoidTitle),
                 context.Diagnostics);
         }
@@ -163,6 +161,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         Diagnostic diagnostic,
         bool keepVoid,
         bool isEntryPoint,
+        bool addWarningAnnotation,
         CancellationToken cancellationToken)
     {
         var node = GetContainingFunction(diagnostic, cancellationToken);
@@ -178,8 +177,8 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var knownTypes = new KnownTaskTypes(semanticModel.Compilation);
 
         return NeedsRename()
-            ? await RenameThenAddAsyncTokenAsync(keepVoid, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
-            : await FixRelatedSignaturesAsync(keepVoid, document, methodSymbol, knownTypes, node, cancellationToken).ConfigureAwait(false);
+            ? await RenameThenAddAsyncTokenAsync(keepVoid, addWarningAnnotation, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
+            : await FixRelatedSignaturesAsync(keepVoid, addWarningAnnotation, document, methodSymbol, knownTypes, node, cancellationToken).ConfigureAwait(false);
 
         bool NeedsRename()
         {
@@ -212,6 +211,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
     private async Task<Solution> RenameThenAddAsyncTokenAsync(
         bool keepVoid,
+        bool addWarningAnnotation,
         Document document,
         SyntaxNode node,
         IMethodSymbol methodSymbol,
@@ -234,7 +234,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         {
             var semanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var newMethod = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(newNode, cancellationToken);
-            return await FixRelatedSignaturesAsync(keepVoid, newDocument, newMethod, knownTypes, newNode, cancellationToken).ConfigureAwait(false);
+            return await FixRelatedSignaturesAsync(keepVoid, addWarningAnnotation, newDocument, newMethod, knownTypes, newNode, cancellationToken).ConfigureAwait(false);
         }
 
         return newSolution;
@@ -242,13 +242,17 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
     private async Task<Solution> FixRelatedSignaturesAsync(
         bool keepVoid,
+        bool addWarningAnnotation,
         Document document,
         IMethodSymbol methodSymbol,
         KnownTaskTypes knownTypes,
         SyntaxNode node,
         CancellationToken cancellationToken)
     {
-        var newNode = FixMethodSignature(addAsyncModifier: true, keepVoid, methodSymbol, node, knownTypes);
+        var warningAnnotation = addWarningAnnotation
+            ? WarningAnnotation.Create(GetMakeAsyncTaskFunctionForEventHandlerResource())
+            : null;
+        var newNode = AnnotateIfNeeded(FixMethodSignature(addAsyncModifier: true, keepVoid, methodSymbol, node, knownTypes), warningAnnotation);
 
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
@@ -259,7 +263,8 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         if (!keepVoid && methodSymbol.PartialDefinitionPart is { Locations: [{ } partialDefinitionLocation] })
         {
             var partialDefinitionNode = partialDefinitionLocation.FindNode(cancellationToken);
-            var fixedPartialDefinitionNode = FixMethodSignature(addAsyncModifier: false, keepVoid, methodSymbol, partialDefinitionNode, knownTypes);
+            var fixedPartialDefinitionNode = AnnotateIfNeeded(
+                FixMethodSignature(addAsyncModifier: false, keepVoid, methodSymbol, partialDefinitionNode, knownTypes), warningAnnotation);
 
             var partialDefinitionDocument = solution.GetDocument(partialDefinitionNode.SyntaxTree);
             Contract.ThrowIfNull(partialDefinitionDocument);
@@ -268,5 +273,10 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         }
 
         return solutionEditor.GetChangedSolution();
+
+        static SyntaxNode AnnotateIfNeeded(SyntaxNode node, SyntaxAnnotation? warningAnnotation)
+            => warningAnnotation != null
+                ? node.WithAdditionalAnnotations(warningAnnotation)
+                : node;
     }
 }

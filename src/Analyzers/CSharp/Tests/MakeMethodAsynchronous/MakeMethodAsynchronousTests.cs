@@ -81,10 +81,10 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             {
                 private event EventHandler Click;
 
-                private async Task OnClickAsync(object sender, EventArgs e)
+                {|Warning:private async Task OnClickAsync(object sender, EventArgs e)
                 {
                     await Task.Delay(1);
-                }
+                }|}
 
                 private void Hookup()
                 {
@@ -158,7 +158,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """,
-            [CSharpCodeFixesResources.Make_method_async_for_event_handler, CSharpCodeFixesResources.Make_method_async_remain_void]);
+            [CSharpCodeFixesResources.Make_method_async, CSharpCodeFixesResources.Make_method_async_remain_void]);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
     [InlineData("OnClick(this, EventArgs.Empty);", "")]
