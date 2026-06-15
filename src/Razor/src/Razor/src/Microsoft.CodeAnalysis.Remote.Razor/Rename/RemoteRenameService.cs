@@ -66,7 +66,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         var positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex, preferCSharpOverHtml: true);
 
         var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
+            .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
 
         var razorEdit = await _renameService
@@ -134,7 +134,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return RemoteResponse<LspRange?>.CallHtml;
         }
 
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken).ConfigureAwait(false);
 
         var csharpRange = await PrepareRenameHandler.GetRenameRangeAsync(generatedDocument, positionInfo.Position.ToLinePosition(), cancellationToken).ConfigureAwait(false);
 
@@ -143,7 +143,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return RemoteResponse<LspRange?>.NoFurtherHandling;
         }
 
-        if (!DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredImplCSharpDocument(), csharpRange, out var mappedRange))
+        if (!DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(positionInfo.InDeclDocument), csharpRange, out var mappedRange))
         {
             return RemoteResponse<LspRange?>.NoFurtherHandling;
         }
@@ -228,7 +228,11 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return null;
         }
 
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        // Component file rename updates the generated component class declaration, which lives in the
+        // declaration document under SONIC. Fall back to implementation for legacy documents that do
+        // not have a separate declaration document.
+        var generatedDocument = await context.Snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false)
+            ?? await context.Snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var text = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var tree = await generatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var declaration = tree.AssumeNotNull().DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();

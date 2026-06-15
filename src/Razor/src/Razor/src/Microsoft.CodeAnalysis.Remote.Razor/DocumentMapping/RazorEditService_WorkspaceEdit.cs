@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
@@ -33,6 +34,12 @@ internal partial class RazorEditService
                 if (edit.TryGetFirst(out var textDocumentEdit))
                 {
                     await MapTextDocumentEditAsync(originSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
+
+                    // Roslyn may return edits that already target the real Razor document when it maps
+                    // source-generated documents itself. If both generated C# documents contribute the
+                    // same Razor edit, keep a single edit so applying the workspace edit doesn't fail
+                    // with overlapping changes.
+                    await DeduplicateTextDocumentEditAsync(originSnapshot.TextDocument.Project.Solution, textDocumentEdit, cancellationToken).ConfigureAwait(false);
                     if (textDocumentEdit.Edits.Length == 0)
                     {
                         continue;
@@ -160,6 +167,71 @@ internal partial class RazorEditService
         var textChanges = edits.SelectAsArray(csharpSourceText.GetRazorTextChange);
         var mappedEdits = await MapCSharpEditsAsync(textChanges, snapshot, csharpDocument.IsDeclarationDocument, includeCSharpLanguageFeatureEdits: true, directlyMappedEditFilter: null, cancellationToken).ConfigureAwait(false);
 
-        return mappedEdits.SelectAsArray(razorSourceText.GetTextEdit);
+        // Multiple generated C# edits can map to the same Razor span, especially when rename touches
+        // both implementation and declaration generated documents. SourceText.WithChanges treats exact
+        // duplicate edits as overlapping, so collapse them after mapping back to Razor coordinates.
+        return Deduplicate(razorSourceText, mappedEdits.SelectAsArray(razorSourceText.GetTextEdit));
+    }
+
+    private static async Task DeduplicateTextDocumentEditAsync(Solution solution, TextDocumentEdit entry, CancellationToken cancellationToken)
+    {
+        if (entry.Edits.Length <= 1)
+        {
+            return;
+        }
+
+        var document = await solution.GetTextDocumentAsync(entry.TextDocument, cancellationToken).ConfigureAwait(false);
+        if (document is null)
+        {
+            return;
+        }
+
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        entry.Edits = Deduplicate(sourceText, entry.Edits);
+    }
+
+    private static ImmutableArray<TextEdit> Deduplicate(SourceText sourceText, ImmutableArray<TextEdit> edits)
+    {
+        if (edits.Length <= 1)
+        {
+            return edits;
+        }
+
+        using var _ = HashSetPool<(int Start, int Length, string? NewText)>.GetPooledObject(out var seenEdits);
+        using var builder = new PooledArrayBuilder<TextEdit>(edits.Length);
+
+        foreach (var edit in edits)
+        {
+            var change = sourceText.GetTextChange(edit);
+            if (seenEdits.Add((change.Span.Start, change.Span.Length, change.NewText)))
+            {
+                builder.Add(edit);
+            }
+        }
+
+        return builder.ToImmutableAndClear();
+    }
+
+    private static SumType<TextEdit, AnnotatedTextEdit>[] Deduplicate(SourceText sourceText, SumType<TextEdit, AnnotatedTextEdit>[] edits)
+    {
+        if (edits.Length <= 1)
+        {
+            return edits;
+        }
+
+        using var _ = HashSetPool<(int Start, int Length, string? NewText)>.GetPooledObject(out var seenEdits);
+        using var builder = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>(edits.Length);
+
+        foreach (var edit in edits)
+        {
+            var textEdit = (TextEdit)edit;
+            var change = sourceText.GetTextChange(textEdit);
+            if (seenEdits.Add((change.Span.Start, change.Span.Length, change.NewText)))
+            {
+                builder.Add(edit);
+            }
+        }
+
+        return builder.ToArrayAndClear();
     }
 }
