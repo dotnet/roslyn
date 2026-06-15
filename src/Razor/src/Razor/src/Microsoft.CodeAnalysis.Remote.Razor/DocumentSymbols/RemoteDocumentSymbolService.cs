@@ -3,6 +3,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -32,8 +34,17 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
     private async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(RemoteDocumentContext context, bool useHierarchicalSymbols, CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetCSharpDocument(declarationDocument: true)
-            ?? codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+
+        // We only care about fields, properties, methods etc. in document symbols, and for components those will exist in the declaration document.
+        // For legacy documents, there is no declaration document, so we use the implementation document. An edge case is components that have no
+        // declarations, and therefore no declaration document, where we want to use the implemnentation document so we at least get the class name
+        // and have something to base our render method symbol off of. Therefore, for simplicity, we'll just attempt to get the declaration document,
+        // and fallback to impl if it doesn't exist.
+        var csharpDocument = codeDocument.GetCSharpDocument(declarationDocument: true);
+        if (csharpDocument is null)
+        {
+            csharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+        }
 
         var generatedDocument = await context.Snapshot
             .GetGeneratedDocumentAsync(csharpDocument.IsDeclarationDocument, cancellationToken)
