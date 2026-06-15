@@ -209,7 +209,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
                 continue;
             }
 
-            var documentEdit = await GetEditsAsync(documentContext, newFileName, cancellationToken).ConfigureAwait(false);
+            var documentEdit = await GetFileRenameEditAsync(documentContext, newFileName, cancellationToken).ConfigureAwait(false);
             response = response.Concat(documentEdit);
         }
 
@@ -221,7 +221,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         return response;
     }
 
-    private async Task<WorkspaceEdit?> GetEditsAsync(RemoteDocumentContext context, string newFileName, CancellationToken cancellationToken)
+    private async Task<WorkspaceEdit?> GetFileRenameEditAsync(RemoteDocumentContext context, string newFileName, CancellationToken cancellationToken)
     {
         if (!context.Snapshot.FileKind.IsComponent())
         {
