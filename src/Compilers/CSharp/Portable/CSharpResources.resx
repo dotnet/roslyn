@@ -8289,6 +8289,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUnions" xml:space="preserve">
     <value>unions</value>
   </data>
+  <data name="IDS_FeatureNullConditionalAwait" xml:space="preserve">
+    <value>null conditional await</value>
+  </data>
+  <data name="ERR_AwaitConditionalNonNullableValueType" xml:space="preserve">
+    <value>'await?' cannot be applied to an operand of non-nullable value type '{0}'.</value>
+  </data>
   <data name="ERR_UnionDeclarationNeedsCaseTypes" xml:space="preserve">
     <value>A union declaration must specify at least one case type.</value>
   </data>

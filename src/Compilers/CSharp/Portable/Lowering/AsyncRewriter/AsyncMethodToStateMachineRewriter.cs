@@ -348,6 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
             Debug.Assert(node.AwaitableInfo.RuntimeAsyncAwaitCall is null);
+            Debug.Assert(!node.IsNullConditional, "null-conditional await should have been lowered by LocalRewriter");
             BoundStatement preamble = MakeAwaitPreamble();
 
             var expression = (BoundExpression)Visit(node.Expression);

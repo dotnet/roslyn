@@ -714,6 +714,14 @@
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="AwaitableInfo" Type="BoundAwaitableInfo" Null="disallow"/>
     <Field Name="DebugInfo" Type="BoundAwaitExpressionDebugInfo" Null="NotApplicable"/>
+    <!-- True for `await? e` (the null-conditional form, spec §12.9.8.5). When true:
+         - `AwaitableInfo` is resolved against the *underlying* type of `Expression.Type`
+           (V when the operand is Nullable<V>, otherwise the operand type itself).
+         - `Type` is the lifted result type per the result-type rule (spec §12.9.8.3):
+           Nullable<R> for non-nullable value-type R, R with NRT annotation for reference
+           types, unchanged for already-nullable Nullable<V>, `dynamic` for dynamic, void
+           for void. -->
+    <Field Name="IsNullConditional" Type="bool"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
