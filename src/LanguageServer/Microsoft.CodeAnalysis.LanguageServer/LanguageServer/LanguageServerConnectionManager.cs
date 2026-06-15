@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -21,38 +20,35 @@ internal sealed class LanguageServerConnectionManager
         ExportProvider exportProvider,
         AbstractTypeRefResolver typeRefResolver)
     {
-        var entry = new ServerEntry();
+        var server = new LanguageServerHost(inputStream, outputStream, exportProvider, typeRefResolver);
+        var entry = new ServerEntry(
+            server,
+            server.WaitForExitAsync().ContinueWith(
+                static (task, state) =>
+                {
+                    var (connectionManager, server) = ((LanguageServerConnectionManager, LanguageServerHost))state!;
+                    connectionManager.Unregister(server);
+                    task.GetAwaiter().GetResult();
+                },
+                (this, server),
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.RunContinuationsAsynchronously,
+                TaskScheduler.Default));
 
         lock (_gate)
         {
             _servers = _servers.Add(entry);
         }
 
-        try
-        {
-            var server = new LanguageServerHost(inputStream, outputStream, exportProvider, typeRefResolver);
-            entry.Server = server;
-
-            server.Start();
-
-            _ = TrackServerExitAsync(entry);
-            return server;
-        }
-        catch (Exception ex)
-        {
-            Unregister(entry);
-            entry.Exited.TrySetException(ex);
-            throw;
-        }
+        server.Start();
+        return server;
     }
 
     public ImmutableArray<LanguageServerHost> GetStartedServers()
     {
         lock (_gate)
         {
-            var builder = ImmutableArray.CreateBuilder<LanguageServerHost>();
-
-            return _servers.SelectAsArray(entry => entry.Server is { HasStarted: true }, entry => entry.Server!);
+            return _servers.SelectAsArray(entry => entry.Server.HasStarted, entry => entry.Server);
         }
     }
 
@@ -67,41 +63,30 @@ internal sealed class LanguageServerConnectionManager
                 if (_servers.IsEmpty)
                     return;
 
-                exitTask = _servers[0].Exited.Task;
+                exitTask = _servers[0].ExitTask;
             }
 
             await exitTask.ConfigureAwait(false);
         }
     }
 
-    private async Task TrackServerExitAsync(ServerEntry entry)
-    {
-        Contract.ThrowIfNull(entry.Server);
-
-        try
-        {
-            await entry.Server.WaitForExitAsync().ConfigureAwait(false);
-            Unregister(entry);
-            entry.Exited.TrySetResult();
-        }
-        catch (Exception ex)
-        {
-            Unregister(entry);
-            entry.Exited.TrySetException(ex);
-        }
-    }
-
-    private void Unregister(ServerEntry entry)
+    private void Unregister(LanguageServerHost server)
     {
         lock (_gate)
         {
-            _servers = _servers.Remove(entry);
+            _servers = _servers.RemoveAll(entry => entry.Server == server);
         }
     }
 
     private sealed class ServerEntry
     {
-        public LanguageServerHost? Server;
-        public TaskCompletionSource Exited { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public LanguageServerHost Server { get; }
+        public Task ExitTask { get; }
+
+        public ServerEntry(LanguageServerHost server, Task exitTask)
+        {
+            Server = server;
+            ExitTask = exitTask;
+        }
     }
 }

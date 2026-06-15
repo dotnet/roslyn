@@ -55,7 +55,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         // The factory should be configured to log everything.
         builder.SetMinimumLevel(LogLevel.Trace);
         builder.AddProvider(new GlobalLogMessageLoggerProvider(fallbackLoggerFactory:
-            // Add a console logger as a fallback for when the LSP server has not finished initializing.
+            // Add a console logger as a fallback for when an LSP server is not available.
             LoggerFactory.Create(builder =>
             {
                 builder.SetMinimumLevel(LogLevel.Trace);

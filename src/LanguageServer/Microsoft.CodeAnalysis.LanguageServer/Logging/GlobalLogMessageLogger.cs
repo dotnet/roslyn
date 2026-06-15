@@ -24,7 +24,6 @@ internal sealed class GlobalLogMessageLogger(
 
     public bool IsEnabled(LogLevel logLevel)
     {
-        var enabled = false;
         var servers = connectionManager.GetStartedServers();
         if (servers.IsEmpty)
         {
@@ -32,22 +31,22 @@ internal sealed class GlobalLogMessageLogger(
             return fallbackLogConfiguration.LogLevel <= logLevel;
         }
 
-        foreach (var server in connectionManager.GetStartedServers())
+        foreach (var server in servers)
         {
             try
             {
                 if (server.GlobalLogger.IsEnabled(logLevel))
                 {
-                    enabled = true;
-                    break;
+                    return true;
                 }
             }
+            // Servers can asynchronously start / stop, so by the time we get here a server (and its LSP services) could have been disposed.
             catch (ObjectDisposedException)
             {
             }
         }
 
-        return enabled;
+        return false;
     }
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
@@ -65,7 +64,7 @@ internal sealed class GlobalLogMessageLogger(
             return;
         }
 
-        foreach (var server in connectionManager.GetStartedServers())
+        foreach (var server in servers)
         {
             try
             {

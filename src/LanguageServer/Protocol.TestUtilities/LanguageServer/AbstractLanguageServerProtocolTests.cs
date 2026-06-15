@@ -387,7 +387,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             catch (CompositionFailedException ex)
             {
                 // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
-                this.TestOutputHelper.WriteLine($"Encountered errors in the MEF composition: {ex.Message}{Environment.NewLine}{ex.ErrorsAsString}");
+                Assert.Fail($"Encountered errors in the MEF composition: {ex.Message}{Environment.NewLine}{ex.ErrorsAsString}");
                 throw;
             }
         }
