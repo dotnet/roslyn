@@ -13055,8 +13055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var operandType = _visitResult.RValueType.Type;
                 var underlyingType = operandType?.IsNullableType() == true ? operandType.StrippedType() : operandType;
                 placeholderResult = new VisitResult(
-                    TypeWithState.Create(underlyingType, NullableFlowState.NotNull),
-                    TypeWithAnnotations.Create(underlyingType));
+                    TypeWithState.Create(underlyingType, NullableFlowState.NotNull), TypeWithAnnotations.Create(underlyingType));
             }
 
             AddPlaceholderReplacement(placeholder, node.Expression, placeholderResult);
