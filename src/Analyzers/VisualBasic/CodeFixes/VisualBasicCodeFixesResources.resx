@@ -147,6 +147,9 @@
   <data name="Make_Async_Function" xml:space="preserve">
     <value>Make Async Function</value>
   </data>
+  <data name="Make_Async_Function_for_event_handler" xml:space="preserve">
+    <value>Make Async Function (prefer 'Async Sub' for event handlers)</value>
+  </data>
   <data name="Make_Async_Sub" xml:space="preserve">
     <value>Make Async Sub</value>
   </data>

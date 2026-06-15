@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -21,6 +23,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
 
     protected abstract string GetMakeAsyncTaskFunctionResource();
+    protected abstract string GetMakeAsyncTaskFunctionForEventHandlerResource();
     protected abstract string GetMakeAsyncVoidFunctionResource();
 
     protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTypes);
@@ -65,18 +68,35 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         // Heuristic to recognize the common case for entry point method
         var isEntryPoint = methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
+        var canOfferAsyncVoid = methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint;
 
-        // Offer to convert to a Task return type.
-        var taskTitle = GetMakeAsyncTaskFunctionResource();
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                taskTitle,
-                cancellationToken => FixNodeAsync(document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
-                taskTitle),
-            context.Diagnostics);
+        // Use FindAllReferences to check whether the method is actually used as an event handler.
+        var isLikelyEventHandlerMethod = canOfferAsyncVoid &&
+            await IsReferencedAsEventHandlerAsync(document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
 
-        // If it's a void returning method (and not an entry point), also offer to keep the void return type
-        if (methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint)
+        // Always register the Task fix first, with a warning title when the method is an event handler.
+        RegisterTaskFix();
+
+        // Also offer async void if the method is void-returning and not an entry point.
+        if (canOfferAsyncVoid)
+            RegisterAsyncVoidFix();
+
+        void RegisterTaskFix()
+        {
+            // When the method is an event handler, use a title that warns the user
+            // that converting to async Task is unusual for event handlers.
+            var taskTitle = isLikelyEventHandlerMethod
+                ? GetMakeAsyncTaskFunctionForEventHandlerResource()
+                : GetMakeAsyncTaskFunctionResource();
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    taskTitle,
+                    cancellationToken => FixNodeAsync(document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
+                    taskTitle),
+                context.Diagnostics);
+        }
+
+        void RegisterAsyncVoidFix()
         {
             var asyncVoidTitle = GetMakeAsyncVoidFunctionResource();
             context.RegisterCodeFix(
@@ -86,6 +106,41 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                     asyncVoidTitle),
                 context.Diagnostics);
         }
+    }
+
+    private static async Task<bool> IsReferencedAsEventHandlerAsync(
+        Solution solution,
+        IMethodSymbol methodSymbol,
+        CancellationToken cancellationToken)
+    {
+        var references = await SymbolFinder.FindReferencesAsync(
+            methodSymbol,
+            solution,
+            cancellationToken).ConfigureAwait(false);
+
+        foreach (var referencingSymbol in references)
+        {
+            foreach (var location in referencingSymbol.Locations)
+            {
+                if (location.IsImplicit || location.Document is null)
+                    continue;
+
+                var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
+                var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                for (var currentNode = syntaxNode; currentNode != null; currentNode = currentNode.Parent)
+                {
+                    var operation = semanticModel.GetOperation(currentNode, cancellationToken);
+                    for (var current = operation; current != null; current = current.Parent)
+                    {
+                        if (current is IEventAssignmentOperation)
+                            return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private static IMethodSymbol? GetMethodSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)

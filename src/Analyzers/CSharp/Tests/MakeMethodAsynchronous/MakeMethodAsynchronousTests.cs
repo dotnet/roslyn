@@ -48,6 +48,144 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """, index: 1);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public async Task AwaitInEventHandlerMethod()
+    {
+        var initial =
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private event EventHandler Click;
+
+                private void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Hookup()
+                {
+                    Click += OnClick;
+                }
+            }
+            """;
+
+        await TestActionCountAsync(initial, count: 2);
+        await TestInRegularAndScriptAsync(initial, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private event EventHandler Click;
+
+                private async Task OnClickAsync(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }
+
+                private void Hookup()
+                {
+                    Click += OnClickAsync;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task AwaitInEventHandlerMethod_AsyncVoidFixIsStillOffered()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private event EventHandler Click;
+
+                private void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Hookup()
+                {
+                    Click += OnClick;
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private event EventHandler Click;
+
+                private async void OnClick(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }
+
+                private void Hookup()
+                {
+                    Click += OnClick;
+                }
+            }
+            """, index: 1);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    [InlineData("Click += OnClick;")]
+    [InlineData("Click -= OnClick;")]
+    [InlineData("Click += this.OnClick;")]
+    public Task AwaitInEventHandlerMethod_OffersWarningTitleFirst(string eventReference)
+        => TestExactActionSetOfferedAsync($$"""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private event EventHandler Click;
+
+                private void OnClick(object sender, EventArgs e)
+                {
+                    [||]await Task.Delay(1);
+                }
+
+                private void Hookup()
+                {
+                    {{eventReference}}
+                }
+            }
+            """,
+            [CSharpCodeFixesResources.Make_method_async_for_event_handler, CSharpCodeFixesResources.Make_method_async_remain_void]);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    [InlineData("OnClick(this, EventArgs.Empty);", "")]
+    [InlineData("EventHandler handler = OnClick;", "")]
+    [InlineData("Register(OnClick);", "void Register(EventHandler handler) { }")]
+    public Task AwaitInEventHandlerSignatureMethod_WithoutEventAssignment_OffersDefaultTitles(string reference, string helperMember)
+        => TestExactActionSetOfferedAsync($$"""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private void OnClick(object sender, EventArgs e)
+                {
+                    [||]await Task.Delay(1);
+                }
+
+                private void Use()
+                {
+                    {{reference}}
+                }
+
+                {{helperMember}}
+            }
+            """,
+            [CSharpCodeFixesResources.Make_method_async, CSharpCodeFixesResources.Make_method_async_remain_void]);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26312")]
     public async Task AwaitInTaskMainMethodWithModifiers()
     {
