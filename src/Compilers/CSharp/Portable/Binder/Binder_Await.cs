@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operand.Type is { IsValueType: true } operandType && !operandType.IsNullableType())
                 {
                     Error(diagnostics, ErrorCode.ERR_AwaitConditionalNonNullableValueType, node.QuestionToken.GetLocation(), operandType);
+
+                    // Stop here rather than continuing into BindAwait. This mirrors
+                    // BindConditionalAccessReceiver, which returns BadExpression for a non-nullable
+                    // value-type `?.` receiver: once the operand is rejected for the null-conditional
+                    // form, awaitable-pattern diagnostics on it would just be noise about an operand
+                    // that already cannot be used here.
                     return BadExpression(node, operand);
                 }
             }
