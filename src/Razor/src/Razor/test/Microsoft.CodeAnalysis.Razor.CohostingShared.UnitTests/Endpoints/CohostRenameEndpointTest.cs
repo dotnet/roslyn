@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Collection(nameof(CohostRenameEndpointTest))]
 public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharp_SameFile()
         => VerifyRenamesAsync(
             input: """
@@ -55,7 +55,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 The end.
                 """);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharp_WithOtherFile()
         => VerifyRenamesAsync(
             input: """
@@ -116,7 +116,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """)
             ]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharp_Inherits()
        => VerifyRenamesAsync(
            input: """
@@ -187,7 +187,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             ],
             fileKind: RazorFileKind.Legacy);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharp_Implements()
         => VerifyRenamesAsync(
             input: """
@@ -220,7 +220,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """)
             ]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharp_TypeParam()
        => VerifyRenamesAsync(
            input: """
@@ -253,7 +253,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """)
            ]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharp_Attribute()
        => VerifyRenamesAsync(
            input: """
@@ -286,7 +286,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """)
            ]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task CSharp_Attribute_FullName()
        => VerifyRenamesAsync(
            input: """
@@ -385,7 +385,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             additionalExpectedFiles:
                 [(FileUri("DifferentName.razor"), "")]);
 
-    [Theory(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Theory]
     [InlineData("My.$$Foo.Component")]
     [InlineData("My.F$$oo.Component")]
     [InlineData("My.Foo$$.Component")]
@@ -448,7 +448,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     @namespace My.DifferentName
                     """)]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task Component_CSharp_FullyQualified_Namespace()
         => VerifyRenamesAsync(
             input: $"""
@@ -624,7 +624,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             additionalExpectedFiles:
                 [(FileUri("DifferentName.razor"), "")]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task Component_Attribute()
         => VerifyRenamesAsync(
             input: $"""
@@ -687,7 +687,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """)
             ]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task Component_BindAttribute()
         => VerifyRenamesAsync(
             input: $"""
@@ -1215,7 +1215,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                     """)
             ]);
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public Task Component_Namespace_WithNonRazorCSharpFile()
         => VerifyRenamesAsync(
             input: $"""
