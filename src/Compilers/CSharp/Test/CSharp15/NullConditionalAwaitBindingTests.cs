@@ -19,10 +19,6 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     // internal bound-tree state. NRT is enabled at the compilation level for every test that
     // cares about reference-type `?` annotations; tests that observe NRT output also assert
     // the NRT-disabled case to show the annotation isn't leaking through.
-    //
-    // Success cases use [ConditionalFact(typeof(NoUsedAssembliesValidation))] because the
-    // ROSLYN_TEST_USEDASSEMBLIES leg emits each compilation, and await? lowering is not
-    // implemented yet (it lands in dotnet/roslyn#83235). Switch these back to [Fact] then.
 
     private static string InAsyncMethod(string statement, string parameterList = "") => $$"""
         using System.Threading.Tasks;
@@ -87,7 +83,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Feature availability
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void FeatureAvailability_Preview_NoDiagnostic()
     {
         // `Task<int>` (not annotated) — the operand-nullability rule allows reference types
@@ -220,7 +216,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     }
 
     // Non-annotated Task operand — walker sees t as non-null; no NRT warning.
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] public void Operand_TaskOfInt_ResultIsNullableInt() => AssertTaskOfIntResultIsNullableInt("Task<int>");
+    [Fact] public void Operand_TaskOfInt_ResultIsNullableInt() => AssertTaskOfIntResultIsNullableInt("Task<int>");
     [Fact] public void Operand_TaskOfNullableInt_ResultIsNullableInt() => AssertTaskOfIntResultIsNullableInt("Task<int?>");
 
     private void AssertTaskOfIntResultIsNullableInt(string operandType)
@@ -244,7 +240,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     // type is invalid outside an NRT context, so CS8632 fires; in NRT-on mode no warning
     // fires because the whole point of `await?` is to accept a null receiver. Either way
     // the result type is int?.
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Operand_NrtAnnotatedTaskOfInt_ResultIsNullableInt()
     {
         var source = InAsyncMethod("var v = await? t;", "Task<int>? t");
@@ -345,7 +341,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("System.String", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Operand_NullableOfValueTask_ResultIsNothing()
     {
         // Nullable<ValueTask>: GetResult() -> void; classification is *nothing* in statement position.
@@ -355,7 +351,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("System.Void", TypeOfAwaitExpression(comp).ToTestDisplayString());
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Operand_NullableOfValueTaskOfInt_ResultIsNullableInt()
     {
         // Nullable<ValueTask<int>>: GetResult() -> int; lifted to Nullable<int> regardless of NRT.
@@ -370,7 +366,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("System.Int32?", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Operand_TypeParameter_ClassConstraint_AwaitableInstance()
     {
         var source = """
@@ -485,7 +481,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void ResultType_TypeParameterStructConstraintResult_Lifted()
     {
         // Result R = T where T : struct. Lifted to Nullable<T>. Value-type lifting is
@@ -686,7 +682,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Interaction
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Interaction_ExtensionGetAwaiterOnUnderlyingType()
     {
         // GetAwaiter is an extension method on MyStruct. The operand is MyStruct? (Nullable<MyStruct>).
@@ -745,7 +741,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("System.Runtime.CompilerServices.ConfiguredTaskAwaitable").WithLocation(7, 14));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Interaction_ConfigureAwaitOnNullableTaskViaNullConditional_IsOK()
     {
         // `task?.ConfigureAwait(false)` returns `Nullable<ConfiguredTaskAwaitable>`, which
@@ -759,7 +755,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Conversions applied to the await? result
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Conversion_TaskOfInt_ToObject_Succeeds()
     {
         // `await? Task<int>` has static type `int?`. Assignment to `object` (non-nullable)
@@ -775,7 +771,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "await? t").WithLocation(7, 20));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Conversion_TaskOfInt_ToNullableObject_Succeeds()
     {
         // Same as above but the target is `object?`, matching the null-conditional semantics.
@@ -784,7 +780,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Conversion_TaskOfInt_ToNullableLong_Succeeds()
     {
         // `int?` has an implicit conversion to `long?` (lifted numeric widening). The
@@ -810,7 +806,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "await? t").WithLocation(7, 18));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Conversion_TaskOfInt_ToLong_WithExplicitCast()
     {
         // The explicit cast supplies the int? -> long conversion CS0266 asked for above.
@@ -849,7 +845,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Lambdas and expression-bodied members
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void InAsyncLambda_ExplicitReturnType()
     {
         // Async lambda with explicit return type `Task<int?>`. The lambda body's `await?`
@@ -869,7 +865,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void InAsyncLambda_InferredReturnType()
     {
         // No explicit return type on the lambda — the compiler infers the element return type
@@ -890,7 +886,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void InExpressionBodiedAsyncMethod()
     {
         // Expression-bodied async method returning `Task<int?>`. The expression body is the
@@ -906,7 +902,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void InExpressionBodiedAsyncLocalFunction()
     {
         var source = """
@@ -924,7 +920,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void InTernaryBranch()
     {
         // Both ternary branches use `await?`; the branches' types unify to `int?`.
@@ -934,7 +930,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("System.Int32?", TypeOfLocalSymbol(comp, "v"));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Nested_AwaitQuestion_AwaitQuestion()
     {
         // Two stacked `await?` applications. Inner awaits Task<Task<int>> producing Task<int>
@@ -947,7 +943,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("System.Int32?", TypeOfLocalSymbol(comp, "v"));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void NullableAnalysis_OperandIsStillAnalyzed()
     {
         // The `await?` null-receiver suppression must not leak outward and silence nullable
@@ -1064,7 +1060,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("dynamic?", TypeOfLocalSymbol(comp, "v"));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void ExtensionGetAwaiter_OnReferenceTypeUnderlying()
     {
         // GetAwaiter is an extension on a reference-type awaitable wrapper. Nothing about the
@@ -1118,7 +1114,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Semantic model API for ordinary (non-extension) GetAwaiter
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void GetAwaitExpressionInfo_OrdinaryInstance_TaskOfInt()
     {
         // For a plain Task<int> operand, GetAwaitExpressionInfo should surface the instance
@@ -1369,7 +1365,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Type inference and overload resolution
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void TypeInference_GenericMethodArg_InfersLiftedResult()
     {
         // `M<T>(T x)` called with `await? taskOfInt` — T should be inferred from the
@@ -1410,7 +1406,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("System.String?", TypeOfLocalSymbol(comp, "v"));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void OverloadResolution_IntVsNullableInt_PrefersNullableInt()
     {
         // `F(int) / F(int?)` called with `await? taskOfInt` (result type int?).
@@ -1442,7 +1438,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("System.String C.F(System.Int32? x)", resolved!.ToTestDisplayString());
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void OverloadResolution_ObjectVsNullableInt_PrefersNullableInt()
     {
         // `F(object) / F(int?)` called with `await? taskOfInt` (result type int?).
@@ -1527,7 +1523,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Pattern matching and deconstruction on the await? result
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void PatternMatching_IsConstantPattern_OnLiftedResult()
     {
         // `(await? t) is 42` on a Task<int> operand — the pattern is matched against int?.
@@ -1542,7 +1538,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void PatternMatching_IsTypePattern_OnLiftedNullableResult()
     {
         // `(await? t) is int value` — declaration pattern narrows int? to int.
@@ -1614,7 +1610,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void PatternMatching_SwitchExpression_OnLiftedResult()
     {
         // Switch on `await? t` with explicit `null` arm and a declaration arm.
@@ -1667,7 +1663,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, "await? t").WithArguments("(int, int)?", "2").WithLocation(6, 22));
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void Deconstruction_TupleResult_ViaGetValueOrDefault_Works()
     {
         // Same operand as above, but use `.GetValueOrDefault()` to get the tuple value.
@@ -1706,7 +1702,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         comp.VerifyDiagnostics();
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void NullForgiving_OnLiftedValueResult_AllowsValueAccess()
     {
         // `(await? t)!.Value` on Task<int>. The result is int?; `!` narrows the flow state
@@ -1745,7 +1741,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Definite assignment through the await? operand
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+    [Fact]
     public void OutVar_InsideAwaitQuestionOperand_DefiniteAssignment()
     {
         // `await? GetTask(out var x)` — `out var x` introduces `x` as definitely assigned
