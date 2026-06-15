@@ -211,9 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             cancellationToken.ThrowIfCancellationRequested();
 
             if (UnderlyingTypeSymbol is not Symbols.NamedTypeSymbol { IsClosed: true } namedType)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(CSharpResources.GetClosedDerivedTypeInfoMustBeClosed);
 
-            var isComplete = namedType.TryGetClosedSubtypes(out var subtypes);
+            var isComplete = namedType.TryGetClosedSubtypes(out var subtypes, cancellationToken);
             return new ClosedDerivedTypeInfo(subtypes.GetPublicSymbols(), isComplete);
         }
     }

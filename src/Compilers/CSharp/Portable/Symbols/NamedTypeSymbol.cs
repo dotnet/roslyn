@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -708,8 +709,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// may not apply, depending on what type substitution is ultimately performed at a later stage.
         /// This call will return <see langword="false"/> and only the subtypes which are speakable in terms of type parameters on <see langword="this"/> in that situation.
         /// </remarks>
-        internal bool TryGetClosedSubtypes(out ImmutableArray<NamedTypeSymbol> subtypes)
+        internal bool TryGetClosedSubtypes(out ImmutableArray<NamedTypeSymbol> subtypes, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!IsClosed)
             {
                 subtypes = [];
@@ -727,17 +729,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
             this.FindTypeParameters(baseTypeTypeParameters);
 
-            var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters);
+            var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters, cancellationToken);
             baseTypeTypeParameters.Free();
 
             subtypes = resultBuilder.ToImmutableAndFree();
             return success;
 
-            static bool tryGetSpeakableSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes, ArrayBuilder<NamedTypeSymbol> resultBuilder, HashSet<TypeParameterSymbol> baseTypeTypeParameters)
+            static bool tryGetSpeakableSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes, ArrayBuilder<NamedTypeSymbol> resultBuilder, HashSet<TypeParameterSymbol> baseTypeTypeParameters, CancellationToken cancellationToken)
             {
                 bool allSubtypesAreSpeakable = true;
                 foreach (var candidateSubtype in candidateSubtypes)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     if (TypeUnification.TryUnifyClosedSubtype(candidateSubtype, closedType: @this) is { } unifiedSubtype)
                     {
                         if (unifiedSubtype.IsGenericType && unifiedSubtype.ContainsAdditionalTypeParameter(allowedTypeParameters: baseTypeTypeParameters))
