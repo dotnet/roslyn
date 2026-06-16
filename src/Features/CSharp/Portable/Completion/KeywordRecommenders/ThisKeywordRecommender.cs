@@ -14,11 +14,16 @@ internal sealed class ThisKeywordRecommender() : AbstractSyntacticSingleKeywordR
 {
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => IsInstanceExpressionOrStatement(context) ||
+           IsExtensionBlockIndexerDeclarationContext(context) ||
            IsThisParameterModifierContext(context) ||
            IsConstructorInitializerContext(context);
 
     private static bool IsInstanceExpressionOrStatement(CSharpSyntaxContext context)
         => context.IsInstanceContext && (context.IsNonAttributeExpressionContext || context.IsStatementContext);
+
+    private static bool IsExtensionBlockIndexerDeclarationContext(CSharpSyntaxContext context)
+        => context.TargetToken.Parent is TypeSyntax type &&
+           type.GetAncestor<ExtensionBlockDeclarationSyntax>() != null;
 
     private static bool IsConstructorInitializerContext(CSharpSyntaxContext context)
     {

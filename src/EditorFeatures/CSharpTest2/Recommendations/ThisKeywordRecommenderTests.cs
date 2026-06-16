@@ -840,6 +840,19 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
             }
             """);
 
+    [Fact]
+    public Task TestInIndexerInExtensionBlock()
+        => VerifyKeywordAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int $$
+                }
+            }
+            """);
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
     public Task TestNotInEnumMemberInitializer1()
         => VerifyAbsenceAsync(
