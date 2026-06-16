@@ -7,7 +7,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.ServiceHub.Framework;
 using static Microsoft.CodeAnalysis.Remote.Razor.RazorBrokeredServiceBase;
@@ -44,10 +43,10 @@ internal sealed class RemoteMEFInitializationService : IRemoteMEFInitializationS
 
     public ValueTask InitializeAsync(string cacheDirectory, CancellationToken cancellationToken)
     {
-        return RazorBrokeredServiceImplementation.RunServiceAsync(_ =>
-          {
-              RemoteMefComposition.CacheDirectory = cacheDirectory;
-              return new();
-          }, cancellationToken);
+        return BrokeredServiceBase.RunServiceImplAsync(_ =>
+        {
+            RemoteMefComposition.CacheDirectory = cacheDirectory;
+            return new();
+        }, cancellationToken);
     }
 }

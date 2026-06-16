@@ -75,12 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return WellKnownMemberNames.DelegateInvokeName; }
         }
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false)
         {
             return true;
         }
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false)
         {
             return true;
         }

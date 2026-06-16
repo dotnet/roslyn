@@ -3973,6 +3973,22 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             """, "plain");
 
     [Fact]
+    public Task LabelAfterBreak_DoesNotOfferPlainLabel_PartiallyWritten()
+        => VerifyItemIsAbsentAsync("""
+            class C
+            {
+                void F()
+                {
+                    plain: ;
+                    outer: while (true)
+                    {
+                        break pl$$
+                    }
+                }
+            }
+            """, "plain");
+
+    [Fact]
     public Task LabelAfterBreak_OffersMultipleEnclosingLabels()
         => VerifyExpectedItemsAsync("""
             class C

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
+using Roslyn.LanguageServer.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -31,6 +32,20 @@ public sealed class ServerDisconnectTests(ITestOutputHelper testOutputHelper) : 
         server.ServerToClientPipe.Reader.Complete();
 
         // Server should exit cleanly without throwing.
+        await server.ServerExitTask;
+    }
+
+    [Fact]
+    public async Task ServerExitsOnExitNotificationWithoutClosingTransport()
+    {
+        // Verify that the server terminates after it receives the exit notification, even if the client
+        // never closes its end of the transport.
+        var server = await CreateLanguageServerAsync();
+
+        await server.ExecuteRequestAsync<object, object>(Methods.ShutdownName, new object(), CancellationToken.None);
+        await server.ExecuteNotification0Async(Methods.ExitName);
+
+        // Server should exit even though we never complete the client->server pipe.
         await server.ServerExitTask;
     }
 

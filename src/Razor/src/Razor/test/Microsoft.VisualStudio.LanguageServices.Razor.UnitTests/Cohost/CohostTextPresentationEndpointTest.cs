@@ -34,7 +34,7 @@ public class CohostTextPresentationEndpointTest(ITestOutputHelper testOutputHelp
                     {
                         TextDocument = new()
                         {
-                            DocumentUri = new(FileUri($"File1.razor{LanguageServerConstants.HtmlVirtualDocumentSuffix}"))
+                            DocumentUri = FileUri($"File1.razor{LanguageServerConstants.HtmlVirtualDocumentSuffix}")
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Hello World")]
                     }

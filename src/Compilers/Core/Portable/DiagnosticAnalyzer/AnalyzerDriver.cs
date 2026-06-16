@@ -2050,20 +2050,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var allAnalyzerActions = new AnalyzerActions.Builder();
             var unsuppressedAnalyzersBuilder = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
-            foreach (var analyzer in analyzers)
+            try
             {
-                if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, severityFilter, cancellationToken))
+                foreach (var analyzer in analyzers)
                 {
-                    unsuppressedAnalyzersBuilder.Add(analyzer);
+                    if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, severityFilter, cancellationToken))
+                    {
+                        unsuppressedAnalyzersBuilder.Add(analyzer);
 
-                    var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
-                    allAnalyzerActions.Append(in analyzerActions);
+                        var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
+                        allAnalyzerActions.Append(in analyzerActions);
+                    }
                 }
-            }
 
-            var unsuppressedAnalyzers = unsuppressedAnalyzersBuilder.ToImmutableHashSet();
-            unsuppressedAnalyzersBuilder.Free();
-            return (allAnalyzerActions.ToAnalyzerActionsAndFree(), unsuppressedAnalyzers);
+                var unsuppressedAnalyzers = unsuppressedAnalyzersBuilder.ToImmutableHashSet();
+                return (allAnalyzerActions.ToAnalyzerActionsAndFreeUnderlyingIfNeeded(), unsuppressedAnalyzers);
+            }
+            finally
+            {
+                allAnalyzerActions.FreeUnderlyingIfNeeded();
+                unsuppressedAnalyzersBuilder.Free();
+            }
         }
 
         public bool HasSymbolStartedActions(AnalysisScope analysisScope)
@@ -2562,14 +2569,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             cancellationToken.ThrowIfCancellationRequested();
 
             var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            SyntaxNode declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
-            SyntaxNode topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
-            ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
-            ImmutableArray<DeclarationInfo> declarationInfos = builder.ToImmutableAndFree();
+            SyntaxNode declaringReferenceSyntax;
+            SyntaxNode topmostNodeForAnalysis;
+            ImmutableArray<DeclarationInfo> declarationInfos;
+            try
+            {
+                declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
+                topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
+                ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
+                declarationInfos = builder.ToImmutableAndFree();
+            }
+            catch
+            {
+                builder.Free();
+                throw;
+            }
 
             bool isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
             var data = new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, isPartialDeclAnalysis);
-            AddSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, semanticModel, data.DescendantNodesToAnalyze, cancellationToken);
+            try
+            {
+                AddSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, semanticModel, data.DescendantNodesToAnalyze, cancellationToken);
+            }
+            catch
+            {
+                data.Free();
+                throw;
+            }
+
             return data;
         }
 
@@ -2606,16 +2633,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 GetOrCreateSemanticModel(decl.SyntaxTree, symbolEvent.Compilation);
 
             var declarationAnalysisData = ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken);
-            if (analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
+            try
             {
-                // Execute stateless syntax node actions.
-                executeNodeActions();
+                if (analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
+                {
+                    // Execute stateless syntax node actions.
+                    executeNodeActions();
 
-                // Execute actions in executable code: code block actions, operation actions and operation block actions.
-                executeExecutableCodeActions();
+                    // Execute actions in executable code: code block actions, operation actions and operation block actions.
+                    executeExecutableCodeActions();
+                }
             }
-
-            declarationAnalysisData.Free();
+            finally
+            {
+                declarationAnalysisData.Free();
+            }
 
             return;
 
@@ -2637,48 +2669,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 var analyzersForNodes = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
-                foreach (var node in nodesToAnalyze)
+                try
                 {
-                    if (groupedActions.AnalyzersByKind.TryGetValue(_getKind(node), out var analyzersForKind))
+                    foreach (var node in nodesToAnalyze)
                     {
-                        foreach (var analyzer in analyzersForKind)
+                        if (groupedActions.AnalyzersByKind.TryGetValue(_getKind(node), out var analyzersForKind))
                         {
-                            analyzersForNodes.Add(analyzer);
+                            foreach (var analyzer in analyzersForKind)
+                            {
+                                analyzersForNodes.Add(analyzer);
+                            }
+                        }
+                    }
+
+                    foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
+                    {
+                        if (!analyzersForNodes.Contains(analyzer) || !analysisScope.Contains(analyzer))
+                        {
+                            continue;
+                        }
+
+                        // We further filter out the nodes to analyze based on analysis scope if we are performing
+                        // partial analysis of the declaration, i.e. analyzing a sub-span within the declaration span,
+                        // and additionally the analyzer has not registered any code block start actions. In case
+                        // the analyzer has registered code block start actions, we need to make callbacks for all nodes
+                        // in the code block to ensure the analyzer can correctly report code block end diagnostics.
+                        if (declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasCodeBlockStartActions)
+                        {
+                            var filteredNodesToAnalyze = ArrayBuilder<SyntaxNode>.GetInstance(nodesToAnalyze.Count);
+                            try
+                            {
+                                foreach (var node in nodesToAnalyze)
+                                {
+                                    if (analysisScope.ShouldAnalyze(node))
+                                        filteredNodesToAnalyze.Add(node);
+                                }
+
+                                executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, filteredNodesToAnalyze);
+                            }
+                            finally
+                            {
+                                filteredNodesToAnalyze.Free();
+                            }
+                        }
+                        else
+                        {
+                            executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, nodesToAnalyze);
                         }
                     }
                 }
-
-                foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
+                finally
                 {
-                    if (!analyzersForNodes.Contains(analyzer) || !analysisScope.Contains(analyzer))
-                    {
-                        continue;
-                    }
-
-                    // We further filter out the nodes to analyze based on analysis scope if we are performing
-                    // partial analysis of the declaration, i.e. analyzing a sub-span within the declaration span,
-                    // and additionally the analyzer has not registered any code block start actions. In case
-                    // the analyzer has registered code block start actions, we need to make callbacks for all nodes
-                    // in the code block to ensure the analyzer can correctly report code block end diagnostics.
-                    if (declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasCodeBlockStartActions)
-                    {
-                        var filteredNodesToAnalyze = ArrayBuilder<SyntaxNode>.GetInstance(nodesToAnalyze.Count);
-                        foreach (var node in nodesToAnalyze)
-                        {
-                            if (analysisScope.ShouldAnalyze(node))
-                                filteredNodesToAnalyze.Add(node);
-                        }
-
-                        executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, filteredNodesToAnalyze);
-                        filteredNodesToAnalyze.Free();
-                    }
-                    else
-                    {
-                        executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, nodesToAnalyze);
-                    }
+                    analyzersForNodes.Free();
                 }
-
-                analyzersForNodes.Free();
 
                 void executeSyntaxNodeActions(
                     DiagnosticAnalyzer analyzer,

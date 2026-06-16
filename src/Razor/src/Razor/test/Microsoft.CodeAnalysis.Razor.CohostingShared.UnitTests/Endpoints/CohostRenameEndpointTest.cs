@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -1462,9 +1461,9 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         string newName,
         string expected,
         RazorFileKind? fileKind = null,
-        Uri? newFileUri = null,
+        DocumentUri? newFileUri = null,
         (string fileName, string contents)[]? additionalFiles = null,
-        (Uri fileUri, string contents)[]? additionalExpectedFiles = null)
+        (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
         TestFileMarkupParser.GetPosition(input, out var source, out var cursorPosition);
         var document = CreateProjectAndRazorDocument(source, fileKind, additionalFiles: additionalFiles);
@@ -1495,8 +1494,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         Assert.NotNull(result);
 
-        var documentUri = newFileUri is null ? document.GetURI() : new(newFileUri);
-        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (new DocumentUri(e.fileUri), e.contents)).Concat([(documentUri, expected)]);
+        var documentUri = newFileUri is null ? document.GetURI() : newFileUri;
+        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (e.fileUri, e.contents)).Concat([(documentUri, expected)]);
         await result.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 }

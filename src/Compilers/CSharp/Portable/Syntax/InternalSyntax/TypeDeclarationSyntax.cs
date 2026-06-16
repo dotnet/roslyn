@@ -155,6 +155,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    internal partial class UnionDeclarationSyntax
+    {
+        public override TypeDeclarationSyntax UpdateCore(
+            CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists,
+            CoreSyntax.SyntaxList<SyntaxToken> modifiers,
+            SyntaxToken keyword,
+            SyntaxToken identifier,
+            TypeParameterListSyntax typeParameterList,
+            ParameterListSyntax parameterList,
+            BaseListSyntax baseList,
+            CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            SyntaxToken openBraceToken,
+            CoreSyntax.SyntaxList<MemberDeclarationSyntax> members,
+            SyntaxToken closeBraceToken,
+            SyntaxToken semicolonToken)
+        {
+            return this.Update(
+                attributeLists,
+                modifiers,
+                keyword,
+                identifier,
+                typeParameterList,
+                parameterList,
+                baseList,
+                constraintClauses,
+                openBraceToken,
+                members,
+                closeBraceToken,
+                semicolonToken);
+        }
+    }
+
     internal partial class ExtensionBlockDeclarationSyntax
     {
         public override TypeDeclarationSyntax UpdateCore(

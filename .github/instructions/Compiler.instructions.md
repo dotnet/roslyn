@@ -1,8 +1,8 @@
-# Roslyn Compiler Instructions for AI Coding Agents
-
 ---
 applyTo: "src/{Compilers,Dependencies,ExpressionEvaluator,Tools}/**/*.{cs,vb}"
 ---
+
+# Roslyn Compiler Instructions for AI Coding Agents
 
 ## Architecture Overview
 

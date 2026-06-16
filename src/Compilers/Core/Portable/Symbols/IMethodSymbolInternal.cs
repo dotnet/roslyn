@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         bool IsAccessCheckedOnOverride { get; }
         bool IsExternal { get; }
         bool IsHiddenBySignature { get; }
-        bool IsMetadataNewSlot { get; }
+        bool IsMetadataNewSlotIgnoringInterfaceImplementationChanges { get; }
         bool IsPlatformInvoke { get; }
         bool IsMetadataFinal { get; }
         bool HasSpecialName { get; }

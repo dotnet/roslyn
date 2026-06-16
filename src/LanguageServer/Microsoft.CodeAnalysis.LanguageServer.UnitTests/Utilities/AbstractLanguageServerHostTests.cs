@@ -125,6 +125,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             _clientRpc.AddLocalRpcMethod(methodName, handler);
         }
 
+        internal T GetRequiredLspService<T>() where T : class => LanguageServerHost.GetLspServices().GetRequiredService<T>();
+
         public async ValueTask DisposeAsync()
         {
             await _clientRpc.InvokeAsync(Methods.ShutdownName);
