@@ -85,15 +85,7 @@ internal sealed class LoopHighlighter() : AbstractKeywordHighlighter(findInsideT
 
         if (node is BreakStatementSyntax breakStatement)
         {
-            if (breakStatement.Name is { } breakName)
-            {
-                if (breakName.Identifier.ValueText == labelName)
-                {
-                    spans.Add(breakStatement.BreakKeyword.Span);
-                    spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
-                }
-            }
-            else if (highlightBreaks)
+            if (breakStatement.Name is { Identifier.ValueText: var breakName } ? breakName == labelName : highlightBreaks)
             {
                 spans.Add(breakStatement.BreakKeyword.Span);
                 spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
@@ -101,15 +93,7 @@ internal sealed class LoopHighlighter() : AbstractKeywordHighlighter(findInsideT
         }
         else if (node is ContinueStatementSyntax continueStatement)
         {
-            if (continueStatement.Name is { } continueName)
-            {
-                if (continueName.Identifier.ValueText == labelName)
-                {
-                    spans.Add(continueStatement.ContinueKeyword.Span);
-                    spans.Add(EmptySpan(continueStatement.SemicolonToken.Span.End));
-                }
-            }
-            else if (highlightContinues)
+            if (continueStatement.Name is { Identifier.ValueText: var continueName } ? continueName == labelName : highlightContinues)
             {
                 spans.Add(continueStatement.ContinueKeyword.Span);
                 spans.Add(EmptySpan(continueStatement.SemicolonToken.Span.End));
