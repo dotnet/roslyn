@@ -83,10 +83,10 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
     public CancellationToken CancellationToken => _cancelSource.Token;
 
-    public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
+    public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, AbstractHandlerProvider handlerProvider)
     {
         _languageServer = languageServer;
-        _logger = logger;
+        _logger = languageServer.GetLspServices().GetRequiredService<ILspLogger>();
         _handlerProvider = handlerProvider;
         _handlerInfoMap = BuildHandlerMap(handlerProvider, languageServer.TypeRefResolver);
     }
