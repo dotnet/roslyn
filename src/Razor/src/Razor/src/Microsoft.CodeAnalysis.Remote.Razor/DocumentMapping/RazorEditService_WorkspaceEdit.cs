@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
@@ -47,8 +46,7 @@ internal partial class RazorEditService
             builder.AddRange(await MapDocumentEditsAsync(originSnapshot, changeMap, cancellationToken).ConfigureAwait(false));
         }
 
-        var solution = originSnapshot.TextDocument.Project.Solution;
-        var normalizedDocumentChanges = await NormalizeDocumentChangesAsync(solution, builder.ToArrayAndClear(), cancellationToken).ConfigureAwait(false);
+        var normalizedDocumentChanges = NormalizeDocumentChanges(builder.ToArrayAndClear());
         if (workspaceEdit.DocumentChanges is not null)
         {
             workspaceEdit.DocumentChanges = normalizedDocumentChanges;
@@ -59,10 +57,8 @@ internal partial class RazorEditService
         }
     }
 
-    private static async Task<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> NormalizeDocumentChangesAsync(
-        Solution solution,
-        SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] documentChanges,
-        CancellationToken cancellationToken)
+    private static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] NormalizeDocumentChanges(
+        SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] documentChanges)
     {
         // Multiple generated C# documents can map edits back to the same Razor document.
         // Keep one TextDocumentEdit per URI so duplicate mapped edits are applied against the same source text.
@@ -100,7 +96,7 @@ internal partial class RazorEditService
         {
             if (documentChange.TryGetFirst(out var textDocumentEdit))
             {
-                await DeduplicateTextDocumentEditAsync(solution, textDocumentEdit, cancellationToken).ConfigureAwait(false);
+                DeduplicateTextDocumentEdit(textDocumentEdit);
             }
         }
 
@@ -259,38 +255,23 @@ internal partial class RazorEditService
         return mappedEdits.SelectAsArray(razorSourceText.GetTextEdit);
     }
 
-    private static async Task DeduplicateTextDocumentEditAsync(Solution solution, TextDocumentEdit entry, CancellationToken cancellationToken)
+    private static void DeduplicateTextDocumentEdit(TextDocumentEdit entry)
     {
-        if (entry.Edits.Length <= 1)
-        {
-            return;
-        }
+        var edits = entry.Edits;
 
-        var document = await solution.GetTextDocumentAsync(entry.TextDocument, cancellationToken).ConfigureAwait(false);
-        if (document is null)
-        {
-            return;
-        }
-
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        entry.Edits = Deduplicate(sourceText, entry.Edits);
-    }
-
-    private static SumType<TextEdit, AnnotatedTextEdit>[] Deduplicate(SourceText sourceText, SumType<TextEdit, AnnotatedTextEdit>[] edits)
-    {
         if (edits.Length <= 1)
         {
-            return edits;
+            return;
         }
 
-        using var _ = HashSetPool<(int Start, int Length, string? NewText)>.GetPooledObject(out var seenEdits);
+        using var _ = HashSetPool<(int StartLine, int StartCharacter, int EndLine, int EndCharacter, string? NewText)>.GetPooledObject(out var seenEdits);
         using var builder = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>(edits.Length);
 
         foreach (var edit in edits)
         {
             var textEdit = (TextEdit)edit;
-            var change = sourceText.GetTextChange(textEdit);
-            if (seenEdits.Add((change.Span.Start, change.Span.Length, change.NewText)))
+            var range = textEdit.Range;
+            if (seenEdits.Add((range.Start.Line, range.Start.Character, range.End.Line, range.End.Character, textEdit.NewText)))
             {
                 builder.Add(edit);
             }
@@ -299,9 +280,9 @@ internal partial class RazorEditService
         if (builder.Count == edits.Length)
         {
             // No duplicates, return original array to avoid unnecessary allocations.
-            return edits;
+            return;
         }
 
-        return builder.ToArrayAndClear();
+        entry.Edits = builder.ToArrayAndClear();
     }
 }
