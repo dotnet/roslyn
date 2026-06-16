@@ -885,4 +885,48 @@ public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighl
                 }
             }
             """);
+
+    [Fact]
+    public Task TestLabeledBreak_EscapedLabelName_CursorOnSwitch()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    @outer: {|Cursor:[|switch|]|} (x)
+                    {
+                        [|case|] 0:
+                            switch (x)
+                            {
+                                case 1:
+                                    [|break|] outer;
+                            }
+                            [|break|];
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledBreak_EscapedTargetName_CursorOnSwitch()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    outer: {|Cursor:[|switch|]|} (x)
+                    {
+                        [|case|] 0:
+                            switch (x)
+                            {
+                                case 1:
+                                    [|break|] @outer;
+                            }
+                            [|break|];
+                    }
+                }
+            }
+            """);
 }
