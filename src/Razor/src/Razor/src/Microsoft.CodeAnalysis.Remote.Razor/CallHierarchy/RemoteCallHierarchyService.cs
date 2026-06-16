@@ -61,11 +61,26 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         }
 
         var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
+            .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
 
-        var items = await PrepareCallHierarchyHandler.PrepareCallHierarchyAsync(generatedDocument, positionInfo.Position.ToLinePosition(), cancellationToken)
+        var linePosition = positionInfo.Position.ToLinePosition();
+        var items = await PrepareCallHierarchyHandler.PrepareCallHierarchyAsync(generatedDocument, linePosition, generatedDocument.Id, cancellationToken)
             .ConfigureAwait(false);
+
+        if (items is null && !positionInfo.InDeclDocument)
+        {
+            // Razor implementation generated documents can contain call sites for members whose declarations live in the
+            // paired declaration generated document. In that case Roslyn's prepare path can't create an item for the
+            // implementation document, so retry while explicitly preferring the declaration document.
+            var declarationGeneratedDocument = await context.Snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false);
+            if (declarationGeneratedDocument is null)
+            {
+                return RemoteResponse<CallHierarchyItem[]?>.NoFurtherHandling;
+            }
+
+            items = await PrepareCallHierarchyHandler.PrepareCallHierarchyAsync(generatedDocument, linePosition, declarationGeneratedDocument.Id, cancellationToken).ConfigureAwait(false);
+        }
 
         if (items is null)
         {
@@ -92,9 +107,11 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         CallHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
-            .ConfigureAwait(false);
+        var generatedDocument = await TryGetGeneratedDocumentForItemAsync(context, item, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return RemoteResponse<CallHierarchyIncomingCall[]?>.NoFurtherHandling;
+        }
 
         var incomingCalls = await CallHierarchyIncomingCallsHandler.GetIncomingCallsAsync(generatedDocument, item, allowRazorSourceGeneratedDocuments: true, cancellationToken)
             .ConfigureAwait(false);
@@ -141,9 +158,11 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         CallHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
-            .ConfigureAwait(false);
+        var generatedDocument = await TryGetGeneratedDocumentForItemAsync(context, item, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return RemoteResponse<CallHierarchyOutgoingCall[]?>.NoFurtherHandling;
+        }
 
         var outgoingCalls = await CallHierarchyOutgoingCallsHandler.GetOutgoingCallsAsync(generatedDocument, item, cancellationToken)
             .ConfigureAwait(false);
@@ -172,6 +191,16 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         }
 
         return RemoteResponse<CallHierarchyOutgoingCall[]?>.Results(builder.ToArray());
+    }
+
+    private static async ValueTask<SourceGeneratedDocument?> TryGetGeneratedDocumentForItemAsync(
+        RemoteDocumentContext context,
+        CallHierarchyItem item,
+        CancellationToken cancellationToken)
+    {
+        var resolveData = CallHierarchyHelpers.GetResolveData(item);
+        var generatedDocumentUri = resolveData.TextDocument.DocumentUri.GetRequiredSystemUri();
+        return await context.Snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<CallHierarchyItem[]?> MapItemsAsync(RemoteDocumentContext context, CallHierarchyItem[] items, CancellationToken cancellationToken)
