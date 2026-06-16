@@ -149,14 +149,10 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
             foreach (var location in locations)
             {
                 var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-                for (var currentNode = syntaxNode; currentNode != null; currentNode = currentNode.Parent)
+                foreach (var currentNode in syntaxNode.GetAncestorsOrThis<SyntaxNode>())
                 {
-                    var operation = semanticModel.GetOperation(currentNode, cancellationToken);
-                    for (var current = operation; current != null; current = current.Parent)
-                    {
-                        if (current is IEventAssignmentOperation)
-                            return true;
-                    }
+                    if (semanticModel.GetOperation(currentNode, cancellationToken) is IEventAssignmentOperation)
+                        return true;
                 }
             }
         }
