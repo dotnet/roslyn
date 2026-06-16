@@ -1756,7 +1756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsKeyValuePairType(
             CSharpCompilation compilation,
-            TypeSymbol? type,
+            [NotNullWhen(true)] TypeSymbol? type,
             [NotNullWhen(true)] out TypeSymbol? keyType,
             [NotNullWhen(true)] out TypeSymbol? valueType)
         {

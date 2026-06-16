@@ -953,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
             {
                 var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
+                Debug.Assert(keyValuePairSyntax.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions));
                 var keyValuePairConstructor = useIndexer ? null : (MethodSymbol?)binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor, diagnostics, syntax: keyValuePairSyntax);
                 var key = binder.CreateConversion(keyValuePairElement.Key, keyConversion, elementKeyType, diagnostics);
                 var value = binder.CreateConversion(keyValuePairElement.Value, valueConversion, elementValueType, diagnostics);
