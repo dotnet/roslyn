@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Threading;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
@@ -283,28 +282,37 @@ internal sealed class CSharpOnTypeFormattingPass(
     private static ImmutableArray<TextChange> CleanupDocument(FormattingContext context, LinePositionSpan spanAfterFormatting)
     {
         var text = context.SourceText;
-        var csharpDocument = context.CSharpDocument;
+        var csharpDocumentContexts = GetCSharpDocumentContexts(context);
 
         using var changes = new PooledArrayBuilder<TextChange>();
-        foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
+        using var _ = HashSetPool<TextSpan>.GetPooledObject(out var processedMappingSpans);
+        foreach (var csharpDocumentContext in csharpDocumentContexts)
         {
-            var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
-            var mappingLinePositionSpan = text.GetLinePositionSpan(mappingSpan);
-            if (!spanAfterFormatting.LineOverlapsWith(mappingLinePositionSpan))
+            foreach (var mapping in csharpDocumentContext.CSharpDocument.SourceMappingsSortedByOriginal)
             {
-                if (mappingLinePositionSpan.Start > spanAfterFormatting.End)
+                var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
+                var mappingLinePositionSpan = text.GetLinePositionSpan(mappingSpan);
+                if (!spanAfterFormatting.LineOverlapsWith(mappingLinePositionSpan))
                 {
-                    // This span (and all following) are after the area we're interested in
-                    break;
+                    if (mappingLinePositionSpan.Start > spanAfterFormatting.End)
+                    {
+                        // This span (and all following) are after the area we're interested in
+                        break;
+                    }
+
+                    // We don't care about this range. It didn't change.
+                    continue;
                 }
 
-                // We don't care about this range. It didn't change.
-                continue;
+                if (!processedMappingSpans.Add(mappingSpan))
+                {
+                    continue;
+                }
+
+                CleanupSourceMappingStart(context, mappingLinePositionSpan, ref changes.AsRef(), out var newLineAdded);
+
+                CleanupSourceMappingEnd(context, mappingLinePositionSpan, ref changes.AsRef(), newLineAdded);
             }
-
-            CleanupSourceMappingStart(context, mappingLinePositionSpan, ref changes.AsRef(), out var newLineAdded);
-
-            CleanupSourceMappingEnd(context, mappingLinePositionSpan, ref changes.AsRef(), newLineAdded);
         }
 
         return changes.ToImmutable();
@@ -561,59 +569,66 @@ internal sealed class CSharpOnTypeFormattingPass(
         // 1. The indentation due to nested C# structures
         // 2. The indentation due to Razor and HTML constructs
 
-        var text = context.SourceText;
-        var csharpDocument = context.CSharpDocument;
+        var csharpDocumentContexts = GetCSharpDocumentContexts(context);
+        var significantLocationsByDocument = csharpDocumentContexts.ToDictionary(
+            static c => c.CSharpDocument.IsDeclarationDocument,
+            static _ => new HashSet<int>());
 
         // To help with figuring out the correct indentation, first we will need the indentation
         // that the C# formatter wants to apply in the following locations,
         // 1. The start and end of each of our source mappings
         // 2. The start of every line that starts in C# context
 
-        // Due to perf concerns, we only want to invoke the real C# formatter once.
+        // Due to perf concerns, we only want to invoke the real C# formatter once per generated C# document.
         // So, let's collect all the significant locations that we want to obtain the CSharpDesiredIndentations for.
 
-        using var _1 = HashSetPool<int>.GetPooledObject(out var significantLocations);
-
         // First, collect all the locations at the beginning and end of each source mapping.
-        var sourceMappingMap = new Dictionary<int, int>();
-        foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
+        var sourceMappingMap = new Dictionary<int, CSharpDocumentLocation>();
+
+        foreach (var csharpDocumentContext in csharpDocumentContexts)
         {
-            var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
+            var csharpDocument = csharpDocumentContext.CSharpDocument;
+            foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
+            {
+                var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
 #if DEBUG
-            var spanText = context.SourceText.ToString(mappingSpan);
+                var spanText = context.SourceText.ToString(mappingSpan);
 #endif
 
-            var options = new ShouldFormatOptions(
-                // Implicit expressions and single line explicit expressions don't affect the indentation of anything
-                // under them, so we don't want their positions to be "significant".
-                AllowImplicitExpressions: false,
-                AllowSingleLineExplicitExpressions: false,
+                var options = new ShouldFormatOptions(
+                    // Implicit expressions and single line explicit expressions don't affect the indentation of anything
+                    // under them, so we don't want their positions to be "significant".
+                    AllowImplicitExpressions: false,
+                    AllowSingleLineExplicitExpressions: false,
 
-                // Implicit statements are @if, @foreach etc. so they do affect indentation
-                AllowImplicitStatements: true,
+                    // Implicit statements are @if, @foreach etc. so they do affect indentation
+                    AllowImplicitStatements: true,
 
-                IsLineRequest: false);
+                    IsLineRequest: false);
 
-            if (!ShouldFormat(context, mappingSpan, options, out var owner))
-            {
-                // We don't care about this range as this can potentially lead to incorrect scopes.
-                continue;
+                if (!ShouldFormat(context, mappingSpan, options, out var owner))
+                {
+                    // We don't care about this range as this can potentially lead to incorrect scopes.
+                    continue;
+                }
+
+                var declarationDocument = csharpDocument.IsDeclarationDocument;
+
+                var originalStartLocation = mapping.OriginalSpan.AbsoluteIndex;
+                var projectedStartLocation = new CSharpDocumentLocation(declarationDocument, mapping.GeneratedSpan.AbsoluteIndex);
+                sourceMappingMap[originalStartLocation] = projectedStartLocation;
+                significantLocationsByDocument[declarationDocument].Add(projectedStartLocation.ProjectedIndex);
+
+                var originalEndLocation = mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length + 1;
+                var projectedEndLocation = new CSharpDocumentLocation(declarationDocument, mapping.GeneratedSpan.AbsoluteIndex + mapping.GeneratedSpan.Length + 1);
+                sourceMappingMap[originalEndLocation] = projectedEndLocation;
+                significantLocationsByDocument[declarationDocument].Add(projectedEndLocation.ProjectedIndex);
             }
-
-            var originalStartLocation = mapping.OriginalSpan.AbsoluteIndex;
-            var projectedStartLocation = mapping.GeneratedSpan.AbsoluteIndex;
-            sourceMappingMap[originalStartLocation] = projectedStartLocation;
-            significantLocations.Add(projectedStartLocation);
-
-            var originalEndLocation = mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length + 1;
-            var projectedEndLocation = mapping.GeneratedSpan.AbsoluteIndex + mapping.GeneratedSpan.Length + 1;
-            sourceMappingMap[originalEndLocation] = projectedEndLocation;
-            significantLocations.Add(projectedEndLocation);
         }
 
         // Next, collect all the line starts that start in C# context
         var indentations = context.GetIndentations();
-        var lineStartMap = new Dictionary<int, int>();
+        var lineStartMap = new Dictionary<int, CSharpDocumentLocation>();
         for (var i = startLine; i <= endLineInclusive; i++)
         {
             if (indentations[i].EmptyOrWhitespaceLine)
@@ -633,10 +648,10 @@ internal sealed class CSharpOnTypeFormattingPass(
                 continue;
             }
 
-            if (_documentMappingSerivce.TryMapToCSharpDocumentPosition(csharpDocument, lineStart, out _, out var projectedLineStart))
+            if (_documentMappingSerivce.TryMapToCSharpDocumentLinePosition(context.CodeDocument, lineStart, out _, out var projectedLineStart, out var inDeclDocument))
             {
-                lineStartMap[lineStart] = projectedLineStart;
-                significantLocations.Add(projectedLineStart);
+                lineStartMap[lineStart] = new CSharpDocumentLocation(inDeclDocument, projectedLineStart);
+                significantLocationsByDocument[inDeclDocument].Add(projectedLineStart);
             }
             else if (owner is CSharpTransitionSyntax &&
                 owner.Parent is RazorDirectiveSyntax containingDirective &&
@@ -661,19 +676,29 @@ internal sealed class CSharpOnTypeFormattingPass(
                 if (containingDirective.DirectiveBody.CSharpCode.Children is [.., MarkupBlockSyntax block, RazorMetaCodeSyntax /* close brace */])
                 {
                     var blockSpan = block.Span;
-                    foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
+                    foreach (var csharpDocumentContext in csharpDocumentContexts)
                     {
-                        if (blockSpan.Contains(mapping.OriginalSpan.AbsoluteIndex))
+                        var csharpDocument = csharpDocumentContext.CSharpDocument;
+                        foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
                         {
-                            var projectedStartLocation = mapping.GeneratedSpan.AbsoluteIndex;
-                            lineStartMap[blockSpan.Start] = projectedStartLocation;
-                            sourceMappingMap[blockSpan.Start] = projectedStartLocation;
-                            significantLocations.Add(projectedStartLocation);
-                            break;
+                            if (blockSpan.Contains(mapping.OriginalSpan.AbsoluteIndex))
+                            {
+                                var projectedStartLocation = new CSharpDocumentLocation(csharpDocument.IsDeclarationDocument, mapping.GeneratedSpan.AbsoluteIndex);
+                                lineStartMap[blockSpan.Start] = projectedStartLocation;
+                                sourceMappingMap[blockSpan.Start] = projectedStartLocation;
+                                significantLocationsByDocument[projectedStartLocation.DeclarationDocument].Add(projectedStartLocation.ProjectedIndex);
+
+                                break;
+                            }
+                            else if (mapping.OriginalSpan.AbsoluteIndex > blockSpan.End)
+                            {
+                                // This span (and all following) are after the area we're interested in
+                                break;
+                            }
                         }
-                        else if (mapping.OriginalSpan.AbsoluteIndex > blockSpan.End)
+
+                        if (lineStartMap.ContainsKey(blockSpan.Start))
                         {
-                            // This span (and all following) are after the area we're interested in
                             break;
                         }
                     }
@@ -686,7 +711,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         }
 
         // Now, invoke the C# formatter to obtain the CSharpDesiredIndentation for all significant locations.
-        var significantLocationIndentation = await CSharpFormatter.GetCSharpIndentationAsync(context, significantLocations, hostWorkspaceServices, cancellationToken).ConfigureAwait(false);
+        var significantLocationIndentation = await GetCSharpIndentationAsync(csharpDocumentContexts, significantLocationsByDocument, hostWorkspaceServices, cancellationToken).ConfigureAwait(false);
 
         // Build source mapping indentation scopes.
         var sourceMappingIndentations = new SortedDictionary<int, IndentationData>();
@@ -851,6 +876,38 @@ internal sealed class CSharpOnTypeFormattingPass(
         }
 
         return changes.ToImmutableAndClear();
+    }
+
+    private static ImmutableArray<FormattingContext> GetCSharpDocumentContexts(FormattingContext context)
+    {
+        var alternateDeclarationDocument = !context.CSharpDocument.IsDeclarationDocument;
+        if (context.CodeDocument.GetCSharpDocument(alternateDeclarationDocument) is null)
+        {
+            return [context];
+        }
+
+        return [context, context.WithCSharpDocument(alternateDeclarationDocument)];
+    }
+
+    private static async Task<IReadOnlyDictionary<CSharpDocumentLocation, int>> GetCSharpIndentationAsync(
+        ImmutableArray<FormattingContext> csharpDocumentContexts,
+        Dictionary<bool, HashSet<int>> significantLocationsByDocument,
+        HostWorkspaceServices hostWorkspaceServices,
+        CancellationToken cancellationToken)
+    {
+        var result = new Dictionary<CSharpDocumentLocation, int>();
+        foreach (var csharpDocumentContext in csharpDocumentContexts)
+        {
+            var declarationDocument = csharpDocumentContext.CSharpDocument.IsDeclarationDocument;
+            var significantLocations = significantLocationsByDocument[declarationDocument];
+            var indentations = await CSharpFormatter.GetCSharpIndentationAsync(csharpDocumentContext, significantLocations, hostWorkspaceServices, cancellationToken).ConfigureAwait(false);
+            foreach (var indentation in indentations)
+            {
+                result[new CSharpDocumentLocation(declarationDocument, indentation.Key)] = indentation.Value;
+            }
+        }
+
+        return result;
     }
 
     private static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
@@ -1190,6 +1247,8 @@ internal sealed class CSharpOnTypeFormattingPass(
         {
         }
     }
+
+    private readonly record struct CSharpDocumentLocation(bool DeclarationDocument, int ProjectedIndex);
 
     private class IndentationData
     {
