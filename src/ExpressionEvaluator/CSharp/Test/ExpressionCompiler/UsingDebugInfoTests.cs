@@ -575,6 +575,48 @@ namespace N
             Assert.Equal(0, imports.ExternAliases.Length);
         }
 
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
+        public void NonStaticTypeImport()
+        {
+            var source = @"
+namespace N
+{
+    public class C
+    {
+        public static void Main()
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            var peImage = comp.EmitToArray();
+
+            ISymUnmanagedReader symReader;
+            using (var peReader = new PEReader(peImage))
+            {
+                var metadataReader = peReader.GetMetadataReader();
+                var methodHandle = metadataReader.MethodDefinitions.Single(h => metadataReader.StringComparer.Equals(metadataReader.GetMethodDefinition(h).Name, "Main"));
+                var methodToken = metadataReader.GetToken(methodHandle);
+
+                symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
+                {
+                    { methodToken, new MethodDebugInfoBytes.Builder([new[] { "TSystem.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" }], suppressUsingInfo: true).AddUsingInfo(1).Build() },
+                }.ToImmutableDictionary());
+            }
+
+            var module = ModuleInstance.Create(peImage, symReader);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
+            var evalContext = CreateMethodContext(runtime, "N.C.Main");
+            var compContext = evalContext.CreateCompilationContext();
+            var imports = compContext.NamespaceBinder.ImportChain.Single();
+            var actualType = imports.Usings.Single().NamespaceOrType;
+            Assert.Equal(SymbolKind.NamedType, actualType.Kind);
+            Assert.Equal("System.String", actualType.ToTestDisplayString());
+            Assert.Equal(0, imports.UsingAliases.Count);
+            Assert.Equal(0, imports.ExternAliases.Length);
+        }
+
         #endregion Invalid PDBs
 
         #region Binder chain
