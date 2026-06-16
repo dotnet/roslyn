@@ -44,6 +44,12 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
         var filePathSpan = filePath.AsSpan();
         foreach (var project in context.Solution.Projects)
         {
+            if (!project.State.HasAllInformation)
+            {
+                // Additional documents may still be incomplete while the project is loading, so don't report or cache it yet.
+                break;
+            }
+            
             if (project.FilePath is null)
             {
                 continue;
