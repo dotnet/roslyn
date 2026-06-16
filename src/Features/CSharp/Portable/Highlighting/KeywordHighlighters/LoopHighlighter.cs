@@ -98,11 +98,8 @@ internal sealed class LoopHighlighter() : AbstractKeywordHighlighter(findInsideT
                 spans.Add(breakStatement.BreakKeyword.Span);
                 spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
             }
-
-            return;
         }
-
-        if (node is ContinueStatementSyntax continueStatement)
+        else if (node is ContinueStatementSyntax continueStatement)
         {
             if (continueStatement.Name is { } continueName)
             {
@@ -117,18 +114,18 @@ internal sealed class LoopHighlighter() : AbstractKeywordHighlighter(findInsideT
                 spans.Add(continueStatement.ContinueKeyword.Span);
                 spans.Add(EmptySpan(continueStatement.SemicolonToken.Span.End));
             }
-
-            return;
         }
-
-        foreach (var child in node.ChildNodes())
+        else
         {
-            var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
-            var highlightContinuesForChild = highlightContinues && !child.IsContinuableConstruct();
-
-            if (highlightBreaksForChild || highlightContinuesForChild || labelName != null)
+            foreach (var child in node.ChildNodes())
             {
-                HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightContinuesForChild, labelName);
+                var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
+                var highlightContinuesForChild = highlightContinues && !child.IsContinuableConstruct();
+
+                if (highlightBreaksForChild || highlightContinuesForChild || labelName != null)
+                {
+                    HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightContinuesForChild, labelName);
+                }
             }
         }
     }

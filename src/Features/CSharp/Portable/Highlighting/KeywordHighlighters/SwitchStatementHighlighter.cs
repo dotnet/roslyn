@@ -76,11 +76,8 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
                 spans.Add(breakStatement.BreakKeyword.Span);
                 spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
             }
-
-            return;
         }
-
-        if (node is GotoStatementSyntax gotoStatement)
+        else if (node is GotoStatementSyntax gotoStatement)
         {
             if (highlightGotos)
             {
@@ -99,21 +96,21 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
                     spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
                 }
             }
-
-            return;
         }
-
-        foreach (var childNodeOrToken in node.ChildNodesAndTokens())
+        else
         {
-            if (!childNodeOrToken.AsNode(out var child))
-                continue;
-
-            var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
-            var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
-
-            if (highlightBreaksForChild || highlightGotosForChild || labelName != null)
+            foreach (var childNodeOrToken in node.ChildNodesAndTokens())
             {
-                HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightGotosForChild, labelName);
+                if (!childNodeOrToken.AsNode(out var child))
+                    continue;
+
+                var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
+                var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
+
+                if (highlightBreaksForChild || highlightGotosForChild || labelName != null)
+                {
+                    HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightGotosForChild, labelName);
+                }
             }
         }
     }
