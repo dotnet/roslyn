@@ -16,9 +16,6 @@
     <IsShippingPackage>true</IsShippingPackage>
     <NoWarn>$(NoWarn);NU5100</NoWarn>
     <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
-
-    <SQLitePCLRawCoreVersion>3.0.3</SQLitePCLRawCoreVersion>
-    <SQLite3MCPCLRawVersion>2.3.5</SQLite3MCPCLRawVersion>
   </PropertyGroup>
 
   <ItemGroup>

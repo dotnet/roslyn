@@ -7,8 +7,6 @@
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <!-- Disable 'CS0436' ambiguous type warnings due to transitive reference to Microsoft.CodeAnalysis.AnalyzerUtilities.dll coming from Features package reference. -->
     <NoWarn>$(NoWarn);CS0436</NoWarn>
-    <SQLitePCLRawCoreVersion>3.0.3</SQLitePCLRawCoreVersion>
-    <SQLite3MCPCLRawVersion>2.3.5</SQLite3MCPCLRawVersion>
     <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
   </PropertyGroup>

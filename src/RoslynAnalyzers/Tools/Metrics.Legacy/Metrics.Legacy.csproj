@@ -9,8 +9,6 @@
     <NoWarn>$(NoWarn);CS0436</NoWarn>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildSourceOnly != true -->
-    <SQLitePCLRawCoreVersion>3.0.3</SQLitePCLRawCoreVersion>
-    <SQLite3MCPCLRawVersion>2.3.5</SQLite3MCPCLRawVersion>
     <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
   </PropertyGroup>
