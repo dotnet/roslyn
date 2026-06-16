@@ -72,10 +72,6 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var isEntryPoint = methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
         var canOfferAsyncVoid = methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint;
 
-        // Use FindAllReferences to check whether the method is actually used as an event handler.
-        var isKnownEventHandlerMethod = canOfferAsyncVoid &&
-            await IsReferencedAsEventHandlerAsync(document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
-
         // Always register the Task fix first.
         RegisterTaskFix();
 
@@ -90,7 +86,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 CodeAction.Create(
                     taskTitle,
                     cancellationToken => FixNodeAsync(
-                        document, diagnostic, keepVoid: false, isEntryPoint, addWarningAnnotation: isKnownEventHandlerMethod, cancellationToken),
+                        document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
                     taskTitle),
                 context.Diagnostics);
         }
@@ -102,7 +98,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 CodeAction.Create(
                     asyncVoidTitle,
                     cancellationToken => FixNodeAsync(
-                        document, diagnostic, keepVoid: true, isEntryPoint: false, addWarningAnnotation: false, cancellationToken),
+                        document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken),
                     asyncVoidTitle),
                 context.Diagnostics);
         }
@@ -233,7 +229,6 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         Diagnostic diagnostic,
         bool keepVoid,
         bool isEntryPoint,
-        bool addWarningAnnotation,
         CancellationToken cancellationToken)
     {
         var node = GetContainingFunction(diagnostic, cancellationToken);
@@ -247,6 +242,15 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         Contract.ThrowIfNull(methodSymbol);
 
         var knownTypes = new KnownTaskTypes(semanticModel.Compilation);
+
+        // Only add a warning annotation for the Task-returning fix when the method is known to be an event handler.
+        // We run this check lazily (here, not in RegisterCodeFixesAsync) so the expensive FAR only runs when the
+        // user previews or applies the fix rather than every time the light bulb appears.
+        var addWarningAnnotation = !keepVoid
+            && !isEntryPoint
+            && methodSymbol.ReturnsVoid
+            && methodSymbol.IsOrdinaryMethodOrLocalFunction()
+            && await IsReferencedAsEventHandlerAsync(document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
 
         return NeedsRename()
             ? await RenameThenAddAsyncTokenAsync(keepVoid, addWarningAnnotation, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
@@ -321,10 +325,9 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         SyntaxNode node,
         CancellationToken cancellationToken)
     {
-        var warningAnnotation = addWarningAnnotation
-            ? WarningAnnotation.Create(GetAsyncEventHandlersRequireAsyncVoidWarningResource())
-            : null;
-        var newNode = AnnotateIfNeeded(FixMethodSignature(addAsyncModifier: true, keepVoid, methodSymbol, node, knownTypes), warningAnnotation);
+        var newNode = FixMethodSignature(addAsyncModifier: true, keepVoid, methodSymbol, node, knownTypes);
+        if (addWarningAnnotation)
+            newNode = newNode.WithAdditionalAnnotations(WarningAnnotation.Create(GetAsyncEventHandlersRequireAsyncVoidWarningResource()));
 
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
@@ -345,10 +348,5 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         }
 
         return solutionEditor.GetChangedSolution();
-
-        static SyntaxNode AnnotateIfNeeded(SyntaxNode node, SyntaxAnnotation? warningAnnotation)
-            => warningAnnotation != null
-                ? node.WithAdditionalAnnotations(warningAnnotation)
-                : node;
     }
 }
