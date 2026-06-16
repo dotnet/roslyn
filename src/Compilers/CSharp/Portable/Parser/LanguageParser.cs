@@ -8526,7 +8526,7 @@ done:
         private StatementSyntax ParseStatementStartingWithUsing(SyntaxList<AttributeListSyntax> attributes)
             => PeekToken(1).Kind == SyntaxKind.OpenParenToken ? ParseUsingStatement(attributes) : ParseLocalDeclarationStatement(attributes);
 
-        // Checking for brace or parenthesis to disambiguate between unsafe statement, unsafe expression, and unsafe local function
+        // Checking for brace or parentheses to disambiguate between unsafe statement, unsafe expression, and unsafe local function
         private StatementSyntax TryParseStatementStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
         {
             return PeekToken(1).Kind switch

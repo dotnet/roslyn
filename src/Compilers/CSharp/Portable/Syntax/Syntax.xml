@@ -1082,7 +1082,7 @@
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax">
       <PropertyComment>
-        <summary>Argument of the primary function.</summary>
+        <summary>Operand of the unsafe expression.</summary>
       </PropertyComment>
     </Field>
     <Field Name="CloseParenToken" Type="SyntaxToken">

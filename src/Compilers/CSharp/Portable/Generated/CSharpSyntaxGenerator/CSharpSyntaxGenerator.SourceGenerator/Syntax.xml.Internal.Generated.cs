@@ -3737,7 +3737,7 @@ internal sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
     public SyntaxToken Keyword => this.keyword;
     /// <summary>SyntaxToken representing open parenthesis.</summary>
     public SyntaxToken OpenParenToken => this.openParenToken;
-    /// <summary>Argument of the primary function.</summary>
+    /// <summary>Operand of the unsafe expression.</summary>
     public ExpressionSyntax Expression => this.expression;
     /// <summary>SyntaxToken representing close parenthesis.</summary>
     public SyntaxToken CloseParenToken => this.closeParenToken;

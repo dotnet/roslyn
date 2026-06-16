@@ -2329,7 +2329,7 @@ public sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
     /// <summary>SyntaxToken representing open parenthesis.</summary>
     public SyntaxToken OpenParenToken => new SyntaxToken(this, ((InternalSyntax.UnsafeExpressionSyntax)this.Green).openParenToken, GetChildPosition(1), GetChildIndex(1));
 
-    /// <summary>Argument of the primary function.</summary>
+    /// <summary>Operand of the unsafe expression.</summary>
     public ExpressionSyntax Expression => GetRed(ref this.expression, 2)!;
 
     /// <summary>SyntaxToken representing close parenthesis.</summary>
