@@ -32,13 +32,11 @@ internal partial class ListPool<T>
 
         public override bool Return(List<T> list)
         {
-            var count = list.Count;
-
             list.Clear();
 
-            if (count > _maximumObjectSize)
+            if (list.Capacity > _maximumObjectSize)
             {
-                list.TrimExcess();
+                list.Capacity = 0;
             }
 
             return true;

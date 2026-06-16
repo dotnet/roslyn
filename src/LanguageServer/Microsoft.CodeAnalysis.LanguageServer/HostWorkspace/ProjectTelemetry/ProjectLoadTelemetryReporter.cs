@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(ProjectLoadTelemetryReporter)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ProjectLoadTelemetryReporterFactory(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory) : ILspServiceFactory
+internal sealed class ProjectLoadTelemetryReporterFactory(ServerConfiguration serverConfiguration) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new ProjectLoadTelemetryReporter(lspServices.GetRequiredService<IClientLanguageServerManager>(), loggerFactory, serverConfiguration);
+        return new ProjectLoadTelemetryReporter(lspServices.GetRequiredService<IClientLanguageServerManager>(), lspServices.GetRequiredService<ILoggerFactory>(), serverConfiguration);
     }
 }
 
@@ -36,6 +36,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
         public bool IsSdkStyle { get; init; }
         public bool HasSolutionFile { get; init; }
         public bool IsFileBasedProgram { get; init; }
+        public bool HasFileBasedAppDirectives { get; init; }
         public bool IsMiscellaneousFile { get; init; }
     }
 
@@ -91,6 +92,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
                 SdkStyleProject: isSdkStyleProject,
                 HasSolutionFile: telemetryInfo.HasSolutionFile,
                 IsFileBasedProgram: telemetryInfo.IsFileBasedProgram,
+                HasFileBasedAppDirectives: telemetryInfo.HasFileBasedAppDirectives,
                 IsMiscellaneousFile: telemetryInfo.IsMiscellaneousFile);
 
             await ReportEventAsync(projectEvent, cancellationToken);

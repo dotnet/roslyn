@@ -106,7 +106,7 @@ internal class VirtualRazorProjectFileSystem : RazorProjectFileSystem
                 // path, filePath -> /Views/Home/Index.cshtml
                 // directory.Path -> /Views/Home/
                 // We only need to match the file name portion since we've already matched the directory segment.
-                if (string.Compare(path, directoryLength, filePath, directoryLength, path.Length - directoryLength, StringComparison.OrdinalIgnoreCase) == 0)
+                if (path.AsSpan(directoryLength).Equals(filePath.AsSpan(directoryLength), StringComparison.OrdinalIgnoreCase))
                 {
                     return file.ProjectItem;
                 }
@@ -173,9 +173,8 @@ internal class VirtualRazorProjectFileSystem : RazorProjectFileSystem
                 var currentDirectory = parentDirectory.Directories[i];
                 var directoryPath = currentDirectory.Path;
                 var startIndex = parentDirectory.Path.Length;
-                var directoryNameLength = directoryPath.Length - startIndex;
 
-                if (string.Compare(path, startIndex, directoryPath, startIndex, directoryNameLength, StringComparison.OrdinalIgnoreCase) == 0)
+                if (path.AsSpan(startIndex).StartsWith(directoryPath.AsSpan(startIndex), StringComparison.OrdinalIgnoreCase))
                 {
                     return currentDirectory;
                 }
