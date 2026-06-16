@@ -3650,8 +3650,6 @@ class C
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_AtEndOfFile_WithBraces() As Task
-            ' Top-level loop that is the last thing in the file. Break navigates to the end of the
-            ' construct being exited.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -3669,8 +3667,6 @@ outer: while (true)
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_AtEndOfFile_WithoutBraces() As Task
-            ' Top-level loop that is the last thing in the file. Break navigates to the end of the
-            ' construct being exited.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -3686,8 +3682,6 @@ outer: while (true)
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_TargetOutsideLambda() As Task
-            ' break targets a label on a loop outside the lambda. That is not a valid jump (control
-            ' flow cannot cross the lambda), so there is no navigation.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -3711,8 +3705,6 @@ class C
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledContinue_Keyword_TargetOutsideLambda() As Task
-            ' continue targets a label on a loop outside the lambda. That is not a valid jump (control
-            ' flow cannot cross the lambda), so there is no navigation.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -3736,8 +3728,6 @@ class C
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_TargetOutsideLocalFunction() As Task
-            ' break targets a label on a loop outside the local function. That is not a valid jump
-            ' (control flow cannot cross the local function), so there is no navigation.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -3761,8 +3751,6 @@ class C
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledBreak_Identifier_TargetOutsideLambda() As Task
-            ' Caret on the label identifier of a break whose target loop is outside the lambda. The
-            ' label is not in scope across the lambda boundary, so there is no navigation.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -3771,7 +3759,7 @@ class C
 {
     void M()
     {
-        outer: while (true)
+        [|outer|]: while (true)
         {
             System.Action a = () => { break ou$$ter; };
         }
@@ -3781,13 +3769,11 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace, expectedResult:=False)
+            Await TestAsync(workspace)
         End Function
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledContinue_Identifier_TargetOutsideLambda() As Task
-            ' Caret on the label identifier of a continue whose target loop is outside the lambda. The
-            ' label is not in scope across the lambda boundary, so there is no navigation.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -3796,7 +3782,7 @@ class C
 {
     void M()
     {
-        outer: while (true)
+        [|outer|]: while (true)
         {
             System.Action a = () => { continue ou$$ter; };
         }
@@ -3806,13 +3792,11 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace, expectedResult:=False)
+            Await TestAsync(workspace)
         End Function
 
         <WpfFact>
         Public Async Function TestCSharpGoToOnLabeledBreak_Identifier_TargetOutsideLocalFunction() As Task
-            ' Caret on the label identifier of a break whose target loop is outside the local function.
-            ' The label is not in scope across the local function boundary, so there is no navigation.
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
