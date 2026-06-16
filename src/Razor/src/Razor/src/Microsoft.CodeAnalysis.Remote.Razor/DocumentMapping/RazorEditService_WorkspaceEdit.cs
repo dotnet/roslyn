@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -25,30 +24,83 @@ internal partial class RazorEditService
             throw new InvalidOperationException("RemoteRazorEditService can only be used with RemoteDocumentSnapshot instances.");
         }
 
+        // Collect both workspace edit shapes into TextDocumentEdits so URI coalescing and duplicate
+        // edit handling run once across the whole edit.
+        using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+
         if (workspaceEdit.DocumentChanges is not null)
         {
-            using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
             foreach (var edit in workspaceEdit.EnumerateEdits())
             {
                 if (edit.TryGetFirst(out var textDocumentEdit))
                 {
                     await MapTextDocumentEditAsync(originSnapshot, textDocumentEdit, cancellationToken).ConfigureAwait(false);
-                    if (textDocumentEdit.Edits.Length == 0)
-                    {
-                        continue;
-                    }
                 }
 
                 builder.Add(edit);
             }
-
-            workspaceEdit.DocumentChanges = builder.ToArrayAndClear();
         }
 
         if (workspaceEdit.Changes is { } changeMap)
         {
-            workspaceEdit.Changes = await MapDocumentEditsAsync(originSnapshot, changeMap, cancellationToken).ConfigureAwait(false);
+            builder.AddRange(await MapDocumentEditsAsync(originSnapshot, changeMap, cancellationToken).ConfigureAwait(false));
         }
+
+        var normalizedDocumentChanges = NormalizeDocumentChanges(builder.ToArrayAndClear());
+        if (workspaceEdit.DocumentChanges is not null)
+        {
+            workspaceEdit.DocumentChanges = normalizedDocumentChanges;
+        }
+        else
+        {
+            workspaceEdit.Changes = ConvertToChangeMap(normalizedDocumentChanges);
+        }
+    }
+
+    private static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] NormalizeDocumentChanges(
+        SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] documentChanges)
+    {
+        // Multiple generated C# documents can map edits back to the same Razor document.
+        // Keep one TextDocumentEdit per URI so duplicate mapped edits are applied against the same source text.
+        using var _ = DictionaryPool<DocumentUri, TextDocumentEdit>.GetPooledObject(out var textDocumentEditsByUri);
+        using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(documentChanges.Length);
+
+        foreach (var documentChange in documentChanges)
+        {
+            if (!documentChange.TryGetFirst(out var textDocumentEdit))
+            {
+                builder.Add(documentChange);
+                continue;
+            }
+
+            if (textDocumentEdit.Edits.Length == 0)
+            {
+                continue;
+            }
+
+            var uri = textDocumentEdit.TextDocument.DocumentUri;
+            if (!textDocumentEditsByUri.TryGetValue(uri, out var existingTextDocumentEdit))
+            {
+                textDocumentEditsByUri.Add(uri, textDocumentEdit);
+                builder.Add(textDocumentEdit);
+                continue;
+            }
+
+            existingTextDocumentEdit.Edits = [.. existingTextDocumentEdit.Edits, .. textDocumentEdit.Edits];
+        }
+
+        // After coalescing by URI, collapse exact duplicate edits that can be produced by the
+        // implementation and declaration generated documents mapping to the same Razor span.
+        var normalizedDocumentChanges = builder.ToArrayAndClear();
+        foreach (var documentChange in normalizedDocumentChanges)
+        {
+            if (documentChange.TryGetFirst(out var textDocumentEdit))
+            {
+                DeduplicateTextDocumentEdit(textDocumentEdit);
+            }
+        }
+
+        return normalizedDocumentChanges;
     }
 
     private async Task MapTextDocumentEditAsync(RemoteDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit entry, CancellationToken cancellationToken)
@@ -104,9 +156,11 @@ internal partial class RazorEditService
         entry.Edits = mappedEdits.SelectAsPlainArray(static e => new SumType<TextEdit, AnnotatedTextEdit>(e));
     }
 
-    private async Task<Dictionary<string, TextEdit[]>> MapDocumentEditsAsync(RemoteDocumentSnapshot contextDocumentSnapshot, Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
+    private async Task<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> MapDocumentEditsAsync(RemoteDocumentSnapshot contextDocumentSnapshot, Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
     {
-        var mappedChanges = new Dictionary<string, TextEdit[]>(capacity: changes.Count);
+        // Map legacy Changes into TextDocumentEdits so MapWorkspaceEditAsync can normalize both shapes together.
+        using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(changes.Count);
+        var solution = contextDocumentSnapshot.TextDocument.Project.Solution;
 
         foreach (var (uriString, edits) in changes)
         {
@@ -116,17 +170,17 @@ internal partial class RazorEditService
             if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
             {
                 var razorUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
-                mappedChanges[razorUri.AbsoluteUri] = edits;
+                builder.Add(CreateTextDocumentEdit(razorUri.CreateDocumentUriFromSystemUri(), edits.AsSpan()));
+                continue;
             }
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
             if (!_filePathService.IsVirtualCSharpFile(generatedDocumentUri))
             {
-                mappedChanges[uriString] = edits;
+                builder.Add(CreateTextDocumentEdit(new(uriString), edits.AsSpan()));
                 continue;
             }
 
-            var solution = contextDocumentSnapshot.TextDocument.Project.Solution;
             var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
             if (razorDocument is null)
             {
@@ -147,10 +201,48 @@ internal partial class RazorEditService
                 continue;
             }
 
-            mappedChanges[razorDocument.CreateSystemUri().AbsoluteUri] = ImmutableCollectionsMarshal.AsArray(mappedEdits)!;
+            builder.Add(CreateTextDocumentEdit(razorDocument.GetURI(), mappedEdits.AsSpan()));
         }
 
-        return mappedChanges;
+        return builder.ToArrayAndClear();
+    }
+
+    private static TextDocumentEdit CreateTextDocumentEdit(DocumentUri documentUri, ReadOnlySpan<TextEdit> edits)
+    {
+        var textEdits = new SumType<TextEdit, AnnotatedTextEdit>[edits.Length];
+        for (var i = 0; i < edits.Length; i++)
+        {
+            textEdits[i] = edits[i];
+        }
+
+        return new TextDocumentEdit
+        {
+            TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentUri },
+            Edits = textEdits
+        };
+    }
+
+    private static Dictionary<string, TextEdit[]> ConvertToChangeMap(SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] documentChanges)
+    {
+        var changes = new Dictionary<string, TextEdit[]>(capacity: documentChanges.Length);
+
+        foreach (var documentChange in documentChanges)
+        {
+            if (documentChange.TryGetFirst(out var textDocumentEdit))
+            {
+                var textEdits = new TextEdit[textDocumentEdit.Edits.Length];
+                for (var i = 0; i < textDocumentEdit.Edits.Length; i++)
+                {
+                    textEdits[i] = (TextEdit)textDocumentEdit.Edits[i];
+                }
+
+                changes.Add(
+                    textDocumentEdit.TextDocument.DocumentUri.GetRequiredSystemUri().AbsoluteUri,
+                    textEdits);
+            }
+        }
+
+        return changes;
     }
 
     private async Task<ImmutableArray<TextEdit>> GetMappedTextEditsAsync(RemoteDocumentSnapshot snapshot, RazorCSharpDocument csharpDocument, TextEdit[] edits, CancellationToken cancellationToken)
@@ -161,5 +253,36 @@ internal partial class RazorEditService
         var mappedEdits = await MapCSharpEditsAsync(textChanges, snapshot, csharpDocument.IsDeclarationDocument, includeCSharpLanguageFeatureEdits: true, directlyMappedEditFilter: null, cancellationToken).ConfigureAwait(false);
 
         return mappedEdits.SelectAsArray(razorSourceText.GetTextEdit);
+    }
+
+    private static void DeduplicateTextDocumentEdit(TextDocumentEdit entry)
+    {
+        var edits = entry.Edits;
+
+        if (edits.Length <= 1)
+        {
+            return;
+        }
+
+        using var _ = HashSetPool<(int StartLine, int StartCharacter, int EndLine, int EndCharacter, string? NewText)>.GetPooledObject(out var seenEdits);
+        using var builder = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>(edits.Length);
+
+        foreach (var edit in edits)
+        {
+            var textEdit = (TextEdit)edit;
+            var range = textEdit.Range;
+            if (seenEdits.Add((range.Start.Line, range.Start.Character, range.End.Line, range.End.Character, textEdit.NewText)))
+            {
+                builder.Add(edit);
+            }
+        }
+
+        if (builder.Count == edits.Length)
+        {
+            // No duplicates, return original array to avoid unnecessary allocations.
+            return;
+        }
+
+        entry.Edits = builder.ToArrayAndClear();
     }
 }

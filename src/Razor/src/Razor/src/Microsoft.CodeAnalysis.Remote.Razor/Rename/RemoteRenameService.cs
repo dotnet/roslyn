@@ -66,7 +66,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         var positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex, preferCSharpOverHtml: true);
 
         var generatedDocument = await context.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
+            .GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken)
             .ConfigureAwait(false);
 
         var razorEdit = await _renameService
@@ -134,7 +134,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return RemoteResponse<LspRange?>.CallHtml;
         }
 
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken).ConfigureAwait(false);
 
         var csharpRange = await PrepareRenameHandler.GetRenameRangeAsync(generatedDocument, positionInfo.Position.ToLinePosition(), cancellationToken).ConfigureAwait(false);
 
@@ -143,7 +143,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return RemoteResponse<LspRange?>.NoFurtherHandling;
         }
 
-        if (!DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredImplCSharpDocument(), csharpRange, out var mappedRange))
+        if (!DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(positionInfo.InDeclDocument), csharpRange, out var mappedRange))
         {
             return RemoteResponse<LspRange?>.NoFurtherHandling;
         }
@@ -209,7 +209,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
                 continue;
             }
 
-            var documentEdit = await GetEditsAsync(documentContext, newFileName, cancellationToken).ConfigureAwait(false);
+            var documentEdit = await GetFileRenameEditAsync(documentContext, newFileName, cancellationToken).ConfigureAwait(false);
             response = response.Concat(documentEdit);
         }
 
@@ -221,14 +221,16 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         return response;
     }
 
-    private async Task<WorkspaceEdit?> GetEditsAsync(RemoteDocumentContext context, string newFileName, CancellationToken cancellationToken)
+    private async Task<WorkspaceEdit?> GetFileRenameEditAsync(RemoteDocumentContext context, string newFileName, CancellationToken cancellationToken)
     {
         if (!context.Snapshot.FileKind.IsComponent())
         {
             return null;
         }
 
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        // We're renaming the class declaration of a generated C# class, which exists in both decl and impl documents, so we can just work from
+        // the impl document since that will always exist. Decl may not.
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var text = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var tree = await generatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var declaration = tree.AssumeNotNull().DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();

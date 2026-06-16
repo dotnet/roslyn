@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
@@ -98,8 +98,14 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
             codeLens.Data = originalData;
         }
 
-        var generatedDocument = await snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false)
-            ?? await snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+        // CodeLens shows information about fields, properties, methods etc. which, for components, all appear in a declaration document. For legacy documents
+        // there is no declaration document, so those things appear in the implementation document. For simplicity, we'll just attempt to resolve from the declaration
+        // document and fallback to the implementation document when it's null.
+        var generatedDocument = await snapshot.TryGetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            generatedDocument = await snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+        }
 
         return await CodeLensResolveHandler.ResolveCodeLensAsync(codeLens, generatedDocument, cancellationToken).ConfigureAwait(false);
     }
