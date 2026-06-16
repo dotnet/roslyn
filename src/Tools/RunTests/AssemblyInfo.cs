@@ -24,7 +24,7 @@ public readonly record struct TypeInfo(string Name, string FullyQualifiedName, I
     public override string ToString() => $"[Type]{FullyQualifiedName}";
 }
 
-public readonly record struct TestMethodInfo(string Name, string FullyQualifiedName, TimeSpan ExecutionTime)
+public readonly record struct TestMethodInfo(string Name, string FullyQualifiedName, TimeSpan ExecutionTime, bool HasAsyncLifetime)
 {
     public override string ToString() => $"[Method]{FullyQualifiedName}";
 }

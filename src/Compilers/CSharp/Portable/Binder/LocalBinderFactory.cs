@@ -492,7 +492,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitConstructorInitializer(ConstructorInitializerSyntax node)
         {
-            var binder = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            var flags = BinderFlags.ConstructorInitializer;
+
+            if (node.Parent is ConstructorDeclarationSyntax { Modifiers: var modifiers } && modifiers.Any(SyntaxKind.UnsafeKeyword))
+            {
+                flags |= BinderFlags.UnsafeRegion;
+            }
+
+            var binder = _enclosing.WithAdditionalFlags(flags);
             AddToMap(node, binder);
             VisitConstructorInitializerArgumentList(node, node.ArgumentList, binder);
         }

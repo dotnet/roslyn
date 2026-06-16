@@ -6,6 +6,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
@@ -43,7 +44,7 @@ internal sealed class RemoteRazorEditService(
 
         var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
 
-        documentContext = new RemoteDocumentContext(razorDocumentUri, razorDocumentSnapshot);
+        documentContext = new RemoteDocumentContext(razorDocumentUri.CreateDocumentUriFromSystemUri(), razorDocumentSnapshot);
         return true;
     }
 

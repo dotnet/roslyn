@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -41,7 +41,7 @@ public class GeneratePropertyTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: PropertyActionIndex,
             makeDiagnosticsRequest: true);
     }
@@ -63,7 +63,7 @@ public class GeneratePropertyTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: PropertyActionIndex,
             makeDiagnosticsRequest: true);
     }
@@ -111,7 +111,7 @@ public class GeneratePropertyTests(ITestOutputHelper testOutputHelper) : CohostC
                     }
                     """)
             ],
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: PropertyActionIndex,
             makeDiagnosticsRequest: true);
     }
@@ -137,7 +137,7 @@ public class GeneratePropertyTests(ITestOutputHelper testOutputHelper) : CohostC
         await VerifyCodeActionAsync(
             input,
             expected,
-            RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            PredefinedCodeFixProviderNames.GenerateVariable,
             codeActionIndex: PropertyActionIndex,
             fileKind: RazorFileKind.Legacy,
             makeDiagnosticsRequest: true);

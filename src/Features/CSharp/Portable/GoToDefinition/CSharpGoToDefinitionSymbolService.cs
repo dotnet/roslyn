@@ -30,14 +30,14 @@ internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefiniti
 
         switch (token.Kind())
         {
+            case SyntaxKind.ContinueKeyword:
+                return GetBreakOrContinueTargetPosition(semanticModel, node, isBreak: false);
+
             case SyntaxKind.BreakKeyword:
                 if (token.GetPreviousToken().IsKind(SyntaxKind.YieldKeyword))
                     goto case SyntaxKind.YieldKeyword;
 
                 return GetBreakOrContinueTargetPosition(semanticModel, node, isBreak: true);
-
-            case SyntaxKind.ContinueKeyword:
-                return GetBreakOrContinueTargetPosition(semanticModel, node, isBreak: false);
 
             case SyntaxKind.YieldKeyword:
             case SyntaxKind.ReturnKeyword:
@@ -80,10 +80,22 @@ internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefiniti
             if (semanticModel.GetOperation(node) is not IBranchOperation branchOperation)
                 return null;
 
+            // 'corresponding' is the loop or switch that this break/continue transfers control to.
             var corresponding = branchOperation.GetCorrespondingOperation();
             if (corresponding is null)
                 return null;
 
+            // break/continue cannot cross a lambda, anonymous method, or local function. If one of those
+            // sits between the statement and the loop/switch that GetCorrespondingOperation found, the jump
+            // is not actually valid (e.g. 'break' inside a lambda nested in a switch), so don't navigate.
+            for (var current = node; current is not null && current != corresponding.Syntax; current = current.Parent)
+            {
+                if (current.IsReturnableConstruct())
+                    return null;
+            }
+
+            // 'break' transfers control to just past the construct it exits, so navigate to its end.
+            // 'continue' transfers control back to the construct itself, so navigate to its start.
             return isBreak
                 ? corresponding.Syntax.GetLastToken().Span.End
                 : corresponding.Syntax.GetFirstToken().Span.Start;

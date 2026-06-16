@@ -762,43 +762,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var compilationEvents = GetCompilationEventsForSingleFileAnalysis(compilation, analysisScope, AdditionalFiles, hasAnyActionsRequiringCompilationEvents, cancellationToken);
 
                     var builder = ArrayBuilder<(AnalysisScope, ImmutableArray<CompilationEvent>)>.GetInstance();
-                    builder.Add((analysisScope, compilationEvents));
-
-                    // If the analysis scope has symbol declared events, and we have any analyzers with SymbolStart/End actions,
-                    // then we need to analyze entire symbol declaration, including partial declarations, to compute the
-                    // required SymbolEnd diagnostics for such symbolStartAnalyzers.
-                    if (compilationEvents.Any(e => e is SymbolDeclaredCompilationEvent) &&
-                        driver.HasSymbolStartedActions(analysisScope))
+                    try
                     {
-                        Debug.Assert(!analysisScope.IsSyntacticSingleFileAnalysis);
-                        Debug.Assert(hasAnyActionsRequiringCompilationEvents);
+                        builder.Add((analysisScope, compilationEvents));
 
-                        var (symbolStartAnalyzers, otherAnalyzers) = getSymbolStartAnalyzers(analysisScope.Analyzers, analyzerActionCounts);
-                        Debug.Assert(!symbolStartAnalyzers.IsEmpty);
-
-                        // We separate out the execution of symbol start analyzers and rest of the analyzers.
-                        // This is due to the fact that symbol start analyzers need to execute on the entire
-                        // symbol declarations, not just the filter span, and hence have different analysis scope.
-                        builder.Clear();
-                        if (!otherAnalyzers.IsEmpty)
+                        // If the analysis scope has symbol declared events, and we have any analyzers with SymbolStart/End actions,
+                        // then we need to analyze entire symbol declaration, including partial declarations, to compute the
+                        // required SymbolEnd diagnostics for such symbolStartAnalyzers.
+                        if (compilationEvents.Any(e => e is SymbolDeclaredCompilationEvent) &&
+                            driver.HasSymbolStartedActions(analysisScope))
                         {
-                            var otherAnalyzersAnalysisScope = analysisScope.WithAnalyzers(otherAnalyzers, this);
-                            builder.Add((otherAnalyzersAnalysisScope, compilationEvents));
+                            Debug.Assert(!analysisScope.IsSyntacticSingleFileAnalysis);
+                            Debug.Assert(hasAnyActionsRequiringCompilationEvents);
+
+                            var (symbolStartAnalyzers, otherAnalyzers) = getSymbolStartAnalyzers(analysisScope.Analyzers, analyzerActionCounts);
+                            Debug.Assert(!symbolStartAnalyzers.IsEmpty);
+
+                            // We separate out the execution of symbol start analyzers and rest of the analyzers.
+                            // This is due to the fact that symbol start analyzers need to execute on the entire
+                            // symbol declarations, not just the filter span, and hence have different analysis scope.
+                            builder.Clear();
+                            if (!otherAnalyzers.IsEmpty)
+                            {
+                                var otherAnalyzersAnalysisScope = analysisScope.WithAnalyzers(otherAnalyzers, this);
+                                builder.Add((otherAnalyzersAnalysisScope, compilationEvents));
+                            }
+
+                            processSymbolStartAnalyzers(analysisScope.FilterFileOpt!.Value, analysisScope.FilterSpanOpt, compilationEvents, symbolStartAnalyzers, compilation,
+                                _analysisResultBuilder, builder, AdditionalFiles, cancellationToken);
                         }
 
-                        processSymbolStartAnalyzers(analysisScope.FilterFileOpt!.Value, analysisScope.FilterSpanOpt, compilationEvents, symbolStartAnalyzers, compilation,
-                            _analysisResultBuilder, builder, AdditionalFiles, cancellationToken);
+                        await attachQueueAndProcessAllEventsAsync(builder, driver, cancellationToken).ConfigureAwait(false);
+
+                        // Update the diagnostic results based on the diagnostics reported on the driver.
+                        foreach (var (scope, _) in builder)
+                        {
+                            _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(scope, driver, compilation, getAnalyzerActionCounts, cancellationToken);
+                        }
                     }
-
-                    await attachQueueAndProcessAllEventsAsync(builder, driver, cancellationToken).ConfigureAwait(false);
-
-                    // Update the diagnostic results based on the diagnostics reported on the driver.
-                    foreach (var (scope, _) in builder)
+                    finally
                     {
-                        _analysisResultBuilder.ApplySuppressionsAndStoreAnalysisResult(scope, driver, compilation, getAnalyzerActionCounts, cancellationToken);
+                        builder.Free();
                     }
-
-                    builder.Free();
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

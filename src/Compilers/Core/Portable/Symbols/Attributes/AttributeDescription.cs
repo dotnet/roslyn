@@ -503,6 +503,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription MetadataUpdateDeletedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MetadataUpdateDeletedAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription ExtendedLayoutAttribute = new AttributeDescription("System.Runtime.InteropServices", "ExtendedLayoutAttribute", s_signaturesOfExtendedLayoutAttribute);
         internal static readonly AttributeDescription UnionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "UnionAttribute", s_signatures_HasThis_Void_Only);
-        internal static readonly AttributeDescription ClosedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ClosedAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription IsClosedTypeAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IsClosedTypeAttribute", s_signatures_HasThis_Void_Only);
     }
 }

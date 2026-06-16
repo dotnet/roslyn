@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.LinkedEditingRange;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -181,7 +180,7 @@ public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHe
         }
 
         Assert.NotNull(result);
-        Assert.Equal(LinkedEditingRangeHelper.WordPattern, result.WordPattern);
+        Assert.Equal(CohostLinkedEditingRangeEndpoint.WordPattern, result.WordPattern);
         Assert.Equal(spans[0], sourceText.GetTextSpan(result.Ranges[0]));
         Assert.Equal(spans[1], sourceText.GetTextSpan(result.Ranges[1]));
     }
