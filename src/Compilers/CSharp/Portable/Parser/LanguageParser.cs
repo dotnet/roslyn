@@ -2653,7 +2653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
                             else if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                             {
-                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(attributes));
                             }
                             break;
 
@@ -8531,10 +8531,24 @@ done:
         {
             return PeekToken(1).Kind switch
             {
-                SyntaxKind.OpenParenToken => ParseExpressionStatement(attributes),
+                SyntaxKind.OpenParenToken => ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(attributes),
                 SyntaxKind.OpenBraceToken => ParseUnsafeStatement(attributes),
                 _ => null,
             };
+        }
+
+        private StatementSyntax ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
+        {
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            var result = ParseLocalDeclarationStatement(attributes);
+            if (result is LocalFunctionStatementSyntax)
+            {
+                return result;
+            }
+
+            resetPoint.Reset();
+            return ParseExpressionStatement(attributes);
         }
 
         private bool IsPossibleAwaitUsing()

@@ -3996,28 +3996,37 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (6,1): error CS8803: Top-level statements must precede namespace and type declarations.
             // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[unsafe(A(1))").WithLocation(6, 1),
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[unsafe(A(1)").WithLocation(6, 1),
             // (6,1): error CS8805: Program using top-level statements must be an executable.
             // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "[unsafe(A(1))").WithLocation(6, 1),
-            // (6,1): error CS7014: Attributes are not valid in this context.
-            // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[").WithLocation(6, 1),
+            Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "[unsafe(A(1)").WithLocation(6, 1),
             // (6,2): error CS1001: Identifier expected
             // [unsafe(A(1))] class C1;
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "unsafe").WithLocation(6, 2),
             // (6,2): error CS1003: Syntax error, ']' expected
             // [unsafe(A(1))] class C1;
             Diagnostic(ErrorCode.ERR_SyntaxError, "unsafe").WithArguments("]").WithLocation(6, 2),
-            // (6,9): error CS1955: Non-invocable member 'A' cannot be used like a method.
+            // (6,10): error CS8124: Tuple must contain at least two elements.
             // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "A").WithArguments("A").WithLocation(6, 9),
-            // (6,14): error CS1002: ; expected
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(").WithLocation(6, 10),
+            // (6,10): error CS1026: ) expected
             // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "]").WithLocation(6, 14),
-            // (6,14): error CS1022: Type or namespace definition, or end-of-file expected
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "(").WithLocation(6, 10),
+            // (6,10): error CS1001: Identifier expected
             // [unsafe(A(1))] class C1;
-            Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(6, 14),
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(6, 10),
+            // (6,10): error CS8112: Local function '()' must declare a body because it is not marked 'static extern'.
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "").WithArguments("()").WithLocation(6, 10),
+            // (6,11): error CS1001: Identifier expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "1").WithLocation(6, 11),
+            // (6,13): error CS1002: ; expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 13),
+            // (6,13): error CS1022: Type or namespace definition, or end-of-file expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(6, 13),
             // (7,2): error CS9362: 'A.A(int)' must be used in an unsafe context because it is marked as 'unsafe'
             // [A(unsafe(1))] class C2;
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A(unsafe(1))").WithArguments("A.A(int)").WithLocation(7, 2));
