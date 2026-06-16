@@ -35,7 +35,7 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
 
         // We only care about fields, properties, methods etc. in document symbols, and for components those will exist in the declaration document.
         // For legacy documents, there is no declaration document, so we use the implementation document. An edge case is components that have no
-        // declarations, and therefore no declaration document, where we want to use the implemnentation document so we at least get the class name
+        // declarations, and therefore no declaration document, where we want to use the implementation document so we at least get the class name
         // and have something to base our render method symbol off of. Therefore, for simplicity, we'll just attempt to get the declaration document,
         // and fallback to impl if it doesn't exist.
         var csharpDocument = codeDocument.GetCSharpDocument(declarationDocument: true);
