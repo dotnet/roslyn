@@ -1305,6 +1305,46 @@ public sealed class LoopHighlighterTests : AbstractCSharpKeywordHighlighterTests
             """);
 
     [Fact]
+    public Task TestLabeledBreak_NestedLabeledLoops_CursorOnOuter()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    outer: {|Cursor:[|while|]|} (true)
+                    {
+                        inner: while (true)
+                        {
+                            [|break|] outer;
+                            break inner;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledContinue_NestedLabeledLoops_CursorOnOuter()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    outer: {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
+                    {
+                        inner: while (true)
+                        {
+                            [|continue|] outer;
+                            continue inner;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
     public Task TestUnlabeledLoop_DoesNotHighlightLabeledBreak()
         => TestAsync(
             """
