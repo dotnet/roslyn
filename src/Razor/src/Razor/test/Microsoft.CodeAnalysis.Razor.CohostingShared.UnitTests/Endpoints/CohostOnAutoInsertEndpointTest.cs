@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
@@ -414,7 +413,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             delegatedResponseText: "\"$0\"");
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_RawStringLiteral()
     {
         await VerifyOnAutoInsertAsync(
@@ -428,14 +427,14 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             output: """""""
                 @code {
                     void TestMethod() {
-                        var x = """$0"""
+                    var x = """$0"""
                     }
                 }
                 """"""",
             triggerCharacter: "\"");
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_OnForwardSlash()
     {
         await VerifyOnAutoInsertAsync(
@@ -456,7 +455,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "/");
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_DocComment_OnEnter()
     {
         await VerifyOnAutoInsertAsync(
@@ -496,7 +495,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             formatOnType: false);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_OnEnter()
     {
         await VerifyOnAutoInsertAsync(
@@ -535,7 +534,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "\n");
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
         await VerifyOnAutoInsertAsync(
@@ -557,7 +556,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             tabSize: 2);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_OnEnter_UseTabs()
     {
         const char tab = '\t';
