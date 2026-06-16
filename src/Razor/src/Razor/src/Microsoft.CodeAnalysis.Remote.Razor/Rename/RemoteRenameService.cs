@@ -229,7 +229,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         }
 
         // We're renaming the class declaration of a generated C# class, which exists in both decl and impl documents, so we can just work from
-        // the impl document since that will always exists. Decl may not.
+        // the impl document since that will always exist. Decl may not.
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var text = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var tree = await generatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
