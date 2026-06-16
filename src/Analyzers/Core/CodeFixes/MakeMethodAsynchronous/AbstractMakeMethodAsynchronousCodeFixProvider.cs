@@ -117,9 +117,9 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
             solution,
             cancellationToken).ConfigureAwait(false);
 
-        foreach (var referencingSymbol in references)
+        foreach (var referencedSymbol in references)
         {
-            foreach (var location in referencingSymbol.Locations)
+            foreach (var location in referencedSymbol.Locations)
             {
                 if (location.IsImplicit || location.Document is null)
                     continue;
