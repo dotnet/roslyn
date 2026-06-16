@@ -94,7 +94,7 @@ internal static partial class DocumentExtensions
         return workspace != null && workspace.IsDocumentOpen(document.Id);
     }
 
-    public static bool IsRazorSourceGeneratedDocument(this Document document)
+    public static bool IsRazorSourceGeneratedDocument(this Document? document)
     {
         const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
 

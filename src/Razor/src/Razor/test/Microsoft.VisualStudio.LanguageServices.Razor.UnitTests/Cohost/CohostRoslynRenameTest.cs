@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,8 +9,8 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -22,8 +21,6 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
-
-using Rename = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers.Rename;
 
 public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
@@ -250,6 +247,7 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
     {
         return composition
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingService))
+            .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingServiceWrapper))
             .AddParts(typeof(ExportableRemoteServiceInvoker));
     }
 
@@ -360,11 +358,8 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         var razorDocumentAfterRename = solution.GetAdditionalDocument(razorDocument.Id).AssumeNotNull();
         var razorText = await razorDocumentAfterRename.GetTextAsync(DisposalToken);
 
-        foreach (var change in changes)
-        {
-            Assert.Equal(razorDocument.FilePath, change.FilePath);
-            razorText = razorText.WithChanges(change.TextChanges);
-        }
+        Assert.All(changes, change => Assert.Equal(razorDocument.FilePath, change.MappedFilePath));
+        razorText = razorText.WithChanges(changes.Select(change => change.TextChange));
 
         AssertEx.EqualOrDiff(expectedRazorFile, razorText.ToString());
     }
@@ -376,24 +371,24 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         var invoker = LocalExportProvider.AssumeNotNull().GetExportedValue<ExportableRemoteServiceInvoker>();
         invoker.SetInvoker(RemoteServiceInvoker);
 
-        var workspaceEdit = await Rename.GetRenameEditAsync(renameDocument, renamePosition, newName, DisposalToken);
+        var workspaceEdit = await RenameHandler.GetRenameEditAsync(renameDocument, renamePosition, newName, allowRenamesInRazorSourceGeneratedDocuments: true, DisposalToken);
         Assert.NotNull(workspaceEdit);
 
         var csharpSourceText = await csharpDocument.GetTextAsync(DisposalToken);
-        var csharpDocAfterRename = ApplyDocumentEdits(csharpSourceText, csharpDocument.CreateUri(), workspaceEdit);
+        var csharpDocAfterRename = ApplyDocumentEdits(csharpSourceText, csharpDocument.GetURI(), workspaceEdit);
         AssertEx.EqualOrDiff(expectedCSharpFile, csharpDocAfterRename);
 
         var razorSourceText = await razorDocument.GetTextAsync(DisposalToken);
-        var razorDocAfterRename = ApplyDocumentEdits(razorSourceText, razorDocument.CreateUri(), workspaceEdit);
+        var razorDocAfterRename = ApplyDocumentEdits(razorSourceText, razorDocument.GetURI(), workspaceEdit);
         AssertEx.EqualOrDiff(expectedRazorFile, razorDocAfterRename);
     }
 
-    private static string ApplyDocumentEdits(SourceText inputText, Uri documentUri, WorkspaceEdit result)
+    private static string ApplyDocumentEdits(SourceText inputText, DocumentUri documentUri, WorkspaceEdit result)
     {
         var textDocumentEdits = result.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(textDocumentEdits);
         var changes = textDocumentEdits
-            .Where(e => e.TextDocument.DocumentUri.GetRequiredParsedUri() == documentUri)
+            .Where(e => e.TextDocument.DocumentUri == documentUri)
             .SelectMany(e => e.Edits)
             .Select(e => inputText.GetTextChange((TextEdit)e));
         inputText = inputText.WithChanges(changes);

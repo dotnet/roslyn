@@ -60,9 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, leftPlaceholder: leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
                 Debug.Assert(conditionalExpression.Type is { });
 
-                return (temps.Count == 0 && stores.Count == 0) ?
-                    conditionalExpression :
-                    new BoundSequence(
+                if (temps.Count == 0 && stores.Count == 0)
+                {
+                    temps.Free();
+                    stores.Free();
+                    return conditionalExpression;
+                }
+
+                return new BoundSequence(
                         syntax,
                         temps.ToImmutableAndFree(),
                         stores.ToImmutableAndFree(),
@@ -87,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           SpecialMember.System_Nullable_T_GetValueOrDefault,
                                           out var getValueOrDefault))
                 {
+                    temps.Free();
+                    stores.Free();
                     return BadExpression(node);
                 }
 
@@ -95,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           SpecialMember.System_Nullable_T_get_HasValue,
                                           out var hasValue))
                 {
+                    temps.Free();
+                    stores.Free();
                     return BadExpression(node);
                 }
 

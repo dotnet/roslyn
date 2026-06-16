@@ -1578,7 +1578,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.False(results.Any(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath.Contains(".ts")));
+        Assert.False(results.Any(r => r.TextDocument!.DocumentUri.UriString.Contains(".ts")));
     }
 
     [Theory, CombinatorialData]
@@ -2158,14 +2158,12 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        var dir = TestWorkspace.RootDirectory.Replace("\\", "/");
-
         AssertEx.SequenceEqual(
         [
-            $"{dir}/C.cs",
-            $"{dir}/CSProj1.csproj",
-            $"{dir}/C2.cs"
-        ], results.Select(r => r.TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath));
+            ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "C.cs")),
+            ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "CSProj1.csproj")),
+            ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "C2.cs"))
+        ], results.Select(r => r.TextDocument.DocumentUri));
     }
 
     [Theory, CombinatorialData]

@@ -41,7 +41,7 @@
 
   <!-- Grab the nuget package and reference its generator when building in Release_Nuget  -->
   <ItemGroup Condition="'$(Configuration)' == 'Release_Nuget'">
-    <PackageReference Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Transport" GeneratePathProperty="true" VersionOverride="7.0.0-preview.5.22528.1" />
+    <PackageReference Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Transport" GeneratePathProperty="true" VersionOverride="10.0.0-preview.26215.116" />
     <Reference Include="$(PkgMicrosoft_NET_Sdk_Razor_SourceGenerators_Transport)\source-generators\*.dll" />
   </ItemGroup>
 

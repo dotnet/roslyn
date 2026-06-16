@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -10,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 internal static class VSInternalCompletionItemExtensions
 {
     public const string ResultIdKey = "_resultId";
-
-    private static readonly Dictionary<RazorCommitCharacter, VSInternalCommitCharacter> s_commitCharacterCache = [];
 
     public static bool TryGetCompletionListResultIds(this VSInternalCompletionItem completion, out ImmutableArray<int> resultIds)
     {
@@ -56,34 +53,11 @@ internal static class VSInternalCompletionItemExtensions
         var supportsVSExtensions = clientCapabilities?.SupportsVisualStudioExtensions ?? false;
         if (supportsVSExtensions)
         {
-            using var builder = new PooledArrayBuilder<VSInternalCommitCharacter>(capacity: razorCommitCharacters.Length);
-
-            lock (s_commitCharacterCache)
-            {
-                foreach (var c in razorCommitCharacters)
-                {
-                    if (!s_commitCharacterCache.TryGetValue(c, out var commitCharacter))
-                    {
-                        commitCharacter = new() { Character = c.Character, Insert = c.Insert };
-                        s_commitCharacterCache.Add(c, commitCharacter);
-                    }
-
-                    builder.Add(commitCharacter);
-                }
-            }
-
-            completionItem.VsCommitCharacters = builder.ToArray();
+            completionItem.VsCommitCharacters = RazorCommitCharacter.ToVsCommitCharacters(razorCommitCharacters);
         }
         else
         {
-            using var builder = new PooledArrayBuilder<string>(capacity: razorCommitCharacters.Length);
-
-            foreach (var c in razorCommitCharacters)
-            {
-                builder.Add(c.Character);
-            }
-
-            completionItem.CommitCharacters = builder.ToArray();
+            completionItem.CommitCharacters = RazorCommitCharacter.ToStringCommitCharacters(razorCommitCharacters);
         }
     }
 }

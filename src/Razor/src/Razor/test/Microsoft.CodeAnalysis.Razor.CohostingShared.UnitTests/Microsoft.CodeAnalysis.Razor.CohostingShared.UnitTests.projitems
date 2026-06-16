@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -15,6 +15,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\RazorOnAutoInsertProviderTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateConversionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateDeconstructMethodTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ImplementInterfaceTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ImplementAbstractClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateMethodTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateConstructorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateFieldTests.cs" />
@@ -28,8 +30,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToComponentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCssTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateEventHandlerTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionProviderTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionResolverTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\PromoteUsingDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\RemoveUnnecessaryDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\SimplifyFullyQualifiedComponentTests.cs" />
@@ -39,7 +39,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\UnboundDirectiveAttributeAddUsingTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\WrapAttributeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ComputedTargetPathTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\RazorDiagnosticHelperTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentExcerpt\DocumentExcerptServiceTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentExcerpt\RazorDocumentExcerptServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentCompletionEndpointTest.cs" />
@@ -47,6 +46,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentHighlightEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentPullDiagnosticsTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentSymbolEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostCallHierarchyEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostFindAllReferencesEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostFoldingRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostGeneratedDocumentContentsEndpointTest.cs" />
@@ -56,10 +56,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostInlayHintEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostLinkedEditingRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostOnAutoInsertEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostPrepareRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSelectionRangeEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensEndpointTestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensFullEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensRangeEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSignatureHelpEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostTypeHierarchyEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostWillRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NestedFiles\RemoteAddNestedFileServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CascadingTypeParameterFormattingTest.cs" />
@@ -77,6 +81,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ProjectAvailabilityTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetCompletionItemResolveProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendServiceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetResolveProvider.cs" />
   </ItemGroup>
 </Project>

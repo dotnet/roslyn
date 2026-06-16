@@ -6,7 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -133,7 +134,7 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
                 DisposalToken).ConfigureAwait(false);
             Assert.NotNull(generatedHtml);
 
-            var uri = new Uri(document.CreateUri(), $"{document.FilePath}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
+            var uri = new Uri(document.CreateSystemUri(), $"{document.FilePath}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
             var htmlEdits = await htmlFormattingFixture.Service.GetOnTypeFormattingEditsAsync(LoggerFactory, uri, generatedHtml, position, insertSpaces: true, tabSize: 4);
 
             requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentOnTypeFormattingName, htmlEdits)]);
@@ -148,7 +149,7 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
 
         var request = new DocumentOnTypeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
             Options = new FormattingOptions()
             {
                 TabSize = 4,
