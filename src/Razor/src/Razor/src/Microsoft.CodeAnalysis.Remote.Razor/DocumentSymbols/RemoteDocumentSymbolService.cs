@@ -3,8 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
