@@ -1591,4 +1591,53 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """, index: 1);
+
+    [Fact]
+    public async Task PartialMethodAsEventHandlerWithTaskConversion()
+    {
+        var initial = """
+            using System;
+            using System.Threading.Tasks;
+
+            public partial class C
+            {
+                private event EventHandler Click;
+
+                public partial void OnClick(object sender, EventArgs e);
+
+                public partial void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Hookup()
+                {
+                    Click += OnClick;
+                }
+            }
+            """;
+
+        await TestActionCountAsync(initial, count: 2);
+        await TestInRegularAndScriptAsync(initial, """
+            using System;
+            using System.Threading.Tasks;
+
+            public partial class C
+            {
+                private event EventHandler Click;
+
+                public partial Task OnClickAsync(object sender, EventArgs e);
+
+                {|Warning:public async partial Task OnClickAsync(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }|}
+
+                private void Hookup()
+                {
+                    Click += OnClickAsync;
+                }
+            }
+            """);
+    }
 }

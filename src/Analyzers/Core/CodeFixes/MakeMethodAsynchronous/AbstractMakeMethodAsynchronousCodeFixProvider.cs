@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,6 +117,8 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
             solution,
             cancellationToken).ConfigureAwait(false);
 
+        // Group locations by document to avoid fetching the same syntax root and semantic model multiple times
+        var locationsByDocument = new Dictionary<DocumentId, List<ReferenceLocation>>();
         foreach (var referencedSymbol in references)
         {
             foreach (var location in referencedSymbol.Locations)
@@ -123,9 +126,29 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 if (location.IsImplicit || location.Document is null)
                     continue;
 
-                var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                if (!locationsByDocument.TryGetValue(location.Document.Id, out var locations))
+                {
+                    locations = [];
+                    locationsByDocument[location.Document.Id] = locations;
+                }
+
+                locations.Add(location);
+            }
+        }
+
+        // Process each document's locations together
+        foreach (var (documentId, locations) in locationsByDocument)
+        {
+            var document = solution.GetDocument(documentId);
+            if (document is null)
+                continue;
+
+            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var location in locations)
+            {
                 var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-                var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 for (var currentNode = syntaxNode; currentNode != null; currentNode = currentNode.Parent)
                 {
                     var operation = semanticModel.GetOperation(currentNode, cancellationToken);
@@ -263,8 +286,8 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         if (!keepVoid && methodSymbol.PartialDefinitionPart is { Locations: [{ } partialDefinitionLocation] })
         {
             var partialDefinitionNode = partialDefinitionLocation.FindNode(cancellationToken);
-            var fixedPartialDefinitionNode = AnnotateIfNeeded(
-                FixMethodSignature(addAsyncModifier: false, keepVoid, methodSymbol, partialDefinitionNode, knownTypes), warningAnnotation);
+            var fixedPartialDefinitionNode =
+                FixMethodSignature(addAsyncModifier: false, keepVoid, methodSymbol, partialDefinitionNode, knownTypes);
 
             var partialDefinitionDocument = solution.GetDocument(partialDefinitionNode.SyntaxTree);
             Contract.ThrowIfNull(partialDefinitionDocument);
