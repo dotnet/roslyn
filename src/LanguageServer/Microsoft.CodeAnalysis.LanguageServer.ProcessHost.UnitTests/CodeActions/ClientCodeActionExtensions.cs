@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.CodeActions;
@@ -15,7 +14,7 @@ public static class ClientCodeActionExtensions
         {
             var result = await target.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
             Assert.NotNull(result);
-            return [.. result.Cast<VSInternalCodeAction>()];
+            return [.. result.Cast<CodeAction>()];
         }
 
         internal async Task<CodeAction> RunGetCodeActionResolveAsync(CodeAction unresolvedCodeAction)

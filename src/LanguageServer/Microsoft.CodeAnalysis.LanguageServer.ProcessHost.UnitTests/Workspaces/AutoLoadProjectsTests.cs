@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
 
@@ -159,7 +158,6 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
         }));
 
         return $$"""
-
             Microsoft Visual Studio Solution File, Format Version 12.00
             # Visual Studio Version 17
             VisualStudioVersion = 17.5.002.0
