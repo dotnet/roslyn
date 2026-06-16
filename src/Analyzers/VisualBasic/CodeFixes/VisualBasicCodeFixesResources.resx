@@ -148,7 +148,8 @@
     <value>Make Async Function</value>
   </data>
   <data name="Make_Async_Function_for_event_handler" xml:space="preserve">
-    <value>Make Async Function (event handlers require 'Async Sub')</value>
+    <value>Async event handlers require 'Async Sub'</value>
+    <comment>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</comment>
   </data>
   <data name="Make_Async_Sub" xml:space="preserve">
     <value>Make Async Sub</value>
