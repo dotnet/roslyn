@@ -3685,6 +3685,81 @@ outer: while (true)
         End Function
 
         <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_TargetOutsideLambda() As Task
+            ' break targets a label on a loop outside the lambda. That is not a valid jump (control
+            ' flow cannot cross the lambda), so there is no navigation.
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            System.Action a = () => { bre$$ak outer; };
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledContinue_Keyword_TargetOutsideLambda() As Task
+            ' continue targets a label on a loop outside the lambda. That is not a valid jump (control
+            ' flow cannot cross the lambda), so there is no navigation.
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            System.Action a = () => { cont$$inue outer; };
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Keyword_TargetOutsideLocalFunction() As Task
+            ' break targets a label on a loop outside the local function. That is not a valid jump
+            ' (control flow cannot cross the local function), so there is no navigation.
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            void local() { bre$$ak outer; }
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
+
+        <WpfFact>
         Public Async Function ExtendedPropertyPattern_FirstPart() As Task
             Dim workspace =
 <Workspace>
