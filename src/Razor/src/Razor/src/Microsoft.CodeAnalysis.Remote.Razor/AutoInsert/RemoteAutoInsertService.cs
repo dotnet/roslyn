@@ -103,6 +103,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
                 return await TryResolveInsertionInCSharpAsync(
                         remoteDocumentContext,
                         mappedPosition,
+                        positionInfo.InDeclDocument,
                         character,
                         options,
                         cancellationToken)
@@ -116,6 +117,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
     private async ValueTask<Response> TryResolveInsertionInCSharpAsync(
         RemoteDocumentContext remoteDocumentContext,
         LinePosition mappedPosition,
+        bool inDeclDocument,
         string character,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
@@ -142,7 +144,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
         }
 
         var generatedDocument = await remoteDocumentContext.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
+            .GetGeneratedDocumentAsync(inDeclDocument, cancellationToken)
             .ConfigureAwait(false);
         var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
         var services = generatedDocument.Project.Solution.Services.ExportProvider
@@ -167,20 +169,20 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        var csharpSourceText = await remoteDocumentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSourceText = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var csharpTextChange = new TextChange(csharpSourceText.GetTextSpan(autoInsertResponseItem.TextEdit.Range), autoInsertResponseItem.TextEdit.NewText);
         var mappedChange = autoInsertResponseItem.TextEditFormat == InsertTextFormat.Snippet
             ? await _razorFormattingService.TryGetCSharpSnippetFormattingEditAsync(
                 remoteDocumentContext,
                 [csharpTextChange],
-                declarationDocument: false, // PROTOTYPE(sonic): Pass in the right value to this
+                inDeclDocument,
                 options,
                 cancellationToken)
             .ConfigureAwait(false)
             : await _razorFormattingService.TryGetSingleCSharpEditAsync(
                 remoteDocumentContext,
                 csharpTextChange,
-                declarationDocument: false, // PROTOTYPE(sonic): Pass in the right value to this
+                inDeclDocument,
                 options,
                 cancellationToken)
             .ConfigureAwait(false);
