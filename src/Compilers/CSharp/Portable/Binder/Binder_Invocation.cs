@@ -905,22 +905,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return result;
             }
-<<<<<<< HEAD
-||||||| 14f8212bdb8
-            else
-            {
-                result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
-            }
-            resolution.Free();
-            return result;
-=======
-            else
-            {
-                result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
-            }
-            resolution.Free(keepArguments: resolution.AnalyzedArguments == analyzedArguments);
-            return result;
->>>>>>> dotnet/main
         }
 
         private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)

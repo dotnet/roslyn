@@ -4605,36 +4605,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out ImmutableArray<int> argsToParamsOpt, out BitVector defaultArguments, out bool usesExtensionReceiver, out VisitResult? firstArgumentResult);
 
                 var reinferenceResult = VisitArgumentsCore(
-                    objectInitializer, arguments, refKindsOpt,
+                    objectInitializer, containingType, arguments, refKindsOpt,
                     parameters, argsToParamsOpt,
                     defaultArguments, objectInitializer.Expanded,
                     usesExtensionReceiver, member: symbol, delayCompletionForTargetMember: delayCompletionForType, firstArgumentResult);
 
-<<<<<<< HEAD
                 symbol = reinferenceResult.Member;
                 argumentResults = reinferenceResult.Results;
                 argumentsCompletion = reinferenceResult.Completion;
-||||||| 14f8212bdb8
-                    var reinferenceResult = VisitArgumentsCore(
-                            objectInitializer, arguments, refKindsOpt,
-                            parameters, argsToParamsOpt,
-                            objectInitializer.DefaultArguments, objectInitializer.Expanded,
-                            usesExtensionReceiver: isExtensionBlockMember, member: (Symbol?)null, delayCompletionForTargetMember: delayCompletionForType);
-
-                    argumentResults = reinferenceResult.Results;
-                    argumentsCompletion = reinferenceResult.Completion;
-                }
-=======
-                    var reinferenceResult = VisitArgumentsCore(
-                            objectInitializer, containingType, arguments, refKindsOpt,
-                            parameters, argsToParamsOpt,
-                            objectInitializer.DefaultArguments, objectInitializer.Expanded,
-                            usesExtensionReceiver: isExtensionBlockMember, member: (Symbol?)null, delayCompletionForTargetMember: delayCompletionForType);
-
-                    argumentResults = reinferenceResult.Results;
-                    argumentsCompletion = reinferenceResult.Completion;
-                }
->>>>>>> dotnet/main
 
                 InitializerCompletionAfterUpdatedSymbol? initializationCompletion = null;
                 if (objectInitializer.MemberSymbol is not null)
@@ -12154,7 +12132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ReinferenceResult<PropertySymbol> ReInferAndVisitExtensionPropertyAccess(
             BoundNode node, PropertySymbol property, BoundExpression receiver)
         {
-<<<<<<< HEAD
             Debug.Assert(property.Parameters.IsEmpty);
             var reinferenceResult = ReInferAndVisitExtensionPropertyAccess(
                 node,
@@ -12168,33 +12145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delayCompletionForType: false,
                 expanded: false,
                 firstArgumentResult: null);
-||||||| 14f8212bdb8
-            Debug.Assert(property.IsExtensionBlockMember());
-            ImmutableArray<BoundExpression> arguments = [receiver];
-
-            var extensionParameter = property.ContainingType.ExtensionParameter;
-            Debug.Assert(extensionParameter is not null);
-            ImmutableArray<ParameterSymbol> parameters = [extensionParameter];
-
-            ImmutableArray<RefKind> refKindsOpt = extensionParameter.RefKind == RefKind.Ref ? [RefKind.Ref] : default;
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/37238 : properties/indexers should account for NotNullIfNotNull
-            var reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parameters, default, defaultArguments: default,
-                expanded: false, usesExtensionReceiver: true, property, firstArgumentResult: null, delayCompletionForTargetMember: false);
-=======
-            Debug.Assert(property.IsExtensionBlockMember());
-            ImmutableArray<BoundExpression> arguments = [receiver];
-
-            var extensionParameter = property.ContainingType.ExtensionParameter;
-            Debug.Assert(extensionParameter is not null);
-            ImmutableArray<ParameterSymbol> parameters = [extensionParameter];
-
-            ImmutableArray<RefKind> refKindsOpt = extensionParameter.RefKind == RefKind.Ref ? [RefKind.Ref] : default;
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/37238 : properties/indexers should account for NotNullIfNotNull
-            var reinferenceResult = VisitArgumentsCore(node, receiver.Type, arguments, refKindsOpt, parameters, default, defaultArguments: default,
-                expanded: false, usesExtensionReceiver: true, property, firstArgumentResult: null, delayCompletionForTargetMember: false);
->>>>>>> dotnet/main
 
             Debug.Assert(reinferenceResult.Completion is null);
             return reinferenceResult;
@@ -12222,7 +12172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             defaultArguments = AdjustDefaultArgumentsIfNeeded(defaultArguments, isExtensionBlockMember: true);
 
             // Tracked by https://github.com/dotnet/roslyn/issues/37238 : properties/indexers should account for NotNullIfNotNull
-            var reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parameters, argsToParamsOpt, defaultArguments,
+            var reinferenceResult = VisitArgumentsCore(node, receiver.Type, arguments, refKindsOpt, parameters, argsToParamsOpt, defaultArguments,
                 expanded, usesExtensionReceiver: true, property, delayCompletionForType, firstArgumentResult);
 
             return reinferenceResult;
@@ -12282,7 +12232,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.ArgumentRefKindsOpt, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded,
                     delayCompletionForType: false, firstArgumentResult: null);
 
-<<<<<<< HEAD
                 Debug.Assert(reinferrenceResult.Member is not null);
                 indexer = reinferrenceResult.Member;
             }
@@ -12293,13 +12242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Update indexer based on inferred receiver type
                 indexer = (PropertySymbol)AsMemberOfType(receiverType, indexer);
 
-                VisitPropertyArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
+                VisitPropertyArguments(node, receiverType, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
             }
-||||||| 14f8212bdb8
-            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
-=======
-            VisitArguments(node, node.ReceiverOpt?.Type, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
->>>>>>> dotnet/main
 
             var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
             SetResult(node, resultType, indexer.TypeWithAnnotations);
