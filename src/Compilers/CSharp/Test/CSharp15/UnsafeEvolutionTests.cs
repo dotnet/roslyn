@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Unsafe)]
 public sealed class UnsafeEvolutionTests : CompilingTestBase
 {
+    private enum AttributeDefinition
+    {
+        None,
+        Synthesized,
+        FromSource,
+    }
+
     /// <param name="expectedUnsafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
     /// <param name="expectedSafeSymbols">See <see cref="VerifyRequiresUnsafeAttribute"/>.</param>
     private void CompileAndVerifyUnsafe(
@@ -41,7 +48,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         DiagnosticDescription[]? expectedDiagnosticsWithOldLangVersion = null,
         DiagnosticDescription[]? expectedLibDiagnostics = null,
         DiagnosticDescription[]? expectedLegacyLibDiagnostics = null,
-        bool expectedAttributeIsSynthesized = true)
+        AttributeDefinition expectedRulesAttribute = AttributeDefinition.Synthesized,
+        AttributeDefinition expectedRequiresUnsafeAttribute = AttributeDefinition.Synthesized)
     {
         optionsDll ??= TestOptions.UnsafeReleaseDll;
         var optionsExe = optionsDll.WithOutputKind(OutputKind.ConsoleApplication);
@@ -117,7 +125,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 verify: verify,
                 symbolValidator: module =>
                 {
-                    VerifyMemorySafetyRulesAttribute(module, includesAttributeDefinition: false, includesAttributeUse: false);
+                    VerifyMemorySafetyRulesAttribute(module, expectedDefinition: AttributeDefinition.None, includesAttributeUse: false);
                     // Under legacy rules, `unsafe` keyword does not make members requires-unsafe.
                     VerifyRequiresUnsafeAttribute(
                         module,
@@ -127,8 +135,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                             .. skipSymbolsInSource is [..] ? expectedUnsafeSymbols.Except(skipSymbolsInSource).ToArray() : expectedUnsafeSymbols,
                             .. skipSymbolsInSource is [..] ? expectedSafeSymbols.Except(skipSymbolsInSource).ToArray() : expectedSafeSymbols,
                         ],
-                        includesAttributeDefinition: !expectedAttributeIsSynthesized,
-                        isSynthesized: !expectedAttributeIsSynthesized ? false : null);
+                        expectedDefinition: expectedSourceAttributeDefinition(expectedRequiresUnsafeAttribute));
                 })
                 .VerifyDiagnostics()
                 .GetImageReference();
@@ -152,18 +159,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             var isSource = module is SourceModuleSymbol;
             VerifyMemorySafetyRulesAttribute(
                 module,
-                includesAttributeDefinition: !isSource,
-                includesAttributeUse: !isSource,
-                isSynthesized: isSource ? null : true);
+                expectedDefinition: isSource ? expectedSourceAttributeDefinition(expectedRulesAttribute) : expectedRulesAttribute,
+                includesAttributeUse: !isSource);
             VerifyRequiresUnsafeAttribute(
                 module,
                 expectedUnsafeSymbols: exceptSymbolsSkippedInSource(expectedUnsafeSymbols),
                 expectedSafeSymbols: exceptSymbolsSkippedInSource(expectedSafeSymbols),
                 expectedUnsafeMode: expectedUnsafeMode,
-                includesAttributeDefinition: !isSource || !expectedAttributeIsSynthesized,
-                isSynthesized: isSource
-                    ? (!expectedAttributeIsSynthesized ? false : null)
-                    : expectedAttributeIsSynthesized);
+                expectedDefinition: isSource ? expectedSourceAttributeDefinition(expectedRequiresUnsafeAttribute) : expectedRequiresUnsafeAttribute);
 
             [return: NotNullIfNotNull(nameof(original))]
             object[]? exceptSymbolsSkippedInSource(object[]? original)
@@ -173,6 +176,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     : original;
             }
         }
+
+        static AttributeDefinition expectedSourceAttributeDefinition(AttributeDefinition expectedDefinition)
+            => expectedDefinition == AttributeDefinition.Synthesized ? AttributeDefinition.None : expectedDefinition;
     }
 
     private static Func<ModuleSymbol, Symbol> ExtensionMember(string containerName, string memberName)
@@ -207,23 +213,29 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         };
     }
 
+    private static Func<ModuleSymbol, Symbol> EventField(string qualifiedName)
+    {
+        return module => module.GlobalNamespace
+            .GetMember<EventSymbol>(qualifiedName)
+            .AssociatedField
+            ?? throw new InvalidOperationException($"Cannot find event field '{qualifiedName}'.");
+    }
+
     private static void VerifyMemorySafetyRulesAttribute(
         ModuleSymbol module,
-        bool includesAttributeDefinition,
-        bool includesAttributeUse,
-        bool? isSynthesized = null)
+        AttributeDefinition expectedDefinition,
+        bool includesAttributeUse)
     {
         const string Name = "MemorySafetyRulesAttribute";
         const string FullName = $"System.Runtime.CompilerServices.{Name}";
         var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(FullName);
         var attribute = module.GetAttributes().SingleOrDefault(a => a.AttributeClass?.Name == Name);
 
-        if (includesAttributeDefinition)
+        if (expectedDefinition != AttributeDefinition.None)
         {
             Assert.NotNull(type);
 
-            Assert.NotNull(isSynthesized);
-            if (isSynthesized.Value)
+            if (expectedDefinition == AttributeDefinition.Synthesized)
             {
                 var attributeAttributes = type.GetAttributes()
                     .Select(a => a.AttributeClass.ToTestDisplayString())
@@ -235,6 +247,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                         "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
                     ],
                     attributeAttributes);
+            }
+            else
+            {
+                Assert.Equal(AttributeDefinition.FromSource, expectedDefinition);
             }
         }
         else
@@ -249,12 +265,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         if (type is { })
         {
-            Assert.NotNull(isSynthesized);
-            Assert.Equal(isSynthesized.Value ? Accessibility.Internal : Accessibility.Public, type.DeclaredAccessibility);
+            Assert.Equal(expectedDefinition == AttributeDefinition.Synthesized ? Accessibility.Internal : Accessibility.Public, type.DeclaredAccessibility);
         }
         else
         {
-            Assert.Null(isSynthesized);
+            Assert.Equal(AttributeDefinition.None, expectedDefinition);
         }
 
         if (includesAttributeUse)
@@ -278,20 +293,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         ModuleSymbol module,
         ReadOnlySpan<object> expectedUnsafeSymbols,
         ReadOnlySpan<object> expectedSafeSymbols,
-        bool includesAttributeDefinition,
-        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit,
-        bool? isSynthesized = null)
+        AttributeDefinition expectedDefinition,
+        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit)
     {
         const string Name = "RequiresUnsafeAttribute";
         const string FullName = $"System.Diagnostics.CodeAnalysis.{Name}";
 
         var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(FullName);
 
-        if (includesAttributeDefinition)
+        if (expectedDefinition != AttributeDefinition.None)
         {
             Assert.NotNull(type);
-            Assert.NotNull(isSynthesized);
-            if (isSynthesized.Value)
+            if (expectedDefinition == AttributeDefinition.Synthesized)
             {
                 var attributeAttributes = type.GetAttributes()
                     .Select(a => a.AttributeClass.ToTestDisplayString())
@@ -303,8 +316,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     ],
                     attributeAttributes);
             }
+            else
+            {
+                Assert.Equal(AttributeDefinition.FromSource, expectedDefinition);
+            }
 
-            Assert.Equal(isSynthesized.Value ? Accessibility.Internal : Accessibility.Public, type.DeclaredAccessibility);
+            Assert.Equal(expectedDefinition == AttributeDefinition.Synthesized ? Accessibility.Internal : Accessibility.Public, type.DeclaredAccessibility);
         }
         else
         {
@@ -385,18 +402,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CompileAndVerify(source,
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.None, includesAttributeUse: false))
             .VerifyDiagnostics();
 
         var ref1 = CompileAndVerify(source,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.Synthesized, includesAttributeUse: true))
             .VerifyDiagnostics()
             .GetImageReference();
 
         CompileAndVerify("", [ref1],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.Synthesized, includesAttributeUse: true))
             .VerifyDiagnostics();
 
         var source2 = """
@@ -405,13 +422,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CompileAndVerify(source2, [ref1],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.Synthesized, includesAttributeUse: true))
             .VerifyDiagnostics();
 
         CompileAndVerify(source,
             options: TestOptions.ReleaseModule,
             verify: Verification.Skipped,
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.None, includesAttributeUse: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -427,7 +444,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.Script,
             options: TestOptions.ReleaseModule,
             verify: Verification.Skipped,
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.None, includesAttributeUse: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -445,12 +462,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CompileAndVerify(source,
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.None, includesAttributeUse: false))
             .VerifyDiagnostics();
 
         CompileAndVerify(source,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.Synthesized, includesAttributeUse: true))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -475,7 +492,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var refA = AsReference(comp, useCompilationReference);
         Assert.Equal(updatedRulesA, comp.SourceModule.UseUpdatedMemorySafetyRules);
         CompileAndVerify(comp,
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: updatedRulesA, includesAttributeUse: updatedRulesA, isSynthesized: updatedRulesA ? true : null))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: updatedRulesA ? AttributeDefinition.Synthesized : AttributeDefinition.None, includesAttributeUse: updatedRulesA))
             .VerifyDiagnostics();
 
         var sourceB = """
@@ -485,7 +502,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         comp = CreateCompilation(sourceB, [refA], options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesB));
         Assert.Equal(updatedRulesB, comp.SourceModule.UseUpdatedMemorySafetyRules);
         CompileAndVerify(comp,
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: updatedRulesB, includesAttributeUse: updatedRulesB, isSynthesized: updatedRulesB ? true : null))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: updatedRulesB ? AttributeDefinition.Synthesized : AttributeDefinition.None, includesAttributeUse: updatedRulesB))
             .VerifyDiagnostics();
     }
 
@@ -537,12 +554,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, isSynthesized: false))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.FromSource, includesAttributeUse: false))
             .VerifyDiagnostics();
 
         CompileAndVerify([source, MemorySafetyRulesAttributeDefinition],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: false))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.FromSource, includesAttributeUse: true))
             .VerifyDiagnostics();
     }
 
@@ -551,7 +568,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     {
         var comp = CreateCompilation(MemorySafetyRulesAttributeDefinition);
         CompileAndVerify(comp,
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: false, isSynthesized: false))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.FromSource, includesAttributeUse: false))
             .VerifyDiagnostics();
         var ref1 = AsReference(comp, useCompilationReference);
 
@@ -561,7 +578,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CompileAndVerify(source, [ref1],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: true, isSynthesized: false))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.None, includesAttributeUse: true))
             .VerifyDiagnostics();
     }
 
@@ -581,13 +598,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         // Ambiguous attribute definitions from references => synthesize our own.
         CompileAndVerify(source, [ref1, ref2],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.Synthesized, includesAttributeUse: true))
             .VerifyDiagnostics();
 
         // Also defined in source.
         CompileAndVerify([source, MemorySafetyRulesAttributeDefinition], [ref1, ref2],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: false))
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.FromSource, includesAttributeUse: true))
             .VerifyDiagnostics();
     }
 
@@ -634,7 +651,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var verifier = CompileAndVerify(CreateEmptyCompilation(source, [ref1, ref2, corlibRef],
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()),
             verify: Verification.Skipped,
-            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: true, isSynthesized: false));
+            symbolValidator: m => VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.None, includesAttributeUse: true));
 
         verifier.Diagnostics.WhereAsArray(d => d.Code != (int)ErrorCode.WRN_NoRuntimeMetadataVersion).Verify();
 
@@ -5162,13 +5179,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: m =>
                 {
-                    VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false);
+                    VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.None, includesAttributeUse: false);
                     VerifyRequiresUnsafeAttribute(
                         m,
                         expectedUnsafeSymbols: [],
                         expectedSafeSymbols: [.. safeSymbols, .. unsafeSymbols],
-                        includesAttributeDefinition: true,
-                        isSynthesized: false);
+                        expectedDefinition: AttributeDefinition.FromSource);
                 })
                 .VerifyDiagnostics();
         }
@@ -5180,13 +5196,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: m =>
                 {
-                    VerifyMemorySafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, isSynthesized: true);
+                    VerifyMemorySafetyRulesAttribute(m, expectedDefinition: AttributeDefinition.Synthesized, includesAttributeUse: true);
                     VerifyRequiresUnsafeAttribute(
                         m,
                         expectedUnsafeSymbols: [.. unsafeSymbols],
                         expectedSafeSymbols: [.. safeSymbols],
-                        includesAttributeDefinition: true,
-                        isSynthesized: false);
+                        expectedDefinition: AttributeDefinition.FromSource);
                 })
                 .VerifyDiagnostics(
                 // (16,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
@@ -5997,15 +6012,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var moduleA = CreateCompilation("", [refA]).GetReferencedAssemblySymbol(refA).Modules.Single();
         VerifyMemorySafetyRulesAttribute(
             moduleA,
-            includesAttributeDefinition: true,
-            isSynthesized: false,
+            expectedDefinition: AttributeDefinition.FromSource,
             includesAttributeUse: true);
         VerifyRequiresUnsafeAttribute(
             moduleA,
             expectedUnsafeSymbols: ["B.M"],
             expectedSafeSymbols: ["A", "A.M", "B"],
-            includesAttributeDefinition: true,
-            isSynthesized: false);
+            expectedDefinition: AttributeDefinition.FromSource);
 
         CreateCompilation("""
             var c1 = new C1();
@@ -7062,7 +7075,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedUnsafeSymbols: ["System.IDisposable.Dispose"],
             expectedSafeSymbols: ["C", "C.Dispose", "System.IDisposable"],
             verify: Verification.FailsPEVerify,
-            expectedAttributeIsSynthesized: false,
+            expectedRequiresUnsafeAttribute: AttributeDefinition.FromSource,
             expectedDiagnostics:
             [
                 // (1,1): error CS9362: 'IDisposable.Dispose()' must be used in an unsafe context because it is marked as 'unsafe'
@@ -7382,8 +7395,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             libAssemblySymbol.Modules.Single(),
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C", "C.<M>d__0", "C.<M>d__0.MoveNext"],
-            includesAttributeDefinition: true,
-            isSynthesized: true);
+            expectedDefinition: AttributeDefinition.Synthesized);
     }
 
     [Fact]
@@ -7461,8 +7473,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 "D.BeginInvoke",
                 "D.EndInvoke",
             ],
-            includesAttributeDefinition: true,
-            isSynthesized: true);
+            expectedDefinition: AttributeDefinition.Synthesized);
     }
 
     [Fact]
@@ -9494,7 +9505,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             comp.SourceModule,
             expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C.Finalize"],
-            includesAttributeDefinition: false);
+            expectedDefinition: AttributeDefinition.None);
     }
 
     [Fact]
@@ -9724,7 +9735,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.F"],
                 expectedSafeSymbols: ["C", (object)getFunctionPointerType, (object)getFunctionPointerMethod],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -9834,6 +9845,376 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("unsafe").WithLocation(3, 29));
     }
 
+    [Theory, CombinatorialData]
+    public void Member_Field_ExplicitLayout([CombinatorialValues("struct", "class ")] string kind)
+    {
+        CompileAndVerifyUnsafe(
+            lib: $$"""
+                using System.Runtime.InteropServices;
+
+                [StructLayout(LayoutKind.Explicit)]
+                public {{kind}} S
+                {
+                    [FieldOffset(0)] safe public int F1;
+                    [FieldOffset(4)] unsafe public int F2;
+                    [field: FieldOffset(0)] safe public int P1 { get; set; }
+                    [field: FieldOffset(0)] unsafe public int P2 { get; set; }
+                    [field: FieldOffset(0)] safe public event System.Action E1;
+                    [field: FieldOffset(0)] unsafe public event System.Action E2;
+                }
+                """,
+            caller: """
+                var s = new S();
+                _ = s.F1;
+                _ = s.F2;
+                _ = s.P1;
+                _ = s.P2;
+                s.E1 += null;
+                s.E2 += null;
+                unsafe
+                {
+                    _ = s.F2;
+                    _ = s.P2;
+                    s.E2 += null;
+                }
+                """,
+            expectedUnsafeSymbols: ["S.F2", "S.P2", "S.get_P2", "S.set_P2", "S.E2", "S.add_E2", "S.remove_E2"],
+            expectedSafeSymbols: ["S", "S.F1", "S.P1", "S.get_P1", "S.set_P1", "S.<P1>k__BackingField", "S.<P2>k__BackingField", "S.E1", "S.add_E1", "S.remove_E1", EventField("S.E1"), EventField("S.E2")],
+            optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            verify: Verification.FailsPEVerify,
+            expectedDiagnostics:
+            [
+                // (3,5): error CS9362: 'S.F2' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s.F2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.F2").WithArguments("S.F2").WithLocation(3, 5),
+                // (5,5): error CS9362: 'S.P2.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s.P2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.P2").WithArguments("S.P2.get").WithLocation(5, 5),
+                // (7,6): error CS9362: 'S.E2.add' must be used in an unsafe context because it is marked as 'unsafe'
+                // s.E2 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("S.E2.add").WithLocation(7, 6),
+            ]);
+
+        var source = $$"""
+            using System.Runtime.InteropServices;
+
+            [StructLayout(LayoutKind.Explicit)]
+            {{kind}} S
+            {
+                [FieldOffset(0)] public int F1;
+                public const int F2 = 0;
+                public static int F3 = 0;
+                [field: FieldOffset(0)] public int P1 { get; set; }
+                [field: FieldOffset(0)] public int P2 => field;
+                public int P3 => 0;
+                public static int P4 { get; set; }
+                [field: FieldOffset(0)] public event System.Action E1;
+                public static event System.Action E2;
+                public event System.Action E3 { add { } remove { } }
+            }
+
+            [StructLayout(LayoutKind.Explicit)]
+            public record {{kind}} R([field: FieldOffset(0)] int X);
+
+            [StructLayout(LayoutKind.Explicit)]
+            public {{kind}} P([field: FieldOffset(0)] int x)
+            {
+                public int X => x;
+            }
+
+            [StructLayout(LayoutKind.Explicit)]
+            {{kind}} S2
+            {
+                safe public const int F1 = 0;
+                safe public static int F2 = 0;
+                safe public static int P { get; set; }
+                safe public static event System.Action E;
+            }
+            """;
+
+        CreateCompilation([source, IsExternalInitTypeDefinition],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,33): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            //     [FieldOffset(0)] public int F1;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33),
+            // (9,40): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            //     [field: FieldOffset(0)] public int P1 { get; set; }
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 40),
+            // (10,40): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            //     [field: FieldOffset(0)] public int P2 => field;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 40),
+            // (13,56): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            //     [field: FieldOffset(0)] public event System.Action E1;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 56),
+            // (19,52): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // public record class  R([field: FieldOffset(0)] int X);
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 52),
+            // (22,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(22, 18),
+            // (22,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(22, 45),
+            // (22,45): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 45),
+            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public const int F1 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
+            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int F2 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
+            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
+            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
+
+        CreateCompilation([source, IsExternalInitTypeDefinition],
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics(
+            // (22,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(22, 18),
+            // (22,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+            // public class  P([field: FieldOffset(0)] int x)
+            Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(22, 45),
+            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public const int F1 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
+            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int F2 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
+            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
+            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
+    }
+
+    [Fact]
+    public void Member_Field_ExtendedLayout()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                using System.Runtime.InteropServices;
+
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                public struct S
+                {
+                    safe public int F1;
+                    unsafe public int F2;
+                    safe public int P1 { get; set; }
+                    unsafe public int P2 { get; set; }
+                    safe public event System.Action E1;
+                    unsafe public event System.Action E2;
+                }
+                """,
+            caller: """
+                var s = new S();
+                _ = s.F1;
+                _ = s.F2;
+                _ = s.P1;
+                _ = s.P2;
+                s.E1 += null;
+                s.E2 += null;
+                unsafe
+                {
+                    _ = s.F2;
+                    _ = s.P2;
+                    s.E2 += null;
+                }
+                """,
+            expectedUnsafeSymbols: ["S.F2", "S.P2", "S.get_P2", "S.set_P2", "S.E2", "S.add_E2", "S.remove_E2"],
+            expectedSafeSymbols: ["S", "S.F1", "S.P1", "S.get_P1", "S.set_P1", "S.<P1>k__BackingField", "S.<P2>k__BackingField", "S.E1", "S.add_E1", "S.remove_E1", EventField("S.E1"), EventField("S.E2")],
+            optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            targetFramework: TargetFramework.Net110,
+            verify: Verification.Skipped,
+            expectedRulesAttribute: AttributeDefinition.None,
+            expectedRequiresUnsafeAttribute: AttributeDefinition.None,
+            expectedDiagnostics:
+            [
+                // (3,5): error CS9362: 'S.F2' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s.F2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.F2").WithArguments("S.F2").WithLocation(3, 5),
+                // (5,5): error CS9362: 'S.P2.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s.P2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s.P2").WithArguments("S.P2.get").WithLocation(5, 5),
+                // (7,6): error CS9362: 'S.E2.add' must be used in an unsafe context because it is marked as 'unsafe'
+                // s.E2 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("S.E2.add").WithLocation(7, 6),
+            ]);
+
+        var source = """
+            using System.Runtime.InteropServices;
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+            struct S
+            {
+                public int F1;
+                public const int F2 = 0;
+                public static int F3 = 0;
+                public int P1 { get; set; }
+                public int P2 => field;
+                public int P3 => 0;
+                public static int P4 { get; set; }
+                public event System.Action E1;
+                public static event System.Action E2;
+                public event System.Action E3 { add { } remove { } }
+            }
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+            public record struct R(int X);
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+            public struct P(int x)
+            {
+                public int X => x;
+            }
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+            struct S2
+            {
+                safe public const int F1 = 0;
+                safe public static int F2 = 0;
+                safe public static int P { get; set; }
+                safe public static event System.Action E;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,16): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            //     public int F1;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16),
+            // (9,16): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            //     public int P1 { get; set; }
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 16),
+            // (10,16): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            //     public int P2 => field;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 16),
+            // (13,32): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            //     public event System.Action E1;
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 32),
+            // (19,28): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // public record struct R(int X);
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 28),
+            // (22,21): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // public struct P(int x)
+            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 21),
+            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public const int F1 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
+            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int F2 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
+            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
+            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics(
+            // (30,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public const int F1 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(30, 5),
+            // (31,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int F2 = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(31, 5),
+            // (32,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(32, 5),
+            // (33,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public static event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(33, 5));
+    }
+
+    [Theory, CombinatorialData]
+    public void Member_Field_ExtendedLayout_Class(bool updatedRules)
+    {
+        var source = """
+            #pragma warning disable CS0649, CS0067 // unused field, event
+
+            using System.Runtime.InteropServices;
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)] class S
+            {
+                public int F1;
+                public const int F2 = 0;
+                public static int F3 = 0;
+                public int P1 { get; set; }
+                public int P2 => field;
+                public int P3 => 0;
+                public static int P4 { get; set; }
+                public event System.Action E1;
+                public static event System.Action E2;
+                public event System.Action E3 { add { } remove { } }
+            }
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)] public record R(int X);
+
+            [ExtendedLayout(ExtendedLayoutKind.CStruct)] public class P(int x)
+            {
+                public int X => x;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (5,2): error CS0592: Attribute 'ExtendedLayout' is not valid on this declaration type. It is only valid on 'struct' declarations.
+            // [ExtendedLayout(ExtendedLayoutKind.CStruct)] class S
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtendedLayout").WithArguments("ExtendedLayout", "struct").WithLocation(5, 2),
+            // (19,2): error CS0592: Attribute 'ExtendedLayout' is not valid on this declaration type. It is only valid on 'struct' declarations.
+            // [ExtendedLayout(ExtendedLayoutKind.CStruct)] public record R(int X);
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtendedLayout").WithArguments("ExtendedLayout", "struct").WithLocation(19, 2),
+            // (21,2): error CS0592: Attribute 'ExtendedLayout' is not valid on this declaration type. It is only valid on 'struct' declarations.
+            // [ExtendedLayout(ExtendedLayoutKind.CStruct)] public class P(int x)
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtendedLayout").WithArguments("ExtendedLayout", "struct").WithLocation(21, 2));
+    }
+
+    [Theory, CombinatorialData]
+    public void Member_Field_OtherLayout(
+        bool updatedRules,
+        [CombinatorialValues("struct", "class")] string kind,
+        [CombinatorialValues("LayoutKind.Sequential", "LayoutKind.Auto")] string layoutKind)
+    {
+        var source = $$"""
+            using System.Runtime.InteropServices;
+
+            [StructLayout({{layoutKind}})]
+            public {{kind}} S
+            {
+                safe public int F;
+                safe public int P { get; set; }
+                safe public event System.Action E;
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (6,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public int F;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 5),
+            // (7,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public int P { get; set; }
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
+            // (8,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public event System.Action E;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5));
+    }
+
     [Fact]
     public void Member_Field_PointerType()
     {
@@ -9860,7 +10241,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             comp.SourceModule,
             expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C", "C.F1", "C.F2", "C.F3"],
-            includesAttributeDefinition: false);
+            expectedDefinition: AttributeDefinition.None);
     }
 
     [Fact]
@@ -10099,7 +10480,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.F2"],
                 expectedSafeSymbols: ["C", "C.F1"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -10180,7 +10561,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.M2"],
                 expectedSafeSymbols: ["C", "C.M1"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -10251,7 +10632,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.M2"],
                 expectedSafeSymbols: ["C", "C.M1"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -10315,7 +10696,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: [],
                 expectedSafeSymbols: ["C", "I", "C.M", "D"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false);
+                expectedDefinition: AttributeDefinition.None);
         }
     }
 
@@ -10357,7 +10738,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 module.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: [],
                 expectedSafeSymbols: ["C", "C.M", "I"],
-                includesAttributeDefinition: false);
+                expectedDefinition: AttributeDefinition.None);
         }
     }
 
@@ -10410,7 +10791,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["E.M2"],
                 expectedSafeSymbols: ["E", "E.M1"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -10502,7 +10883,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["E.M2", ExtensionMember("E", "M2")],
                 expectedSafeSymbols: ["E", "E.M1", ExtensionMember("E", "M1")],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -10894,7 +11275,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
                 expectedSafeSymbols: ["C", "C.P1", "C.get_P1", "C.set_P1"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -10988,7 +11369,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: [ExtensionMember("E", "P2"), "E.get_P2", ExtensionMember("E", "get_P2"), "E.set_P2", ExtensionMember("E", "set_P2")],
                 expectedSafeSymbols: ["E", ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -11086,7 +11467,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C2.this[]", "C2.get_Item", "C2.set_Item"],
                 expectedSafeSymbols: ["C1", "C2", "C1.this[]", "C1.get_Item", "C1.set_Item"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -11160,7 +11541,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.E2", "C.add_E2", "C.remove_E2"],
                 expectedSafeSymbols: ["C", "C.E1", "C.add_E1", "C.remove_E1"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -11224,7 +11605,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: [Overload("C..ctor", parameterCount: 1)],
                 expectedSafeSymbols: ["C", Overload("C..ctor", parameterCount: 0)],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -11297,7 +11678,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.op_SubtractionAssignment"],
                 expectedSafeSymbols: ["C", "C.op_AdditionAssignment"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         // https://github.com/dotnet/roslyn/issues/81967: operator invocations involving pointers are allowed outside unsafe context
@@ -11504,8 +11885,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.M"],
                 expectedSafeSymbols: ["C"],
-                includesAttributeDefinition: !useCompilationReference,
-                isSynthesized: !useCompilationReference ? true : null);
+                expectedDefinition: !useCompilationReference ? AttributeDefinition.Synthesized : AttributeDefinition.None);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
@@ -11545,7 +11925,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.M"],
                 expectedSafeSymbols: ["C"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false);
+                expectedDefinition: AttributeDefinition.None);
         }
     }
 
@@ -12191,8 +12571,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.P", "C.set_P"],
                 expectedSafeSymbols: ["C"],
-                includesAttributeDefinition: !useCompilationReference,
-                isSynthesized: !useCompilationReference ? true : null);
+                expectedDefinition: !useCompilationReference ? AttributeDefinition.Synthesized : AttributeDefinition.None);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
@@ -12232,7 +12611,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.P", "C.set_P"],
                 expectedSafeSymbols: ["C"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false);
+                expectedDefinition: AttributeDefinition.None);
         }
     }
 
@@ -12398,8 +12777,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: unsafeSymbols,
                 expectedSafeSymbols: ["C"],
-                includesAttributeDefinition: !useCompilationReference,
-                isSynthesized: !useCompilationReference ? true : null);
+                expectedDefinition: !useCompilationReference ? AttributeDefinition.Synthesized : AttributeDefinition.None);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
@@ -12442,7 +12820,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.this[]", "C.get_Item", "C.set_Item"],
                 expectedSafeSymbols: ["C"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false);
+                expectedDefinition: AttributeDefinition.None);
         }
     }
 
@@ -12603,8 +12981,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: unsafeSymbols,
                 expectedSafeSymbols: ["C"],
-                includesAttributeDefinition: !useCompilationReference,
-                isSynthesized: !useCompilationReference ? true : null);
+                expectedDefinition: !useCompilationReference ? AttributeDefinition.Synthesized : AttributeDefinition.None);
         }
 
         // When compiling the lib under legacy rules, extern members are not unsafe, but members with pointers are.
@@ -12631,7 +13008,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.E", "C.add_E", "C.remove_E"],
                 expectedSafeSymbols: ["C"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false);
+                expectedDefinition: AttributeDefinition.None);
         }
     }
 
@@ -12760,8 +13137,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C..ctor"],
                 expectedSafeSymbols: ["C"],
-                includesAttributeDefinition: !useCompilationReference,
-                isSynthesized: !useCompilationReference ? true : null);
+                expectedDefinition: !useCompilationReference ? AttributeDefinition.Synthesized : AttributeDefinition.None);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
@@ -12801,7 +13177,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C..ctor"],
                 expectedSafeSymbols: ["C"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false);
+                expectedDefinition: AttributeDefinition.None);
         }
     }
 
@@ -12954,8 +13330,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
                 expectedSafeSymbols: ["C"],
-                includesAttributeDefinition: !useCompilationReference,
-                isSynthesized: !useCompilationReference ? true : null);
+                expectedDefinition: !useCompilationReference ? AttributeDefinition.Synthesized : AttributeDefinition.None);
         }
 
         CreateCompilation([getLibSource("extern"), CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
@@ -12995,7 +13370,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
                 expectedSafeSymbols: ["C"],
                 expectedUnsafeMode: CallerUnsafeMode.Implicit,
-                includesAttributeDefinition: false);
+                expectedDefinition: AttributeDefinition.None);
         }
     }
 
@@ -13062,13 +13437,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (1,7): warning CS8981: The type name 'safe' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // class safe { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "safe").WithArguments("safe").WithLocation(1, 7),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe M1() => new safe();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
             // (5,10): error CS1520: Method must have a return type
             //     safe M1() => new safe();
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "M1").WithLocation(5, 10),
-            // (6,12): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (6,12): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public safe M2() => new safe();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 12),
             // (6,17): error CS1520: Method must have a return type
@@ -13186,28 +13561,28 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(),
             targetFramework: TargetFramework.Net100)
             .VerifyDiagnostics(
-            // (3,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (3,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe void M();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(3, 5),
-            // (4,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe int P { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe event System.Action E;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,13): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (6,13): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     int A { safe get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 13),
-            // (10,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (10,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe void I1.M() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (11,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (11,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe int I1.P { get => 0; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(11, 5),
             // (12,33): error CS0106: The modifier 'safe' is not valid for this item
             //     safe event System.Action I1.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("safe").WithLocation(12, 33),
-            // (13,16): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (13,16): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     int I1.A { safe get => 0; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(13, 16),
             // (20,40): error CS0106: The modifier 'extern' is not valid for this item
@@ -13225,10 +13600,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (21,45): error CS0106: The modifier 'extern' is not valid for this item
             //     int I1.A { safe extern get; safe extern set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(21, 45),
-            // (21,16): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (21,16): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     int I1.A { safe extern get; safe extern set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 16),
-            // (21,33): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (21,33): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     int I1.A { safe extern get; safe extern set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 33));
     }
@@ -13260,34 +13635,35 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public int P2 { safe get; set; }
                 public string this[string s] { safe get => s; set { } }
                 safe ~C() { }
+                safe public const int CONST = 0;
             }
             """;
 
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
-            // (4,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public void M1() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public int P1 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (6,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public int this[int i] { get => i; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 5),
-            // (7,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (7,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public event System.Action E1;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
-            // (8,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (8,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public C() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (9,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (9,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public static C operator +(C x, C y) => x;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
-            // (10,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (10,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe public static explicit operator int(C c) => 0;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(10, 5),
-            // (11,21): error CS0106: The modifier 'safe' is not valid for this item
+            // (11,5): error CS9388: The 'safe' modifier may only be used on extern members or fields in explicit or extended layout structs that are not marked 'unsafe'.
             //     safe public int F;
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("safe").WithLocation(11, 21),
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(11, 5),
             // (12,23): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public class NestedClass { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "NestedClass").WithArguments("safe").WithLocation(12, 23),
@@ -13303,18 +13679,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (16,31): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public delegate void D();
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("safe").WithLocation(16, 31),
-            // (19,9): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (19,9): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //         safe void Local() { }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(19, 9),
-            // (21,21): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (21,21): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public int P2 { safe get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(21, 21),
-            // (22,36): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (22,36): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public string this[string s] { safe get => s; set { } }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(22, 36),
-            // (23,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (23,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe ~C() { }
-            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(23, 5));
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(23, 5),
+            // (24,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
+            //     safe public const int CONST = 0;
+            Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(24, 5));
     }
 
     [Fact]
@@ -13350,7 +13729,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,30): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe partial void M1() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M1").WithLocation(4, 30),
-            // (6,12): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (6,12): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public safe partial void M2();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 12),
             // (7,25): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
@@ -13471,25 +13850,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
-            // (4,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (4,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe public extern void M1();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(4, 5),
-            // (5,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (5,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe public extern int P1 { get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(5, 5),
-            // (6,33): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (6,33): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     public safe extern int P2 { safe unsafe get; set; }
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(6, 33),
-            // (7,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (7,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe public static extern event System.Action E1;
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(7, 5),
-            // (8,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (8,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe public extern C(int x);
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(8, 5),
-            // (9,5): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (9,5): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //     safe unsafe extern ~C();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(9, 5),
-            // (12,9): error CS9388: The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.
+            // (12,9): error CS9388: The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.
             //         safe unsafe static extern void Local1();
             Diagnostic(ErrorCode.ERR_SafeModifierUnsupportedTarget, "safe").WithLocation(12, 9));
     }
@@ -13513,7 +13892,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     m,
                     expectedUnsafeSymbols: [],
                     expectedSafeSymbols: ["C", "C.M"],
-                    includesAttributeDefinition: false))
+                    expectedDefinition: AttributeDefinition.None))
                 .VerifyDiagnostics();
         }
 
@@ -13526,8 +13905,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     m,
                     expectedUnsafeSymbols: ["C.M"],
                     expectedSafeSymbols: ["C"],
-                    includesAttributeDefinition: true,
-                    isSynthesized: true))
+                    expectedDefinition: AttributeDefinition.Synthesized))
                 .VerifyDiagnostics();
         }
 
@@ -13598,7 +13976,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m,
                 expectedUnsafeSymbols: [],
                 expectedSafeSymbols: ["C", "C.M"],
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
@@ -13607,8 +13985,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m,
                 expectedUnsafeSymbols: ["C.M"],
                 expectedSafeSymbols: ["C"],
-                includesAttributeDefinition: true,
-                isSynthesized: false))
+                expectedDefinition: AttributeDefinition.FromSource))
             .VerifyDiagnostics();
     }
 
@@ -13621,8 +13998,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m,
                 expectedUnsafeSymbols: [],
                 expectedSafeSymbols: [AttributeDescription.RequiresUnsafeAttribute.FullName],
-                includesAttributeDefinition: true,
-                isSynthesized: false))
+                expectedDefinition: AttributeDefinition.FromSource))
             .VerifyDiagnostics();
         var ref1 = AsReference(comp, useCompilationReference);
 
@@ -13639,7 +14015,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m,
                 expectedUnsafeSymbols: ["C.M"],
                 expectedSafeSymbols: ["C"],
-                includesAttributeDefinition: false))
+                expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
     }
 
@@ -13666,8 +14042,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m,
                 expectedUnsafeSymbols: ["C.M"],
                 expectedSafeSymbols: ["C"],
-                includesAttributeDefinition: true,
-                isSynthesized: true))
+                expectedDefinition: AttributeDefinition.Synthesized))
             .VerifyDiagnostics();
 
         // Also defined in source.

@@ -8123,12 +8123,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_SafeModifierUnsupportedTarget" xml:space="preserve">
-    <value>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</value>
+    <value>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</value>
     <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_ExternMemberRequiresUnsafeOrSafe" xml:space="preserve">
     <value>'extern' member must be marked 'unsafe' or 'safe'.</value>
     <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
+  </data>
+  <data name="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe" xml:space="preserve">
+    <value>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</value>
+    <comment>'unsafe' and 'safe' should not be localized.</comment>
   </data>
   <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
     <value>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</value>

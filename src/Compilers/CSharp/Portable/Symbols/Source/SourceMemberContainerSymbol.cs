@@ -2117,6 +2117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
         {
+            foreach (var member in GetMembers())
+            {
+                member.AfterTypeMembersCompletedChecks(diagnostics);
+            }
         }
 
         private void CheckMemberNamesDistinctFromType(BindingDiagnosticBag diagnostics)
