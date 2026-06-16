@@ -357,6 +357,47 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")>
+        Public Async Function AwaitInEventHandlerMethod() As Task
+            Dim initial =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Private Event Click As EventHandler
+
+    Private Sub OnClick(sender As Object, e As EventArgs)
+        [|Await Task.Delay(1)|]
+    End Sub
+
+    Private Sub Hookup()
+        AddHandler Click, AddressOf OnClick
+    End Sub
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Private Event Click As EventHandler
+
+    {|Warning:Private Async Function OnClickAsync(sender As Object, e As EventArgs) As Task
+        Await Task.Delay(1)
+    End Function|}
+
+    Private Sub Hookup()
+        AddHandler Click, AddressOf OnClickAsync
+    End Sub
+End Class
+</File>
+
+            Await TestActionCountAsync(initial.Value, 2)
+            Await TestAsync(initial, expected)
+        End Function
+
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6477")>
         Public Async Function TestNullNodeCrash() As Task
             Dim initial =
