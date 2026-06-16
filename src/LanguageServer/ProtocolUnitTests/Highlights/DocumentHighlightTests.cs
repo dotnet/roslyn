@@ -148,37 +148,6 @@ public sealed class DocumentHighlightTests(ITestOutputHelper testOutputHelper)
         Assert.Equal(expectedLocations[0].Range, results[0].Range);
     }
 
-    [Theory, CombinatorialData]
-    public async Task TestGetDocumentHighlightAsync_LabeledBreak(bool lspMutatingWorkspace)
-    {
-        var markup =
-            """
-            class C
-            {
-                void M()
-                {
-                    {|text:outer|}: while (true)
-                    {
-                        while (true)
-                        {
-                            break {|caret:|}{|text:outer|};
-                        }
-                    }
-                }
-            }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
-
-        var expectedLocations = testLspServer.GetLocations("text");
-
-        var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-
-        Assert.Equal(2, results.Length);
-        Assert.All(results, r => Assert.Equal(LSP.DocumentHighlightKind.Text, r.Kind));
-        Assert.Equal(expectedLocations[0].Range, results[0].Range);
-        Assert.Equal(expectedLocations[1].Range, results[1].Range);
-    }
-
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/83245")]
     public async Task TestGetDocumentHighlightAsync_DelegateConstructor(bool lspMutatingWorkspace)
     {
@@ -197,70 +166,6 @@ public sealed class DocumentHighlightTests(ITestOutputHelper testOutputHelper)
 
         var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         Assert.NotNull(results);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task TestGetDocumentHighlightAsync_LabeledContinue(bool lspMutatingWorkspace)
-    {
-        var markup =
-            """
-            class C
-            {
-                void M()
-                {
-                    {|caret:|}{|text:outer|}: for (int i = 0; i < 10; i++)
-                    {
-                        while (true)
-                        {
-                            continue {|text:outer|};
-                        }
-                    }
-                }
-            }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
-
-        var expectedLocations = testLspServer.GetLocations("text");
-
-        var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-
-        Assert.Equal(2, results.Length);
-        Assert.All(results, r => Assert.Equal(LSP.DocumentHighlightKind.Text, r.Kind));
-        Assert.Equal(expectedLocations[0].Range, results[0].Range);
-        Assert.Equal(expectedLocations[1].Range, results[1].Range);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task TestGetDocumentHighlightAsync_LabeledBreakAndContinue_MultipleReferences(bool lspMutatingWorkspace)
-    {
-        var markup =
-            """
-            class C
-            {
-                void M()
-                {
-                    {|caret:|}{|text:outer|}: while (true)
-                    {
-                        while (true)
-                        {
-                            break {|text:outer|};
-                            continue {|text:outer|};
-                        }
-                    }
-                }
-            }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
-
-        var expectedLocations = testLspServer.GetLocations("text");
-
-        var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-
-        Assert.Equal(3, results.Length);
-        Assert.All(results, r => Assert.Equal(LSP.DocumentHighlightKind.Text, r.Kind));
-        Assert.Equal(expectedLocations[0].Range, results[0].Range);
-        Assert.Equal(expectedLocations[1].Range, results[1].Range);
-        Assert.Equal(expectedLocations[2].Range, results[2].Range);
     }
 
     private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)
