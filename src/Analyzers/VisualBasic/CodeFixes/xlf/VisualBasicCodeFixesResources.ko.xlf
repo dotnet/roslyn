@@ -38,9 +38,9 @@
         <note />
       </trans-unit>
       <trans-unit id="Make_Async_Function_for_event_handler">
-        <source>Make Async Function (event handlers require 'Async Sub')</source>
-        <target state="new">Make Async Function (event handlers require 'Async Sub')</target>
-        <note />
+        <source>Async event handlers require 'Async Sub'</source>
+        <target state="new">Async event handlers require 'Async Sub'</target>
+        <note>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
