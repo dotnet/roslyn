@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -112,52 +113,104 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
     {
-        var references = await SymbolFinder.FindReferencesAsync(
-            methodSymbol,
-            solution,
-            cancellationToken).ConfigureAwait(false);
+        // We only need a small sample here: event handlers tend to have unique names, and in exchange for
+        // keeping code-fix computation cheap we're willing to miss some event-handler usages as long as we
+        // don't produce false positives.
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var progress = new EventHandlerReferenceProgress(linkedCancellationTokenSource);
 
-        // Group locations by document to avoid fetching the same syntax root and semantic model multiple times
-        var locationsByDocument = new Dictionary<DocumentId, List<ReferenceLocation>>();
-        foreach (var referencedSymbol in references)
+        try
         {
-            foreach (var location in referencedSymbol.Locations)
-            {
-                if (location.IsImplicit || location.Document is null)
-                    continue;
-
-                if (!locationsByDocument.TryGetValue(location.Document.Id, out var locations))
-                {
-                    locations = [];
-                    locationsByDocument[location.Document.Id] = locations;
-                }
-
-                locations.Add(location);
-            }
+            await SymbolFinder.FindReferencesAsync(
+                methodSymbol,
+                solution,
+                progress,
+                documents: null,
+                cancellationToken: linkedCancellationTokenSource.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && linkedCancellationTokenSource.IsCancellationRequested)
+        {
         }
 
-        // Process each document's locations together
-        foreach (var (documentId, locations) in locationsByDocument)
+        foreach (var location in progress.ReferenceLocations)
         {
-            var document = solution.GetDocument(documentId);
-            if (document is null)
-                continue;
-
+            var document = location.Document;
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (IsVoidReturningEventHandlerReference(semanticModel, syntaxNode, cancellationToken))
+                return true;
+        }
 
-            foreach (var location in locations)
+        return false;
+    }
+
+    private static bool IsVoidReturningEventHandlerReference(SemanticModel semanticModel, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+    {
+        IOperation? operation = null;
+        foreach (var currentNode in syntaxNode.GetAncestorsOrThis<SyntaxNode>())
+        {
+            operation = semanticModel.GetOperation(currentNode, cancellationToken);
+            if (operation != null)
+                break;
+        }
+
+        for (; operation != null; operation = operation.Parent)
+        {
+            if (operation is IEventAssignmentOperation eventAssignment &&
+                EventRequiresVoidReturningHandler(eventAssignment))
             {
-                var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-                foreach (var currentNode in syntaxNode.GetAncestorsOrThis<SyntaxNode>())
-                {
-                    if (semanticModel.GetOperation(currentNode, cancellationToken) is IEventAssignmentOperation)
-                        return true;
-                }
+                return true;
             }
         }
 
         return false;
+    }
+
+    private static bool EventRequiresVoidReturningHandler(IEventAssignmentOperation eventAssignment)
+        => eventAssignment.EventReference is IEventReferenceOperation eventReference &&
+           eventReference.Event.Type is INamedTypeSymbol delegateType &&
+           delegateType.DelegateInvokeMethod?.ReturnsVoid == true;
+
+    private sealed class EventHandlerReferenceProgress(CancellationTokenSource cancellationTokenSource) : IFindReferencesProgress
+    {
+        private const int MaxReferenceLocationsToInspect = 5;
+
+        public List<ReferenceLocation> ReferenceLocations { get; } = [];
+
+        public void OnStarted()
+        {
+        }
+
+        public void OnCompleted()
+        {
+        }
+
+        public void OnFindInDocumentStarted(Document document)
+        {
+        }
+
+        public void OnFindInDocumentCompleted(Document document)
+        {
+        }
+
+        public void OnDefinitionFound(ISymbol symbol)
+        {
+        }
+
+        public void OnReferenceFound(ISymbol symbol, ReferenceLocation location)
+        {
+            if (location.IsImplicit)
+                return;
+
+            ReferenceLocations.Add(location);
+            if (ReferenceLocations.Count >= MaxReferenceLocationsToInspect)
+                cancellationTokenSource.Cancel();
+        }
+
+        public void ReportProgress(int current, int maximum)
+        {
+        }
     }
 
     private static IMethodSymbol? GetMethodSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
