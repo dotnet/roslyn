@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.Extensions.Logging;
@@ -13,19 +12,19 @@ using StreamJsonRpc;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
-using Microsoft.CodeAnalysis.LanguageServer.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 [UseExportProvider]
 public abstract class AbstractLanguageServerHostTests : IDisposable
 {
+    protected ITestOutputHelper TestOutputHelper { get; }
     protected ILoggerFactory LoggerFactory { get; }
     protected TempRoot TempRoot { get; }
 
     internal static ServerConfiguration DefaultServerConfiguration => new(
         LaunchDebugger: false,
-        LogConfiguration: new LogConfiguration(LogLevel.Trace),
+        InitialLogLevel: LogLevel.Trace,
         TelemetryLevel: null,
         SessionId: null,
         ExtensionAssemblyPaths: Array.Empty<string>(),
@@ -52,6 +51,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
     protected AbstractLanguageServerHostTests(ITestOutputHelper testOutputHelper)
     {
+        TestOutputHelper = testOutputHelper;
         LoggerFactory = new LoggerFactory([new TestOutputLoggerProvider(testOutputHelper)]);
         TempRoot = new();
     }
@@ -85,7 +85,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
 
             var exportProvider = await hostTests.CreateExportProviderAsync(serverConfiguration, loggerFactory, extensionManager, assemblyLoader);
-            var testLspServer = new TestLspServer(exportProvider, loggerFactory, assemblyLoader);
+            var testLspServer = new TestLspServer(exportProvider, loggerFactory, assemblyLoader, hostTests.TestOutputHelper);
 
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
@@ -96,12 +96,12 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             return testLspServer;
         }
 
-        internal LanguageServerHost LanguageServerHost { get; }
+        private readonly LanguageServerConnectionManager _connectionManager;
         public ExportProvider ExportProvider { get; }
 
         internal ServerCapabilities ServerCapabilities { get => field ?? throw new InvalidOperationException("Initialize has not been called"); private set; }
 
-        private TestLspServer(ExportProvider exportProvider, ILoggerFactory loggerFactory, IAssemblyLoader assemblyLoader)
+        private TestLspServer(ExportProvider exportProvider, ILoggerFactory loggerFactory, IAssemblyLoader assemblyLoader, ITestOutputHelper testOutputHelper)
         {
             var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
@@ -113,8 +113,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var clientOutputStream = _clientToServerPipe.Writer.AsStream();
             var clientInputStream = _serverToClientPipe.Reader.AsStream();
 
-            LanguageServerHost = new LanguageServerHost(serverInputStream, serverOutputStream, exportProvider, loggerFactory, typeRefResolver);
-
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
             _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientOutputStream, clientInputStream, messageFormatter))
             {
@@ -122,13 +120,15 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
+            if (testOutputHelper is not null)
+                _clientRpc.AddLocalRpcMethod(Methods.WindowLogMessageName, (int type, string message) => HandleWindowLogMessage(type, message, testOutputHelper));
+
             _clientRpc.StartListening();
 
-            // This task completes when the server shuts down.  We store it so that we can wait for completion
-            // when we dispose of the test server.
-            LanguageServerHost.Start();
+            _connectionManager = new LanguageServerConnectionManager();
+            _ = _connectionManager.CreateLanguageServerHost(serverInputStream, serverOutputStream, exportProvider, typeRefResolver);
 
-            _languageServerHostCompletionTask = LanguageServerHost.WaitForExitAsync();
+            _languageServerHostCompletionTask = _connectionManager.WaitForExitAsync();
             ExportProvider = exportProvider;
         }
 
@@ -136,6 +136,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         public Pipe ClientToServerPipe => _clientToServerPipe;
         public Pipe ServerToClientPipe => _serverToClientPipe;
+
+        internal event Action<LogMessageParams>? LogMessageReceived;
 
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
         {
@@ -163,7 +165,27 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             _clientRpc.AddLocalRpcMethod(methodName, handler);
         }
 
-        internal T GetRequiredLspService<T>() where T : class => LanguageServerHost.GetLspServices().GetRequiredService<T>();
+        private void HandleWindowLogMessage(int type, string message, ITestOutputHelper testOutputHelper)
+        {
+            var logMessageParams = new LogMessageParams
+            {
+                MessageType = (MessageType)type,
+                Message = message,
+            };
+
+            LogMessageReceived?.Invoke(logMessageParams);
+
+            testOutputHelper.WriteLine($"[window/LogMessage][{(MessageType)type}] {message}");
+        }
+
+        internal T GetRequiredLspService<T>() where T : class
+        {
+            var servers = _connectionManager.GetStartedServers();
+            Contract.ThrowIfTrue(servers.IsEmpty, "No started servers found.");
+
+            var server = servers.Single();
+            return server.GetLspServices().GetRequiredService<T>();
+        }
 
         public async ValueTask DisposeAsync()
         {

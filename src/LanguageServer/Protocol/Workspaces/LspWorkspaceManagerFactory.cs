@@ -17,7 +17,7 @@ internal class LspWorkspaceManagerFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        var logger = lspServices.GetRequiredService<AbstractLspLogger>();
+        var logger = lspServices.GetRequiredService<ILspLogger>();
         var miscFilesWorkspace = lspServices.GetService<ILspMiscellaneousFilesWorkspaceProvider>();
         var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
         var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();

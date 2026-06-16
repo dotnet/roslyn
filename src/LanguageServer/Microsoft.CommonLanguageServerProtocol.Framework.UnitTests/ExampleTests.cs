@@ -4,7 +4,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Roslyn.LanguageServer.Protocol;
 using Xunit;
 
@@ -15,11 +14,8 @@ public sealed partial class ExampleTests
     [Fact]
     public void InitializeServer_WithMethodRegisteredTwice_Fails()
     {
-        // Arrange
-        var logger = GetLogger();
-
         // Act
-        var ex = Assert.Throws<InvalidOperationException>(() => TestExampleLanguageServer.CreateBadLanguageServer(logger));
+        var ex = Assert.Throws<InvalidOperationException>(() => TestExampleLanguageServer.CreateBadLanguageServer());
 
         Assert.Equal("Method textDocument/didOpen was implemented more than once.", ex.Message);
     }
@@ -27,9 +23,7 @@ public sealed partial class ExampleTests
     [Fact]
     public async Task InitializeServer_WithMultipleHandlerRegistration_Succeeds()
     {
-        // Arrange
-        var logger = GetLogger();
-        var server = TestExampleLanguageServer.CreateLanguageServer(logger);
+        var server = TestExampleLanguageServer.CreateLanguageServer();
 
         // Act
         // Verifying that this does not throw.
@@ -50,8 +44,7 @@ public sealed partial class ExampleTests
     [Fact]
     public async Task InitializeServer_SerializesCorrectly()
     {
-        var logger = GetLogger();
-        var server = TestExampleLanguageServer.CreateLanguageServer(logger);
+        var server = TestExampleLanguageServer.CreateLanguageServer();
 
         var result = await server.InitializeServerAsync();
         Assert.True(result.Capabilities.SemanticTokensOptions!.Value.Unify().Range!.Value.First);
@@ -60,8 +53,7 @@ public sealed partial class ExampleTests
     [Fact]
     public async Task ShutdownServer_Succeeds()
     {
-        var logger = GetLogger();
-        var server = TestExampleLanguageServer.CreateLanguageServer(logger);
+        var server = TestExampleLanguageServer.CreateLanguageServer();
 
         _ = await server.InitializeServerAsync();
 
@@ -69,10 +61,5 @@ public sealed partial class ExampleTests
 
         var result = await server.WaitForShutdown();
         Assert.True(0 == result, "Server failed to shut down properly");
-    }
-
-    private static ILspLogger GetLogger()
-    {
-        return NoOpLspLogger.Instance;
     }
 }
