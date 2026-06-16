@@ -17,7 +17,7 @@
     <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.1</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.1</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
-    <SQLitePCLRawCoreVersion>3.0.3</SQLitePCLRawCoreVersion>
+    <SQLitePCLRawCoreVersion>3.0.2</SQLitePCLRawCoreVersion>
     <SQLite3MCPCLRawVersion>2.3.5</SQLite3MCPCLRawVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
