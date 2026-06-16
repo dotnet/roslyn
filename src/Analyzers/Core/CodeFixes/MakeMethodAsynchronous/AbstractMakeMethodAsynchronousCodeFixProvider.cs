@@ -241,6 +241,9 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var methodSymbol = GetMethodSymbol(semanticModel, node, cancellationToken);
         Contract.ThrowIfNull(methodSymbol);
 
+        var addWarningAnnotation = await ShouldAddEventHandlerWarningAsync(
+            document.Project.Solution, methodSymbol, keepVoid, isEntryPoint, cancellationToken).ConfigureAwait(false);
+
         var knownTypes = new KnownTaskTypes(semanticModel.Compilation);
 
         // Only add a warning annotation for the Task-returning fix when the method is known to be an event handler.
@@ -276,6 +279,19 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
             return !IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
         }
+    }
+
+    private static Task<bool> ShouldAddEventHandlerWarningAsync(
+        Solution solution,
+        IMethodSymbol methodSymbol,
+        bool keepVoid,
+        bool isEntryPoint,
+        CancellationToken cancellationToken)
+    {
+        if (keepVoid || isEntryPoint || !methodSymbol.IsOrdinaryMethodOrLocalFunction() || !methodSymbol.ReturnsVoid)
+            return Task.FromResult(false);
+
+        return IsReferencedAsEventHandlerAsync(solution, methodSymbol, cancellationToken);
     }
 
     private SyntaxNode? GetContainingFunction(Diagnostic diagnostic, CancellationToken cancellationToken)
