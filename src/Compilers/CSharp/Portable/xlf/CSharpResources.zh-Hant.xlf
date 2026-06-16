@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractBaseRecordImplementation">
         <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
-        <target state="new">Record member '{0}' must be declared explicitly because '{1}' is abstract.</target>
+        <target state="translated">記錄成員 '{0}' 必須明確宣告，因為 '{1}' 是抽象的。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
