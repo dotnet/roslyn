@@ -255,7 +255,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         }
     }
 
-    private string GetBaselineFilePath(RazorCodeDocument codeDocument, string extension, string testName)
+    protected string GetBaselineFilePath(RazorCodeDocument codeDocument, string extension, string testName)
     {
         if (codeDocument == null)
         {
