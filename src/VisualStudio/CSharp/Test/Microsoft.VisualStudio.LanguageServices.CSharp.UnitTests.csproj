@@ -69,14 +69,12 @@
     <PackageReference Include="SQLite3MC.PCLRaw.lib" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(PkgSQLite3MC_PCLRaw_lib)\runtimes\win-x64\native\sqlite3mc.dll">
-      <Link>sqlite3mc.dll</Link>
+    <Content Include="$(PkgSQLite3MC_PCLRaw_lib)\runtimes\win-x86\native\sqlite3mc.dll">
+      <Link>runtimes\win-x86\native\sqlite3mc.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="$(PkgSQLite3MC_PCLRaw_lib)\runtimes\win-x64\native\sqlite3mc.dll">
-      <Link>Core\sqlite3mc.dll</Link>
+      <Link>runtimes\win-x64\native\sqlite3mc.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
