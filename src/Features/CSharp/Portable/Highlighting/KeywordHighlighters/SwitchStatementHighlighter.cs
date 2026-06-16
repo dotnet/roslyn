@@ -69,24 +69,21 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
                 spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
             }
         }
-        else if (node is GotoStatementSyntax gotoStatement)
+        else if (highlightGotos && node is GotoStatementSyntax gotoStatement)
         {
-            if (highlightGotos)
+            // We only want to highlight 'goto case' and 'goto default', not plain old goto statements,
+            // but if the label is missing, we do highlight 'goto' assuming it's more likely that
+            // the user is in the middle of typing 'goto case' or 'goto default'.
+            if (gotoStatement.Kind() is SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement ||
+                gotoStatement is { Expression.IsMissing: true })
             {
-                // We only want to highlight 'goto case' and 'goto default', not plain old goto statements,
-                // but if the label is missing, we do highlight 'goto' assuming it's more likely that
-                // the user is in the middle of typing 'goto case' or 'goto default'.
-                if (gotoStatement.Kind() is SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement ||
-                    gotoStatement is { Expression.IsMissing: true })
-                {
-                    var start = gotoStatement.GotoKeyword.SpanStart;
-                    var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
-                        ? gotoStatement.CaseOrDefaultKeyword.Span.End
-                        : gotoStatement.GotoKeyword.Span.End;
+                var start = gotoStatement.GotoKeyword.SpanStart;
+                var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
+                    ? gotoStatement.CaseOrDefaultKeyword.Span.End
+                    : gotoStatement.GotoKeyword.Span.End;
 
-                    spans.Add(TextSpan.FromBounds(start, end));
-                    spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
-                }
+                spans.Add(TextSpan.FromBounds(start, end));
+                spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
             }
         }
         else
