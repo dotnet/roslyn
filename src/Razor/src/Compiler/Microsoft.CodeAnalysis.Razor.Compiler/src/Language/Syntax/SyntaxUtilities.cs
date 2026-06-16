@@ -130,7 +130,7 @@ internal static class SyntaxUtilities
     {
         using PooledArrayBuilder<SyntaxToken> builder = [];
 
-        foreach (var token in node.EnumerateDescendantTokens())
+        foreach (var token in node.DescendantTokens())
         {
             if (!token.IsMissing)
             {

@@ -478,7 +478,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
 
         static bool CheckIfAttributeContainsNonMarkupNodes(RazorSyntaxNode attributeNode)
         {
-            return attributeNode.EnumerateDescendantNodes().Any(IsNotMarkupOrCommentNode);
+            return attributeNode.DescendantNodes().Any(IsNotMarkupOrCommentNode);
         }
 
         static bool IsNotMarkupOrCommentNode(SyntaxNode node)

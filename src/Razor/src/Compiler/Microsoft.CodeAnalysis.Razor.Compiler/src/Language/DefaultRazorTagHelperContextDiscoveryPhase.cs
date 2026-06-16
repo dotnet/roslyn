@@ -190,7 +190,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         private void VisitDirective(BaseRazorDirectiveSyntax node)
         {
-            foreach (var child in node.EnumerateDescendantNodes())
+            foreach (var child in node.DescendantNodes())
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 

@@ -186,7 +186,7 @@ internal static class RazorSyntaxNodeExtensions
 
     public static bool ContainsOnlyWhitespace(this SyntaxNode node, bool includingNewLines = true)
     {
-        foreach (var token in node.EnumerateDescendantTokens())
+        foreach (var token in node.DescendantTokens())
         {
             if (!token.ContainsOnlyWhitespace(includingNewLines))
             {
@@ -402,7 +402,7 @@ internal static class RazorSyntaxNodeExtensions
         SyntaxToken? firstToken = null;
         SyntaxToken? lastToken = null;
 
-        foreach (var token in node.EnumerateDescendantTokens())
+        foreach (var token in node.DescendantTokens())
         {
             if (!token.IsWhitespace())
             {

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -164,7 +164,7 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
             return false;
         }
 
-        foreach (var token in target.EnumerateDescendantTokens())
+        foreach (var token in target.DescendantTokens())
         {
             if (token.Kind == SyntaxKind.None)
             {
@@ -233,7 +233,7 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
         var changeStart = change.Span.AbsoluteIndex;
         var changeLength = change.Span.Length;
         var changeEnd = changeStart + changeLength;
-        var tokens = target.EnumerateDescendantTokens().ToImmutableArray();
+        var tokens = target.DescendantTokens().ToImmutableArray();
         if (!IsInsideParenthesis(changeStart, tokens) || !IsInsideParenthesis(changeEnd, tokens))
         {
             // Either the start or end of the delete does not fall inside of parenthesis, unacceptable inner deletion.
@@ -266,7 +266,7 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
             return false;
         }
 
-        var tokens = target.EnumerateDescendantTokens().ToImmutableArray();
+        var tokens = target.DescendantTokens().ToImmutableArray();
         if (IsInsideParenthesis(change.Span.AbsoluteIndex, tokens))
         {
             return true;

@@ -269,7 +269,7 @@ internal sealed partial class HtmlFormattingPass(
         using var scriptStyleBuilder = new PooledArrayBuilder<TextSpan>();
         using var commentBuilder = new PooledArrayBuilder<TextSpan>();
 
-        foreach (var node in syntaxRoot.EnumerateDescendantNodes())
+        foreach (var node in syntaxRoot.DescendantNodes())
         {
             if (node is BaseMarkupElementSyntax element &&
                 element.StartTag is { } startTag &&

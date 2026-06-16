@@ -197,7 +197,7 @@ namespace Test.AnotherNamespace
             """);
 
         // Assert
-        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.EnumerateDescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray();
+        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray();
         Assert.True(result.CodeDocument.IsDirectiveUsed(directives[0]));
         Assert.False(result.CodeDocument.IsDirectiveUsed(directives[1]));
     }
@@ -228,7 +228,7 @@ namespace Test.AnotherNamespace
         // Assert
         var contributions = result.CodeDocument.GetDirectiveTagHelperContributions();
         Assert.Equal(2, contributions.Length);
-        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.EnumerateDescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray();
+        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray();
         Assert.Equal([directives[0].SpanStart, directives[1].SpanStart], contributions.Select(c => c.DirectiveSpanStart));
         Assert.Single(contributions, c => !c.ContributedTagHelpers.IsEmpty);
         Assert.Single(contributions, c => c.ContributedTagHelpers.IsEmpty);
@@ -265,7 +265,7 @@ namespace Test.AnotherNamespace
             """);
 
         // Assert
-        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.EnumerateDescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray();
+        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToImmutableArray();
         Assert.False(result.CodeDocument.IsDirectiveUsed(directives[0]));
         Assert.False(result.CodeDocument.IsDirectiveUsed(directives[1]));
     }

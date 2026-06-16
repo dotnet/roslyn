@@ -65,7 +65,7 @@ internal abstract partial class BaseMarkupStartTagSyntax
 
             foreach (var attribute in Attributes)
             {
-                foreach (var token in attribute.EnumerateDescendantTokens())
+                foreach (var token in attribute.DescendantTokens())
                 {
                     if (!string.IsNullOrWhiteSpace(token.Content))
                     {

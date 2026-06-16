@@ -37,7 +37,7 @@ public class HtmlFactsTest : RazorToolingIntegrationTestBase
         var root = result.CodeDocument.GetRequiredSyntaxRoot();
 
         var directiveAttribute = root
-            .EnumerateDescendantNodes()
+            .DescendantNodes()
             .OfType<MarkupTagHelperDirectiveAttributeSyntax>()
             .FirstOrDefault(a => a.ParameterName is not null);
         Assert.NotNull(directiveAttribute);
@@ -68,7 +68,7 @@ public class HtmlFactsTest : RazorToolingIntegrationTestBase
         var root = result.CodeDocument.GetRequiredSyntaxRoot();
 
         var directiveAttribute = root
-            .EnumerateDescendantNodes()
+            .DescendantNodes()
             .OfType<MarkupTagHelperDirectiveAttributeSyntax>()
             .FirstOrDefault(a => a.ParameterName is null);
         Assert.NotNull(directiveAttribute);
@@ -102,7 +102,7 @@ public class HtmlFactsTest : RazorToolingIntegrationTestBase
 
         // Find a minimized directive attribute with a parameter
         var minimizedDirectiveAttribute = root
-            .EnumerateDescendantNodes()
+            .DescendantNodes()
             .OfType<MarkupMinimizedTagHelperDirectiveAttributeSyntax>()
             .FirstOrDefault(a => a.ParameterName is not null);
         Assert.NotNull(minimizedDirectiveAttribute);

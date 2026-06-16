@@ -99,7 +99,7 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         Assert.Empty(diagnostics);
 
         // Verify that a RazorDirective node for 'section' exists in the syntax tree
-        var directiveNodes = syntaxTree.Root.EnumerateDescendantNodes()
+        var directiveNodes = syntaxTree.Root.DescendantNodes()
             .OfType<Microsoft.AspNetCore.Razor.Language.Syntax.RazorDirectiveSyntax>()
             .ToImmutableArray();
 
@@ -122,7 +122,7 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         
         // The section directive should NOT be recognized in component files.
         // Verify that no RazorDirective node for 'section' exists in the syntax tree
-        var directiveNodes = syntaxTree.Root.EnumerateDescendantNodes()
+        var directiveNodes = syntaxTree.Root.DescendantNodes()
             .OfType<Microsoft.AspNetCore.Razor.Language.Syntax.RazorDirectiveSyntax>()
             .ToImmutableArray();
         

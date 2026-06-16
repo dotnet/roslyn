@@ -87,7 +87,7 @@ public static class RazorCodeDocumentExtensions
 
         static string? FindInheritsDirective(RazorSyntaxTree tree)
         {
-            foreach (var node in tree.Root.EnumerateDescendantNodes())
+            foreach (var node in tree.Root.DescendantNodes())
             {
                 if (node is RazorDirectiveSyntax
                     {
@@ -133,7 +133,7 @@ public static class RazorCodeDocumentExtensions
 
         static void CollectUsings(RazorSyntaxTree tree, List<string> usings)
         {
-            foreach (var node in tree.Root.EnumerateDescendantNodes())
+            foreach (var node in tree.Root.DescendantNodes())
             {
                 if (node is RazorUsingDirectiveSyntax usingDirective)
                 {

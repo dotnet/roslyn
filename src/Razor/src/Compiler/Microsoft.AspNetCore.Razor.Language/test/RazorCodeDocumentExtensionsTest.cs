@@ -542,6 +542,6 @@ public class RazorCodeDocumentExtensionsTest
     private static RazorUsingDirectiveSyntax[] GetUsingDirectives(RazorCodeDocument codeDocument)
     {
         var syntaxTree = RazorSyntaxTree.Parse(codeDocument.Source);
-        return [.. syntaxTree.Root.EnumerateDescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()];
+        return [.. syntaxTree.Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()];
     }
 }

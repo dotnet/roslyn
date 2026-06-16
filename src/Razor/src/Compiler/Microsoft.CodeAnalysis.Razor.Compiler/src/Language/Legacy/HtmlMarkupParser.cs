@@ -1794,7 +1794,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         {
             using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-            foreach (var token in typeAttribute.Value.CreateRed().EnumerateDescendantTokens())
+            foreach (var token in typeAttribute.Value.CreateRed().DescendantTokens())
             {
                 builder.Append(token.Content);
             }

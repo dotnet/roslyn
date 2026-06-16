@@ -16,22 +16,24 @@ public class SyntaxNodeEnumeratorTest
     }
 
     [Fact]
-    public void EnumerateDescendantNodes_MatchesDescendantNodes()
+    public void DescendantNodes_MatchesDescendantNodesAsIEnumerable()
     {
         // Arrange
         var tree = ParseDocument("@if (true) { <div>Hello</div> }");
         var root = tree.Root;
 
         // Act
-        var expected = root.DescendantNodes().ToArray();
-        var actual = root.EnumerateDescendantNodes().ToImmutableArray();
+#pragma warning disable CS0618
+        var expected = root.DescendantNodesAsIEnumerable().ToArray();
+#pragma warning restore CS0618
+        var actual = root.DescendantNodes().ToImmutableArray();
 
         // Assert
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public void EnumerateDescendantNodes_WithDescendIntoChildren_MatchesDescendantNodes()
+    public void DescendantNodes_WithDescendIntoChildren_MatchesDescendantNodesAsIEnumerable()
     {
         // Arrange
         var tree = ParseDocument("@if (true) { <div>Hello</div> }");
@@ -39,23 +41,27 @@ public class SyntaxNodeEnumeratorTest
         bool filter(SyntaxNode n) => n is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax;
 
         // Act
-        var expected = root.DescendantNodes(filter).ToArray();
-        var actual = root.EnumerateDescendantNodes(filter).ToImmutableArray();
+#pragma warning disable CS0618
+        var expected = root.DescendantNodesAsIEnumerable(filter).ToArray();
+#pragma warning restore CS0618
+        var actual = root.DescendantNodes(filter).ToImmutableArray();
 
         // Assert
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public void EnumerateDescendantNodes_EmptyDocument_MatchesDescendantNodes()
+    public void DescendantNodes_EmptyDocument_MatchesDescendantNodes()
     {
         // Arrange
         var tree = ParseDocument("");
         var root = tree.Root;
 
         // Act
-        var expected = root.DescendantNodes().ToArray();
-        var actual = root.EnumerateDescendantNodes().ToImmutableArray();
+#pragma warning disable CS0618
+        var expected = root.DescendantNodesAsIEnumerable().ToArray();
+#pragma warning restore CS0618
+        var actual = root.DescendantNodes().ToImmutableArray();
 
         // Assert
         Assert.Equal(expected, actual);
@@ -69,8 +75,10 @@ public class SyntaxNodeEnumeratorTest
         var root = tree.Root;
 
         // Act
-        var expected = root.DescendantNodes().Where(n => n is MarkupElementSyntax).ToArray();
-        var actual = root.EnumerateDescendantNodes()
+#pragma warning disable CS0618
+        var expected = root.DescendantNodesAsIEnumerable().Where(n => n is MarkupElementSyntax).ToArray();
+#pragma warning restore CS0618
+        var actual = root.DescendantNodes()
             .Where(static n => n is MarkupElementSyntax)
             .ToImmutableArray();
 
@@ -86,8 +94,10 @@ public class SyntaxNodeEnumeratorTest
         var root = tree.Root;
 
         // Act
-        var expected = root.DescendantNodes().OfType<MarkupElementSyntax>().ToArray();
-        var actual = root.EnumerateDescendantNodes()
+#pragma warning disable CS0618
+        var expected = root.DescendantNodesAsIEnumerable().OfType<MarkupElementSyntax>().ToArray();
+#pragma warning restore CS0618
+        var actual = root.DescendantNodes()
             .OfType<MarkupElementSyntax>()
             .ToImmutableArray();
 
@@ -103,11 +113,13 @@ public class SyntaxNodeEnumeratorTest
         var root = tree.Root;
 
         // Act
-        var expected = root.DescendantNodes()
+#pragma warning disable CS0618
+        var expected = root.DescendantNodesAsIEnumerable()
+#pragma warning restore CS0618
             .Where(n => n is MarkupElementSyntax)
             .Select(n => n.Parent)
             .ToArray();
-        var actual = root.EnumerateDescendantNodes()
+        var actual = root.DescendantNodes()
             .Where(static n => n is MarkupElementSyntax)
             .Select(static n => n.Parent)
             .ToImmutableArray();
@@ -131,13 +143,15 @@ public class SyntaxNodeEnumeratorTest
         }
 
         // Act
-        var results = root.EnumerateDescendantNodes()
+        var results = root.DescendantNodes()
             .Select(selector)
             .Where(n => n is MarkupBlockSyntax)
             .ToImmutableArray();
 
         // Assert - selector should be called exactly once per node visited (not twice)
-        var totalNodes = root.DescendantNodes().Count();
+#pragma warning disable CS0618
+        var totalNodes = root.DescendantNodesAsIEnumerable().Count();
+#pragma warning restore CS0618
         Assert.Equal(totalNodes, callCount);
     }
 
@@ -149,8 +163,10 @@ public class SyntaxNodeEnumeratorTest
         var root = tree.Root;
 
         // Act
-        var expected = root.DescendantNodes().FirstOrDefault(n => n is MarkupElementSyntax);
-        var actual = root.EnumerateDescendantNodes()
+#pragma warning disable CS0618
+        var expected = root.DescendantNodesAsIEnumerable().FirstOrDefault(n => n is MarkupElementSyntax);
+#pragma warning restore CS0618
+        var actual = root.DescendantNodes()
             .FirstOrDefault(static n => n is MarkupElementSyntax);
 
         // Assert
@@ -165,7 +181,7 @@ public class SyntaxNodeEnumeratorTest
         var root = tree.Root;
 
         // Act
-        var actual = root.EnumerateDescendantNodes()
+        var actual = root.DescendantNodes()
             .FirstOrDefault(static n => n is CSharpCodeBlockSyntax);
 
         // Assert
@@ -180,8 +196,10 @@ public class SyntaxNodeEnumeratorTest
         var root = tree.Root;
 
         // Act
-        var expected = root.DescendantNodes().LastOrDefault(n => n is MarkupElementSyntax);
-        var actual = root.EnumerateDescendantNodes()
+#pragma warning disable CS0618
+        var expected = root.DescendantNodesAsIEnumerable().LastOrDefault(n => n is MarkupElementSyntax);
+#pragma warning restore CS0618
+        var actual = root.DescendantNodes()
             .LastOrDefault(static n => n is MarkupElementSyntax);
 
         // Assert
@@ -196,27 +214,29 @@ public class SyntaxNodeEnumeratorTest
         var root = tree.Root;
 
         // Act & Assert
-        Assert.True(root.EnumerateDescendantNodes().Any(static n => n is MarkupElementSyntax));
-        Assert.False(root.EnumerateDescendantNodes().Any(static n => n is RazorCommentBlockSyntax));
+        Assert.True(root.DescendantNodes().Any(static n => n is MarkupElementSyntax));
+        Assert.False(root.DescendantNodes().Any(static n => n is RazorCommentBlockSyntax));
     }
 
     [Fact]
-    public void EnumerateDescendantTokens_MatchesDescendantTokens()
+    public void DescendantTokens_MatchesDescendantTokens()
     {
         // Arrange
         var tree = ParseDocument("@if (true) { <div>Hello</div> }");
         var root = tree.Root;
 
         // Act
-        var expected = root.DescendantTokens().ToArray();
-        var actual = root.EnumerateDescendantTokens().ToImmutableArray();
+#pragma warning disable CS0618
+        var expected = root.DescendantTokensAsIEnumerable().ToArray();
+#pragma warning restore CS0618
+        var actual = root.DescendantTokens().ToImmutableArray();
 
         // Assert
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public void EnumerateDescendantTokens_WithDescendIntoChildren_MatchesDescendantTokens()
+    public void DescendantTokens_WithDescendIntoChildren_MatchesDescendantTokens()
     {
         // Arrange
         var tree = ParseDocument("@if (true) { <div>Hello</div> }");
@@ -224,8 +244,10 @@ public class SyntaxNodeEnumeratorTest
         bool filter(SyntaxNode n) => n is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax;
 
         // Act
-        var expected = root.DescendantTokens(filter).ToArray();
-        var actual = root.EnumerateDescendantTokens(filter).ToImmutableArray();
+#pragma warning disable CS0618
+        var expected = root.DescendantTokensAsIEnumerable(filter).ToArray();
+#pragma warning restore CS0618
+        var actual = root.DescendantTokens(filter).ToImmutableArray();
 
         // Assert
         Assert.Equal(expected, actual);

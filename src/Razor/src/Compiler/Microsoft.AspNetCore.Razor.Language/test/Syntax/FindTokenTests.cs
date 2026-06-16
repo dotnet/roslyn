@@ -992,7 +992,7 @@ public class FindTokenTests
         """;
         var (tree, position) = ParseWithPosition(text);
 
-        var token = tree.Root.EnumerateDescendantTokens().ToImmutableArray().Single(t => t.Kind == SyntaxKind.Whitespace);
+        var token = tree.Root.DescendantTokens().ToImmutableArray().Single(t => t.Kind == SyntaxKind.Whitespace);
         var parent = token.Parent;
         Assert.NotNull(parent);
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => parent.FindToken(position, includeWhitespace: false));
@@ -1008,7 +1008,7 @@ public class FindTokenTests
         """;
         var (tree, position) = ParseWithPosition(text);
 
-        var token = tree.Root.EnumerateDescendantTokens().ToImmutableArray().Last(t => t.Kind == SyntaxKind.Whitespace);
+        var token = tree.Root.DescendantTokens().ToImmutableArray().Last(t => t.Kind == SyntaxKind.Whitespace);
         var parent = token.Parent;
         Assert.NotNull(parent);
         Assert.ThrowsAny<ArgumentOutOfRangeException>(() => parent.FindToken(position, includeWhitespace: false));

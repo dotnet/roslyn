@@ -55,7 +55,7 @@ internal static partial class RazorCodeDocumentExtensions
             {
                 using var builder = new PooledArrayBuilder<SourceSpan>();
 
-                foreach (var node in syntaxTree.Root.EnumerateDescendantNodes())
+                foreach (var node in syntaxTree.Root.DescendantNodes())
                 {
                     if (node is not MarkupTagHelperElementSyntax tagHelperElement ||
                         tagHelperElement.TagHelperInfo is null)

@@ -312,7 +312,7 @@ internal abstract partial class SyntaxNode
 
     /// <summary>
     /// A struct-based enumerator that iterates descendant nodes without allocating a state machine.
-    /// Uses a pooled stack internally (same as <see cref="DescendantNodes()"/>).
+    /// Uses a pooled stack internally.
     /// </summary>
     internal ref struct DescendantNodeEnumerator<TResult>(
         SyntaxNode root,

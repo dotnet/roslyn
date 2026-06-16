@@ -683,7 +683,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         {
             var containsExpression = false;
 
-            var descendantNodes = node.EnumerateDescendantNodes(static n => n.Parent is not CSharpCodeBlockSyntax);
+            var descendantNodes = node.DescendantNodes(static n => n.Parent is not CSharpCodeBlockSyntax);
 
             foreach (var child in descendantNodes)
             {

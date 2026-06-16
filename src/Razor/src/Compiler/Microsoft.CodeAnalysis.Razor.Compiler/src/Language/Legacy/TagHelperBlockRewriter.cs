@@ -573,7 +573,7 @@ internal static class TagHelperBlockRewriter
             {
                 using var builder = new PooledArrayBuilder<SyntaxToken>();
 
-                foreach (var token in node.EnumerateDescendantTokens())
+                foreach (var token in node.DescendantTokens())
                 {
                     builder.Add(token);
                 }
