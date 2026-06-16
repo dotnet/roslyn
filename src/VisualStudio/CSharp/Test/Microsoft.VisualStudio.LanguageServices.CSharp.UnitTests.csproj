@@ -64,6 +64,8 @@
     </Reference>
 
     <!-- Prevent downstream projects from trying to place the Sqlite assemblies from this package -->
+    <PackageReference Include="SQLite3MC.PCLRaw.bundle" PrivateAssets="all" />
+    <PackageReference Include="SQLite3MC.PCLRaw.provider" PrivateAssets="all" />
     <PackageReference Include="SQLite3MC.PCLRaw.lib" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
