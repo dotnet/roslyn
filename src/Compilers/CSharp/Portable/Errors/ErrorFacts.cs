@@ -2596,6 +2596,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_MissingUnionCaseTypes
                 or ErrorCode.ERR_MissingUnionValueProperty
                 or ErrorCode.ERR_MemberProviderInUnionDeclaration
+                or ErrorCode.ERR_SafeModifierUnsupportedTarget
+                or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
+                or ErrorCode.ERR_PartialMemberSafeDifference
                 or ErrorCode.ERR_NoBreakId
                 or ErrorCode.ERR_NoContinueId
                     => false,

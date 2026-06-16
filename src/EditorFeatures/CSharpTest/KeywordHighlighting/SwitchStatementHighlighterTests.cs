@@ -829,7 +829,7 @@ public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighl
                 {
                     outer: {|Cursor:[|switch|]|} (x)
                     {
-                        [|case|] 0[|:|]
+                        [|case|] 0:
                             switch (x)
                             {
                                 case 1:
@@ -851,7 +851,7 @@ public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighl
                 {
                     outer: [|switch|] (x)
                     {
-                        [|case|] 0[|:|]
+                        [|case|] 0:
                             switch (x)
                             {
                                 case 1:
@@ -876,11 +876,55 @@ public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighl
                         case 0:
                             {|Cursor:[|switch|]|} (x)
                             {
-                                [|case|] 1[|:|]
+                                [|case|] 1:
                                     break outer;
                                     [|break|];
                             }
                             break;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledBreak_EscapedLabelName_CursorOnSwitch()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    @outer: {|Cursor:[|switch|]|} (x)
+                    {
+                        [|case|] 0:
+                            switch (x)
+                            {
+                                case 1:
+                                    [|break|] outer;
+                            }
+                            [|break|];
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledBreak_EscapedTargetName_CursorOnSwitch()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    outer: {|Cursor:[|switch|]|} (x)
+                    {
+                        [|case|] 0:
+                            switch (x)
+                            {
+                                case 1:
+                                    [|break|] @outer;
+                            }
+                            [|break|];
                     }
                 }
             }

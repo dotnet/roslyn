@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.LanguageServer.Protocol;
@@ -30,7 +31,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     {
         await using var testLspServer = await TestLspServer.CreateAsync(new ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path);
 
-        Assert.False(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
+        AssertFileWatcherKind<DefaultFileChangeWatcher>(testLspServer);
     }
 
     [Fact]
@@ -38,7 +39,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     {
         await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
 
-        Assert.True(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
+        AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
     }
 
     [Fact]
@@ -47,9 +48,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
         await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
-        var lspFileChangeWatcher = new LspFileChangeWatcher(
-            testLspServer.LanguageServerHost,
-            testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+        var lspFileChangeWatcher = AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
 
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();
         testLspServer.AddClientLocalRpcTarget(dynamicCapabilitiesRpcTarget);
@@ -77,9 +76,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
         await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
-        var lspFileChangeWatcher = new LspFileChangeWatcher(
-            testLspServer.LanguageServerHost,
-            testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+        var lspFileChangeWatcher = AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
 
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();
         testLspServer.AddClientLocalRpcTarget(dynamicCapabilitiesRpcTarget);
@@ -102,6 +99,13 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         context.Dispose();
         await WaitForFileWatcherAsync(testLspServer);
         AssertNoFileWatcherRegistration(dynamicCapabilitiesRpcTarget);
+    }
+
+    private static T AssertFileWatcherKind<T>(TestLspServer server) where T : IFileChangeWatcher
+    {
+        var lspFileWatcher = server.GetRequiredLspService<IFileChangeWatcher>();
+        var delegatingWatcher = Assert.IsType<DelegatingFileChangeWatcher>(lspFileWatcher);
+        return Assert.IsType<T>(delegatingWatcher.GetTestAccessor().UnderlyingFileWatcher);
     }
 
     private static Task WaitForFileWatcherAsync(TestLspServer testLspServer)

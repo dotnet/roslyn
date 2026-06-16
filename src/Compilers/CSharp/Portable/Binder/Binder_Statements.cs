@@ -3954,6 +3954,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // there is no need to look up "x".
             Binder outerBinder;
 
+            var flags = BinderFlags.ConstructorInitializer;
+
             if ((object?)sourceConstructor == null)
             {
                 // The constructor is implicit. We need to get the binder for the body
@@ -3983,6 +3985,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
 
                         outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
+
+                        if (ctorDecl.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+                        {
+                            flags |= BinderFlags.UnsafeRegion;
+                        }
+
                         break;
 
                     case TypeDeclarationSyntax typeDecl:
@@ -3996,7 +4004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // wrap in ConstructorInitializerBinder for appropriate errors
             // Handle scoping for possible pattern variables declared in the initializer
-            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(flags, constructor);
 
             return initializerBinder.BindConstructorInitializer(null, constructor, diagnostics);
         }

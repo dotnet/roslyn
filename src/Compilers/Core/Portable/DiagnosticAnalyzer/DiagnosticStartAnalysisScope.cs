@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// Creates an <see cref="AnalyzerActions"/> from the accumulated actions.
             /// This method should be called once after all Append operations are complete.
             /// </summary>
-            public AnalyzerActions ToAnalyzerActionsAndFree()
+            public AnalyzerActions ToAnalyzerActionsAndFreeUnderlyingIfNeeded()
             {
                 return new AnalyzerActions(
                     compilationStartActions: ToImmutableAndFree(ref _compilationStartActionsImmutable, ref _compilationStartActionsBuilder),
@@ -1181,6 +1181,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     concurrent: _concurrent);
             }
 
+            public void FreeUnderlyingIfNeeded()
+            {
+                Free(ref _compilationStartActionsBuilder);
+                Free(ref _compilationEndActionsBuilder);
+                Free(ref _compilationActionsBuilder);
+                Free(ref _syntaxTreeActionsBuilder);
+                Free(ref _additionalFileActionsBuilder);
+                Free(ref _semanticModelActionsBuilder);
+                Free(ref _symbolActionsBuilder);
+                Free(ref _symbolStartActionsBuilder);
+                Free(ref _symbolEndActionsBuilder);
+                Free(ref _codeBlockStartActionsBuilder);
+                Free(ref _codeBlockEndActionsBuilder);
+                Free(ref _codeBlockActionsBuilder);
+                Free(ref _operationBlockStartActionsBuilder);
+                Free(ref _operationBlockEndActionsBuilder);
+                Free(ref _operationBlockActionsBuilder);
+                Free(ref _syntaxNodeActionsBuilder);
+                Free(ref _operationActionsBuilder);
+            }
+
             private static ImmutableArray<T> ToImmutableAndFree<T>(
                 ref ImmutableArray<T> immutable,
                 ref ArrayBuilder<T>? builder)
@@ -1193,6 +1214,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 immutable = default;
 
                 return result;
+            }
+
+            private static void Free<T>(ref ArrayBuilder<T>? builder)
+            {
+                builder?.Free();
+                builder = null;
             }
         }
     }

@@ -1305,6 +1305,122 @@ public sealed class LoopHighlighterTests : AbstractCSharpKeywordHighlighterTests
             """);
 
     [Fact]
+    public Task TestLabeledBreak_NestedLabeledLoops_CursorOnOuter()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    outer: {|Cursor:[|while|]|} (true)
+                    {
+                        inner: while (true)
+                        {
+                            [|break|] outer;
+                            break inner;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledContinue_NestedLabeledLoops_CursorOnOuter()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    outer: {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
+                    {
+                        inner: while (true)
+                        {
+                            [|continue|] outer;
+                            continue inner;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledBreak_EscapedLabelName_CursorOnWhile()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    @outer: {|Cursor:[|while|]|} (true)
+                    {
+                        while (true)
+                        {
+                            [|break|] outer;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledBreak_EscapedTargetName_CursorOnWhile()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    outer: {|Cursor:[|while|]|} (true)
+                    {
+                        while (true)
+                        {
+                            [|break|] @outer;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledContinue_EscapedLabelName_CursorOnFor()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    @outer: {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
+                    {
+                        while (true)
+                        {
+                            [|continue|] outer;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledContinue_EscapedTargetName_CursorOnFor()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    outer: {|Cursor:[|for|]|} (int i = 0; i < 10; i++)
+                    {
+                        while (true)
+                        {
+                            [|continue|] @outer;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
     public Task TestUnlabeledLoop_DoesNotHighlightLabeledBreak()
         => TestAsync(
             """
