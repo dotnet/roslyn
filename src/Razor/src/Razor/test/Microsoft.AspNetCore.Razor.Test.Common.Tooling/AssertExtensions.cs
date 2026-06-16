@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Xunit;
@@ -27,10 +27,6 @@ internal static class AssertExtensions
         Assert.Equal(expectedClassificationType, run.ClassificationTypeName);
         Assert.Equal(expectedClassificationStyle, run.Style);
     }
-
-    public static Task AssertWorkspaceEditAsync(this WorkspaceEdit workspaceEdit, Solution solution, IEnumerable<(Uri fileUri, string contents)> expectedChanges, CancellationToken cancellationToken)
-        => workspaceEdit.AssertWorkspaceEditAsync(solution, expectedChanges.Select(e => (new DocumentUri(e.fileUri), e.contents)), cancellationToken);
-
     public static async Task AssertWorkspaceEditAsync(this WorkspaceEdit workspaceEdit, Solution solution, IEnumerable<(DocumentUri fileUri, string contents)> expectedChanges, CancellationToken cancellationToken)
     {
         var changes = Assert.NotNull(workspaceEdit.DocumentChanges);

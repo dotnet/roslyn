@@ -261,10 +261,6 @@ public sealed class DocumentHighlightTests(ITestOutputHelper testOutputHelper)
         Assert.Equal(expectedLocations[0].Range, results[0].Range);
         Assert.Equal(expectedLocations[1].Range, results[1].Range);
         Assert.Equal(expectedLocations[2].Range, results[2].Range);
-=======
-        var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-        Assert.NotNull(results);
->>>>>>> merge-main-into-labeled-break-and-continue
     }
 
     private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)

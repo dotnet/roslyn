@@ -3,12 +3,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteWrapWithTagService
 {
-    ValueTask<RemoteResponse<LinePositionSpan>> GetValidWrappingRangeAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan range, CancellationToken cancellationToken);
+    ValueTask<RemoteResponse<LinePositionSpan>> GetValidWrappingRangeAsync(RazorSolutionWrapper solutionInfo, DocumentId razorDocumentId, LinePositionSpan range, CancellationToken cancellationToken);
 }
