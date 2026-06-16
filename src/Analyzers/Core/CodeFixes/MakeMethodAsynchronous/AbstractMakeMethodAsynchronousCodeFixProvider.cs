@@ -241,19 +241,13 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var methodSymbol = GetMethodSymbol(semanticModel, node, cancellationToken);
         Contract.ThrowIfNull(methodSymbol);
 
-        var addWarningAnnotation = await ShouldAddEventHandlerWarningAsync(
-            document.Project.Solution, methodSymbol, keepVoid, isEntryPoint, cancellationToken).ConfigureAwait(false);
-
         var knownTypes = new KnownTaskTypes(semanticModel.Compilation);
 
         // Only add a warning annotation for the Task-returning fix when the method is known to be an event handler.
         // We run this check lazily (here, not in RegisterCodeFixesAsync) so the expensive FAR only runs when the
         // user previews or applies the fix rather than every time the light bulb appears.
-        var addWarningAnnotation = !keepVoid
-            && !isEntryPoint
-            && methodSymbol.ReturnsVoid
-            && methodSymbol.IsOrdinaryMethodOrLocalFunction()
-            && await IsReferencedAsEventHandlerAsync(document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
+        var addWarningAnnotation = await ShouldAddEventHandlerWarningAsync(
+            document.Project.Solution, methodSymbol, keepVoid, isEntryPoint, cancellationToken).ConfigureAwait(false);
 
         return NeedsRename()
             ? await RenameThenAddAsyncTokenAsync(keepVoid, addWarningAnnotation, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
