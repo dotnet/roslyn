@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
@@ -34,9 +35,9 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     }
 
     [Fact]
-    public void CSharpTriggerCharactersMatchAutoInsertService()
+    public void CSharpTriggerCharactersMatchRemoteAutoInsertService()
     {
-        var expectedTriggerCharacters = AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters
+        var expectedTriggerCharacters = RemoteAutoInsertService.TestAccessor.GetCSharpAllowedAutoInsertTriggerCharacters()
             .OrderBy(triggerCharacter => triggerCharacter)
             .ToArray();
         var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetCSharpAllowedAutoInsertTriggerCharacters()
@@ -47,9 +48,9 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     }
 
     [Fact]
-    public void HtmlTriggerCharactersMatchAutoInsertService()
+    public void HtmlTriggerCharactersMatchRemoteAutoInsertService()
     {
-        var expectedTriggerCharacters = AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters
+        var expectedTriggerCharacters = RemoteAutoInsertService.TestAccessor.GetHtmlAllowedAutoInsertTriggerCharacters()
             .OrderBy(triggerCharacter => triggerCharacter)
             .ToArray();
         var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetHtmlAllowedAutoInsertTriggerCharacters()

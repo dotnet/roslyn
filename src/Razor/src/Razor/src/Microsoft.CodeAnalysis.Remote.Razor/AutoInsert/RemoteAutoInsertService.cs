@@ -1,8 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -32,7 +38,13 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             => new RemoteAutoInsertService(in args);
     }
 
-    private readonly IAutoInsertService _autoInsertService = args.ExportProvider.GetExportedValue<IAutoInsertService>();
+    private static readonly FrozenSet<string> s_htmlAllowedAutoInsertTriggerCharacters
+        = new string[] { "=" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> s_csharpAllowedAutoInsertTriggerCharacters
+        = new string[] { "'", "/", "\n", "\"" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private readonly ImmutableArray<IOnAutoInsertProvider> _onAutoInsertProviders = args.ExportProvider.GetExportedValues<IOnAutoInsertProvider>().ToImmutableArray();
     private readonly IRazorFormattingService _razorFormattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
     private readonly IClientSettingsManager _clientSettingsManager = args.ExportProvider.GetExportedValue<IClientSettingsManager>();
 
@@ -76,7 +88,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
         // Always try our own service first, regardless of language
         // E.g. if ">" is typed for html tag, it's actually our auto-insert provider
         // that adds closing tag instead of HTML even though we are in HTML
-        if (_autoInsertService.TryResolveInsertion(
+        if (TryResolveRazorInsertion(
                 codeDocument,
                 linePosition.ToPosition(),
                 character,
@@ -95,7 +107,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
                 // If we are in Razor and got no edit from our own service, there is nothing else to do
                 return Response.NoFurtherHandling;
             case RazorLanguageKind.Html:
-                return AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters.Contains(character)
+                return s_htmlAllowedAutoInsertTriggerCharacters.Contains(character)
                     ? Response.CallHtml
                     : Response.NoFurtherHandling;
             case RazorLanguageKind.CSharp:
@@ -138,7 +150,7 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        if (!AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters.Contains(character))
+        if (!s_csharpAllowedAutoInsertTriggerCharacters.Contains(character))
         {
             return Response.NoFurtherHandling;
         }
@@ -198,5 +210,49 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
                 sourceText.GetLinePositionSpan(change.Span),
                 change.NewText,
                 autoInsertResponseItem.TextEditFormat));
+    }
+
+    private bool TryResolveRazorInsertion(
+        RazorCodeDocument codeDocument,
+        Position position,
+        string character,
+        bool autoCloseTags,
+        [NotNullWhen(true)] out VSInternalDocumentOnAutoInsertResponseItem? insertTextEdit)
+    {
+        using var applicableProviders = new PooledArrayBuilder<IOnAutoInsertProvider>(capacity: _onAutoInsertProviders.Length);
+        foreach (var provider in _onAutoInsertProviders)
+        {
+            if (provider.TriggerCharacter == character)
+            {
+                applicableProviders.Add(provider);
+            }
+        }
+
+        if (applicableProviders.Count == 0)
+        {
+            // There's currently a bug in the LSP platform where other language clients OnAutoInsert trigger characters influence every language clients trigger characters.
+            // To combat this we need to preemptively return so we don't try having our providers handle characters that they can't.
+            insertTextEdit = null;
+            return false;
+        }
+
+        foreach (var provider in applicableProviders)
+        {
+            if (provider.TryResolveInsertion(position, codeDocument, autoCloseTags, out insertTextEdit))
+            {
+                return true;
+            }
+        }
+
+        // No provider could handle the text edit.
+        insertTextEdit = null;
+        return false;
+    }
+
+    internal static class TestAccessor
+    {
+        public static FrozenSet<string> GetHtmlAllowedAutoInsertTriggerCharacters() => s_htmlAllowedAutoInsertTriggerCharacters;
+
+        public static FrozenSet<string> GetCSharpAllowedAutoInsertTriggerCharacters() => s_csharpAllowedAutoInsertTriggerCharacters;
     }
 }
