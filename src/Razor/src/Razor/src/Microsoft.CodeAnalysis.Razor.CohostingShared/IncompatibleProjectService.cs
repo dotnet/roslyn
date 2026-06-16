@@ -56,7 +56,7 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
                     // Additional documents may still be incomplete while the project is loading, so don't report or cache it yet.
                     break;
                 }
-            
+
                 if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static (set, id) => set.Add(id), project.Id))
                 {
                     _incompatibleProjectNotifier.NotifyMissingDocument(project, filePath);
