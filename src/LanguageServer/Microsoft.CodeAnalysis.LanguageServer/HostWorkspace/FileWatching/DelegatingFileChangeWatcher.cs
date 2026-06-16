@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -26,15 +26,6 @@ internal sealed class DelegatingFileChangeWatcher(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
     : IFileChangeWatcher, ILspService
 {
-    /// <summary>
-    /// Share a single default file change watcher across all server instances to ensure they respect the platform limits and consolidate.
-    /// As servers are created and disposed, they will add / remove files/directories from this shared watcher.
-    /// 
-    /// On non-Windows platforms, the number of inotify handles is limited, so we'll want to be more aggressive with reducing it.
-    /// TODO: we could read the inotify limit and set this dynamically, since some newer kernels have a higher default.
-    /// </summary>
-    private static readonly Lazy<DefaultFileChangeWatcher> _defaultFileChangeWatcher = new(() => new DefaultFileChangeWatcher(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10_000 : 50));
-
     private readonly Lazy<IFileChangeWatcher> _underlyingFileWatcher = new(() =>
         {
             if (LspFileChangeWatcher.TryCreate(lspServices, asynchronousOperationListenerProvider, out var lspFileChangeWatcher))
@@ -44,7 +35,7 @@ internal sealed class DelegatingFileChangeWatcher(
 
             // On non-Windows platforms, the number of inotify handles is limited, so we'll want to be more aggressive with reducing it.
             // TODO: we could read the inotify limit and set this dynamically, since some newer kernels have a higher default.
-            return _defaultFileChangeWatcher.Value;
+            return new DefaultFileChangeWatcher(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10_000 : 50);
         });
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
