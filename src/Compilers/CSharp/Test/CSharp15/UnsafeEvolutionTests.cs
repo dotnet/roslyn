@@ -3836,7 +3836,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void UnsafeExpression_FlowGraph()
+    public void UnsafeExpression_FlowGraph_01()
     {
         var source = """
             class C
@@ -3859,6 +3859,68 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             Block[B2] - Exit
                 Predecessors: [B1]
+                Statements (0)
+            """;
+
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(
+            source,
+            expectedFlowGraph,
+            expectedDiagnostics,
+            compilationOptions: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+    }
+
+    [Fact]
+    public void UnsafeExpression_FlowGraph_02()
+    {
+        var source = """
+            class C
+            {
+                int M(bool b, int x, int y)
+                /*<bind>*/{
+                    return unsafe(b ? x : y);
+                }/*</bind>*/
+            }
+            """;
+
+        var expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                CaptureIds: [0]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Jump if False (Regular) to Block[B3]
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                    Next (Regular) Block[B2]
+                Block[B2] - Block
+                    Predecessors: [B1]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                          Value:
+                            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                    Next (Regular) Block[B4]
+                Block[B3] - Block
+                    Predecessors: [B1]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                          Value:
+                            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+                    Next (Regular) Block[B4]
+                Block[B4] - Block
+                    Predecessors: [B2] [B3]
+                    Statements (0)
+                    Next (Return) Block[B5]
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ? x : y')
+                        Leaving: {R1}
+            }
+            Block[B5] - Exit
+                Predecessors: [B4]
                 Statements (0)
             """;
 
