@@ -23,7 +23,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
 
     protected abstract string GetMakeAsyncTaskFunctionResource();
-    protected abstract string GetMakeAsyncTaskFunctionForEventHandlerResource();
+    protected abstract string GetAsyncEventHandlersRequireAsyncVoidWarningResource();
     protected abstract string GetMakeAsyncVoidFunctionResource();
 
     protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTypes);
@@ -250,7 +250,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         CancellationToken cancellationToken)
     {
         var warningAnnotation = addWarningAnnotation
-            ? WarningAnnotation.Create(GetMakeAsyncTaskFunctionForEventHandlerResource())
+            ? WarningAnnotation.Create(GetAsyncEventHandlersRequireAsyncVoidWarningResource())
             : null;
         var newNode = AnnotateIfNeeded(FixMethodSignature(addAsyncModifier: true, keepVoid, methodSymbol, node, knownTypes), warningAnnotation);
 
