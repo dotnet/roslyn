@@ -9595,11 +9595,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (scope.HasValue)
                 {
+                    // TryBindExtensionIndexerCandidates is responsible for free'ing filteredCandidates
                     return TryBindExtensionIndexerCandidates(syntax, receiver, filteredCandidates, analyzedArguments, ref actualExtensionArguments, binder, ref useSiteInfo, diagnostics, out indexerAccess);
                 }
                 else
                 {
                     indexerAccess = binder.BindIndexerOrIndexedPropertyAccess(syntax, receiver, filteredCandidates, analyzedArguments, out bool foundApplicable, ref useSiteInfo, diagnostics).MakeCompilerGenerated();
+                    filteredCandidates.Free();
                     return foundApplicable;
                 }
             }
@@ -11128,42 +11130,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ImmutableArray<PropertySymbol> candidates = propertyGroup.ToImmutable();
 
-<<<<<<< HEAD
                 // Dev10 uses the "this" keyword as the method name for indexers.
                 var candidate = candidates[0];
                 var name = candidate.IsIndexer ? SyntaxFacts.GetText(SyntaxKind.ThisKeyword) : candidate.Name;
-||||||| 14f8212bdb8
-                if (TryBindIndexOrRangeImplicitIndexer(
-                        syntax,
-                        receiver,
-                        analyzedArguments,
-                        diagnostics,
-                        out var implicitIndexerAccess))
-                {
-                    return implicitIndexerAccess;
-                }
-                else
-                {
-                    // Dev10 uses the "this" keyword as the method name for indexers.
-                    var candidate = candidates[0];
-                    var name = candidate.IsIndexer ? SyntaxFacts.GetText(SyntaxKind.ThisKeyword) : candidate.Name;
-=======
-                if (TryBindIndexOrRangeImplicitIndexer(
-                        syntax,
-                        receiver,
-                        analyzedArguments,
-                        diagnostics,
-                        out var implicitIndexerAccess))
-                {
-                    overloadResolutionResult.Free();
-                    return implicitIndexerAccess;
-                }
-                else
-                {
-                    // Dev10 uses the "this" keyword as the method name for indexers.
-                    var candidate = candidates[0];
-                    var name = candidate.IsIndexer ? SyntaxFacts.GetText(SyntaxKind.ThisKeyword) : candidate.Name;
->>>>>>> dotnet/main
 
                 overloadResolutionResult.ReportDiagnostics(
                     binder: this,
