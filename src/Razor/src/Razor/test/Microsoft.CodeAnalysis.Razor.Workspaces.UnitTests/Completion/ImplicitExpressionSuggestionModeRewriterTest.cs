@@ -41,6 +41,34 @@ public class ImplicitExpressionSuggestionModeRewriterTest
         Assert.False(result.SuggestionMode);
     }
 
+    [Theory]
+    [InlineData("<div>@$$</div>", RazorFileKind.Component)]      // Component file
+    [InlineData("<div>@$$</div>", RazorFileKind.Legacy)]          // CSHTML file
+    [InlineData("@$$", RazorFileKind.Component)]                  // Bare @ at start
+    public void AtTransition_SetsIsIncompleteAndClearsCommitChars(string markup, RazorFileKind fileKind)
+    {
+        // When cursor is immediately after @ with no identifier typed, commit characters must be
+        // cleared to prevent '{' from committing a completion item when the user intends @{ (code block).
+        // IsIncomplete must also be set so the client re-queries on the next keystroke, allowing
+        // normal commit characters to be restored once an identifier character is typed.
+        var (codeDocument, cursorIndex) = Parse(markup, fileKind);
+
+        var completionList = CreateCompletionList(suggestionMode: false);
+        completionList.CommitCharacters = new string[] { "{", "(" };
+        completionList.ItemDefaults = new() { CommitCharacters = new string[] { "{", "." } };
+        completionList.Items[0].CommitCharacters = new string[] { "{" };
+        completionList.Items[0].VsCommitCharacters = new VSInternalCommitCharacter[] { new() { Character = "{" } };
+
+        var result = _rewriter.Rewrite(completionList, codeDocument, cursorIndex, new Position(), new RazorCompletionOptions());
+
+        Assert.True(result.IsIncomplete);
+        Assert.False(result.SuggestionMode); // SuggestionMode is not modified
+        Assert.Null(result.CommitCharacters);
+        Assert.Null(result.ItemDefaults!.CommitCharacters);
+        Assert.Null(result.Items[0].CommitCharacters);
+        Assert.Null(result.Items[0].VsCommitCharacters);
+    }
+
     /// <summary>
     /// Parses the input, invokes the rewriter with SuggestionMode=true, and returns the resulting SuggestionMode value.
     /// </summary>
@@ -54,7 +82,7 @@ public class ImplicitExpressionSuggestionModeRewriterTest
         return result.SuggestionMode;
     }
 
-    private static (RazorCodeDocument CodeDocument, int CursorIndex) Parse(string textWithMarker)
+    private static (RazorCodeDocument CodeDocument, int CursorIndex) Parse(string textWithMarker, RazorFileKind fileKind = RazorFileKind.Component)
     {
         var cursorIndex = textWithMarker.IndexOf("$$");
         Assert.True(cursorIndex >= 0, "Test input must contain $$ cursor marker");
@@ -62,7 +90,7 @@ public class ImplicitExpressionSuggestionModeRewriterTest
         var text = textWithMarker.Remove(cursorIndex, 2);
 
         var sourceDocument = TestRazorSourceDocument.Create(text);
-        var options = new RazorParserOptions.Builder(RazorLanguageVersion.Latest, RazorFileKind.Component).ToOptions();
+        var options = new RazorParserOptions.Builder(RazorLanguageVersion.Latest, fileKind).ToOptions();
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, options);
 
         var codeDocument = RazorCodeDocument.Create(sourceDocument);

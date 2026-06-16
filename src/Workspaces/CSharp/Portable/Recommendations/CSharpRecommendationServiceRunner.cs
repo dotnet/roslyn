@@ -296,9 +296,9 @@ internal partial class CSharpRecommendationService
 
         private ImmutableArray<ISymbol> GetSymbolsForLabelContext()
         {
-            var allLabels = _context.SemanticModel.LookupLabels(_context.LeftToken.SpanStart);
+            var token = _context.TargetToken;
+            var allLabels = _context.SemanticModel.LookupLabels(token.SpanStart);
 
-            var token = _context.LeftToken;
             if (token.IsKind(SyntaxKind.BreakKeyword) || token.IsKind(SyntaxKind.ContinueKeyword))
             {
                 var position = token.SpanStart;

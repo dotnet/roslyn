@@ -12,6 +12,28 @@ namespace Microsoft.AspNetCore.Razor.Utilities.Shared.Test;
 public class ImmutableArrayExtensionsTests
 {
     [Fact]
+    public void NullToEmpty_DefaultImmutableArray_ReturnsEmpty()
+    {
+        ImmutableArray<string> array = default;
+
+        var actual = array.NullToEmpty();
+
+        Assert.Empty(actual);
+        Assert.False(actual.IsDefault);
+    }
+
+    [Fact]
+    public void NullToEmpty_NullNullableImmutableArray_ReturnsEmpty()
+    {
+        ImmutableArray<string>? array = null;
+
+        var actual = array.NullToEmpty();
+
+        Assert.Empty(actual);
+        Assert.False(actual.IsDefault);
+    }
+
+    [Fact]
     public void GetMostRecentUniqueItems()
     {
         ImmutableArray<string> items =

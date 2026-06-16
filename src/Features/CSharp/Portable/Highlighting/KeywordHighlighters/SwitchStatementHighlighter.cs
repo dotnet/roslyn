@@ -63,57 +63,43 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
 
         if (node is BreakStatementSyntax breakStatement)
         {
-            if (breakStatement.Name is { } breakName)
-            {
-                if (breakName.Identifier.ValueText == labelName)
-                {
-                    spans.Add(breakStatement.BreakKeyword.Span);
-                    spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
-                }
-            }
-            else if (highlightBreaks)
+            if (breakStatement.Name is { Identifier.ValueText: var breakName } ? breakName == labelName : highlightBreaks)
             {
                 spans.Add(breakStatement.BreakKeyword.Span);
                 spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
             }
-
-            return;
         }
-
-        if (node is GotoStatementSyntax gotoStatement)
+        else if (highlightGotos && node is GotoStatementSyntax gotoStatement)
         {
-            if (highlightGotos)
+            // We only want to highlight 'goto case' and 'goto default', not plain old goto statements,
+            // but if the label is missing, we do highlight 'goto' assuming it's more likely that
+            // the user is in the middle of typing 'goto case' or 'goto default'.
+            if (gotoStatement.Kind() is SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement ||
+                gotoStatement is { Expression.IsMissing: true })
             {
-                // We only want to highlight 'goto case' and 'goto default', not plain old goto statements,
-                // but if the label is missing, we do highlight 'goto' assuming it's more likely that
-                // the user is in the middle of typing 'goto case' or 'goto default'.
-                if (gotoStatement.Kind() is SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement ||
-                    gotoStatement is { Expression.IsMissing: true })
-                {
-                    var start = gotoStatement.GotoKeyword.SpanStart;
-                    var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
-                        ? gotoStatement.CaseOrDefaultKeyword.Span.End
-                        : gotoStatement.GotoKeyword.Span.End;
+                var start = gotoStatement.GotoKeyword.SpanStart;
+                var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
+                    ? gotoStatement.CaseOrDefaultKeyword.Span.End
+                    : gotoStatement.GotoKeyword.Span.End;
 
-                    spans.Add(TextSpan.FromBounds(start, end));
-                    spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
-                }
+                spans.Add(TextSpan.FromBounds(start, end));
+                spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
             }
-
-            return;
         }
-
-        foreach (var childNodeOrToken in node.ChildNodesAndTokens())
+        else
         {
-            if (!childNodeOrToken.AsNode(out var child))
-                continue;
-
-            var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
-            var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
-
-            if (highlightBreaksForChild || highlightGotosForChild || labelName != null)
+            foreach (var childNodeOrToken in node.ChildNodesAndTokens())
             {
-                HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightGotosForChild, labelName);
+                if (!childNodeOrToken.AsNode(out var child))
+                    continue;
+
+                var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
+                var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
+
+                if (highlightBreaksForChild || highlightGotosForChild || labelName != null)
+                {
+                    HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightGotosForChild, labelName);
+                }
             }
         }
     }
