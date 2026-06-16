@@ -111,7 +111,6 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
     {
-        // Bloom filter minimizes perf impact here
         var references = await SymbolFinder.FindReferencesAsync(
             methodSymbol,
             solution,
