@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
+namespace Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 
 internal class CloseTextTagOnAutoInsertProvider : IOnAutoInsertProvider
 {

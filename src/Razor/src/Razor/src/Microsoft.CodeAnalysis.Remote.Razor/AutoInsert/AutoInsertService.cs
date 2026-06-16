@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
+namespace Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 
 internal class AutoInsertService(IEnumerable<IOnAutoInsertProvider> onAutoInsertProviders) : IAutoInsertService
 {

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
+namespace Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 
 internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 {

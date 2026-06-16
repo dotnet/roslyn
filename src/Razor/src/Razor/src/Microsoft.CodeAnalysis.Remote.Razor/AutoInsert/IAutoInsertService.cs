@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.AutoInsert;
+namespace Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 
 internal interface IAutoInsertService
 {

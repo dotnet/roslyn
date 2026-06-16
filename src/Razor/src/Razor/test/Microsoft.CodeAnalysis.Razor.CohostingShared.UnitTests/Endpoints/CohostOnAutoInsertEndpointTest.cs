@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -18,6 +19,47 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
+    [Fact]
+    public void RazorTriggerCharactersMatchOOPAutoInsertProviders()
+    {
+        var expectedTriggerCharacters = OOPExportProvider.GetExportedValues<IOnAutoInsertProvider>()
+            .Select(provider => provider.TriggerCharacter)
+            .Distinct()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+        var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetRazorOnAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+
+        Assert.Equal(expectedTriggerCharacters, actualTriggerCharacters);
+    }
+
+    [Fact]
+    public void CSharpTriggerCharactersMatchAutoInsertService()
+    {
+        var expectedTriggerCharacters = AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+        var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetCSharpAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+
+        Assert.Equal(expectedTriggerCharacters, actualTriggerCharacters);
+    }
+
+    [Fact]
+    public void HtmlTriggerCharactersMatchAutoInsertService()
+    {
+        var expectedTriggerCharacters = AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+        var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetHtmlAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+
+        Assert.Equal(expectedTriggerCharacters, actualTriggerCharacters);
+    }
+
     [Theory]
     [InlineData("PageTitle")]
     [InlineData("div")]
@@ -555,10 +597,6 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { FormatOnType = formatOnType, AutoClosingTags = autoClosingTags });
 
-        IOnAutoInsertTriggerCharacterProvider[] onAutoInsertTriggerCharacterProviders = [
-            new RemoteAutoClosingTagOnAutoInsertProvider(),
-            new RemoteCloseTextTagOnAutoInsertProvider()];
-
         VSInternalDocumentOnAutoInsertResponseItem? response = null;
         if (delegatedResponseText is not null)
         {
@@ -577,7 +615,6 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             IncompatibleProjectService,
             RemoteServiceInvoker,
             ClientSettingsManager,
-            onAutoInsertTriggerCharacterProviders,
             requestInvoker,
             LoggerFactory);
 

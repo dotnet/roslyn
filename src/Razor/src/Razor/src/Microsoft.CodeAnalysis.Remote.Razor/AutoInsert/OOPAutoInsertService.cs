@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 
