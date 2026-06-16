@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,12 +8,11 @@ using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Services;
+namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.CodeActions;
 
 public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83181")]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestExtractBaseClass(bool includeDevKitComponents)
     {
         var markup =
@@ -25,10 +24,11 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
                 }
             }
             """;
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
+        var workspaceContent = LspTestWorkspaces.SimpleProject.WithCSharp(markup);
+        await using var testLspServer = await CreateLanguageServerAsync(workspaceContent, new() { IncludeDevKitComponents = includeDevKitComponents });
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
-        await TestCodeActionAsync(testLspServer, caretLocation, "Extract base class...", """
+        await TestCodeActionAsync(testLspServer, caretLocation, FeaturesResources.Extract_base_class, """
             internal class NewBaseType
             {
                 public void M()
@@ -42,8 +42,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
             """);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83181")]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestExtractInterface(bool includeDevKitComponents)
     {
         var markup =
@@ -55,10 +54,11 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
                 }
             }
             """;
-        await using var testLspServer = await CreateCSharpLanguageServerAsync(markup, includeDevKitComponents);
+        var workspaceContent = LspTestWorkspaces.SimpleProject.WithCSharp(markup);
+        await using var testLspServer = await CreateLanguageServerAsync(workspaceContent, new() { IncludeDevKitComponents = includeDevKitComponents });
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
-        await TestCodeActionAsync(testLspServer, caretLocation, "Extract interface...", """
+        await TestCodeActionAsync(testLspServer, caretLocation, FeaturesResources.Extract_interface, """
             interface IA
             {
                 void M();
@@ -87,7 +87,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
 
         testLspClient.ApplyWorkspaceEdit(resolvedCodeAction.Edit);
 
-        var updatedCode = testLspClient.GetDocumentText(caretLocation.DocumentUri);
+        var updatedCode = testLspClient.GetFileText(caretLocation.DocumentUri);
 
         AssertEx.Equal(expected, updatedCode);
     }
