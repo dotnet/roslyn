@@ -26,6 +26,15 @@ internal sealed class DelegatingFileChangeWatcher(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
     : IFileChangeWatcher, ILspService
 {
+    /// <summary>
+    /// Share a single default file change watcher across all server instances to ensure they respect the platform limits and consolidate.
+    /// As servers are created and disposed, they will add / remove files/directories from this shared watcher.
+    /// 
+    /// On non-Windows platforms, the number of inotify handles is limited, so we'll want to be more aggressive with reducing it.
+    /// TODO: we could read the inotify limit and set this dynamically, since some newer kernels have a higher default.
+    /// </summary>
+    private static readonly Lazy<DefaultFileChangeWatcher> _defaultFileChangeWatcher = new(() => new DefaultFileChangeWatcher(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10_000 : 50));
+
     private readonly Lazy<IFileChangeWatcher> _underlyingFileWatcher = new(() =>
         {
             if (LspFileChangeWatcher.TryCreate(lspServices, asynchronousOperationListenerProvider, out var lspFileChangeWatcher))
@@ -33,9 +42,7 @@ internal sealed class DelegatingFileChangeWatcher(
 
             loggerFactory.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
 
-            // On non-Windows platforms, the number of inotify handles is limited, so we'll want to be more aggressive with reducing it.
-            // TODO: we could read the inotify limit and set this dynamically, since some newer kernels have a higher default.
-            return new DefaultFileChangeWatcher(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10_000 : 50);
+            return _defaultFileChangeWatcher.Value;
         });
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
@@ -49,5 +56,11 @@ internal sealed class DelegatingFileChangeWatcher(
     internal readonly struct TestAccessor(DelegatingFileChangeWatcher instance)
     {
         internal IFileChangeWatcher UnderlyingFileWatcher => instance._underlyingFileWatcher.Value;
+
+        /// <summary>
+        /// The single <see cref="DefaultFileChangeWatcher"/> shared by every <see cref="DelegatingFileChangeWatcher"/>
+        /// instance. Tests can inspect this to verify that servers release their file watches when they shut down.
+        /// </summary>
+        internal static DefaultFileChangeWatcher SharedDefaultFileChangeWatcher => _defaultFileChangeWatcher.Value;
     }
 }

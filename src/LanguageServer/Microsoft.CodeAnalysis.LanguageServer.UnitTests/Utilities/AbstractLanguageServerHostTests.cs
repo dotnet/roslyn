@@ -23,6 +23,12 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     protected ILoggerFactory LoggerFactory { get; }
     protected TempRoot TempRoot { get; }
 
+    /// <summary>
+    /// Snapshot of the file watches active before this test ran. Used to verify that the server releases every file
+    /// watch it created once it shuts down (see <see cref="FileWatcherReleaseTracker"/>).
+    /// </summary>
+    private readonly FileWatcherReleaseTracker _fileWatcherReleaseTracker;
+
     internal static ServerConfiguration DefaultServerConfiguration => new(
         LaunchDebugger: false,
         LogConfiguration: new LogConfiguration(LogLevel.Trace),
@@ -54,6 +60,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     {
         LoggerFactory = new LoggerFactory([new TestOutputLoggerProvider(testOutputHelper)]);
         TempRoot = new();
+        _fileWatcherReleaseTracker = FileWatcherReleaseTracker.Capture();
     }
 
     private protected Task<TestLspServer> CreateLanguageServerAsync(
@@ -66,6 +73,10 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
     public void Dispose()
     {
         TempRoot.Dispose();
+
+        // The test's server(s) are disposed by the test body (via 'await using'), which releases their file watches on
+        // shutdown. Verify that actually happened so a watch-leaking test fails here rather than leaking into a later test.
+        _fileWatcherReleaseTracker.AssertWatchesReleased();
     }
 
     protected sealed class TestLspServer : ILspClient, IAsyncDisposable
