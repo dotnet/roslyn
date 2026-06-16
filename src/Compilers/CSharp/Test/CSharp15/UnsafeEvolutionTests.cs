@@ -3563,6 +3563,915 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeExpression_RequiresAllowUnsafe()
+    {
+        var source = """
+            _ = unsafe(1);
+            """;
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe)
+            .VerifyDiagnostics(
+            // (1,5): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // _ = unsafe(1);
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 5),
+            // (1,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = unsafe(1);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(1, 5));
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,5): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // _ = unsafe(1);
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 5),
+        };
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe)
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseExe)
+            .VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void UnsafeExpression_LangVersion()
+    {
+        var source = """
+            _ = unsafe(1);
+            """;
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (1,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = unsafe(1);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(1, 5));
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_PointerDereference()
+    {
+        var source = """
+            class C
+            {
+                void M(int* p)
+                {
+                    int x = unsafe(*p);
+                    int y = *p;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,17): error CS9360: This operation may only be used in an unsafe context
+            //         int y = *p;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(6, 17));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context()
+    {
+        var source = """
+            class C
+            {
+                void M(int* p)
+                {
+                    int x =
+                        unsafe(*p)
+                        + *p;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,15): error CS9360: This operation may only be used in an unsafe context
+            //             + *p;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(7, 15));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Lambda()
+    {
+        var source = """
+            class C
+            {
+                void M(int* p)
+                {
+                    System.Func<int> f = unsafe(() => *p);
+                    System.Func<int> g = () => unsafe(*p);
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_Emit()
+    {
+        var source = """
+            class C
+            {
+                int M1(int* p) => unsafe(*p);
+                unsafe int M2(int* p) => *p;
+            }
+            """;
+
+        var verifier = CompileAndVerify(source,
+            options: TestOptions.UnsafeDebugDll,
+            verify: Verification.Skipped)
+            .VerifyDiagnostics();
+
+        var expectedIl = """
+            {
+              // Code size        3 (0x3)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  ldind.i4
+              IL_0002:  ret
+            }
+            """;
+
+        verifier.VerifyIL("C.M1", expectedIl);
+        verifier.VerifyIL("C.M2", expectedIl);
+    }
+
+    [Fact]
+    public void UnsafeExpression_CheckedUnchecked()
+    {
+        var source = """
+            class C
+            {
+                void M(int* p, int x)
+                {
+                    _ = checked(unsafe(*p + x));
+                    _ = unsafe(checked(*p + x));
+                    _ = unchecked(unsafe(*p + x));
+                    _ = unsafe(unchecked(*p + x));
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source,
+            options: TestOptions.UnsafeDebugDll.WithUpdatedMemorySafetyRules(),
+            verify: Verification.Skipped)
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("C.M", """
+            {
+              // Code size       18 (0x12)
+              .maxstack  2
+              IL_0000:  nop
+              IL_0001:  ldarg.1
+              IL_0002:  ldind.i4
+              IL_0003:  ldarg.2
+              IL_0004:  add.ovf
+              IL_0005:  pop
+              IL_0006:  ldarg.1
+              IL_0007:  ldind.i4
+              IL_0008:  ldarg.2
+              IL_0009:  add.ovf
+              IL_000a:  pop
+              IL_000b:  ldarg.1
+              IL_000c:  ldind.i4
+              IL_000d:  pop
+              IL_000e:  ldarg.1
+              IL_000f:  ldind.i4
+              IL_0010:  pop
+              IL_0011:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void UnsafeExpression_IOperation_01()
+    {
+        var source = """
+            class C
+            {
+                int M(int i)
+                {
+                    /*<bind>*/return unsafe(i);/*</bind>*/
+                }
+            }
+            """;
+
+        var expectedOperationTree = """
+            IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return unsafe(i);')
+              ReturnedValue:
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+            """;
+
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(
+            source,
+            expectedOperationTree,
+            expectedDiagnostics,
+            compilationOptions: TestOptions.UnsafeReleaseDll);
+    }
+
+    [Fact]
+    public void UnsafeExpression_IOperation_02()
+    {
+        var source = """
+            class C
+            {
+                int M(int i)
+                {
+                    return /*<bind>*/unsafe(i)/*</bind>*/;
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+        comp.VerifyDiagnostics();
+        var (operation, _) = GetOperationAndSyntaxForTest<UnsafeExpressionSyntax>(comp);
+        Assert.Null(operation);
+    }
+
+    [Fact]
+    public void UnsafeExpression_IOperation_03()
+    {
+        var source = """
+            class C
+            {
+                int M(int i)
+                {
+                    return unsafe(/*<bind>*/i/*</bind>*/);
+                }
+            }
+            """;
+
+        var expectedOperationTree = """
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+            """;
+
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(
+            source,
+            expectedOperationTree,
+            expectedDiagnostics,
+            compilationOptions: TestOptions.UnsafeReleaseDll);
+    }
+
+    [Fact]
+    public void UnsafeExpression_FlowGraph_01()
+    {
+        var source = """
+            class C
+            {
+                int M(int i)
+                /*<bind>*/{
+                    return unsafe(i);
+                }/*</bind>*/
+            }
+            """;
+
+        var expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (0)
+                Next (Return) Block[B2]
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
+            """;
+
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(
+            source,
+            expectedFlowGraph,
+            expectedDiagnostics,
+            compilationOptions: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+    }
+
+    [Fact]
+    public void UnsafeExpression_FlowGraph_02()
+    {
+        var source = """
+            class C
+            {
+                int M(bool b, int x, int y)
+                /*<bind>*/{
+                    return unsafe(b ? x : y);
+                }/*</bind>*/
+            }
+            """;
+
+        var expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                CaptureIds: [0]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Jump if False (Regular) to Block[B3]
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                    Next (Regular) Block[B2]
+                Block[B2] - Block
+                    Predecessors: [B1]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                          Value:
+                            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                    Next (Regular) Block[B4]
+                Block[B3] - Block
+                    Predecessors: [B1]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                          Value:
+                            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+                    Next (Regular) Block[B4]
+                Block[B4] - Block
+                    Predecessors: [B2] [B3]
+                    Statements (0)
+                    Next (Return) Block[B5]
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ? x : y')
+                        Leaving: {R1}
+            }
+            Block[B5] - Exit
+                Predecessors: [B4]
+                Statements (0)
+            """;
+
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(
+            source,
+            expectedFlowGraph,
+            expectedDiagnostics,
+            compilationOptions: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+    }
+
+    [Fact]
+    public void UnsafeExpression_SemanticModel()
+    {
+        var source = """
+            #pragma warning disable CS0219 // unused constant
+            class C
+            {
+                long M(int* p)
+                {
+                    const int Constant = unsafe(1);
+                    _ = unsafe(F());
+                    return unsafe(*p);
+                }
+
+                static unsafe int F() => 42;
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var unsafeExpressions = tree.GetRoot().DescendantNodes().OfType<UnsafeExpressionSyntax>().ToArray();
+
+        Assert.Equal(3, unsafeExpressions.Length);
+
+        var constantExpression = unsafeExpressions[0];
+        var invocationExpression = unsafeExpressions[1];
+        var returnExpression = unsafeExpressions[2];
+
+        Assert.Equal("System.Int32", model.GetTypeInfo(constantExpression).Type.ToTestDisplayString());
+        Assert.Equal("System.Int32", model.GetTypeInfo(constantExpression.Expression).Type.ToTestDisplayString());
+        Assert.Equal(1, model.GetConstantValue(constantExpression).Value);
+        Assert.Equal(1, model.GetConstantValue(constantExpression.Expression).Value);
+
+        Assert.Equal("System.Int32", model.GetTypeInfo(invocationExpression).Type.ToTestDisplayString());
+        Assert.Equal("System.Int32", model.GetTypeInfo(invocationExpression.Expression).Type.ToTestDisplayString());
+        Assert.Equal("System.Int32 C.F()", model.GetSymbolInfo(invocationExpression).Symbol.ToTestDisplayString());
+        Assert.Equal("System.Int32 C.F()", model.GetSymbolInfo(invocationExpression.Expression).Symbol.ToTestDisplayString());
+
+        var returnTypeInfo = model.GetTypeInfo(returnExpression);
+        Assert.Equal("System.Int32", returnTypeInfo.Type.ToTestDisplayString());
+        Assert.Equal("System.Int64", returnTypeInfo.ConvertedType.ToTestDisplayString());
+
+        var conversion = comp.ClassifyConversion(returnTypeInfo.Type!, returnTypeInfo.ConvertedType!);
+        Assert.True(conversion.Exists);
+        Assert.True(conversion.IsImplicit);
+        Assert.True(conversion.IsNumeric);
+    }
+
+    [Fact]
+    public void UnsafeExpression_SemanticModel_EnclosingBinder()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    int local = 1;
+                    _ = unsafe(local + 1);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var unsafeExpression = tree.GetRoot().DescendantNodes().OfType<UnsafeExpressionSyntax>().Single();
+
+        var binder = ((CSharpSemanticModel)model).GetEnclosingBinder(unsafeExpression.Expression.SpanStart);
+        Assert.True(binder.InUnsafeRegion);
+        Assert.True(binder.IsSemanticModelBinder);
+    }
+
+    [Fact]
+    public void UnsafeExpression_Await()
+    {
+        var source = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task M()
+                {
+                    await GetTask();
+                    await unsafe(GetTask());
+                    _ = unsafe(await GetTask());
+                }
+
+                unsafe Task<int> GetTask() => null;
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,15): error CS9362: 'C.GetTask()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         await GetTask();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "GetTask()").WithArguments("C.GetTask()").WithLocation(7, 15),
+            // (9,20): error CS4004: Cannot await in an unsafe context
+            //         _ = unsafe(await GetTask());
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await GetTask()").WithLocation(9, 20));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Attribute()
+    {
+        var source = """
+            class A : System.Attribute
+            {
+                public unsafe A(int x) { }
+            }
+
+            [unsafe(A(1))] class C1;
+            [A(unsafe(1))] class C2;
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,1): error CS8803: Top-level statements must precede namespace and type declarations.
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[unsafe(A(1)").WithLocation(6, 1),
+            // (6,1): error CS8805: Program using top-level statements must be an executable.
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "[unsafe(A(1)").WithLocation(6, 1),
+            // (6,2): error CS1001: Identifier expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "unsafe").WithLocation(6, 2),
+            // (6,2): error CS1003: Syntax error, ']' expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_SyntaxError, "unsafe").WithArguments("]").WithLocation(6, 2),
+            // (6,10): error CS8124: Tuple must contain at least two elements.
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(").WithLocation(6, 10),
+            // (6,10): error CS1026: ) expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "(").WithLocation(6, 10),
+            // (6,10): error CS1001: Identifier expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(6, 10),
+            // (6,10): error CS8112: Local function '()' must declare a body because it is not marked 'static extern'.
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "").WithArguments("()").WithLocation(6, 10),
+            // (6,11): error CS1001: Identifier expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "1").WithLocation(6, 11),
+            // (6,13): error CS1002: ; expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 13),
+            // (6,13): error CS1022: Type or namespace definition, or end-of-file expected
+            // [unsafe(A(1))] class C1;
+            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(6, 13),
+            // (7,2): error CS9362: 'A.A(int)' must be used in an unsafe context because it is marked as 'unsafe'
+            // [A(unsafe(1))] class C2;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "A(unsafe(1))").WithArguments("A.A(int)").WithLocation(7, 2));
+    }
+
+    [Fact]
+    public void UnsafeExpression_AttributeArgument()
+    {
+        var source = """
+            class A : System.Attribute
+            {
+                public A(int x) { }
+            }
+
+            [A(unsafe(C.U()))]
+            [A(C.U())]
+            class C
+            {
+                public static unsafe int U() => 0;
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+            // [A(unsafe(C.U()))]
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.U()").WithLocation(6, 11),
+            // (7,4): error CS9362: 'C.U()' must be used in an unsafe context because it is marked as 'unsafe'
+            // [A(C.U())]
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.U()").WithArguments("C.U()").WithLocation(7, 4),
+            // (7,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+            // [A(C.U())]
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.U()").WithLocation(7, 4));
+    }
+
+    [Fact]
+    public void UnsafeExpression_AttributeArgument_DefaultParameterValue()
+    {
+        var source = """
+            using System.Runtime.InteropServices;
+
+            class C
+            {
+                void M([Optional, DefaultParameterValue(unsafe(1))] int x) { }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+        comp.VerifyEmitDiagnostics();
+
+        var parameter = comp.GetMember<MethodSymbol>("C.M").Parameters.Single();
+        Assert.True(parameter.HasExplicitDefaultValue);
+        Assert.Equal(1, parameter.ExplicitDefaultValue);
+    }
+
+    [Fact]
+    public void UnsafeExpression_FieldInitializer()
+    {
+        var source = """
+            class C
+            {
+                static int F1 = GetInt();
+                static int F2 = unsafe(GetInt());
+                static unsafe int GetInt() => 0;
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,21): error CS9362: 'C.GetInt()' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int F1 = GetInt();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "GetInt()").WithArguments("C.GetInt()").WithLocation(3, 21));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Constants()
+    {
+        var source = """
+            class A : System.Attribute
+            {
+                public A(int x) { }
+            }
+
+            [A(unsafe(1))]
+            class C
+            {
+                const int X = unsafe(1);
+                void M(int x = unsafe(1)) { }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_ConstructorInitializer()
+    {
+        var source = """
+            class C
+            {
+                C(int i, int j) : this(unsafe(i)) { }
+                C(int i, byte b) : unsafe(this(i)) { }
+                unsafe C(int i) { }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,21): error CS9362: 'C.C(int)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     C(int i, int j) : this(unsafe(i)) { }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, ": this(unsafe(i))").WithArguments("C.C(int)").WithLocation(3, 21),
+            // (4,5): error CS0501: 'C.C(int, byte)' must declare a body because it is not marked abstract, extern, or partial
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C(int, byte)").WithLocation(4, 5),
+            // (4,24): error CS1018: Keyword 'this' or 'base' expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_ThisOrBaseExpected, "unsafe").WithLocation(4, 24),
+            // (4,24): error CS1002: ; expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "unsafe").WithLocation(4, 24),
+            // (4,24): error CS1729: 'C' does not contain a constructor that takes 0 arguments
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "").WithArguments("C", "0").WithLocation(4, 24),
+            // (4,31): error CS1031: Type expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(4, 31),
+            // (4,31): error CS8124: Tuple must contain at least two elements.
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, "this").WithLocation(4, 31),
+            // (4,31): error CS1026: ) expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "this").WithLocation(4, 31),
+            // (4,31): error CS0548: 'C.this[(i, ?)]': property or indexer must have at least one accessor
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("C.this[(i, ?)]").WithLocation(4, 31),
+            // (4,35): error CS1003: Syntax error, '[' expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(4, 35),
+            // (4,36): error CS0246: The type or namespace name 'i' could not be found (are you missing a using directive or an assembly reference?)
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "i").WithArguments("i").WithLocation(4, 36),
+            // (4,37): error CS8124: Tuple must contain at least two elements.
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 37),
+            // (4,38): error CS1001: Identifier expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 38),
+            // (4,38): error CS1003: Syntax error, ']' expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(4, 38),
+            // (4,38): error CS1514: { expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_LbraceExpected, ")").WithLocation(4, 38),
+            // (4,38): error CS1014: A get or set accessor expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, ")").WithLocation(4, 38),
+            // (4,40): error CS1014: A get or set accessor expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_GetOrSetExpected, "{").WithLocation(4, 40),
+            // (4,43): error CS1513: } expected
+            //     C(int i, byte b) : unsafe(this(i)) { }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 43));
+    }
+
+    [Fact]
+    public void UnsafeExpression_ConstructorInitializerArgument()
+    {
+        var source = """
+            class C
+            {
+                C() : this(GetInt()) { }
+                C(string s) : this(unsafe(GetInt())) { }
+                C(int i) { }
+                static unsafe int GetInt() => 0;
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (3,16): error CS9362: 'C.GetInt()' must be used in an unsafe context because it is marked as 'unsafe'
+            //     C() : this(GetInt()) { }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "GetInt()").WithArguments("C.GetInt()").WithLocation(3, 16));
+    }
+
+    [Fact]
+    public void UnsafeExpression_ExceptionFilter()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    try { } catch (Exception e) when (F(e)) { }
+                    try { } catch (Exception e) when (unsafe(F(e))) { }
+                }
+                static unsafe bool F(Exception e) => true;
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,43): error CS9362: 'C.F(Exception)' must be used in an unsafe context because it is marked as 'unsafe'
+            //         try { } catch (Exception e) when (F(e)) { }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "F(e)").WithArguments("C.F(System.Exception)").WithLocation(7, 43));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Statement()
+    {
+        var source = """
+            int x = 1;
+            unsafe(x);
+            unsafe(x++);
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            // unsafe(x);
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "unsafe(x)").WithLocation(2, 1),
+            // (3,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            // unsafe(x++);
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "unsafe(x++)").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Void()
+    {
+        var source = """
+            _ = unsafe(F());
+            void F() { }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,1): error CS8209: A value of type 'void' may not be assigned.
+            // _ = unsafe(F());
+            Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Assign()
+    {
+        var source = """
+            int x;
+            x = 1;
+            unsafe(x) = 2;
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,5): warning CS0219: The variable 'x' is assigned but its value is never used
+            // int x;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void UnsafeExpression_AssignToPointer()
+    {
+        var source = """
+            class C
+            {
+                void M(int* p)
+                {
+                    *p = 1;
+                    unsafe(*p) = 2;
+                }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (5,9): error CS9360: This operation may only be used in an unsafe context
+            //         *p = 1;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(5, 9));
+    }
+
+    [Fact]
+    public void UnsafeExpression_RefArgument()
+    {
+        var source = """
+            class C
+            {
+                void M(int* p)
+                {
+                    F(ref unsafe(*p));
+                }
+                void F(ref int x) { }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_RefLocal()
+    {
+        var source = """
+            var local = 0;
+            C.M(&local);
+            System.Console.Write(local);
+
+            class C
+            {
+                public static void M(int* p)
+                {
+                    ref int r = ref unsafe(*p);
+                    r = 1;
+                }
+            }
+            """;
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            expectedOutput: "1",
+            verify: Verification.Skipped)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_Conditional()
+    {
+        var source = """
+            var local = 1;
+            C.M(&local, true);
+            C.M(&local, false);
+            class C
+            {
+                public static void M(int* p, bool b)
+                {
+                    int x = b ? unsafe(*p) : 2;
+                    System.Console.Write(x);
+                }
+            }
+            """;
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            expectedOutput: "12",
+            verify: Verification.Skipped)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_OutVar()
+    {
+        var source = """
+            var local = 1;
+            _ = unsafe(C.F(out local));
+            System.Console.Write(local);
+            class C
+            {
+                public static bool F(out int x)
+                {
+                    x = 2;
+                    return true;
+                }
+            }
+            """;
+
+        CompileAndVerify(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            expectedOutput: "2",
+            verify: Verification.Skipped)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
     public void UnsafeDeclarations()
     {
         var source = """
@@ -6505,24 +7414,18 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
-            // (1,21): error CS1525: Invalid expression term 'unsafe'
+            // (1,29): error CS1525: Invalid expression term ')'
             // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "unsafe").WithArguments("unsafe").WithLocation(1, 21),
-            // (1,21): error CS1002: ; expected
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 29),
+            // (1,31): error CS1003: Syntax error, ',' expected
             // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "unsafe").WithLocation(1, 21),
-            // (1,29): error CS8124: Tuple must contain at least two elements.
+            Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 31),
+            // (1,36): error CS1002: ; expected
             // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 29),
-            // (1,31): error CS1001: Identifier expected
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 36),
+            // (1,36): error CS1022: Type or namespace definition, or end-of-file expected
             // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 31),
-            // (1,34): error CS1525: Invalid expression term '{'
-            // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 34),
-            // (1,34): error CS1002: ; expected
-            // System.Action lam = unsafe () => { };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 34));
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 36));
     }
 
     [Fact]

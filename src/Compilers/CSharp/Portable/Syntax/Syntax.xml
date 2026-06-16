@@ -1066,6 +1066,38 @@
       <summary>Creates a CheckedExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="UnsafeExpressionSyntax" Base="ExpressionSyntax" ExperimentalUrl="https://github.com/dotnet/roslyn/issues/82789">
+    <Kind Name="UnsafeExpression"/>
+    <Field Name="Keyword" Type="SyntaxToken">
+      <Kind Name="UnsafeKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the unsafe keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>Operand of the unsafe expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for Unsafe expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an UnsafeExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="DefaultExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="DefaultExpression"/>
     <Field Name="Keyword" Type="SyntaxToken">
