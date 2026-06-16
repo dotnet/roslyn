@@ -428,7 +428,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             output: """""""
                 @code {
                     void TestMethod() {
-                    var x = """$0"""
+                        var x = """$0"""
                     }
                 }
                 """"""",
