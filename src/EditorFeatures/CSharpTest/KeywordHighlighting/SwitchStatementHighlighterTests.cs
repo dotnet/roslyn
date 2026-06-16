@@ -829,7 +829,7 @@ public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighl
                 {
                     outer: {|Cursor:[|switch|]|} (x)
                     {
-                        [|case|] 0[|:|]
+                        [|case|] 0:
                             switch (x)
                             {
                                 case 1:
@@ -851,7 +851,7 @@ public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighl
                 {
                     outer: [|switch|] (x)
                     {
-                        [|case|] 0[|:|]
+                        [|case|] 0:
                             switch (x)
                             {
                                 case 1:
@@ -876,7 +876,7 @@ public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighl
                         case 0:
                             {|Cursor:[|switch|]|} (x)
                             {
-                                [|case|] 1[|:|]
+                                [|case|] 1:
                                     break outer;
                                     [|break|];
                             }
