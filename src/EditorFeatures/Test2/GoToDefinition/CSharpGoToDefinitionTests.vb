@@ -3760,6 +3760,81 @@ class C
         End Function
 
         <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Identifier_TargetOutsideLambda() As Task
+            ' Caret on the label identifier of a break whose target loop is outside the lambda. The
+            ' label is not in scope across the lambda boundary, so there is no navigation.
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            System.Action a = () => { break ou$$ter; };
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledContinue_Identifier_TargetOutsideLambda() As Task
+            ' Caret on the label identifier of a continue whose target loop is outside the lambda. The
+            ' label is not in scope across the lambda boundary, so there is no navigation.
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            System.Action a = () => { continue ou$$ter; };
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToOnLabeledBreak_Identifier_TargetOutsideLocalFunction() As Task
+            ' Caret on the label identifier of a break whose target loop is outside the local function.
+            ' The label is not in scope across the local function boundary, so there is no navigation.
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+class C
+{
+    void M()
+    {
+        outer: while (true)
+        {
+            void local() { break ou$$ter; }
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, expectedResult:=False)
+        End Function
+
+        <WpfFact>
         Public Async Function ExtendedPropertyPattern_FirstPart() As Task
             Dim workspace =
 <Workspace>
