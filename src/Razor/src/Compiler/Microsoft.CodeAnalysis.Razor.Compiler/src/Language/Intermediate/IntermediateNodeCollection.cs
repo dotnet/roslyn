@@ -10,20 +10,14 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadOnlyList<IntermediateNode>
+public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>, IReadOnlyList<IntermediateNode>
 {
-    public static readonly IntermediateNodeCollection ReadOnly = new IntermediateNodeCollection(new List<IntermediateNode>().AsReadOnly());
+    public static readonly IntermediateNodeCollection ReadOnly = new IntermediateNodeCollection();
 
-    private readonly IList<IntermediateNode> _inner;
+    private InlineList _inner;
 
     public IntermediateNodeCollection()
-        : this(new List<IntermediateNode>())
     {
-    }
-
-    private IntermediateNodeCollection(IList<IntermediateNode> inner)
-    {
-        _inner = inner;
     }
 
     public IntermediateNode this[int index]
@@ -39,6 +33,8 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
         }
         set
         {
+            ThrowIfReadOnly();
+
             if (index < 0 || index >= Count)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
@@ -50,10 +46,20 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
 
     public int Count => _inner.Count;
 
-    public bool IsReadOnly => _inner.IsReadOnly;
+    public bool IsReadOnly => ReferenceEquals(this, ReadOnly);
+
+    private void ThrowIfReadOnly()
+    {
+        if (IsReadOnly)
+        {
+            throw new NotSupportedException("Collection is read-only.");
+        }
+    }
 
     public void Add(IntermediateNode item)
     {
+        ThrowIfReadOnly();
+
         if (item == null)
         {
             throw new ArgumentNullException(nameof(item));
@@ -64,6 +70,8 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
 
     public void AddRange(IEnumerable<IntermediateNode> items)
     {
+        ThrowIfReadOnly();
+
         if (items == null)
         {
             throw new ArgumentNullException(nameof(items));
@@ -77,6 +85,8 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
 
     public void AddRange(IntermediateNodeCollection items)
     {
+        ThrowIfReadOnly();
+
         if (items == null)
         {
             throw new ArgumentNullException(nameof(items));
@@ -91,6 +101,8 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
 
     internal void AddRange(in PooledArrayBuilder<IntermediateNode> items)
     {
+        ThrowIfReadOnly();
+
         foreach (var item in items)
         {
             _inner.Add(item);
@@ -99,12 +111,13 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
 
     public void Clear()
     {
+        ThrowIfReadOnly();
         _inner.Clear();
     }
 
     public bool Contains(IntermediateNode item)
     {
-        return _inner.Contains(item);
+        return item != null && IndexOf(item) >= 0;
     }
 
     public void CopyTo(IntermediateNode[] array, int arrayIndex)
@@ -153,6 +166,8 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
 
     public void Insert(int index, IntermediateNode item)
     {
+        ThrowIfReadOnly();
+
         if (index < 0 || index > Count)
         {
             throw new ArgumentOutOfRangeException(nameof(index));
@@ -168,16 +183,27 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
 
     public bool Remove(IntermediateNode item)
     {
+        ThrowIfReadOnly();
+
         if (item == null)
         {
             throw new ArgumentNullException(nameof(item));
         }
 
-        return _inner.Remove(item);
+        var index = IndexOf(item);
+        if (index >= 0)
+        {
+            RemoveAt(index);
+            return true;
+        }
+
+        return false;
     }
 
     public void RemoveAt(int index)
     {
+        ThrowIfReadOnly();
+
         if (index < 0 || index >= Count)
         {
             throw new ArgumentOutOfRangeException(nameof(index));
@@ -188,7 +214,7 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
 
     public struct Enumerator : IEnumerator<IntermediateNode>
     {
-        private readonly IList<IntermediateNode> _items;
+        private readonly IntermediateNodeCollection _items;
         private int _index;
 
         public Enumerator(IntermediateNodeCollection collection)
@@ -198,7 +224,7 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadO
                 throw new ArgumentNullException(nameof(collection));
             }
 
-            _items = collection._inner;
+            _items = collection;
             _index = -1;
         }
 
