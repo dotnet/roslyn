@@ -600,6 +600,53 @@ class C
             """, results.Contents.Fourth.Value);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestGetHoverAsync_LabeledBreak(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        break {|caret:outer|};
+                    }
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+        var results = await RunGetHoverAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.NotNull(results);
+        VerifyVSContent(results, $"({FeaturesResources.label}) outer");
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetHoverAsync_LabeledContinue(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class C
+            {
+                void M()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        while (true)
+                        {
+                            continue {|caret:outer|};
+                        }
+                    }
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+        var results = await RunGetHoverAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.NotNull(results);
+        VerifyVSContent(results, $"({FeaturesResources.label}) outer");
+    }
+
     private static async Task<LSP.Hover> RunGetHoverAsync(
         TestLspServer testLspServer,
         LSP.Location caret,
