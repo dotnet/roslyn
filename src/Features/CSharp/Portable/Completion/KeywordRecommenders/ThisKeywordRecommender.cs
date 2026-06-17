@@ -23,7 +23,8 @@ internal sealed class ThisKeywordRecommender() : AbstractSyntacticSingleKeywordR
 
     private static bool IsExtensionBlockIndexerDeclarationContext(CSharpSyntaxContext context)
         => context.TargetToken.Parent is TypeSyntax type &&
-           type.GetAncestor<ExtensionBlockDeclarationSyntax>() != null;
+           type.GetAncestor<StatementSyntax>() == null &&
+           type.GetAncestor<MemberDeclarationSyntax>()?.Parent is ExtensionBlockDeclarationSyntax;
 
     private static bool IsConstructorInitializerContext(CSharpSyntaxContext context)
     {
