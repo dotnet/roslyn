@@ -136,6 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.CheckedExpressionSyntax GenerateCheckedExpression()
             => InternalSyntaxFactory.CheckedExpression(SyntaxKind.CheckedExpression, InternalSyntaxFactory.Token(SyntaxKind.CheckedKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
+        private static Syntax.InternalSyntax.UnsafeExpressionSyntax GenerateUnsafeExpression()
+            => InternalSyntaxFactory.UnsafeExpression(InternalSyntaxFactory.Token(SyntaxKind.UnsafeKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
         private static Syntax.InternalSyntax.DefaultExpressionSyntax GenerateDefaultExpression()
             => InternalSyntaxFactory.DefaultExpression(InternalSyntaxFactory.Token(SyntaxKind.DefaultKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
@@ -1234,6 +1237,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCheckedExpression();
 
             Assert.Equal(SyntaxKind.CheckedKeyword, node.Keyword.Kind);
+            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
+            Assert.NotNull(node.Expression);
+            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestUnsafeExpressionFactoryAndProperties()
+        {
+            var node = GenerateUnsafeExpression();
+
+            Assert.Equal(SyntaxKind.UnsafeKeyword, node.Keyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
@@ -5057,6 +5073,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCheckedExpressionIdentityRewriter()
         {
             var oldNode = GenerateCheckedExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestUnsafeExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateUnsafeExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUnsafeExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateUnsafeExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -10576,6 +10618,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static CheckedExpressionSyntax GenerateCheckedExpression()
             => SyntaxFactory.CheckedExpression(SyntaxKind.CheckedExpression, SyntaxFactory.Token(SyntaxKind.CheckedKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
+        private static UnsafeExpressionSyntax GenerateUnsafeExpression()
+            => SyntaxFactory.UnsafeExpression(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
         private static DefaultExpressionSyntax GenerateDefaultExpression()
             => SyntaxFactory.DefaultExpression(SyntaxFactory.Token(SyntaxKind.DefaultKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
@@ -11674,6 +11719,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCheckedExpression();
 
             Assert.Equal(SyntaxKind.CheckedKeyword, node.Keyword.Kind());
+            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
+            Assert.NotNull(node.Expression);
+            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
+            var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestUnsafeExpressionFactoryAndProperties()
+        {
+            var node = GenerateUnsafeExpression();
+
+            Assert.Equal(SyntaxKind.UnsafeKeyword, node.Keyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
@@ -15497,6 +15555,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCheckedExpressionIdentityRewriter()
         {
             var oldNode = GenerateCheckedExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestUnsafeExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateUnsafeExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUnsafeExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateUnsafeExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
