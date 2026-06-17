@@ -196,7 +196,9 @@ public partial class MSBuildProjectLoader
             {
                 var aliases = projectFileReference.Aliases;
 
-                if (_pathResolver.TryGetAbsoluteProjectPath(projectFileReference.Path, baseDirectory: projectDirectory, _discoveredProjectOptions.OnPathFailure, out var projectReferencePath))
+                var path = projectFileReference.PhysicalPath ?? projectFileReference.Path;
+
+                if (_pathResolver.TryGetAbsoluteProjectPath(path, baseDirectory: projectDirectory, _discoveredProjectOptions.OnPathFailure, out var projectReferencePath))
                 {
                     // The easiest case is to add a reference to a project we already know about.
                     if (TryAddReferenceToKnownProject(id, projectReferencePath, aliases, builder))

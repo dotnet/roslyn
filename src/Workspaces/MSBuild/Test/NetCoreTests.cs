@@ -137,7 +137,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         await using var buildHostProcessManager = new BuildHostProcessManager([LanguageNames.CSharp], ImmutableDictionary<string, string>.Empty);
 
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
-        var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, CancellationToken.None);
+        var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, fileBasedApp: false, CancellationToken.None);
         var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
         Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);
@@ -593,7 +593,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
             Console.WriteLine("Hello World!");
             """;
 
-        CreateFiles(new FileSet((@"Program.cs", sourceText)));
+        CreateFiles(new FileSet(("Program.cs", sourceText)));
 
         var sourceFilePath = GetSolutionFileName("Program.cs");
 
@@ -611,6 +611,37 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         // Assert that the document content matches.
         var text = await document.GetTextAsync();
         Assert.Equal(sourceText, text.ToString());
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:property ExperimentalFileBasedProgramEnableRefDirective=true
+                #:ref Util.cs
+                Console.WriteLine($"Hello {Util.M()}!");
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Collection(workspace.CurrentSolution.Projects,
+            p => { Assert.Equal("Program.cs", p.Name); },
+            p => { Assert.Equal("Util.cs", p.Name); });
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

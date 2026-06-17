@@ -99,7 +99,7 @@ internal sealed class ProjectBuildManager
 
             using var stream = FileUtilities.OpenAsyncRead(path);
             using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false);
-            return LoadProjectCore(path, readStream, projectCollection, log);
+            return LoadProjectCore(path, readStream, fileBasedApp: false, projectCollection, log);
         }
         catch (Exception e)
         {
@@ -109,7 +109,7 @@ internal sealed class ProjectBuildManager
     }
 
     private static (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProjectCore(
-        string path, Stream readStream, MSB.Evaluation.ProjectCollection? projectCollection, DiagnosticLog log)
+        string path, Stream readStream, bool fileBasedApp, MSB.Evaluation.ProjectCollection? projectCollection, DiagnosticLog log)
     {
         try
         {
@@ -130,7 +130,13 @@ internal sealed class ProjectBuildManager
 
             var project = new MSB.Evaluation.Project(
                 xml,
-                globalProperties: null,
+                globalProperties: fileBasedApp
+                    ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "_BuildNonexistentProjectsByDefault", bool.TrueString },
+                        { "RestoreUseSkipNonexistentTargets", bool.FalseString },
+                    }
+                    : null,
                 toolsVersion: null,
                 projectCollection,
                 projectLoadSettings);
@@ -182,14 +188,14 @@ internal sealed class ProjectBuildManager
         }
     }
 
-    public (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProject(string path, Stream readStream)
+    public (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProject(string path, Stream readStream, bool fileBasedApp)
     {
         var log = new DiagnosticLog();
         try
         {
             if (BatchBuildStarted)
             {
-                return LoadProjectCore(path, readStream, _batchBuildProjectCollection, log);
+                return LoadProjectCore(path, readStream, fileBasedApp, _batchBuildProjectCollection, log);
             }
             else
             {
@@ -200,7 +206,7 @@ internal sealed class ProjectBuildManager
                     MSB.Evaluation.ToolsetDefinitionLocations.Default);
                 try
                 {
-                    return LoadProjectCore(path, readStream, projectCollection, log);
+                    return LoadProjectCore(path, readStream, fileBasedApp, projectCollection, log);
                 }
                 finally
                 {
@@ -227,20 +233,7 @@ internal sealed class ProjectBuildManager
             }
             else
             {
-                var projectCollection = new MSB.Evaluation.ProjectCollection(
-                    AllGlobalProperties,
-                    // https://github.com/dotnet/msbuild/issues/11867: workaround LoggerException when passing binary logger to both evaluation and build
-                    loggers: [],
-                    MSB.Evaluation.ToolsetDefinitionLocations.Default);
-                try
-                {
-                    return LoadProjectInstanceCore(path, content, projectCollection, log);
-                }
-                finally
-                {
-                    // unload project so collection will release global strings
-                    projectCollection.UnloadAllProjects();
-                }
+                throw new InvalidOperationException("Loading project instances is only supported during batch builds.");
             }
         }
         catch (Exception e)

@@ -192,10 +192,10 @@ internal sealed class BuildHost : IBuildHost
     /// <summary>
     /// Returns the target ID of the <see cref="ProjectFile"/> object created for this.
     /// </summary>
-    public int LoadProject(string projectFilePath, string projectContent, string languageName)
+    public int LoadProject(string projectFilePath, string projectContent, string languageName, bool fileBasedApp)
     {
         EnsureMSBuildLoaded(projectFilePath);
-        return LoadProjectCore(projectFilePath, projectContent, languageName);
+        return LoadProjectCore(projectFilePath, projectContent, languageName, fileBasedApp);
     }
 
     public int LoadProjectInstance(string projectFilePath, string projectContent)
@@ -222,11 +222,11 @@ internal sealed class BuildHost : IBuildHost
     // to the JIT during compilation of the method, so they have to be loaded by the caller;
     // therefore this method must not be inlined.
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private int LoadProjectCore(string projectFilePath, string projectContent, string languageName)
+    private int LoadProjectCore(string projectFilePath, string projectContent, string languageName, bool fileBasedApp)
     {
         CreateBuildManager();
 
-        _logger.LogInformation($"Loading an in-memory project with the path {projectFilePath}");
+        _logger.LogInformation($"Loading an in-memory project with the path {projectFilePath} (file-based app: {fileBasedApp})");
 
         // We expect MSBuild to consume this stream with a utf-8 encoding.
         // This is because we expect the stream we create to not include a BOM nor an an encoding declaration a la `<?xml encoding="..."?>`.
@@ -236,7 +236,7 @@ internal sealed class BuildHost : IBuildHost
         // But it seems like a very unlikely scenario to actually get into--this is not something people generally put on real project files.
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(projectContent));
 
-        var (project, log) = _buildManager.LoadProject(projectFilePath, stream);
+        var (project, log) = _buildManager.LoadProject(projectFilePath, stream, fileBasedApp);
         return AddProjectFileTarget(project, languageName, log);
     }
 

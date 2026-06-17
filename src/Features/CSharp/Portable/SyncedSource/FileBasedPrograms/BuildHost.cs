@@ -8,7 +8,12 @@ using System.Xml;
 
 namespace Microsoft.DotNet.FileBasedPrograms;
 
-internal interface IBuildHost
+#if FILE_BASED_PROGRAMS_PUBLIC
+public
+#else
+internal
+#endif
+interface IBuildHost
 {
     IProjectInstance CreateProjectInstanceFromProjectRootElement(
         IProjectRootElement projectRoot,
@@ -18,25 +23,45 @@ internal interface IBuildHost
     IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection);
 }
 
-internal interface IProjectCollection
+#if FILE_BASED_PROGRAMS_PUBLIC
+public
+#else
+internal
+#endif
+interface IProjectCollection
 {
     IDictionary<string, string> GlobalProperties { get; }
 }
 
-internal interface IProjectInstance
+#if FILE_BASED_PROGRAMS_PUBLIC
+public
+#else
+internal
+#endif
+interface IProjectInstance
 {
     IEnumerable<IProjectItemInstance> GetItems(string itemType);
     string GetPropertyValue(string propertyName);
     string ExpandString(string value);
 }
 
-internal interface IProjectItemInstance
+#if FILE_BASED_PROGRAMS_PUBLIC
+public
+#else
+internal
+#endif
+interface IProjectItemInstance
 {
     string GetMetadataValue(string name);
     string ItemType { get; }
 }
 
-internal interface IProjectRootElement
+#if FILE_BASED_PROGRAMS_PUBLIC
+public
+#else
+internal
+#endif
+interface IProjectRootElement
 {
     string? FullPath { get; set; }
     string GetRawXml();

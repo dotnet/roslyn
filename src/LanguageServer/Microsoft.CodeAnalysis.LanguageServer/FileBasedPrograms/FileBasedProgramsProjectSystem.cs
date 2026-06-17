@@ -353,7 +353,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
-        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
+        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, fileBasedApp: false, cancellationToken);
 
         return new RemoteProjectLoadResult
         {

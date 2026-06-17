@@ -33,6 +33,12 @@ internal sealed class ProjectFileReference
     [DataMember(Order = 2)]
     public bool ReferenceOutputAssembly { get; }
 
+    /// <summary>
+    /// The original C# file path if this corresponds to a virtual project.
+    /// </summary>
+    [DataMember(Order = 3)]
+    public string? PhysicalPath { get; init; }
+
     public ProjectFileReference(string path, ImmutableArray<string> aliases, bool referenceOutputAssembly)
     {
         Debug.Assert(!aliases.IsDefault);

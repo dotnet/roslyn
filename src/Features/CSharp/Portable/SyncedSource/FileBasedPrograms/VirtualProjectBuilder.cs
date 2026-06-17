@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Xml;
@@ -18,27 +19,36 @@ using Microsoft.DotNet.Utilities;
 
 namespace Microsoft.DotNet.FileBasedPrograms;
 
-internal sealed class VirtualProjectBuilder
+#if FILE_BASED_PROGRAMS_PUBLIC
+public
+#else
+internal
+#endif
+sealed class VirtualProjectBuilder
 {
     internal readonly record struct ExplicitProjectItem(string ItemType, string Include);
 
     internal const string FromIncludeDirectiveMetadataName = "FileBasedProgramsFromIncludeDirective";
 
+    internal const string FromRefDirectiveMetadataName = "FileBasedProgramsFromRefDirective";
+
+    /// <summary>
+    /// Keeps a strong reference to the latest virtual <see cref="IProjectRootElement"/> created for each entry point in a <see cref="IProjectCollection"/>,
+    /// preventing it from being garbage collected when MSBuild's <c>ProjectRootElementCache</c> demotes it to a weak reference.
+    /// Without this, nested <c>&lt;MSBuild&gt;</c> tasks that re-evaluate virtual projects with different properties
+    /// would fail to find the <see cref="IProjectRootElement"/> in the cache and try to load it from disk,
+    /// resulting in MSB4025 because the virtual project file does not exist on disk.
+    /// See <see href="https://github.com/dotnet/sdk/issues/52714"/>.
+    /// </summary>
+    private static readonly ConditionalWeakTable<IProjectCollection, Dictionary<string, IProjectRootElement>> s_projectRootsByProjectCollection = new();
+
     private readonly IBuildHost _buildHost;
+
+    private readonly string _targetFramework;
 
     private readonly IEnumerable<(string name, string value)> _defaultProperties;
 
     private (ImmutableArray<CSharpDirective> Original, ImmutableArray<CSharpDirective> Evaluated)? _evaluatedDirectives;
-
-    /// <summary>
-    /// Prevents the virtual project's <see cref="IProjectRootElement"/> from being garbage collected
-    /// when MSBuild's <c>ProjectRootElementCache</c> demotes it to a weak reference
-    /// (which can happen when many SDK import files fill the cache during NuGet restore).
-    /// Without this, nested <c>&lt;MSBuild&gt;</c> tasks that re-evaluate the project with different properties
-    /// would fail to find the <see cref="IProjectRootElement"/> in the cache and try to load it from disk,
-    /// resulting in MSB4025 because the virtual project file does not exist on disk.
-    /// </summary>
-    private IProjectRootElement? _projectRootElement;
 
     internal string EntryPointFileFullPath { get; }
 
@@ -74,6 +84,7 @@ internal sealed class VirtualProjectBuilder
         EntryPointFileFullPath = entryPointFileFullPath;
         RequestedTargets = requestedTargets;
         ArtifactsPath = artifactsPath;
+        _targetFramework = targetFramework;
         _defaultProperties = GetDefaultProperties(targetFramework);
 
         if (sourceText != null)
@@ -295,7 +306,8 @@ internal sealed class VirtualProjectBuilder
         out ImmutableArray<CSharpDirective> evaluatedDirectives,
         ImmutableArray<CSharpDirective> directives = default,
         Action<IDictionary<string, string>>? addGlobalProperties = null,
-        bool validateAllDirectives = false)
+        bool validateAllDirectives = false,
+        HashSet<string>? processedRefFiles = null)
     {
         var directivesOriginal = directives;
 
@@ -319,6 +331,8 @@ internal sealed class VirtualProjectBuilder
                 addGlobalProperties);
 
             CheckDirectives(project, evaluatedDirectives, reportError);
+            CreateReferencedVirtualProjects(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles);
+            StoreProjectRootElement(projectCollection, EntryPointFileFullPath, projectRootElement);
 
             return;
         }
@@ -396,6 +410,8 @@ internal sealed class VirtualProjectBuilder
         _evaluatedDirectives = (directivesOriginal, evaluatedDirectives);
 
         CheckDirectives(project, evaluatedDirectives, reportError);
+        CreateReferencedVirtualProjects(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles);
+        StoreProjectRootElement(projectCollection, EntryPointFileFullPath, projectRootElement);
 
         bool TryGetNextFileToProcess()
         {
@@ -491,9 +507,68 @@ internal sealed class VirtualProjectBuilder
                 using var xmlReader = XmlReader.Create(reader);
                 var projectRoot = _buildHost.CreateProjectRootElement(xmlReader, projectCollection);
                 projectRoot.FullPath = GetVirtualProjectPath(EntryPointFileFullPath);
-                _projectRootElement = projectRoot;
                 return projectRoot;
             }
+        }
+    }
+
+    private static void StoreProjectRootElement(
+        IProjectCollection projectCollection,
+        string entryPointFileFullPath,
+        IProjectRootElement projectRootElement)
+    {
+        var projectRoots = s_projectRootsByProjectCollection.GetValue(
+            projectCollection,
+            static _ => new Dictionary<string, IProjectRootElement>(StringComparer.OrdinalIgnoreCase));
+
+        lock (projectRoots)
+        {
+            projectRoots[entryPointFileFullPath] = projectRootElement;
+        }
+    }
+
+    /// <summary>
+    /// Recursively creates virtual <see cref="IProjectRootElement"/>s for all <c>#:ref</c> directives
+    /// so MSBuild can resolve <c>&lt;ProjectReference&gt;</c> items to them.
+    /// </summary>
+    private void CreateReferencedVirtualProjects(
+        IProjectCollection projectCollection,
+        ImmutableArray<CSharpDirective> directives,
+        ErrorReporter reportError,
+        bool validateAllDirectives,
+        HashSet<string>? processedFiles)
+    {
+        if (!directives.Any(static d => d is CSharpDirective.Ref))
+        {
+            return;
+        }
+
+        processedFiles ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        processedFiles.Add(EntryPointFileFullPath);
+
+        foreach (var refDirective in directives.OfType<CSharpDirective.Ref>())
+        {
+            Debug.Assert(refDirective.ResolvedPath is not null);
+
+            if (refDirective.ResolvedPath is not { } resolvedPath)
+            {
+                continue;
+            }
+
+            if (!processedFiles.Add(resolvedPath))
+            {
+                continue;
+            }
+
+            var refBuilder = new VirtualProjectBuilder(_buildHost, resolvedPath, _targetFramework);
+            refBuilder.CreateProjectInstance(
+                projectCollection,
+                reportError,
+                project: out _,
+                projectRootElement: out _,
+                evaluatedDirectives: out _,
+                validateAllDirectives: validateAllDirectives,
+                processedRefFiles: processedFiles);
         }
     }
 
@@ -843,7 +918,7 @@ internal sealed class VirtualProjectBuilder
                 {
                     var virtualProjectPath = GetVirtualProjectPath(refDirective.ResolvedPath);
                     writer.WriteLine($"""
-                            <ProjectReference Include="{EscapeValue(virtualProjectPath)}" />
+                            <ProjectReference Include="{EscapeValue(virtualProjectPath)}" {FromRefDirectiveMetadataName}="{EscapeValue(refDirective.ResolvedPath)}" />
                         """);
                 }
 

@@ -49,7 +49,7 @@ internal sealed class BuildHostProjectFileInfoProvider(
                 ProjectLoadOperation.Evaluate,
                 projectPath,
                 targetFramework: null,
-                () => buildHost.LoadProjectAsync(projectRootElement.FullPath!, projectRootElement.GetRawXml(), languageName, cancellationToken)
+                () => buildHost.LoadProjectAsync(projectRootElement.FullPath!, projectRootElement.GetRawXml(), languageName, fileBasedApp: true, cancellationToken)
             ).ConfigureAwait(false);
         }
         else

@@ -61,7 +61,7 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance) :
 
     public IEnumerable<IProjectItemInstance> GetItems(string itemType) => []; // TODO
     public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, CancellationToken.None).Result;
-    public string ExpandString(string value) => string.Empty; // TODO
+    public string ExpandString(string value) => value; // TODO
 }
 
 file sealed class ProjectItemInstance
