@@ -96,11 +96,11 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     }
 
     /// <summary>
-    /// Looks in the declaring projects for a reference that registers <paramref name="methodSymbol"/>
-    /// as a void-returning delegate.
+    /// Looks in the declaring projects for a location where <paramref name="methodSymbol"/> is
+    /// converted to a delegate.
     /// </summary>
     /// <returns><see langword="true"/> iff such a reference is found. There are no false positives.</returns>
-    private static async Task<bool> HasKnownReferencesAsVoidReturningDelegateAsync(
+    private static async Task<bool> HasKnownReferencesAsDelegateAsync(
         Solution solution,
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
@@ -119,7 +119,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (IsVoidReturningDelegateReference(semanticModel, syntaxNode, cancellationToken))
+                if (IsDelegateReference(semanticModel, syntaxNode, cancellationToken))
                     return true;
             }
         }
@@ -159,9 +159,9 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
     /// <returns>
     /// Whether <paramref name="syntaxNode"/> is a reference to a method that is being
-    /// converted to a void-returning delegate.
+    /// converted to a delegate.
     /// </returns>
-    private static bool IsVoidReturningDelegateReference(
+    private static bool IsDelegateReference(
         SemanticModel semanticModel, SyntaxNode syntaxNode, CancellationToken cancellationToken)
     {
         IOperation? operation = null;
@@ -175,10 +175,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         for (; operation != null; operation = operation.Parent)
         {
             if (operation is IDelegateCreationOperation delegateCreation)
-            {
-                return delegateCreation.Target is IMethodReferenceOperation &&
-                       delegateCreation.Type is INamedTypeSymbol { DelegateInvokeMethod.ReturnsVoid: true };
-            }
+                return delegateCreation.Target is IMethodReferenceOperation;
         }
 
         return false;
@@ -218,7 +215,10 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         var knownTypes = new KnownTaskTypes(semanticModel.Compilation);
 
-        var addWarningAnnotation = !keepVoid && await HasKnownReferencesAsVoidReturningDelegateAsync(
+        var returnTypeWillChange = methodSymbol.ReturnsVoid
+            ? !keepVoid
+            : !IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
+        var addWarningAnnotation = returnTypeWillChange && await HasKnownReferencesAsDelegateAsync(
             document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
 
         return NeedsRename()
@@ -296,7 +296,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     {
         var newNode = FixMethodSignature(addAsyncModifier: true, keepVoid, methodSymbol, node, knownTypes);
         if (addWarningAnnotation)
-            newNode = newNode.WithAdditionalAnnotations(WarningAnnotation.Create(GetVoidReturningDelegateWarningResource()));
+            newNode = newNode.WithAdditionalAnnotations(WarningAnnotation.Create(GetUsedAsDelegateWarningResource()));
 
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);

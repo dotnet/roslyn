@@ -470,6 +470,42 @@ End Class
             Await TestAsync(initial, expected)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")>
+        Public Async Function AwaitInNonVoidMethodUsedAsDelegate_Warns() As Task
+            Dim initial =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Private Function GetValue() As Integer
+        [|Await Task.Delay(1)|]
+    End Function
+
+    Private Sub Hookup()
+        Dim f As Func(Of Integer) = AddressOf GetValue
+    End Sub
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    {|Warning:Private Async Function GetValueAsync() As Task(Of Integer)
+        Await Task.Delay(1)
+    End Function|}
+
+    Private Sub Hookup()
+        Dim f As Func(Of Integer) = AddressOf GetValueAsync
+    End Sub
+End Class
+</File>
+
+            Await TestAsync(initial, expected)
+        End Function
+
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6477")>
         Public Async Function TestNullNodeCrash() As Task
             Dim initial =

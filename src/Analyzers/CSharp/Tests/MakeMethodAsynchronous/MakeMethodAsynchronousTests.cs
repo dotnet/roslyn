@@ -335,28 +335,22 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
-    public async Task AwaitInTaskReturningEventHandlerMethod_NoWarning()
-    {
-        // Event delegates that return Task are valid for async Task handlers,
-        // so we should NOT show the warning annotation.
-        // Note: The reference is not updated in this case, which is a known limitation.
-        await TestInRegularAndScriptAsync("""
+    public Task AwaitInNonVoidMethodUsedAsDelegate_Warns()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
             class C
             {
-                private delegate Task AsyncEventHandler(object sender, EventArgs e);
-                private event AsyncEventHandler Click;
-
-                private void OnClick(object sender, EventArgs e)
+                private int GetValue()
                 {
                     [|await Task.Delay(1);|]
+                    return 1;
                 }
 
                 private void Hookup()
                 {
-                    Click += OnClick;
+                    Func<int> f = GetValue;
                 }
             }
             """, """
@@ -365,21 +359,54 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
 
             class C
             {
-                private delegate Task AsyncEventHandler(object sender, EventArgs e);
-                private event AsyncEventHandler Click;
+                {|Warning:private async Task<int> GetValueAsync()
+                {
+                    await Task.Delay(1);
+                    return 1;
+                }|}
 
-                private async Task OnClickAsync(object sender, EventArgs e)
+                private void Hookup()
+                {
+                    Func<int> f = GetValueAsync;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task AwaitInTaskReturningMethodUsedAsDelegate_NoWarning()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private Task DoWork()
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Hookup()
+                {
+                    Func<Task> f = DoWork;
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private async Task DoWork()
                 {
                     await Task.Delay(1);
                 }
 
                 private void Hookup()
                 {
-                    Click += OnClick;
+                    Func<Task> f = DoWork;
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
     public Task AwaitInEventHandlerMethod_RegisteredInSeparateDocument_StillWarns()
