@@ -4686,11 +4686,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol GetStackAllocType(SyntaxNode node, TypeWithAnnotations elementTypeWithAnnotations, BindingDiagnosticBag diagnostics, out bool hasErrors)
         {
+            Debug.Assert(node is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax);
+
             var inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
             hasErrors = !inLegalPosition;
             if (inLegalPosition && !isStackallocTargetTyped(node))
             {
-                ReportUnsafeForUninitializedSpanStackAllocIfRequired(node, diagnostics, hasInitializer: node is not StackAllocArrayCreationExpressionSyntax { Initializer: null });
+                var hasInitializer = node switch
+                {
+                    StackAllocArrayCreationExpressionSyntax { Initializer: null } => false,
+                    StackAllocArrayCreationExpressionSyntax => true,
+                    ImplicitStackAllocArrayCreationExpressionSyntax => true,
+                    _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
+                };
+
+                ReportUnsafeForUninitializedSpanStackAllocIfRequired(node, diagnostics, hasInitializer);
 
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
