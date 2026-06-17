@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
 /// Creates the <see cref="IEditAndContinueLogReporter"/> workspace service in hosts that expose a service broker
-/// (currently the remote/OOP host). The reporter forwards EnC trace logs to the debugger's hot reload logger.
+/// The reporter forwards EnC trace logs to the debugger's hot reload logger.
 /// </summary>
 [ExportWorkspaceServiceFactory(typeof(IEditAndContinueLogReporter), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
