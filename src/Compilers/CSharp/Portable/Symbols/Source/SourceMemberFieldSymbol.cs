@@ -191,21 +191,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override CallerUnsafeMode CallerUnsafeMode
-        {
-            get
-            {
-                if (ContainingModule.UseUpdatedMemorySafetyRules)
-                {
-                    return HasUnsafeModifier &&
-                        AssociatedSymbol is null &&
-                        !IsConst
-                            ? CallerUnsafeMode.Explicit
-                            : CallerUnsafeMode.None;
-                }
+            => GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty);
 
-                return !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer()
-                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+        internal CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
+            {
+                return HasUnsafeModifier &&
+                    AssociatedSymbol is null &&
+                    !IsConst
+                        ? CallerUnsafeMode.Explicit
+                        : CallerUnsafeMode.None;
             }
+
+            return !IsFixedSizeBuffer && GetFieldType(fieldsBeingBound).Type.ContainsPointerOrFunctionPointer()
+                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
         }
 
         internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, bool isRefField, BindingDiagnosticBag diagnostics, out bool modifierErrors)

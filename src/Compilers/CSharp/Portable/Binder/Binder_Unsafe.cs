@@ -39,12 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location)
         {
             var useUpdatedMemorySafetyRules = this.Compilation.SourceModule.UseUpdatedMemorySafetyRules;
-            if (!useUpdatedMemorySafetyRules && symbol.CallerUnsafeMode != CallerUnsafeMode.Implicit)
+            var callerUnsafeMode = GetCallerUnsafeMode(symbol);
+            if (!useUpdatedMemorySafetyRules && callerUnsafeMode != CallerUnsafeMode.Implicit)
             {
                 return;
             }
 
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, arg, location, forConstructorConstraint: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, callerUnsafeMode, arg, location, forConstructorConstraint: false);
 
             if (useUpdatedMemorySafetyRules && ShouldCheckConstraints)
             {
@@ -94,18 +95,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (ctor.ParameterCount == 0)
                     {
                         // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
-                        @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
+                        @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, ctor.CallerUnsafeMode, arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
                         break;
                     }
                 }
             }
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location, bool forConstructorConstraint, ReadOnlySpan<object> additionalArgs = default)
+        private CallerUnsafeMode GetCallerUnsafeMode(Symbol symbol)
         {
-            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || symbol.CallerUnsafeMode == CallerUnsafeMode.Implicit);
+            return symbol is SourceMemberFieldSymbol field ? field.GetCallerUnsafeMode(FieldsBeingBound) : symbol.CallerUnsafeMode;
+        }
 
-            var callerUnsafeMode = symbol.CallerUnsafeMode;
+        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, CallerUnsafeMode callerUnsafeMode, T arg, Func<T, Location?> location, bool forConstructorConstraint, ReadOnlySpan<object> additionalArgs = default)
+        {
+            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || callerUnsafeMode == CallerUnsafeMode.Implicit);
+
             if (callerUnsafeMode != CallerUnsafeMode.None)
             {
                 Debug.Assert(callerUnsafeMode == CallerUnsafeMode.Explicit || !forConstructorConstraint);
