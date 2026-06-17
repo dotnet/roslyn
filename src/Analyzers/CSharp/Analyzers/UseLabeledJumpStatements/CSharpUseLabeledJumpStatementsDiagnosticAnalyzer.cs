@@ -46,10 +46,11 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
             if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
+            var statement = context.Node;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            if (context.Node is GotoStatementSyntax gotoStatement)
+            if (statement is GotoStatementSyntax gotoStatement)
             {
                 if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _) ||
                     CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _))
@@ -57,7 +58,7 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
                     ReportDiagnostic(context, gotoStatement, option.Notification);
                 }
             }
-            else if (context.Node is BreakStatementSyntax breakStatement)
+            else if (statement is BreakStatementSyntax breakStatement)
             {
                 // We register on 'break' (not 'continue') because the flag pattern's inner jump is always a 'break': it
                 // has to exit the inner loop so control returns to the outer loop where the flag is checked.  Whether

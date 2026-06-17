@@ -89,8 +89,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         if (!IsUnlabeledLoopJump(guardJump))
             return false;
 
-        if (guard.Parent is not BlockSyntax guardBlock ||
-            guardBlock.Parent is not StatementSyntax outerLoop ||
+        if (guard.Parent is not BlockSyntax { Parent: StatementSyntax outerLoop } guardBlock ||
             !outerLoop.IsContinuableConstruct())
         {
             return false;
