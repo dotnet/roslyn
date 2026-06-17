@@ -1528,8 +1528,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="translated">공용 구조체 멤버 공급자 형식에는 형식이 'object?' 또는 'object'인 퍼블릭 인스턴스 'Value' 속성이 있어야 합니다. 속성에는 get 접근자가 있어야 합니다.</target>
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="needs-review-translation">공용 구조체 멤버 공급자 형식에는 형식이 'object?' 또는 'object'인 퍼블릭 인스턴스 'Value' 속성이 있어야 합니다. 속성에는 get 접근자가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
