@@ -36112,6 +36112,250 @@ class Program
         }
 
         [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_HasValue_Inheritance_23_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object IUnionMembers.Value => throw null;
+    bool IUnionMembersBase.HasValue => _value != null;
+    int IUnionMembers.HasValue => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        new public int HasValue { get; }
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public bool HasValue { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""bool S1.IUnionMembersBase.HasValue.get""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ceq
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_HasValue_Inheritance_24_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object IUnionMembers.Value => throw null;
+    bool IUnionMembersBase.HasValue => _value != null;
+    bool IUnionMembers.HasValue() => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        new public bool HasValue();
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public bool HasValue { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""bool S1.IUnionMembersBase.HasValue.get""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ceq
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_HasValue_Inheritance_25_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object IUnionMembers.Value => throw null;
+    bool IBase1.HasValue => _value != null;
+    int IBase2.HasValue => throw null;
+    
+    public interface IUnionMembers : IBase2, IBase1
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1  
+    {
+        new public int HasValue { get; }
+    }
+
+    public interface IBase1  
+    {
+        public bool HasValue { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""bool S1.IBase1.HasValue.get""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ceq
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_HasValue_Inheritance_26_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object IUnionMembers.Value => throw null;
+    bool IBase1.HasValue => _value != null;
+    bool IBase2.HasValue() => throw null;
+    
+    public interface IUnionMembers : IBase2, IBase1
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1  
+    {
+        new public bool HasValue();
+    }
+
+    public interface IBase1  
+    {
+        public bool HasValue { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""bool S1.IBase1.HasValue.get""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ceq
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
         public void NonBoxingUnionMatching_MemberProvider_TryGetValue_01_Struct()
         {
             var src = @"
@@ -37086,51 +37330,7 @@ class Program
         }
 
         [Fact]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_18_NotInherited()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-struct S1 : S1.IUnionMembers
-{
-    private readonly object _value;
-    public S1(int x) { _value = x; }
-    public S1(string x) { _value = x; }
-    public object Value => _value;
-    public bool TryGetValue(out int x) => throw null;
-    
-    public interface IUnionMembers : IUnionMembersBase  
-    {
-        public static S1 Create(int x) => new S1(x);
-        public static S1 Create(string x) => new S1(x);
-        public object Value { get; }
-    }
-
-    public interface IUnionMembersBase  
-    {
-        public bool TryGetValue(out int x);
-    }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new S1(1)));
-        System.Console.Write(Test1(new S1()));
-    }
-
-    static bool Test1(S1 u)
-    {
-        return u is int;
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_19_NullableAnalysis()
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_18_NullableAnalysis()
         {
             var src = @"
 #nullable enable
@@ -37201,7 +37401,7 @@ class Program
         }
 
         [Fact]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_20_NullableAnalysis()
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_19_NullableAnalysis()
         {
             var src = @"
 #nullable enable
@@ -37272,7 +37472,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_21_NotPublic([CombinatorialValues("internal", "protected", "internal protected", "private protected")] string accessibility)
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_20_NotPublic([CombinatorialValues("internal", "protected", "internal protected", "private protected")] string accessibility)
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -37312,7 +37512,7 @@ class Program
         }
 
         [Fact]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_22_NotPublic()
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_21_NotPublic()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -37351,7 +37551,7 @@ class Program
         }
 
         [Fact]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_23_Generic()
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_22_Generic()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -37391,7 +37591,7 @@ class Program
         }
 
         [Fact]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_24_WrongParameterKind()
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_23_WrongParameterKind()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -37436,7 +37636,7 @@ class Program
         }
 
         [Fact]
-        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_25_Overloaded()
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_24_Overloaded()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -37480,6 +37680,2430 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_01()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IUnionMembersBase.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IUnionMembersBase  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IUnionMembersBase.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IBase1.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IBase2  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1;
+
+    public interface IBase1  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IBase1.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_03_Generic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IUnionMembersBase<int>.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IUnionMembersBase<int>  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase<T>  
+    {
+        public bool TryGetValue(out T x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IUnionMembersBase<int>.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_04_Generic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IUnionMembersBase<bool>.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IUnionMembersBase<bool>  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+}
+
+public interface IUnionMembersBase<T>  
+{
+    public T TryGetValue(out int x);
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool IUnionMembersBase<bool>.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_05_InGenericUnion()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<T>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+
+    object IUnionMembers.Value => throw null;
+    bool IUnionMembersBase.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1<T> Create(int x) => new S1<T>(x);
+        public static S1<T> Create(string x) => new S1<T>(x);
+
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<long>(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1<long>(""11"")));
+        System.Console.Write(Test1(new S1<long>(0)));
+    }
+
+    static bool Test1(S1<long> u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1<long>""
+  IL_000a:  callvirt   ""bool S1<long>.IUnionMembersBase.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_06_InGenericUnion()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<T>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(T x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+
+    object IUnionMembers.Value => throw null;
+    bool IUnionMembersBase.TryGetValue(out T x) { if (_value is T v) { x = v; return true; } x = default; return false; }
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1<T> Create(T x) => new S1<T>(x);
+        public static S1<T> Create(string x) => new S1<T>(x);
+
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase
+    {
+        public bool TryGetValue(out T x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1<int>(""11"")));
+        System.Console.Write(Test1(new S1<int>(0)));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1<int>""
+  IL_000a:  callvirt   ""bool S1<int>.IUnionMembersBase.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_07_InGenericUnion()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<T>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+
+    object IUnionMembers.Value => throw null;
+    bool IUnionMembersBase<bool, int>.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    int IUnionMembersBase<int, string>.TryGetValue(out string x) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase<int, string>, IUnionMembersBase<bool, int>
+    {
+        public static S1<T> Create(int x) => new S1<T>(x);
+        public static S1<T> Create(string x) => new S1<T>(x);
+
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase<T1, T2>
+    {
+        public T1 TryGetValue(out T2 x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<long>(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1<long>(""11"")));
+        System.Console.Write(Test1(new S1<long>(0)));
+    }
+
+    static bool Test1(S1<long> u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1<long>""
+  IL_000a:  callvirt   ""bool S1<long>.IUnionMembersBase<bool, int>.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_08_Provider_NotPublic([CombinatorialValues("internal", "internal protected")] string accessibility)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+
+    object IUnionMembers.Value => throw null;
+    bool IUnionMembersBase.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public object Value { get; }
+    }
+    
+    " + accessibility + @" interface IUnionMembersBase 
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000c
+  IL_0003:  ldarg.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  callvirt   ""bool S1.IUnionMembersBase.TryGetValue(out int)""
+  IL_000b:  ret
+  IL_000c:  ldc.i4.0
+  IL_000d:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_09_Provider_NotPublic([CombinatorialValues("", "private", "internal", "protected", "internal protected", "private protected")] string accessibility)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+public class S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+
+    object IUnionMembers.Value => throw null;
+    bool IUnionMembersBase.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public object Value { get; }
+    }
+    
+    " + accessibility + @" interface IUnionMembersBase 
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (14,22): error CS0061: Inconsistent accessibility: base interface 'S1.IUnionMembersBase' is less accessible than interface 'S1.IUnionMembers'
+                //     public interface IUnionMembers : IUnionMembersBase
+                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IUnionMembers").WithArguments("S1.IUnionMembers", "S1.IUnionMembersBase").WithLocation(14, 22)
+                );
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_10_WrongType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+
+    public bool TryGetValue(out int x) => throw null;
+    object IUnionMembers.Value => _value;
+    System.IComparable IUnionMembersBase.TryGetValue(out int x) => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase 
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public object Value { get; }
+    }
+    
+    public interface IUnionMembersBase  
+    {
+        public System.IComparable TryGetValue(out int x);
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object S1.IUnionMembers.Value.get""
+  IL_000d:  isinst     ""int""
+  IL_0012:  ldnull
+  IL_0013:  cgt.un
+  IL_0015:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_11_WrongType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+
+    public bool TryGetValue(out int x) => throw null;
+    object IUnionMembers.Value => _value;
+    bool IUnionMembersBase.TryGetValue(out string x) => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public object Value { get; }
+    }
+    
+    public interface IUnionMembersBase  
+    {
+        public bool TryGetValue(out string x);
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object S1.IUnionMembers.Value.get""
+  IL_000d:  isinst     ""int""
+  IL_0012:  ldnull
+  IL_0013:  cgt.un
+  IL_0015:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_12_WrongType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<T>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+
+    object IUnionMembers.Value => _value;
+    T IUnionMembersBase.TryGetValue(out int x) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase 
+    {
+        public static S1<T> Create(int x) => new S1<T>(x);
+        public static S1<T> Create(string x) => new S1<T>(x);
+
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public T TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<bool>(1)));
+        System.Console.Write(Test1(new S1<bool>()));
+    }
+
+    static bool Test1(S1<bool> u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1<bool>""
+  IL_0008:  callvirt   ""object S1<bool>.IUnionMembers.Value.get""
+  IL_000d:  isinst     ""int""
+  IL_0012:  ldnull
+  IL_0013:  cgt.un
+  IL_0015:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_13_WrongType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<T>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+
+    object IUnionMembers.Value => _value;
+    T IUnionMembersBase<T>.TryGetValue(out int x) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase<T> 
+    {
+        public static S1<T> Create(int x) => new S1<T>(x);
+        public static S1<T> Create(string x) => new S1<T>(x);
+
+        public object Value { get; }
+    }
+}
+
+public interface IUnionMembersBase<T>
+{
+    public T TryGetValue(out int x);
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<bool>(1)));
+        System.Console.Write(Test1(new S1<bool>()));
+    }
+
+    static bool Test1(S1<bool> u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1<bool>""
+  IL_0008:  callvirt   ""object S1<bool>.IUnionMembers.Value.get""
+  IL_000d:  isinst     ""int""
+  IL_0012:  ldnull
+  IL_0013:  cgt.un
+  IL_0015:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_14_WrongType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<T>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+
+    object IUnionMembers.Value => _value;
+    bool IUnionMembersBase.TryGetValue(out T x) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1<T> Create(int x) => new S1<T>(x);
+        public static S1<T> Create(string x) => new S1<T>(x);
+
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public bool TryGetValue(out T x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(1)));
+        System.Console.Write(Test1(new S1<int>()));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1<int>""
+  IL_0008:  callvirt   ""object S1<int>.IUnionMembers.Value.get""
+  IL_000d:  isinst     ""int""
+  IL_0012:  ldnull
+  IL_0013:  cgt.un
+  IL_0015:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_15_WrongType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<T>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+
+    object IUnionMembers.Value => _value;
+    bool IUnionMembersBase<T>.TryGetValue(out T x) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase<T>
+    {
+        public static S1<T> Create(int x) => new S1<T>(x);
+        public static S1<T> Create(string x) => new S1<T>(x);
+
+        public object Value { get; }
+    }
+}
+
+public interface IUnionMembersBase<T>
+{
+    public bool TryGetValue(out T x);
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(1)));
+        System.Console.Write(Test1(new S1<int>()));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1<int>""
+  IL_0008:  callvirt   ""object S1<int>.IUnionMembers.Value.get""
+  IL_000d:  isinst     ""int""
+  IL_0012:  ldnull
+  IL_0013:  cgt.un
+  IL_0015:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_16_WrongRefKind([CombinatorialValues("ref", "ref readonly")] string refModifier)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+    
+    object IUnionMembers.Value => _value;
+    " + refModifier + @" bool IUnionMembersBase.TryGetValue(out int x) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase
+    {
+        public " + refModifier + @" bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_17_WrongRefKind([CombinatorialValues("", "in", "ref", "ref readonly")] string refModifier)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+    
+    object IUnionMembers.Value => _value;
+    bool IUnionMembersBase.TryGetValue(" + refModifier + @" int x) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase 
+    {
+        public bool TryGetValue(" + refModifier + @" int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_18_Static()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue(out int x) => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+    
+    public interface IUnionMembersBase
+    {
+        public static bool TryGetValue(out int x) => throw null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_19_NotVirtual()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public sealed bool TryGetValue(out int x)  { if (((S1)this)._value is int v) { x = v; return true; } x = 0; return false; }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000c
+  IL_0003:  ldarg.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  callvirt   ""bool S1.IUnionMembersBase.TryGetValue(out int)""
+  IL_000b:  ret
+  IL_000c:  ldc.i4.0
+  IL_000d:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_20_NotPublic([CombinatorialValues("internal", "protected", "internal protected", "private protected")] string accessibility)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    bool IUnionMembersBase.TryGetValue(out int x) => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+    
+    public interface IUnionMembersBase  
+    {
+        " + accessibility + @" abstract bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_21_NotPublic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+    
+    public interface IUnionMembersBase  
+    {
+        private bool TryGetValue(out int x) => throw null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_22_Generic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    bool IUnionMembersBase.TryGetValue<T>(out int x) => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+    
+    public interface IUnionMembersBase  
+    {
+        public bool TryGetValue<T>(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_23_WrongSignature()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+    
+    object IUnionMembers.Value => _value;
+    bool IUnionMembersBase.TryGetValue() => throw null;
+    bool IUnionMembersBase.TryGetValue(out int x, out int y) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase 
+    {
+        public bool TryGetValue();
+        public bool TryGetValue(out int x, out int y);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_24_Overloaded()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+    
+    object IUnionMembers.Value => throw null;
+    bool IUnionMembersBase.TryGetValue(out int x, out int y) => throw null;
+    bool IUnionMembersBase.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    bool IUnionMembersBase.TryGetValue() => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public bool TryGetValue(out int x, out int y);
+        public bool TryGetValue(out int x);
+        public bool TryGetValue();
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_25_NotDefined()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) => throw null;
+    
+    object IUnionMembers.Value => _value;
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IUnionMembersBase 
+    {
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_26_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IUnionMembers.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    bool IUnionMembersBase.TryGetValue(out int x) => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        public new bool TryGetValue(out int x);
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IUnionMembers.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_27_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IBase2.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    bool IBase1.TryGetValue(out int x) => throw null;
+    
+    public interface IUnionMembers : IBase1, IBase2  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public new bool TryGetValue(out int x);
+    }
+
+    public interface IBase1  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IBase2.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_28_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IBase2.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    bool IBase1.TryGetValue(out int x) => throw null;
+    bool IBase0.TryGetValue(out int x) => throw null;
+    
+    public interface IUnionMembers : IBase0, IBase1, IBase2  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public new bool TryGetValue(out int x);
+    }
+
+    public interface IBase1 : IBase0
+    {
+        public new bool TryGetValue(out int x);
+    }
+
+    public interface IBase0  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IBase2.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_29_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IUnionMembersBase.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    int IUnionMembers.TryGetValue(out int x) => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        public new int TryGetValue(out int x);
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IUnionMembersBase.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_30_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IUnionMembersBase.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    bool IUnionMembers.TryGetValue => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+        public new bool TryGetValue { get; }
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IUnionMembersBase.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_31_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    int IBase2.TryGetValue(out int x) => throw null;
+    bool IBase1.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IBase2, IBase1
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public new int TryGetValue(out int x);
+    }
+
+    public interface IBase1  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IBase1.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_32_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    bool IBase2.TryGetValue => throw null;
+    bool IBase1.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IBase2, IBase1  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public new bool TryGetValue { get; }
+    }
+
+    public interface IBase1  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IBase1.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_33_ImplicitReferenceConversion_Vs_Identity(
+            [CombinatorialValues(new string[] { "C1", "C2" }, new string[] { "C2", "C1" })] string[] types)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out C1 value) => throw null;
+    public bool TryGetValue(out C2 value) { if (_value is C2) { value = (C2)_value; return true; } else { value = null; return false; } }
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(C1 x) => new S1(x);
+        public static S1 Create(C2 x) => new S1(x);
+        public object Value { get; }
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IUnionMembersBase
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+
+class C1;
+class C2 : C1;
+
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_34_ImplicitReferenceConversion_Vs_Identity(
+            [CombinatorialValues(new string[] { "C1", "C2" }, new string[] { "C2", "C1" })] string[] types)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C2 x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out C1 value) => throw null;
+    public bool TryGetValue(out C2 value) { if (_value is C2) { value = (C2)_value; return true; } else { value = null; return false; } }
+
+    public interface IUnionMembers : IBase2
+    {
+        public static S1 Create(C1 x) => new S1(x);
+        public static S1 Create(C2 x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IBase1
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+
+class C1;
+class C2 : C1;
+
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_35_ImplicitReferenceConversion_Determinism(
+            [CombinatorialValues(new string[] { "C1", "C0" }, new string[] { "C0", "C1" })] string[] types)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C0 x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out " + types[0] + @" value) { if (_value is " + types[0] + @") { value = (" + types[0] + @")_value; return true; } else { value = null; return false; } }
+    public bool TryGetValue(out " + types[1] + @" value) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(C1 x) => new S1(x);
+        public static S1 Create(C0 x) => new S1(x);
+        public object Value { get; }
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IUnionMembersBase
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+
+public class C0;
+public class C1 : C0;
+public class C2 : C1;
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_36_ImplicitReferenceConversion_Determinism(
+            [CombinatorialValues(new string[] { "C1", "C0" }, new string[] { "C0", "C1" })] string[] types)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C0 x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out " + types[0] + @" value) { if (_value is " + types[0] + @") { value = (" + types[0] + @")_value; return true; } else { value = null; return false; } }
+    public bool TryGetValue(out " + types[1] + @" value) => throw null;
+
+    public interface IUnionMembers : IBase2
+    {
+        public static S1 Create(C1 x) => new S1(x);
+        public static S1 Create(C0 x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IBase1
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+
+public class C0;
+public class C1 : C0;
+public class C2 : C1;
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory(Skip = "There is metadata vs. source difference for this scenario")] // https://github.com/dotnet/roslyn/issues/82636
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82636")]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_37_ImplicitReferenceConversion_Determinism(
+            [CombinatorialValues(new string[] { "C1", "C0" }, new string[] { "C0", "C1" })] string[] types)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public S1(C0 x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out " + types[0] + @" value) { if (_value is " + types[0] + @") { value = (" + types[0] + @")_value; return true; } else { value = null; return false; } }
+    public bool TryGetValue(out " + types[1] + @" value) => throw null;
+
+    public interface IUnionMembers : IBase0, IBase2
+    { 
+        public static S1 Create(C1 x) => new S1(x);
+        public static S1 Create(C0 x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1, IBase0
+    {
+    }
+
+    public interface IBase1
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+
+    public interface IBase0
+    {
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+}
+
+public class C0;
+public class C1 : C0;
+public class C2 : C1;
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_38_BoxingConversion_Vs_Identity(
+            [CombinatorialValues(new string[] { "System.IComparable", "int" }, new string[] { "int", "System.IComparable" })] string[] types)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(System.IComparable x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out System.IComparable value) => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(System.IComparable x) => new S1(x);
+        public static S1 Create(int x) => new S1(x);
+        public object Value { get; }
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IUnionMembersBase
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1("""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_39_BoxingConversion_Vs_Identity(
+            [CombinatorialValues(new string[] { "System.IComparable", "int" }, new string[] { "int", "System.IComparable" })] string[] types)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(System.IComparable x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out System.IComparable value) => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+
+    public interface IUnionMembers : IBase2
+    {
+        public static S1 Create(System.IComparable x) => new S1(x);
+        public static S1 Create(int x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IBase1
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1("""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_40_BoxingConversion_Determinism(
+            [CombinatorialValues(new string[] { "System.IComparable", "System.IConvertible" }, new string[] { "System.IConvertible", "System.IComparable" })] string[] types)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(System.IComparable x) { _value = x; }
+    public S1(System.IConvertible x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out " + types[0] + @" value) { if (_value is " + types[0] + @") { value = (" + types[0] + @")_value; return true; } else { value = null; return false; } }
+    public bool TryGetValue(out " + types[1] + @" value) => throw null;
+
+    public interface IUnionMembers : IUnionMembersBase
+    {
+        public static S1 Create(System.IComparable x) => new S1(x);
+        public static S1 Create(System.IConvertible x) => new S1(x);
+        public object Value { get; }
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IUnionMembersBase
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1((System.IComparable)"""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1((System.IComparable)1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_41_BoxingConversion_Determinism(
+            [CombinatorialValues(new string[] { "System.IComparable", "System.IConvertible" }, new string[] { "System.IConvertible", "System.IComparable" })] string[] types)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(System.IComparable x) { _value = x; }
+    public S1(System.IConvertible x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out " + types[0] + @" value) { if (_value is " + types[0] + @") { value = (" + types[0] + @")_value; return true; } else { value = null; return false; } }
+    public bool TryGetValue(out " + types[1] + @" value) => throw null;
+
+    public interface IUnionMembers : IBase2
+    {
+        public static S1 Create(System.IComparable x) => new S1(x);
+        public static S1 Create(System.IConvertible x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IBase1
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1((System.IComparable)"""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1((System.IComparable)1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_42_BoxingConversion_Determinism(
+            [CombinatorialValues(new string[] { "System.IComparable", "System.IConvertible" }, new string[] { "System.IConvertible", "System.IComparable" })] string[] types)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(System.IComparable x) { _value = x; }
+    public S1(System.IConvertible x) { _value = x; }
+    public object Value => throw null;
+
+    public bool TryGetValue(out " + types[0] + @" value) { if (_value is " + types[0] + @") { value = (" + types[0] + @")_value; return true; } else { value = null; return false; } }
+    public bool TryGetValue(out " + types[1] + @" value) => throw null;
+
+    public interface IUnionMembers : IBase2
+    {
+        public static S1 Create(System.IComparable x) => new S1(x);
+        public static S1 Create(System.IConvertible x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1, IBase0
+    {
+    }
+
+    public interface IBase1
+    {
+        public bool TryGetValue(out " + types[0] + @" value);
+    }
+
+    public interface IBase0
+    {
+        public bool TryGetValue(out " + types[1] + @" value);
+    }
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1((System.IComparable)"""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1((System.IComparable)1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_MemberProvider_TryGetValue_Inheritance_43_Identity_Determinism()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    int IBase2.TryGetValue(out int x) => throw null;
+    bool IBase1.TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+    
+    public interface IUnionMembers : IBase2, IBase1
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public object Value { get; }
+    }
+
+    public interface IBase2 : IBase1
+    {
+        public new int TryGetValue(out int x);
+    }
+
+    public interface IBase1  
+    {
+        public bool TryGetValue(out int x);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""S1""
+  IL_000a:  callvirt   ""bool S1.IBase1.TryGetValue(out int)""
+  IL_000f:  ret
+}
+");
         }
 
         [Fact]
@@ -53116,6 +55740,286 @@ class Program
   IL_0000:  ldarga.s   V_0
   IL_0002:  constrained. ""S1""
   IL_0008:  callvirt   ""object S1.IBase2.Value.get""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  isinst     ""int""
+  IL_0014:  brfalse.s  IL_0021
+  IL_0016:  ldloc.0
+  IL_0017:  unbox.any  ""int""
+  IL_001c:  ldc.i4.s   10
+  IL_001e:  ceq
+  IL_0020:  ret
+  IL_0021:  ldc.i4.0
+  IL_0022:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_Inheritance_24_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object IUnionMembersBase.Value => _value;
+    int IUnionMembers.Value => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        new public int Value { get; }
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+#line 21
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object S1.IUnionMembersBase.Value.get""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  isinst     ""int""
+  IL_0014:  brfalse.s  IL_0021
+  IL_0016:  ldloc.0
+  IL_0017:  unbox.any  ""int""
+  IL_001c:  ldc.i4.s   10
+  IL_001e:  ceq
+  IL_0020:  ret
+  IL_0021:  ldc.i4.0
+  IL_0022:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_Inheritance_25_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object IUnionMembersBase.Value => _value;
+    object IUnionMembers.Value() => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        new public object Value();
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+#line 21
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object S1.IUnionMembersBase.Value.get""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  isinst     ""int""
+  IL_0014:  brfalse.s  IL_0021
+  IL_0016:  ldloc.0
+  IL_0017:  unbox.any  ""int""
+  IL_001c:  ldc.i4.s   10
+  IL_001e:  ceq
+  IL_0020:  ret
+  IL_0021:  ldc.i4.0
+  IL_0022:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_Inheritance_26_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object IBase1.Value => _value;
+    int IBase2.Value => throw null;
+    
+    public interface IUnionMembers : IBase2, IBase1
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+    }
+
+    public interface IBase2 : IBase1
+    {
+        new public int Value { get; }
+    }
+
+    public interface IBase1
+    {
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+#line 21
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object S1.IBase1.Value.get""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  isinst     ""int""
+  IL_0014:  brfalse.s  IL_0021
+  IL_0016:  ldloc.0
+  IL_0017:  unbox.any  ""int""
+  IL_001c:  ldc.i4.s   10
+  IL_001e:  ceq
+  IL_0020:  ret
+  IL_0021:  ldc.i4.0
+  IL_0022:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_Inheritance_27_Shadowing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object IBase1.Value => _value;
+    object IBase2.Value() => throw null;
+    
+    public interface IUnionMembers : IBase2, IBase1
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+    }
+
+    public interface IBase2 : IBase1
+    {
+        new public object Value();
+    }
+
+    public interface IBase1
+    {
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+#line 21
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object S1.IBase1.Value.get""
   IL_000d:  stloc.0
   IL_000e:  ldloc.0
   IL_000f:  isinst     ""int""

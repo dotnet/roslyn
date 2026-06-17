@@ -242,11 +242,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (membersInterfaceForDefinition is not null)
             {
-                foundBetterMatch(
+                if (!foundBetterMatch(
                     conversions, inputUnionType, type,
                     possiblyConstructedOrSubstitutedType: membersInterfaceForDefinition.AsMember(inputUnionType),
                     declaringType: membersInterfaceForDefinition,
-                    ref typeSet, ref bestMatch, ref bestMatchConversion);
+                    ref typeSet, ref bestMatch, ref bestMatchConversion) ||
+                    !bestMatchConversion.IsIdentity)
+                {
+                    foreach (var declaringType in membersInterfaceForDefinition.AllInterfacesNoUseSiteDiagnostics)
+                    {
+                        NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+
+                        if (inputUnionType.IsDefinition)
+                        {
+                            possiblyConstructedOrSubstitutedType = declaringType;
+                        }
+                        else
+                        {
+                            possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                        }
+
+                        if (foundBetterMatch(conversions, inputUnionType, type, possiblyConstructedOrSubstitutedType, declaringType, ref typeSet, ref bestMatch, ref bestMatchConversion) &&
+                            bestMatchConversion.IsIdentity)
+                        {
+                            break;
+                        }
+                    }
+                }
             }
             else
             {
@@ -399,10 +421,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (membersInterfaceForDefinition is not null)
             {
-                if (membersInterfaceForDefinition == (object)originalContainingType)
+                if (!originalContainingType.IsInterface)
                 {
-                    return isMatch(method.OriginalDefinition, unionDefinition.UnionCaseTypesNoUseSiteDiagnostics);
+                    return false;
                 }
+
+                ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypesNoUseSiteDiagnostics;
+
+                if (membersInterfaceForDefinition == (object)originalContainingType &&
+                    membersInterfaceForDefinition.AsMember(unionType).Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return isMatch(method.OriginalDefinition, unionDefinitionCaseTypes);
+                }
+
+                foreach (var container in membersInterfaceForDefinition.AllInterfacesNoUseSiteDiagnostics)
+                {
+                    if (container.OriginalDefinition == (object)originalContainingType &&
+                        (unionType.IsDefinition ? container : unionType.TypeSubstitution.SubstituteNamedType(container)).Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        if (!unionType.IsDefinition)
+                        {
+                            method = method.OriginalDefinition.AsMember(container);
+                        }
+                        else
+                        {
+                            // The method is already a member of 'container'
+                            Debug.Assert(method.Equals(method.OriginalDefinition.AsMember(container), TypeCompareKind.AllIgnoreOptions));
+                        }
+
+                        return isMatch(method, unionDefinitionCaseTypes);
+                    }
+                }
+            }
+            else if (originalContainingType.IsInterface)
+            {
+                return false;
             }
             else
             {
@@ -412,12 +465,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (container.OriginalDefinition == (object)originalContainingType)
                     {
-                        if (!unionType.IsDefinition)
+                        NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+
+                        if (unionType.IsDefinition)
                         {
-                            method = method.OriginalDefinition.AsMember(container);
+                            possiblyConstructedOrSubstitutedType = container;
+                        }
+                        else if (container == (object)unionDefinition)
+                        {
+                            possiblyConstructedOrSubstitutedType = unionType;
+                        }
+                        else
+                        {
+                            possiblyConstructedOrSubstitutedType = unionType.TypeSubstitution.SubstituteNamedType(container);
                         }
 
-                        return isMatch(method, unionDefinitionCaseTypes);
+                        if (possiblyConstructedOrSubstitutedType.Equals(method.ContainingType, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            if (!unionType.IsDefinition)
+                            {
+                                method = method.OriginalDefinition.AsMember(container);
+                            }
+                            else
+                            {
+                                // The method is already a member of 'container'
+                                Debug.Assert(possiblyConstructedOrSubstitutedType == (object)container);
+                                Debug.Assert(method.Equals(method.OriginalDefinition.AsMember(container), TypeCompareKind.AllIgnoreOptions));
+                            }
+
+                            return isMatch(method, unionDefinitionCaseTypes);
+                        }
                     }
                 }
             }
