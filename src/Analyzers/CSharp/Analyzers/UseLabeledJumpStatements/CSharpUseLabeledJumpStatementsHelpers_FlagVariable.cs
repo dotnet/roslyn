@@ -188,11 +188,11 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
 
     private static bool TryGetAssignmentToTrueSite(
         IdentifierNameSyntax name,
-        out ExpressionStatementSyntax assignment,
-        out BreakStatementSyntax innerBreak)
+        [NotNullWhen(true)] out ExpressionStatementSyntax? assignment,
+        [NotNullWhen(true)] out BreakStatementSyntax? innerBreak)
     {
-        assignment = null!;
-        innerBreak = null!;
+        assignment = null;
+        innerBreak = null;
 
         if (name.Parent is not AssignmentExpressionSyntax { RawKind: (int)SyntaxKind.SimpleAssignmentExpression } assignmentExpression ||
             assignmentExpression.Left != name ||
