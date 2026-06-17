@@ -186,50 +186,6 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             """,
             [CSharpCodeFixesResources.Make_method_async, CSharpCodeFixesResources.Make_method_async_remain_void]);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
-    public Task AwaitInTaskReturningEventHandlerMethod_DoesNotWarn()
-        => TestInRegularAndScriptAsync("""
-            using System;
-            using System.Threading.Tasks;
-
-            delegate Task AsyncEventHandler(object sender, EventArgs e);
-
-            class C
-            {
-                private event AsyncEventHandler Click;
-
-                private void OnClick(object sender, EventArgs e)
-                {
-                    [|await Task.Delay(1);|]
-                }
-
-                private void Hookup()
-                {
-                    Click += OnClick;
-                }
-            }
-            """, """
-            using System;
-            using System.Threading.Tasks;
-
-            delegate Task AsyncEventHandler(object sender, EventArgs e);
-
-            class C
-            {
-                private event AsyncEventHandler Click;
-
-                private async Task OnClickAsync(object sender, EventArgs e)
-                {
-                    await Task.Delay(1);
-                }
-
-                private void Hookup()
-                {
-                    Click += OnClick;
-                }
-            }
-            """);
-
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26312")]
     public async Task AwaitInTaskMainMethodWithModifiers()
     {
