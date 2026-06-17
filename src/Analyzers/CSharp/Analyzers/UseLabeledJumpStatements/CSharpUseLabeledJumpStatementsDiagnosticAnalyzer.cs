@@ -45,6 +45,7 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
                 return;
 
             context.RegisterSyntaxNodeAction(AnalyzeGotoStatement, SyntaxKind.GotoStatement);
+            context.RegisterSyntaxNodeAction(AnalyzeBreakStatement, SyntaxKind.BreakStatement);
         });
     }
 
@@ -69,6 +70,30 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
                 option.Notification,
                 context.Options,
                 additionalLocations: null,
+                properties: null));
+        }
+    }
+
+    private void AnalyzeBreakStatement(SyntaxNodeAnalysisContext context)
+    {
+        var option = context.GetCSharpAnalyzerOptions().PreferLabeledJumpStatements;
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+            return;
+
+        var breakStatement = (BreakStatementSyntax)context.Node;
+
+        // An inner 'break;' preceded by 'flag = true;' that, together with an outer 'if (flag) break/continue;', only
+        // exists to emulate a multi-level break/continue.  Report on the inner 'break;' (the actionable jump),
+        // pointing back at the flag declaration so the fix can reconstruct the whole pattern.
+        if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
+                breakStatement, context.SemanticModel, context.CancellationToken, out var pattern))
+        {
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                breakStatement.GetLocation(),
+                option.Notification,
+                context.Options,
+                additionalLocations: [pattern!.Declaration.GetLocation()],
                 properties: null));
         }
     }

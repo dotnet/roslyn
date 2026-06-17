@@ -313,6 +313,197 @@ public sealed class UseLabeledJumpStatementsTests
         }.RunAsync();
 
     [Fact]
+    public Task TestFlagBreak_ForLoopSynthesizesLoopVariableName()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        bool found = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (i * j > 20)
+                                {
+                                    found = true;
+                                    {|IDE0400:break;|}
+                                }
+                            }
+
+                            if (found)
+                                break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                    loop_i: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (i * j > 20)
+                                {
+                                    break loop_i;
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlagContinue_WhileLoopSynthesizesOuter()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool a, bool b)
+                    {
+                        bool skip = false;
+                        while (a)
+                        {
+                            while (b)
+                            {
+                                if (a && b)
+                                {
+                                    skip = true;
+                                    {|IDE0400:break;|}
+                                }
+                            }
+
+                            if (skip)
+                                continue;
+
+                            System.Console.WriteLine();
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool a, bool b)
+                    {
+                    outer: while (a)
+                        {
+                            while (b)
+                            {
+                                if (a && b)
+                                {
+                                    continue outer;
+                                }
+                            }
+
+                            System.Console.WriteLine();
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlagBreak_MultipleSites()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(int n)
+                    {
+                        bool found = false;
+                        for (int i = 0; i < n; i++)
+                        {
+                            for (int j = 0; j < n; j++)
+                            {
+                                if (i == j)
+                                {
+                                    found = true;
+                                    {|IDE0400:break;|}
+                                }
+
+                                if (i > j)
+                                {
+                                    found = true;
+                                    {|IDE0400:break;|}
+                                }
+                            }
+
+                            if (found)
+                                break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int n)
+                    {
+                    loop_i: for (int i = 0; i < n; i++)
+                        {
+                            for (int j = 0; j < n; j++)
+                            {
+                                if (i == j)
+                                {
+                                    break loop_i;
+                                }
+
+                                if (i > j)
+                                {
+                                    break loop_i;
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagReadElsewhere()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool cond)
+                    {
+                        bool found = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (cond)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found)
+                                break;
+                        }
+
+                        System.Console.WriteLine(found);
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
     public Task TestNotOffered_LabelNotImmediatelyAfterLoop()
         => new VerifyCS.Test
         {

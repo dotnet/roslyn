@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
 
-internal static class CSharpUseLabeledJumpStatementsHelpers
+internal static partial class CSharpUseLabeledJumpStatementsHelpers
 {
     public static bool IsLoop(SyntaxNode node)
         => node.Kind() is SyntaxKind.WhileStatement
