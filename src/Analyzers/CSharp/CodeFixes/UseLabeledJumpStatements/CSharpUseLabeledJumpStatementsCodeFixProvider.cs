@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseLabeledJumpStatements), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed partial class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseLabeledJumpStatementDiagnosticId];
@@ -68,7 +68,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
         Diagnostic diagnostic,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
-        out StatementSyntax loop)
+        [NotNullWhen(true)] out StatementSyntax? loop)
     {
         var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
@@ -79,15 +79,14 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
         }
 
         if (diagnostic.AdditionalLocations is [var declarationLocation, ..] &&
-            root.FindNode(declarationLocation.SourceSpan, getInnermostNodeForTie: true)
-                .FirstAncestorOrSelf<LocalDeclarationStatementSyntax>() is { } declaration &&
+            root.FindNode(declarationLocation.SourceSpan, getInnermostNodeForTie: true) is LocalDeclarationStatementSyntax declaration &&
             CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPattern(declaration, semanticModel, cancellationToken, out var pattern))
         {
-            loop = pattern.Loop;
+            loop = pattern.LoopStatement;
             return true;
         }
 
-        loop = null!;
+        loop = null;
         return false;
     }
 
@@ -97,8 +96,12 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
     /// </summary>
     private static LoopRewrite CollectLoopRewrite(StatementSyntax loop, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        var rewrite = new LoopRewrite();
-        using var _1 = PooledHashSet<SyntaxNode>.GetInstance(out var seenAnchors);
+        using var _1 = ArrayBuilder<(SyntaxNode Jump, bool IsBreak)>.GetInstance(out var jumps);
+        using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var innerRemovals);
+        using var _3 = ArrayBuilder<LabeledStatementSyntax>.GetInstance(out var outerLabels);
+        using var _4 = ArrayBuilder<SyntaxNode>.GetInstance(out var outerRemovals);
+        using var _5 = ArrayBuilder<LabeledStatementSyntax>.GetInstance(out var reuseLabels);
+        using var _6 = PooledHashSet<SyntaxNode>.GetInstance(out var seenAnchors);
 
         foreach (var gotoStatement in loop.DescendantNodes().OfType<GotoStatementSyntax>())
         {
@@ -108,10 +111,10 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
                 seenAnchors.Add(breakLabel))
             {
                 foreach (var jump in breakGotos)
-                    rewrite.Jumps.Add((jump, IsBreak: true));
+                    jumps.Add((jump, IsBreak: true));
 
-                rewrite.OuterLabels.Add(breakLabel);
-                rewrite.ReuseNames.Add((breakLabel.Identifier.Text, breakLabel.SpanStart));
+                outerLabels.Add(breakLabel);
+                reuseLabels.Add(breakLabel);
             }
             else if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(
                     gotoStatement, semanticModel, cancellationToken, out var continueLoop, out var continueLabel, out var continueGotos) &&
@@ -119,10 +122,10 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
                 seenAnchors.Add(continueLabel))
             {
                 foreach (var jump in continueGotos)
-                    rewrite.Jumps.Add((jump, IsBreak: false));
+                    jumps.Add((jump, IsBreak: false));
 
-                rewrite.InnerRemovals.Add(continueLabel);
-                rewrite.ReuseNames.Add((continueLabel.Identifier.Text, continueLabel.SpanStart));
+                innerRemovals.Add(continueLabel);
+                reuseLabels.Add(continueLabel);
             }
         }
 
@@ -130,21 +133,28 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
         {
             if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
                     breakStatement, semanticModel, cancellationToken, out var pattern) &&
-                pattern.Loop == loop &&
-                seenAnchors.Add(pattern.Declaration))
+                pattern.LoopStatement == loop &&
+                seenAnchors.Add(pattern.LocalDeclarationStatement))
             {
                 foreach (var (assignment, innerBreak) in pattern.Sites)
                 {
-                    rewrite.Jumps.Add((innerBreak, pattern.IsBreak));
-                    rewrite.InnerRemovals.Add(assignment);
+                    jumps.Add((innerBreak, pattern.IsBreak));
+                    innerRemovals.Add(assignment);
                 }
 
-                rewrite.InnerRemovals.Add(pattern.Guard);
-                rewrite.OuterRemovals.Add(pattern.Declaration);
+                innerRemovals.Add(pattern.GuardStatement);
+                outerRemovals.Add(pattern.LocalDeclarationStatement);
             }
         }
 
-        return rewrite;
+        return new LoopRewrite
+        {
+            Jumps = jumps.ToImmutable(),
+            InnerRemovals = innerRemovals.ToImmutable(),
+            OuterLabels = outerLabels.ToImmutable(),
+            OuterRemovals = outerRemovals.ToImmutable(),
+            ReuseLabels = reuseLabels.ToImmutable(),
+        };
     }
 
     private static void ApplyRewrite(SyntaxEditor editor, StatementSyntax loop, LoopRewrite rewrite)
@@ -200,33 +210,4 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
     private static ContinueStatementSyntax CreateContinue(string labelName, SyntaxNode original)
         => SyntaxFactory.ContinueStatement(SyntaxFactory.IdentifierName(labelName)).WithTriviaFrom(original);
 #pragma warning restore RSEXPERIMENTAL006
-
-    /// <summary>
-    /// Accumulates everything that must happen to a single loop/switch so it is relabeled exactly once.
-    /// </summary>
-    private sealed class LoopRewrite
-    {
-        /// <summary>Jumps (gotos / inner flag breaks) inside the loop to rewrite, and whether each becomes a break.</summary>
-        public readonly List<(SyntaxNode Jump, bool IsBreak)> Jumps = [];
-
-        /// <summary>Dead code inside the loop to delete (flag assignments/guards, the trailing continue label).</summary>
-        public readonly List<SyntaxNode> InnerRemovals = [];
-
-        /// <summary>Labels that sat after the loop (removed if an empty pad, otherwise just un-labeled).</summary>
-        public readonly List<LabeledStatementSyntax> OuterLabels = [];
-
-        /// <summary>Dead code before the loop to delete (flag declarations).</summary>
-        public readonly List<SyntaxNode> OuterRemovals = [];
-
-        /// <summary>Existing label names (and their source positions) that may be reused for the loop.</summary>
-        public readonly List<(string Name, int Position)> ReuseNames = [];
-
-        /// <summary>
-        /// Reuses the lexically-first existing label, or synthesizes a name when the loop had no labels (flag case).
-        /// </summary>
-        public string GetLabelName(StatementSyntax loop)
-            => ReuseNames.Count > 0
-                ? ReuseNames.OrderBy(n => n.Position).First().Name
-                : CSharpUseLabeledJumpStatementsHelpers.GenerateLabelName(loop);
-    }
 }

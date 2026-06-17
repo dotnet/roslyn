@@ -12,16 +12,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
 
 /// <summary>
-/// Looks for the workarounds people write to emulate labeled <see langword="break"/>/<see langword="continue"/>
-/// (jumping out of/continuing an outer loop) and offers to rewrite them to the real labeled jump statements:
-/// <list type="bullet">
-/// <item><c>goto</c> to a label placed immediately after an enclosing loop/switch (an emulated multi-level
-/// <see langword="break"/>).</item>
-/// <item><c>goto</c> to a label placed at the end of an enclosing loop body (an emulated multi-level
-/// <see langword="continue"/>).</item>
-/// <item>A <see langword="bool"/> flag set inside an inner loop and then checked in an outer loop to propagate a
-/// <see langword="break"/>/<see langword="continue"/>.</item>
-/// </list>
+/// Offers to replace the workarounds people write to emulate labeled <see langword="break"/>/<see
+/// langword="continue"/> with the real labeled jump statements. See <see
+/// cref="CSharpUseLabeledJumpStatementsHelpers"/> for the patterns that are detected.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
@@ -78,6 +71,10 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
 
         var breakStatement = (BreakStatementSyntax)context.Node;
 
+        // We register on 'break' (not 'continue') because the flag pattern's inner jump is always a 'break': it has to
+        // exit the inner loop so control returns to the outer loop where the flag is checked.  Whether that emulates a
+        // break or a continue of the outer loop is decided by the guard ('if (flag) break/continue;'), not by this
+        // inner jump, so this single registration covers both.
         if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
                 breakStatement, context.SemanticModel, context.CancellationToken, out var pattern))
         {
@@ -88,7 +85,7 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
                 breakStatement.GetLocation(),
                 option.Notification,
                 context.Options,
-                additionalLocations: [pattern.Declaration.GetLocation()],
+                additionalLocations: [pattern.LocalDeclarationStatement.GetLocation()],
                 properties: null));
         }
     }

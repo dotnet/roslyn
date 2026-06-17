@@ -15,13 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
 internal static partial class CSharpUseLabeledJumpStatementsHelpers
 {
     /// <summary>
-    /// Determines whether <paramref name="gotoStatement"/> is a <c>goto</c> that emulates a multi-level <c>break</c>:
-    /// it targets a label placed on the statement immediately following an enclosing loop, every reference to that
-    /// label is such a <c>goto</c> nested in the construct, at least one of them is genuinely nested inside an inner
-    /// loop/switch (so a plain <c>break;</c> would not suffice), and reaching the construct does not cross a
-    /// <c>finally</c>. The construct may be a loop or a <c>switch</c> (both are valid <c>break</c> targets). On
-    /// success, <paramref name="breakTarget"/> is the construct to label, <paramref name="labelDeclaration"/> is the
-    /// (now redundant) label after it, and <paramref name="gotos"/> is every jump to rewrite.
+    /// A <c>goto</c> emulating a multi-level <c>break</c> out of an enclosing loop or <c>switch</c>:
+    /// <code>
+    /// while (...)                  // breakTarget
+    /// {
+    ///     while (...)
+    ///         goto found;          // gotos
+    /// }
+    /// found: ...                   // labelDeclaration
+    /// </code>
     /// </summary>
     public static bool TryGetGotoBreakPattern(
         GotoStatementSyntax gotoStatement,
@@ -39,7 +41,8 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
             return false;
 
         // GetPreviousStatement handles the block, switch-section, and top-level (global statement) cases.
-        if (declaration.GetPreviousStatement() is not { } precedingConstruct || !precedingConstruct.IsBreakableConstruct())
+        var precedingConstruct = declaration.GetPreviousStatement();
+        if (!precedingConstruct.IsBreakableConstruct())
             return false;
 
         if (!TryCollectMultiLevelJumps(precedingConstruct, label, semanticModel, cancellationToken, includeSwitch: true, out gotos))
@@ -51,12 +54,15 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     }
 
     /// <summary>
-    /// Determines whether <paramref name="gotoStatement"/> is a <c>goto</c> that emulates a multi-level
-    /// <c>continue</c>: it targets a label that is the last statement of an enclosing loop's body (so jumping to it is
-    /// the same as continuing that loop), every reference is such a <c>goto</c> nested in the loop, at least one is
-    /// nested inside an inner loop (so a plain <c>continue;</c> would not suffice), and no jump crosses a
-    /// <c>finally</c>. On success, <paramref name="loop"/> is the loop to label, <paramref name="labelDeclaration"/> is
-    /// the (now redundant) trailing label, and <paramref name="gotos"/> is every jump to rewrite.
+    /// A <c>goto</c> emulating a multi-level <c>continue</c> of an enclosing loop:
+    /// <code>
+    /// while (...)                  // loop
+    /// {
+    ///     while (...)
+    ///         goto next;           // gotos
+    ///     next: ;                  // labelDeclaration
+    /// }
+    /// </code>
     /// </summary>
     public static bool TryGetGotoContinuePattern(
         GotoStatementSyntax gotoStatement,
@@ -96,26 +102,18 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out ILabelSymbol? label,
-        [NotNullWhen(true)] out LabeledStatementSyntax? declaration)
+        [NotNullWhen(true)] out LabeledStatementSyntax? labeledStatement)
     {
         label = null;
-        declaration = null;
+        labeledStatement = null;
 
         if (!IsPlainGoto(gotoStatement, out var labelReference))
             return false;
 
-        if (semanticModel.GetSymbolInfo(labelReference, cancellationToken).Symbol is not ILabelSymbol labelSymbol)
-            return false;
+        label = semanticModel.GetSymbolInfo(labelReference, cancellationToken).Symbol as ILabelSymbol;
+        labeledStatement = label?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken) as LabeledStatementSyntax;
 
-        if (labelSymbol.DeclaringSyntaxReferences is not [var reference] ||
-            reference.GetSyntax(cancellationToken) is not LabeledStatementSyntax labeledStatement)
-        {
-            return false;
-        }
-
-        label = labelSymbol;
-        declaration = labeledStatement;
-        return true;
+        return label != null && labeledStatement != null;
     }
 
     private static bool TryCollectMultiLevelJumps(

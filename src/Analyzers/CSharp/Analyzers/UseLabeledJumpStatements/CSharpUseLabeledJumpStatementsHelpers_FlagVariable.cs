@@ -16,35 +16,19 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
 
-/// <summary>
-/// A recognized <c>bool</c>-flag emulation of a multi-level <c>break</c>/<c>continue</c>.
-/// </summary>
-internal sealed class FlagJumpPattern
-{
-    /// <summary>The <c>bool flag = false;</c> declaration to delete.</summary>
-    public required LocalDeclarationStatementSyntax Declaration { get; init; }
-
-    /// <summary>The outer loop to label and break/continue.</summary>
-    public required StatementSyntax Loop { get; init; }
-
-    /// <summary>The <c>if (flag) break;</c>/<c>if (flag) continue;</c> guard to delete.</summary>
-    public required IfStatementSyntax Guard { get; init; }
-
-    /// <summary>The inner <c>flag = true; break;</c> sites; each break becomes the labeled jump.</summary>
-    public required ImmutableArray<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)> Sites { get; init; }
-
-    /// <summary>Whether the guard is a <c>break</c> (otherwise a <c>continue</c>).</summary>
-    public required bool IsBreak { get; init; }
-}
-
 internal static partial class CSharpUseLabeledJumpStatementsHelpers
 {
     /// <summary>
-    /// Recognizes the conservative shape <c>bool flag = false; ... inner-loop { ...; flag = true; break; } ... if
-    /// (flag) break/continue;</c> where the <c>flag</c> exists only to propagate a jump out of (or to continue) an
-    /// outer loop. The flag's <em>only</em> uses must be the <c>flag = true;</c> assignments (each immediately
-    /// followed by a <c>break;</c> of the inner loop) and the single <c>if (flag)</c> guard sitting immediately after
-    /// that inner loop in the outer loop's body. Anything else (resets, extra reads, ...) bails.
+    /// A <c>bool</c> flag emulating a multi-level break/continue (the guard decides which):
+    /// <code>
+    /// bool flag = false;                        // Declaration
+    /// while (...)                               // Loop
+    /// {
+    ///     while (...)
+    ///         if (...) { flag = true; break; }  // Sites
+    ///     if (flag) break;                      // Guard (or 'continue')
+    /// }
+    /// </code>
     /// </summary>
     public static bool TryGetFlagPattern(
         LocalDeclarationStatementSyntax declaration,
@@ -131,9 +115,9 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
 
         pattern = new FlagJumpPattern
         {
-            Declaration = declaration,
-            Loop = outerLoop,
-            Guard = guard,
+            LocalDeclarationStatement = declaration,
+            LoopStatement = outerLoop,
+            GuardStatement = guard,
             Sites = sites.ToImmutable(),
             IsBreak = isBreak,
         };
@@ -141,8 +125,11 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     }
 
     /// <summary>
-    /// Recognizes the flag pattern starting from an inner <c>break;</c> (the actionable jump): it must be immediately
-    /// preceded by <c>flag = true;</c>, where <c>flag</c> is a local satisfying <see cref="TryGetFlagPattern"/>.
+    /// The flag pattern (see <see cref="TryGetFlagPattern"/>) entered from its inner jump:
+    /// <code>
+    /// flag = true;
+    /// break;          // breakStatement
+    /// </code>
     /// </summary>
     public static bool TryGetFlagPatternFromInnerBreak(
         BreakStatementSyntax breakStatement,

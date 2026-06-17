@@ -392,9 +392,9 @@ internal static partial class SyntaxNodeExtensions
         }
     }
 
-    public static bool IsBreakableConstruct(this SyntaxNode node)
+    public static bool IsBreakableConstruct([NotNullWhen(true)] this SyntaxNode? node)
     {
-        switch (node.Kind())
+        switch (node?.Kind())
         {
             case SyntaxKind.DoStatement:
             case SyntaxKind.WhileStatement:
@@ -408,9 +408,9 @@ internal static partial class SyntaxNodeExtensions
         return false;
     }
 
-    public static bool IsContinuableConstruct(this SyntaxNode node)
+    public static bool IsContinuableConstruct([NotNullWhen(true)] this SyntaxNode? node)
     {
-        switch (node.Kind())
+        switch (node?.Kind())
         {
             case SyntaxKind.DoStatement:
             case SyntaxKind.WhileStatement:
