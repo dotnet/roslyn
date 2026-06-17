@@ -119,4 +119,26 @@ internal static class IDocumentMappingServiceExtensions
 
         return false;
     }
+
+    /// <summary>
+    /// Convenience method to map from Razor to C#, which checks both impl and decl documents
+    /// </summary>
+    public static bool TryMapToCSharpDocumentLinePositionSpan(this IDocumentMappingService service, RazorCodeDocument codeDocument, LinePositionSpan razorRange, out LinePositionSpan csharpRange, out bool inDeclDocument)
+    {
+        inDeclDocument = false;
+        if (service.TryMapToCSharpDocumentRange(codeDocument.GetRequiredCSharpDocument(declarationDocument: false), razorRange, out csharpRange))
+        {
+            return true;
+        }
+
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declDocument &&
+            service.TryMapToCSharpDocumentRange(declDocument, razorRange, out csharpRange))
+        {
+            inDeclDocument = true;
+            return true;
+        }
+
+        csharpRange = default;
+        return false;
+    }
 }
