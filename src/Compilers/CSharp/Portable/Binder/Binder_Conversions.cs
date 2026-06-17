@@ -995,7 +995,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Convert an expression element or the expression representing each item of a spread element.
+        /// <summary>
+        /// Converts an expression element, or the expression representing each item of a spread element.
+        /// </summary>
         private static BoundExpression ConvertCollectionExpressionItem(
             Binder binder,
             SyntaxNode expressionSyntax,
@@ -1024,8 +1026,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(expressionElement.Type);
                 }
                 BoundExpression convertedExpression = binder.BindToNaturalType(expressionElement, diagnostics);
-                var keyPlaceholder = new BoundValuePlaceholder(expressionSyntax, keyType);
-                var valuePlaceholder = new BoundValuePlaceholder(expressionSyntax, valueType);
+                var keyPlaceholder = new BoundValuePlaceholder(expressionSyntax, keyType) { WasCompilerGenerated = true };
+                var valuePlaceholder = new BoundValuePlaceholder(expressionSyntax, valueType) { WasCompilerGenerated = true };
                 var keyValuePairConversion = new BoundKeyValuePairConversion(
                     expressionSyntax,
                     expression: convertedExpression,
@@ -1942,9 +1944,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // applied to the underlying mutable Dictionary<K, V>; for IReadOnlyDictionary targets the LocalRewriter
                     // additionally wraps the result in a ReadOnlyDictionary<K, V>.
                     //
-                    // Per the dictionary-expressions proposal (mirrored from
-                    // https://github.com/dotnet/csharplang/blob/main/proposals/dictionary-expressions.md and
-                    // collection-expression-arguments.md), the allowed overloads are:
+                    // Per the dictionary expressions and collection expression arguments proposals, the allowed
+                    // overloads are:
                     //   - IDictionary<K, V>:        (), (IEqualityComparer<K>), (int capacity), (int capacity, IEqualityComparer<K>)
                     //   - IReadOnlyDictionary<K, V> and base interfaces: (), (IEqualityComparer<K>)
                     var withElement = @this._node.WithElement;

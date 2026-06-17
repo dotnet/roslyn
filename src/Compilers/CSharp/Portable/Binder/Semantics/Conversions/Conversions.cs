@@ -284,10 +284,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
 
             // Classifies the conversion of a spread item or expression element of type 'sourceType' to a dictionary
-            // element when the collection's element type is KeyValuePair<K, V>. Per the dictionary-expressions spec
-            // (https://github.com/dotnet/csharplang/blob/main/proposals/dictionary-expressions.md), a value of type
-            // KeyValuePair<K1, V1> converts to the dictionary element type KeyValuePair<K, V> when there is an implicit
-            // conversion from K1 to K and from V1 to V.
+            // element when the collection's element type is KeyValuePair<K, V>. A value of type KeyValuePair<K1, V1>
+            // converts to the dictionary element type KeyValuePair<K, V> when there is an implicit conversion from K1
+            // to K and from V1 to V.
             Conversion classifyKeyValuePairElementConversionFromType(
                 TypeSymbol sourceType,
                 (TypeSymbol Key, TypeSymbol Value) keyValueTypes,
@@ -318,9 +317,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ForEachEnumeratorInfo enumeratorInfo,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            // This should be conversion from type rather than conversion from expression.
-            // The difference is in handling of dynamic, and fixing this would be a breaking
-            // change for that case. For instance, the following would become an error:
+            // The specification classifies this as a conversion from type, but using a conversion from expression here
+            // preserves existing dynamic behavior. Switching to conversion from type would be a breaking change for
+            // that case. For instance, the following would become an error:
             // dynamic[] x = [1, 2, 3];
             // int[] y = [.. x];
             return ClassifyImplicitConversionFromExpression(
