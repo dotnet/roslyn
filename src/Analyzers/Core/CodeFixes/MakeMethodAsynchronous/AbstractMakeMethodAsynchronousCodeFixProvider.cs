@@ -70,28 +70,19 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         // Heuristic to recognize the common case for entry point method
         var isEntryPoint = methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
-        var canOfferAsyncVoid = methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint;
 
-        // Always register the Task fix first.
-        RegisterTaskFix();
+        // Always register the `async Task` fix first.
+        var taskTitle = GetMakeAsyncTaskFunctionResource();
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                taskTitle,
+                cancellationToken => FixNodeAsync(
+                    document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
+                taskTitle),
+            context.Diagnostics);
 
-        // Also offer async void if the method is void-returning and not an entry point.
-        if (canOfferAsyncVoid)
-            RegisterAsyncVoidFix();
-
-        void RegisterTaskFix()
-        {
-            var taskTitle = GetMakeAsyncTaskFunctionResource();
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    taskTitle,
-                    cancellationToken => FixNodeAsync(
-                        document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
-                    taskTitle),
-                context.Diagnostics);
-        }
-
-        void RegisterAsyncVoidFix()
+        // Also offer `async void` if the method is void-returning and not an entry point.
+        if (methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint)
         {
             var asyncVoidTitle = GetMakeAsyncVoidFunctionResource();
             context.RegisterCodeFix(
@@ -104,14 +95,15 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         }
     }
 
-    private static async Task<bool> IsReferencedAsEventHandlerAsync(
+    /// <summary>
+    /// Samples some references to identify if the method is being used as an event handler.
+    /// </summary>
+    /// <returns>true iff a sampled reference is found to be an event handler. No false positives.</returns>
+    private static async Task<bool> HasKnownReferencesAsEventHandlerAsync(
         Solution solution,
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
     {
-        // We only need a small sample here: event handlers tend to have unique names, and in exchange for
-        // keeping code-fix computation cheap we're willing to miss some event-handler usages as long as we
-        // don't produce false positives.
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var progress = new EventHandlerReferenceProgress(linkedCancellationTokenSource);
 
@@ -154,7 +146,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         for (; operation != null; operation = operation.Parent)
         {
             if (operation is IEventAssignmentOperation eventAssignment &&
-                EventRequiresVoidReturningHandler(eventAssignment))
+                IsVoidReturningHandler(eventAssignment))
             {
                 return true;
             }
@@ -163,11 +155,14 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         return false;
     }
 
-    private static bool EventRequiresVoidReturningHandler(IEventAssignmentOperation eventAssignment)
+    private static bool IsVoidReturningHandler(IEventAssignmentOperation eventAssignment)
         => eventAssignment.EventReference is IEventReferenceOperation eventReference &&
            eventReference.Event.Type is INamedTypeSymbol delegateType &&
            delegateType.DelegateInvokeMethod?.ReturnsVoid == true;
 
+    /// <summary>
+    /// Cancels search once a preset number of locations have been found for performance.
+    /// </summary>
     private sealed class EventHandlerReferenceProgress(CancellationTokenSource cancellationTokenSource) : IFindReferencesProgress
     {
         private const int MaxReferenceLocationsToInspect = 50;
@@ -282,10 +277,11 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         bool isEntryPoint,
         CancellationToken cancellationToken)
     {
+        // If the method cannot be an event handler, short-circuit
         if (keepVoid || isEntryPoint || !methodSymbol.IsOrdinaryMethodOrLocalFunction() || !methodSymbol.ReturnsVoid)
             return Task.FromResult(false);
 
-        return IsReferencedAsEventHandlerAsync(solution, methodSymbol, cancellationToken);
+        return HasKnownReferencesAsEventHandlerAsync(solution, methodSymbol, cancellationToken);
     }
 
     private SyntaxNode? GetContainingFunction(Diagnostic diagnostic, CancellationToken cancellationToken)
