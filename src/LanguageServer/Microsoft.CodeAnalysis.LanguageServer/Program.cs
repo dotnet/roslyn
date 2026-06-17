@@ -72,7 +72,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var logger = loggerFactory.CreateLogger<Program>();
 
     logger.LogInformation("Server information:");
-    logger.LogInformation("  Assembly file version: {assemblyFileVersion}", typeof(Program).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "<unknown>");
+    logger.LogInformation("  Assembly informational version: {assemblyInformationalVersion}", typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "<unknown>");
     logger.LogInformation("  Executable path: {processPath}", Environment.ProcessPath ?? "<unknown>");
     logger.LogInformation("  Process ID: {processId}", Environment.ProcessId);
     if (serverConfiguration.LaunchDebugger)
