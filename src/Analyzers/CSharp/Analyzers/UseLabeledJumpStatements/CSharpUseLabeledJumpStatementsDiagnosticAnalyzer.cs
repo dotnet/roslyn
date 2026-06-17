@@ -38,52 +38,53 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
             context.RegisterSyntaxNodeAction(AnalyzeGotoStatement, SyntaxKind.GotoStatement);
             context.RegisterSyntaxNodeAction(AnalyzeBreakStatement, SyntaxKind.BreakStatement);
         });
-    }
 
-    private void AnalyzeGotoStatement(SyntaxNodeAnalysisContext context)
-    {
-        var option = context.GetCSharpAnalyzerOptions().PreferLabeledJumpStatements;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
-            return;
+        return;
 
-        var gotoStatement = (GotoStatementSyntax)context.Node;
-        var semanticModel = context.SemanticModel;
-        var cancellationToken = context.CancellationToken;
-
-        if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _) ||
-            CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _))
+        void AnalyzeGotoStatement(SyntaxNodeAnalysisContext context)
         {
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
-                gotoStatement.GotoKeyword.GetLocation(),
-                option.Notification,
-                context.Options,
-                additionalLocations: [gotoStatement.GetLocation()],
-                properties: null));
+            var option = context.GetCSharpAnalyzerOptions().PreferLabeledJumpStatements;
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+                return;
+
+            var gotoStatement = (GotoStatementSyntax)context.Node;
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
+
+            if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _) ||
+                CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _))
+            {
+                ReportDiagnostic(context, gotoStatement, option.Notification);
+            }
         }
-    }
 
-    private void AnalyzeBreakStatement(SyntaxNodeAnalysisContext context)
-    {
-        var option = context.GetCSharpAnalyzerOptions().PreferLabeledJumpStatements;
-        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
-            return;
+        void AnalyzeBreakStatement(SyntaxNodeAnalysisContext context)
+        {
+            var option = context.GetCSharpAnalyzerOptions().PreferLabeledJumpStatements;
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+                return;
 
-        var breakStatement = (BreakStatementSyntax)context.Node;
+            var breakStatement = (BreakStatementSyntax)context.Node;
 
-        // We register on 'break' (not 'continue') because the flag pattern's inner jump is always a 'break': it has to
-        // exit the inner loop so control returns to the outer loop where the flag is checked.  Whether that emulates a
-        // break or a continue of the outer loop is decided by the guard ('if (flag) break/continue;'), not by this
-        // inner jump, so this single registration covers both.
-        if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
-                breakStatement, context.SemanticModel, context.CancellationToken, out _))
+            // We register on 'break' (not 'continue') because the flag pattern's inner jump is always a 'break': it has
+            // to exit the inner loop so control returns to the outer loop where the flag is checked.  Whether that
+            // emulates a break or a continue of the outer loop is decided by the guard ('if (flag) break/continue;'),
+            // not by this inner jump, so this single registration covers both.
+            if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
+                    breakStatement, context.SemanticModel, context.CancellationToken, out _))
+            {
+                ReportDiagnostic(context, breakStatement, option.Notification);
+            }
+        }
+
+        void ReportDiagnostic(SyntaxNodeAnalysisContext context, StatementSyntax statement, NotificationOption2 notification)
         {
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                breakStatement.BreakKeyword.GetLocation(),
-                option.Notification,
+                statement.GetFirstToken().GetLocation(),
+                notification,
                 context.Options,
-                additionalLocations: [breakStatement.GetLocation()],
+                additionalLocations: [statement.GetLocation()],
                 properties: null));
         }
     }
