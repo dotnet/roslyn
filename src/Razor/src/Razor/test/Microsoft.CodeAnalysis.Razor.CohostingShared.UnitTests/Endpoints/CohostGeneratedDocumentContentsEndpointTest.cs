@@ -46,7 +46,7 @@ public class CohostGeneratedDocumentContentsEndpointTest(ITestOutputHelper testO
                 <h1>Hello World</h1>
                 """;
 
-        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.CSharpDeclaration, expectedContentSubstring: null, RazorFileKind.Legacy);
+        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.CSharpDeclaration, expectedContentSubstring: null, fileKind: RazorFileKind.Legacy);
     }
 
     [Fact]
