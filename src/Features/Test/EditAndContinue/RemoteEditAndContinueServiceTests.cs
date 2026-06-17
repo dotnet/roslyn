@@ -60,7 +60,7 @@ public sealed class RemoteEditAndContinueServiceTests
         {
             Assert.Null(clientProvider);
 
-            mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
+            mockEncService = (MockEditAndContinueService)localWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         }
         else
         {

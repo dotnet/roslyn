@@ -1345,7 +1345,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await using var testLspServer = await CreateTestLspServerAsync(["class C;", "class D;"], LanguageNames.CSharp, mutatingLspWorkspace, options, composition);
 
         var encSessionState = testLspServer.TestWorkspace.GetService<EditAndContinueSessionState>();
-        var encService = (MockEditAndContinueService)testLspServer.TestWorkspace.GetService<IEditAndContinueService>();
+        var encService = (MockEditAndContinueService)testLspServer.TestWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         var diagnosticsRefresher = testLspServer.TestWorkspace.GetService<IDiagnosticsRefresher>();
 
         var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();

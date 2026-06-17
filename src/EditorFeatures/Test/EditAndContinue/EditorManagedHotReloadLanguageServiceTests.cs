@@ -267,7 +267,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
         MockEditAndContinueService mockEncService;
 
-        mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
+        mockEncService = (MockEditAndContinueService)localWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         var localFactory = localWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
         var localBroker = localWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker;
