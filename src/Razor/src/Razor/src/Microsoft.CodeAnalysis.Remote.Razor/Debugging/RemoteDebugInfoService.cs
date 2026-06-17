@@ -127,7 +127,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         // some Razor/HTML nodes to find valid C#.
         while (sourceText.GetLinePosition(hostDocumentIndex).Line == hostDocumentPosition.Line)
         {
-            if (_documentMappingService.TryMapToCSharpPositionOrNext(csharpDocument, hostDocumentIndex, out _, out projectedIndex))
+            if (TryMapToCSharpPositionOrNext(csharpDocument, hostDocumentIndex, out _, out projectedIndex))
             {
                 if (syntaxRoot.FindInnermostNode(hostDocumentIndex) is not { } node)
                 {
@@ -146,7 +146,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
             }
 
             // See if there is more C# on the line to map to, for example "$$<p>@DateTime.Now</p>"
-            if (!_documentMappingService.TryMapToCSharpPositionOrNext(csharpDocument, hostDocumentIndex, out _, out projectedIndex))
+            if (!TryMapToCSharpPositionOrNext(csharpDocument, hostDocumentIndex, out _, out projectedIndex))
             {
                 return false;
             }
@@ -158,6 +158,57 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
             }
         }
 
+        return false;
+    }
+
+    private static bool TryMapToCSharpPositionOrNext(RazorCSharpDocument csharpDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex)
+    {
+        SourceMapping? nextCSharpMapping = null;
+
+        var hostDocumentLine = csharpDocument.CodeDocument.Source.Text.GetLinePosition(hostDocumentIndex).Line;
+
+        foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
+        {
+            var originalSpan = mapping.OriginalSpan;
+            var originalAbsoluteIndex = originalSpan.AbsoluteIndex;
+            if (originalAbsoluteIndex <= hostDocumentIndex)
+            {
+                // Treat the mapping as owning the edge at its end (hence <= originalSpan.Length),
+                // otherwise we wouldn't handle the cursor being right after the final C# char
+                var distanceIntoOriginalSpan = hostDocumentIndex - originalAbsoluteIndex;
+                if (distanceIntoOriginalSpan <= originalSpan.Length)
+                {
+                    generatedIndex = mapping.GeneratedSpan.AbsoluteIndex + distanceIntoOriginalSpan;
+                    generatedPosition = csharpDocument.Text.GetLinePosition(generatedIndex);
+                    return true;
+                }
+            }
+            else if (mapping.OriginalSpan.LineIndex == hostDocumentLine &&
+                mapping.OriginalSpan.AbsoluteIndex >= hostDocumentIndex &&
+                (nextCSharpMapping is null || mapping.OriginalSpan.AbsoluteIndex < nextCSharpMapping.OriginalSpan.AbsoluteIndex))
+            {
+                // The "next" C# location is only valid if it is on the same line in the source document
+                // as the requested position, and before than any previous "next" C# position we have found,
+                // comparing their original positions.  Due to source mappings being ordered by generated span,
+                // not original span, its possible for things to be out of order.
+                nextCSharpMapping = mapping;
+            }
+            else
+            {
+                // This span (and all following) are after the area we're interested in
+                break;
+            }
+        }
+
+        if (nextCSharpMapping is not null)
+        {
+            generatedIndex = nextCSharpMapping.GeneratedSpan.AbsoluteIndex;
+            generatedPosition = csharpDocument.Text.GetLinePosition(generatedIndex);
+            return true;
+        }
+
+        generatedPosition = default;
+        generatedIndex = default;
         return false;
     }
 

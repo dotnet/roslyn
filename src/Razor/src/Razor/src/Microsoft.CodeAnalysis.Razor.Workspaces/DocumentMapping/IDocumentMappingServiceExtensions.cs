@@ -86,13 +86,6 @@ internal static class IDocumentMappingServiceExtensions
         return result;
     }
 
-    public static bool TryMapToCSharpPositionOrNext(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int razorIndex, [NotNullWhen(true)] out Position? csharpPosition, out int csharpIndex)
-    {
-        var result = service.TryMapToCSharpPositionOrNext(csharpDocument, razorIndex, out var csharpLinePosition, out csharpIndex);
-        csharpPosition = result ? csharpLinePosition.ToPosition() : null;
-        return result;
-    }
-
     /// <summary>
     /// Convenience method to map from Razor to C#, which checks both impl and decl documents
     /// </summary>
