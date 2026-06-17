@@ -2911,21 +2911,21 @@ class N
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (14,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, not null)' is not covered.
+                // (14,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.One, (Enum)3, not null)' is not covered.
                 //         return (e1, e2, s) switch // 1
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, not null)").WithLocation(14, 28),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.One, (Enum)3, not null)").WithLocation(14, 28),
                 // (29,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, "A")' is not covered.
                 //         return (e1, e2, s) switch // 2
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, \"A\")").WithLocation(29, 28),
                 // (44,28): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                 //         return (e1, e2, s) switch // 3
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(44, 28),
-                // (59,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, not null)' is not covered.
+                // (59,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
                 //         return (e1, e2, s) switch // 4
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, not null)").WithLocation(59, 28),
-                // (73,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, "A")' is not covered.
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(59, 28),
+                // (73,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
                 //         return (e1, e2, s) switch // 5
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, \"A\")").WithLocation(73, 28),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(73, 28),
                 // (87,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
                 //         return (e1, e2, s) switch // 6
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(87, 28)
@@ -3077,12 +3077,12 @@ class N
             if (nullableEnable)
             {
                 comp.VerifyDiagnostics(
-                    // (12,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                    // (12,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                     //         return this switch // 1
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(12, 21),
-                    // (27,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(12, 21),
+                    // (27,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                     //         return this switch // 2
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(27, 21),
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(27, 21),
                     // (43,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                     //         return this switch // 3
                     Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(43, 21),
@@ -3098,9 +3098,9 @@ class N
                     // (105,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
                     //         return this switch // 7
                     Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(105, 21),
-                    // (121,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, false)' is not covered.
+                    // (121,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
                     //         return this switch // 8
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, false)").WithLocation(121, 21)
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(121, 21)
                     );
             }
             else
@@ -3118,9 +3118,9 @@ class N
                     // (105,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
                     //         return this switch // 7
                     Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(105, 21),
-                    // (121,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.Zero, (Enum)-1, false)' is not covered.
+                    // (121,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, _)' is not covered.
                     //         return this switch // 8
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.Zero, (Enum)-1, false)").WithLocation(121, 21)
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(Enum.One, Enum.One, _)").WithLocation(121, 21)
                     );
             }
         }

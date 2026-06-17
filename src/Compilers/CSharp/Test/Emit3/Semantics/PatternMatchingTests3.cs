@@ -7218,9 +7218,9 @@ static class Extensions
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
-                // (4,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(0, "A")' is not covered.
+                // (4,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '(2, _)' is not covered.
                 //     int M(Q t) => t switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments(@"(0, ""A"")").WithLocation(4, 21)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(2, _)").WithLocation(4, 21)
                 );
         }
 

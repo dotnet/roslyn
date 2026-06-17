@@ -293,20 +293,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Prefer patterns that mention specific cases (e.g., union/enum cases like "(B, null)" or "(false, null)")
                 // over generic null patterns (e.g., "(null, _)"). This addresses issue #84100.
-                
+
                 // Check if any sample looks like it mentions a specific case:
                 // - Starts with '(' followed by a letter, digit, or underscore (indicating a named case or discard)
                 // - But not starting with "(null" which is the generic pattern we want to avoid
                 (string pattern, bool requiresFalseWhenClause, bool unnamedEnumValue) bestSpecific = default;
                 int bestSpecificLength = int.MaxValue;
                 bool foundSpecific = false;
-                
+
                 for (int i = 0; i < samples.Count; i++)
                 {
                     var sample = samples[i];
-                    if (sample.pattern.Length > 2 && 
-                        sample.pattern[0] == '(' && 
-                        !sample.pattern.StartsWith("(null", StringComparison.Ordinal) && 
+                    if (sample.pattern.Length > 2 &&
+                        sample.pattern[0] == '(' &&
+                        !sample.pattern.StartsWith("(null", StringComparison.Ordinal) &&
                         (char.IsLetterOrDigit(sample.pattern[1]) || sample.pattern[1] == '_'))
                     {
                         if (sample.pattern.Length < bestSpecificLength)
@@ -317,12 +317,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                
+
                 if (foundSpecific)
                 {
                     return bestSpecific;
                 }
-                
+
                 // Otherwise, find and return the shortest sample
                 var shortest = samples[0];
                 for (int i = 1; i < samples.Count; i++)
