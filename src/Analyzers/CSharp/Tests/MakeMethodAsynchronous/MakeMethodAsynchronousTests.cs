@@ -138,8 +138,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
     [InlineData("Click += OnClick;")]
     [InlineData("Click -= OnClick;")]
     [InlineData("Click += this.OnClick;")]
-    public Task AwaitInEventHandlerMethod_OffersWarningTitleFirst(string eventReference)
-        => TestExactActionSetOfferedAsync($$"""
+    public Task AwaitInEventHandlerMethod_OffersTaskFixFirst(string eventReference)
             using System;
             using System.Threading.Tasks;
 
