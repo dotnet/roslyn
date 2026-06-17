@@ -224,7 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // 1. visit the type
-            if (symbol.IsExtension && (SourceNamedTypeSymbol)symbol.ContainingType is { } containingType)
+            // SourceMemberContainerTypeSymbol is a SourceNamedTypeSymbol for a normal static class, or an ImplicitNamedTypeSymbol when the extension block is declared at script top-level.
+            if (symbol.IsExtension && (SourceMemberContainerTypeSymbol)symbol.ContainingType is { } containingType)
             {
                 // We've been asked to generate the docs for a given extension block. We'll produce the merged docs for the merged blocks.
                 ImmutableArray<SourceNamedTypeSymbol> extensions = containingType.GetExtensionGroupingInfo().GetMergedExtensions((SourceNamedTypeSymbol)symbol);
@@ -254,13 +255,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (sawExtension)
                 {
-                    appendContainedExtensions((SourceNamedTypeSymbol)symbol);
+                    appendContainedExtensions((SourceMemberContainerTypeSymbol)symbol);
                 }
             }
 
             return;
 
-            void appendContainedExtensions(SourceNamedTypeSymbol containingType)
+            void appendContainedExtensions(SourceMemberContainerTypeSymbol containingType)
             {
                 Debug.Assert(!_isForSingleSymbol);
                 ExtensionGroupingInfo extensionGroupingInfo = containingType.GetExtensionGroupingInfo();
