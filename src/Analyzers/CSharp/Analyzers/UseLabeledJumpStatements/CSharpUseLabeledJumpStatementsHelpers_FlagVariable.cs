@@ -24,7 +24,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     /// while (...)                               // Loop
     /// {
     ///     while (...)
-    ///         if (...) { flag = true; break; }  // Sites
+    ///         if (...) { flag = true; break; }  // AssignmentAndBreakSites
     ///     if (flag) break;                      // Guard (or 'continue')
     /// }
     /// </code>
@@ -125,7 +125,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
             LocalDeclarationStatement = declaration,
             LoopStatement = outerLoop,
             GuardStatement = guard,
-            Sites = sites.ToImmutable(),
+            AssignmentAndBreakSites = sites.ToImmutable(),
             IsBreak = isBreak,
         };
         return true;
@@ -174,7 +174,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         }
 
         if (!TryGetFlagPattern(declaration, semanticModel, cancellationToken, out pattern) ||
-            !pattern.Sites.Any(site => site.Break == breakStatement))
+            !pattern.AssignmentAndBreakSites.Any(site => site.Break == breakStatement))
         {
             pattern = null;
             return false;

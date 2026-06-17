@@ -22,7 +22,7 @@ internal sealed class FlagJumpPattern
     public required IfStatementSyntax GuardStatement { get; init; }
 
     /// <summary>The inner <c>flag = true; break;</c> sites; each break becomes the labeled jump.</summary>
-    public required ImmutableArray<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)> Sites { get; init; }
+    public required ImmutableArray<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)> AssignmentAndBreakSites { get; init; }
 
     /// <summary>Whether the guard is a <c>break</c> (otherwise a <c>continue</c>).</summary>
     public required bool IsBreak { get; init; }

@@ -106,17 +106,17 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         var labelName = GetReusableLabelName(loop) ?? SynthesizeLabelName(semanticModel, loop);
 
         // Rewrite the inner breaks and delete the now-dead flag assignments and guard inside the loop in one rebuild.
-        var newLoop = loop.TrackNodes(pattern.Sites
+        var newLoop = loop.TrackNodes(pattern.AssignmentAndBreakSites
             .Select(static site => (SyntaxNode)site.Break)
-            .Concat(pattern.Sites.Select(static site => (SyntaxNode)site.Assignment))
+            .Concat(pattern.AssignmentAndBreakSites.Select(static site => (SyntaxNode)site.Assignment))
             .Append(pattern.GuardStatement));
 
         newLoop = newLoop.ReplaceNodes(
-            pattern.Sites.Select(site => newLoop.GetCurrentNode(site.Break)!),
+            pattern.AssignmentAndBreakSites.Select(site => newLoop.GetCurrentNode(site.Break)!),
             (original, _) => CreateJump(labelName, original, pattern.IsBreak));
 
         newLoop = newLoop.RemoveNodes(
-            pattern.Sites.Select(site => (SyntaxNode)newLoop.GetCurrentNode(site.Assignment)!).Append(newLoop.GetCurrentNode(pattern.GuardStatement)!),
+            pattern.AssignmentAndBreakSites.Select(site => (SyntaxNode)newLoop.GetCurrentNode(site.Assignment)!).Append(newLoop.GetCurrentNode(pattern.GuardStatement)!),
             SyntaxRemoveOptions.KeepNoTrivia)!;
 
         ReplaceLoop(editor, loop, labelName, newLoop);
