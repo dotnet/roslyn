@@ -56,8 +56,11 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
 
         var gotoStatement = (GotoStatementSyntax)context.Node;
 
-        // 'goto' to a label placed right after an enclosing loop is an emulated (multi-level) 'break'.
+        // 'goto' to a label placed right after an enclosing loop is an emulated (multi-level) 'break'; 'goto' to a
+        // label at the end of an enclosing loop's body is an emulated (multi-level) 'continue'.
         if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(
+                gotoStatement, context.SemanticModel, context.CancellationToken, out _, out _, out _) ||
+            CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(
                 gotoStatement, context.SemanticModel, context.CancellationToken, out _, out _, out _))
         {
             context.ReportDiagnostic(DiagnosticHelper.Create(

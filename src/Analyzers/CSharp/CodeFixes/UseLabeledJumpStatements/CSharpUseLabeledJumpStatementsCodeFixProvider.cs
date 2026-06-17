@@ -56,10 +56,16 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
                 continue;
 
             if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(
-                    gotoStatement, semanticModel, cancellationToken, out var loop, out var labelDeclaration, out var gotos) &&
-                processedLoops.Add(loop))
+                    gotoStatement, semanticModel, cancellationToken, out var loop, out var labelDeclaration, out var gotos))
             {
-                ConvertToLabeledBreak(editor, loop, labelDeclaration, gotos);
+                if (processedLoops.Add(loop))
+                    ConvertToLabeledBreak(editor, loop, labelDeclaration, gotos);
+            }
+            else if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(
+                    gotoStatement, semanticModel, cancellationToken, out loop, out labelDeclaration, out gotos))
+            {
+                if (processedLoops.Add(loop))
+                    ConvertToLabeledContinue(editor, loop, labelDeclaration, gotos);
             }
         }
     }
@@ -76,13 +82,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
         // 'goto label;' -> 'break label;' for every jump inside the loop.
         var newLoop = loop.ReplaceNodes(gotos, (original, _) => CreateBreak(labelName, original));
 
-        // Move the label onto the loop, keeping them on the same line: 'label: <loop>'.
-        var labeledLoop = SyntaxFactory.LabeledStatement(
-            SyntaxFactory.Identifier(labelName).WithLeadingTrivia(loop.GetLeadingTrivia()),
-            SyntaxFactory.Token(SyntaxKind.ColonToken).WithTrailingTrivia(SyntaxFactory.Space),
-            newLoop.WithoutLeadingTrivia());
-
-        editor.ReplaceNode(loop, labeledLoop);
+        editor.ReplaceNode(loop, CreateLabeledLoop(labelName, loop, newLoop));
 
         // The label after the loop is now redundant.  Drop it if it was only a 'goto' landing pad (an empty
         // statement); otherwise just strip the label off the statement it was attached to.
@@ -92,11 +92,49 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
             editor.ReplaceNode(labelDeclaration, labelDeclaration.Statement.WithLeadingTrivia(labelDeclaration.GetLeadingTrivia()));
     }
 
+    private static void ConvertToLabeledContinue(
+        SyntaxEditor editor,
+        StatementSyntax loop,
+        LabeledStatementSyntax labelDeclaration,
+        ImmutableArray<GotoStatementSyntax> gotos)
+    {
+        // Reuse the existing trailing label as the loop's label.
+        var labelName = labelDeclaration.Identifier.Text;
+
+        // 'goto label;' -> 'continue label;' for every jump inside the loop.
+        var newLoop = loop.ReplaceNodes(gotos, (original, _) => CreateContinue(labelName, original));
+
+        // Remove the now-redundant trailing label from the loop body.
+        var newBody = (BlockSyntax)CSharpUseLabeledJumpStatementsHelpers.GetLoopBody(newLoop)!;
+        newLoop = newLoop.ReplaceNode(
+            newBody, newBody.WithStatements(newBody.Statements.RemoveAt(newBody.Statements.Count - 1)));
+
+        editor.ReplaceNode(loop, CreateLabeledLoop(labelName, loop, newLoop));
+    }
+
+    /// <summary>
+    /// Wraps <paramref name="newLoop"/> in <c>label: &lt;loop&gt;</c>, keeping the label on the same line as the loop
+    /// and inheriting <paramref name="originalLoop"/>'s leading trivia (indentation).
+    /// </summary>
+    private static LabeledStatementSyntax CreateLabeledLoop(string labelName, StatementSyntax originalLoop, StatementSyntax newLoop)
+        => SyntaxFactory.LabeledStatement(
+            SyntaxFactory.Identifier(labelName).WithLeadingTrivia(originalLoop.GetLeadingTrivia()),
+            SyntaxFactory.Token(SyntaxKind.ColonToken).WithTrailingTrivia(SyntaxFactory.Space),
+            newLoop.WithoutLeadingTrivia());
+
 #pragma warning disable RSEXPERIMENTAL006 // Labeled break/continue is a preview language feature.
     private static BreakStatementSyntax CreateBreak(string labelName, GotoStatementSyntax gotoStatement)
         => SyntaxFactory.BreakStatement(
             attributeLists: default,
             breakKeyword: SyntaxFactory.Token(SyntaxKind.BreakKeyword).WithTrailingTrivia(SyntaxFactory.Space),
+            name: SyntaxFactory.IdentifierName(labelName),
+            semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+            .WithTriviaFrom(gotoStatement);
+
+    private static ContinueStatementSyntax CreateContinue(string labelName, GotoStatementSyntax gotoStatement)
+        => SyntaxFactory.ContinueStatement(
+            attributeLists: default,
+            continueKeyword: SyntaxFactory.Token(SyntaxKind.ContinueKeyword).WithTrailingTrivia(SyntaxFactory.Space),
             name: SyntaxFactory.IdentifierName(labelName),
             semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken))
             .WithTriviaFrom(gotoStatement);

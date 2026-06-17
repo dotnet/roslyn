@@ -139,10 +139,13 @@ public sealed class UseLabeledJumpStatementsTests
                     {
                         for (int i = 0; i < 10; i++)
                         {
-                            if (i == 1)
-                                {|IDE0400:goto|} done;
-                            if (i == 2)
-                                {|IDE0400:goto|} done;
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (j == 1)
+                                    {|IDE0400:goto|} done;
+                                if (j == 2)
+                                    {|IDE0400:goto|} done;
+                            }
                         }
 
                         done:
@@ -157,12 +160,105 @@ public sealed class UseLabeledJumpStatementsTests
                     {
                     done: for (int i = 0; i < 10; i++)
                         {
-                            if (i == 1)
-                                break done;
-                            if (i == 2)
-                                break done;
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (j == 1)
+                                    break done;
+                                if (j == 2)
+                                    break done;
+                            }
                         }
 
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoContinue_TwoLevels()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (j == 5)
+                                    {|IDE0400:goto|} next;
+                            }
+
+                            next: ;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                    next: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (j == 5)
+                                    continue next;
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_ContinueLabelOnNonEmptyStatement()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (j == 5)
+                                    goto next;
+                            }
+
+                            next:
+                            System.Console.WriteLine(i);
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_SingleLevelBreak()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        while (true)
+                        {
+                            if (b)
+                                goto done;
+                        }
+
+                        done:
                         System.Console.WriteLine();
                     }
                 }
