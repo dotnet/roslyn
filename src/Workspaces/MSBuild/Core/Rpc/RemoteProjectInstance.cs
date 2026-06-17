@@ -19,8 +19,11 @@ internal sealed class RemoteProjectInstance
         _remoteProjectInstanceTargetObject = remoteProjectInstanceTargetObject;
     }
 
-    public Task<ImmutableArray<DiagnosticLogItem>> GetDiagnosticLogItemsAsync(CancellationToken cancellationToken)
-        => _client.InvokeAsync<ImmutableArray<DiagnosticLogItem>>(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.GetDiagnosticLogItems), parameters: [], cancellationToken);
+    public async Task<ImmutableArray<DiagnosticLogItem>> GetDiagnosticLogItemsAsync(CancellationToken cancellationToken)
+    {
+        var diagnostics = await _client.InvokeAsync<DiagnosticLogItem[]>(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.GetDiagnosticLogItems), parameters: [], cancellationToken).ConfigureAwait(false);
+        return diagnostics.ToImmutableArray();
+    }
 
     public Task<string> GetPropertyValueAsync(string propertyName, CancellationToken cancellationToken)
         => _client.InvokeAsync<string>(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.GetPropertyValue), parameters: [propertyName], cancellationToken);
