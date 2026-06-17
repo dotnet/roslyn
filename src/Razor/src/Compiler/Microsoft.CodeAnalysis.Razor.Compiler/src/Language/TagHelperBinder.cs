@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -36,11 +35,6 @@ internal sealed partial class TagHelperBinder
         ProcessDescriptors(tagHelpers, tagNamePrefix, out _tagNameToTagHelpersMap, out _catchAllTagHelpers);
     }
 
-    static int s_count1 = 0;
-    static List<int> s_allCounts1 = new();
-    static int s_count2 = 0;
-    static List<int> s_allCounts2 = new();
-
     private static void ProcessDescriptors(
         TagHelperCollection descriptors,
         string? tagNamePrefix,
@@ -64,10 +58,9 @@ internal sealed partial class TagHelperBinder
         // The builders are indexed using a map of "tag name" to the index of the builder in the array.
         using var _1 = SpecializedPools.GetPooledStringDictionary<int>(ignoreCase: true, out var tagNameToBuilderIndexMap);
 
-        int count1 = 0;
         foreach (var tagHelper in descriptors)
         {
-            count1 += tagHelper.TagMatchingRules.Length;
+
             foreach (var rule in tagHelper.TagMatchingRules)
             {
                 var tagName = rule.TagName;
@@ -90,15 +83,6 @@ internal sealed partial class TagHelperBinder
                 builders[builderIndex].IncreaseSize();
                 toAdd.Append((builderIndex, tagHelper));
             }
-        }
-
-        lock (s_allCounts1)
-        {
-            Interlocked.Add(ref s_count1, count1);
-            s_allCounts1.Add(count1);
-
-            Interlocked.Add(ref s_count2, tagNameToBuilderIndexMap.Count);
-            s_allCounts2.Add(tagNameToBuilderIndexMap.Count);
         }
 
         // Next, we walk through toAdd and add each descriptor to the appropriate builder.
