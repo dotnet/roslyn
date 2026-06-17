@@ -4205,20 +4205,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (CollectionExpressionTypeKind, TypeWithAnnotations) getCollectionDetails(BoundCollectionExpression node, TypeSymbol collectionType)
             {
-                var collectionKind = ConversionsBase.GetCollectionExpressionTypeKind(this.compilation, collectionType, out var targetElementType);
+                var collectionKind = ConversionsBase.GetCollectionExpressionTypeKind(_binder, node.Syntax, collectionType, out var targetElementType);
                 if (collectionKind is CollectionExpressionTypeKind.CollectionBuilder)
                 {
                     var createMethod = node.CollectionBuilderMethod;
                     if (createMethod is not null)
                     {
-                        var foundIterationType = _binder.TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
-                        Debug.Assert(foundIterationType);
+                        Debug.Assert(targetElementType.HasType);
                     }
                 }
-                else if (collectionKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
+                else if (collectionKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                 {
-                    Debug.Assert(!targetElementType.HasType);
-                    _binder.TryGetCollectionIterationType(node.Syntax, collectionType, out targetElementType);
+                    Debug.Assert(targetElementType.HasType);
                 }
 
                 return (collectionKind, targetElementType);

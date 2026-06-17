@@ -14,12 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal readonly SyntaxNode Syntax;
         internal readonly TypeSymbol CollectionType;
+        internal readonly TypeWithAnnotations IterationType;
 
-        internal ParamsCollectionTypeApplicableIndexerInProgress(SyntaxNode syntax, TypeSymbol collectionType, Binder next) :
+        internal ParamsCollectionTypeApplicableIndexerInProgress(SyntaxNode syntax, TypeSymbol collectionType, TypeWithAnnotations iterationType, Binder next) :
             base(next)
         {
             Syntax = syntax;
             CollectionType = collectionType;
+            IterationType = iterationType;
         }
     }
 }

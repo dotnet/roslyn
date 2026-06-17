@@ -1615,7 +1615,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void validateParamsType(BindingDiagnosticBag diagnostics)
             {
-                var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(DeclaringCompilation, Type, out TypeWithAnnotations elementTypeWithAnnotations);
+                var syntax = ParameterSyntax;
+                var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+                var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(binder, syntax, Type, out TypeWithAnnotations elementTypeWithAnnotations);
 
                 var elementType = elementTypeWithAnnotations.Type;
                 switch (collectionTypeKind)
@@ -1625,12 +1627,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return;
 
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
                         {
-                            var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
-
-                            binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
-                            elementType = elementTypeWithAnnotations.Type;
                             if (elementType is null)
                             {
                                 reportInvalidParams(diagnostics);
@@ -1648,8 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
-                            // https://github.com/dotnet/roslyn/issues/77879: Report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
-                            if (binder.GetCollectionExpressionApplicableIndexer(syntax, Type, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is null)
+                            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                             {
                                 if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                                 {
@@ -1689,11 +1686,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         {
-                            var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
-
-                            binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
-                            elementType = elementTypeWithAnnotations.Type;
                             if (elementType is null)
                             {
                                 reportInvalidParams(diagnostics);

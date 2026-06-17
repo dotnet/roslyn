@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var syntax = node.Syntax;
-            var collectionTypeKind = GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
+            var collectionTypeKind = GetCollectionExpressionTypeKind(_binder, syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
             var elementType = elementTypeWithAnnotations.Type;
             switch (collectionTypeKind)
             {
@@ -170,14 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
                 case CollectionExpressionTypeKind.CollectionBuilder:
+                    if (elementType is null)
                     {
-                        _binder.TryGetCollectionIterationType(syntax, targetType, out elementTypeWithAnnotations);
-                        elementType = elementTypeWithAnnotations.Type;
-                        if (elementType is null)
-                        {
-                            return Conversion.NoConversion;
-                        }
+                        return Conversion.NoConversion;
                     }
                     break;
             }
@@ -188,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? constructor = null;
             bool isExpanded = false;
 
-            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
             {
                 if (!_binder.HasCollectionExpressionApplicableConstructor(
                         node.WithElement, node.WithElement?.Syntax ?? syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
@@ -196,12 +193,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
                 }
 
-                if (_binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
-                {
-                    collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
-                }
-                else if (elements.Length > 0 &&
-                         !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
+                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                    elements.Length > 0 &&
+                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }

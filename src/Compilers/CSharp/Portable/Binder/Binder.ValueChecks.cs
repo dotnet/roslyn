@@ -4796,20 +4796,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Otherwise, we need to do deeper analysis to decide if this collection expression can escape, or if it has
             // to stay local.
-            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
+            var collectionTypeKind = expr.CollectionTypeKind;
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
-                    Debug.Assert(elementType.Type is { });
+                    ConversionsBase.IsSpanOrListType(_compilation, expr.Type, WellKnownType.System_ReadOnlySpan_T, out var readOnlySpanElementType);
+                    Debug.Assert(readOnlySpanElementType.Type is { });
 
                     // An empty ReadOnlySpan can always be returned outwards.  Similarly if this is a span we're going
                     // to create out of a readonly-data segment of the program.
-                    return LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type)
+                    return LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, readOnlySpanElementType.Type)
                         ? SafeContext.CallingMethod
                         : _localScopeDepth;
 
                 case CollectionExpressionTypeKind.Span:
-                    Debug.Assert(elementType.Type is { });
+                    ConversionsBase.IsSpanOrListType(_compilation, expr.Type, WellKnownType.System_Span_T, out var spanElementType);
+                    Debug.Assert(spanElementType.Type is { });
                     return _localScopeDepth;
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
@@ -4824,6 +4826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(expr.CollectionCreation);
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
                     var receiverScope = expr.CollectionCreation is { } collectionCreation
                         ? GetValEscape(collectionCreation)
                         : _localScopeDepth;

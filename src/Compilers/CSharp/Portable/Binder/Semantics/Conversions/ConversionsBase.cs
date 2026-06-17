@@ -1666,10 +1666,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination, compilation) == LambdaConversionResult.Success;
         }
 
-        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(Binder binder, SyntaxNode syntax, TypeSymbol destination, out TypeWithAnnotations elementType)
         {
-            Debug.Assert(compilation is { });
+            Debug.Assert(binder is { });
+            Debug.Assert(syntax is { });
 
+            var compilation = binder.Compilation;
             if (destination is ArrayTypeSymbol arrayType)
             {
                 if (arrayType.IsSZArray)
@@ -1688,7 +1690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
             {
-                elementType = default;
+                binder.TryGetCollectionIterationType(syntax, destination, out elementType);
                 return CollectionExpressionTypeKind.CollectionBuilder;
             }
             else if (destination.IsInterfaceType())
@@ -1713,6 +1715,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // to check for nullable to disallow: Nullable<StructCollection> s = [];
                 // Instead, we just walk the implemented interfaces.
                 elementType = default;
+
+                if (binder.HasParamsCollectionTypeApplicableIndexerInProgress(syntax, destination, out TypeWithAnnotations inProgressIterationType))
+                {
+                    elementType = inProgressIterationType;
+                    return CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                }
+
+                if (binder.TryGetCollectionIterationType(syntax, destination, out TypeWithAnnotations iterationType))
+                {
+                    elementType = iterationType;
+                    var indexerBinder = new ParamsCollectionTypeApplicableIndexerInProgress(syntax, destination, iterationType, binder);
+                    if (indexerBinder.GetCollectionExpressionApplicableIndexer(syntax, destination, iterationType.Type, BindingDiagnosticBag.Discarded) is { })
+                    {
+                        return CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                    }
+                }
+
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
 

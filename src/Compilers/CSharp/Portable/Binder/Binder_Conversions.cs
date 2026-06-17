@@ -2350,7 +2350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool HasParamsCollectionTypeApplicableIndexerInProgress(SyntaxNode syntax, TypeSymbol targetType)
+        internal bool HasParamsCollectionTypeApplicableIndexerInProgress(SyntaxNode syntax, TypeSymbol targetType, out TypeWithAnnotations iterationType)
         {
             Binder? current = this;
             do
@@ -2359,11 +2359,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder.Syntax == syntax &&
                     object.ReferenceEquals(binder.CollectionType.OriginalDefinition, targetType.OriginalDefinition))
                 {
+                    iterationType = binder.IterationType;
                     return true;
                 }
                 current = current.Next;
             } while (current is { });
 
+            iterationType = default;
             return false;
         }
 
@@ -2943,13 +2945,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
         {
-            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
+            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(this, node.Syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
                 case CollectionExpressionTypeKind.CollectionBuilder:
-                    Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for these cases.
-                    if (!TryGetCollectionIterationType(node.Syntax, targetType, out elementTypeWithAnnotations))
+                    if (!elementTypeWithAnnotations.HasType)
                     {
                         Error(
                             diagnostics,
@@ -2972,7 +2974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementType = elementTypeWithAnnotations.Type;
                 Debug.Assert(elementType is { });
 
-                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                 {
                     if (!HasCollectionExpressionApplicableConstructor(
                             node.WithElement, node.WithElement?.Syntax ?? node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
@@ -2980,7 +2982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         reportedErrors = true;
                     }
 
-                    if (GetCollectionExpressionApplicableIndexer(node.Syntax, targetType, elementType, BindingDiagnosticBag.Discarded) is null &&
+                    if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable &&
                         elements.Length > 0 &&
                         !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, addMethods: out _, diagnostics))
                     {
