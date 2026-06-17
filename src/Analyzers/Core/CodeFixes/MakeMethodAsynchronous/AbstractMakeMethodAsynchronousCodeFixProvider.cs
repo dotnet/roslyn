@@ -170,7 +170,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
     private sealed class EventHandlerReferenceProgress(CancellationTokenSource cancellationTokenSource) : IFindReferencesProgress
     {
-        private const int MaxReferenceLocationsToInspect = 5;
+        private const int MaxReferenceLocationsToInspect = 50;
 
         public List<ReferenceLocation> ReferenceLocations { get; } = [];
 
