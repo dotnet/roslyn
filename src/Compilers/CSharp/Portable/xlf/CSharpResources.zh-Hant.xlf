@@ -1529,7 +1529,7 @@
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
         <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
-        <target state="needs-review-translation">聯集成員提供者類型必須有類型為 'object？' 或 'object' 的公用執行個體 'Value' 屬性。此屬性必須有 Get 存取子。</target>
+        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
