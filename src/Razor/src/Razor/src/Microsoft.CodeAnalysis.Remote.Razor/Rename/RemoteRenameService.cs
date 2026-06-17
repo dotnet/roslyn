@@ -12,18 +12,17 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Rename;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.Rename;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.WorkspaceEdit?>;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -38,8 +37,10 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
     private readonly IRenameService _renameService = args.ExportProvider.GetExportedValue<IRenameService>();
     private readonly IRazorEditService _razorEditService = args.ExportProvider.GetExportedValue<IRazorEditService>();
 
+    protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
+
     public ValueTask<RemoteResponse<WorkspaceEdit?>> GetRenameEditAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
         string newName,
@@ -81,8 +82,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return NoFurtherHandling;
         }
 
-        var csharpEdit = await ExternalHandlers.Rename
-            .GetRenameEditAsync(generatedDocument, positionInfo.Position.ToLinePosition(), newName, cancellationToken)
+        var csharpEdit = await RenameHandler.GetRenameEditAsync(generatedDocument, positionInfo.Position.ToLinePosition(), newName, allowRenamesInRazorSourceGeneratedDocuments: true, cancellationToken)
             .ConfigureAwait(false);
 
         if (csharpEdit is null)
@@ -95,8 +95,75 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         return Results(csharpEdit.Concat(razorEdit.Edit));
     }
 
+    public ValueTask<RemoteResponse<LspRange?>> GetPrepareRenameRangeAsync(
+        JsonSerializableRazorSolutionWrapper solutionInfo,
+        JsonSerializableDocumentId documentId,
+        Position position,
+        CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            documentId,
+            context => GetPrepareRenameRangeAsync(context, position, cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<RemoteResponse<LspRange?>> GetPrepareRenameRangeAsync(
+        RemoteDocumentContext context,
+        Position position,
+        CancellationToken cancellationToken)
+    {
+        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
+
+        if (!sourceText.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
+        {
+            return RemoteResponse<LspRange?>.NoFurtherHandling;
+        }
+
+        var originalHostDocumentIndex = hostDocumentIndex;
+        hostDocumentIndex = codeDocument.AdjustPositionForComponentEndTag(hostDocumentIndex);
+
+        var positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex, preferCSharpOverHtml: true);
+
+        // We have various logic in rename to check for tag helpers and component tags etc. but ultimately none of that is necessary here.
+        // If the range isn't C#, we don't support rename, so we can just ask Roslyn. The extra gubbins in the actual rename path is because
+        // if we let Roslyn rename a component class name, for example, it won't know that it needs to actually rename the .razor file or
+        // nothing will actually happen.
+        if (positionInfo.LanguageKind is not CodeAnalysis.Razor.Protocol.RazorLanguageKind.CSharp)
+        {
+            return RemoteResponse<LspRange?>.CallHtml;
+        }
+
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+        var csharpRange = await PrepareRenameHandler.GetRenameRangeAsync(generatedDocument, positionInfo.Position.ToLinePosition(), cancellationToken).ConfigureAwait(false);
+
+        if (csharpRange is null)
+        {
+            return RemoteResponse<LspRange?>.NoFurtherHandling;
+        }
+
+        if (!DocumentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), csharpRange, out var mappedRange))
+        {
+            return RemoteResponse<LspRange?>.NoFurtherHandling;
+        }
+
+        // Component end tags are looked up via their matching start tag so Roslyn can find the symbol.
+        // If the request started on an end tag, shift the mapped range back so prepare-rename highlights that end tag text.
+        if (originalHostDocumentIndex != hostDocumentIndex)
+        {
+            var offset = originalHostDocumentIndex - hostDocumentIndex;
+            if (sourceText.TryGetAbsoluteIndex(mappedRange.Start, out var start) &&
+                sourceText.TryGetAbsoluteIndex(mappedRange.End, out var end))
+            {
+                mappedRange = sourceText.GetRange(start + offset, end + offset);
+            }
+        }
+
+        return RemoteResponse<LspRange?>.Results(mappedRange);
+    }
+
     public ValueTask<WorkspaceEdit?> GetFileRenameEditAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         RenameFilesParams fileRenameRequest,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -122,7 +189,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             var newFileName = Path.GetFileNameWithoutExtension(newFilePath);
 
             // We also need to make sure OldUri is a document we know about
-            if (!solution.TryGetRazorDocument(file.OldUri.GetRequiredParsedUri(), out var oldDoc))
+            if (!solution.TryGetRazorDocument(file.OldUri.GetRequiredSystemUri(), out var oldDoc))
             {
                 continue;
             }
@@ -178,8 +245,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             newComponentName = builder.ToString();
         }
 
-        var csharpEdit = await ExternalHandlers.Rename
-            .GetRenameEditAsync(generatedDocument, position, newComponentName, cancellationToken)
+        var csharpEdit = await RenameHandler.GetRenameEditAsync(generatedDocument, position, newComponentName, allowRenamesInRazorSourceGeneratedDocuments: true, cancellationToken)
             .ConfigureAwait(false);
 
         if (csharpEdit is null)

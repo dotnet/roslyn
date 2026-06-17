@@ -3312,7 +3312,7 @@ public static class E
 }
 """;
 
-        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
         var verifier = CompileAndVerify(libComp, symbolValidator: validate, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
@@ -3345,7 +3345,7 @@ class C
 }
 """;
 
-        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics();
 
         var extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
@@ -3517,7 +3517,7 @@ public static class E
 }
 """;
 
-        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100);
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
         var verifier = CompileAndVerify(libComp, symbolValidator: validate, verify: Verification.Skipped);
         verifier.VerifyDiagnostics();
 
@@ -3550,7 +3550,7 @@ class C
 }
 """;
 
-        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net100);
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net90);
 
         var extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
         Assert.True(extensionMethod.IsExtensionBlockMember());

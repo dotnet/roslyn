@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -83,7 +83,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
 
         var request = new CodeLensParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
         };
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
@@ -98,7 +98,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
 
             var tdi = resolveEndpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(codeLens);
             Assert.NotNull(tdi);
-            Assert.Equal(document.CreateUri(), tdi.Value.Uri);
+            Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
             var resolved = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(codeLens, document, DisposalToken);
 
@@ -109,7 +109,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             Assert.Equal("roslyn.client.peekReferences", resolved.Command.CommandIdentifier);
 
             var documentUri = Assert.IsType<DocumentUri>(resolved.Command.Arguments[0]);
-            Assert.Equal(document.CreateDocumentUri(), documentUri);
+            Assert.Equal(document.GetURI(), documentUri);
 
             var position = Assert.IsType<Position>(resolved.Command.Arguments[1]);
             Assert.Equal(input.NamedSpans[$"Position{i}"].Single(), inputText.GetTextSpan(position.ToZeroWidthRange()));

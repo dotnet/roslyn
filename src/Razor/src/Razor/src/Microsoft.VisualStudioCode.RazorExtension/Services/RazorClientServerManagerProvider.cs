@@ -4,8 +4,8 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -16,15 +16,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 [method: ImportingConstructor]
 internal class RazorClientServerManagerProvider() : IRazorCohostStartupService
 {
-    private IRazorClientLanguageServerManager? _razorClientLanguageServerManager;
+    private IClientLanguageServerManager? _razorClientLanguageServerManager;
 
-    public IRazorClientLanguageServerManager? ClientLanguageServerManager => _razorClientLanguageServerManager;
+    public IClientLanguageServerManager? ClientLanguageServerManager => _razorClientLanguageServerManager;
 
     public int Order => WellKnownStartupOrder.ClientServerManager;
 
-    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        _razorClientLanguageServerManager = requestContext.GetRequiredService<IRazorClientLanguageServerManager>();
+        _razorClientLanguageServerManager = requestContext.GetRequiredService<IClientLanguageServerManager>();
         return Task.CompletedTask;
     }
 }

@@ -444,6 +444,52 @@ WriteLiteral(""👧‍👧"");
     }
 
     [Fact]
+    public void WriteHtmlContent_Utf8_RendersContentCorrectly()
+    {
+        // Arrange
+        var writer = IntermediateNodeWriter.Instance;
+        using var context = TestCodeRenderingContext.CreateRuntime(writeHtmlUtf8StringLiterals: true);
+
+        var node = new HtmlContentIntermediateNode();
+        node.Children.Add(IntermediateNodeFactory.HtmlToken("SomeContent"));
+
+        // Act
+        writer.WriteHtmlContent(context, node);
+
+        // Assert
+        var csharp = context.CodeWriter.GetText().ToString();
+        Assert.Equal(
+@"WriteLiteral(""SomeContent""u8);
+",
+            csharp,
+            ignoreLineEndingDifferences: true);
+    }
+
+    [Fact]
+    public void WriteHtmlContent_Utf8_LargeStringLiteral_UsesMultipleWrites()
+    {
+        // Arrange
+        var writer = IntermediateNodeWriter.Instance;
+        using var context = TestCodeRenderingContext.CreateRuntime(writeHtmlUtf8StringLiterals: true);
+
+        var node = new HtmlContentIntermediateNode();
+        node.Children.Add(IntermediateNodeFactory.HtmlToken(new string('*', 2000)));
+
+        // Act
+        writer.WriteHtmlContent(context, node);
+
+        // Assert
+        var csharp = context.CodeWriter.GetText().ToString();
+        Assert.Equal(string.Format(
+            CultureInfo.InvariantCulture,
+@"WriteLiteral(@""{0}""u8);
+WriteLiteral(@""{1}""u8);
+", new string('*', 1024), new string('*', 976)),
+            csharp,
+            ignoreLineEndingDifferences: true);
+    }
+
+    [Fact]
     public void WriteHtmlContent_LargeStringLiteral_UsesMultipleWrites()
     {
         // Arrange

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -161,7 +161,7 @@ internal partial class CSharpFormattingPass
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
-            private readonly RazorCSharpSyntaxFormattingOptions? _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
+            private readonly CSharpSyntaxFormattingOptions? _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
             private readonly IDocumentMappingService _documentMappingService = documentMappingService;
@@ -246,9 +246,9 @@ internal partial class CSharpFormattingPass
                         _lineInfoBuilder.Add(CreateLineInfo(processIndentation: false));
                     }
 
-                    // If we're inside an element that ends on this line, clear the field that tracks it.
+                    // If we're at or past an element that wants us to ignore Html formatting, clear the field that tracks it.
                     if (_honourHtmlFormattingUntilLine is { } endLine &&
-                        endLine == line.LineNumber)
+                        endLine <= line.LineNumber)
                     {
                         _honourHtmlFormattingUntilLine = null;
                     }
@@ -361,8 +361,47 @@ internal partial class CSharpFormattingPass
 
                 // We can't use node.Span because it can contain newlines from the line before, so we have to work a little.
 
-                // First, emit the whitespace, so user spacing is honoured if possible
-                _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
+                // If we're inside an Html attribute, the indentation recorded in the Razor file already includes the fixed
+                // attribute indentation that will be reapplied when we map the formatted C# back. Remove that baseline here
+                // so Roslyn only sees the relative indentation within the expression instead of compounding it each time.
+                var htmlIndentLevel = 0;
+                int? additionalIndentation = null;
+                var attributeNode = node.Ancestors().FirstOrDefault(n => n.IsAnyAttributeSyntax())
+                    ?? (previousLineStartedWithAttributeName ? previousTokenParent?.Parent : null);
+                if (attributeNode?.Parent is BaseMarkupStartTagSyntax attributeStartTag)
+                {
+                    GetAttributeIndentation(attributeStartTag, out htmlIndentLevel, out var attributeAdditionalIndentation);
+                    additionalIndentation = attributeAdditionalIndentation;
+                }
+
+                // First, emit the whitespace, so user spacing is honoured if possible. We do this while taking into account
+                // any indentation we want to add to line up attribute content, otherwise we'd end up pushing that content to
+                // the right repeatedly.
+                var attributeIndentationWidth = (htmlIndentLevel * _tabSize) + additionalIndentation.GetValueOrDefault();
+
+                // For lambda attributes like `OnClick=@(() => ...)`, Roslyn already contributes the
+                // lambda-body indentation on wrapped lines. If we keep applying the full attribute
+                // indentation baseline to those continuation lines, every format pass shifts the block
+                // body one level to the right.
+                if (expressionStartsBlockLambda &&
+                    attributeNode is MarkupAttributeBlockSyntax or MarkupTagHelperAttributeSyntax &&
+                    _currentLine.LineNumber > nodeStartLine &&
+                    htmlIndentLevel > 0)
+                {
+                    htmlIndentLevel--;
+                }
+
+                if (attributeIndentationWidth <= 0)
+                {
+                    // Attributes don't affect indentation here, so the user's indentation is all we need.
+                    _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
+                }
+                else
+                {
+                    // Take the user's indentation, and subtract our desired attribute indentation, so it's not added repeatedly.
+                    var indentationWidth = Math.Max(_currentLine.GetIndentationSize(_tabSize) - attributeIndentationWidth, 0);
+                    _builder.Append(FormattingUtilities.GetIndentationString(indentationWidth, _insertSpaces, _tabSize));
+                }
 
                 // Now emit the contents of the line. If this is the last line of the expression literal, then we want to stop at the
                 // end of the node, as there could be other contents afterwards, so work out if we're in that case first.
@@ -417,19 +456,6 @@ internal partial class CSharpFormattingPass
                 }
 
                 _builder.AppendLine();
-
-                // Final quirk: If we're inside an Html attribute, it means the Html formatter won't have formatted this line, as multi-line
-                // Html attributes are not valid.
-                // TODO: The traverse up the tree here is not ideal. See comments in https://github.com/dotnet/razor/issues/11371
-                var htmlIndentLevel = 0;
-                int? additionalIndentation = null;
-                var attributeNode = node.Ancestors().FirstOrDefault(n => n.IsAnyAttributeSyntax())
-                    ?? (previousLineStartedWithAttributeName ? previousTokenParent?.Parent : null);
-                if (attributeNode?.Parent is BaseMarkupStartTagSyntax attributeStartTag)
-                {
-                    GetAttributeIndentation(attributeStartTag, out htmlIndentLevel, out var attributeAdditionalIndentation);
-                    additionalIndentation = attributeAdditionalIndentation;
-                }
 
                 if (offsetFromEnd == 0)
                 {
@@ -593,7 +619,11 @@ internal partial class CSharpFormattingPass
                     // If this is an element at the root level, we want to record where it ends. We can't rely on the Visit method
                     // for it, because it might not be at the start of a line. We only care about contents though, so thats why
                     // we are doing this after emitting this line, and subtracting one from the end element line number.
-                    _honourHtmlFormattingUntilLine = GetLineNumber(closeAngle) - 1;
+                    var honouredEndLine = GetLineNumber(closeAngle) - 1;
+                    if (honouredEndLine > _currentLine.LineNumber)
+                    {
+                        _honourHtmlFormattingUntilLine = honouredEndLine;
+                    }
                 }
 
                 return lineInfo;
@@ -1198,7 +1228,7 @@ internal partial class CSharpFormattingPass
                 //
                 // The formatted offset tells the mapping code to ignore whichever representation Roslyn chose, because
                 // the synthetic lambda opener is scaffolding for formatting and should not be copied back into Razor.
-                return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
+                return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
                     ? SyntheticLambdaSignatureLength
                     : SyntheticLambdaBodyStart.Length;
             }

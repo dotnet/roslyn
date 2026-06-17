@@ -160,11 +160,6 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             TryAddMalformedEndTagDiagnostic(elementNode, tagName, binder, attributes, parent, tagHelperParent);
 
             _resolver.ConvertToPlainElement(parent, index, elementNode);
-
-            // Transfer element diagnostics to the converted/unwrapped node.
-            // ConvertToMarkupElement already copies diagnostics, but UnwrapElement does not,
-            // so this is needed for the legacy path.
-            parent.Children[index].AddDiagnosticsFromNode(elementNode);
             return;
         }
 
@@ -418,8 +413,8 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
     /// <summary>
     /// Post-pass that consolidates adjacent <see cref="HtmlContentIntermediateNode"/> children.
-    /// Merges tokens and extends source spans. Called after element unwrapping to clean up
-    /// fragmented content.
+    /// Merges tokens, extends source spans, and preserves diagnostics. Called after element
+    /// unwrapping to clean up fragmented content.
     /// </summary>
     private static void MergeAdjacentHtmlContent(IntermediateNode parent)
     {
@@ -429,6 +424,9 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 parent.Children[i + 1] is HtmlContentIntermediateNode next)
             {
                 current.Children.AddRange(next.Children);
+
+                // Preserve diagnostics from the removed sibling so they aren't silently dropped.
+                current.AddDiagnosticsFromNode(next);
                 if (current.Source is SourceSpan cs && next.Source is SourceSpan ns)
                 {
                     // Adjacent nodes are sequential, so next always ends after current.
@@ -495,7 +493,17 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var allowedChildrenString = string.Join(", ", allowedNames.ToArray());
         var parentTagName = tagHelperNode.TagName;
 
-        foreach (var child in bodyNode.Children)
+        ValidateAllowedChildren(parentTagName, bodyNode.Children, in allowedNames, allowedChildrenString, prefix);
+    }
+
+    private static void ValidateAllowedChildren(
+        string parentTagName,
+        IntermediateNodeCollection children,
+        in PooledArrayBuilder<string> allowedNames,
+        string allowedChildrenString,
+        string prefix)
+    {
+        foreach (var child in children)
         {
             if (child is TagHelperIntermediateNode childTagHelper)
             {
@@ -536,11 +544,16 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                     }
                 }
             }
-            else if (child is CSharpExpressionIntermediateNode or CSharpCodeIntermediateNode)
+            else if (child is CSharpExpressionIntermediateNode)
             {
                 child.AddDiagnostic(
                     RazorDiagnosticFactory.CreateTagHelper_CannotHaveNonTagContent(
                         child.Source ?? SourceSpan.Undefined, parentTagName, allowedChildrenString));
+            }
+            else if (child is CSharpCodeIntermediateNode)
+            {
+                // Razor code blocks can contain markup children, so validate their children instead of the block itself.
+                ValidateAllowedChildren(parentTagName, child.Children, in allowedNames, allowedChildrenString, prefix);
             }
         }
     }

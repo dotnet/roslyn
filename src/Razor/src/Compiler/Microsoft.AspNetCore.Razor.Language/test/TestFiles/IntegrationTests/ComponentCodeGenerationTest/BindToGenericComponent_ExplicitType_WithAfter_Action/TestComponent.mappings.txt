@@ -25,7 +25,7 @@ Generated Location: (1712:48,0 [6] )
 
 Source Location: (62:0,62 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (1929:57,0 [5] )
+Generated Location: (1939:57,0 [5] )
 |Value|
 
 Source Location: (94:1,7 [82] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -34,7 +34,7 @@ Source Location: (94:1,7 [82] x:\dir\subdir\Test\TestComponent.cshtml)
 
     public void Update() { }
 |
-Generated Location: (2172:68,0 [82] )
+Generated Location: (2186:68,0 [82] )
 |
     public int ParentValue { get; set; } = 42;
 

@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Text;
 
+using SourceLocation = Microsoft.AspNetCore.Razor.Language.SourceLocation;
+
 internal static class SourceTextExtensions
 {
     /// <summary>
@@ -235,9 +237,9 @@ internal static class SourceTextExtensions
 
         var textLine = text.Lines[line];
 
-        if (character > textLine.SpanIncludingLineBreak.Length)
+        if (character > textLine.Span.Length)
         {
-            return false;
+            character = textLine.Span.Length;
         }
 
         absoluteIndex = textLine.Start + character;
