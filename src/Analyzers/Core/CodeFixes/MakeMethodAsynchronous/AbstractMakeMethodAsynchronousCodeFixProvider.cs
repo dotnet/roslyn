@@ -111,15 +111,23 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
             documents: GetReferenceSearchScope(solution, methodSymbol),
             cancellationToken).ConfigureAwait(false);
 
+        var cache = new Dictionary<DocumentId, (SyntaxNode Root, SemanticModel SemanticModel)>();
+
         foreach (var referencedSymbol in referencedSymbols)
         {
             foreach (var location in referencedSymbol.Locations)
             {
                 var document = location.Document;
-                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (IsDelegateReference(semanticModel, syntaxNode, cancellationToken))
+                if (!cache.TryGetValue(document.Id, out var entry))
+                {
+                    entry = (
+                        await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false),
+                        await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
+                    cache.Add(document.Id, entry);
+                }
+
+                var syntaxNode = entry.Root.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
+                if (IsDelegateReference(entry.SemanticModel, syntaxNode, cancellationToken))
                     return true;
             }
         }
