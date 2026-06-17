@@ -51,8 +51,13 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         if (!precedingConstruct.IsBreakableConstruct())
             return false;
 
-        if (!TryCollectMultiLevelJumps(precedingConstruct, label, semanticModel, cancellationToken, includeSwitch: true, out gotos))
+        // The triggering goto must itself be one of the collected jumps (an unrelated 'goto' to the same label from
+        // outside the loop is not part of this pattern).
+        if (!TryCollectMultiLevelJumps(precedingConstruct, label, semanticModel, cancellationToken, includeSwitch: true, out gotos) ||
+            !gotos.Contains(gotoStatement))
+        {
             return false;
+        }
 
         breakTarget = precedingConstruct;
         labelDeclaration = declaration;
@@ -92,7 +97,8 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
             } &&
             lastStatement == declaration &&
             candidateLoop.IsContinuableConstruct() &&
-            TryCollectMultiLevelJumps(candidateLoop, label, semanticModel, cancellationToken, includeSwitch: false, out gotos))
+            TryCollectMultiLevelJumps(candidateLoop, label, semanticModel, cancellationToken, includeSwitch: false, out gotos) &&
+            gotos.Contains(gotoStatement))
         {
             loop = candidateLoop;
             labelDeclaration = declaration;

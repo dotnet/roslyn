@@ -89,6 +89,57 @@ public sealed class UseLabeledJumpStatementsTests
         }.RunAsync();
 
     [Fact]
+    public Task TestGotoBreak_LabelReferencedElsewhere()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        if (b)
+                            goto found;
+
+                        for (int x = 0; x < 10; x++)
+                        {
+                            for (int y = 0; y < 10; y++)
+                            {
+                                if (x * y > 20)
+                                    {|IDE0410:goto|} found;
+                            }
+                        }
+
+                        found:
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        if (b)
+                            goto found;
+
+                    loop_x: for (int x = 0; x < 10; x++)
+                        {
+                            for (int y = 0; y < 10; y++)
+                            {
+                                if (x * y > 20)
+                                    break loop_x;
+                            }
+                        }
+
+                        found:
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
     public Task TestGotoBreak_EmptyLabelPad()
         => new VerifyCS.Test
         {

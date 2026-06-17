@@ -49,12 +49,12 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
             if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(
                     gotoStatement, semanticModel, cancellationToken, out var loop, out var labelDeclaration, out var gotos))
             {
-                ConvertGotos(editor, loop, labelDeclaration, gotos, isBreak: true);
+                ConvertGotos(editor, semanticModel, loop, labelDeclaration, gotos, isBreak: true, cancellationToken);
             }
             else if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(
                     gotoStatement, semanticModel, cancellationToken, out loop, out labelDeclaration, out gotos))
             {
-                ConvertGotos(editor, loop, labelDeclaration, gotos, isBreak: false);
+                ConvertGotos(editor, semanticModel, loop, labelDeclaration, gotos, isBreak: false, cancellationToken);
             }
         }
         else if (diagnosticNode is BreakStatementSyntax breakStatement)
@@ -69,13 +69,20 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
 
     private static void ConvertGotos(
         SyntaxEditor editor,
+        SemanticModel semanticModel,
         StatementSyntax loop,
         LabeledStatementSyntax labelDeclaration,
         ImmutableArray<GotoStatementSyntax> gotos,
-        bool isBreak)
+        bool isBreak,
+        CancellationToken cancellationToken)
     {
-        // Reuse the existing label (the goto target's name), or one already on the loop from a prior fix.
-        var labelName = GetReusableLabelName(loop) ?? labelDeclaration.Identifier.Text;
+        // Reuse a label a prior fix already put on the loop.  Otherwise reuse the goto target's own label and delete
+        // it -- unless other jumps still reference that label, in which case introduce a fresh label on the loop and
+        // leave the original (and its remaining references) untouched.
+        var existingLabel = GetReusableLabelName(loop);
+        var keepOriginalLabel = existingLabel is null &&
+            LabelIsReferencedOutside(semanticModel, labelDeclaration, gotos, cancellationToken);
+        var labelName = existingLabel ?? (keepOriginalLabel ? SynthesizeLabelName(semanticModel, loop) : labelDeclaration.Identifier.Text);
 
         var newLoop = loop.ReplaceNodes(gotos, (original, _) => CreateJump(labelName, original, isBreak));
 
@@ -85,19 +92,56 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
 
             // The label after the loop is now redundant.  If it sat on an empty statement, remove it entirely;
             // otherwise keep the statement but strip the now-unused label off it.
-            if (labelDeclaration.Statement is EmptyStatementSyntax)
-                editor.RemoveNode(labelDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
-            else
-                editor.ReplaceNode(labelDeclaration, labelDeclaration.Statement.WithLeadingTrivia(labelDeclaration.GetLeadingTrivia()));
+            if (!keepOriginalLabel)
+            {
+                if (labelDeclaration.Statement is EmptyStatementSyntax)
+                    editor.RemoveNode(labelDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
+                else
+                    editor.ReplaceNode(labelDeclaration, labelDeclaration.Statement.WithLeadingTrivia(labelDeclaration.GetLeadingTrivia()));
+            }
         }
         else
         {
             // The continue label is the empty last statement of the body; remove it as we relabel the loop.
-            var body = (BlockSyntax)newLoop.GetEmbeddedStatement()!;
-            newLoop = newLoop.ReplaceNode(body, body.WithStatements(body.Statements.RemoveAt(body.Statements.Count - 1)));
+            if (!keepOriginalLabel)
+            {
+                var body = (BlockSyntax)newLoop.GetEmbeddedStatement()!;
+                newLoop = newLoop.ReplaceNode(body, body.WithStatements(body.Statements.RemoveAt(body.Statements.Count - 1)));
+            }
 
             ReplaceLoop(editor, loop, labelName, newLoop);
         }
+    }
+
+    /// <summary>
+    /// Whether <paramref name="labelDeclaration"/>'s label is targeted by a <c>goto</c> other than the ones in
+    /// <paramref name="gotos"/> (which we are converting); if so, the label must stay and a fresh one is introduced.
+    /// </summary>
+    private static bool LabelIsReferencedOutside(
+        SemanticModel semanticModel,
+        LabeledStatementSyntax labelDeclaration,
+        ImmutableArray<GotoStatementSyntax> gotos,
+        CancellationToken cancellationToken)
+    {
+        if (semanticModel.GetDeclaredSymbol(labelDeclaration, cancellationToken) is not ILabelSymbol label)
+            return false;
+
+        // Labels are function-scoped, so scanning the enclosing member/function body finds every reference.
+        var scope = labelDeclaration.AncestorsAndSelf().FirstOrDefault(
+            static node => node is BaseMethodDeclarationSyntax or AccessorDeclarationSyntax or LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax)
+            ?? labelDeclaration.SyntaxTree.GetRoot(cancellationToken);
+
+        foreach (var candidate in scope.DescendantNodes().OfType<GotoStatementSyntax>())
+        {
+            if (!gotos.Contains(candidate) &&
+                candidate is GotoStatementSyntax(SyntaxKind.GotoStatement) { Expression: IdentifierNameSyntax identifier } &&
+                Equals(semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol, label))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void ConvertFlagPattern(SyntaxEditor editor, SemanticModel semanticModel, FlagJumpPattern pattern)

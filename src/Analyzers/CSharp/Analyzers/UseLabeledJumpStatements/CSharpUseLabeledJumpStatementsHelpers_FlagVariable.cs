@@ -134,10 +134,10 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         targetLoop = null;
         isBreak = false;
 
-        for (var current = innerLoop; ;)
+        for (var current = innerLoop; current != null;)
         {
             // The statement following 'current' in its block (accounting for a label a prior fix may have added).
-            var statementInBlock = current.Parent is LabeledStatementSyntax labeled ? (StatementSyntax)labeled : current;
+            var statementInBlock = current.Parent is LabeledStatementSyntax labeled ? labeled : current;
             if (statementInBlock.Parent is not BlockSyntax { Parent: StatementSyntax containingLoop } containingBlock ||
                 !containingLoop.IsContinuableConstruct())
             {
