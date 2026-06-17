@@ -234,9 +234,8 @@
   <data name="Make_method_async" xml:space="preserve">
     <value>Make method async</value>
   </data>
-  <data name="Methods_used_as_void_returning_delegates_require_async_void" xml:space="preserve">
-    <value>Methods used as void-returning delegates require 'async void'</value>
-    <comment>{Locked="async void"} "async" and "void" are C# keywords and should not be localized.</comment>
+  <data name="Changing_the_return_type_of_a_delegate_may_result_in_build_errors" xml:space="preserve">
+    <value>Changing the return type of a delegate may result in build errors</value>
   </data>
   <data name="Make_method_async_remain_void" xml:space="preserve">
     <value>Make method async (stay void)</value>

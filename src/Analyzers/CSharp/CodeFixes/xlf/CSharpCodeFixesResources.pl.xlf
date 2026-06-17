@@ -47,6 +47,11 @@
         <target state="translated">Zmień zwracany typ z {0} na {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_the_return_type_of_a_delegate_may_result_in_build_errors">
+        <source>Changing the return type of a delegate may result in build errors</source>
+        <target state="new">Changing the return type of a delegate may result in build errors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
         <target state="translated">Porównaj z „{0}”</target>
@@ -106,11 +111,6 @@
         <source>Make method async</source>
         <target state="translated">Ustaw metodę jako asynchroniczną</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Methods_used_as_void_returning_delegates_require_async_void">
-        <source>Methods used as void-returning delegates require 'async void'</source>
-        <target state="new">Methods used as void-returning delegates require 'async void'</target>
-        <note>{Locked="async void"} "async" and "void" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>

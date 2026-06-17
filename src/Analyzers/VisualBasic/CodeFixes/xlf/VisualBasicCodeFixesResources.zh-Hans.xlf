@@ -12,10 +12,10 @@
         <target state="translated">添加 &lt;Obsolete&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Methods_used_as_void_returning_delegates_require_Async_Sub">
-        <source>Methods used as void-returning delegates require 'Async Sub'</source>
-        <target state="new">Methods used as void-returning delegates require 'Async Sub'</target>
-        <note>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</note>
+      <trans-unit id="Changing_the_return_type_of_a_delegate_may_result_in_build_errors">
+        <source>Changing the return type of a delegate may result in build errors</source>
+        <target state="new">Changing the return type of a delegate may result in build errors</target>
+        <note />
       </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>

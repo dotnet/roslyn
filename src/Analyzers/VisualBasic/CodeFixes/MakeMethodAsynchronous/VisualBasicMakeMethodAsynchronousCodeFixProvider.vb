@@ -45,8 +45,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return VisualBasicCodeFixesResources.Make_Async_Function
         End Function
 
-        Protected Overrides Function GetVoidReturningDelegateWarningResource() As String
-            Return VisualBasicCodeFixesResources.Methods_used_as_void_returning_delegates_require_Async_Sub
+        Protected Overrides Function GetUsedAsDelegateWarningResource() As String
+            Return VisualBasicCodeFixesResources.Changing_the_return_type_of_a_delegate_may_result_in_build_errors
         End Function
 
         Protected Overrides Function GetMakeAsyncVoidFunctionResource() As String
