@@ -36,7 +36,7 @@ internal sealed class CohostGeneratedDocumentContentsEndpoint(
     {
         var response = request.Kind switch
         {
-            GeneratedDocumentKind.CSharp => await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string?>(
+            GeneratedDocumentKind.CSharpImplementation => await _remoteServiceInvoker.TryInvokeAsync<IRemoteDevToolsService, string?>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken) => service.GetCSharpDocumentTextAsync(solutionInfo, razorDocument.Id, declarationDocument: false, cancellationToken),
                 cancellationToken).ConfigureAwait(false),

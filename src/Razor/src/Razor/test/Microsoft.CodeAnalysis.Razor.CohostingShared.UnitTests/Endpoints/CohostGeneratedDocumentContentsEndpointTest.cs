@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public class CohostGeneratedDocumentContentsEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
-    public async Task CSharp()
+    public async Task CSharpImplementation()
     {
         var input = """
                 @{
@@ -22,7 +22,7 @@ public class CohostGeneratedDocumentContentsEndpointTest(ITestOutputHelper testO
                 <div>@message</div>
                 """;
 
-        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.CSharp, """var message = "Hello World";""");
+        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.CSharpImplementation, """var message = "Hello World";""");
     }
 
     [Fact]

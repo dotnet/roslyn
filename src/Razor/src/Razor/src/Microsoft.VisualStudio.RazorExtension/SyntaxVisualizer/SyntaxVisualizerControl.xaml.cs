@@ -139,7 +139,7 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
 
         if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
         {
-            ShowGeneratedCode(_activeWpfTextView.TextBuffer, hostDocumentUri, GeneratedDocumentKind.CSharp);
+            ShowGeneratedCode(_activeWpfTextView.TextBuffer, hostDocumentUri, GeneratedDocumentKind.CSharpImplementation);
         }
     }
 
@@ -218,7 +218,7 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
 
         var extension = kind switch
         {
-            GeneratedDocumentKind.CSharp => ".g.cs",
+            GeneratedDocumentKind.CSharpImplementation => ".g.cs",
             GeneratedDocumentKind.CSharpDeclaration => ".decl.g.cs",
             GeneratedDocumentKind.Html => ".g.html",
             GeneratedDocumentKind.Formatting => ".formatting.cs",
