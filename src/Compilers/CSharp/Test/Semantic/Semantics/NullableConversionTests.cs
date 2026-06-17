@@ -814,6 +814,7 @@ class C
                 compilation.GetBinder(target).BindExpression(operand, bag),
                 nullableIntType,
                 ref unused);
+            bag.Free();
             Assert.True(conversion.IsExplicit && conversion.IsNullable);
         }
     }

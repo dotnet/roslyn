@@ -4,14 +4,22 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(IBinLogPathProvider)), Shared]
-internal sealed class BinLogPathProvider : IBinLogPathProvider
+[ExportCSharpVisualBasicLspServiceFactory(typeof(BinLogPathProvider)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class BinLogPathProviderFactory(IGlobalOptionService globalOptionService) : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new BinLogPathProvider(globalOptionService, lspServices.GetRequiredService<ILoggerFactory>());
+}
+
+internal sealed class BinLogPathProvider : IBinLogPathProvider, ILspService
 {
     /// <summary>
     /// The suffix to use for the binary log name; incremented each time we have a new build. Should be incremented with <see cref="Interlocked.Increment(ref int)"/>.
@@ -26,8 +34,6 @@ internal sealed class BinLogPathProvider : IBinLogPathProvider
     private readonly IGlobalOptionService _globalOptionService;
     private readonly ILogger _logger;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public BinLogPathProvider(IGlobalOptionService globalOptionService, ILoggerFactory loggerFactory)
     {
         _globalOptionService = globalOptionService;

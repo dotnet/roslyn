@@ -5,7 +5,6 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager projectTargetFrameworkManager) : ILspServiceRequestHandler<string[]>
+internal sealed class RestorableProjectsHandler() : ILspServiceRequestHandler<string[]>
 {
     internal const string MethodName = "workspace/_roslyn_restorableProjects";
 
@@ -28,6 +27,8 @@ internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager pr
     public async Task<string[]> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
+
+        var projectTargetFrameworkManager = context.GetRequiredService<ProjectTargetFrameworkManager>();
 
         // We use a sorted set here for the following reasons
         //   1.  Ensures the client gets a consistent ordering in the picker (especially useful for integration tests).

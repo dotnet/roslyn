@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -38,7 +39,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         bool allowDiagnostics = false,
         bool debugAssertsEnabled = true,
         bool validateHtmlFormattedMatchesWebTools = true,
-        RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
+        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
         (string fileName, string contents)[]? additionalFiles = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, inGlobalNamespace: inGlobalNamespace, additionalFiles: additionalFiles);
@@ -54,7 +55,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
             //Assert.False(csharpDocument.Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, csharpDocument.Diagnostics));
         }
 
-        csharpSyntaxFormattingOptions ??= RazorCSharpSyntaxFormattingOptions.Default;
+        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
 
         var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
         var accessor = formattingService.GetTestAccessor();
@@ -66,7 +67,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
             DisposalToken).ConfigureAwait(false);
         Assert.NotNull(generatedHtml);
 
-        var uri = new Uri(document.CreateUri(), $"{document.FilePath}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
+        var uri = new Uri(document.CreateSystemUri(), $"{document.FilePath}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
         TextEdit[] htmlEdits = [];
 
         var source = SourceText.From(input.Text);
@@ -76,7 +77,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         if (validateHtmlFormattedMatchesWebTools)
         {
 #if NETFRAMEWORK
-            var htmlFormattingService = new HtmlFormattingService();
+            using var htmlFormattingService = new HtmlFormattingService();
             // Lets make sure everything is working as we expect in our tests
             var htmlEditsResult = await htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, tabSize);
             var htmlChangesResult = htmlEditsResult.Select(source.GetTextChange);
@@ -108,7 +109,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         AssertEx.EqualOrDiff(expected, finalText.ToString());
     }
 
-    private protected async Task<TextEdit[]?> GetFormattingEditsAsync(TextDocument document, TextEdit[]? htmlEdits, TextSpan span, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, bool insertSpaces, int tabSize, RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+    private protected async Task<TextEdit[]?> GetFormattingEditsAsync(TextDocument document, TextEdit[]? htmlEdits, TextSpan span, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, bool insertSpaces, int tabSize, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
     {
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
 
@@ -129,14 +130,14 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
        TextDocument document,
        IHtmlRequestInvoker requestInvoker,
        IClientSettingsManager clientSettingsManager,
-       RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+       CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
     {
         if (span.IsEmpty)
         {
             var endpoint = new CohostDocumentFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
             var request = new DocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
+                TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
                 Options = new FormattingOptions()
                 {
                     TabSize = tabSize,
@@ -151,7 +152,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         var rangeEndpoint = new CohostRangeFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
         var rangeRequest = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
             Options = new FormattingOptions()
             {
                 TabSize = 4,

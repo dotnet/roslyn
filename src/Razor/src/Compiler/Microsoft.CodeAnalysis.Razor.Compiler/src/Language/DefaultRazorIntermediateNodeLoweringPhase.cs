@@ -46,21 +46,27 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         documentNode.Options = codeDocument.CodeGenerationOptions;
 
+        // 1. Prioritize non-imported usings over imported ones.
+        // 2. Don't import usings that already exist in primary document.
+        // 3. Allow duplicate usings in primary document (C# warning).
+        using var _1 = ListPool<UsingReference>.GetPooledObject(out var usingReferences);
+
         // The import documents should be inserted logically before the main document.
         var imports = codeDocument.GetImportSyntaxTrees();
-        var importedUsings = !imports.IsEmpty
-            ? ImportDirectives(documentNode, builder, syntaxTree.Options, imports)
-            : [];
+        using var _2 = ListPool<UsingReference>.GetPooledObject(out var importedUsings);
+        if (!imports.IsEmpty)
+        {
+            ImportDirectives(documentNode, builder, syntaxTree.Options, imports, importedUsings);
+        }
 
         // Lower the main document, appending after the imported directives.
         //
         // We need to decide up front if this document is a "component" file. This will affect how
         // lowering behaves.
-        LoweringVisitor visitor;
         if (codeDocument.FileKind.IsComponentImport() &&
             syntaxTree.Options.AllowComponentFileKind)
         {
-            visitor = new ComponentImportFileKindVisitor(documentNode, builder, syntaxTree.Options)
+            var visitor = new ComponentImportFileKindVisitor(documentNode, builder, usingReferences, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
@@ -70,7 +76,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         else if (codeDocument.FileKind.IsComponent() &&
             syntaxTree.Options.AllowComponentFileKind)
         {
-            visitor = new ComponentFileKindVisitor(documentNode, builder, syntaxTree.Options)
+            var visitor = new ComponentFileKindVisitor(documentNode, builder, usingReferences, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
@@ -79,19 +85,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
         else
         {
-            visitor = new LegacyFileKindVisitor(documentNode, builder, syntaxTree.Options)
+            var visitor = new LegacyFileKindVisitor(documentNode, builder, usingReferences, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
 
             visitor.Visit(syntaxTree.Root);
         }
-
-        // 1. Prioritize non-imported usings over imported ones.
-        // 2. Don't import usings that already exist in primary document.
-        // 3. Allow duplicate usings in primary document (C# warning).
-        using var _ = ListPool<UsingReference>.GetPooledObject(out var usingReferences);
-        usingReferences.AddRange(visitor.Usings);
 
         for (var j = importedUsings.Count - 1; j >= 0; j--)
         {
@@ -190,22 +190,21 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 (category is System.Globalization.UnicodeCategory.TitlecaseLetter or System.Globalization.UnicodeCategory.OtherLetter));
     }
 
-    private static IReadOnlyList<UsingReference> ImportDirectives(
+    private static void ImportDirectives(
         DocumentIntermediateNode document,
         IntermediateNodeBuilder builder,
         RazorParserOptions options,
-        ImmutableArray<RazorSyntaxTree> imports)
+        ImmutableArray<RazorSyntaxTree> imports,
+        List<UsingReference> usings)
     {
         Debug.Assert(!imports.IsDefaultOrEmpty);
 
-        var importsVisitor = new ImportsVisitor(document, builder, options);
+        var importsVisitor = new ImportsVisitor(document, builder, usings, options);
         foreach (var import in imports)
         {
             importsVisitor.SourceDocument = import.Source;
             importsVisitor.Visit(import.Root);
         }
-
-        return importsVisitor.Usings;
     }
 
     private static void PostProcessImportedDirectives(DocumentIntermediateNode document)
@@ -318,15 +317,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         /// </summary>
         protected bool _insideUnresolvedAttribute;
 
-        public LoweringVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, RazorParserOptions options)
+        public LoweringVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, List<UsingReference> usings, RazorParserOptions options)
         {
             _document = document;
             _builder = builder;
-            _usings = new List<UsingReference>();
+            _usings = usings;
             _options = options;
         }
-
-        public IReadOnlyList<UsingReference> Usings => _usings;
 
         public RazorSourceDocument SourceDocument { get; set; }
 
@@ -400,7 +397,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                     });
                     break;
                 case AddImportChunkGenerator importChunkGenerator:
-                    var namespaceImport = importChunkGenerator.Namespace.Trim();
+                    var namespaceImport = importChunkGenerator.Namespace;
                     var namespaceSpan = BuildSourceSpanFromNode(node);
                     _usings.Add(new UsingReference(namespaceImport, namespaceSpan, importChunkGenerator.HasExplicitSemicolon));
                     break;
@@ -1039,8 +1036,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
     private class LegacyFileKindVisitor : LoweringVisitor
     {
         private bool _insideUnresolvedElement;
-        public LegacyFileKindVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, RazorParserOptions options)
-            : base(document, builder, options)
+        public LegacyFileKindVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, List<UsingReference> usings, RazorParserOptions options)
+            : base(document, builder, usings, options)
         {
         }
 
@@ -1615,8 +1612,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public ComponentFileKindVisitor(
             DocumentIntermediateNode document,
             IntermediateNodeBuilder builder,
+            List<UsingReference> usings,
             RazorParserOptions options)
-            : base(document, builder, options)
+            : base(document, builder, usings, options)
         {
         }
 
@@ -2102,8 +2100,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public ComponentImportFileKindVisitor(
             DocumentIntermediateNode document,
             IntermediateNodeBuilder builder,
+            List<UsingReference> usings,
             RazorParserOptions options)
-            : base(document, builder, options)
+            : base(document, builder, usings, options)
         {
         }
 
@@ -2183,8 +2182,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
     private class ImportsVisitor : LoweringVisitor
     {
-        public ImportsVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, RazorParserOptions options)
-            : base(document, new ImportBuilder(builder), options)
+        public ImportsVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, List<UsingReference> usings, RazorParserOptions options)
+            : base(document, new ImportBuilder(builder), usings, options)
         {
         }
 

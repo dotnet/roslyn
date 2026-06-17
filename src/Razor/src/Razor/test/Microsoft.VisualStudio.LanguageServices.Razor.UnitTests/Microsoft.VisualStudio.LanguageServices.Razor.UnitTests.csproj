@@ -10,7 +10,6 @@
     <!-- The binding redirects are needed due to a conflict between the test host and Roslyn regarding System.Collections.Immutable -->
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-    <DefineConstants>$(DefineConstants);COHOSTING</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

@@ -19,10 +19,8 @@
     <PackageVersion Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" Version="10.0.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(_MicrosoftExtensionsPackageVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="$(MicrosoftExtensionsObjectPoolVersion)" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.NET.Sdk.Razor" Version="11.0.100-preview.4.26215.114" />
-    <PackageVersion Include="Microsoft.Playwright" Version="1.49.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="0.2.28-beta" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
@@ -32,7 +30,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Implementation" Version="$(_MicrosoftVisualStudioPackagesVersion)" NoWarn="NU1701" />
-    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
+    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.13.22" />
     <PackageVersion Include="Microsoft.VisualStudio.Web" Version="16.10.0-preview-1-31008-014" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html" Version="$(_MicrosoftWebToolsPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html.Editor" Version="$(_MicrosoftWebToolsPackageVersion)" />

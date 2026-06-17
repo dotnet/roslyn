@@ -74,12 +74,18 @@
 
   <PropertyGroup Label="VSIX Settings">
     <RazorVSSDKTargetPlatformRegRootSuffix>RoslynDev</RazorVSSDKTargetPlatformRegRootSuffix>
-    <RazorExtensionInstallationRoot>CommonExtensions</RazorExtensionInstallationRoot>
-    <!-- Base folder for Razor Language Services content inside CommonExtensions -->
+    <RazorIsProductComponent>false</RazorIsProductComponent>
+    <RazorVsixInstallationAttributes>AllUsers="true" Experimental="true"</RazorVsixInstallationAttributes>
+    <!-- Base folder for Razor Language Services content inside the chosen installation root -->
     <RazorExtensionInstallationFolderBase>Microsoft\RazorLanguageServices</RazorExtensionInstallationFolderBase>
     <!-- Sub-folder used by ServiceHub core components -->
     <RazorServiceHubCoreSubFolder>ServiceHubCore</RazorServiceHubCoreSubFolder>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OfficialBuildId)' != ''">
+    <RazorExtensionInstallationRoot>CommonExtensions</RazorExtensionInstallationRoot>
     <RazorVisualStudioInsertionComponent>Microsoft.VisualStudio.RazorExtension</RazorVisualStudioInsertionComponent>
+    <RazorIsProductComponent>true</RazorIsProductComponent>
   </PropertyGroup>
 
   <!--

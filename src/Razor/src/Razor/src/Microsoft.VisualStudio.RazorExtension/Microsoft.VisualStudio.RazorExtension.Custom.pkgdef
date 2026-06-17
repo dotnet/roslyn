@@ -29,11 +29,13 @@
 "ProfileSave"=dword:00000001
 "VSSettingsMigration"=dword:00000001
 
-// Provides additional Tools->Options settings not covered
-// by the settings in General.vssettings.
+// Provides the base language-service registration from
+// [ProvideLanguageService(typeof(RazorLanguageService), RazorConstants.RazorLSPContentTypeName, 110)]
+// along with additional Tools->Options settings not covered by the settings in General.vssettings.
 [$RootKey$\Languages\Language Services\Razor]
 @="{4513FA64-5B72-4B58-9D4C-1D3C81996C2C}"
 "Package"="{13b72f58-279e-49e0-a56d-296be02f0805}"
+"LangResID"=dword:0000006e
 "ShowCompletion"=dword:00000001
 "ShowBraceCompletion"=dword:00000001
 "ShowSmartIndent"=dword:00000001

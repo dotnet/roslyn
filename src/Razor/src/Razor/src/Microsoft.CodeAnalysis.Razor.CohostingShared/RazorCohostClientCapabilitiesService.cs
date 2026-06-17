@@ -4,7 +4,7 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -15,7 +15,7 @@ internal sealed class RazorCohostClientCapabilitiesService : AbstractClientCapab
 {
     public int Order => WellKnownStartupOrder.ClientCapabilities;
 
-    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         SetCapabilities(clientCapabilities);
 

@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
@@ -49,7 +49,9 @@ internal static class RazorServices
             (typeof(IRemoteCompletionService), null),
             (typeof(IRemoteCodeActionsService), null),
             (typeof(IRemoteAddNestedFileService), null),
+            (typeof(IRemoteCallHierarchyService), null),
             (typeof(IRemoteFindAllReferencesService), null),
+            (typeof(IRemoteTypeHierarchyService), null),
             (typeof(IRemoteMEFInitializationService), null),
             (typeof(IRemoteCodeLensService), null),
             (typeof(IRemoteDataTipRangeService), null),
@@ -57,17 +59,17 @@ internal static class RazorServices
 
     private const string ComponentName = "Razor";
 
-    public static readonly RazorServiceDescriptorsWrapper Descriptors = new(
+    public static readonly RazorServiceDescriptors Descriptors = new(
         ComponentName,
         featureDisplayNameProvider: GetFeatureDisplayName,
         additionalFormatters: [],
         additionalResolvers: [],
         interfaces: MessagePackServices);
 
-    public static readonly RazorServiceDescriptorsWrapper JsonDescriptors = new(
+    public static readonly RazorServiceDescriptors JsonDescriptors = new(
         ComponentName, // Needs to match the above because so much of our ServiceHub infrastructure is convention based
         featureDisplayNameProvider: GetFeatureDisplayName,
-        jsonConverters: RazorServiceDescriptorsWrapper.GetLspConverters(),
+        jsonConverters: [.. ProtocolConversions.LspJsonSerializerOptions.Converters],
         interfaces: JsonServices);
 
     private static string GetFeatureDisplayName(string feature)

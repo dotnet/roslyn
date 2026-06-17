@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
@@ -164,20 +165,17 @@ internal static class LspFactory
     public static LspLocation CreateLocation(string filePath, LinePositionSpan span)
         => CreateLocation(CreateFilePathUri(filePath), CreateRange(span));
 
-    public static LspLocation CreateLocation(Uri uri, LinePositionSpan span)
+    public static LspLocation CreateLocation(DocumentUri uri, LinePositionSpan span)
         => CreateLocation(uri, CreateRange(span));
 
     public static LspLocation CreateLocation(string filePath, LspRange range)
         => CreateLocation(CreateFilePathUri(filePath), range);
 
-    public static LspLocation CreateLocation(Uri uri, LspRange range)
-        => new() { DocumentUri = new(uri), Range = range };
+    public static LspLocation CreateLocation(DocumentUri uri, LspRange range)
+        => new() { DocumentUri = uri, Range = range };
 
-    public static DocumentLink CreateDocumentLink(Uri target, LspRange range)
-        => new() { DocumentTarget = new(target), Range = range };
-
-    public static DocumentLink CreateDocumentLink(Uri target, LinePositionSpan span)
-        => new() { DocumentTarget = new(target), Range = CreateRange(span) };
+    public static DocumentLink CreateDocumentLink(DocumentUri target, LinePositionSpan span)
+        => new() { DocumentTarget = target, Range = CreateRange(span) };
 
     public static TextEdit CreateTextEdit(Range range, string newText)
         => new() { Range = range, NewText = newText };
@@ -206,7 +204,7 @@ internal static class LspFactory
     public static TextEdit CreateTextEdit((int line, int character) position, string newText)
         => CreateTextEdit(CreateZeroWidthRange(position), newText);
 
-    public static Uri CreateFilePathUri(string filePath, LanguageServerFeatureOptions options)
+    public static DocumentUri CreateFilePathUri(string filePath, LanguageServerFeatureOptions options)
     {
         // VS Code in Windows expects path to start with '/'
         var updateFilePath = options.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith('/')
@@ -216,7 +214,7 @@ internal static class LspFactory
         return CreateFilePathUri(updateFilePath);
     }
 
-    public static Uri CreateFilePathUri(string filePath)
+    public static DocumentUri CreateFilePathUri(string filePath)
     {
         var builder = new UriBuilder
         {
@@ -225,7 +223,7 @@ internal static class LspFactory
             Host = string.Empty,
         };
 
-        return builder.Uri;
+        return builder.Uri.CreateDocumentUriFromSystemUri();
     }
 
     public static FoldingRange CreateFoldingRange(FoldingRangeKind kind, LinePositionSpan linePositionSpan)

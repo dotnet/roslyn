@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.CodeAnalysis;
@@ -18,8 +18,8 @@ internal static class SolutionExtensions
 {
     public static ImmutableArray<DocumentId> GetDocumentIdsWithUri(this Solution solution, Uri uri)
     {
-        Debug.Assert(RazorUri.IsGeneratedDocumentUri(uri) == false, "This won't work with source generated Uris");
-        return solution.GetDocumentIdsWithFilePath(uri.GetDocumentFilePath());
+        Debug.Assert(ProtocolConversions.IsSourceGeneratedScheme(uri.Scheme) == false, "This won't work with source generated Uris");
+        return solution.GetDocumentIdsWithFilePath(uri.GetDocumentFilePathFromUri());
     }
 
     public static bool TryGetRazorDocument(this Solution solution, Uri razorDocumentUri, [NotNullWhen(true)] out TextDocument? razorDocument)
@@ -78,16 +78,20 @@ internal static class SolutionExtensions
             ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {solution.FilePath ?? "solution"}.");
     }
 
-    public static bool TryGetSourceGeneratedDocumentIdentity(this Solution solution, Uri generatedDocumentUri, out RazorGeneratedDocumentIdentity identity)
+    public static bool TryGetSourceGeneratedDocumentIdentity(this Solution solution, Uri generatedDocumentUri, out SourceGeneratedDocumentIdentity identity)
     {
         identity = default;
-        if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentUri))
+        if (!ProtocolConversions.IsSourceGeneratedScheme(generatedDocumentUri.Scheme))
         {
             return false;
         }
 
-        identity = RazorUri.GetIdentityOfGeneratedDocument(solution, generatedDocumentUri);
+        if (SourceGeneratedDocumentUri.DeserializeIdentity(solution, generatedDocumentUri) is not { } docIdentity)
+        {
+            throw new InvalidOperationException($"Could not deserialize Uri into a source generated Uri: {generatedDocumentUri}");
+        }
 
+        identity = docIdentity;
         if (!identity.IsRazorSourceGeneratedDocument())
         {
             return false;

@@ -13111,6 +13111,7 @@ class Program
 
             binaryOperator("nint", "<<", "nint", intMinValue, "int", "0", intMinValue);
             binaryOperatorNotConstant("nint", "<<", "nint", intMinValue, "int", "1", IntPtr.Size == 4 ? "0" : "-4294967296");
+            binaryOperatorNotConstant("nint", "<<", "nint", "1", "int", "32", IntPtr.Size == 4 ? "1" : "4294967296");
             binaryOperator("nint", "<<", "nint", "-1", "int", "31", intMinValue);
             binaryOperatorNotConstant("nint", "<<", "nint", "-1", "int", "32", IntPtr.Size == 4 ? "-1" : "-4294967296");
             binaryOperator("nuint", "<<", "nuint", "0", "int", "1", "0");
@@ -13122,10 +13123,14 @@ class Program
             binaryOperator("nint", ">>", "nint", intMinValue, "int", "1", "-1073741824");
             binaryOperator("nint", ">>", "nint", "-1", "int", "31", "-1");
             binaryOperator("nint", ">>", "nint", "-1", "int", "32", "-1");
+            binaryOperatorNotConstant("nint", ">>", "nint", intMaxValue, "int", "32", IntPtr.Size == 4 ? intMaxValue : "0");
             binaryOperator("nuint", ">>", "nuint", "0", "int", "1", "0");
             binaryOperator("nuint", ">>", "nuint", uintMaxValue, "int", "1", intMaxValue);
             binaryOperator("nuint", ">>", "nuint", "1", "int", "31", "0");
-            binaryOperator("nuint", ">>", "nuint", "1", "int", "32", "1");
+            binaryOperatorNotConstant("nuint", ">>", "nuint", "1", "int", "32", IntPtr.Size == 4 ? "1" : "0");
+
+            binaryOperatorNotConstant("nint", ">>>", "nint", "-1", "int", "32", IntPtr.Size == 4 ? "-1" : uintMaxValue);
+            binaryOperatorNotConstant("nuint", ">>>", "nuint", "1", "int", "32", IntPtr.Size == 4 ? "1" : "0");
 
             binaryOperator("nint", "&", "nint", intMinValue, "nint", "0", "0");
             binaryOperator("nint", "&", "nint", intMinValue, "nint", "-1", intMinValue);
@@ -13269,7 +13274,8 @@ $@"public class Library
     {declarations}
     public const {opType} F = {expr};
 }}";
-                var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
+                var parseOptions = expr.Contains(">>>", StringComparison.Ordinal) ? TestOptions.Regular11 : TestOptions.Regular9;
+                var comp = CreateCompilation(sourceA, parseOptions: parseOptions);
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
                 if (expectedDiagnostics.Any(d => ErrorFacts.GetSeverity((ErrorCode)d.Code) == DiagnosticSeverity.Error))
@@ -13287,7 +13293,7 @@ $@"public class Library
     }
 }";
                 var refA = comp.EmitToImageReference();
-                comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: parseOptions);
                 CompileAndVerify(comp, expectedOutput: expectedResult);
                 Assert.NotNull(expectedResult);
             }
@@ -13313,7 +13319,8 @@ class Program
         Console.WriteLine(result);
     }}
 }}";
-                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                var parseOptions = expr.Contains(">>>", StringComparison.Ordinal) ? TestOptions.Regular11 : TestOptions.Regular9;
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: parseOptions);
 
                 if (expectedDiagnostics.Any(d => ErrorFacts.GetSeverity((ErrorCode)d.Code) == DiagnosticSeverity.Error))
                 {
@@ -13455,6 +13462,100 @@ class Program
 }";
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-2147483648" : "2147483648").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72904")]
+        public void ConstantFolding_NativeIntRightShiftPlatformDependent()
+        {
+            // nuint >> 32: shift amount has bit 5 set, result differs between 32-bit and 64-bit
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nuint x = 0xFFFF_FFFFu;
+                        nuint y = unchecked(x >> 32);
+                        System.Console.WriteLine($"{(ulong)y:x}");
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "ffffffff" : "0");
+
+            // nuint >>> 32
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nuint x = 0xFFFF_FFFFu;
+                        nuint y = unchecked(x >>> 32);
+                        System.Console.WriteLine($"{(ulong)y:x}");
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "ffffffff" : "0");
+
+            // nint >> 32 with positive value that differs between platforms
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nint x = 0x7FFF_FFFF;
+                        nint y = unchecked(x >> 32);
+                        System.Console.WriteLine(y);
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "2147483647" : "0");
+
+            // nint >>> 32 with positive value
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nint x = 0x7FFF_FFFF;
+                        nint y = unchecked(x >>> 32);
+                        System.Console.WriteLine(y);
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "2147483647" : "0");
+
+            // nint >> 32 with -1: same result on both platforms (still folds)
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nint x = -1;
+                        const nint y = x >> 32;
+                        System.Console.WriteLine(y);
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "-1");
+
+            // nuint >> 1: small shift amount, same on both platforms (still folds)
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nuint x = 0xFFFF_FFFFu;
+                        const nuint y = x >> 1;
+                        System.Console.WriteLine(y);
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "2147483647");
         }
 
         // OverflowException behavior is consistent with unchecked int division.

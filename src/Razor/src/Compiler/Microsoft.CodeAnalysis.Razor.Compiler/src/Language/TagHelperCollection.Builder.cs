@@ -4,9 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -15,21 +13,12 @@ public abstract partial class TagHelperCollection
 {
     public sealed partial class Builder : ICollection<TagHelperDescriptor>, IReadOnlyList<TagHelperDescriptor>, IDisposable
     {
-        // Create new pooled builders and sets with a larger initial capacity to limit growth.
-        private const int InitialCapacity = 256;
-
-        // Builders and sets are typically large, so allow them to stay larger when returned to their pool.
-        private const int MaximumObjectSize = 2048;
-
-        private static readonly ArrayBuilderPool<TagHelperDescriptor> s_arrayBuilderPool =
-            ArrayBuilderPool<TagHelperDescriptor>.Create(InitialCapacity, MaximumObjectSize);
-
-        private ImmutableArray<TagHelperDescriptor>.Builder _items;
+        private List<TagHelperDescriptor> _items;
         private HashSet<Checksum> _set;
 
         public Builder()
         {
-            _items = s_arrayBuilderPool.Get();
+            _items = TagHelperDescriptorListPool.Default.Get();
             _set = ChecksumSetPool.Default.Get();
         }
 
@@ -38,7 +27,7 @@ public abstract partial class TagHelperCollection
             var items = Interlocked.Exchange(ref _items, null!);
             if (items is not null)
             {
-                s_arrayBuilderPool.Return(items);
+                TagHelperDescriptorListPool.Default.Return(items);
             }
 
             var set = Interlocked.Exchange(ref _set, null!);
@@ -134,8 +123,7 @@ public abstract partial class TagHelperCollection
                 return Empty;
             }
 
-            var array = _items.ToImmutable();
-            return new SingleSegmentCollection(array.AsMemory());
+            return new SingleSegmentCollection(_items.ToArray().AsMemory());
         }
 
         public Enumerator GetEnumerator()

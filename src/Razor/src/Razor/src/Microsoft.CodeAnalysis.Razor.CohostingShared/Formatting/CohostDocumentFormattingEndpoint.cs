@@ -7,9 +7,9 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -43,7 +43,7 @@ internal sealed class CohostDocumentFormattingEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Formatting?.DynamicRegistration is true)
         {
@@ -57,16 +57,16 @@ internal sealed class CohostDocumentFormattingEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentFormattingParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(DocumentFormattingParams request)
+        => request.TextDocument;
 
     protected override Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = RazorCSharpFormattingInteractionService.GetRazorCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services);
+        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
         return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
-    private async Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, CancellationToken cancellationToken)
+    private async Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Getting Html formatting changes for {razorDocument.FilePath}");
         var htmlResult = await TryGetHtmlFormattingEditsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
@@ -124,7 +124,7 @@ internal sealed class CohostDocumentFormattingEndpoint(
 
     internal readonly struct TestAccessor(CohostDocumentFormattingEndpoint instance)
     {
-        public Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, RazorCSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, CancellationToken cancellationToken)
+        public Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 }

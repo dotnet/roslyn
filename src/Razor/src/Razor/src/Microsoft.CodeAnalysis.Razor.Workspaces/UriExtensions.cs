@@ -4,25 +4,32 @@
 using System;
 using System.Net;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class UriExtensions
 {
-    /// <summary>
-    ///  Converts the specified <see cref="Uri"/> into a file path that matches
-    ///  a Roslyn <see cref="TextDocument.FilePath"/>.
-    /// </summary>
-    public static string GetDocumentFilePath(this Uri uri)
-        => RazorUri.GetDocumentFilePathFromUri(uri);
+    public static Uri GetRequiredSystemUri(this DocumentUri uri)
+        => GetSystemUri(uri).AssumeNotNull();
 
-    public static Uri GetRequiredParsedUri(this DocumentUri uri)
-        => uri.ParsedUri.AssumeNotNull();
+    public static Uri? GetSystemUri(this DocumentUri uri)
+        => uri.ParsedUri;
+
+    public static Uri CreateSystemUri(this TextDocument document)
+        => document.GetURI().GetRequiredSystemUri();
+
+    public static DocumentUri CreateDocumentUriFromSystemUri(this Uri uri)
+        => new DocumentUri(uri);
+
+    public static string GetDocumentFilePathFromUri(this Uri uri)
+    {
+        return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
+    }
 
     public static string GetAbsoluteOrUNCPath(this DocumentUri uri)
-        => GetAbsoluteOrUNCPath(uri.GetRequiredParsedUri());
+        => GetAbsoluteOrUNCPath(uri.GetRequiredSystemUri());
 
     public static string GetAbsoluteOrUNCPath(this Uri uri)
     {

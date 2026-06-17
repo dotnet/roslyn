@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.LanguageServer.Protocol;
@@ -28,17 +29,17 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task LspFileWatcherNotSupportedWithoutClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(new ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path);
+        await using var testLspServer = await CreateLanguageServerAsync();
 
-        Assert.False(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
+        AssertFileWatcherKind<DefaultFileChangeWatcher>(testLspServer);
     }
 
     [Fact]
     public async Task LspFileWatcherSupportedWithClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
+        await using var testLspServer = await CreateLanguageServerAsync(_clientCapabilitiesWithFileWatcherSupport);
 
-        Assert.True(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
+        AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
     }
 
     [Fact]
@@ -46,10 +47,8 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
-        var lspFileChangeWatcher = new LspFileChangeWatcher(
-            testLspServer.LanguageServerHost,
-            testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+        await using var testLspServer = await CreateLanguageServerAsync(_clientCapabilitiesWithFileWatcherSupport);
+        var lspFileChangeWatcher = AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
 
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();
         testLspServer.AddClientLocalRpcTarget(dynamicCapabilitiesRpcTarget);
@@ -62,13 +61,13 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), watcher.GlobPattern.Second.BaseUri.Second);
         Assert.Equal("**/*", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
         context.Dispose();
         await WaitForFileWatcherAsync(testLspServer);
-        Assert.Empty(dynamicCapabilitiesRpcTarget.Registrations);
+        AssertNoFileWatcherRegistration(dynamicCapabilitiesRpcTarget);
     }
 
     [Fact]
@@ -76,10 +75,8 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
-        var lspFileChangeWatcher = new LspFileChangeWatcher(
-            testLspServer.LanguageServerHost,
-            testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+        await using var testLspServer = await CreateLanguageServerAsync(_clientCapabilitiesWithFileWatcherSupport);
+        var lspFileChangeWatcher = AssertFileWatcherKind<LspFileChangeWatcher>(testLspServer);
 
         var dynamicCapabilitiesRpcTarget = new DynamicCapabilitiesRpcTarget();
         testLspServer.AddClientLocalRpcTarget(dynamicCapabilitiesRpcTarget);
@@ -94,13 +91,21 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), watcher.GlobPattern.Second.BaseUri.Second);
         Assert.Equal("SingleFile.txt", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
         watchedFile.Dispose();
+        context.Dispose();
         await WaitForFileWatcherAsync(testLspServer);
-        Assert.Empty(dynamicCapabilitiesRpcTarget.Registrations);
+        AssertNoFileWatcherRegistration(dynamicCapabilitiesRpcTarget);
+    }
+
+    private static T AssertFileWatcherKind<T>(TestLspServer server) where T : IFileChangeWatcher
+    {
+        var lspFileWatcher = server.GetRequiredLspService<IFileChangeWatcher>();
+        var delegatingWatcher = Assert.IsType<DelegatingFileChangeWatcher>(lspFileWatcher);
+        return Assert.IsType<T>(delegatingWatcher.GetTestAccessor().UnderlyingFileWatcher);
     }
 
     private static Task WaitForFileWatcherAsync(TestLspServer testLspServer)
@@ -108,11 +113,15 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
 
     private static FileSystemWatcher GetSingleFileWatcher(DynamicCapabilitiesRpcTarget dynamicCapabilities)
     {
-        var registrationJson = Assert.IsType<JsonElement>(Assert.Single(dynamicCapabilities.Registrations).Value.RegisterOptions);
+        var registrationJson = Assert.IsType<JsonElement>(
+            Assert.Single(dynamicCapabilities.Registrations.Values, static registration => registration.Method == Methods.WorkspaceDidChangeWatchedFilesName).RegisterOptions);
         var registration = JsonSerializer.Deserialize<DidChangeWatchedFilesRegistrationOptions>(registrationJson, ProtocolConversions.LspJsonSerializerOptions)!;
 
         return Assert.Single(registration.Watchers);
     }
+
+    private static void AssertNoFileWatcherRegistration(DynamicCapabilitiesRpcTarget dynamicCapabilities)
+        => Assert.DoesNotContain(dynamicCapabilities.Registrations.Values, static registration => registration.Method == Methods.WorkspaceDidChangeWatchedFilesName);
 
     private sealed class DynamicCapabilitiesRpcTarget
     {

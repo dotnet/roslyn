@@ -30,7 +30,7 @@ Generated Location: (2042:56,0 [11] )
 
 Source Location: (84:1,65 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (2278:65,0 [5] )
+Generated Location: (2288:65,0 [5] )
 |Value|
 
 Source Location: (119:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -38,7 +38,7 @@ Source Location: (119:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
     public TParam ParentValue { get; set; } = default;
     public EventCallback<TParam> UpdateValue { get; set; }
 |
-Generated Location: (2521:76,0 [118] )
+Generated Location: (2535:76,0 [118] )
 |
     public TParam ParentValue { get; set; } = default;
     public EventCallback<TParam> UpdateValue { get; set; }

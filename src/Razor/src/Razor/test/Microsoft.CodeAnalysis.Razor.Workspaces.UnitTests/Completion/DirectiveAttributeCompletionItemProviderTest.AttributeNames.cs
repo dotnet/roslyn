@@ -34,7 +34,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
 
         var codeDocument = GetCodeDocument(string.Empty);
         _defaultTagHelperContext = codeDocument.GetRequiredTagHelperContext();
-        _defaultRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
+        _defaultRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false);
     }
 
     private RazorCodeDocument GetCodeDocument(string content)
@@ -66,7 +66,25 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContains(completions, "bind", "@bind", ["="]);
+        AssertContains(completions, "@bind", "@bind", ["=", " "]);
+    }
+
+    [Fact]
+    public void GetCompletionItems_OnDirectiveAttributeName_bind_VsCode_ReturnsEmptyCommitCharacters()
+    {
+        // Arrange
+        var vsCodeOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: true);
+        var context = CreateRazorCompletionContext("<input @$$  />") with
+        {
+            Options = vsCodeOptions
+        };
+
+        // Act
+        var completions = _provider.GetCompletionItems(context);
+
+        // Assert - VS Code handles commit characters upstream, so we should return empty
+        AssertContains(completions, "@bind", "@bind", ImmutableArray<string>.Empty);
+        AssertContainsParameter(completions, "@bind-value:format", "@bind-value:format", ImmutableArray<string>.Empty);
     }
 
     [Fact]
@@ -79,7 +97,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContainsParameter(completions, "bind-value:format", "@bind-value:format", ["="]);
+        AssertContainsParameter(completions, "@bind-value:format", "@bind-value:format", ["=", " "]);
     }
 
     [Fact]
@@ -95,7 +113,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContainsParameter(completions, "bind-value:format=\"$0\"", "@bind-value:format", ["="]);
+        AssertContainsParameter(completions, "@bind-value:format=\"$0\"", "@bind-value:format", ["=", " "]);
     }
 
     [Fact]
@@ -108,7 +126,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = _provider.GetCompletionItems(context);
 
         // Assert
-        AssertContains(completions, "attributes", "@attributes", ["="]);
+        AssertContains(completions, "@attributes", "@attributes", ["=", " "]);
     }
 
     [Fact]
@@ -221,7 +239,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "bind=\"$0\"", "@bind", ["="]);
+        AssertContains(completions, "@bind=\"$0\"", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -234,7 +252,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "bind-value=\"$0\"", "@bind-value", ["="]);
+        AssertContains(completions, "@bind-value=\"$0\"", "@bind-value", ["=", " "]);
     }
 
     [Fact]
@@ -247,7 +265,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "bind=\"$0\"", "@bind", ["="]);
+        AssertContains(completions, "@bind=\"$0\"", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -260,14 +278,14 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "bind=\"$0\"", "@bind", [new RazorCommitCharacter("=", Insert: false)]);
+        AssertContains(completions, "@bind=\"$0\"", "@bind", [new RazorCommitCharacter("=", Insert: false), new RazorCommitCharacter(" ", Insert: false)]);
     }
 
     [Fact]
     public void GetAttributeCompletions_WithNoAutoQuotesOption_ReturnsNonQuotedSnippet()
     {
         // Arrange
-        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: false, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
+        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: false, CommitElementsWithSpace: true, IsVsCode: false);
         var context = GetDefaultDirectivateAttributeCompletionContext("@") with
         {
             Options = noAutoQuotesRazorCompletionOptions
@@ -277,14 +295,14 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "bind=$0", "@bind", ["="]);
+        AssertContains(completions, "@bind=$0", "@bind", ["=", " "]);
     }
 
     [Fact]
     public void GetAttributeCompletions_WithNoSnippetsOption_ReturnsNoSnippets()
     {
         // Arrange
-        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
+        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false);
         var context = GetDefaultDirectivateAttributeCompletionContext("@") with
         {
             UseSnippets = false,
@@ -295,14 +313,14 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "bind", "@bind", ["="]);
+        AssertContains(completions, "@bind", "@bind", ["=", " "]);
     }
 
     [Fact]
     public void GetAttributeCompletions_ExistingAttributeWithValue_ReturnsNoSnippets()
     {
         // Arrange
-        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
+        var noAutoQuotesRazorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: false, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false);
         var context = GetDefaultDirectivateAttributeCompletionContext("@") with
         {
             UseSnippets = false,
@@ -313,7 +331,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "bind", "@bind", ["="]);
+        AssertContains(completions, "@bind", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -326,7 +344,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "bind-", "@bind-...", ImmutableArray<string>.Empty);
+        AssertContains(completions, "@bind-", "@bind-...", ImmutableArray<string>.Empty);
     }
 
     [Fact]
@@ -342,7 +360,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertContains(completions, "bind=\"$0\"", "@bind", ["="]);
+        AssertContains(completions, "@bind=\"$0\"", "@bind", ["=", " "]);
     }
 
     [Fact]
@@ -358,7 +376,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var completions = DirectiveAttributeCompletionItemProvider.GetAttributeCompletions("input", context, _defaultTagHelperContext);
 
         // Assert
-        AssertDoesNotContain(completions, "bind", "@bind");
+        AssertDoesNotContain(completions, "@bind", "@bind");
     }
 
     private static void AssertContainsParameter(ImmutableArray<RazorCompletionItem> completions, string insertText, string displayText, ImmutableArray<string> commitCharacters)

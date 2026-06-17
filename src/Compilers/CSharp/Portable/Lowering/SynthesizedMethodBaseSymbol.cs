@@ -173,7 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasSpecialName => InheritsBaseMethodAttributes && BaseMethod.HasSpecialName;
 
-        internal sealed override bool IsUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        protected sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
         internal sealed override bool CanBeCallerUnsafe => true;
 
         // Synthesized methods created from a base method with [SkipLocalsInitAttribute] will also

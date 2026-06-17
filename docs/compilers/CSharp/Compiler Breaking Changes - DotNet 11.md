@@ -247,39 +247,20 @@ If your code is impacted by the ambiguity change, add explicit parameter types t
 M((int x) => { }); // Resolves to M(F2)
 ```
 
-## Uninitialized `stackalloc` inside `SkipLocalsInit` requires an unsafe context
+## `safe` is a contextual keyword
 
-***Introduced in Visual Studio 2026 version 18.7***
+***Introduced in Visual Studio 2026 version 18.9***
 
-In a future C# version (currently in `langversion:preview`), a `stackalloc` expression without an initializer inside a method marked with `[SkipLocalsInit]` now requires an unsafe context, even when the target type is `Span<T>`.
-This is because `SkipLocalsInit` prevents zero-initialization of the allocated memory, making it possible to read uninitialized data - a memory safety concern.
-This is part of the [unsafe evolution](https://github.com/dotnet/csharplang/issues/9704) feature.
+In a future C# version (currently in `langversion:preview`), `safe` is a keyword when placed as a modifier on member declarations.
+That can break cases where it was previously referring to a type.
+To mitigate the break, it is possible to use `@`.
 
 ```cs
-[System.Runtime.CompilerServices.SkipLocalsInit]
-void M()
+class safe { }
+
+class C
 {
-    Span<int> a = stackalloc int[5];           // previously ok, now error CS9361
-    Span<int> b = stackalloc int[] { 1, 2 };   // ok (has initializer)
-    Span<int> c = stackalloc int[2] { 1, 2 };  // ok (has initializer)
+    safe M1() => new safe(); // previously `safe` refers to a type, now it is a keyword
+    @safe M2() => new safe(); // workaround
 }
 ```
-
-If your code is impacted, you can either:
-- Add an `unsafe` block around the `stackalloc`:
-  ```cs
-  [SkipLocalsInit]
-  void M()
-  {
-      Span<int> a;
-      unsafe { a = stackalloc int[5]; }
-  }
-  ```
-- Or provide an initializer so the memory is fully initialized:
-  ```cs
-  [SkipLocalsInit]
-  void M()
-  {
-      Span<int> a = stackalloc int[5] { 0, 0, 0, 0, 0 };
-  }
-  ```
