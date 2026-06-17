@@ -248,6 +248,7 @@ internal static class CodeActionDescriptions
         { "Microsoft.CodeAnalysis.CSharp.UseIsNullCheck.CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider", "Use Is Null Check: For Cast And Equality Operator" },
         { "Microsoft.CodeAnalysis.CSharp.UseIsNullCheck.CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider", "Use Is Null Check: For Reference Equals" },
         { "Microsoft.CodeAnalysis.CSharp.UseIsNullCheck.CSharpUseNullCheckOverTypeCheckCodeFixProvider", "Use Is Null Check: Use Null Check Over Type Check" },
+        { "Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements.CSharpUseLabeledJumpStatementsCodeFixProvider", "Use Labeled Break Or Continue" },
         { "Microsoft.CodeAnalysis.CSharp.UseLocalFunction.CSharpUseLocalFunctionCodeFixProvider", "Use Local Function" },
         { "Microsoft.CodeAnalysis.CSharp.UseNamedArguments.CSharpUseNamedArgumentsCodeRefactoringProvider", "Use Named Arguments (Refactoring)" },
         { "Microsoft.CodeAnalysis.CSharp.UseNullPropagation.CSharpUseNullPropagationCodeFixProvider", "Use Null Propagation" },

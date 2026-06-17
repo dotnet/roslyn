@@ -397,6 +397,11 @@
         <target state="translated">Użyj sprawdzania „jest obiektem”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_labeled_break_or_continue">
+        <source>Use labeled break or continue</source>
+        <target state="new">Use labeled break or continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Użyj funkcji lokalnej</target>
