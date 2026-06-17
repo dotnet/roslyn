@@ -149,7 +149,6 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
             if (location.SourceTree is { } tree &&
                 solution.GetDocument(tree) is { } document)
             {
-                builder.Add(document);
                 projectIds.Add(document.Project.Id);
             }
         }
