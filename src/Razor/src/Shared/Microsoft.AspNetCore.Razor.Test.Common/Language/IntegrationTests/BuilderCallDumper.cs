@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
@@ -25,9 +26,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 /// invariant under cosmetic codegen reorganization -- which partial half a member lands
 /// in, line-pragma layout, method extraction, whitespace -- yet still reflects any change
 /// to what the component actually builds: a different element name, a dropped attribute,
-/// a renumbered fragment. It is the static analogue of rendering the component and
-/// diffing its <c>RenderTreeFrame</c>s, with none of the cross-machine fragility of
-/// loading and executing the compiled assembly against a live framework.
+/// a renumbered fragment.
 /// </remarks>
 internal static class BuilderCallDumper
 {
@@ -47,7 +46,7 @@ internal static class BuilderCallDumper
                 continue;
             }
 
-            var root = CSharpSyntaxTree.ParseText(source).GetRoot();
+            var root = CSharpSyntaxTree.ParseText(SourceText.From(source)).GetRoot();
             foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
                 if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess ||
