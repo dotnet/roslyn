@@ -4407,11 +4407,11 @@ class Container<T> {{ }}
                     //         { d = Goo; }
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo").WithLocation(9, 15),
 
-                    // (12,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                    //      delegate void D(int* x = null);
+                    // (12,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //      delegate int* D();
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(12, 15),
-                    // (13,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                    //      static void Goo(int* x = null) { }
+                    // (13,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                    //      static int* Goo() { throw null; }
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 13)
                 ],
                 expectedWithUnsafe: [],
@@ -4600,7 +4600,7 @@ class Container<T> {{ }}
             string template,
             DiagnosticDescription[] expectedWithoutUnsafe,
             DiagnosticDescription[] expectedWithUnsafe,
-            DiagnosticDescription[] expectedWithoutUnsafePreview = null,
+            DiagnosticDescription[] expectedWithoutUnsafePreview,
             DiagnosticDescription[] expectedWithUnsafeOnMembersOnlyPreview = null,
             DiagnosticDescription[] expectedWithUnsafeOnTypeAndMembersPreview = null,
             bool verifyPreviewDiagnosticsAreSubset = true)
