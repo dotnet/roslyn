@@ -146,7 +146,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     {
         pattern = null;
 
-        if (breakStatement.Name != null || breakStatement.Parent is not BlockSyntax block)
+        if (breakStatement is not { Name: null, Parent: BlockSyntax block })
             return false;
 
         var index = block.Statements.IndexOf(breakStatement);
