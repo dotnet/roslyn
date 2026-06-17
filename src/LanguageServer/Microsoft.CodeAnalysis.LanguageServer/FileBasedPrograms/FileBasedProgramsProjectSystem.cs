@@ -8,10 +8,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -28,13 +25,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
-    private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscellaneousFilesProjectProvider _canonicalProjectProvider;
-    private readonly DotnetCliHelper _dotnetCliHelper;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
-        VirtualProjectXmlProvider projectXmlProvider,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
@@ -52,9 +46,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
-        _projectXmlProvider = projectXmlProvider;
         _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(lspServices.GetRequiredService<IHostWorkspaceProvider>(), loggerFactory);
-        _dotnetCliHelper = dotnetCliHelper;
 
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }
@@ -343,26 +335,14 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Fall through to ordinary file-based app handling.
         Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
 
-        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _dotnetCliHelper, _logger, cancellationToken);
-        if (content is not var (virtualProjectContent, diagnostics))
-        {
-            // https://github.com/dotnet/roslyn/issues/78618: falling back to this until dotnet run-api is more widely available
-            _logger.LogInformation($"Failed to obtain virtual project for '{documentPath}' using dotnet run-api. Falling back to directly creating the virtual project.");
-            virtualProjectContent = VirtualProjectXmlProvider.MakeVirtualProjectContent_DirectFallback(documentPath);
-            diagnostics = [];
-        }
-
-        foreach (var diagnostic in diagnostics)
-        {
-            _logger.LogError($"{diagnostic.Location.Path}{diagnostic.Location.Span.Start}: {diagnostic.Message}");
-        }
-
-        // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
-        // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
-        var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
-        const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
-        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, fileBasedApp: false, cancellationToken);
+        var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(documentPath);
+        var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, documentPath, cancellationToken);
+        var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
+            buildHost,
+            documentPath,
+            LanguageNames.CSharp,
+            (error) => _logger.LogError(error),
+            cancellationToken);
 
         return new RemoteProjectLoadResult
         {
@@ -374,8 +354,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             HasFileBasedAppDirectives = true,
             IsMiscellaneousFile = false,
             HasAllInformation = true,
-            PreferredBuildHostKind = buildHostKind,
-            ActualBuildHostKind = buildHostKind,
+            PreferredBuildHostKind = preferredBuildHostKind,
+            ActualBuildHostKind = actualBuildHostKind,
         };
     }
 }

@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.DotNet.FileBasedPrograms;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -32,24 +30,16 @@ internal sealed class BuildHostProjectFileInfoProvider(
 
         if (isFileBasedApp)
         {
-            var buildHostBridge = new FileBasedProgramsBuildHost(buildHost);
-            var entryPointFileFullPath = Path.GetFullPath(projectPath);
-            // TODO: don't hardcode TFM
-            var virtualProjectBuilder = new VirtualProjectBuilder(buildHostBridge, entryPointFileFullPath, "net10.0");
-            virtualProjectBuilder.CreateProjectInstance(
-                buildHostBridge.ProjectCollection,
-                (text, path, textSpan, message, innerException) =>
-                {
-                    diagnosticReporter.Report(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, $"{new SourceFile(path, text).GetLocationString(textSpan)}: {message}"));
-                },
-                project: out _,
-                out var projectRootElement,
-                evaluatedDirectives: out _);
             projectFile = await progress.DoOperationAndReportProgressAsync(
                 ProjectLoadOperation.Evaluate,
                 projectPath,
                 targetFramework: null,
-                () => buildHost.LoadProjectAsync(projectRootElement.FullPath!, projectRootElement.GetRawXml(), languageName, fileBasedApp: true, cancellationToken)
+                () => FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
+                    buildHost,
+                    projectPath,
+                    languageName,
+                    (error) => diagnosticReporter.Report(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, error)),
+                    cancellationToken)
             ).ConfigureAwait(false);
         }
         else

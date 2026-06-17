@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.DotNet.FileBasedPrograms;
 using IProjectInstance = Microsoft.DotNet.FileBasedPrograms.IProjectInstance;
@@ -29,6 +31,30 @@ internal sealed class FileBasedProgramsBuildHost(RemoteBuildHost buildHost) : Mi
     {
         xmlReader.MoveToContent();
         return new ProjectRootElement(xmlReader.ReadOuterXml());
+    }
+}
+
+internal static class FileBasedProgramsProjectLoader
+{
+    public static async Task<RemoteProjectFile> LoadFileBasedAppProjectAsync(
+        RemoteBuildHost buildHost,
+        string entryPointFilePath,
+        string languageName,
+        Action<string> reportError,
+        CancellationToken cancellationToken)
+    {
+        var buildHostBridge = new FileBasedProgramsBuildHost(buildHost);
+        var entryPointFileFullPath = Path.GetFullPath(entryPointFilePath);
+        // TODO: don't hardcode TFM
+        var virtualProjectBuilder = new VirtualProjectBuilder(buildHostBridge, entryPointFileFullPath, "net10.0");
+        virtualProjectBuilder.CreateProjectInstance(
+            buildHostBridge.ProjectCollection,
+            (text, path, textSpan, message, innerException) => reportError($"{new SourceFile(path, text).GetLocationString(textSpan)}: {message}"),
+            project: out _,
+            out var projectRootElement,
+            evaluatedDirectives: out _);
+
+        return await buildHost.LoadProjectAsync(projectRootElement.FullPath!, projectRootElement.GetRawXml(), languageName, fileBasedApp: true, cancellationToken).ConfigureAwait(false);
     }
 }
 
