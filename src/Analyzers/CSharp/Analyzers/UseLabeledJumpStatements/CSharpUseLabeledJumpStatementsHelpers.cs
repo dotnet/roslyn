@@ -19,6 +19,9 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
             or SyntaxKind.ForEachStatement
             or SyntaxKind.ForEachVariableStatement;
 
+    public static bool IsBreakable(SyntaxNode node)
+        => IsLoop(node) || node.Kind() == SyntaxKind.SwitchStatement;
+
     public static StatementSyntax? GetLoopBody(SyntaxNode loop)
         => loop switch
         {
@@ -32,20 +35,21 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     /// <summary>
     /// Determines whether <paramref name="gotoStatement"/> is a <c>goto</c> that emulates a multi-level <c>break</c>:
     /// it targets a label placed on the statement immediately following an enclosing loop, every reference to that
-    /// label is such a <c>goto</c> nested in the loop, at least one of them is genuinely nested inside an inner
-    /// loop/switch (so a plain <c>break;</c> would not suffice), and reaching the loop does not cross a <c>finally</c>.
-    /// On success, <paramref name="loop"/> is the loop to label, <paramref name="labelDeclaration"/> is the (now
-    /// redundant) label after the loop, and <paramref name="gotos"/> is every jump to rewrite.
+    /// label is such a <c>goto</c> nested in the construct, at least one of them is genuinely nested inside an inner
+    /// loop/switch (so a plain <c>break;</c> would not suffice), and reaching the construct does not cross a
+    /// <c>finally</c>. The construct may be a loop or a <c>switch</c> (both are valid <c>break</c> targets). On
+    /// success, <paramref name="breakTarget"/> is the construct to label, <paramref name="labelDeclaration"/> is the
+    /// (now redundant) label after it, and <paramref name="gotos"/> is every jump to rewrite.
     /// </summary>
     public static bool TryGetGotoBreakPattern(
         GotoStatementSyntax gotoStatement,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
-        out StatementSyntax loop,
+        out StatementSyntax breakTarget,
         out LabeledStatementSyntax labelDeclaration,
         out ImmutableArray<GotoStatementSyntax> gotos)
     {
-        loop = null!;
+        breakTarget = null!;
         labelDeclaration = null!;
         gotos = default;
 
@@ -55,20 +59,20 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
             return false;
         }
 
-        // The label must sit on the statement immediately following a loop.  That makes "jump to the label" the same
-        // as "break that loop" (the loop's end point).
+        // The label must sit on the statement immediately following a loop or switch.  That makes "jump to the label"
+        // the same as "break that construct" (its end point).
         var index = block.Statements.IndexOf(declaration);
         if (index <= 0)
             return false;
 
-        var precedingLoop = block.Statements[index - 1];
-        if (!IsLoop(precedingLoop))
+        var precedingConstruct = block.Statements[index - 1];
+        if (!IsBreakable(precedingConstruct))
             return false;
 
-        if (!TryCollectMultiLevelJumps(precedingLoop, label, semanticModel, cancellationToken, includeSwitch: true, out gotos))
+        if (!TryCollectMultiLevelJumps(precedingConstruct, label, semanticModel, cancellationToken, includeSwitch: true, out gotos))
             return false;
 
-        loop = precedingLoop;
+        breakTarget = precedingConstruct;
         labelDeclaration = declaration;
         return true;
     }

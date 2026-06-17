@@ -504,6 +504,81 @@ public sealed class UseLabeledJumpStatementsTests
         }.RunAsync();
 
     [Fact]
+    public Task TestGotoBreak_SwitchTarget()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(int x)
+                    {
+                        switch (x)
+                        {
+                            case 1:
+                                for (int i = 0; i < 10; i++)
+                                {
+                                    if (i == 5)
+                                        {|IDE0400:goto|} done;
+                                }
+
+                                break;
+                        }
+
+                        done:
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int x)
+                    {
+                    done: switch (x)
+                        {
+                            case 1:
+                                for (int i = 0; i < 10; i++)
+                                {
+                                    if (i == 5)
+                                        break done;
+                                }
+
+                                break;
+                        }
+
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_SingleLevelSwitchBreak()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(int x)
+                    {
+                        switch (x)
+                        {
+                            case 1:
+                                if (x > 0)
+                                    goto done;
+                                break;
+                        }
+
+                        done:
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
     public Task TestNotOffered_LabelNotImmediatelyAfterLoop()
         => new VerifyCS.Test
         {
