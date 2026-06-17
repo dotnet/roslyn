@@ -1,0 +1,5 @@
+﻿Source Location: (234:7,6 [19] x:\dir\subdir\Test\TestComponent.razor)
+|Capture(1 + 1 == 2)|
+Generated Location: (807:22,24 [19] )
+|Capture(1 + 1 == 2)|
+

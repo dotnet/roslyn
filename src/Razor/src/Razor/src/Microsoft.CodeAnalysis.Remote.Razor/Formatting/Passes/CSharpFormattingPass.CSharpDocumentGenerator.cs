@@ -405,6 +405,19 @@ internal partial class CSharpFormattingPass
                 // any indentation we want to add to line up attribute content, otherwise we'd end up pushing that content to
                 // the right repeatedly.
                 var attributeIndentationWidth = (htmlIndentLevel * _tabSize) + additionalIndentation.GetValueOrDefault();
+
+                // For lambda attributes like `OnClick=@(() => ...)`, Roslyn already contributes the
+                // lambda-body indentation on wrapped lines. If we keep applying the full attribute
+                // indentation baseline to those continuation lines, every format pass shifts the block
+                // body one level to the right.
+                if (expressionStartsBlockLambda &&
+                    attributeNode is MarkupAttributeBlockSyntax or MarkupTagHelperAttributeSyntax &&
+                    _currentLine.LineNumber > nodeStartLine &&
+                    htmlIndentLevel > 0)
+                {
+                    htmlIndentLevel--;
+                }
+
                 if (attributeIndentationWidth <= 0)
                 {
                     // Attributes don't affect indentation here, so the user's indentation is all we need.

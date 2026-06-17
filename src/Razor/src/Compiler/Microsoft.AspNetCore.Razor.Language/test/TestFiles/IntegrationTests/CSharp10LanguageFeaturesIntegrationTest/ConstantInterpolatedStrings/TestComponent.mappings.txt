@@ -1,0 +1,5 @@
+﻿Source Location: (109:5,2 [15] x:\dir\subdir\Test\TestComponent.razor)
+|$"{Name} Tests"|
+Generated Location: (761:21,24 [15] )
+|$"{Name} Tests"|
+

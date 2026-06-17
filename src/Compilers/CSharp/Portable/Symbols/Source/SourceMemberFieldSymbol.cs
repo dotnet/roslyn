@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract TypeSyntax TypeSyntax { get; }
 
-        protected abstract SyntaxTokenList ModifiersTokenList { get; }
+        internal abstract SyntaxTokenList ModifiersTokenList { get; }
 
         protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return (Modifiers & DeclarationModifiers.Unsafe) != 0 &&
+                    return HasUnsafeModifier &&
                         AssociatedSymbol is null &&
                         !IsConst
                             ? CallerUnsafeMode.Explicit
@@ -223,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Volatile |
                 DeclarationModifiers.Fixed |
                 DeclarationModifiers.Unsafe |
+                DeclarationModifiers.Safe |
                 DeclarationModifiers.Abstract |
                 DeclarationModifiers.Required; // Some of these are filtered out later, when illegal, for better error messages.
 
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation);
 
                 result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile | DeclarationModifiers.Required);
-                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
+                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe | DeclarationModifiers.New)) == 0);
             }
 
             if ((result & DeclarationModifiers.Const) != 0)
@@ -428,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected sealed override SyntaxTokenList ModifiersTokenList
+        internal sealed override SyntaxTokenList ModifiersTokenList
         {
             get
             {

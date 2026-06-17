@@ -255,6 +255,7 @@
     <Project Path="src/Interactive/vbi/vbi.vbproj" />
   </Folder>
   <Folder Name="/LanguageServer/">
+    <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework.Example/Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj" />

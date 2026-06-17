@@ -21,10 +21,10 @@ internal sealed class ServiceBrokerFactory : ILspService
     [ExportCSharpVisualBasicLspServiceFactory(typeof(ServiceBrokerFactory)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private class ServiceBrokerFactoryFactory(ExportProvider exportProvider, ILoggerFactory loggerFactory) : ILspServiceFactory
+    private class ServiceBrokerFactoryFactory(ExportProvider exportProvider) : ILspServiceFactory
     {
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new ServiceBrokerFactory(lspServices.GetRequiredServices<IServiceBrokerInitializer>(), exportProvider, loggerFactory);
+            => new ServiceBrokerFactory(lspServices.GetRequiredServices<IServiceBrokerInitializer>(), exportProvider, lspServices.GetRequiredService<ILoggerFactory>());
     }
 
     private readonly ExportProvider _exportProvider;
@@ -49,7 +49,7 @@ internal sealed class ServiceBrokerFactory : ILspService
     /// </summary>
     public async Task<BrokeredServiceContainer> CreateAsync(Workspace workspace)
     {
-        var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _serviceBrokerInitializers, _cancellationTokenSource.Token);
+        var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _serviceBrokerInitializers, _loggerFactory, _cancellationTokenSource.Token);
 
         // Proffer the manifest service that describes the services proffered by this process across the bridge, so the other side can know what services to expect.
         ProfferBridgeManifest(container, _loggerFactory);
@@ -92,7 +92,7 @@ internal sealed class ServiceBrokerFactory : ILspService
         var container = await CreateAsync(workspace);
 
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
-        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, _cancellationTokenSource.Token);
+        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, _loggerFactory, _cancellationTokenSource.Token);
     }
 
     public async Task ShutdownAndWaitForCompletionAsync()

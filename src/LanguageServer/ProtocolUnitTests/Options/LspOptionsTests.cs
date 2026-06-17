@@ -8,18 +8,14 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Options.UnitTests;
 
-public sealed class LspOptionsTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class LspOptionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    protected override TestComposition Composition => LspTestCompositions.LanguageServerProtocol
-        .AddParts(typeof(TestDocumentTrackingService));
-
     [Theory, CombinatorialData]
     public async Task TestCanRetrieveCSharpOptionsWithOnlyLspLayer(bool mutatingLspWorkspace)
     {

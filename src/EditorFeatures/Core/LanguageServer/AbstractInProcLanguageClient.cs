@@ -30,7 +30,7 @@ internal abstract partial class AbstractInProcLanguageClient(
     IGlobalOptionService globalOptions,
     ILspServiceLoggerFactory lspLoggerFactory,
     ExportProvider exportProvider)
-        : ILanguageClient, ILanguageServerFactory, IPropertyOwner
+        : ILanguageClient, IPropertyOwner
 {
     private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
     private readonly ExportProvider _exportProvider = exportProvider;
@@ -126,7 +126,6 @@ internal abstract partial class AbstractInProcLanguageClient(
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
         _languageServer = await CreateAsync<RequestContext>(
-            this,
             serverStream,
             serverStream,
             ServerKind,
@@ -165,7 +164,6 @@ internal abstract partial class AbstractInProcLanguageClient(
     }
 
     internal async Task<AbstractLanguageServer<RequestContext>> CreateAsync<TRequestContext>(
-        AbstractInProcLanguageClient languageClient,
         Stream inputStream,
         Stream outputStream,
         WellKnownLspServerKinds serverKind,
@@ -180,9 +178,7 @@ internal abstract partial class AbstractInProcLanguageClient(
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
 
-        var serverTypeName = languageClient.GetType().Name;
-
-        var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
+        var logger = await lspLoggerFactory.CreateLoggerAsync(ServerKind, jsonRpc, cancellationToken).ConfigureAwait(false);
 
         var hostServices = VisualStudioMefHostServices.Create(_exportProvider);
         var server = Create(
@@ -201,7 +197,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         JsonRpc jsonRpc,
         JsonSerializerOptions options,
         WellKnownLspServerKinds serverKind,
-        AbstractLspLogger logger,
+        ILspLogger logger,
         HostServices hostServices,
         AbstractTypeRefResolver? typeRefResolver = null)
     {
@@ -209,11 +205,11 @@ internal abstract partial class AbstractInProcLanguageClient(
             LspServiceProvider,
             jsonRpc,
             options,
-            logger,
             hostServices,
             SupportedLanguages,
             serverKind,
-            typeRefResolver);
+            typeRefResolver,
+            logger);
 
         return server;
     }

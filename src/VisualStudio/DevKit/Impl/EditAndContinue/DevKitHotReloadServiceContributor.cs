@@ -43,8 +43,14 @@ internal sealed class DevKitHotReloadServiceContributorFactory(
 internal sealed class DevKitHotReloadServiceContributor(
     ManagedHotReloadLanguageServiceFactory factory,
     IHostWorkspaceProvider workspaceProvider,
-    SolutionSnapshotRegistry solutionSnapshotRegistry) : IServiceBrokerInitializer, ILspService
+    SolutionSnapshotRegistry solutionSnapshotRegistry) : IServiceBrokerInitializer, ILspService, IDisposable
 {
+    /// <summary>
+    /// Per-server source text provider, observing this server's host workspace. Owned (and disposed) here so that each
+    /// in-process LSP server gets its own provider bound to its own host workspace.
+    /// </summary>
+    private readonly PdbMatchingSourceTextProvider _sourceTextProvider = new(workspaceProvider.Workspace);
+
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
     {
         { ManagedHotReloadLanguageServiceDescriptor.Descriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
@@ -59,7 +65,7 @@ internal sealed class DevKitHotReloadServiceContributor(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
             (moniker, options, innerServiceBroker, cancellationToken) =>
             {
-                var service = factory.Create(serviceBroker, solutionSnapshotProvider, workspaceProvider);
+                var service = factory.Create(serviceBroker, solutionSnapshotProvider, workspaceProvider, _sourceTextProvider);
                 return new ValueTask<object?>(service);
             });
     }
@@ -67,4 +73,7 @@ internal sealed class DevKitHotReloadServiceContributor(
     public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
     {
     }
+
+    public void Dispose()
+        => _sourceTextProvider.Dispose();
 }
