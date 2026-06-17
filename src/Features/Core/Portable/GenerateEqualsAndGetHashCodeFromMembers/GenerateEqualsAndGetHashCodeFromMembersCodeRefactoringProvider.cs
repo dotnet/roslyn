@@ -286,8 +286,17 @@ internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefacto
                 value));
         }
 
-        return new GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-            this, document, typeDeclaration, containingType, members, pickMembersOptions.ToImmutable(), globalOptions, generateEquals, generateGetHashCode);
+        var options = pickMembersOptions.ToImmutable();
+        var dialogAction = new GenerateEqualsAndGetHashCodeWithDialogCodeAction(
+            this, document, typeDeclaration, containingType, members, options, globalOptions, generateEquals, generateGetHashCode);
+
+        var pickMembersService = _pickMembersService_forTestingPurposes ?? document.Project.Solution.Services.GetService<IPickMembersService>();
+        if (pickMembersService is not null)
+            return dialogAction;
+
+        return new PickAllMembersCodeAction(
+            dialogAction, GenerateEqualsAndGetHashCodeAction.GetAllMembersTitle(generateEquals, generateGetHashCode),
+            document.Project.Solution, new PickMembersResult(members, options, selectedAll: true));
     }
 
     private static async Task<CodeAction> CreateCodeActionWithoutDialogAsync(

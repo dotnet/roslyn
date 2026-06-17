@@ -35,7 +35,7 @@ public sealed class GenerateFromMembersRefactoringTests(ITestOutputHelper testOu
 
         var codeActionResults = await testLspServer.RunGetCodeActionsAsync(CreateCodeActionParams(caretLocation));
 
-        Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_constructor_from_members);
+        Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_constructor_from_all_members);
     }
 
     [Theory(Skip = MetadataLoadRaceSkip), CombinatorialData]
@@ -54,7 +54,7 @@ public sealed class GenerateFromMembersRefactoringTests(ITestOutputHelper testOu
         var caretLocation = testLspServer.GetLocations("caret").Single();
 
         // headless behavior selects all members and does not add null checks.
-        await TestCodeActionAsync(testLspServer, caretLocation, FeaturesResources.Generate_constructor_from_members, """
+        await TestCodeActionAsync(testLspServer, caretLocation, FeaturesResources.Generate_constructor_from_all_members, """
             class C
             {
                 public C(int x, string y)
@@ -85,8 +85,8 @@ public sealed class GenerateFromMembersRefactoringTests(ITestOutputHelper testOu
 
         var codeActionResults = await testLspServer.RunGetCodeActionsAsync(CreateCodeActionParams(caretLocation));
 
-        Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_Equals + "...");
-        Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_Equals_and_GetHashCode + "...");
+        Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_Equals_from_all_members);
+        Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_Equals_and_GetHashCode_from_all_members);
     }
 
     [Theory(Skip = MetadataLoadRaceSkip), CombinatorialData]
@@ -105,7 +105,7 @@ public sealed class GenerateFromMembersRefactoringTests(ITestOutputHelper testOu
 
         var codeActionResults = await testLspServer.RunGetCodeActionsAsync(CreateCodeActionParams(caretLocation));
 
-        Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_overrides);
+        Assert.Contains(codeActionResults, action => action.Title == FeaturesResources.Generate_overrides_for_all_members);
     }
 
     private static async Task TestCodeActionAsync(
