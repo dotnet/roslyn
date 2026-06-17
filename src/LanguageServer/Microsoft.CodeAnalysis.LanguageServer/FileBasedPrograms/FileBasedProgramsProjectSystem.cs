@@ -344,12 +344,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         Contract.ThrowIfFalse(documentKind is LooseDocumentKind.FileBasedApp);
 
         var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _dotnetCliHelper, _logger, cancellationToken);
-        if (content is not var (virtualProjectContent, diagnostics))
+        if (content is not var (virtualProjectContent, virtualProjectPath, diagnostics))
         {
-            // https://github.com/dotnet/roslyn/issues/78618: falling back to this until dotnet run-api is more widely available
-            _logger.LogInformation($"Failed to obtain virtual project for '{documentPath}' using dotnet run-api. Falling back to directly creating the virtual project.");
-            virtualProjectContent = VirtualProjectXmlProvider.MakeVirtualProjectContent_DirectFallback(documentPath);
-            diagnostics = [];
+            _logger.LogError("Failed to obtain virtual project for '{documentPath}' using dotnet run-api.", documentPath);
+            return null;
         }
 
         foreach (var diagnostic in diagnostics)
@@ -357,9 +355,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             _logger.LogError($"{diagnostic.Location.Path}{diagnostic.Location.Span.Start}: {diagnostic.Message}");
         }
 
-        // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
-        // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
-        var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
+        virtualProjectPath ??= VirtualProjectXmlProvider.GetFallbackVirtualProjectPath(documentPath);
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
