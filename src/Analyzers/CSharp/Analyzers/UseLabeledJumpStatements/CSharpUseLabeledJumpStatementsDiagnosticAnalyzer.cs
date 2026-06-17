@@ -35,45 +35,36 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
             if (!context.Compilation.LanguageVersion().IsCSharp15OrAbove())
                 return;
 
-            context.RegisterSyntaxNodeAction(AnalyzeGotoStatement, SyntaxKind.GotoStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeBreakStatement, SyntaxKind.BreakStatement);
+            context.RegisterSyntaxNodeAction(AnalyzeStatement, SyntaxKind.GotoStatement, SyntaxKind.BreakStatement);
         });
 
         return;
 
-        void AnalyzeGotoStatement(SyntaxNodeAnalysisContext context)
+        void AnalyzeStatement(SyntaxNodeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().PreferLabeledJumpStatements;
             if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
-            var gotoStatement = (GotoStatementSyntax)context.Node;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
-            if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _) ||
-                CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _))
+            if (context.Node is GotoStatementSyntax gotoStatement)
             {
-                ReportDiagnostic(context, gotoStatement, option.Notification);
+                if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _) ||
+                    CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _))
+                {
+                    ReportDiagnostic(context, gotoStatement, option.Notification);
+                }
             }
-        }
-
-        void AnalyzeBreakStatement(SyntaxNodeAnalysisContext context)
-        {
-            var option = context.GetCSharpAnalyzerOptions().PreferLabeledJumpStatements;
-            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
-                return;
-
-            var breakStatement = (BreakStatementSyntax)context.Node;
-
-            // We register on 'break' (not 'continue') because the flag pattern's inner jump is always a 'break': it has
-            // to exit the inner loop so control returns to the outer loop where the flag is checked.  Whether that
-            // emulates a break or a continue of the outer loop is decided by the guard ('if (flag) break/continue;'),
-            // not by this inner jump, so this single registration covers both.
-            if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
-                    breakStatement, context.SemanticModel, context.CancellationToken, out _))
+            else if (context.Node is BreakStatementSyntax breakStatement)
             {
-                ReportDiagnostic(context, breakStatement, option.Notification);
+                // We register on 'break' (not 'continue') because the flag pattern's inner jump is always a 'break': it
+                // has to exit the inner loop so control returns to the outer loop where the flag is checked.  Whether
+                // that emulates a break or a continue of the outer loop is decided by the guard ('if (flag)
+                // break/continue;'), not by this inner jump, so this single registration covers both.
+                if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(breakStatement, semanticModel, cancellationToken, out _))
+                    ReportDiagnostic(context, breakStatement, option.Notification);
             }
         }
 
