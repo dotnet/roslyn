@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,41 +97,78 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     }
 
     /// <summary>
-    /// Samples some references to identify if the method is being used as an event handler.
+    /// Looks narrowly for a reference that registers <paramref name="methodSymbol"/> as a void-returning event handler.
+    /// For performance, the search is restricted to a bounded set of documents (see <see cref="GetEventHandlerSearchScope"/>).
     /// </summary>
-    /// <returns>true iff a sampled reference is found to be an event handler. No false positives.</returns>
+    /// <returns><see langword="true"/> iff such a reference is found within the searched scope. There are no false
+    /// positives.</returns>
     private static async Task<bool> HasKnownReferencesAsEventHandlerAsync(
         Solution solution,
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
     {
-        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var progress = new EventHandlerReferenceProgress(linkedCancellationTokenSource);
+        var referencedSymbols = await SymbolFinder.FindReferencesAsync(
+            methodSymbol,
+            solution,
+            documents: GetEventHandlerSearchScope(solution, methodSymbol),
+            cancellationToken).ConfigureAwait(false);
 
-        try
+        foreach (var referencedSymbol in referencedSymbols)
         {
-            await SymbolFinder.FindReferencesAsync(
-                methodSymbol,
-                solution,
-                progress,
-                documents: null,
-                cancellationToken: linkedCancellationTokenSource.Token).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && linkedCancellationTokenSource.IsCancellationRequested)
-        {
-        }
-
-        foreach (var location in progress.ReferenceLocations)
-        {
-            var document = location.Document;
-            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (IsVoidReturningEventHandlerReference(semanticModel, syntaxNode, cancellationToken))
-                return true;
+            foreach (var location in referencedSymbol.Locations)
+            {
+                var document = location.Document;
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                if (IsVoidReturningEventHandlerReference(semanticModel, syntaxNode, cancellationToken))
+                    return true;
+            }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// The maximum number of generic documents handed to find-references when probing for an event-handler registration.
+    /// This does not include declaring-symbol documents.
+    /// </summary>
+    private const int MaxGenericDocumentsToSearch = 100;
+
+    /// <summary>
+    /// Produces the bounded set of documents to search for an event-handler registration of <paramref name="methodSymbol"/>.
+    /// We search up to <see cref="MaxGenericDocumentsToSearch"/> total documents in the declaring project(s),
+    /// plus all the declaring-symbol documents.
+    /// </summary>
+    private static IImmutableSet<Document> GetEventHandlerSearchScope(Solution solution, IMethodSymbol methodSymbol)
+    {
+        var builder = ImmutableHashSet.CreateBuilder<Document>();
+
+        // Check declaring-symbol docs with priority
+        var declaringSymbol = (ISymbol?)methodSymbol.ContainingType ?? methodSymbol;
+        var projectIds = new HashSet<ProjectId>();
+        foreach (var location in declaringSymbol.Locations)
+        {
+            if (location.SourceTree is { } tree &&
+                solution.GetDocument(tree) is { } document)
+            {
+                builder.Add(document);
+                projectIds.Add(document.Project.Id);
+            }
+        }
+
+        foreach (var projectId in projectIds)
+        {
+            foreach (var document in solution.GetRequiredProject(projectId).Documents)
+            {
+                if (builder.Count >= MaxGenericDocumentsToSearch)
+                    return builder.ToImmutable();
+
+                builder.Add(document);
+            }
+        }
+
+        return builder.ToImmutable();
     }
 
     private static bool IsVoidReturningEventHandlerReference(SemanticModel semanticModel, SyntaxNode syntaxNode, CancellationToken cancellationToken)
@@ -159,50 +197,6 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         => eventAssignment.EventReference is IEventReferenceOperation eventReference &&
            eventReference.Event.Type is INamedTypeSymbol delegateType &&
            delegateType.DelegateInvokeMethod?.ReturnsVoid == true;
-
-    /// <summary>
-    /// Cancels search once a preset number of locations have been found for performance.
-    /// </summary>
-    private sealed class EventHandlerReferenceProgress(CancellationTokenSource cancellationTokenSource) : IFindReferencesProgress
-    {
-        private const int MaxReferenceLocationsToInspect = 50;
-
-        public List<ReferenceLocation> ReferenceLocations { get; } = [];
-
-        public void OnStarted()
-        {
-        }
-
-        public void OnCompleted()
-        {
-        }
-
-        public void OnFindInDocumentStarted(Document document)
-        {
-        }
-
-        public void OnFindInDocumentCompleted(Document document)
-        {
-        }
-
-        public void OnDefinitionFound(ISymbol symbol)
-        {
-        }
-
-        public void OnReferenceFound(ISymbol symbol, ReferenceLocation location)
-        {
-            if (location.IsImplicit)
-                return;
-
-            ReferenceLocations.Add(location);
-            if (ReferenceLocations.Count >= MaxReferenceLocationsToInspect)
-                cancellationTokenSource.Cancel();
-        }
-
-        public void ReportProgress(int current, int maximum)
-        {
-        }
-    }
 
     private static IMethodSymbol? GetMethodSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
     {

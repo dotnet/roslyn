@@ -233,6 +233,70 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task AwaitInEventHandlerMethod_RegisteredInSeparateDocument_StillWarns()
+        => TestInRegularAndScriptAsync("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Handler.cs">
+            using System;
+            using System.Threading.Tasks;
+
+            public class C
+            {
+                public void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+            }
+                    </Document>
+                    <Document FilePath="Wireup.cs">
+            using System;
+
+            public class D
+            {
+                public event EventHandler Click;
+
+                public void Hookup(C c)
+                {
+                    Click += c.OnClick;
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Handler.cs">
+            using System;
+            using System.Threading.Tasks;
+
+            public class C
+            {
+                {|Warning:public async Task OnClickAsync(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }|}
+            }
+                    </Document>
+                    <Document FilePath="Wireup.cs">
+            using System;
+
+            public class D
+            {
+                public event EventHandler Click;
+
+                public void Hookup(C c)
+                {
+                    Click += c.OnClickAsync;
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26312")]
     public async Task AwaitInTaskMainMethodWithModifiers()
     {
