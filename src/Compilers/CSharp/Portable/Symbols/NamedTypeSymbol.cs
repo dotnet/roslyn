@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
-            if (this.IsClassType() && IsStatic && !IsGenericType)
+            if ((this.IsClassType() && IsStatic && !IsGenericType) || this.IsScriptClass)
             {
                 doGetExtensionMembers(members, name, alternativeName, arity, options, ref implementationsToShadow, fieldsBeingBound);
             }
