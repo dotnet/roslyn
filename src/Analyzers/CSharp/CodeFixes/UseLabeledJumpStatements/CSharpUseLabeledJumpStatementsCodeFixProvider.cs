@@ -57,11 +57,13 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
                 ConvertGotos(editor, loop, labelDeclaration, gotos, isBreak: false);
             }
         }
-        else if (diagnosticNode is BreakStatementSyntax breakStatement &&
-            CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
-                breakStatement, semanticModel, cancellationToken, out var pattern))
+        else if (diagnosticNode is BreakStatementSyntax breakStatement)
         {
-            ConvertFlagPattern(editor, semanticModel, pattern);
+            if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
+                breakStatement, semanticModel, cancellationToken, out var pattern))
+            {
+                ConvertFlagPattern(editor, semanticModel, pattern);
+            }
         }
     }
 

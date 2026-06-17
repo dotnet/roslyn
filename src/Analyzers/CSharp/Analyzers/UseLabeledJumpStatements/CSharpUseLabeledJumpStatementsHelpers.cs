@@ -160,7 +160,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
 
     private static bool IsPlainGoto(GotoStatementSyntax gotoStatement, [NotNullWhen(true)] out IdentifierNameSyntax? label)
     {
-        if (gotoStatement.Kind() == SyntaxKind.GotoStatement && gotoStatement.Expression is IdentifierNameSyntax identifier)
+        if (gotoStatement is GotoStatementSyntax(SyntaxKind.GotoStatement) { Expression: IdentifierNameSyntax identifier })
         {
             label = identifier;
             return true;

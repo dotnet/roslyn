@@ -154,14 +154,12 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         if (index <= 0 ||
             block.Statements[index - 1] is not ExpressionStatementSyntax
             {
-                Expression: AssignmentExpressionSyntax
+                Expression: AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
                 {
-                    RawKind: (int)SyntaxKind.SimpleAssignmentExpression,
                     Left: IdentifierNameSyntax flagName,
-                    Right: LiteralExpressionSyntax rhs,
+                    Right: LiteralExpressionSyntax(SyntaxKind.TrueLiteralExpression),
                 }
-            } ||
-            rhs.Kind() != SyntaxKind.TrueLiteralExpression)
+            })
         {
             return false;
         }
@@ -186,6 +184,14 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         return true;
     }
 
+    /// <summary>
+    /// A flag reference <paramref name="name"/> used as the assignment in a site that sets the flag and breaks the
+    /// inner loop:
+    /// <code>
+    /// flag = true;    // assignment
+    /// break;          // innerBreak (immediately follows)
+    /// </code>
+    /// </summary>
     private static bool TryGetAssignmentToTrueSite(
         IdentifierNameSyntax name,
         [NotNullWhen(true)] out ExpressionStatementSyntax? assignment,
@@ -194,12 +200,12 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         assignment = null;
         innerBreak = null;
 
-        if (name.Parent is not AssignmentExpressionSyntax { RawKind: (int)SyntaxKind.SimpleAssignmentExpression } assignmentExpression ||
-            assignmentExpression.Left != name ||
-            assignmentExpression.Right is not LiteralExpressionSyntax rhs ||
-            rhs.Kind() != SyntaxKind.TrueLiteralExpression ||
-            assignmentExpression.Parent is not ExpressionStatementSyntax assignmentStatement ||
-            assignmentStatement.Parent is not BlockSyntax block)
+        // 'name' can only be the left side: the right side is required to be a 'true' literal.
+        if (name.Parent is not AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
+            {
+                Right: LiteralExpressionSyntax(SyntaxKind.TrueLiteralExpression),
+                Parent: ExpressionStatementSyntax { Parent: BlockSyntax block } assignmentStatement,
+            })
         {
             return false;
         }
@@ -214,9 +220,9 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         return true;
     }
 
-    private static bool TryGetGuard(IdentifierNameSyntax name, out IfStatementSyntax ifStatement)
+    private static bool TryGetGuard(IdentifierNameSyntax name, [NotNullWhen(true)] out IfStatementSyntax? ifStatement)
     {
-        ifStatement = null!;
+        ifStatement = null;
 
         if (name.Parent is not IfStatementSyntax { Else: null } candidate || candidate.Condition != name)
             return false;
