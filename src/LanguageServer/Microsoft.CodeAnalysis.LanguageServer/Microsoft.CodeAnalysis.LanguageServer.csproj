@@ -123,11 +123,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Features\CSharp\Portable\SyncedSource\FileBasedPrograms\BuildHost.cs" LinkBase="FileBasedPrograms\SyncedSource" />
-    <Compile Include="..\..\Features\CSharp\Portable\SyncedSource\FileBasedPrograms\VirtualProjectBuilder.cs" LinkBase="FileBasedPrograms\SyncedSource" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" />
   </ItemGroup>
 
