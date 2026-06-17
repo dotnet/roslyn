@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics.CodeAnalysis;
@@ -219,7 +219,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
                 }
 
                 // The "next" C# location is only valid if it is on the same line in the source document
-                // as the requested position, and before than any previous "next" C# position we have found,
+                // as the requested position, and before any previous "next" C# position we have found,
                 // comparing their original positions.
                 if (nextMapping is null ||
                     mapping.OriginalSpan.AbsoluteIndex < nextMapping.OriginalSpan.AbsoluteIndex ||
