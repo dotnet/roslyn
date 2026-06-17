@@ -222,7 +222,9 @@ internal static partial class LegacySyntaxNodeExtensions
     {
         ArgHelper.ThrowIfNull(node);
 
-        foreach (var child in node.DescendantNodes())
+#pragma warning disable CS0618 // Iterator method requires IEnumerable (ref struct cannot span yield points)
+        foreach (var child in node.DescendantNodesAsIEnumerable())
+#pragma warning restore CS0618
         {
             if (child is MarkupStartTagSyntax startTag)
             {

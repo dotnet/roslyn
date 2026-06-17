@@ -60,3 +60,22 @@
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClosedKeyword = 8453 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.SyntaxKind.SafeKeyword = 8454 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.CloseParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.OpenParenToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.Keyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken keyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.WithKeyword(Microsoft.CodeAnalysis.SyntaxToken keyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax!
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsafeExpression = 8769 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+[RSEXPERIMENTAL006]override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitUnsafeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+[RSEXPERIMENTAL006]override Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
+[RSEXPERIMENTAL006]override Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UnsafeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax!
+[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UnsafeExpression(Microsoft.CodeAnalysis.SyntaxToken keyword, Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax!
+[RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitUnsafeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax! node) -> void
+[RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitUnsafeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax! node) -> TResult?

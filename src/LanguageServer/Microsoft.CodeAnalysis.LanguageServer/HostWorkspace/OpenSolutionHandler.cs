@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -36,12 +37,12 @@ internal sealed class OpenSolutionHandler : ILspService, ILspServiceNotification
 
     Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        return _projectSystem.OpenSolutionAsync(request.Solution.LocalPath);
+        return _projectSystem.OpenSolutionAsync(request.Solution.GetDocumentFilePathFromUri());
     }
 
-    private sealed class NotificationParams
+    internal sealed class NotificationParams
     {
         [JsonPropertyName("solution")]
-        public required Uri Solution { get; set; }
+        public required DocumentUri Solution { get; set; }
     }
 }

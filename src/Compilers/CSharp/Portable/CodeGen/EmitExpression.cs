@@ -2027,6 +2027,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 switch (callKind)
                 {
                     case CallKind.Call:
+                        if (actualMethodTargetedByTheCall.IsAbstract)
+                        {
+                            Debug.Assert(false, "Taking this code path is likely unexpected.");
+                            _diagnostics.Add(ErrorCode.ERR_AbstractBaseCall, call.Syntax, actualMethodTargetedByTheCall);
+                        }
+
                         _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
                         break;
 

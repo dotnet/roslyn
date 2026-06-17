@@ -157,7 +157,7 @@ internal static class LanguageServerCommandLine
 
             var serverConfiguration = new ServerConfiguration(
                 LaunchDebugger: launchDebugger,
-                LogConfiguration: new LogConfiguration(logLevel ?? LogLevel.Information),
+                InitialLogLevel: logLevel ?? LogLevel.Information,
                 TelemetryLevel: telemetryLevel,
                 SessionId: sessionId,
                 ExtensionAssemblyPaths: extensionAssemblyPaths,

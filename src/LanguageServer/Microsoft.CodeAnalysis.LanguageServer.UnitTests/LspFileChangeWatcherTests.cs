@@ -29,7 +29,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task LspFileWatcherNotSupportedWithoutClientSupport()
     {
-        await using var testLspServer = await CreateLanguageServerAsync(new ClientCapabilities());
+        await using var testLspServer = await CreateLanguageServerAsync();
 
         AssertFileWatcherKind<DefaultFileChangeWatcher>(testLspServer);
     }
