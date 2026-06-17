@@ -4585,6 +4585,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongSemanticModelType" xml:space="preserve">
     <value>Expected a {0} SemanticModel.</value>
   </data>
+  <data name="GetClosedDerivedTypeInfoMustBeClosed" xml:space="preserve">
+    <value>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</value>
+    <comment>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</comment>
+  </data>
   <data name="IDS_FeatureLambda" xml:space="preserve">
     <value>lambda expression</value>
   </data>
