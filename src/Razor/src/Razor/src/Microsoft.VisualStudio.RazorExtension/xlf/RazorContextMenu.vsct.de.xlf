@@ -122,6 +122,16 @@
         <target state="translated">ViewPageEditor</target>
         <note />
       </trans-unit>
+      <trans-unit id="menuidShowGenerated|ButtonText">
+        <source>Show Generated File</source>
+        <target state="new">Show Generated File</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="menuidShowTagHelpers|ButtonText">
+        <source>Show Tag Helpers</source>
+        <target state="new">Show Tag Helpers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="menuidToolWindowToolbar|ButtonText">
         <source>Razor Syntax Visualizer</source>
         <target state="translated">Razor-Syntax Visualizer</target>
