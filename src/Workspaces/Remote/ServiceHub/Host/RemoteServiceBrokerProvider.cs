@@ -31,8 +31,9 @@ internal sealed class RemoteServiceBrokerProvider() : IServiceBrokerProvider
     {
         get
         {
-            Contract.ThrowIfNull(s_instance, "Global service broker not registered");
-            return s_instance;
+            var broker = Volatile.Read(ref s_instance);
+            Contract.ThrowIfNull(broker, "Global service broker not registered");
+            return broker;
         }
     }
 }
