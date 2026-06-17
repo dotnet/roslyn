@@ -15,15 +15,15 @@ internal sealed class FlagJumpPattern
     /// <summary>The <c>bool flag = false;</c> declaration to delete.</summary>
     public required LocalDeclarationStatementSyntax LocalDeclarationStatement { get; init; }
 
-    /// <summary>The outer loop to label and break/continue.</summary>
+    /// <summary>The outermost loop (the final guard's target) to label and break/continue.</summary>
     public required StatementSyntax LoopStatement { get; init; }
 
-    /// <summary>The <c>if (flag) break;</c>/<c>if (flag) continue;</c> guard to delete.</summary>
-    public required IfStatementSyntax GuardStatement { get; init; }
+    /// <summary>The chain of <c>if (flag) break;</c>/<c>if (flag) continue;</c> guards to delete (one per level).</summary>
+    public required ImmutableArray<IfStatementSyntax> GuardStatements { get; init; }
 
     /// <summary>The inner <c>flag = true; break;</c> sites; each break becomes the labeled jump.</summary>
     public required ImmutableArray<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)> AssignmentAndBreakSites { get; init; }
 
-    /// <summary>Whether the guard is a <c>break</c> (otherwise a <c>continue</c>).</summary>
+    /// <summary>Whether the final guard is a <c>break</c> (otherwise a <c>continue</c>).</summary>
     public required bool IsBreak { get; init; }
 }

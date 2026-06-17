@@ -573,6 +573,156 @@ public sealed class UseLabeledJumpStatementsTests
         }.RunAsync();
 
     [Fact]
+    public Task TestFlag_MultiLevelChainBreak()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool flag = false;
+                        for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (c)
+                                    {
+                                        flag = true;
+                                        {|IDE0410:break|};
+                                    }
+                                }
+
+                                if (flag)
+                                    break;
+                            }
+
+                            if (flag)
+                                break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                    loop_i: for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (c)
+                                    {
+                                        break loop_i;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlag_MultiLevelChainContinue()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool flag = false;
+                        for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (c)
+                                    {
+                                        flag = true;
+                                        {|IDE0410:break|};
+                                    }
+                                }
+
+                                if (flag)
+                                    break;
+                            }
+
+                            if (flag)
+                                continue;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                    loop_i: for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (c)
+                                    {
+                                        continue loop_i;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagChainIntermediateContinue()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool flag = false;
+                        for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (c)
+                                    {
+                                        flag = true;
+                                        break;
+                                    }
+                                }
+
+                                if (flag)
+                                    continue;
+                            }
+
+                            if (flag)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
     public Task TestNotOffered_JumpNotInsideLoop()
         => new VerifyCS.Test
         {

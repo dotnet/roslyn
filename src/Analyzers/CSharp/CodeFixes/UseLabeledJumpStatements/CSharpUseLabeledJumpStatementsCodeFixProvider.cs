@@ -109,14 +109,15 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         var newLoop = loop.TrackNodes(pattern.AssignmentAndBreakSites
             .Select(static site => (SyntaxNode)site.Break)
             .Concat(pattern.AssignmentAndBreakSites.Select(static site => (SyntaxNode)site.Assignment))
-            .Append(pattern.GuardStatement));
+            .Concat(pattern.GuardStatements.Select(static guard => (SyntaxNode)guard)));
 
         newLoop = newLoop.ReplaceNodes(
             pattern.AssignmentAndBreakSites.Select(site => newLoop.GetCurrentNode(site.Break)!),
             (original, _) => CreateJump(labelName, original, pattern.IsBreak));
 
         newLoop = newLoop.RemoveNodes(
-            pattern.AssignmentAndBreakSites.Select(site => (SyntaxNode)newLoop.GetCurrentNode(site.Assignment)!).Append(newLoop.GetCurrentNode(pattern.GuardStatement)!),
+            pattern.AssignmentAndBreakSites.Select(site => (SyntaxNode)newLoop.GetCurrentNode(site.Assignment)!)
+                .Concat(pattern.GuardStatements.Select(guard => (SyntaxNode)newLoop.GetCurrentNode(guard)!)),
             SyntaxRemoveOptions.KeepNoTrivia)!;
 
         ReplaceLoop(editor, loop, labelName, newLoop);
