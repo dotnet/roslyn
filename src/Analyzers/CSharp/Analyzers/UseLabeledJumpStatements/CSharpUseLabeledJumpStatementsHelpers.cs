@@ -87,7 +87,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         if (TryResolveLabel(gotoStatement, semanticModel, cancellationToken, out var label, out var declaration) &&
             declaration is
             {
-                Parent: BlockSyntax { Parent: StatementSyntax candidateLoop, Statements: [.., var lastStatement] } body,
+                Parent: BlockSyntax { Parent: StatementSyntax candidateLoop, Statements: [.., var lastStatement] },
                 Statement: EmptyStatementSyntax
             } &&
             lastStatement == declaration &&
