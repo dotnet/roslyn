@@ -137,27 +137,29 @@ public sealed partial class IntermediateNodeCollection
 
         public void RemoveAt(int index)
         {
-            if (_items == null)
+            if (_count == 1)
             {
-                // Must be removing the single item
+                // Removing the single item
                 _single = null;
                 _count = 0;
-                return;
             }
-
-            _count--;
-            if (index < _count)
+            else if (_count == 2)
             {
-                Array.Copy(_items, index + 1, _items, index, _count - index);
-            }
-
-            _items[_count] = null;
-
-            // Transition back to inline mode when empty
-            if (_count == 0)
-            {
+                // Transition back to single item mode when possible.
+                _single = index == 0 ? _items[1] : _items[0];
                 ArrayPool<IntermediateNode>.Shared.Return(_items, clearArray: true);
+                _count = 1;
                 _items = null;
+            }
+            else
+            {
+                _count--;
+                if (index < _count)
+                {
+                    Array.Copy(_items, index + 1, _items, index, _count - index);
+                }
+
+                _items[_count] = null;
             }
         }
 
