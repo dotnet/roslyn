@@ -146,6 +146,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLabeledJumpStatements\CSharpUseLabeledJumpStatementsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseLabeledJumpStatements\CSharpUseLabeledJumpStatementsHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemThreadingLock\CSharpUseSystemThreadingLockDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNameofInNullableAttribute\CSharpUseNameofInNullableAttributeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseNamedMemberInitializerAnalyzer.cs" />

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
@@ -43,7 +44,29 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
             if (!context.Compilation.LanguageVersion().IsCSharp15OrAbove())
                 return;
 
-            // Detection routines for each pattern are added in subsequent commits.
+            context.RegisterSyntaxNodeAction(AnalyzeGotoStatement, SyntaxKind.GotoStatement);
         });
+    }
+
+    private void AnalyzeGotoStatement(SyntaxNodeAnalysisContext context)
+    {
+        var option = context.GetCSharpAnalyzerOptions().PreferLabeledJumpStatements;
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
+            return;
+
+        var gotoStatement = (GotoStatementSyntax)context.Node;
+
+        // 'goto' to a label placed right after an enclosing loop is an emulated (multi-level) 'break'.
+        if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(
+                gotoStatement, context.SemanticModel, context.CancellationToken, out _, out _, out _))
+        {
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                gotoStatement.GotoKeyword.GetLocation(),
+                option.Notification,
+                context.Options,
+                additionalLocations: null,
+                properties: null));
+        }
     }
 }
