@@ -1,12 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Razor.LanguageClient.Cohost;
@@ -18,6 +19,47 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
+    [Fact]
+    public void RazorTriggerCharactersMatchOOPAutoInsertProviders()
+    {
+        var expectedTriggerCharacters = OOPExportProvider.GetExportedValues<IOnAutoInsertProvider>()
+            .Select(provider => provider.TriggerCharacter)
+            .Distinct()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+        var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetRazorOnAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+
+        Assert.Equal(expectedTriggerCharacters, actualTriggerCharacters);
+    }
+
+    [Fact]
+    public void CSharpTriggerCharactersMatchRemoteAutoInsertService()
+    {
+        var expectedTriggerCharacters = RemoteAutoInsertService.TestAccessor.GetCSharpAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+        var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetCSharpAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+
+        Assert.Equal(expectedTriggerCharacters, actualTriggerCharacters);
+    }
+
+    [Fact]
+    public void HtmlTriggerCharactersMatchRemoteAutoInsertService()
+    {
+        var expectedTriggerCharacters = RemoteAutoInsertService.TestAccessor.GetHtmlAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+        var actualTriggerCharacters = CohostOnAutoInsertEndpoint.TestAccessor.GetHtmlAllowedAutoInsertTriggerCharacters()
+            .OrderBy(triggerCharacter => triggerCharacter)
+            .ToArray();
+
+        Assert.Equal(expectedTriggerCharacters, actualTriggerCharacters);
+    }
+
     [Theory]
     [InlineData("PageTitle")]
     [InlineData("div")]
@@ -372,7 +414,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             delegatedResponseText: "\"$0\"");
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_RawStringLiteral()
     {
         await VerifyOnAutoInsertAsync(
@@ -393,7 +435,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "\"");
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_OnForwardSlash()
     {
         await VerifyOnAutoInsertAsync(
@@ -414,7 +456,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "/");
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_DocComment_OnEnter()
     {
         await VerifyOnAutoInsertAsync(
@@ -454,7 +496,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             formatOnType: false);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_OnEnter()
     {
         await VerifyOnAutoInsertAsync(
@@ -493,7 +535,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "\n");
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_OnEnter_TwoSpaceIndent()
     {
         await VerifyOnAutoInsertAsync(
@@ -515,7 +557,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             tabSize: 2);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task CSharp_OnEnter_UseTabs()
     {
         const char tab = '\t';
@@ -555,10 +597,6 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { FormatOnType = formatOnType, AutoClosingTags = autoClosingTags });
 
-        IOnAutoInsertTriggerCharacterProvider[] onAutoInsertTriggerCharacterProviders = [
-            new RemoteAutoClosingTagOnAutoInsertProvider(),
-            new RemoteCloseTextTagOnAutoInsertProvider()];
-
         VSInternalDocumentOnAutoInsertResponseItem? response = null;
         if (delegatedResponseText is not null)
         {
@@ -577,7 +615,6 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             IncompatibleProjectService,
             RemoteServiceInvoker,
             ClientSettingsManager,
-            onAutoInsertTriggerCharacterProviders,
             requestInvoker,
             LoggerFactory);
 

@@ -261,6 +261,18 @@ internal sealed class FormattingContext
         return newContext;
     }
 
+    public FormattingContext WithCSharpDocument(bool declarationDocument)
+        => new(
+            OriginalSnapshot,
+            CodeDocument,
+            declarationDocument,
+            CurrentSnapshot,
+            Options,
+            Logger,
+            IncludeCSharpLanguageFeatureEdits,
+            HostDocumentIndex,
+            TriggerCharacter);
+
     /// <summary>
     /// It can be difficult in the testing infrastructure to correct constructs input files that work consistently across
     /// context changes, so this method validates that the number of components isn't changing due to lost tag help info.
