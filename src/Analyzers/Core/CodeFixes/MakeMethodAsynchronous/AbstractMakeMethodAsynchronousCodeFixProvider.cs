@@ -235,8 +235,8 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         // Only add a warning annotation for the Task-returning fix when the method is known to be an event handler.
         // We run this check lazily (here, not in RegisterCodeFixesAsync) so the expensive FAR only runs when the
         // user previews or applies the fix rather than every time the light bulb appears.
-        var addWarningAnnotation = await ShouldAddEventHandlerWarningAsync(
-            document.Project.Solution, methodSymbol, keepVoid, isEntryPoint, cancellationToken).ConfigureAwait(false);
+        var addWarningAnnotation = await HasKnownReferencesAsEventHandlerAsync(
+            document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
 
         return NeedsRename()
             ? await RenameThenAddAsyncTokenAsync(keepVoid, addWarningAnnotation, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
@@ -262,20 +262,6 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
             return !IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
         }
-    }
-
-    private static Task<bool> ShouldAddEventHandlerWarningAsync(
-        Solution solution,
-        IMethodSymbol methodSymbol,
-        bool keepVoid,
-        bool isEntryPoint,
-        CancellationToken cancellationToken)
-    {
-        // If the method cannot be an event handler, short-circuit
-        if (keepVoid || isEntryPoint || !methodSymbol.IsOrdinaryMethodOrLocalFunction() || !methodSymbol.ReturnsVoid)
-            return Task.FromResult(false);
-
-        return HasKnownReferencesAsEventHandlerAsync(solution, methodSymbol, cancellationToken);
     }
 
     private SyntaxNode? GetContainingFunction(Diagnostic diagnostic, CancellationToken cancellationToken)
