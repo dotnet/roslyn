@@ -3,12 +3,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/BoundTreeGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/IOperationGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/CSharpErrorFactsGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/VisualBasicSyntaxGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/VisualBasicErrorFactsGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/BoundTreeGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/IOperationGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/CSharpErrorFactsGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/VisualBasicSyntaxGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/VisualBasicErrorFactsGenerator/
 
 using System.Runtime.CompilerServices;
 

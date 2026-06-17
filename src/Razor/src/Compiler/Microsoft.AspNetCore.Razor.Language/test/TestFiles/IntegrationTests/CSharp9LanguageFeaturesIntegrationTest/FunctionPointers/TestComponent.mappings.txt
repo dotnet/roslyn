@@ -1,0 +1,15 @@
+﻿Source Location: (7:0,7 [147] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public static unsafe delegate* managed<int, int> Pointer => &Double;
+    
+    private static int Double(int value)
+        => value * 2;
+|
+Generated Location: (782:23,0 [147] )
+|
+    public static unsafe delegate* managed<int, int> Pointer => &Double;
+    
+    private static int Double(int value)
+        => value * 2;
+|
+

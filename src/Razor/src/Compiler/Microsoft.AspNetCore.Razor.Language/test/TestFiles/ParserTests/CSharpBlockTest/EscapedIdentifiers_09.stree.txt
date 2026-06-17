@@ -1,0 +1,57 @@
+﻿RazorDocument - [0..51)::51 - [@{LF    var x = "hello";LF    @x x = "world"; @xLF}]
+    MarkupBlock - [0..51)::51
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..51)::51
+            CSharpStatement - [0..51)::51
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..51)::50
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..50)::48
+                        CSharpStatementLiteral - [2..30)::28 - [LF    var x = "hello";LF    ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["hello"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                        CSharpCodeBlock - [30..32)::2
+                            CSharpImplicitExpression - [30..32)::2
+                                CSharpTransition - [30..31)::1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [31..32)::1
+                                    CSharpCodeBlock - [31..32)::1
+                                        CSharpExpressionLiteral - [31..32)::1 - [x] - Gen<Expr>
+                                            Identifier;[x];
+                        CSharpStatementLiteral - [32..46)::14 - [ x = "world"; ] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["world"];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                        CSharpCodeBlock - [46..48)::2
+                            CSharpImplicitExpression - [46..48)::2
+                                CSharpTransition - [46..47)::1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [47..48)::1
+                                    CSharpCodeBlock - [47..48)::1
+                                        CSharpExpressionLiteral - [47..48)::1 - [x] - Gen<Expr>
+                                            Identifier;[x];
+                        CSharpStatementLiteral - [48..50)::2 - [LF] - Gen<Stmt>
+                            NewLine;[LF];
+                    RazorMetaCode - [50..51)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [51..51)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

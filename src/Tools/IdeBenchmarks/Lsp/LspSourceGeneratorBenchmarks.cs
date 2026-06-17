@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -36,7 +36,7 @@ namespace IdeBenchmarks.Lsp
         [Params("Automatic", "Balanced")]
         public string ExecutionPreference { get; set; } = "Automatic";
 
-        public LspSourceGeneratorBenchmarks() : base(null)
+        public LspSourceGeneratorBenchmarks() : base(NoOpTestOutputHelper.Instance)
         {
         }
 
@@ -130,7 +130,7 @@ namespace IdeBenchmarks.Lsp
                 new LSP.TextDocumentContentParams { Uri = sgUri },
                 CancellationToken.None);
 
-            AssertEx.NotNull(sgResult);
+            Assert.NotNull(sgResult);
             Assert.Contains("public partial class C", sgResult.Text);
         }
 

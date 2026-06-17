@@ -2,38 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-
-#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 
 /// <summary>
 /// An implementation of the brokered service <see cref="IWorkspaceProjectFactoryService"/> that just maps calls to the underlying project system.
 /// </summary>
-[ExportBrokeredService("Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService", null, Audience = ServiceAudience.Local)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class WorkspaceProjectFactoryService(
     LanguageServerWorkspaceFactory workspaceFactory,
+    ProjectTargetFrameworkManager targetFrameworkManager,
     ProjectInitializationHandler projectInitializationHandler,
-    ILoggerFactory loggerFactory) : IWorkspaceProjectFactoryService, IExportedBrokeredService
+    ILoggerFactory loggerFactory) : IWorkspaceProjectFactoryService
 {
     private readonly LanguageServerWorkspaceFactory _workspaceFactory = workspaceFactory;
     private readonly ProjectInitializationHandler _projectInitializationHandler = projectInitializationHandler;
     private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
-    ServiceRpcDescriptor IExportedBrokeredService.Descriptor => WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor;
-
-    Task IExportedBrokeredService.InitializeAsync(CancellationToken cancellationToken)
-        => _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
+    public async Task InitializeAsync(CancellationToken cancellationToken)
+        => await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
@@ -56,7 +46,7 @@ internal sealed class WorkspaceProjectFactoryService(
             // to returning a project or else we would never have a way to remove this project we created.
             cancellationToken = CancellationToken.None;
 
-            var workspaceProject = new WorkspaceProject(project, _workspaceFactory.HostWorkspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager, _loggerFactory);
+            var workspaceProject = new WorkspaceProject(project, _workspaceFactory.HostWorkspace.Services.SolutionServices, targetFrameworkManager, _loggerFactory);
 
             // We've created a new project, so initialize properties we have
             await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);
@@ -77,4 +67,3 @@ internal sealed class WorkspaceProjectFactoryService(
         return [];
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs

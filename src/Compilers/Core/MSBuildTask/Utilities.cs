@@ -91,24 +91,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// such as "on", "!false", "yes"
         /// </summary>
         private static bool ValidBooleanTrue(string parameterValue) =>
-            String.Compare(parameterValue, "true", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "on", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "yes", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "!false", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "!off", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "!no", StringComparison.OrdinalIgnoreCase) == 0;
+            string.Equals(parameterValue, "true", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "on", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "yes", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "!false", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "!off", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "!no", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Returns true if the string represents a valid MSBuild boolean false value,
         /// such as "!on" "off" "no" "!true"
         /// </summary>
         private static bool ValidBooleanFalse(string parameterValue) =>
-            String.Compare(parameterValue, "false", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "off", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "no", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "!true", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "!on", StringComparison.OrdinalIgnoreCase) == 0 ||
-            String.Compare(parameterValue, "!yes", StringComparison.OrdinalIgnoreCase) == 0;
+            string.Equals(parameterValue, "false", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "off", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "no", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "!true", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "!on", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(parameterValue, "!yes", StringComparison.OrdinalIgnoreCase);
 
         internal static string GetFullPathNoThrow(string path)
         {

@@ -12,13 +12,9 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
 
-public sealed class FindAllReferencesHandlerFeaturesTests(ITestOutputHelper? testOutputHelper)
+public sealed class FindAllReferencesHandlerFeaturesTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    protected override TestComposition Composition => LspTestCompositions.LanguageServerProtocol
-        .AddParts(typeof(TestDocumentTrackingService))
-        .AddParts(typeof(TestWorkspaceRegistrationService));
-
     [Theory, CombinatorialData]
     public async Task TestFindAllReferencesAsync_DoesNotUseVSTypes(bool mutatingLspWorkspace)
     {

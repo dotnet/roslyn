@@ -408,6 +408,65 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.True(results.SuggestionMode);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestDotTriggerDoesNotSetSuggestionMode(bool mutatingLspWorkspace)
+    {
+        // Typing '.' triggers completion with empty filter text. IsAllPunctuation("") returns true
+        // vacuously, but empty text should not be treated as "all punctuation" — it should produce
+        // hard selection and a complete list, not suggestion mode with isIncomplete.
+        var markup =
+            """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    Console.{|caret:|}
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: ".",
+            triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+
+        var results = (LSP.VSInternalCompletionList)await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+        Assert.NotEmpty(results.Items);
+        Assert.False(results.SuggestionMode);
+        Assert.False(results.IsIncomplete);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestUnderscoreTriggerSetsSuggestionModeAndIncomplete(bool mutatingLspWorkspace)
+    {
+        // Typing '_' (punctuation) should set suggestion mode and mark the list as incomplete,
+        // so the server gets called back when the user types a non-punctuation character.
+        var markup =
+            """
+            class C
+            {
+                private int _value;
+                void M()
+                {
+                    _{|caret:|}
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+        var completionParams = CreateCompletionParams(
+            testLspServer.GetLocations("caret").Single(),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "_",
+            triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+        var results = (LSP.VSInternalCompletionList)await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+        Assert.NotEmpty(results.Items);
+        Assert.True(results.SuggestionMode);
+        Assert.True(results.IsIncomplete);
+    }
+
     [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestGetDateAndTimeCompletionsAsync(bool mutatingLspWorkspace)
     {
@@ -1534,7 +1593,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
             triggerKind: LSP.CompletionTriggerKind.Invoked);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams);
-        AssertEx.NotNull(results);
+        Assert.NotNull(results);
         Assert.NotEmpty(results.Items);
         Assert.Equal(new() { Start = new(2, 0), End = new(2, 8) }, results.ItemDefaults.EditRange.Value.First);
     }
@@ -1621,7 +1680,6 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
             triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-        AssertEx.NotNull(results);
 
         var nullItem = results.Items.SingleOrDefault(i => i.Label == "null");
         var nuintItem = results.Items.SingleOrDefault(i => i.Label == "nuint");
@@ -1659,7 +1717,6 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
             triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-        AssertEx.NotNull(results);
 
         // Find a standard keyword like "int" — it should have default (0) MatchPriority
         var intItem = results.Items.SingleOrDefault(i => i.Label == "int");

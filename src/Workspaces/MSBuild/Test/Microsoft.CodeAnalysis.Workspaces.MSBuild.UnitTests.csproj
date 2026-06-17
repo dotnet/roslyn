@@ -22,6 +22,7 @@
     <EmbeddedResource Include="Resources\**\*.*" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\BuildHost\Rpc\RpcMethodInvoker.cs" Link="Rpc\RpcMethodInvoker.cs"/>
     <Compile Include="..\BuildHost\Rpc\RpcServer.cs" Link="Rpc\RpcServer.cs"/>
     <Compile Remove="Resources\**\*.*" />
   </ItemGroup>

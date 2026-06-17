@@ -34,9 +34,7 @@ pr:
       - azure-pipelines-integration-scouting.yml
       - azure-pipelines-official.yml
       - azure-pipelines-pr-validation.yml
-      - CODE-OF-CONDUCT.md
-      - CONTRIBUTING.md
-      - README.md
+      - '*.md'
 
 variables:
   # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
@@ -421,7 +419,7 @@ stages:
           - src/Dependencies/*
           - src/NuGet/Microsoft.Net.Compilers.Toolset/*
           - eng/*
-          - src/Tools/Source/CompilerGeneratorTools/*
+          - src/Tools/CompilerGeneratorTools/*
           - '*.sln*'
           - '*.yml'
           - '*.props'
@@ -488,7 +486,7 @@ stages:
         inputs:
           command: 'custom'
           custom: 'run'
-          arguments: '--file $(Build.SourcesDirectory)/eng/ensure-sources-synced.cs'
+          arguments: '--file $(Build.SourcesDirectory)/eng/ensure-sources-synced.cs -- --verify'
 
       - powershell: eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\
         displayName: Validate Generated Syntax Files
@@ -597,7 +595,7 @@ stages:
 
   - job: Correctness_Analyzers
     pool: ${{ parameters.ubuntuPool }}
-    timeoutInMinutes: 35
+    timeoutInMinutes: 40
     variables:
       - template: eng/pipelines/variables-build.yml
         parameters:

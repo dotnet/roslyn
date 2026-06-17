@@ -201,7 +201,7 @@ public partial class MSBuildProjectLoader
                 if (_pathResolver.TryGetAbsoluteProjectPath(path, baseDirectory: projectDirectory, _discoveredProjectOptions.OnPathFailure, out var projectReferencePath))
                 {
                     // The easiest case is to add a reference to a project we already know about.
-                    if (TryAddReferenceToKnownProject(id, projectReferencePath, aliases, builder))
+                    if (TryAddReferenceToKnownProject(id, projectReferencePath, aliases.ToImmutableArray(), builder))
                     {
                         continue;
                     }
@@ -224,7 +224,7 @@ public partial class MSBuildProjectLoader
                         }
 
                         // Finally, we'll try to load and reference the project.
-                        if (await TryLoadAndAddReferenceAsync(id, projectReferencePath, aliases, builder, cancellationToken).ConfigureAwait(false))
+                        if (await TryLoadAndAddReferenceAsync(id, projectReferencePath, [.. aliases], builder, cancellationToken).ConfigureAwait(false))
                         {
                             continue;
                         }
@@ -246,7 +246,7 @@ public partial class MSBuildProjectLoader
 
                 // We weren't able to handle this project reference, so add it without further processing.
                 var unknownProjectId = _projectMap.GetOrCreateProjectId(projectFileReference.Path);
-                var newProjectReference = CreateProjectReference(from: id, to: unknownProjectId, aliases);
+                var newProjectReference = CreateProjectReference(from: id, to: unknownProjectId, [.. aliases]);
                 builder.AddProjectReference(newProjectReference);
             }
 

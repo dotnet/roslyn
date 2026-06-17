@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Composition;
-using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Definitions;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -16,7 +13,6 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export, Shared]
 internal sealed class ProjectInitializationHandler : IDisposable
 {
     internal const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
@@ -24,29 +20,24 @@ internal sealed class ProjectInitializationHandler : IDisposable
     private readonly IServiceBroker _serviceBroker;
     private readonly ServiceBrokerClient _serviceBrokerClient;
     private readonly ILogger _logger;
-
     private readonly TaskCompletionSource _serviceAvailable = new();
     private readonly ProjectInitializationCompleteObserver _projectInitializationCompleteObserver;
 
     private IDisposable? _subscription;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ProjectInitializationHandler(IServiceBrokerProvider serviceBrokerProvider, ILoggerFactory loggerFactory)
+    public ProjectInitializationHandler(IClientLanguageServerManager clientLanguageServerManager, IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
     {
-        _serviceBroker = serviceBrokerProvider.ServiceBroker;
+        _serviceBroker = serviceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
         _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
-        _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);
+        _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(clientLanguageServerManager, _logger);
     }
 
-    public static async ValueTask SendProjectInitializationCompleteNotificationAsync()
+    public static async ValueTask SendProjectInitializationCompleteNotificationAsync(IClientLanguageServerManager clientLanguageServerManager)
     {
-        Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
-        var languageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
-        await languageServerManager.SendNotificationAsync(ProjectInitializationCompleteName, CancellationToken.None);
+        await clientLanguageServerManager.SendNotificationAsync(ProjectInitializationCompleteName, CancellationToken.None);
     }
 
     public async Task SubscribeToInitializationCompleteAsync(CancellationToken cancellationToken)
@@ -87,15 +78,8 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _serviceBrokerClient.Dispose();
     }
 
-    internal sealed class ProjectInitializationCompleteObserver : IObserver<ProjectInitializationCompletionState>
+    internal sealed class ProjectInitializationCompleteObserver(IClientLanguageServerManager clientLanguageServerManager, ILogger logger) : IObserver<ProjectInitializationCompletionState>
     {
-        private readonly ILogger _logger;
-
-        public ProjectInitializationCompleteObserver(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [JsonRpcMethod("onCompleted")]
         public void OnCompleted()
         {
@@ -105,16 +89,15 @@ internal sealed class ProjectInitializationHandler : IDisposable
         [JsonRpcMethod("onError", UseSingleObjectParameterDeserialization = true)]
         public void OnError(Exception error)
         {
-            _logger.LogError(error, "Devkit project initialization observer failed");
+            logger.LogError(error, "Devkit project initialization observer failed");
         }
 
         [JsonRpcMethod("onNext", UseSingleObjectParameterDeserialization = true)]
         public void OnNext(ProjectInitializationCompletionState value)
         {
-            _logger.LogDebug("Devkit project initialization completed");
+            logger.LogDebug("Devkit project initialization completed");
             VSCodeRequestTelemetryLogger.ReportProjectInitializationComplete();
-            _ = SendProjectInitializationCompleteNotificationAsync().AsTask().ReportNonFatalErrorAsync();
+            _ = SendProjectInitializationCompleteNotificationAsync(clientLanguageServerManager).AsTask().ReportNonFatalErrorAsync();
         }
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs

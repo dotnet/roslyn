@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
 {
-    private readonly LanguageServerWorkspaceFactory _workspaceFactory;
+    private readonly IHostWorkspaceProvider _workspaceProvider;
     private readonly ILoggerFactory _loggerFactory;
     private readonly AsyncLazy<ImmutableArray<ProjectFileInfo>> _canonicalBuildResult;
     private string? _tempDirectory;
 
-    public CanonicalMiscellaneousFilesProjectProvider(LanguageServerWorkspaceFactory workspaceFactory, ILoggerFactory loggerFactory)
+    public CanonicalMiscellaneousFilesProjectProvider(IHostWorkspaceProvider workspaceProvider, ILoggerFactory loggerFactory)
     {
-        _workspaceFactory = workspaceFactory;
+        _workspaceProvider = workspaceProvider;
         _loggerFactory = loggerFactory;
         _canonicalBuildResult = AsyncLazy.Create(LoadCanonicalProjectAsync);
     }
@@ -37,7 +37,7 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
 
         var forkedInfos = canonicalInfos.SelectAsArray(info => info with
         {
-            Documents = info.Documents.Add(miscDocFileInfo),
+            Documents = [.. info.Documents, miscDocFileInfo],
             FileGlobs = [],
         });
 
@@ -69,10 +69,10 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
         File.WriteAllText(virtualProjectPath, virtualProjectXml);
 
         await using var buildHostProcessManager = new BuildHostProcessManager(
-            _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+            _workspaceProvider.Workspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
             globalMSBuildProperties: [],
             binaryLogPathProvider: null,
-            _loggerFactory);
+            loggerFactory: _loggerFactory);
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, fileBasedApp: false, cancellationToken);
         return await loadedFile.GetProjectFileInfosAsync(cancellationToken);

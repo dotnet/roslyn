@@ -762,6 +762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.CheckedExpression:
                         return BindCheckedExpression((CheckedExpressionSyntax)node, diagnostics);
 
+                    case SyntaxKind.UnsafeExpression:
+                        return BindUnsafeExpression((UnsafeExpressionSyntax)node, diagnostics);
+
                     case SyntaxKind.DefaultExpression:
                         return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
@@ -2874,9 +2877,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
             {
-                Debug.Assert(conversion.IsUserDefined);
+                Debug.Assert(conversion.IsUserDefined || conversion.IsUnion);
 
-                ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedConversions;
+                ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedOrUnionConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
                     diagnostics.Add(ErrorCode.ERR_AmbigUDConv, syntax.Location, originalUserDefinedConversions[0], originalUserDefinedConversions[1], operand.Display, targetType);
@@ -5861,6 +5864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ReportDuplicateObjectMemberInitializers(boundMemberInitializer, memberNameMap, diagnostics);
             }
+            memberNameMap.Free();
 
             return new BoundObjectInitializerExpression(
                 initializerSyntax,
@@ -6808,6 +6812,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <remarks>
+        /// In terms of errors this function should be kept in sync with
+        /// <see cref="CreateUnionConversion"/> and <see cref="HasCollectionExpressionApplicableConstructor"/>
+        /// </remarks>
         protected BoundExpression BindClassCreationExpression(
             SyntaxNode node,
             string typeName,
@@ -6825,6 +6833,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In terms of errors relevant for HasCollectionExpressionApplicableConstructor check
             // this function should be kept in sync with HasCollectionExpressionApplicableConstructor.
             //
+            // In terms of errors relevant for Unions conversions check
+            // this function should be kept in sync with CreateUnionConversion.
 
             BoundExpression result = null;
             bool hasErrors = type.IsErrorType();
@@ -7590,6 +7600,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             var binder = this.GetBinder(node);
+            return binder.BindParenthesizedExpression(node.Expression, diagnostics);
+        }
+
+        private BoundExpression BindUnsafeExpression(UnsafeExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            var binder = this.GetBinder(node);
+
+            if (!this.Compilation.Options.AllowUnsafe)
+            {
+                Error(diagnostics, ErrorCode.ERR_IllegalUnsafe, node.Keyword);
+            }
+
+            CheckFeatureAvailability(node.Keyword, MessageID.IDS_FeatureUnsafeEvolution, diagnostics);
+
             return binder.BindParenthesizedExpression(node.Expression, diagnostics);
         }
 
@@ -8792,6 +8816,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Free();
                     actualReceiverArguments?.Free();
 
+                    firstResult.Free(keepArguments: firstResult.AnalyzedArguments == actualMethodArguments);
+
                     if (result.AnalyzedArguments != actualMethodArguments)
                     {
                         actualMethodArguments?.Free();
@@ -8880,6 +8906,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             firstResult = methodResult;
                         }
+                    }
+                    else
+                    {
+                        // keepArguments: true because actualMethodArguments is shared with firstResult
+                        // (both resolutions reference the same AnalyzedArguments instance).
+                        // The arguments lifetime is managed by the caller (ResolveExtension).
+                        methodResult.Free(keepArguments: true);
+                        propertyResult?.Free();
                     }
 
                     return false;
@@ -9819,7 +9853,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureInlineArrays, diagnostics);
                 diagnostics.ReportUseSite(elementField, node);
-                AssertNotUnsafeMemberAccess(elementField); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
 
                 TypeSymbol resultType;
 
@@ -10432,6 +10465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics,
                         out var implicitIndexerAccess))
                 {
+                    overloadResolutionResult.Free();
                     return implicitIndexerAccess;
                 }
                 else
