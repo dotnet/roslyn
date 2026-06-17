@@ -58,7 +58,7 @@ internal sealed partial class CSharpUseLabeledJumpStatementsCodeFixProvider() : 
             if (TryGetTargetLoop(root, diagnostic, semanticModel, cancellationToken, out var loop) &&
                 processedLoops.Add(loop))
             {
-                ApplyRewrite(editor, loop, CollectLoopRewrite(loop, semanticModel, cancellationToken));
+                ApplyRewrite(editor, semanticModel, loop, CollectLoopRewrite(loop, semanticModel, cancellationToken));
             }
         }
     }
@@ -157,12 +157,12 @@ internal sealed partial class CSharpUseLabeledJumpStatementsCodeFixProvider() : 
         };
     }
 
-    private static void ApplyRewrite(SyntaxEditor editor, StatementSyntax loop, LoopRewrite rewrite)
+    private static void ApplyRewrite(SyntaxEditor editor, SemanticModel semanticModel, StatementSyntax loop, LoopRewrite rewrite)
     {
         // If the loop is already labeled (the user wrote a label), reuse it.  Otherwise reuse the lexically-first
         // existing label among the patterns being merged, or synthesize a name (flag-only case).
         var existingLabel = loop.Parent as LabeledStatementSyntax;
-        var labelName = existingLabel?.Identifier.Text ?? rewrite.GetLabelName(loop);
+        var labelName = existingLabel?.Identifier.Text ?? rewrite.GetLabelName(semanticModel, loop);
 
         // Rebuild the loop in one shot: rewrite every inner jump and delete every inner piece of now-dead code.
         var newLoop = loop.TrackNodes(rewrite.Jumps.Select(j => j.Jump).Concat(rewrite.InnerRemovals));

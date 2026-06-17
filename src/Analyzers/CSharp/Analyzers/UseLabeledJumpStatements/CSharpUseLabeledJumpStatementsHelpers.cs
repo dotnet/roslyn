@@ -76,25 +76,21 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         labelDeclaration = null;
         gotos = default;
 
-        if (!TryResolveLabel(gotoStatement, semanticModel, cancellationToken, out var label, out var declaration) ||
-            declaration.Parent is not BlockSyntax body ||
-            body.Statements.LastOrDefault() != declaration ||
-            declaration.Statement is not EmptyStatementSyntax)
+        // Requiring an empty label as the very last statement of a loop body keeps the rewrite equivalent: jumping
+        // there would otherwise run trailing work that a 'continue' would skip.
+        if (TryResolveLabel(gotoStatement, semanticModel, cancellationToken, out var label, out var declaration) &&
+            declaration is { Parent: BlockSyntax body, Statement: EmptyStatementSyntax } &&
+            body.Statements.LastOrDefault() == declaration &&
+            body.Parent is StatementSyntax candidateLoop &&
+            candidateLoop.IsContinuableConstruct() &&
+            TryCollectMultiLevelJumps(candidateLoop, label, semanticModel, cancellationToken, includeSwitch: false, out gotos))
         {
-            // Requiring an empty label at the very end of the body keeps the rewrite equivalent: jumping there would
-            // otherwise run trailing work that a 'continue' would skip.
-            return false;
+            loop = candidateLoop;
+            labelDeclaration = declaration;
+            return true;
         }
 
-        if (body.Parent is not StatementSyntax candidateLoop || !candidateLoop.IsContinuableConstruct() || candidateLoop.GetEmbeddedStatement() != body)
-            return false;
-
-        if (!TryCollectMultiLevelJumps(candidateLoop, label, semanticModel, cancellationToken, includeSwitch: false, out gotos))
-            return false;
-
-        loop = candidateLoop;
-        labelDeclaration = declaration;
-        return true;
+        return false;
     }
 
     private static bool TryResolveLabel(

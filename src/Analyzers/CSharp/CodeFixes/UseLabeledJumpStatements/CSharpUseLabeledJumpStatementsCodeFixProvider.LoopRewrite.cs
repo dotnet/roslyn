@@ -5,11 +5,33 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
 
 internal sealed partial class CSharpUseLabeledJumpStatementsCodeFixProvider
 {
+    /// <summary>
+    /// Synthesizes a label for <paramref name="loop"/> (<c>loop_i</c>/<c>loop_x</c> from a for/foreach variable, else
+    /// <c>outer</c>), uniquified against the labels in scope at the loop.
+    /// </summary>
+    private static string SynthesizeLabelName(SemanticModel semanticModel, StatementSyntax loop)
+    {
+        var baseName = loop switch
+        {
+            ForStatementSyntax { Declaration.Variables: [var variable, ..] } => "loop_" + variable.Identifier.ValueText,
+            ForEachStatementSyntax forEachStatement => "loop_" + forEachStatement.Identifier.ValueText,
+            _ => "outer",
+        };
+
+        using var _ = PooledHashSet<string>.GetInstance(out var inScope);
+        foreach (var label in semanticModel.LookupLabels(loop.SpanStart))
+            inScope.Add(label.Name);
+
+        return NameGenerator.GenerateUniqueName(baseName, name => !inScope.Contains(name));
+    }
+
     /// <summary>
     /// Everything that must happen to a single loop/switch so it is relabeled exactly once.
     /// </summary>
@@ -33,8 +55,8 @@ internal sealed partial class CSharpUseLabeledJumpStatementsCodeFixProvider
         /// <summary>
         /// Reuses the lexically-first existing label's name, or synthesizes one when the loop had no labels (flag case).
         /// </summary>
-        public string GetLabelName(StatementSyntax loop)
+        public string GetLabelName(SemanticModel semanticModel, StatementSyntax loop)
             => ReuseLabels.OrderBy(l => l.SpanStart).FirstOrDefault()?.Identifier.Text
-                ?? CSharpUseLabeledJumpStatementsHelpers.GenerateLabelName(loop);
+                ?? SynthesizeLabelName(semanticModel, loop);
     }
 }

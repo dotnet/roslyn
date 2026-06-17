@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -38,9 +37,11 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     {
         pattern = null;
 
-        if (declaration.Declaration.Variables is not [{ Initializer.Value: LiteralExpressionSyntax initializer } declarator] ||
-            initializer.Kind() != SyntaxKind.FalseLiteralExpression ||
-            declaration.Parent is not BlockSyntax enclosingBlock)
+        if (declaration is not
+            {
+                Declaration.Variables: [{ Initializer.Value: LiteralExpressionSyntax(SyntaxKind.FalseLiteralExpression) } declarator],
+                Parent: BlockSyntax enclosingBlock,
+            })
         {
             return false;
         }
@@ -90,8 +91,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
 
         if (guard.Parent is not BlockSyntax guardBlock ||
             guardBlock.Parent is not StatementSyntax outerLoop ||
-            !outerLoop.IsContinuableConstruct() ||
-            outerLoop.GetEmbeddedStatement() != guardBlock)
+            !outerLoop.IsContinuableConstruct())
         {
             return false;
         }
@@ -176,44 +176,6 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Synthesizes a label name for <paramref name="loop"/> (<c>loop_i</c>/<c>loop_x</c> from a for/foreach variable,
-    /// else <c>outer</c>), uniquified against the labels already declared in the enclosing member.
-    /// </summary>
-    public static string GenerateLabelName(StatementSyntax loop)
-    {
-        var baseName = loop switch
-        {
-            ForStatementSyntax { Declaration.Variables: [var variable, ..] } => "loop_" + variable.Identifier.ValueText,
-            ForEachStatementSyntax forEachStatement => "loop_" + forEachStatement.Identifier.ValueText,
-            _ => "outer",
-        };
-
-        var existing = GetExistingLabelNames(loop);
-        if (!existing.Contains(baseName))
-            return baseName;
-
-        for (var suffix = 2; ; suffix++)
-        {
-            var candidate = baseName + suffix;
-            if (!existing.Contains(candidate))
-                return candidate;
-        }
-    }
-
-    private static HashSet<string> GetExistingLabelNames(StatementSyntax loop)
-    {
-        var result = new HashSet<string>();
-        var member = loop.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-        if (member != null)
-        {
-            foreach (var label in member.DescendantNodes().OfType<LabeledStatementSyntax>())
-                result.Add(label.Identifier.ValueText);
-        }
-
-        return result;
     }
 
     private static bool TryGetAssignmentToTrueSite(

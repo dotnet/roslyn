@@ -47,11 +47,11 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
             return;
 
         var gotoStatement = (GotoStatementSyntax)context.Node;
+        var semanticModel = context.SemanticModel;
+        var cancellationToken = context.CancellationToken;
 
-        if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(
-                gotoStatement, context.SemanticModel, context.CancellationToken, out _, out _, out _) ||
-            CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(
-                gotoStatement, context.SemanticModel, context.CancellationToken, out _, out _, out _))
+        if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _) ||
+            CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(gotoStatement, semanticModel, cancellationToken, out _, out _, out _))
         {
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
