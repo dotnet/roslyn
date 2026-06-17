@@ -75,7 +75,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
 
         foreach (var item in items)
         {
-            Assumed.NotNull(item);
+            ArgHelper.ThrowIfNull(item, nameof(items));
 
             _inner.Add(item);
         }
@@ -100,7 +100,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
 
         foreach (var item in items)
         {
-            Assumed.NotNull(item);
+            ArgHelper.ThrowIfNull(item, nameof(items));
 
             _inner.Add(item);
         }

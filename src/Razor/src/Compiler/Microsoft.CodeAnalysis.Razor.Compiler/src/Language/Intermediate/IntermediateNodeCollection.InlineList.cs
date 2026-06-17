@@ -183,7 +183,7 @@ public sealed partial class IntermediateNodeCollection
                 return Array.IndexOf(_items, item, 0, _count);
             }
 
-            if (_count == 1 && ReferenceEquals(_single, item))
+            if (_count == 1 && EqualityComparer<IntermediateNode>.Default.Equals(_single, item))
             {
                 return 0;
             }
