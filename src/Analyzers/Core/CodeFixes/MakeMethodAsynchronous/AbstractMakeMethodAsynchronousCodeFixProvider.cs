@@ -26,7 +26,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
 
     protected abstract string GetMakeAsyncTaskFunctionResource();
-    protected abstract string GetAsyncEventHandlersRequireAsyncVoidWarningResource();
+    protected abstract string GetVoidReturningDelegateWarningResource();
     protected abstract string GetMakeAsyncVoidFunctionResource();
 
     protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTypes);

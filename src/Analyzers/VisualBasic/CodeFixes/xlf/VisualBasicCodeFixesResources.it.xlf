@@ -12,9 +12,9 @@
         <target state="translated">Aggiungi &lt;Obsolete&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Async_event_handlers_require_Async_Sub">
-        <source>Async event handlers require 'Async Sub'</source>
-        <target state="new">Async event handlers require 'Async Sub'</target>
+      <trans-unit id="Methods_used_as_void_returning_delegates_require_Async_Sub">
+        <source>Methods used as void-returning delegates require 'Async Sub'</source>
+        <target state="new">Methods used as void-returning delegates require 'Async Sub'</target>
         <note>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">

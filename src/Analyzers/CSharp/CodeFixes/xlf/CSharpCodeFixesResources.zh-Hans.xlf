@@ -107,9 +107,9 @@
         <target state="translated">使方法异步</target>
         <note />
       </trans-unit>
-      <trans-unit id="Async_event_handlers_require_async_void">
-        <source>Async event handlers require 'async void'</source>
-        <target state="new">Async event handlers require 'async void'</target>
+      <trans-unit id="Methods_used_as_void_returning_delegates_require_async_void">
+        <source>Methods used as void-returning delegates require 'async void'</source>
+        <target state="new">Methods used as void-returning delegates require 'async void'</target>
         <note>{Locked="async void"} "async" and "void" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_method_async_remain_void">

@@ -147,8 +147,8 @@
   <data name="Make_Async_Function" xml:space="preserve">
     <value>Make Async Function</value>
   </data>
-  <data name="Async_event_handlers_require_Async_Sub" xml:space="preserve">
-    <value>Async event handlers require 'Async Sub'</value>
+  <data name="Methods_used_as_void_returning_delegates_require_Async_Sub" xml:space="preserve">
+    <value>Methods used as void-returning delegates require 'Async Sub'</value>
     <comment>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</comment>
   </data>
   <data name="Make_Async_Sub" xml:space="preserve">
