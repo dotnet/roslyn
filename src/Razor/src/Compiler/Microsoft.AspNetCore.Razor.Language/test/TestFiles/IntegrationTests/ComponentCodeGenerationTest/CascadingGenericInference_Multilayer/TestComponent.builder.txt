@@ -1,0 +1,2 @@
+﻿[0003] OpenComponent<global::Test.Passthrough>()
+[0004] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder3) => { global::__Blazor.Test.TestComponent.TypeInference.CreateChild_1(__builder3, 5, __typeInferenceArg_0___arg0); } ))

@@ -1,0 +1,11 @@
+﻿[0000] OpenComponent<global::Test.MyComponent<
+#nullable restore
+#line (2,22)-(2,28) "x:\dir\subdir\Test\TestComponent.cshtml"
+TParam
+
+#line default
+#line hidden
+#nullable disable
+            >>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent<TParam>. Value ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<TParam>( ParentValue ))
+[0002] AddComponentParameter(nameof(global::Test.MyComponent<TParam>.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<TParam>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<TParam>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, UpdateValue , ParentValue))))
