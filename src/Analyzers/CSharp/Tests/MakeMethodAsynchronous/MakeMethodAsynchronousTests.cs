@@ -161,17 +161,17 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             [CSharpCodeFixesResources.Make_method_async, CSharpCodeFixesResources.Make_method_async_remain_void]);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
-    [InlineData("OnClick(this, EventArgs.Empty);", "")]
-    [InlineData("EventHandler handler = OnClick;", "")]
-    [InlineData("Register(OnClick);", "void Register(EventHandler handler) { }")]
-    public Task AwaitInEventHandlerSignatureMethod_WithoutEventAssignment_OffersDefaultTitles(string reference, string helperMember)
+    [InlineData("DoWork();", "")]
+    [InlineData("Action a = DoWork;", "")]
+    [InlineData("Register(DoWork);", "void Register(Action action) { }")]
+    public Task AwaitInMethodReferencedVariousWays_AlwaysOffersBothFixes(string reference, string helperMember)
         => TestExactActionSetOfferedAsync($$"""
             using System;
             using System.Threading.Tasks;
 
             class C
             {
-                private void OnClick(object sender, EventArgs e)
+                private void DoWork()
                 {
                     [||]await Task.Delay(1);
                 }
@@ -185,6 +185,154 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
             [CSharpCodeFixesResources.Make_method_async, CSharpCodeFixesResources.Make_method_async_remain_void]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task AwaitInMethodAssignedToDelegateVariable_Warns()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private void DoWork()
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Hookup()
+                {
+                    Action a = DoWork;
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|Warning:private async Task DoWorkAsync()
+                {
+                    await Task.Delay(1);
+                }|}
+
+                private void Hookup()
+                {
+                    Action a = DoWorkAsync;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task AwaitInMethodPassedAsDelegateArgument_Warns()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private void DoWork()
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Hookup()
+                {
+                    Register(DoWork);
+                }
+
+                private void Register(Action action) { }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|Warning:private async Task DoWorkAsync()
+                {
+                    await Task.Delay(1);
+                }|}
+
+                private void Hookup()
+                {
+                    Register(DoWorkAsync);
+                }
+
+                private void Register(Action action) { }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task AwaitInMethodConvertedViaExplicitDelegateCreation_Warns()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private void DoWork()
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Hookup()
+                {
+                    var a = new Action(DoWork);
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|Warning:private async Task DoWorkAsync()
+                {
+                    await Task.Delay(1);
+                }|}
+
+                private void Hookup()
+                {
+                    var a = new Action(DoWorkAsync);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task AwaitInMethodInvokedDirectly_NoWarning()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private void DoWork()
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Use()
+                {
+                    DoWork();
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private async Task DoWorkAsync()
+                {
+                    await Task.Delay(1);
+                }
+
+                private void Use()
+                {
+                    DoWorkAsync();
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
     public async Task AwaitInTaskReturningEventHandlerMethod_NoWarning()

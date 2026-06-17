@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -97,12 +96,11 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     }
 
     /// <summary>
-    /// Looks in the project for a reference that registers <paramref name="methodSymbol"/>
-    /// as a void-returning event handler.
+    /// Looks in the declaring projects for a reference that registers <paramref name="methodSymbol"/>
+    /// as a void-returning delegate.
     /// </summary>
-    /// <returns><see langword="true"/> iff such a reference is found within the project.
-    /// There are no false positives.</returns>
-    private static async Task<bool> HasKnownReferencesAsEventHandlerAsync(
+    /// <returns><see langword="true"/> iff such a reference is found. There are no false positives.</returns>
+    private static async Task<bool> HasKnownReferencesAsVoidReturningDelegateAsync(
         Solution solution,
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
@@ -110,7 +108,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var referencedSymbols = await SymbolFinder.FindReferencesAsync(
             methodSymbol,
             solution,
-            documents: GetEventHandlerSearchScope(solution, methodSymbol),
+            documents: GetReferenceSearchScope(solution, methodSymbol),
             cancellationToken).ConfigureAwait(false);
 
         foreach (var referencedSymbol in referencedSymbols)
@@ -121,7 +119,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxNode = syntaxRoot.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (IsVoidReturningEventHandlerReference(semanticModel, syntaxNode, cancellationToken))
+                if (IsVoidReturningDelegateReference(semanticModel, syntaxNode, cancellationToken))
                     return true;
             }
         }
@@ -132,7 +130,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     /// <returns>
     /// All documents in all projects where the symbol is declared.
     /// </returns>
-    private static IImmutableSet<Document> GetEventHandlerSearchScope(Solution solution, IMethodSymbol methodSymbol)
+    private static IImmutableSet<Document> GetReferenceSearchScope(Solution solution, IMethodSymbol methodSymbol)
     {
         var builder = ImmutableHashSet.CreateBuilder<Document>();
 
@@ -159,7 +157,12 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         return builder.ToImmutable();
     }
 
-    private static bool IsVoidReturningEventHandlerReference(SemanticModel semanticModel, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+    /// <returns>
+    /// Whether <paramref name="syntaxNode"/> is a reference to a method that is being
+    /// converted to a void-returning delegate.
+    /// </returns>
+    private static bool IsVoidReturningDelegateReference(
+        SemanticModel semanticModel, SyntaxNode syntaxNode, CancellationToken cancellationToken)
     {
         IOperation? operation = null;
         foreach (var currentNode in syntaxNode.GetAncestorsOrThis<SyntaxNode>())
@@ -171,20 +174,15 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         for (; operation != null; operation = operation.Parent)
         {
-            if (operation is IEventAssignmentOperation eventAssignment &&
-                IsVoidReturningHandler(eventAssignment))
+            if (operation is IDelegateCreationOperation delegateCreation)
             {
-                return true;
+                return delegateCreation.Target is IMethodReferenceOperation &&
+                       delegateCreation.Type is INamedTypeSymbol { DelegateInvokeMethod.ReturnsVoid: true };
             }
         }
 
         return false;
     }
-
-    private static bool IsVoidReturningHandler(IEventAssignmentOperation eventAssignment)
-        => eventAssignment.EventReference is IEventReferenceOperation eventReference &&
-           eventReference.Event.Type is INamedTypeSymbol delegateType &&
-           delegateType.DelegateInvokeMethod?.ReturnsVoid == true;
 
     private static IMethodSymbol? GetMethodSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
     {
@@ -220,7 +218,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         var knownTypes = new KnownTaskTypes(semanticModel.Compilation);
 
-        var addWarningAnnotation = await HasKnownReferencesAsEventHandlerAsync(
+        var addWarningAnnotation = !keepVoid && await HasKnownReferencesAsVoidReturningDelegateAsync(
             document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
 
         return NeedsRename()
@@ -298,7 +296,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     {
         var newNode = FixMethodSignature(addAsyncModifier: true, keepVoid, methodSymbol, node, knownTypes);
         if (addWarningAnnotation)
-            newNode = newNode.WithAdditionalAnnotations(WarningAnnotation.Create(GetAsyncEventHandlersRequireAsyncVoidWarningResource()));
+            newNode = newNode.WithAdditionalAnnotations(WarningAnnotation.Create(GetVoidReturningDelegateWarningResource()));
 
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
