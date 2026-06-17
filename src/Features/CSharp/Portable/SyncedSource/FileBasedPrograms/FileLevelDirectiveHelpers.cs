@@ -39,7 +39,7 @@ internal static class FileLevelDirectiveHelpers
     public static ImmutableArray<CSharpDirective> FindDirectives(SourceFile sourceFile, bool reportAllErrors, ErrorReporter errorReporter, bool checkDuplicates = true)
     {
         var builder = ImmutableArray.CreateBuilder<CSharpDirective>();
-        var tokenizer = CreateTokenizer(sourceFile.Text);
+        using var tokenizer = CreateTokenizer(sourceFile.Text);
 
         var result = tokenizer.ParseLeadingTrivia();
         var triviaList = result.Token.LeadingTrivia;
