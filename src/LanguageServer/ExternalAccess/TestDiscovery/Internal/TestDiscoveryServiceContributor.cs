@@ -47,10 +47,9 @@ internal sealed class TestDiscoveryServiceContributorFactory() : ILspServiceFact
     /// nothing is registered or proffered.
     /// </summary>
     private sealed class TestDiscoveryServiceContributor(LspWorkspaceRegistrationService workspaceRegistrationService)
-        : ILspService, IServiceBrokerInitializer, IDisposable
+        : ILspService
     {
         private readonly LspWorkspaceRegistrationService _workspaceRegistrationService = workspaceRegistrationService;
-        private ITestDiscoveryLanguageService? _testDiscoveryLanguageService;
 
         public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister
         {
@@ -64,7 +63,7 @@ internal sealed class TestDiscoveryServiceContributorFactory() : ILspServiceFact
 
                 return new Dictionary<ServiceMoniker, ServiceRegistration>
                 {
-                    { TestDiscoveryServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
+                    { service.Descriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
                 }.ToImmutableDictionary();
             }
         }
@@ -81,36 +80,25 @@ internal sealed class TestDiscoveryServiceContributorFactory() : ILspServiceFact
             // the descriptor it supplies. It implements the rich discovery RPC interface (defined in C# Dev
             // Kit); Roslyn does not need to reference that interface or its serialization plumbing.
             container.Proffer(
-                TestDiscoveryServiceDescriptor.Descriptor,
-                (moniker, options, serviceBroker, cancellationToken) => new ValueTask<object?>(GetTestDiscoveryLanguageService()));
-        }
-
-        public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
-        {
-            _ = InitializeTestDiscoveryLanguageServiceAsync(serviceBroker, cancellationToken);
-        }
-
-        private async Task InitializeTestDiscoveryLanguageServiceAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
-        {
-            var testDiscoveryLanguageService = GetTestDiscoveryLanguageService();
-            if (testDiscoveryLanguageService != null)
-            {
-                await testDiscoveryLanguageService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
-                _testDiscoveryLanguageService = testDiscoveryLanguageService;
-            }
+                service.Descriptor,
+                async (moniker, options, serviceBroker, cancellationToken) =>
+                {
+                    var testDiscoveryLanguageService = GetTestDiscoveryLanguageService();
+                    if (testDiscoveryLanguageService is not null)
+                    {
+                        await testDiscoveryLanguageService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
+                    }
+                    return testDiscoveryLanguageService;
+                });
         }
 
         private ITestDiscoveryLanguageService? GetTestDiscoveryLanguageService()
         {
-            Workspace workspace = _workspaceRegistrationService.GetAllRegistrations().First(w => w.Kind == WorkspaceKind.Host);
+            Workspace? workspace = _workspaceRegistrationService.GetAllRegistrations().FirstOrDefault(w => w.Kind == WorkspaceKind.Host);
             Contract.ThrowIfNull(workspace, "We should always have a host workspace.");
 
             return workspace.Services.GetService<ITestDiscoveryLanguageService>();
         }
 
-        public void Dispose()
-        {
-            (_testDiscoveryLanguageService as IDisposable)?.Dispose();
-        }
     }
 }
