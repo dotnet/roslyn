@@ -97,11 +97,11 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     }
 
     /// <summary>
-    /// Looks narrowly for a reference that registers <paramref name="methodSymbol"/> as a void-returning event handler.
-    /// For performance, the search is restricted to a bounded set of documents (see <see cref="GetEventHandlerSearchScope"/>).
+    /// Looks in the project for a reference that registers <paramref name="methodSymbol"/>
+    /// as a void-returning event handler.
     /// </summary>
-    /// <returns><see langword="true"/> iff such a reference is found within the searched scope. There are no false
-    /// positives.</returns>
+    /// <returns><see langword="true"/> iff such a reference is found within the project.
+    /// There are no false positives.</returns>
     private static async Task<bool> HasKnownReferencesAsEventHandlerAsync(
         Solution solution,
         IMethodSymbol methodSymbol,
@@ -129,22 +129,13 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         return false;
     }
 
-    /// <summary>
-    /// The maximum number of generic documents handed to find-references when probing for an event-handler registration.
-    /// This does not include declaring-symbol documents.
-    /// </summary>
-    private const int MaxGenericDocumentsToSearch = 100;
-
-    /// <summary>
-    /// Produces the bounded set of documents to search for an event-handler registration of <paramref name="methodSymbol"/>.
-    /// We search up to <see cref="MaxGenericDocumentsToSearch"/> total documents in the declaring project(s),
-    /// plus all the declaring-symbol documents.
-    /// </summary>
+    /// <returns>
+    /// All documents in all projects where the symbol is declared.
+    /// </returns>
     private static IImmutableSet<Document> GetEventHandlerSearchScope(Solution solution, IMethodSymbol methodSymbol)
     {
         var builder = ImmutableHashSet.CreateBuilder<Document>();
 
-        // Check declaring-symbol docs with priority
         var declaringSymbol = (ISymbol?)methodSymbol.ContainingType ?? methodSymbol;
         var projectIds = new HashSet<ProjectId>();
         foreach (var location in declaringSymbol.Locations)
@@ -161,9 +152,6 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         {
             foreach (var document in solution.GetRequiredProject(projectId).Documents)
             {
-                if (builder.Count >= MaxGenericDocumentsToSearch)
-                    return builder.ToImmutable();
-
                 builder.Add(document);
             }
         }
@@ -232,9 +220,6 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         var knownTypes = new KnownTaskTypes(semanticModel.Compilation);
 
-        // Only add a warning annotation for the Task-returning fix when the method is known to be an event handler.
-        // We run this check lazily (here, not in RegisterCodeFixesAsync) so the expensive FAR only runs when the
-        // user previews or applies the fix rather than every time the light bulb appears.
         var addWarningAnnotation = await HasKnownReferencesAsEventHandlerAsync(
             document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
 
