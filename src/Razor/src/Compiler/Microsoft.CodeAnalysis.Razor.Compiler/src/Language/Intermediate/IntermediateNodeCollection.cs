@@ -40,6 +40,11 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
             _inner[index] = value;
         }
     }
@@ -79,6 +84,11 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
 
         foreach (var item in items)
         {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
             _inner.Add(item);
         }
     }
@@ -105,6 +115,11 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
 
         foreach (var item in items)
         {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
             _inner.Add(item);
         }
     }
