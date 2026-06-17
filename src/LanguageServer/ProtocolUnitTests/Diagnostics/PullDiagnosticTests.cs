@@ -1339,8 +1339,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     {
         var options = GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, compilerDiagnosticsScope: null, useVSDiagnostics);
         var composition = Composition
-            .AddExcludedPartTypes(typeof(EditAndContinueService))
-            .AddParts(typeof(MockEditAndContinueService));
+            .AddExcludedPartTypes(typeof(EditAndContinueService.WorkspaceServiceFactory))
+            .AddParts(typeof(MockEditAndContinueServiceFactory));
 
         await using var testLspServer = await CreateTestLspServerAsync(["class C;", "class D;"], LanguageNames.CSharp, mutatingLspWorkspace, options, composition);
 

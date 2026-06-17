@@ -46,8 +46,8 @@ public sealed class RemoteEditAndContinueServiceTests
         if (testHost == TestHost.InProcess)
         {
             localComposition = localComposition
-                .AddExcludedPartTypes(typeof(EditAndContinueService))
-                .AddParts(typeof(MockEditAndContinueService));
+                .AddExcludedPartTypes(typeof(EditAndContinueService.WorkspaceServiceFactory))
+                .AddParts(typeof(MockEditAndContinueServiceFactory));
         }
 
         using var localWorkspace = new TestWorkspace(composition: localComposition);
@@ -65,8 +65,8 @@ public sealed class RemoteEditAndContinueServiceTests
         else
         {
             Assert.NotNull(clientProvider);
-            clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueService)];
-            clientProvider!.ExcludedRemoteParts = [typeof(EditAndContinueService)];
+            clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueServiceFactory)];
+            clientProvider!.ExcludedRemoteParts = [typeof(EditAndContinueService.WorkspaceServiceFactory)];
 
             var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
             var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();

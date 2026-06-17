@@ -40,7 +40,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
                 sessionTracker ?? VoidSessionTracker.Instance);
     }
 
-    private sealed class WorkspaceService(
+    internal sealed class WorkspaceService(
         IEditAndContinueService service,
         IEditAndContinueSessionTracker sessionTracker) : IEditAndContinueWorkspaceService
     {
@@ -48,7 +48,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         public IEditAndContinueSessionTracker SessionTracker { get; } = sessionTracker;
     }
 
-    private sealed class VoidSessionTracker : IEditAndContinueSessionTracker
+    internal sealed class VoidSessionTracker : IEditAndContinueSessionTracker
     {
         public static readonly VoidSessionTracker Instance = new();
 

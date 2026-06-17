@@ -246,12 +246,12 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     {
         var localComposition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
             .AddExcludedPartTypes(
-                typeof(EditAndContinueService))
+                typeof(EditAndContinueService.WorkspaceServiceFactory))
             .AddParts(
                 typeof(NoCompilationLanguageService),
                 typeof(MockHostWorkspaceProvider),
                 typeof(MockServiceBrokerProvider),
-                typeof(MockEditAndContinueService),
+                typeof(MockEditAndContinueServiceFactory),
                 typeof(MockManagedHotReloadService));
 
         using var localWorkspace = new TestWorkspace(composition: localComposition);
