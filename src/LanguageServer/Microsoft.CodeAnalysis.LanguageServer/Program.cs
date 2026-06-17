@@ -5,6 +5,7 @@
 using System.CommandLine;
 using System.Diagnostics;
 using System.IO.Pipes;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
@@ -70,7 +71,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var logger = loggerFactory.CreateLogger<Program>();
 
-    logger.LogInformation("Server started with process ID {processId}", Environment.ProcessId);
+    logger.LogInformation("Server information:");
+    logger.LogInformation("  Assembly file version: {assemblyFileVersion}", typeof(Program).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "<unknown>");
+    logger.LogInformation("  Executable path: {processPath}", Environment.ProcessPath ?? "<unknown>");
+    logger.LogInformation("  Process ID: {processId}", Environment.ProcessId);
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
