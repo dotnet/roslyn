@@ -293,7 +293,30 @@ public sealed class UseLabeledJumpStatementsTests
                     }
                 }
                 """,
+            // The incremental fix relabels the loop with the first jump it encounters in source order ('goto brk'),
+            // whereas the fix-all pass processes them in the opposite order and lands on 'cont'.  Both rewrites are
+            // equivalent; they only differ in the (arbitrary) reused label name.
             FixedCode = """
+                class C
+                {
+                    void M(int n)
+                    {
+                    brk: for (int i = 0; i < n; i++)
+                        {
+                            for (int j = 0; j < n; j++)
+                            {
+                                if (i == j)
+                                    break brk;
+                                if (i < j)
+                                    continue brk;
+                            }
+                        }
+
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+            BatchFixedCode = """
                 class C
                 {
                     void M(int n)
@@ -310,6 +333,240 @@ public sealed class UseLabeledJumpStatementsTests
                         }
 
                         System.Console.WriteLine();
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoBreak_NestedLoopsDifferentTargets()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool x, bool y)
+                    {
+                        for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (x)
+                                        {|IDE0410:goto|} outer;
+                                    if (y)
+                                        {|IDE0410:goto|} middle;
+                                }
+                            }
+
+                            middle: ;
+                        }
+
+                        outer: ;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool x, bool y)
+                    {
+                    outer: for (int i = 0; i < 2; i++)
+                        {
+                        middle: for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (x)
+                                        break outer;
+                                    if (y)
+                                        break middle;
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoBreak_NestedLoopsSameTarget()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool x, bool y)
+                    {
+                        for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (x)
+                                        {|IDE0410:goto|} done;
+                                }
+
+                                if (y)
+                                    {|IDE0410:goto|} done;
+                            }
+                        }
+
+                        done: ;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool x, bool y)
+                    {
+                    done: for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (x)
+                                        break done;
+                                }
+
+                                if (y)
+                                    break done;
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoContinue_NestedLoopsDifferentTargets()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool x, bool y)
+                    {
+                        for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (x)
+                                        {|IDE0410:goto|} continueOuter;
+                                    if (y)
+                                        {|IDE0410:goto|} continueMiddle;
+                                }
+
+                                System.Console.WriteLine(j);
+                                continueMiddle: ;
+                            }
+
+                            System.Console.WriteLine(i);
+                            continueOuter: ;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool x, bool y)
+                    {
+                    continueOuter: for (int i = 0; i < 2; i++)
+                        {
+                        continueMiddle: for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (x)
+                                        continue continueOuter;
+                                    if (y)
+                                        continue continueMiddle;
+                                }
+
+                                System.Console.WriteLine(j);
+                            }
+
+                            System.Console.WriteLine(i);
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlag_NestedDifferentTargets()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool x, bool y)
+                    {
+                        bool a = false;
+                        for (int i = 0; i < 2; i++)
+                        {
+                            bool b = false;
+                            for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (y)
+                                    {
+                                        b = true;
+                                        {|IDE0410:break|};
+                                    }
+                                }
+
+                                if (b)
+                                    break;
+
+                                if (x)
+                                {
+                                    a = true;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if (a)
+                                break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool x, bool y)
+                    {
+                    loop_i: for (int i = 0; i < 2; i++)
+                        {
+                        loop_j: for (int j = 0; j < 2; j++)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    if (y)
+                                    {
+                                        break loop_j;
+                                    }
+                                }
+
+                                if (x)
+                                {
+                                    break loop_i;
+                                }
+                            }
+                        }
                     }
                 }
                 """,
@@ -380,7 +637,7 @@ public sealed class UseLabeledJumpStatementsTests
                                 if (i * j > 20)
                                 {
                                     found = true;
-                                    {|IDE0410:break;|}
+                                    {|IDE0410:break|};
                                 }
                             }
 
@@ -428,7 +685,7 @@ public sealed class UseLabeledJumpStatementsTests
                                 if (a && b)
                                 {
                                     skip = true;
-                                    {|IDE0410:break;|}
+                                    {|IDE0410:break|};
                                 }
                             }
 
@@ -480,13 +737,13 @@ public sealed class UseLabeledJumpStatementsTests
                                 if (i == j)
                                 {
                                     found = true;
-                                    {|IDE0410:break;|}
+                                    {|IDE0410:break|};
                                 }
 
                                 if (i > j)
                                 {
                                     found = true;
-                                    {|IDE0410:break;|}
+                                    {|IDE0410:break|};
                                 }
                             }
 
@@ -730,6 +987,376 @@ public sealed class UseLabeledJumpStatementsTests
                         System.Console.WriteLine();
                         done:
                         System.Console.WriteLine();
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_GotoCase()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(int x)
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+                            switch (x)
+                            {
+                                case 0:
+                                    goto case 1;
+                                case 1:
+                                    System.Console.WriteLine();
+                                    break;
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_LabelHasNoPrecedingStatement()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        first: ;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            if (b)
+                                goto first;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_ContinueLabelNotLastStatement()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (j == 5)
+                                    goto next;
+                            }
+
+                            next: ;
+                            System.Console.WriteLine();
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_ContinueLabelInNonLoopBlock()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+                            if (b)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                {
+                                    if (j == 5)
+                                        goto next;
+                                }
+
+                                next: ;
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_SingleLevelContinue()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+                            if (i == 5)
+                                goto next;
+                            System.Console.WriteLine(i);
+                            next: ;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagInitializedToTrue()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool flag = true;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+
+                            if (flag)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagAssignmentNotFollowedByBreak()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool flag = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    flag = true;
+                                    break;
+                                }
+
+                                if (i == j)
+                                    flag = true;
+                            }
+
+                            if (flag)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagGuardIsReturn()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool flag = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+
+                            if (flag)
+                                return;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagGuardNotPrecededByLoop()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool flag = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            if (c)
+                            {
+                                flag = true;
+                                break;
+                            }
+
+                            if (flag)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagInnerBreakTargetsSwitch()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(int x)
+                    {
+                        bool flag = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                switch (x)
+                                {
+                                    default:
+                                    {
+                                        flag = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (flag)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagIsNullableBool()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool? flag = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+
+                            if (flag == true)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagIsField()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    bool flag;
+
+                    void M(bool c)
+                    {
+                        flag = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+
+                            if (flag)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagWithTwoGuards()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool flag = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+
+                            if (flag)
+                                break;
+                            if (flag)
+                                break;
+                        }
                     }
                 }
                 """,

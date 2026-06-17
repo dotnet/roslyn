@@ -58,7 +58,7 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
                 gotoStatement.GotoKeyword.GetLocation(),
                 option.Notification,
                 context.Options,
-                additionalLocations: null,
+                additionalLocations: [gotoStatement.GetLocation()],
                 properties: null));
         }
     }
@@ -76,16 +76,14 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
         // break or a continue of the outer loop is decided by the guard ('if (flag) break/continue;'), not by this
         // inner jump, so this single registration covers both.
         if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
-                breakStatement, context.SemanticModel, context.CancellationToken, out var pattern))
+                breakStatement, context.SemanticModel, context.CancellationToken, out _))
         {
-            // Point at the flag declaration as an additional location so the fix can reconstruct the whole pattern
-            // from this single inner 'break'.
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                breakStatement.GetLocation(),
+                breakStatement.BreakKeyword.GetLocation(),
                 option.Notification,
                 context.Options,
-                additionalLocations: [pattern.LocalDeclarationStatement.GetLocation()],
+                additionalLocations: [breakStatement.GetLocation()],
                 properties: null));
         }
     }

@@ -97,7 +97,15 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         }
 
         var guardIndex = guardBlock.Statements.IndexOf(guard);
-        if (guardIndex <= 0 || guardBlock.Statements[guardIndex - 1] is not StatementSyntax innerLoop || !innerLoop.IsContinuableConstruct())
+        if (guardIndex <= 0)
+            return false;
+
+        // A prior fix may have already labeled this inner loop ('loop_j: for (...)'); unwrap to the loop itself.
+        var innerLoop = guardBlock.Statements[guardIndex - 1];
+        if (innerLoop is LabeledStatementSyntax labeledInner)
+            innerLoop = labeledInner.Statement;
+
+        if (!innerLoop.IsContinuableConstruct())
             return false;
 
         // Every 'flag = true; break;' site must break that inner loop and not cross a 'finally' on the way to the

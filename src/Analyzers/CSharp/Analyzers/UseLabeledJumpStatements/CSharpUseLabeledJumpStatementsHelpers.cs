@@ -42,6 +42,12 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
 
         // GetPreviousStatement handles the block, switch-section, and top-level (global statement) cases.
         var precedingConstruct = declaration.GetPreviousStatement();
+
+        // A prior fix may have already labeled this loop ('outer: while (...)').  Unwrap to the loop/switch itself so
+        // the construct is still recognized (the existing label is reused later, in the fix).
+        if (precedingConstruct is LabeledStatementSyntax labeledConstruct)
+            precedingConstruct = labeledConstruct.Statement;
+
         if (!precedingConstruct.IsBreakableConstruct())
             return false;
 
@@ -79,9 +85,12 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         // Requiring an empty label as the very last statement of a loop body keeps the rewrite equivalent: jumping
         // there would otherwise run trailing work that a 'continue' would skip.
         if (TryResolveLabel(gotoStatement, semanticModel, cancellationToken, out var label, out var declaration) &&
-            declaration is { Parent: BlockSyntax body, Statement: EmptyStatementSyntax } &&
-            body.Statements.LastOrDefault() == declaration &&
-            body.Parent is StatementSyntax candidateLoop &&
+            declaration is
+            {
+                Parent: BlockSyntax { Parent: StatementSyntax candidateLoop, Statements: [.., var lastStatement] } body,
+                Statement: EmptyStatementSyntax
+            } &&
+            lastStatement == declaration &&
             candidateLoop.IsContinuableConstruct() &&
             TryCollectMultiLevelJumps(candidateLoop, label, semanticModel, cancellationToken, includeSwitch: false, out gotos))
         {
