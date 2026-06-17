@@ -540,9 +540,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Expression can be the operand of an increment or decrement operation.
-            /// Same as CompoundAssignment, the distinction is really just for error reporting.
+            /// Same as CompoundAssignment, the distinction is really just for error reporting
+            /// and event handling.
             /// </summary>
             IncrementDecrement = CompoundAssignment + 1,
+
+            /// <summary>
+            /// Expression can be the operand of a null-coalescing assignment operation (??=).
+            /// Same as CompoundAssignment, the distinction is really just for error reporting
+            /// and event handling.
+            /// </summary>
+            NullCoalescingAssignment = CompoundAssignment + 2,
 
             /// <summary>
             /// Expression is a r/o reference.
@@ -3502,6 +3510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case BindValueKind.CompoundAssignment:
+                case BindValueKind.NullCoalescingAssignment:
                 case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgReadonlyLocal;
 
@@ -3537,6 +3546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.Assignable:
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.IncrementDecrement:
+                case BindValueKind.NullCoalescingAssignment:
                     return ErrorCode.ERR_QueryRangeVariableReadOnly;
 
                 case BindValueKind.AddressOf:
@@ -3574,6 +3584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case BindValueKind.CompoundAssignment:
+                case BindValueKind.NullCoalescingAssignment:
                 case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgLvalueExpected;
 

@@ -2917,5 +2917,128 @@ struct S
 1
 1", options: TestOptions.DebugExe);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84014")]
+        public void FieldLikeEvent_01()
+        {
+            var src1 = @"
+public partial class C
+{
+    public event System.Action OnEventAction;
+
+    static void Test()
+    {
+        var x = new C();
+
+        x.OnEventAction = null;
+        x.OnEventAction ??= null;
+
+        if (x.OnEventAction == null)
+        {
+        }
+    }
+}
+";
+
+            var comp1 = CreateCompilation(src1);
+            comp1.VerifyEmitDiagnostics();
+
+            var src2 = @"
+class Program
+{
+    static void Test(C x)
+    {
+        x.OnEventAction = null;
+    }
+}
+";
+            var src3 = @"
+class Program
+{
+    static void Test(C x)
+    {
+        x.OnEventAction ??= null;
+    }
+}
+";
+            var src4 = @"
+class Program
+{
+    static void Test(C x)
+    {
+        if (x.OnEventAction == null)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src1, src2]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0070: The event 'C.OnEventAction' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         x.OnEventAction = null;
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "OnEventAction").WithArguments("C.OnEventAction", "C").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation([src1, src3]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0070: The event 'C.OnEventAction' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         x.OnEventAction ??= null;
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "OnEventAction").WithArguments("C.OnEventAction", "C").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation([src1, src4]);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0070: The event 'C.OnEventAction' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         if (x.OnEventAction == null)
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "OnEventAction").WithArguments("C.OnEventAction", "C").WithLocation(6, 15)
+                );
+
+            MetadataReference comp1Ref = comp1.ToMetadataReference();
+
+            comp = CreateCompilation(src2, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0070: The event 'C.OnEventAction' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         x.OnEventAction = null;
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "OnEventAction").WithArguments("C.OnEventAction", "C").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation(src3, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0070: The event 'C.OnEventAction' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         x.OnEventAction ??= null;
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "OnEventAction").WithArguments("C.OnEventAction", "C").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation(src4, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0070: The event 'C.OnEventAction' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                //         if (x.OnEventAction == null)
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "OnEventAction").WithArguments("C.OnEventAction", "C").WithLocation(6, 15)
+                );
+
+            comp1Ref = comp1.EmitToImageReference();
+
+            comp = CreateCompilation(src2, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction = null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation(src3, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction ??= null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation(src4, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         if (x.OnEventAction == null)
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 15)
+                );
+        }
     }
 }
