@@ -12,6 +12,11 @@
         <target state="translated">Ajouter &lt;Obsolete&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="Async_event_handlers_require_Async_Sub">
+        <source>Async event handlers require 'Async Sub'</source>
+        <target state="new">Async event handlers require 'Async Sub'</target>
+        <note>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">Convertir {0} en itérateur</target>
@@ -36,11 +41,6 @@
         <source>Make Async Function</source>
         <target state="translated">Rendre la fonction asynchrone</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Function_for_event_handler">
-        <source>Async event handlers require 'Async Sub'</source>
-        <target state="new">Async event handlers require 'Async Sub'</target>
-        <note>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>

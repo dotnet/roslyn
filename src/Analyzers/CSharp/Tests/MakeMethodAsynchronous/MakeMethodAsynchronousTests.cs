@@ -139,6 +139,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
     [InlineData("Click -= OnClick;")]
     [InlineData("Click += this.OnClick;")]
     public Task AwaitInEventHandlerMethod_OffersTaskFixFirst(string eventReference)
+        => TestExactActionSetOfferedAsync($$"""
             using System;
             using System.Threading.Tasks;
 
@@ -184,6 +185,53 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
             [CSharpCodeFixesResources.Make_method_async, CSharpCodeFixesResources.Make_method_async_remain_void]);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public async Task AwaitInTaskReturningEventHandlerMethod_NoWarning()
+    {
+        // Event delegates that return Task are valid for async Task handlers,
+        // so we should NOT show the warning annotation.
+        // Note: The reference is not updated in this case, which is a known limitation.
+        await TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private delegate Task AsyncEventHandler(object sender, EventArgs e);
+                private event AsyncEventHandler Click;
+
+                private void OnClick(object sender, EventArgs e)
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Hookup()
+                {
+                    Click += OnClick;
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private delegate Task AsyncEventHandler(object sender, EventArgs e);
+                private event AsyncEventHandler Click;
+
+                private async Task OnClickAsync(object sender, EventArgs e)
+                {
+                    await Task.Delay(1);
+                }
+
+                private void Hookup()
+                {
+                    Click += OnClick;
+                }
+            }
+            """);
+    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26312")]
     public async Task AwaitInTaskMainMethodWithModifiers()

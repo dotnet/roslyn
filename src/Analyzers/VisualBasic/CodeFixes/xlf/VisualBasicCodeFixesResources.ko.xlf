@@ -12,6 +12,11 @@
         <target state="translated">&lt;Obsolete&gt; 추가</target>
         <note />
       </trans-unit>
+      <trans-unit id="Async_event_handlers_require_Async_Sub">
+        <source>Async event handlers require 'Async Sub'</source>
+        <target state="new">Async event handlers require 'Async Sub'</target>
+        <note>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">반복기로 {0} 변환</target>
@@ -36,11 +41,6 @@
         <source>Make Async Function</source>
         <target state="translated">비동기 함수로 설정</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Function_for_event_handler">
-        <source>Async event handlers require 'Async Sub'</source>
-        <target state="new">Async event handlers require 'Async Sub'</target>
-        <note>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>

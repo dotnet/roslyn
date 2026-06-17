@@ -12,6 +12,11 @@
         <target state="translated">新增 &lt;已淘汰&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="Async_event_handlers_require_Async_Sub">
+        <source>Async event handlers require 'Async Sub'</source>
+        <target state="new">Async event handlers require 'Async Sub'</target>
+        <note>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">將 {0} 轉換為 Iterator</target>
@@ -36,11 +41,6 @@
         <source>Make Async Function</source>
         <target state="translated">讓非同步函式</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Function_for_event_handler">
-        <source>Async event handlers require 'Async Sub'</source>
-        <target state="new">Async event handlers require 'Async Sub'</target>
-        <note>{Locked="Async Sub"} "Async" and "Sub" are VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
