@@ -64,6 +64,50 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_RefDirective(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var tempDir = TempRoot.CreateDirectory();
+        tempDir.CreateFile("Util.cs").WriteAllText("""
+            #:property TargetFramework=net10.0
+            #:property OutputType=Library
+            public static class Util
+            {
+                public static string M() => "Util";
+            }
+            """);
+        var sourceText = """
+            #:property TargetFramework=net10.0
+            #:property ExperimentalFileBasedProgramEnableRefDirective=true
+            #:ref Util.cs
+            Console.WriteLine($"Hello {Util.M()}!");
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+
+        // Until we can discover the `#:ref`erenced project, build it so it works as metadata reference.
+        var dotnetCliHelper = testLspServer.GetRequiredLspService<DotnetCliHelper>();
+        using (var process = dotnetCliHelper.Run(["build", sourceFile.Path], workingDirectory: tempDir.Path, shouldLocalizeOutput: true))
+        {
+            process.OutputDataReceived += (sender, args) => TestOutputHelper.WriteLine($"> {args.Data}");
+            process.ErrorDataReceived += (sender, args) => TestOutputHelper.WriteLine($"! {args.Data}");
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            await process.WaitForExitAsync();
+            Assert.Equal(0, process.ExitCode);
+        }
+
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.NotEmpty(document.Project.MetadataReferences);
+        var model = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+        model.GetDiagnostics().Verify();
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestDirectiveWithoutTopLevelStatements_IsMiscellaneousFile(bool mutatingLspWorkspace)
     {
         // A file with '#:' but no top-level statements is classified as a miscellaneous file, not a file-based app.
