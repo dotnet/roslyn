@@ -83,7 +83,6 @@ internal static class BrokeredServiceDescriptors
     // DevKit service implemented in TypeScript:
     public static readonly ServiceRpcDescriptor HotReloadLoggerServiceLegacy = CreateDebuggerClientServiceDescriptor("HotReloadLogger", new Version(0, 1));
 
-
     public static readonly ServiceRpcDescriptor DebuggerSymbolLocatorService =
         CreateDebuggerServiceDescriptor("SymbolLocatorService", new Version(0, 1), ProtocolOptionsV3);
     public static readonly ServiceRpcDescriptor DebuggerSourceLinkService =
@@ -114,10 +113,10 @@ internal static class BrokeredServiceDescriptors
         => CreateDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version), streamOptions);
 
     /// <summary>
-    /// Descriptor for services proffered by the debugger server (implemented in TypeScript).
+    /// Descriptor for services proffered by the debugger (implemented in TypeScript).
     /// </summary>
     public static ServiceJsonRpcDescriptor CreateDebuggerClientServiceDescriptor(string serviceName, Version? version = null)
-        => new NameNormalizingDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version), clientInterface: null, options: null)
+        => new NameNormalizingDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version), clientInterface: null, options: ProtocolOptionsV3)
            .WithExceptionStrategy(ExceptionProcessing.ISerializable);
 
     private static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker moniker, MultiplexingStream.Options? streamOptions = null)
