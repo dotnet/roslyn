@@ -3554,7 +3554,7 @@ public sealed class SolutionTests : TestBase
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83118")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83118")]
     public void TestGetRecoveredTextAsync()
     {
         var pid = ProjectId.CreateNewId();
@@ -3700,7 +3700,7 @@ public sealed class SolutionTests : TestBase
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13433")]
     public void TestGetTextDoesNotKeepTextAlive()
     {
         var pid = ProjectId.CreateNewId();
@@ -3731,7 +3731,7 @@ public sealed class SolutionTests : TestBase
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13433")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13433")]
     public void TestGetTextAsyncDoesNotKeepTextAlive()
     {
         var pid = ProjectId.CreateNewId();
