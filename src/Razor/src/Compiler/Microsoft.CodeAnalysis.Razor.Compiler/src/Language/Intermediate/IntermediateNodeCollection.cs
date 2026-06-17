@@ -40,10 +40,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            ArgHelper.ThrowIfNull(value, nameof(value));
 
             _inner[index] = value;
         }
@@ -65,10 +62,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
     {
         ThrowIfReadOnly();
 
-        if (item == null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgHelper.ThrowIfNull(item, nameof(item));
 
         _inner.Add(item);
     }
@@ -77,17 +71,11 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
     {
         ThrowIfReadOnly();
 
-        if (items == null)
-        {
-            throw new ArgumentNullException(nameof(items));
-        }
+        ArgHelper.ThrowIfNull(items, nameof(items));
 
         foreach (var item in items)
         {
-            if (item == null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
+            Assumed.NotNull(item);
 
             _inner.Add(item);
         }
@@ -97,10 +85,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
     {
         ThrowIfReadOnly();
 
-        if (items == null)
-        {
-            throw new ArgumentNullException(nameof(items));
-        }
+        ArgHelper.ThrowIfNull(items, nameof(items));
 
         var count = items.Count;
         for (var i = 0; i < count; i++)
@@ -115,10 +100,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
 
         foreach (var item in items)
         {
-            if (item == null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
+            Assumed.NotNull(item);
 
             _inner.Add(item);
         }
@@ -137,10 +119,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
 
     public void CopyTo(IntermediateNode[] array, int arrayIndex)
     {
-        if (array == null)
-        {
-            throw new ArgumentNullException(nameof(array));
-        }
+        ArgHelper.ThrowIfNull(array, nameof(array));
 
         if (arrayIndex < 0 || arrayIndex > array.Length)
         {
@@ -171,10 +150,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
 
     public int IndexOf(IntermediateNode item)
     {
-        if (item == null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgHelper.ThrowIfNull(item, nameof(item));
 
         return _inner.IndexOf(item);
     }
@@ -188,10 +164,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        if (item == null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgHelper.ThrowIfNull(item, nameof(item));
 
         _inner.Insert(index, item);
     }
@@ -200,10 +173,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
     {
         ThrowIfReadOnly();
 
-        if (item == null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgHelper.ThrowIfNull(item, nameof(item));
 
         var index = IndexOf(item);
         if (index >= 0)
@@ -234,10 +204,7 @@ public sealed partial class IntermediateNodeCollection : IList<IntermediateNode>
 
         public Enumerator(IntermediateNodeCollection collection)
         {
-            if (collection == null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
+            ArgHelper.ThrowIfNull(collection, nameof(collection));
 
             _items = collection;
             _index = -1;
