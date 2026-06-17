@@ -393,7 +393,6 @@ internal static partial class SyntaxNodeExtensions
     }
 
     public static bool IsBreakableConstruct([NotNullWhen(true)] this SyntaxNode? node)
-        // Anything you can 'continue' you can also 'break' out of, plus a 'switch'.
         => node.IsContinuableConstruct() || node?.Kind() is SyntaxKind.SwitchStatement;
 
     public static bool IsContinuableConstruct([NotNullWhen(true)] this SyntaxNode? node)
