@@ -59,7 +59,7 @@ public sealed class UseLabeledJumpStatementsTests
                             for (int y = 0; y < 10; y++)
                             {
                                 if (x * y > 20)
-                                    {|IDE0400:goto|} found;
+                                    {|IDE0410:goto|} found;
                             }
                         }
 
@@ -102,7 +102,7 @@ public sealed class UseLabeledJumpStatementsTests
                         {
                             while (true)
                             {
-                                {|IDE0400:goto|} done;
+                                {|IDE0410:goto|} done;
                             }
                         }
 
@@ -142,9 +142,9 @@ public sealed class UseLabeledJumpStatementsTests
                             for (int j = 0; j < 10; j++)
                             {
                                 if (j == 1)
-                                    {|IDE0400:goto|} done;
+                                    {|IDE0410:goto|} done;
                                 if (j == 2)
-                                    {|IDE0400:goto|} done;
+                                    {|IDE0410:goto|} done;
                             }
                         }
 
@@ -190,7 +190,7 @@ public sealed class UseLabeledJumpStatementsTests
                             for (int j = 0; j < 10; j++)
                             {
                                 if (j == 5)
-                                    {|IDE0400:goto|} next;
+                                    {|IDE0410:goto|} next;
                             }
 
                             next: ;
@@ -330,7 +330,7 @@ public sealed class UseLabeledJumpStatementsTests
                                 if (i * j > 20)
                                 {
                                     found = true;
-                                    {|IDE0400:break;|}
+                                    {|IDE0410:break;|}
                                 }
                             }
 
@@ -378,7 +378,7 @@ public sealed class UseLabeledJumpStatementsTests
                                 if (a && b)
                                 {
                                     skip = true;
-                                    {|IDE0400:break;|}
+                                    {|IDE0410:break;|}
                                 }
                             }
 
@@ -430,13 +430,13 @@ public sealed class UseLabeledJumpStatementsTests
                                 if (i == j)
                                 {
                                     found = true;
-                                    {|IDE0400:break;|}
+                                    {|IDE0410:break;|}
                                 }
 
                                 if (i > j)
                                 {
                                     found = true;
-                                    {|IDE0400:break;|}
+                                    {|IDE0410:break;|}
                                 }
                             }
 
@@ -519,7 +519,7 @@ public sealed class UseLabeledJumpStatementsTests
                                 for (int i = 0; i < 10; i++)
                                 {
                                     if (i == 5)
-                                        {|IDE0400:goto|} done;
+                                        {|IDE0410:goto|} done;
                                 }
 
                                 break;
