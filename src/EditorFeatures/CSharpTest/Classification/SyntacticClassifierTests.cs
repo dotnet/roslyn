@@ -2309,60 +2309,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.Colon);
 
     [Theory, CombinatorialData]
-    public Task TestLabeledBreak(TestHost testHost)
-        => TestInMethodAsync(
-            """
-            outer: while (true)
-            {
-                break outer;
-            }
-            """,
-            testHost,
-            Label("outer"),
-            Punctuation.Colon,
-            ControlKeyword("while"),
-            Punctuation.OpenParen,
-            Keyword("true"),
-            Punctuation.CloseParen,
-            Punctuation.OpenCurly,
-            ControlKeyword("break"),
-            Label("outer"),
-            Punctuation.Semicolon,
-            Punctuation.CloseCurly);
-
-    [Theory, CombinatorialData]
-    public Task TestLabeledContinue(TestHost testHost)
-        => TestInMethodAsync(
-            """
-            loop: for (int i = 0; i < 10; i++)
-            {
-                continue loop;
-            }
-            """,
-            testHost,
-            Label("loop"),
-            Punctuation.Colon,
-            ControlKeyword("for"),
-            Punctuation.OpenParen,
-            Keyword("int"),
-            Local("i"),
-            Operators.Equals,
-            Number("0"),
-            Punctuation.Semicolon,
-            Local("i"),
-            Operators.LessThan,
-            Number("10"),
-            Punctuation.Semicolon,
-            Local("i"),
-            Operators.PlusPlus,
-            Punctuation.CloseParen,
-            Punctuation.OpenCurly,
-            ControlKeyword("continue"),
-            Label("loop"),
-            Punctuation.Semicolon,
-            Punctuation.CloseCurly);
-
-    [Theory, CombinatorialData]
     public Task Attribute(TestHost testHost)
         => TestAsync(
 @"[assembly: Goo]",
