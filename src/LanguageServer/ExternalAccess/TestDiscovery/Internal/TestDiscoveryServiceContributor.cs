@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -36,69 +36,81 @@ internal sealed class TestDiscoveryServiceContributorFactory() : ILspServiceFact
         var workspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
         return new TestDiscoveryServiceContributor(workspaceRegistrationService);
     }
+}
+
+/// <summary>
+/// Registers and proffers the source-based test discovery brokered service. The proffered service
+/// object is the <see cref="ITestDiscoveryLanguageService"/> workspace service which also implements the
+/// rich discovery RPC interface defined in the C# Dev Kit contracts assembly. The wire descriptor is
+/// supplied by the implementation (<see cref="ITestDiscoveryLanguageService.Descriptor"/>), so Roslyn
+/// never needs to know the concrete RPC interface or its serialization details. When the implementation
+/// is not present (for example, a C# extension build that does not ship the Dev Kit discovery component)
+/// nothing is registered or proffered.
+/// </summary>
+internal sealed class TestDiscoveryServiceContributor : ILspService
+{
+    private readonly Func<ITestDiscoveryLanguageService?> _getTestDiscoveryLanguageService;
+
+    public TestDiscoveryServiceContributor(LspWorkspaceRegistrationService workspaceRegistrationService)
+        : this(() => GetHostTestDiscoveryLanguageService(workspaceRegistrationService))
+    {
+    }
 
     /// <summary>
-    /// Registers and proffers the source-based test discovery brokered service. The proffered service
-    /// object is the <see cref="ITestDiscoveryLanguageService"/> workspace service which also implements the
-    /// rich discovery RPC interface defined in the C# Dev Kit contracts assembly. The wire descriptor is
-    /// supplied by the implementation (<see cref="TestDiscoveryServiceDescriptor.Descriptor"/>), so Roslyn
-    /// never needs to know the concrete RPC interface or its serialization details. When the implementation
-    /// is not present (for example, a C# extension build that does not ship the Dev Kit discovery component)
-    /// nothing is registered or proffered.
+    /// Test hook that allows the discovery implementation to be supplied directly, so the
+    /// registration / proffer / initialization behavior can be exercised without the full LSP MEF host.
     /// </summary>
-    private sealed class TestDiscoveryServiceContributor(LspWorkspaceRegistrationService workspaceRegistrationService)
-        : ILspService
+    public TestDiscoveryServiceContributor(Func<ITestDiscoveryLanguageService?> getTestDiscoveryLanguageService)
     {
-        private readonly LspWorkspaceRegistrationService _workspaceRegistrationService = workspaceRegistrationService;
+        _getTestDiscoveryLanguageService = getTestDiscoveryLanguageService;
+    }
 
-        public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister
+    public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister
+    {
+        get
         {
-            get
-            {
-                var service = GetTestDiscoveryLanguageService();
-                if (service is null)
-                {
-                    return ImmutableDictionary<ServiceMoniker, ServiceRegistration>.Empty;
-                }
-
-                return new Dictionary<ServiceMoniker, ServiceRegistration>
-                {
-                    { service.Descriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
-                }.ToImmutableDictionary();
-            }
-        }
-
-        public void Proffer(GlobalBrokeredServiceContainer container)
-        {
-            var service = GetTestDiscoveryLanguageService();
+            var service = _getTestDiscoveryLanguageService();
             if (service is null)
             {
-                return;
+                return ImmutableDictionary<ServiceMoniker, ServiceRegistration>.Empty;
             }
 
-            // Proffer the workspace-service implementation directly as the brokered service object, using
-            // the descriptor it supplies. It implements the rich discovery RPC interface (defined in C# Dev
-            // Kit); Roslyn does not need to reference that interface or its serialization plumbing.
-            container.Proffer(
-                service.Descriptor,
-                async (moniker, options, serviceBroker, cancellationToken) =>
-                {
-                    var testDiscoveryLanguageService = GetTestDiscoveryLanguageService();
-                    if (testDiscoveryLanguageService is not null)
-                    {
-                        await testDiscoveryLanguageService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
-                    }
-                    return testDiscoveryLanguageService;
-                });
+            return new Dictionary<ServiceMoniker, ServiceRegistration>
+            {
+                { service.Descriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
+            }.ToImmutableDictionary();
         }
+    }
 
-        private ITestDiscoveryLanguageService? GetTestDiscoveryLanguageService()
+    public void Proffer(GlobalBrokeredServiceContainer container)
+    {
+        var service = _getTestDiscoveryLanguageService();
+        if (service is null)
         {
-            Workspace? workspace = _workspaceRegistrationService.GetAllRegistrations().FirstOrDefault(w => w.Kind == WorkspaceKind.Host);
-            Contract.ThrowIfNull(workspace, "We should always have a host workspace.");
-
-            return workspace.Services.GetService<ITestDiscoveryLanguageService>();
+            return;
         }
 
+        // Proffer the workspace-service implementation directly as the brokered service object, using
+        // the descriptor it supplies. It implements the rich discovery RPC interface (defined in C# Dev
+        // Kit); Roslyn does not need to reference that interface or its serialization plumbing.
+        container.Proffer(
+            service.Descriptor,
+            async (moniker, options, serviceBroker, cancellationToken) =>
+            {
+                var testDiscoveryLanguageService = _getTestDiscoveryLanguageService();
+                if (testDiscoveryLanguageService is not null)
+                {
+                    await testDiscoveryLanguageService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
+                }
+                return testDiscoveryLanguageService;
+            });
+    }
+
+    private static ITestDiscoveryLanguageService? GetHostTestDiscoveryLanguageService(LspWorkspaceRegistrationService workspaceRegistrationService)
+    {
+        Workspace? workspace = workspaceRegistrationService.GetAllRegistrations().FirstOrDefault(w => w.Kind == WorkspaceKind.Host);
+        Contract.ThrowIfNull(workspace, "We should always have a host workspace.");
+
+        return workspace.Services.GetService<ITestDiscoveryLanguageService>();
     }
 }
