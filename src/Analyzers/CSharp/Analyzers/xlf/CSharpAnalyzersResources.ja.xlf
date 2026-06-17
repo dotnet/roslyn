@@ -397,9 +397,9 @@
         <target state="translated">'is object' チェックを使用する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_labeled_break_or_continue">
-        <source>Use labeled break or continue</source>
-        <target state="new">Use labeled break or continue</target>
+      <trans-unit id="Use_labeled_jump_statement">
+        <source>Use labeled jump statement</source>
+        <target state="new">Use labeled jump statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">

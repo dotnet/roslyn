@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -12,26 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
 
 internal static partial class CSharpUseLabeledJumpStatementsHelpers
 {
-    public static bool IsLoop(SyntaxNode node)
-        => node.Kind() is SyntaxKind.WhileStatement
-            or SyntaxKind.DoStatement
-            or SyntaxKind.ForStatement
-            or SyntaxKind.ForEachStatement
-            or SyntaxKind.ForEachVariableStatement;
-
-    public static bool IsBreakable(SyntaxNode node)
-        => IsLoop(node) || node.Kind() == SyntaxKind.SwitchStatement;
-
-    public static StatementSyntax? GetLoopBody(SyntaxNode loop)
-        => loop switch
-        {
-            WhileStatementSyntax whileStatement => whileStatement.Statement,
-            DoStatementSyntax doStatement => doStatement.Statement,
-            ForStatementSyntax forStatement => forStatement.Statement,
-            CommonForEachStatementSyntax forEachStatement => forEachStatement.Statement,
-            _ => null,
-        };
-
     /// <summary>
     /// Determines whether <paramref name="gotoStatement"/> is a <c>goto</c> that emulates a multi-level <c>break</c>:
     /// it targets a label placed on the statement immediately following an enclosing loop, every reference to that
@@ -45,28 +27,19 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         GotoStatementSyntax gotoStatement,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
-        out StatementSyntax breakTarget,
-        out LabeledStatementSyntax labelDeclaration,
+        [NotNullWhen(true)] out StatementSyntax? breakTarget,
+        [NotNullWhen(true)] out LabeledStatementSyntax? labelDeclaration,
         out ImmutableArray<GotoStatementSyntax> gotos)
     {
-        breakTarget = null!;
-        labelDeclaration = null!;
+        breakTarget = null;
+        labelDeclaration = null;
         gotos = default;
 
-        if (!TryResolveLabel(gotoStatement, semanticModel, cancellationToken, out var label, out var declaration) ||
-            declaration.Parent is not BlockSyntax block)
-        {
-            return false;
-        }
-
-        // The label must sit on the statement immediately following a loop or switch.  That makes "jump to the label"
-        // the same as "break that construct" (its end point).
-        var index = block.Statements.IndexOf(declaration);
-        if (index <= 0)
+        if (!TryResolveLabel(gotoStatement, semanticModel, cancellationToken, out var label, out var declaration))
             return false;
 
-        var precedingConstruct = block.Statements[index - 1];
-        if (!IsBreakable(precedingConstruct))
+        // GetPreviousStatement handles the block, switch-section, and top-level (global statement) cases.
+        if (declaration.GetPreviousStatement() is not { } precedingConstruct || !precedingConstruct.IsBreakableConstruct())
             return false;
 
         if (!TryCollectMultiLevelJumps(precedingConstruct, label, semanticModel, cancellationToken, includeSwitch: true, out gotos))
@@ -89,12 +62,12 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         GotoStatementSyntax gotoStatement,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
-        out StatementSyntax loop,
-        out LabeledStatementSyntax labelDeclaration,
+        [NotNullWhen(true)] out StatementSyntax? loop,
+        [NotNullWhen(true)] out LabeledStatementSyntax? labelDeclaration,
         out ImmutableArray<GotoStatementSyntax> gotos)
     {
-        loop = null!;
-        labelDeclaration = null!;
+        loop = null;
+        labelDeclaration = null;
         gotos = default;
 
         if (!TryResolveLabel(gotoStatement, semanticModel, cancellationToken, out var label, out var declaration) ||
@@ -102,14 +75,12 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
             body.Statements.LastOrDefault() != declaration ||
             declaration.Statement is not EmptyStatementSyntax)
         {
-            // The label must be an empty statement at the very end of the body.  Otherwise jumping to it would run
-            // some trailing work that a 'continue' would skip, so the rewrite would not be equivalent.
+            // Requiring an empty label at the very end of the body keeps the rewrite equivalent: jumping there would
+            // otherwise run trailing work that a 'continue' would skip.
             return false;
         }
 
-        // The label must be the final statement of a loop's body block, so jumping to it falls through to the loop's
-        // next iteration -- exactly what 'continue' does.
-        if (body.Parent is not StatementSyntax candidateLoop || !IsLoop(candidateLoop) || GetLoopBody(candidateLoop) != body)
+        if (body.Parent is not StatementSyntax candidateLoop || !candidateLoop.IsContinuableConstruct() || candidateLoop.GetEmbeddedStatement() != body)
             return false;
 
         if (!TryCollectMultiLevelJumps(candidateLoop, label, semanticModel, cancellationToken, includeSwitch: false, out gotos))
@@ -124,26 +95,26 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         GotoStatementSyntax gotoStatement,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
-        out ILabelSymbol label,
-        out LabeledStatementSyntax declaration)
+        [NotNullWhen(true)] out ILabelSymbol? label,
+        [NotNullWhen(true)] out LabeledStatementSyntax? declaration)
     {
-        label = null!;
-        declaration = null!;
+        label = null;
+        declaration = null;
 
-        if (!IsPlainGoto(gotoStatement))
+        if (!IsPlainGoto(gotoStatement, out var labelReference))
             return false;
 
-        if (semanticModel.GetSymbolInfo(gotoStatement.Expression, cancellationToken).Symbol is not ILabelSymbol labelSymbol)
+        if (semanticModel.GetSymbolInfo(labelReference, cancellationToken).Symbol is not ILabelSymbol labelSymbol)
             return false;
 
         if (labelSymbol.DeclaringSyntaxReferences is not [var reference] ||
-            reference.GetSyntax(cancellationToken) is not LabeledStatementSyntax labelDeclaration)
+            reference.GetSyntax(cancellationToken) is not LabeledStatementSyntax labeledStatement)
         {
             return false;
         }
 
         label = labelSymbol;
-        declaration = labelDeclaration;
+        declaration = labeledStatement;
         return true;
     }
 
@@ -164,8 +135,8 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         var anyRequiresLabel = false;
         foreach (var candidate in loop.DescendantNodes().OfType<GotoStatementSyntax>())
         {
-            if (!IsPlainGoto(candidate) ||
-                !Equals(semanticModel.GetSymbolInfo(candidate.Expression, cancellationToken).Symbol, label))
+            if (!IsPlainGoto(candidate, out var candidateLabel) ||
+                !Equals(semanticModel.GetSymbolInfo(candidateLabel, cancellationToken).Symbol, label))
             {
                 continue;
             }
@@ -184,8 +155,17 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         return true;
     }
 
-    private static bool IsPlainGoto(GotoStatementSyntax gotoStatement)
-        => gotoStatement.Kind() == SyntaxKind.GotoStatement && gotoStatement.Expression is IdentifierNameSyntax;
+    private static bool IsPlainGoto(GotoStatementSyntax gotoStatement, [NotNullWhen(true)] out IdentifierNameSyntax? label)
+    {
+        if (gotoStatement.Kind() == SyntaxKind.GotoStatement && gotoStatement.Expression is IdentifierNameSyntax identifier)
+        {
+            label = identifier;
+            return true;
+        }
+
+        label = null;
+        return false;
+    }
 
     private static bool CrossesFinally(SyntaxNode jump, SyntaxNode target)
     {
@@ -202,7 +182,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     {
         for (var current = jump.Parent; current != null && current != target; current = current.Parent)
         {
-            if (IsLoop(current) || (includeSwitch && current is SwitchStatementSyntax))
+            if (includeSwitch ? current.IsBreakableConstruct() : current.IsContinuableConstruct())
                 return true;
         }
 

@@ -4,8 +4,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -48,11 +50,10 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         LocalDeclarationStatementSyntax declaration,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
-        out FlagJumpPattern? pattern)
+        [NotNullWhen(true)] out FlagJumpPattern? pattern)
     {
         pattern = null;
 
-        // Must be 'bool flag = false;' (single local, 'false' initializer).
         if (declaration.Declaration.Variables is not [{ Initializer.Value: LiteralExpressionSyntax initializer } declarator] ||
             initializer.Kind() != SyntaxKind.FalseLiteralExpression ||
             declaration.Parent is not BlockSyntax enclosingBlock)
@@ -100,21 +101,19 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         var guardJump = Unwrap(guard.Statement);
         var isBreak = guardJump is BreakStatementSyntax;
 
-        // The guard must be an unlabeled 'break;'/'continue;' that targets a loop, sitting immediately after an inner
-        // loop in that loop's body.
         if (!IsUnlabeledLoopJump(guardJump))
             return false;
 
         if (guard.Parent is not BlockSyntax guardBlock ||
             guardBlock.Parent is not StatementSyntax outerLoop ||
-            !IsLoop(outerLoop) ||
-            GetLoopBody(outerLoop) != guardBlock)
+            !outerLoop.IsContinuableConstruct() ||
+            outerLoop.GetEmbeddedStatement() != guardBlock)
         {
             return false;
         }
 
         var guardIndex = guardBlock.Statements.IndexOf(guard);
-        if (guardIndex <= 0 || guardBlock.Statements[guardIndex - 1] is not StatementSyntax innerLoop || !IsLoop(innerLoop))
+        if (guardIndex <= 0 || guardBlock.Statements[guardIndex - 1] is not StatementSyntax innerLoop || !innerLoop.IsContinuableConstruct())
             return false;
 
         // Every 'flag = true; break;' site must break that inner loop and not cross a 'finally' on the way to the
@@ -149,7 +148,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         BreakStatementSyntax breakStatement,
         SemanticModel semanticModel,
         CancellationToken cancellationToken,
-        out FlagJumpPattern? pattern)
+        [NotNullWhen(true)] out FlagJumpPattern? pattern)
     {
         pattern = null;
 
@@ -183,7 +182,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         }
 
         if (!TryGetFlagPattern(declaration, semanticModel, cancellationToken, out pattern) ||
-            !pattern!.Sites.Any(site => site.Break == breakStatement))
+            !pattern.Sites.Any(site => site.Break == breakStatement))
         {
             pattern = null;
             return false;
@@ -279,7 +278,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     {
         for (var current = node.Parent; current != null; current = current.Parent)
         {
-            if (IsLoop(current) || (isBreak && current is SwitchStatementSyntax))
+            if (isBreak ? current.IsBreakableConstruct() : current.IsContinuableConstruct())
                 return current;
 
             if (current is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax or MemberDeclarationSyntax)

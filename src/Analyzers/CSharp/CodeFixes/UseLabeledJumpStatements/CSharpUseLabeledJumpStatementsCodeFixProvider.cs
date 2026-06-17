@@ -31,7 +31,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
-            RegisterCodeFix(context, CSharpAnalyzersResources.Use_labeled_break_or_continue, nameof(CSharpAnalyzersResources.Use_labeled_break_or_continue), diagnostic);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_labeled_jump_statement, nameof(CSharpAnalyzersResources.Use_labeled_jump_statement), diagnostic);
 
         return Task.CompletedTask;
     }
@@ -45,139 +45,142 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = editor.OriginalRoot;
 
-        // Several diagnostics (jumps) can belong to the same pattern.  Rewrite each pattern only once, keyed by the
-        // loop (goto cases) or the flag declaration (flag case).
-        using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var processedAnchors);
+        // A loop/switch can be the target of several jumps -- even a mix of labeled break and labeled continue, or a
+        // goto pattern plus a flag pattern.  The harness also applies fixes one diagnostic at a time, so each fix must
+        // be self-contained and order-independent.  We therefore key off the targeted construct: the first time we see
+        // it, we re-derive *all* of its jumps from the construct itself and relabel it exactly once.
+        using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var processedLoops);
 
         foreach (var diagnostic in diagnostics)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-
-            if (node.FirstAncestorOrSelf<GotoStatementSyntax>() is { } gotoStatement)
+            if (TryGetTargetLoop(root, diagnostic, semanticModel, cancellationToken, out var loop) &&
+                processedLoops.Add(loop))
             {
-                FixGoto(editor, gotoStatement, semanticModel, processedAnchors, cancellationToken);
-            }
-            else if (diagnostic.AdditionalLocations is [var declarationLocation, ..] &&
-                root.FindNode(declarationLocation.SourceSpan, getInnermostNodeForTie: true)
-                    .FirstAncestorOrSelf<LocalDeclarationStatementSyntax>() is { } declaration)
-            {
-                FixFlag(editor, declaration, semanticModel, processedAnchors, cancellationToken);
+                ApplyRewrite(editor, loop, CollectLoopRewrite(loop, semanticModel, cancellationToken));
             }
         }
     }
 
-    private static void FixGoto(
-        SyntaxEditor editor,
-        GotoStatementSyntax gotoStatement,
+    private static bool TryGetTargetLoop(
+        SyntaxNode root,
+        Diagnostic diagnostic,
         SemanticModel semanticModel,
-        HashSet<SyntaxNode> processedAnchors,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        out StatementSyntax loop)
     {
-        if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(
-                gotoStatement, semanticModel, cancellationToken, out var loop, out var labelDeclaration, out var gotos))
+        var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+
+        if (node.FirstAncestorOrSelf<GotoStatementSyntax>() is { } gotoStatement)
         {
-            if (processedAnchors.Add(loop))
-                ConvertToLabeledBreak(editor, loop, labelDeclaration, gotos);
-        }
-        else if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(
-                gotoStatement, semanticModel, cancellationToken, out loop, out labelDeclaration, out gotos))
-        {
-            if (processedAnchors.Add(loop))
-                ConvertToLabeledContinue(editor, loop, labelDeclaration, gotos);
-        }
-    }
-
-    private static void FixFlag(
-        SyntaxEditor editor,
-        LocalDeclarationStatementSyntax declaration,
-        SemanticModel semanticModel,
-        HashSet<SyntaxNode> processedAnchors,
-        CancellationToken cancellationToken)
-    {
-        if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPattern(declaration, semanticModel, cancellationToken, out var pattern) &&
-            processedAnchors.Add(declaration))
-        {
-            ConvertFlagPattern(editor, pattern!, CSharpUseLabeledJumpStatementsHelpers.GenerateLabelName(pattern!.Loop));
-        }
-    }
-
-    private static void ConvertToLabeledBreak(
-        SyntaxEditor editor,
-        StatementSyntax loop,
-        LabeledStatementSyntax labelDeclaration,
-        ImmutableArray<GotoStatementSyntax> gotos)
-    {
-        // Reuse the existing label that sat after the loop as the loop's label.
-        var labelName = labelDeclaration.Identifier.Text;
-
-        // 'goto label;' -> 'break label;' for every jump inside the loop.
-        var newLoop = loop.ReplaceNodes(gotos, (original, _) => CreateBreak(labelName, original));
-
-        editor.ReplaceNode(loop, CreateLabeledLoop(labelName, loop, newLoop));
-
-        // The label after the loop is now redundant.  Drop it if it was only a 'goto' landing pad (an empty
-        // statement); otherwise just strip the label off the statement it was attached to.
-        if (labelDeclaration.Statement is EmptyStatementSyntax)
-            editor.RemoveNode(labelDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
-        else
-            editor.ReplaceNode(labelDeclaration, labelDeclaration.Statement.WithLeadingTrivia(labelDeclaration.GetLeadingTrivia()));
-    }
-
-    private static void ConvertToLabeledContinue(
-        SyntaxEditor editor,
-        StatementSyntax loop,
-        LabeledStatementSyntax labelDeclaration,
-        ImmutableArray<GotoStatementSyntax> gotos)
-    {
-        // Reuse the existing trailing label as the loop's label.
-        var labelName = labelDeclaration.Identifier.Text;
-
-        // 'goto label;' -> 'continue label;' for every jump inside the loop.
-        var newLoop = loop.ReplaceNodes(gotos, (original, _) => CreateContinue(labelName, original));
-
-        // Remove the now-redundant trailing label from the loop body.
-        var newBody = (BlockSyntax)CSharpUseLabeledJumpStatementsHelpers.GetLoopBody(newLoop)!;
-        newLoop = newLoop.ReplaceNode(
-            newBody, newBody.WithStatements(newBody.Statements.RemoveAt(newBody.Statements.Count - 1)));
-
-        editor.ReplaceNode(loop, CreateLabeledLoop(labelName, loop, newLoop));
-    }
-
-    private static void ConvertFlagPattern(SyntaxEditor editor, FlagJumpPattern pattern, string labelName)
-    {
-        var loop = pattern.Loop;
-
-        // Everything inside the loop (the inner breaks and the guard) is rewritten in a single rebuild so the loop can
-        // then be wrapped in the label with one editor edit.  The flag declaration lives outside the loop and is
-        // removed separately.
-        var nodesToTrack = new List<SyntaxNode>(pattern.Sites.Length * 2 + 1);
-        foreach (var (assignment, innerBreak) in pattern.Sites)
-        {
-            nodesToTrack.Add(assignment);
-            nodesToTrack.Add(innerBreak);
+            return CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(gotoStatement, semanticModel, cancellationToken, out loop, out _, out _)
+                || CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(gotoStatement, semanticModel, cancellationToken, out loop, out _, out _);
         }
 
-        nodesToTrack.Add(pattern.Guard);
+        if (diagnostic.AdditionalLocations is [var declarationLocation, ..] &&
+            root.FindNode(declarationLocation.SourceSpan, getInnermostNodeForTie: true)
+                .FirstAncestorOrSelf<LocalDeclarationStatementSyntax>() is { } declaration &&
+            CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPattern(declaration, semanticModel, cancellationToken, out var pattern))
+        {
+            loop = pattern.Loop;
+            return true;
+        }
 
-        var newLoop = loop.TrackNodes(nodesToTrack);
+        loop = null!;
+        return false;
+    }
 
-        // 'break;' -> 'break label;' / 'continue label;'.
+    /// <summary>
+    /// Re-derives every jump that targets <paramref name="loop"/> (labeled break, labeled continue, and flag
+    /// patterns), so the construct can be relabeled in one self-contained, order-independent edit.
+    /// </summary>
+    private static LoopRewrite CollectLoopRewrite(StatementSyntax loop, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var rewrite = new LoopRewrite();
+        using var _1 = PooledHashSet<SyntaxNode>.GetInstance(out var seenAnchors);
+
+        foreach (var gotoStatement in loop.DescendantNodes().OfType<GotoStatementSyntax>())
+        {
+            if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(
+                    gotoStatement, semanticModel, cancellationToken, out var breakLoop, out var breakLabel, out var breakGotos) &&
+                breakLoop == loop &&
+                seenAnchors.Add(breakLabel))
+            {
+                foreach (var jump in breakGotos)
+                    rewrite.Jumps.Add((jump, IsBreak: true));
+
+                rewrite.OuterLabels.Add(breakLabel);
+                rewrite.ReuseNames.Add((breakLabel.Identifier.Text, breakLabel.SpanStart));
+            }
+            else if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(
+                    gotoStatement, semanticModel, cancellationToken, out var continueLoop, out var continueLabel, out var continueGotos) &&
+                continueLoop == loop &&
+                seenAnchors.Add(continueLabel))
+            {
+                foreach (var jump in continueGotos)
+                    rewrite.Jumps.Add((jump, IsBreak: false));
+
+                rewrite.InnerRemovals.Add(continueLabel);
+                rewrite.ReuseNames.Add((continueLabel.Identifier.Text, continueLabel.SpanStart));
+            }
+        }
+
+        foreach (var breakStatement in loop.DescendantNodes().OfType<BreakStatementSyntax>())
+        {
+            if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
+                    breakStatement, semanticModel, cancellationToken, out var pattern) &&
+                pattern.Loop == loop &&
+                seenAnchors.Add(pattern.Declaration))
+            {
+                foreach (var (assignment, innerBreak) in pattern.Sites)
+                {
+                    rewrite.Jumps.Add((innerBreak, pattern.IsBreak));
+                    rewrite.InnerRemovals.Add(assignment);
+                }
+
+                rewrite.InnerRemovals.Add(pattern.Guard);
+                rewrite.OuterRemovals.Add(pattern.Declaration);
+            }
+        }
+
+        return rewrite;
+    }
+
+    private static void ApplyRewrite(SyntaxEditor editor, StatementSyntax loop, LoopRewrite rewrite)
+    {
+        // If the loop is already labeled (the user wrote a label), reuse it.  Otherwise reuse the lexically-first
+        // existing label among the patterns being merged, or synthesize a name (flag-only case).
+        var existingLabel = loop.Parent as LabeledStatementSyntax;
+        var labelName = existingLabel?.Identifier.Text ?? rewrite.GetLabelName(loop);
+
+        // Rebuild the loop in one shot: rewrite every inner jump and delete every inner piece of now-dead code.
+        var newLoop = loop.TrackNodes(rewrite.Jumps.Select(j => j.Jump).Concat(rewrite.InnerRemovals));
+
+        var isBreakByCurrentNode = rewrite.Jumps.ToDictionary(j => newLoop.GetCurrentNode(j.Jump)!, j => j.IsBreak);
         newLoop = newLoop.ReplaceNodes(
-            pattern.Sites.Select(site => newLoop.GetCurrentNode(site.Break)!),
-            (original, _) => pattern.IsBreak
+            isBreakByCurrentNode.Keys,
+            (original, _) => isBreakByCurrentNode[original]
                 ? CreateBreak(labelName, original)
                 : CreateContinue(labelName, original));
 
-        // Delete the 'flag = true;' assignments and the 'if (flag) ...;' guard.
-        var nodesToRemove = pattern.Sites
-            .Select(site => (SyntaxNode)newLoop.GetCurrentNode(site.Assignment)!)
-            .Append(newLoop.GetCurrentNode(pattern.Guard)!);
-        newLoop = newLoop.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia)!;
+        newLoop = newLoop.RemoveNodes(
+            rewrite.InnerRemovals.Select(n => newLoop.GetCurrentNode(n)!), SyntaxRemoveOptions.KeepNoTrivia)!;
 
-        editor.ReplaceNode(loop, CreateLabeledLoop(labelName, loop, newLoop));
-        editor.RemoveNode(pattern.Declaration, SyntaxRemoveOptions.KeepNoTrivia);
+        // Wrap the loop in the shared label, unless it already carries one (then just update it in place).
+        editor.ReplaceNode(loop, existingLabel is null ? CreateLabeledLoop(labelName, loop, newLoop) : newLoop);
+
+        // Outer cleanup: the (now redundant) label(s) that sat after the loop, and any flag declarations before it.
+        foreach (var labelDeclaration in rewrite.OuterLabels)
+        {
+            if (labelDeclaration.Statement is EmptyStatementSyntax)
+                editor.RemoveNode(labelDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
+            else
+                editor.ReplaceNode(labelDeclaration, labelDeclaration.Statement.WithLeadingTrivia(labelDeclaration.GetLeadingTrivia()));
+        }
+
+        foreach (var declaration in rewrite.OuterRemovals)
+            editor.RemoveNode(declaration, SyntaxRemoveOptions.KeepNoTrivia);
     }
 
     /// <summary>
@@ -192,19 +195,38 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider() : SyntaxEd
 
 #pragma warning disable RSEXPERIMENTAL006 // Labeled break/continue is a preview language feature.
     private static BreakStatementSyntax CreateBreak(string labelName, SyntaxNode original)
-        => SyntaxFactory.BreakStatement(
-            attributeLists: default,
-            breakKeyword: SyntaxFactory.Token(SyntaxKind.BreakKeyword).WithTrailingTrivia(SyntaxFactory.Space),
-            name: SyntaxFactory.IdentifierName(labelName),
-            semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-            .WithTriviaFrom(original);
+        => SyntaxFactory.BreakStatement(SyntaxFactory.IdentifierName(labelName)).WithTriviaFrom(original);
 
     private static ContinueStatementSyntax CreateContinue(string labelName, SyntaxNode original)
-        => SyntaxFactory.ContinueStatement(
-            attributeLists: default,
-            continueKeyword: SyntaxFactory.Token(SyntaxKind.ContinueKeyword).WithTrailingTrivia(SyntaxFactory.Space),
-            name: SyntaxFactory.IdentifierName(labelName),
-            semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-            .WithTriviaFrom(original);
+        => SyntaxFactory.ContinueStatement(SyntaxFactory.IdentifierName(labelName)).WithTriviaFrom(original);
 #pragma warning restore RSEXPERIMENTAL006
+
+    /// <summary>
+    /// Accumulates everything that must happen to a single loop/switch so it is relabeled exactly once.
+    /// </summary>
+    private sealed class LoopRewrite
+    {
+        /// <summary>Jumps (gotos / inner flag breaks) inside the loop to rewrite, and whether each becomes a break.</summary>
+        public readonly List<(SyntaxNode Jump, bool IsBreak)> Jumps = [];
+
+        /// <summary>Dead code inside the loop to delete (flag assignments/guards, the trailing continue label).</summary>
+        public readonly List<SyntaxNode> InnerRemovals = [];
+
+        /// <summary>Labels that sat after the loop (removed if an empty pad, otherwise just un-labeled).</summary>
+        public readonly List<LabeledStatementSyntax> OuterLabels = [];
+
+        /// <summary>Dead code before the loop to delete (flag declarations).</summary>
+        public readonly List<SyntaxNode> OuterRemovals = [];
+
+        /// <summary>Existing label names (and their source positions) that may be reused for the loop.</summary>
+        public readonly List<(string Name, int Position)> ReuseNames = [];
+
+        /// <summary>
+        /// Reuses the lexically-first existing label, or synthesizes a name when the loop had no labels (flag case).
+        /// </summary>
+        public string GetLabelName(StatementSyntax loop)
+            => ReuseNames.Count > 0
+                ? ReuseNames.OrderBy(n => n.Position).First().Name
+                : CSharpUseLabeledJumpStatementsHelpers.GenerateLabelName(loop);
+    }
 }

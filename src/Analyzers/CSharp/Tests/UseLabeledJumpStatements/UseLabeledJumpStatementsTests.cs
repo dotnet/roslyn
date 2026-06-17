@@ -266,6 +266,56 @@ public sealed class UseLabeledJumpStatementsTests
         }.RunAsync();
 
     [Fact]
+    public Task TestBreakAndContinueTargetingSameLoop()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(int n)
+                    {
+                        for (int i = 0; i < n; i++)
+                        {
+                            for (int j = 0; j < n; j++)
+                            {
+                                if (i == j)
+                                    {|IDE0410:goto|} brk;
+                                if (i < j)
+                                    {|IDE0410:goto|} cont;
+                            }
+
+                            cont: ;
+                        }
+
+                        brk:
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int n)
+                    {
+                    cont: for (int i = 0; i < n; i++)
+                        {
+                            for (int j = 0; j < n; j++)
+                            {
+                                if (i == j)
+                                    break cont;
+                                if (i < j)
+                                    continue cont;
+                            }
+                        }
+
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
     public Task TestNotOffered_JumpNotInsideLoop()
         => new VerifyCS.Test
         {
@@ -550,6 +600,90 @@ public sealed class UseLabeledJumpStatementsTests
                         System.Console.WriteLine();
                     }
                 }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoBreak_LabelInsideSwitchSection()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(int x)
+                    {
+                        switch (x)
+                        {
+                            case 1:
+                                for (int i = 0; i < 10; i++)
+                                {
+                                    for (int j = 0; j < 10; j++)
+                                    {
+                                        if (i == j)
+                                            {|IDE0410:goto|} done;
+                                    }
+                                }
+
+                                done: ;
+                                break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(int x)
+                    {
+                        switch (x)
+                        {
+                            case 1:
+                            done: for (int i = 0; i < 10; i++)
+                                {
+                                    for (int j = 0; j < 10; j++)
+                                    {
+                                        if (i == j)
+                                            break done;
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoBreak_TopLevelStatements()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            TestCode = """
+                for (int i = 0; i < 10; i++)
+                {
+                    for (int j = 0; j < 10; j++)
+                    {
+                        if (i == j)
+                            {|IDE0410:goto|} done;
+                    }
+                }
+
+                done:
+                System.Console.WriteLine();
+                """,
+            FixedCode = """
+                done: for (int i = 0; i < 10; i++)
+                {
+                    for (int j = 0; j < 10; j++)
+                    {
+                        if (i == j)
+                            break done;
+                    }
+                }
+
+                System.Console.WriteLine();
                 """,
         }.RunAsync();
 

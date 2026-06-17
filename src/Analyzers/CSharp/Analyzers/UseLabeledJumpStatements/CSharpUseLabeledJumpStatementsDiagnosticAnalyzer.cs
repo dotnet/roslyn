@@ -30,7 +30,7 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
         EnforceOnBuildValues.UseLabeledJumpStatement,
         CSharpCodeStyleOptions.PreferLabeledJumpStatements,
         new LocalizableResourceString(
-            nameof(CSharpAnalyzersResources.Use_labeled_break_or_continue), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+            nameof(CSharpAnalyzersResources.Use_labeled_jump_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
@@ -39,8 +39,6 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
     {
         context.RegisterCompilationStartAction(context =>
         {
-            // Labeled 'break'/'continue' is only available in C# preview (and above), so only offer to rewrite
-            // to it when the project can actually use the feature.
             if (!context.Compilation.LanguageVersion().IsCSharp15OrAbove())
                 return;
 
@@ -57,8 +55,6 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
 
         var gotoStatement = (GotoStatementSyntax)context.Node;
 
-        // 'goto' to a label placed right after an enclosing loop is an emulated (multi-level) 'break'; 'goto' to a
-        // label at the end of an enclosing loop's body is an emulated (multi-level) 'continue'.
         if (CSharpUseLabeledJumpStatementsHelpers.TryGetGotoBreakPattern(
                 gotoStatement, context.SemanticModel, context.CancellationToken, out _, out _, out _) ||
             CSharpUseLabeledJumpStatementsHelpers.TryGetGotoContinuePattern(
@@ -82,18 +78,17 @@ internal sealed class CSharpUseLabeledJumpStatementsDiagnosticAnalyzer()
 
         var breakStatement = (BreakStatementSyntax)context.Node;
 
-        // An inner 'break;' preceded by 'flag = true;' that, together with an outer 'if (flag) break/continue;', only
-        // exists to emulate a multi-level break/continue.  Report on the inner 'break;' (the actionable jump),
-        // pointing back at the flag declaration so the fix can reconstruct the whole pattern.
         if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
                 breakStatement, context.SemanticModel, context.CancellationToken, out var pattern))
         {
+            // Point at the flag declaration as an additional location so the fix can reconstruct the whole pattern
+            // from this single inner 'break'.
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 breakStatement.GetLocation(),
                 option.Notification,
                 context.Options,
-                additionalLocations: [pattern!.Declaration.GetLocation()],
+                additionalLocations: [pattern.Declaration.GetLocation()],
                 properties: null));
         }
     }
