@@ -480,6 +480,7 @@ Imports System.Threading.Tasks
 Class C
     Private Function GetValue() As Integer
         [|Await Task.Delay(1)|]
+        Return 1
     End Function
 
     Private Sub Hookup()
@@ -495,6 +496,7 @@ Imports System.Threading.Tasks
 Class C
     {|Warning:Private Async Function GetValueAsync() As Task(Of Integer)
         Await Task.Delay(1)
+        Return 1
     End Function|}
 
     Private Sub Hookup()
