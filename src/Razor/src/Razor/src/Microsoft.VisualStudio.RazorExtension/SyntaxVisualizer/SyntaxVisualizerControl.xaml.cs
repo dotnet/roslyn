@@ -143,6 +143,21 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         }
     }
 
+    public void ShowGeneratedDeclarationCode()
+    {
+        if (_activeWpfTextView is null)
+        {
+            return;
+        }
+
+        EnsureInitialized();
+
+        if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
+        {
+            ShowGeneratedCode(_activeWpfTextView.TextBuffer, hostDocumentUri, GeneratedDocumentKind.CSharpDeclaration);
+        }
+    }
+
     private void OpenVirtualDocuments<T>(ITextBuffer hostDocumentBuffer) where T : VirtualDocumentSnapshot
     {
         EnsureInitialized();
@@ -204,6 +219,7 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         var extension = kind switch
         {
             GeneratedDocumentKind.CSharp => ".g.cs",
+            GeneratedDocumentKind.CSharpDeclaration => ".decl.g.cs",
             GeneratedDocumentKind.Html => ".g.html",
             GeneratedDocumentKind.Formatting => ".formatting.cs",
             _ => null

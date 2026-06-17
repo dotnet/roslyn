@@ -22,6 +22,7 @@
       <IDSymbol name="cmdIdShowInScopeTagHelpers" value="0x0114" />
       <IDSymbol name="cmdIdShowReferencedTagHelpers" value="0x0115" />
       <IDSymbol name="cmdidShowFormattingDocument" value="0x0116" />
+      <IDSymbol name="cmdidShowGeneratedDeclarationCode" value="0x0117" />
     </GuidSymbol>
 
     <!-- Command set GUID for Razor nested file commands -->
@@ -92,6 +93,13 @@
         <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
         <Strings>
           <ButtonText>Show Generated C#</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedDeclarationCode" priority="0x202" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+        <Strings>
+          <ButtonText>Show Generated C# Declaration</ButtonText>
         </Strings>
       </Button>
 

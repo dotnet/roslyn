@@ -97,6 +97,11 @@
         <target state="translated">Generiertes C anzeigen #</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidShowGeneratedDeclarationCode|ButtonText">
+        <source>Show Generated C# Declaration</source>
+        <target state="new">Show Generated C# Declaration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
         <source>Show Generated HTML</source>
         <target state="translated">Generiertes HTML anzeigen</target>

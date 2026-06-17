@@ -97,6 +97,11 @@
         <target state="translated">顯示已產生的 C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidShowGeneratedDeclarationCode|ButtonText">
+        <source>Show Generated C# Declaration</source>
+        <target state="new">Show Generated C# Declaration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
         <source>Show Generated HTML</source>
         <target state="translated">顯示已產生的 HTML</target>

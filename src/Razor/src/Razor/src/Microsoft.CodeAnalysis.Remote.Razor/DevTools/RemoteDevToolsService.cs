@@ -28,9 +28,10 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
         WriteIndented = true
     };
 
-    public ValueTask<string> GetCSharpDocumentTextAsync(
+    public ValueTask<string?> GetCSharpDocumentTextAsync(
         RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
+        bool declarationDocument,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
@@ -38,7 +39,9 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             async context =>
             {
                 var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-                return codeDocument.GetCSharpSourceText().ToString();
+                var csharpDocument = codeDocument.GetCSharpDocument(declarationDocument);
+
+                return csharpDocument?.Text.ToString();
             },
             cancellationToken);
 

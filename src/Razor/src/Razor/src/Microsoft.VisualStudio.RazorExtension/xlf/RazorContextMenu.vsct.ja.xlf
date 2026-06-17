@@ -97,6 +97,11 @@
         <target state="translated">生成された C# を表示</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidShowGeneratedDeclarationCode|ButtonText">
+        <source>Show Generated C# Declaration</source>
+        <target state="new">Show Generated C# Declaration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
         <source>Show Generated HTML</source>
         <target state="translated">生成された HTML を表示</target>

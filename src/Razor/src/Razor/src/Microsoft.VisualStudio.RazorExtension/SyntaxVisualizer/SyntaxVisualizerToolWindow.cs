@@ -31,6 +31,7 @@ internal class SyntaxVisualizerToolWindow : ToolWindowPane
     private const int CmdIdShowInScopeTagHelpers = 0x0114;
     private const int CmdIdShowReferencedTagHelpers = 0x0115;
     private const int CmdidShowFormattingDocument = 0x0116;
+    private const int CmdIdShowGeneratedDeclarationCode = 0x0117;
 
     private SyntaxVisualizerControl _visualizerControl => (SyntaxVisualizerControl)Content;
 
@@ -77,6 +78,7 @@ internal class SyntaxVisualizerToolWindow : ToolWindowPane
 
         mcs.AddCommand(new MenuCommand(ShowFormattingDocument, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdidShowFormattingDocument)));
         mcs.AddCommand(new MenuCommand(ShowGeneratedCode, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowGeneratedCode)));
+        mcs.AddCommand(new MenuCommand(ShowGeneratedDeclarationCode, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowGeneratedDeclarationCode)));
         mcs.AddCommand(new MenuCommand(ShowGeneratedHtml, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowGeneratedHtml)));
         mcs.AddCommand(new MenuCommand(ShowAllTagHelpers, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowAllTagHelpers)));
         mcs.AddCommand(new MenuCommand(ShowInScopeTagHelpers, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowInScopeTagHelpers)));
@@ -91,6 +93,11 @@ internal class SyntaxVisualizerToolWindow : ToolWindowPane
     private void ShowGeneratedCode(object sender, EventArgs e)
     {
         _visualizerControl.ShowGeneratedCode();
+    }
+
+    private void ShowGeneratedDeclarationCode(object sender, EventArgs e)
+    {
+        _visualizerControl.ShowGeneratedDeclarationCode();
     }
 
     private void ShowGeneratedHtml(object sender, EventArgs e)

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Xunit;
@@ -22,6 +23,30 @@ public class CohostGeneratedDocumentContentsEndpointTest(ITestOutputHelper testO
                 """;
 
         await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.CSharp, """var message = "Hello World";""");
+    }
+
+    [Fact]
+    public async Task CSharpDeclaration()
+    {
+        var input = """
+                <h1>@Title</h1>
+
+                @code {
+                    private string Title { get; set; } = "Hello World";
+                }
+                """;
+
+        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.CSharpDeclaration, """private string Title { get; set; } = "Hello World";""");
+    }
+
+    [Fact]
+    public async Task CSharpDeclaration_ReturnsNullIfDocumentDoesNotExist()
+    {
+        var input = """
+                <h1>Hello World</h1>
+                """;
+
+        await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.CSharpDeclaration, expectedContentSubstring: null, RazorFileKind.Legacy);
     }
 
     [Fact]
@@ -51,9 +76,9 @@ public class CohostGeneratedDocumentContentsEndpointTest(ITestOutputHelper testO
         await VerifyGeneratedDocumentContentsAsync(input, GeneratedDocumentKind.Formatting, "class @code{");
     }
 
-    private async Task VerifyGeneratedDocumentContentsAsync(string input, GeneratedDocumentKind kind, string expectedContentSubstring)
+    private async Task VerifyGeneratedDocumentContentsAsync(string input, GeneratedDocumentKind kind, string? expectedContentSubstring, RazorFileKind? fileKind = null)
     {
-        var razorDocument = CreateProjectAndRazorDocument(input);
+        var razorDocument = CreateProjectAndRazorDocument(input, fileKind);
         var endpoint = new CohostGeneratedDocumentContentsEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
 
         var request = new DocumentContentsRequest
@@ -64,7 +89,14 @@ public class CohostGeneratedDocumentContentsEndpointTest(ITestOutputHelper testO
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, razorDocument, DisposalToken);
 
-        Assert.NotNull(result);
-        Assert.Contains(expectedContentSubstring, result);
+        if (expectedContentSubstring is null)
+        {
+            Assert.Null(result);
+        }
+        else
+        {
+            Assert.NotNull(result);
+            Assert.Contains(expectedContentSubstring, result);
+        }
     }
 }
