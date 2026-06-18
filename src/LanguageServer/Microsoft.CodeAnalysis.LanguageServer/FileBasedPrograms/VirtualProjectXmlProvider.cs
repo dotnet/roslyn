@@ -94,9 +94,13 @@ internal class VirtualProjectXmlProvider()
         }
     }
 
-    // See https://github.com/dotnet/sdk/blob/2d9fb6f7c32303c6ec359f429dee62a23e2d867c/src/Microsoft.DotNet.ProjectTools/VirtualProjectBuilder.cs#L102-L105
+    /// <summary>
+    /// From a C# document path, get the virtual project path to pass to MSBuild. Used only for the scenario where run-api doesn't give us a VirtualProjectPath.
+    /// Note: "Older" logic is used here, because, it's presumed that if run-api isn't giving us a path, it is using the older version of the logic.
+    /// See also https://github.com/dotnet/sdk/pull/53182
+    /// </summary>
     internal static string GetFallbackVirtualProjectPath(string documentFilePath)
-        => documentFilePath + ".csproj";
+        => Path.ChangeExtension(documentFilePath, ".csproj");
 
     #region Temporary copy of subset of dotnet run-api behavior
     // See https://github.com/dotnet/sdk/blob/b5dbc69cc28676ac6ea615654c8016a11b75e747/src/Cli/Microsoft.DotNet.Cli.Utils/Sha256Hasher.cs#L10
