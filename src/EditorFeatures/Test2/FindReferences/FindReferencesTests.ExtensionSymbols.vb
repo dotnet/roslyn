@@ -737,6 +737,90 @@ public static class E
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84020")>
+        Public Async Function FindReferences_ExtensionBlockMethod_UnqualifiedStaticForm(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+public static class MyClass
+{
+    extension(object x)
+    {
+        void {|Definition:$$M|}() { }
+    }
+
+    static void M2()
+    {
+        [|M|](new object());
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84020")>
+        Public Async Function FindReferences_ExtensionBlockMethod_UnqualifiedStaticForm_FromCallSite(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+public static class MyClass
+{
+    extension(object x)
+    {
+        void {|Definition:M|}() { }
+    }
+
+    static void M2()
+    {
+        [|$$M|](new object());
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84020")>
+        Public Async Function FindReferences_ExtensionBlockMethod_UnqualifiedStaticForm_WithQualifiedCall(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+public static class MyClass
+{
+    extension(object x)
+    {
+        public void {|Definition:$$M|}() { }
+    }
+
+    static void M2()
+    {
+        [|M|](new object());
+        MyClass.[|M|](new object());
+    }
+}
+
+class Other
+{
+    void Test()
+    {
+        new object().[|M|]();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function FindReferences_ExtensionBlockMethod_GenericCref(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
