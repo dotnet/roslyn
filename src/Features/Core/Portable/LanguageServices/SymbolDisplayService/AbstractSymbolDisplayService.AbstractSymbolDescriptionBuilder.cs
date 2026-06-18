@@ -555,7 +555,7 @@ internal abstract partial class AbstractSymbolDisplayService
 
             if (symbol.TypeKind == TypeKind.Delegate)
             {
-                var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
                 // Under the covers anonymous delegates are represented with generic types.  However, we don't want
                 // to see the unbound form of that generic.  We want to see the fully instantiated signature.

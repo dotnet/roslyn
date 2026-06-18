@@ -783,6 +783,21 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             @"event $$EventHandler e;",
             MainDescription("delegate void System.EventHandler(object sender, System.EventArgs e)"));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84010")]
+    public Task TestDelegateWithNullableParameter()
+        => TestAsync(
+            """
+            #nullable enable
+
+            delegate void MyHandler(object? sender, string e);
+
+            class C
+            {
+                $$MyHandler handler;
+            }
+            """,
+            MainDescription("delegate void MyHandler(object? sender, string e)"));
+
     [Fact]
     public Task TestTypeParameter()
         => TestAsync(
