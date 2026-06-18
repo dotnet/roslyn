@@ -25,12 +25,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
 public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutputHelper) : AbstractLspMiscellaneousFilesWorkspaceTests(testOutputHelper)
 {
-    /// <summary>
-    /// .NET SDK version used at runtime for tests. Note: right now this matches the repo-level SDK requirement.
-    /// In the near future we are going to experiment with ways for these tests to acquire
-    /// </summary>
-    private const string SdkVersion = "10.0.108";
-
     [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Simple(bool mutatingLspWorkspace)
     {
@@ -548,16 +542,22 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     private TempDirectory CreateTempDirectoryWithGlobalJson()
     {
         var tempDirectory = TempRoot.CreateDirectory();
-        var globalJsonContent = $$"""
+
+        string? globalJsonPath = null;
+        for (var path = AppContext.BaseDirectory; path != null; path = Path.GetDirectoryName(path))
+        {
+            var candidatePath = Path.Combine(path, "global.json");
+            if (File.Exists(candidatePath))
             {
-                "sdk": {
-                    "version": "{{SdkVersion}}",
-                    "allowPrerelease": true,
-                    "rollForward": "patch"
-                }
+                globalJsonPath = candidatePath;
+                break;
             }
-            """;
-        tempDirectory.CreateFile("global.json").WriteAllText(globalJsonContent);
+        }
+
+        if (globalJsonPath is null)
+            throw new InvalidOperationException($"The test was unable to find a global.json in the current directory tree: {AppContext.BaseDirectory}. This is likely a build authoring or deployment error.");
+
+        File.Copy(sourceFileName: globalJsonPath, destFileName: Path.Combine(tempDirectory.Path, "global.json"));
         return tempDirectory;
     }
 
