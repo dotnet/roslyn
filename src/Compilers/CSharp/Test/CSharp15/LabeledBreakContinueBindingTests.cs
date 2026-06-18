@@ -1884,24 +1884,14 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
 
     #endregion
 
-    #region Resolved-label-as-target side effects (probing for leaks)
+    #region Resolved-label-as-target side effects
 
-    // When a labeled break/continue can't find an enclosing loop/switch, but the identifier does
-    // resolve to *some* label symbol, the binder uses that label as the target so that downstream
-    // passes treat the label as referenced.  These tests probe whether using a reachable-but-illegal
-    // label as the target leaks any unexpected diagnostics in interesting scopes (lambdas, async
-    // lambdas, iterator methods, finally blocks, separate switch sections, etc.).
+    // These tests document the diagnostics when a labeled break/continue's label resolves but isn't a valid
+    // target (lambda/iterator/finally/switch-section/etc.).
 
     [Fact]
     public void Break_InsideLambda_LabelOutside_LeaksBadDelegateLeave()
     {
-        // Pre-existing behavior, NOT introduced by the resolved-label-as-target change: the lambda
-        // binder lets GetBreakLabel walk past the lambda boundary at bind time and find the outer
-        // loop's break label.  As a result BindBreakOrContinue produces a non-errored
-        // BoundBreakStatement and ControlFlowPass later reports CS1632 ("Control cannot leave...")
-        // when the break can't actually be matched to a loop in the lambda's local scope.
-        // Documented here so we notice if the resolved-label-as-target change ever starts
-        // surfacing a *different* leak in this scenario.
         var source = """
             using System;
             class C
@@ -1927,7 +1917,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     [Fact]
     public void Continue_InsideAsyncLambda_LabelOutside_LeaksBadDelegateLeave()
     {
-        // Same lambda-boundary behavior as above, this time for an async lambda + continue.
         var source = """
             using System;
             using System.Threading.Tasks;
@@ -1954,12 +1943,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     [Fact]
     public void Break_InsideIterator_LabelOutside_StillReportsUnreachableCode()
     {
-        // Inside an iterator method with a labeled break that has no valid target.  The break
-        // becomes errored -> WRN_UnreferencedLabel is suppressed for `outer:`.  CS0162 is still
-        // reported on the trailing `while (true)` because the previous `while (true)` body is
-        // unreachable for a different reason (the break above has nothing to do with it).
-        // Probing test: confirms the resolved-label-as-target change does not introduce
-        // a *new* unreachable-code surprise here.
         var source = """
             using System.Collections.Generic;
             class C
@@ -1986,12 +1969,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     [Fact]
     public void Break_InsideFinally_LabelOnOuterBlock_LeaksControlCannotLeaveFinally()
     {
-        // The user-declared label `L:` *is* visible from inside the finally block, so BindLabel
-        // resolves it.  GetBreakLabel returns null (try/finally provide no break target) so
-        // BindBreakOrContinue falls through with target := L's LabelSymbol and hasErrors=true.
-        // ControlFlowPass then reports CS0157 ("Control cannot leave the body of a finally
-        // clause"), because the synthesized goto edge would in fact leave the finally.
-        // This is a real *new* leak introduced by the resolved-label-as-target change.
         var source = """
             class C
             {
@@ -2017,9 +1994,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     [Fact]
     public void Break_InSwitchSection_LabelInDifferentSection_LabelTreatedAsReferenced()
     {
-        // The label `L:` is in a different switch section from `break L;`.  Labels are visible
-        // across switch sections at bind time, so BindLabel resolves to L's LabelSymbol and the
-        // synthesized target makes flow analysis treat L as referenced (no CS0164).
         var source = """
             class C
             {
@@ -2044,9 +2018,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     [Fact]
     public void Continue_TargetOnSwitch_SuppressesSwitchFallOutAndUnreferencedLabel()
     {
-        // Documents that ERR_SwitchFallOut (CS8070) is also suppressed for the case where the
-        // synthesized target makes the continue look like a real exit edge.  This is a
-        // *consequence* of resolving the bad label as the target, not a separately reported error.
         var source = """
             class C
             {
@@ -2068,9 +2039,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     [Fact]
     public void Break_LabelOnFollowingLoop_SuppressesUnreachableCodeAndUnreferencedLabel()
     {
-        // Documents that WRN_UnreachableCode (CS0162) is also suppressed.  The break is errored,
-        // but flow analysis still treats it as a real exit, so the trailing labeled loop
-        // becomes "reachable" via the synthesized target -- no unreachable warning is produced.
         var source = """
             class C
             {
@@ -2090,9 +2058,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     [Fact]
     public void GetSymbolInfo_BreakWithBadTarget_SemanticModelStillResolvesIdentifier()
     {
-        // The IDE side-benefit of this approach: even though the break is errored, the SemanticModel
-        // can still resolve the identifier to its label symbol, so find-references / rename / etc.
-        // continue to work on the broken code.
         var source = """
             class C
             {
