@@ -2982,12 +2982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (label == null)
                     return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
 
-                // We resolved the identifier to *some* label symbol but it isn't on an enclosing
-                // loop/switch.  Use that as the target so we still produce a normal
-                // BoundBreakStatement/BoundContinueStatement: the SemanticModel can then resolve
-                // the identifier, and downstream passes treat the label as referenced (suppressing
-                // WRN_UnreferencedLabel on the otherwise-unused label).  The node is still flagged
-                // as having errors via the diagnostic reported above.
+                // The label resolved but isn't on an enclosing loop/switch.  Use it as the target anyway (still
+                // flagged as an error) so we produce a normal break/continue for error recovery.
                 target = label.Label;
                 hasErrors = true;
             }
