@@ -32,6 +32,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly CanonicalMiscellaneousFilesProjectProvider _canonicalProjectProvider;
     private readonly DotnetCliHelper _dotnetCliHelper;
 
+    /// <summary>
+    /// Virtual (in-memory) projects don't exist on disk, so MSBuild worker nodes
+    /// can't re-evaluate them. Force single-node builds to keep everything in-process.
+    /// </summary>
+    protected override int MaxNodeCount => 1;
+
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
         VirtualProjectXmlProvider projectXmlProvider,

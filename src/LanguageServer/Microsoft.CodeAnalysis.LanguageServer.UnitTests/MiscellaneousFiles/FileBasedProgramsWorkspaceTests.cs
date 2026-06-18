@@ -124,6 +124,54 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     [Theory, CombinatorialData]
+    public async Task TestMultipleFileBasedPrograms_WithWorkspaceDiscovery(bool mutatingLspWorkspace)
+    {
+        // Test discovering and loading several file-based apps in a single batch.
+        var tempDir = TempRoot.CreateDirectory();
+
+        var app1Text = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("app1");
+            """;
+        var app1File = tempDir.CreateFile("app1.cs").WriteAllText(app1Text);
+
+        var app2Text = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("app2");
+            """;
+        var app2File = tempDir.CreateFile("app2.cs").WriteAllText(app2Text);
+
+        var app3Text = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("app3");
+            """;
+        var app3File = tempDir.CreateFile("app3.cs").WriteAllText(app3Text);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }],
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+
+        // Enable discovery and find all FBAs at once — they are queued and loaded in a single batch.
+        var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptions.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, true);
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        await discovery.FindAndLoadEntryPointsAsync();
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // Verify all FBAs loaded successfully in the host workspace.
+        foreach (var file in new[] { app1File, app2File, app3File })
+        {
+            var uri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
+            var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(uri, testLspServer).ConfigureAwait(false);
+            Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+            Assert.True(document.Project.State.HasAllInformation, $"HasAllInformation was false for {file.Path}");
+        }
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Multitargeting(bool mutatingLspWorkspace)
     {
         // Load a file-based app which multitargets via `#:property TargetFrameworks`.
