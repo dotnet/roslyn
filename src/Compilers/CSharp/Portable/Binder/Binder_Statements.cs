@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.GotoStatement:
-                    var expression = BindLabel(node.Expression, diagnostics, reportErrors: true);
+                    var expression = BindLabel(node.Expression, diagnostics);
                     var boundLabel = expression as BoundLabel;
                     if (boundLabel == null)
                     {
@@ -2965,11 +2965,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
 
-            // Pass "reportErrors: false" to suppress label-not-found errors here; if the lookup fails we'll instead
-            // report the more specific ERR_NoBreakId/ERR_NoContinueId/ERR_NoBreakOrCont below.  We still perform the
-            // lookup so we have a BoundLabel for the SemanticModel and so that ControlFlowPass marks the label as
+            // Bind the label into a discarded bag: we don't want its label-not-found error (we report the more specific
+            // ERR_NoBreakId/ERR_NoContinueId/ERR_NoBreakOrCont below), but we still want the resulting BoundLabel for
+            // error recovery -- so the SemanticModel can resolve the identifier and ControlFlowPass marks the label as
             // referenced (suppressing WRN_UnreferencedLabel).
-            var label = name == null ? null : BindLabel(name, diagnostics, reportErrors: false) as BoundLabel;
+            var label = name == null ? null : BindLabel(name, BindingDiagnosticBag.Discarded) as BoundLabel;
             LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
 
             var hasErrors = false;

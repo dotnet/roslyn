@@ -2408,7 +2408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExpressionSyntax expression:
                     var parent = expression.Parent;
                     return parent.IsKind(SyntaxKind.GotoStatement)
-                        ? binder.BindLabel(expression, diagnostics, reportErrors: true)
+                        ? binder.BindLabel(expression, diagnostics)
                         : binder.BindNamespaceOrTypeOrExpression(expression, diagnostics);
                 case StatementSyntax statement:
                     return binder.BindStatement(statement, diagnostics);
