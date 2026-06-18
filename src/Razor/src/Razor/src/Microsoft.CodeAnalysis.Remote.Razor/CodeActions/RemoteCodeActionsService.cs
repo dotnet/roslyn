@@ -38,34 +38,34 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var absoluteIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(request.Range.Start);
-        var languageKind = GetPositionInfo(codeDocument, absoluteIndex).LanguageKind;
+        var positionInfo = GetPositionInfo(codeDocument, absoluteIndex);
 
         VSCodeActionParams? csharpRequest = null;
-        if (languageKind == RazorLanguageKind.CSharp)
+        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {
-            csharpRequest = await _codeActionsService.GetCSharpCodeActionsRequestAsync(context.Snapshot, request, cancellationToken).ConfigureAwait(false);
+            csharpRequest = await _codeActionsService.GetCSharpCodeActionsRequestAsync(context.Snapshot, request, positionInfo.InDeclDocument, cancellationToken).ConfigureAwait(false);
 
             if (csharpRequest is not null)
             {
                 // Since we're here, we may as well fill in the generated document Uri so the other caller won't have to calculate it
-                var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken).ConfigureAwait(false);
                 csharpRequest.TextDocument.DocumentUri = generatedDocument.GetURI();
             }
         }
 
-        return new CodeActionRequestInfo(languageKind, csharpRequest);
+        return new CodeActionRequestInfo(positionInfo.LanguageKind, csharpRequest, positionInfo.InDeclDocument);
     }
 
-    public ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, VSCodeActionParams request, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
+    public ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, VSCodeActionParams request, bool inDeclDocument, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetCodeActionsAsync(context, request, delegatedCodeActions, cancellationToken),
+            context => GetCodeActionsAsync(context, request, inDeclDocument, delegatedCodeActions, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(RemoteDocumentContext context, VSCodeActionParams request, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
+    private async ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(RemoteDocumentContext context, VSCodeActionParams request, bool inDeclDocument, RazorVSInternalCodeAction[] delegatedCodeActions, CancellationToken cancellationToken)
     {
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
         var generatedDocumentUri = generatedDocument.CreateSystemUri();
 
         var supportsCodeActionResolve = _clientCapabilitiesService.ClientCapabilities.TextDocument?.CodeAction?.ResolveSupport is not null;

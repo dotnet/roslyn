@@ -98,7 +98,7 @@ internal sealed class CohostCodeActionsEndpoint(
 
         return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, SumType<Command, CodeAction>[]?>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetCodeActionsAsync(solutionInfo, razorDocument.Id, request, delegatedCodeActions, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetCodeActionsAsync(solutionInfo, razorDocument.Id, request, requestInfo.InDeclDocument, delegatedCodeActions, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 

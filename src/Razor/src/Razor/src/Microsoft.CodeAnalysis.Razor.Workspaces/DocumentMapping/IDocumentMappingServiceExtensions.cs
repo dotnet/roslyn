@@ -40,8 +40,9 @@ internal static class IDocumentMappingServiceExtensions
         var languageKind = codeDocument.GetLanguageKind(razorIndex, rightAssociative: false);
         if (languageKind is RazorLanguageKind.CSharp)
         {
-            if (service.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out var mappedPosition, out _, out inDeclDocument))
+            if (service.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out var mappedPosition, out _, out var isInDeclDocument))
             {
+                inDeclDocument = isInDeclDocument;
                 // For C# locations, we attempt to return the corresponding position
                 // within the projected document
                 position = mappedPosition.ToPosition();

@@ -20,5 +20,5 @@ internal interface ICodeActionsService
         bool supportsCodeActionResolve,
         CancellationToken cancellationToken);
 
-    Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, CancellationToken cancellationToken);
+    Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, bool inDeclDocument, CancellationToken cancellationToken);
 }

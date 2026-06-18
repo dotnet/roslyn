@@ -206,11 +206,10 @@ internal sealed class RazorFormattingService : IRazorFormattingService
             : null;
     }
 
-    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(IDocumentSnapshot documentSnapshot, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var documentSnapshot = documentContext.Snapshot;
         // Since we've been provided with edits from the C# generated doc, forcing design time would make things not line up
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var razorChanges = await ApplyFormattedChangesAsync(
             documentSnapshot,

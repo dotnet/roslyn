@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -132,11 +132,11 @@ internal sealed class CodeActionsService(
         return context;
     }
 
-    public async Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, CancellationToken cancellationToken)
+    public async Task<VSCodeActionParams?> GetCSharpCodeActionsRequestAsync(RemoteDocumentSnapshot documentSnapshot, VSCodeActionParams request, bool inDeclDocument, CancellationToken cancellationToken)
     {
         // For C# we have to map the ranges to the generated document
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
         if (!_documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, request.Range, out var projectedRange))
         {
             return null;
@@ -152,7 +152,7 @@ internal sealed class CodeActionsService(
 
         // @inherits projects onto the base type only (ie, just "Base" in `Component : Base`), but some Roslyn code actions are only
         // offered on the class declaration itself (ie, "Component" in above). In this case we widen the request to the whole declaration.
-        if (await TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(documentSnapshot, codeDocument, request.Range, projectedRange, cancellationToken).ConfigureAwait(false) is { } inheritsDirectiveRange)
+        if (await TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(documentSnapshot, codeDocument, inDeclDocument, request.Range, projectedRange, cancellationToken).ConfigureAwait(false) is { } inheritsDirectiveRange)
         {
             projectedRange = inheritsDirectiveRange;
 
@@ -178,6 +178,7 @@ internal sealed class CodeActionsService(
     private static async Task<LspRange?> TryExpandInheritsDirectiveRangeToWholeDeclarationAsync(
         RemoteDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument,
+        bool inDeclDocument,
         LspRange razorRange,
         LspRange projectedRange,
         CancellationToken cancellationToken)
@@ -191,7 +192,7 @@ internal sealed class CodeActionsService(
             return null;
         }
 
-        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
         var csharpRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var csharpText = await csharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var projectedStart = csharpText.GetRequiredAbsoluteIndex(projectedRange.Start);
