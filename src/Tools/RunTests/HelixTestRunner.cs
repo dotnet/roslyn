@@ -45,13 +45,17 @@ internal sealed partial class HelixTestRunner
     internal static TimeSpan WorkItemScheduleTime { get; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// This is the amount of time we will wait for a helix work item to complete before we consider it a severe error
-    /// and cancel the helix job entirely.
+    /// In xUnit v2, IAsyncLifetime.InitializeAsync and DisposeAsync are not included in the
+    /// reported test duration (DurationInMs). This is the per-theory-instance overhead adjustment
+    /// applied to tests whose class implements IAsyncLifetime.
     /// </summary>
-    /// <remarks>
-    /// The only lever that vstest provides is for timeout on an individual test, not the entire test run. We need a guard
-    /// against the helix job executing for the entire AzDO job time (currently set at six hours).
-    /// </remarks>
+    internal static TimeSpan AsyncLifetimeInstanceOverhead { get; } = TimeSpan.FromMilliseconds(700);
+
+    /// <summary>
+    /// This is the maximum time a Helix work item is allowed to execute. This value is passed to Helix
+    /// as the work item timeout. We also monitor work items against this value and report warnings when
+    /// it is exceeded.
+    /// </summary>
     internal static TimeSpan WorkItemExecutionTimeout { get; } = WorkItemScheduleTime * 3;
 
     /// <summary>
@@ -128,7 +132,7 @@ internal sealed partial class HelixTestRunner
         try
         {
             await WaitForAllWorkItemsRunningAsync(helixApi, helixJobId, processWaitTask, cancellationToken);
-            await WaitForWorkItemsToCompleteOrTimeoutAsync(helixApi, helixJobId, helixCancellationToken, testResultsDirectory, processWaitTask, cancellationToken);
+            await WaitForHelixJob(helixApi, helixJobId, testResultsDirectory, processWaitTask, cancellationToken);
             await process.WaitForExitAsync(cancellationToken);
             return process.ExitCode;
         }
@@ -181,8 +185,9 @@ internal sealed partial class HelixTestRunner
             } while (true);
         }
 
-        static async Task WaitForWorkItemsToCompleteOrTimeoutAsync(HelixApi helixApi, string helixJobId, string helixCancellationToken, string testResultsDirectory, Task processWaitTask, CancellationToken cancellationToken)
+        static async Task WaitForHelixJob(HelixApi helixApi, string helixJobId, string testResultsDirectory, Task processWaitTask, CancellationToken cancellationToken)
         {
+            var reportedTimeouts = new HashSet<string>();
             do
             {
                 var delayTask = Task.Delay(HelixPollTime, cancellationToken);
@@ -210,9 +215,9 @@ internal sealed partial class HelixTestRunner
                             continue;
                         }
 
-                        if (HasTimedOut(details))
+                        if (HasTimedOut(details) && reportedTimeouts.Add(workItem.Name))
                         {
-                            ConsoleUtil.Error($"Helix Job {helixJobId} Work item {workItem.Name} has been in state {details.State} for more than {WorkItemExecutionTimeout}. Timing out the job.");
+                            ConsoleUtil.Warning($"Helix Job {helixJobId} Work item {workItem.Name} has been in state {details.State} for more than {WorkItemExecutionTimeout}.");
                             timedOutWorkItems.Add(workItem.Name);
                         }
                     }
@@ -220,8 +225,6 @@ internal sealed partial class HelixTestRunner
                     if (timedOutWorkItems.Count > 0)
                     {
                         WriteSyntheticTimeoutResults(testResultsDirectory, helixJobId, timedOutWorkItems);
-                        await helixApi.CancelJobAsync(helixJobId, helixCancellationToken, cancellationToken);
-                        throw new Exception($"One or more work items in Helix job {helixJobId} have timed out. Timing out the entire job.");
                     }
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException and not TimeoutException)
@@ -319,7 +322,8 @@ internal sealed partial class HelixTestRunner
 
         // Retrieve test runtimes from azure devops historical data.
         var testHistory = await TestHistoryManager.GetTestHistoryAsync(cancellationToken);
-        var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), testHistory);
+        var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), platform, testHistory);
+        var timeout = testHistory is null ? WorkItemExecutionTimeout * 2 : WorkItemExecutionTimeout;
         var helixProjectFileContent = GetHelixProjectFileContent(
             helixWorkItems,
             testOS,
@@ -328,7 +332,8 @@ internal sealed partial class HelixTestRunner
             options.HelixQueueName,
             options.ArtifactsDirectory,
             payloadsDir,
-            options.EnvironmentVariables);
+            options.EnvironmentVariables,
+            timeout);
 
         var helixFilePath = Path.Combine(options.ArtifactsDirectory, "helix.proj");
         File.WriteAllText(helixFilePath, helixProjectFileContent);
@@ -418,7 +423,8 @@ internal sealed partial class HelixTestRunner
         string helixQueueName,
         string artifactsDir,
         string payloadsDir,
-        Dictionary<string, string> environmentVariables)
+        Dictionary<string, string> environmentVariables,
+        TimeSpan timeout)
     {
         // Setup the environment variables that are required for the helix project.
         //
@@ -463,7 +469,7 @@ internal sealed partial class HelixTestRunner
 
         foreach (var helixWorkItem in helixWorkItems)
         {
-            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS, environmentVariables);
+            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS, environmentVariables, timeout);
         }
 
         builder.AppendLine("""
@@ -490,7 +496,8 @@ internal sealed partial class HelixTestRunner
             string artifactsDir,
             string payloadsDir,
             TestOS testOS,
-            Dictionary<string, string> environmentVariables)
+            Dictionary<string, string> environmentVariables,
+            TimeSpan timeout)
         {
             var isUnix = testOS != TestOS.Windows;
 
@@ -538,7 +545,7 @@ internal sealed partial class HelixTestRunner
                         <PayloadDirectory>{workItemPayloadDir}</PayloadDirectory>
                         <Command>{commandPrefix}{commandFileName}</Command>
                         <PostCommands>{commandPrefix}{postCommandFileName}</PostCommands>
-                        <Timeout>01:00:00</Timeout>
+                        <Timeout>{timeout:hh\:mm\:ss}</Timeout>
                         <ExpectedExecutionTime>{helixWorkItem.EstimatedExecutionTime}</ExpectedExecutionTime>
                     </HelixWorkItem>
                 """);

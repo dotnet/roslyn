@@ -112,6 +112,7 @@ modifier
   | 'readonly'
   | 'ref'
   | 'required'
+  | 'safe'
   | 'scoped'
   | 'sealed'
   | 'static'
@@ -787,6 +788,7 @@ expression
   | tuple_expression
   | type
   | type_of_expression
+  | unsafe_expression
   | with_expression
   ;
 
@@ -1152,6 +1154,10 @@ tuple_expression
 
 type_of_expression
   : 'typeof' '(' type ')'
+  ;
+
+unsafe_expression
+  : 'unsafe' '(' expression ')'
   ;
 
 with_expression

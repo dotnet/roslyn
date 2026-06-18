@@ -491,5 +491,31 @@ internal sealed partial class DefaultFileChangeWatcher : IFileChangeWatcher
                     AddWatchedDirectoryPaths(child);
             }
         }
+
+        /// <summary>
+        /// Returns the distinct set of <see cref="FileChangeContext"/>s that currently hold one or more file watches.
+        /// A context is referenced in the tree from when it acquires its first watch until it is disposed, so this can
+        /// be used to detect file watches that were never released (for example, when a server fails to dispose its
+        /// projects on shutdown). Tracking contexts by identity (rather than watched directory paths) keeps the result
+        /// stable even when the watcher consolidates watches or different contexts watch the same directory.
+        /// </summary>
+        public static IReadOnlyCollection<IFileChangeContext> GetActiveContexts(DefaultFileChangeWatcher watcher)
+        {
+            var contexts = new HashSet<IFileChangeContext>(ReferenceEqualityComparer.Instance);
+
+            foreach (var root in watcher._roots.Values)
+                AddActiveContexts(root);
+
+            return contexts;
+
+            void AddActiveContexts(DirectoryNode node)
+            {
+                foreach (var context in node.ActiveContexts)
+                    contexts.Add(context);
+
+                foreach (var child in node.Children.Values)
+                    AddActiveContexts(child);
+            }
+        }
     }
 }

@@ -5,51 +5,69 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(LanguageServerProjectSystem)), Shared]
-internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
+/// <summary>
+/// LSP service factory that constructs the per-LSP-server <see cref="LanguageServerProjectSystem"/>.
+/// </summary>
+[ExportCSharpVisualBasicLspServiceFactory(typeof(LanguageServerProjectSystem)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class LanguageServerProjectSystemServiceFactory(
+    IGlobalOptionService globalOptionService,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    ServerConfigurationFactory serverConfigurationFactory) : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new LanguageServerProjectSystem(
+            lspServices,
+            globalOptionService,
+            lspServices.GetRequiredService<ILoggerFactory>(),
+            listenerProvider,
+            serverConfigurationFactory,
+            lspServices.GetRequiredService<IBinLogPathProvider>(),
+            lspServices.GetRequiredService<DotnetCliHelper>());
+}
+
+internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader, ILspService
 {
     private readonly ILogger _logger;
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
     private readonly ProjectSystemProjectFactory _hostProjectFactory;
+    private readonly IClientLanguageServerManager _clientLanguageServerManager;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerProjectSystem(
-        LanguageServerWorkspaceFactory workspaceFactory,
-        IFileChangeWatcher fileChangeWatcher,
+        ILspServices lspServices,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
-        ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider,
         DotnetCliHelper dotnetCliHelper)
             : base(
-                workspaceFactory,
-                fileChangeWatcher,
+                lspServices,
                 globalOptionService,
                 loggerFactory,
                 listenerProvider,
-                projectLoadTelemetry,
                 serverConfigurationFactory,
                 binLogPathProvider,
                 dotnetCliHelper)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
-        _hostProjectFactory = workspaceFactory.HostProjectFactory;
-        var workspace = workspaceFactory.HostWorkspace;
+        _hostProjectFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>().HostProjectFactory;
+        _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        var workspace = _hostProjectFactory.Workspace;
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace));
     }
 
@@ -70,7 +88,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         }
 
         await WaitForProjectsToFinishLoadingAsync();
-        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
     }
 
     public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths, IProgress<LSP.WorkDoneProgress>? progressReporter = null)
@@ -88,7 +106,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         }
 
         await WaitForProjectsToFinishLoadingAsync();
-        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+        await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
@@ -109,6 +127,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
             ProjectRestorePath = projectPath,
             ProjectFactory = _hostProjectFactory,
             IsFileBasedProgram = false,
+            HasFileBasedAppDirectives = false,
             IsMiscellaneousFile = false,
             HasAllInformation = true,
             PreferredBuildHostKind = preferredBuildHostKind,

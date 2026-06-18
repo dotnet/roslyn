@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 namespace Microsoft.VisualStudio.Razor;
 
@@ -68,7 +68,7 @@ internal sealed class OrganizeUsingsCommand(IRemoteServiceInvoker remoteServiceI
         }
 
         // C# diagnostics
-        var csharpDiagnostics = await ExternalHandlers.Diagnostics.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
+        var csharpDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
 
         // Razor diagnostics (to filter and hydrate cache)
         await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(

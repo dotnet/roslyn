@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,46 +23,62 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
 {
     private readonly TestOutputLoggerProvider _loggerProvider;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly TempDirectory _mefCacheDirectory;
     protected readonly TempRoot TempRoot;
+
+    /// <summary>
+    /// Projects created via <see cref="AddDocumentAsync"/>. These are created directly against the host project factory
+    /// (bypassing the project loader that would normally dispose them on shutdown), so the test owns their lifetime and
+    /// must remove them on teardown to release the file watches they hold.
+    /// </summary>
+    private readonly List<ProjectSystemProject> _projectsToRemoveOnDispose = [];
+
+    /// <summary>
+    /// Snapshot of the file watches active before this test ran. Used to verify that the server releases every file
+    /// watch it created once it shuts down (see <see cref="FileWatcherReleaseTracker"/>).
+    /// </summary>
+    private readonly FileWatcherReleaseTracker _fileWatcherReleaseTracker;
 
     public AbstractLspMiscellaneousFilesWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
         _loggerProvider = new TestOutputLoggerProvider(testOutputHelper);
         _loggerFactory = new LoggerFactory([_loggerProvider]);
         TempRoot = new();
-        _mefCacheDirectory = TempRoot.CreateDirectory();
+        _fileWatcherReleaseTracker = FileWatcherReleaseTracker.Capture();
     }
 
     public void Dispose()
     {
+        // Projects created via AddDocumentAsync are created directly against the host project factory and bypass the
+        // project loader, so nothing else removes them. Remove them now (while the host workspace is still alive) to
+        // release the file watches they hold, mirroring what LoadedProject.Dispose does for loader-managed projects.
+        foreach (var project in _projectsToRemoveOnDispose)
+            project.RemoveFromWorkspace();
+
         TempRoot.Dispose();
         _loggerProvider.Dispose();
+        _loggerFactory.Dispose();
+
+        // The test's server(s) are disposed by the test body (via 'await using'), which releases their file watches on
+        // shutdown. Verify that actually happened so a watch-leaking test fails here rather than leaking into a later test.
+        _fileWatcherReleaseTracker.AssertWatchesReleased();
     }
 
-    protected override async ValueTask<ExportProvider> CreateExportProviderAsync()
+    protected override ValueTask<ExportProvider> CreateExportProviderAsync()
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
-
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            _loggerFactory,
-            includeDevKitComponents: false,
-            cacheDirectory: _mefCacheDirectory.Path,
-            extensionPaths: []);
-
-        return exportProvider;
+        return new(LanguageServerTestComposition.GetSharedExportProvider(AbstractLanguageServerHostTests.DefaultServerConfiguration, _loggerFactory));
     }
 
     private protected Workspace GetHostWorkspace(TestLspServer testLspServer)
     {
-        var workspaceFactory = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        return workspaceFactory.HostWorkspace;
+        var provider = testLspServer.GetRequiredLspService<IHostWorkspaceProvider>();
+        return provider.Workspace;
     }
 
     private protected async ValueTask<Document> AddDocumentAsync(TestLspServer testLspServer, string filePath)
     {
         // For the file-based programs, we want to put them in the real workspace via the real host service
-        var workspaceFactory = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
         var project = await workspaceFactory.HostProjectFactory.CreateAndAddToWorkspaceAsync(
             Guid.NewGuid().ToString(),
             LanguageNames.CSharp,
@@ -68,6 +86,9 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
             workspaceFactory.ProjectSystemHostInfo);
 
         project.AddSourceFile(filePath);
+
+        // The test owns this project's lifetime; track it so it is removed (releasing its file watches) on teardown.
+        _projectsToRemoveOnDispose.Add(project);
 
         return workspaceFactory.HostWorkspace.CurrentSolution.GetRequiredProject(project.Id).Documents.Single();
     }

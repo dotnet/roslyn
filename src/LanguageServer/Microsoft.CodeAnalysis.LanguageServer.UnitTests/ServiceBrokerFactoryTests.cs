@@ -22,8 +22,12 @@ using DebuggerContracts = Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
+/// <summary>
+/// These tests verify specifics around LSP service MEF lifetimes and availability, so utilize the real
+/// MEF composition via <see cref="AbstractLanguageServerMefHost"/> 
+/// </summary>
 public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper)
-    : AbstractLanguageServerHostTests(testOutputHelper)
+    : AbstractLanguageServerMefHost(testOutputHelper)
 {
     private const string ServiceBrokerConnectMethodName = "serviceBroker/connect";
     private const string ServiceBrokerChannelName = "serviceBroker";
@@ -43,16 +47,16 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
 
         try
         {
-            var serviceBrokerFactory1 = server1.LanguageServerHost.GetRequiredLspService<ServiceBrokerFactory>();
-            var serviceBrokerFactory2 = server2.LanguageServerHost.GetRequiredLspService<ServiceBrokerFactory>();
+            var serviceBrokerFactory1 = server1.GetRequiredLspService<ServiceBrokerFactory>();
+            var serviceBrokerFactory2 = server2.GetRequiredLspService<ServiceBrokerFactory>();
 
             Assert.NotSame(serviceBrokerFactory1, serviceBrokerFactory2);
 
             await brokeredServiceClient1.ConnectAsync(server1);
             await brokeredServiceClient2.ConnectAsync(server2);
 
-            Assert.Same(serviceBrokerFactory1, server1.LanguageServerHost.GetRequiredLspService<ServiceBrokerFactory>());
-            Assert.Same(serviceBrokerFactory2, server2.LanguageServerHost.GetRequiredLspService<ServiceBrokerFactory>());
+            Assert.Same(serviceBrokerFactory1, server1.GetRequiredLspService<ServiceBrokerFactory>());
+            Assert.Same(serviceBrokerFactory2, server2.GetRequiredLspService<ServiceBrokerFactory>());
 
             var workspaceProjectFactory1 = await GetRequiredServiceAsync<IWorkspaceProjectFactoryService>(brokeredServiceClient1.ServiceBroker, WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor, CancellationToken.None);
             var workspaceProjectFactory2 = await GetRequiredServiceAsync<IWorkspaceProjectFactoryService>(brokeredServiceClient2.ServiceBroker, WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor, CancellationToken.None);

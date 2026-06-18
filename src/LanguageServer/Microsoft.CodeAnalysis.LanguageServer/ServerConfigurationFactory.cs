@@ -43,7 +43,7 @@ internal sealed class ServerConfigurationFactory
 
 internal sealed record class ServerConfiguration(
     bool LaunchDebugger,
-    LogConfiguration LogConfiguration,
+    LogLevel InitialLogLevel,
     string? TelemetryLevel,
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
@@ -52,26 +52,6 @@ internal sealed record class ServerConfiguration(
     string? ServerPipeName,
     bool UseStdIo,
     string? ExtensionLogDirectory,
-    bool AutoLoadProjects,
+    int? AutoLoadProjects,
     SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference,
     int? ClientProcessId);
-
-internal sealed class LogConfiguration
-{
-    private int _currentLogLevel;
-
-    public LogConfiguration(LogLevel initialLogLevel)
-    {
-        _currentLogLevel = (int)(initialLogLevel);
-    }
-
-    public void UpdateLogLevel(LogLevel level)
-    {
-        Interlocked.Exchange(ref _currentLogLevel, (int)level);
-    }
-
-    public LogLevel GetLogLevel()
-    {
-        return (LogLevel)_currentLogLevel;
-    }
-}

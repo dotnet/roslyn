@@ -523,4 +523,29 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             String("\"\"\""),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80808")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/83046")]
+    public Task TestLargeEmbeddedCSharp(TestHost testHost)
+    {
+        // The embedded code must be larger than SlidingTextWindow.DefaultWindowLength (4096) so that the
+        // lexer reads it in more than one chunk.  This exercises VirtualCharSequenceSourceText.CopyTo with a
+        // non-zero source index, which previously threw an IndexOutOfRangeException.
+        var comment = "// " + new string('x', 5000);
+        return TestEmbeddedCSharpAsync(
+            comment + """
+
+            class D
+            {
+            }
+            """,
+            testHost,
+            Comment(comment),
+            Keyword("class"),
+            TestCode(" "),
+            Class("D"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
 }

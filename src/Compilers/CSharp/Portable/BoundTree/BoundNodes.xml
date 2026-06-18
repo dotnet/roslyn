@@ -2601,10 +2601,9 @@
     <Field Name="Right" Type="BoundPattern"/>
   </Node>
 
-  <!-- NarrowedType is 'object' for Union matching, and the InputType otherwise -->
+  <!-- NarrowedType is the InputType -->
   <Node Name="BoundNegatedPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Negated" Type="BoundPattern"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!-- 

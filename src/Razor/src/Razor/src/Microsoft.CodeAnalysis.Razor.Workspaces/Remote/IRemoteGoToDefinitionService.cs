@@ -3,14 +3,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteGoToDefinitionService : IRemoteJsonService
 {
-    ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+    ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionsAsync(
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         Position position,
         CancellationToken cancellationToken);

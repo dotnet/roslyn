@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
@@ -10,10 +12,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
@@ -28,7 +30,7 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     {
     }
 
-    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures;
+    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures.AddParts(typeof(VSTypeScriptTestLoggerFactory));
 
     [Fact]
     public async Task TestRoslynTypeScriptHandlerInvoked()
@@ -77,16 +79,16 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
         var testWorkspace = await CreateWorkspaceAsync(options, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
-        return await VSTypeScriptTestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
+        return await VSTypeScriptTestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputHelper);
     }
 
     private sealed class VSTypeScriptTestLspServer : AbstractTestLspServer<LspTestWorkspace, TestHostDocument, TestHostProject, TestHostSolution>
     {
-        public VSTypeScriptTestLspServer(LspTestWorkspace testWorkspace, Dictionary<string, IList<Roslyn.LanguageServer.Protocol.Location>> locations, InitializationOptions options, AbstractLspLogger logger) : base(testWorkspace, locations, options, logger)
+        public VSTypeScriptTestLspServer(LspTestWorkspace testWorkspace, Dictionary<string, IList<Roslyn.LanguageServer.Protocol.Location>> locations, InitializationOptions options, ITestOutputHelper testOutputHelper) : base(testWorkspace, locations, options, testOutputHelper)
         {
         }
 
-        protected override RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
+        protected override RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind)
         {
             var servicesProvider = TestWorkspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
 
@@ -98,7 +100,6 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
 
             var languageServer = new RoslynLanguageServer(
                 servicesProvider, jsonRpc, messageFormatter.JsonSerializerOptions,
-                logger,
                 TestWorkspace.Services.HostServices,
                 [InternalLanguageNames.TypeScript],
                 WellKnownLspServerKinds.RoslynTypeScriptLspServer);
@@ -107,14 +108,21 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
             return languageServer;
         }
 
-        public static async Task<VSTypeScriptTestLspServer> CreateAsync(LspTestWorkspace testWorkspace, InitializationOptions options, AbstractLspLogger logger)
+        public static async Task<VSTypeScriptTestLspServer> CreateAsync(LspTestWorkspace testWorkspace, InitializationOptions options, ITestOutputHelper testOutputHelper)
         {
             var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
-            var server = new VSTypeScriptTestLspServer(testWorkspace, locations, options, logger);
+            var server = new VSTypeScriptTestLspServer(testWorkspace, locations, options, testOutputHelper);
             await server.InitializeAsync();
             return server;
         }
     }
 
     internal sealed record TSRequest([property: JsonConverter(typeof(DocumentUriConverter))] DocumentUri Document, string Project);
+
+    [ExportLspServiceFactory(typeof(TestLspLogger), ProtocolConstants.TypeScriptLanguageContract, WellKnownLspServerKinds.Any), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptTestLoggerFactory() : TestLspLoggerFactory
+    {
+    }
 }

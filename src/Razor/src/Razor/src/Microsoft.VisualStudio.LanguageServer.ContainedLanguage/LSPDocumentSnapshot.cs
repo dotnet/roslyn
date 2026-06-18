@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -59,7 +59,7 @@ public abstract class LSPDocumentSnapshot
         where TVirtualDocument : VirtualDocumentSnapshot
     {
         var documents = VirtualDocuments;
-        using var actualVirtualDocuments = new PooledArrayBuilder<TVirtualDocument>(documents.Count);
+        using var _ = ArrayBuilder<TVirtualDocument>.GetInstance(documents.Count, out var actualVirtualDocuments);
 
         for (var i = 0; i < documents.Count; i++)
         {

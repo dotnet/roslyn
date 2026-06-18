@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -198,6 +199,82 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Assert.True(classC.IsClosed);
             // attribute is filtered out of source and metadata symbols.
             Assert.Empty(classC.GetAttributes());
+        }
+    }
+
+    [Fact]
+    public void PublicAPI_01()
+    {
+        var source = """
+            closed class C;
+
+            class D1 : C;
+            class D2 : C;
+            """;
+
+        var verifier = CompileAndVerify([source, IsClosedTypeAttributeDefinition], symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, targetFramework: TargetFramework.Net100, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        void verifySymbols(ModuleSymbol module)
+        {
+            ITypeSymbol classC = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetPublicSymbol();
+            Assert.True(classC.IsClosed);
+            // attribute is filtered out of source and metadata symbols.
+            Assert.Empty(classC.GetAttributes());
+
+            var derivedTypeInfo = classC.GetClosedDerivedTypeInfo(CancellationToken.None);
+            Assert.Equal(["D1", "D2"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
+            Assert.True(derivedTypeInfo.IsComplete);
+
+            var d1 = derivedTypeInfo.ClosedDerivedTypes[0];
+            Assert.False(d1.IsClosed);
+            Assert.Throws<InvalidOperationException>(() => d1.GetClosedDerivedTypeInfo(CancellationToken.None));
+
+            var source = new CancellationTokenSource();
+            source.Cancel();
+            Assert.Throws<OperationCanceledException>(() => classC.GetClosedDerivedTypeInfo(source.Token));
+        }
+    }
+
+    [Fact]
+    public void PublicAPI_02()
+    {
+        var source = """
+            closed class C<T>;
+
+            class D1<U1> : C<U1>;
+            class D2<U2> : C<U2[]>;
+            class D3 : C<string>;
+            """;
+
+        var comp = CreateCompilation([source, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        verify(comp);
+        verify(CreateCompilation([], references: [comp.ToMetadataReference()], targetFramework: TargetFramework.Net100));
+        verify(CreateCompilation([], references: [comp.EmitToImageReference()], targetFramework: TargetFramework.Net100));
+
+        void verify(CSharpCompilation comp)
+        {
+            var classC = comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol();
+            Assert.Equal("C<T>", classC.ToTestDisplayString());
+
+            var derivedTypeInfo = classC.GetClosedDerivedTypeInfo(CancellationToken.None);
+            Assert.False(derivedTypeInfo.IsComplete);
+            Assert.Equal(["D1<T>", "D3"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
+
+            var cOfIntArray = classC.Construct(comp.CreateArrayTypeSymbol(comp.GetSpecialType(SpecialType.System_Int32)));
+            Assert.Equal("C<System.Int32[]>", cOfIntArray.ToTestDisplayString());
+
+            derivedTypeInfo = cOfIntArray.GetClosedDerivedTypeInfo(CancellationToken.None);
+            Assert.True(derivedTypeInfo.IsComplete);
+            Assert.Equal(["D1<System.Int32[]>", "D2<System.Int32>"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
+
+            var cOfString = classC.Construct(comp.GetSpecialType(SpecialType.System_String));
+            Assert.Equal("C<System.String>", cOfString.ToTestDisplayString());
+            derivedTypeInfo = cOfString.GetClosedDerivedTypeInfo(CancellationToken.None);
+            Assert.True(derivedTypeInfo.IsComplete);
+            Assert.Equal(["D1<System.String>", "D3"], derivedTypeInfo.ClosedDerivedTypes.ToTestDisplayStrings());
         }
     }
 
@@ -518,6 +595,34 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 // (1,14): error CS9382: 'E': cannot use a closed type 'D' from another assembly as a base type.
                 // public class E : D { }
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "E").WithArguments("E", "D").WithLocation(1, 14));
+        }
+    }
+
+    [Fact]
+    public void BaseTypeFromMetadata_06()
+    {
+        // Attempt to inherit a closed class which is accessible due to an IVT
+        var source1 = """
+            using System.Runtime.CompilerServices;
+            [assembly: InternalsVisibleTo("Consumer")]
+
+            internal closed class C { }
+            """;
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp1.VerifyEmitDiagnostics();
+        verifyReference(comp1.ToMetadataReference());
+        verifyReference(comp1.EmitToImageReference());
+
+        void verifyReference(MetadataReference reference)
+        {
+            var source2 = """
+                internal class E : C { }
+                """;
+            var comp2 = CreateCompilation(source2, references: [reference], targetFramework: TargetFramework.Net100, assemblyName: "Consumer");
+            comp2.VerifyEmitDiagnostics(
+                // (1,16): error CS9382: 'E': cannot use a closed type 'C' from another assembly as a base type.
+                // internal class E : C { }
+                Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "E").WithArguments("E", "C").WithLocation(1, 16));
         }
     }
 
@@ -3180,6 +3285,211 @@ public sealed class ClosedClassesTests : CSharpTestBase
             var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
             Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
             Assert.Equal(["Container.D1", "Container.D2"], subtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_MatchInterface_01()
+    {
+        // Exhaust an inaccessible subtype by matching an interface that it implements
+        var source1 = """
+            public closed class C;
+            public class D1 : C;
+
+            public interface I2;
+
+            public class Container
+            {
+                protected class D2 : C, I2;
+            }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        I2 => 2,
+                    };
+                }
+
+                int M2(C c)
+                {
+            #line 200
+                    return c switch
+                    {
+                        I2 => 2,
+                    };
+                }
+
+                int M3(C c)
+                {
+            #line 300
+                    return c switch
+                    {
+                        D1 => 2,
+                    };
+                }
+
+                int M4(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        I2 => 2,
+            #line 400
+                        C => 3,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp2);
+
+        comp2 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp2);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(200, 18),
+                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(300, 18),
+                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             C => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(400, 13));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1", "Container.D2"], subtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_MatchInterface_02()
+    {
+        // Exhaust an inaccessible subtype by matching an interface that it implements
+        var source1 = """
+            public closed class B { }
+            public interface I1 { }
+            public interface I2 { }
+
+            public class Container
+            {
+                private class D1 : B, I1 { }
+                private class D2 : B, I2 { }
+            }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(B b)
+                {
+                    return b switch
+                    {
+                        I1 i1 => 1,
+                        I2 i2 => 2
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics();
+
+        comp2 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Exhaustiveness_MatchInterface_03()
+    {
+        // Matching an interface implemented by all subtypes exhausts the hierarchy.
+        // Despite this, the base type is not convertible to the interface type.
+        var source1 = """
+            public closed class C;
+            public class D1 : C, I;
+            public class D2 : C, I;
+
+            public closed class D3 : C;
+            public class E1 : D3, I;
+            public class E2 : D3, I;
+
+            public interface I;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                        E1 => 3,
+                        E2 => 4,
+                    };
+                }
+
+                int M2(C c)
+                {
+                    return c switch
+                    {
+                        I => 1,
+                    };
+                }
+
+                int M3(C c)
+                {
+                    return c switch
+                    {
+                        I => 1,
+            #line 100
+                        C => 2,
+                    };
+                }
+
+            #line 200
+                I M4(C c) => c;
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp1 = CreateCompilation([source1, IsClosedTypeAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp2);
+
+        comp2 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp2);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             C => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C").WithLocation(100, 13),
+                // (200,18): error CS0266: Cannot implicitly convert type 'C' to 'I'. An explicit conversion exists (are you missing a cast?)
+                //     I M4(C c) => c;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c").WithArguments("C", "I").WithLocation(200, 18));
         }
     }
 

@@ -762,6 +762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.CheckedExpression:
                         return BindCheckedExpression((CheckedExpressionSyntax)node, diagnostics);
 
+                    case SyntaxKind.UnsafeExpression:
+                        return BindUnsafeExpression((UnsafeExpressionSyntax)node, diagnostics);
+
                     case SyntaxKind.DefaultExpression:
                         return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
@@ -4686,10 +4689,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol GetStackAllocType(SyntaxNode node, TypeWithAnnotations elementTypeWithAnnotations, BindingDiagnosticBag diagnostics, out bool hasErrors)
         {
+            Debug.Assert(node is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax);
+
             var inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
             hasErrors = !inLegalPosition;
             if (inLegalPosition && !isStackallocTargetTyped(node))
             {
+                var hasInitializer = node switch
+                {
+                    StackAllocArrayCreationExpressionSyntax { Initializer: null } => false,
+                    StackAllocArrayCreationExpressionSyntax => true,
+                    ImplicitStackAllocArrayCreationExpressionSyntax => true,
+                    _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
+                };
+
+                ReportUnsafeForUninitializedSpanStackAllocIfRequired(node, diagnostics, hasInitializer);
+
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
@@ -7597,6 +7612,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             var binder = this.GetBinder(node);
+            return binder.BindParenthesizedExpression(node.Expression, diagnostics);
+        }
+
+        private BoundExpression BindUnsafeExpression(UnsafeExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            var binder = this.GetBinder(node);
+
+            if (!this.Compilation.Options.AllowUnsafe)
+            {
+                Error(diagnostics, ErrorCode.ERR_IllegalUnsafe, node.Keyword);
+            }
+
+            CheckFeatureAvailability(node.Keyword, MessageID.IDS_FeatureUnsafeEvolution, diagnostics);
+
             return binder.BindParenthesizedExpression(node.Expression, diagnostics);
         }
 

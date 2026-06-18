@@ -291,7 +291,6 @@ namespace RunTests
                 if (File.Exists(toolsPath))
                     return toolsPath;
             }
-            }
 
             return null;
         }

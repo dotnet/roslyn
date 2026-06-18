@@ -45,9 +45,7 @@ internal sealed class DefaultTextDocumentServiceProvider : IDocumentServiceProvi
         // but not actually change resx files which in turn, break code since generated file go back to 
         // original next time someone changes resx files but reference left as renamed.
         // with this, we now should be able to say no text changes for such files so that rename fails
-        // in those cases. if resx people adapt IDocumentService pattern, then they should be able to
-        // even support rename through IDynamicFileInfoProvider pattern once we address that in next
-        // iteration for razor. for now, we keep existing behavior
+        // in those cases.
         public bool CanApplyChange => true;
         public bool SupportDiagnostics => true;
     }
