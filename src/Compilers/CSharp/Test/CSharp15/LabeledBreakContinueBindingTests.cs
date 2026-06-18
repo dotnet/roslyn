@@ -19,163 +19,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     #region Valid: all loop types
 
     [Fact]
-    public void Break_LabeledWhile()
-    {
-        var source = """
-            class C
-            {
-                void M()
-                {
-                    outer: while (true)
-                    {
-                        while (true)
-                            break outer;
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Continue_LabeledWhile()
-    {
-        var source = """
-            class C
-            {
-                void M()
-                {
-                    outer: while (true)
-                    {
-                        while (true)
-                            continue outer;
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Break_LabeledDoWhile()
-    {
-        var source = """
-            class C
-            {
-                void M()
-                {
-                    outer: do
-                    {
-                        do break outer; while (true);
-                    } while (true);
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Continue_LabeledDoWhile()
-    {
-        var source = """
-            class C
-            {
-                void M()
-                {
-                    outer: do
-                    {
-                        while (true)
-                            continue outer;
-                    } while (false);
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Break_LabeledFor()
-    {
-        var source = """
-            class C
-            {
-                void M()
-                {
-                    outer: for (int i = 0; i < 10; i++)
-                    {
-                        for (int j = 0; j < 10; j++)
-                            break outer;
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (7,37): warning CS0162: Unreachable code detected
-            //             for (int j = 0; j < 10; j++)
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 37));
-    }
-
-    [Fact]
-    public void Continue_LabeledFor()
-    {
-        var source = """
-            class C
-            {
-                void M()
-                {
-                    outer: for (int i = 0; i < 10; i++)
-                    {
-                        for (int j = 0; j < 10; j++)
-                            continue outer;
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (7,37): warning CS0162: Unreachable code detected
-            //             for (int j = 0; j < 10; j++)
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 37));
-    }
-
-    [Fact]
-    public void Break_LabeledForEach()
-    {
-        var source = """
-            class C
-            {
-                void M(string[] args)
-                {
-                    outer: foreach (var a in args)
-                    {
-                        foreach (var b in args)
-                            break outer;
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Continue_LabeledForEach()
-    {
-        var source = """
-            class C
-            {
-                void M(string[] args)
-                {
-                    outer: foreach (var a in args)
-                    {
-                        foreach (var b in args)
-                            continue outer;
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
-    [Fact]
     public void Continue_LabeledForEachDeconstruction()
     {
         var source = """
@@ -218,51 +61,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
         CreateCompilation(source).VerifyDiagnostics();
     }
 
-    [Fact]
-    public void Break_LabelOnLoop_FromInsideSwitch()
-    {
-        var source = """
-            class C
-            {
-                void M(int x)
-                {
-                    outer: while (true)
-                    {
-                        switch (x)
-                        {
-                            default:
-                                break outer;
-                        }
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Break_NestedSwitches_BreakOuter()
-    {
-        var source = """
-            class C
-            {
-                void M(int x)
-                {
-                    outer: switch (x)
-                    {
-                        case 0:
-                            switch (x)
-                            {
-                                case 0: break outer;
-                            }
-                            break;
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
     #endregion
 
     #region Valid: nested labels
@@ -289,7 +87,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,15): warning CS0164: This label has not been referenced
             //         a: b: c: while (true)
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(5, 15),
-            // (7,19): error CS9388: No enclosing loop or switch statement with the label 'b' out of which to break
+            // (7,19): error CS9391: No enclosing loop or switch statement with the label 'b' out of which to break
             //             break b;
             Diagnostic(ErrorCode.ERR_NoBreakId, "b").WithArguments("b").WithLocation(7, 19));
     }
@@ -722,7 +520,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,19): error CS9388: No enclosing loop or switch statement with the label 'missing' out of which to break
+            // (6,19): error CS9391: No enclosing loop or switch statement with the label 'missing' out of which to break
             //             break missing;
             Diagnostic(ErrorCode.ERR_NoBreakId, "missing").WithArguments("missing").WithLocation(6, 19));
     }
@@ -747,7 +545,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (6,11): warning CS0162: Unreachable code detected
             //         { break L; }
             Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(6, 11),
-            // (6,17): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (6,17): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         { break L; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(6, 17));
     }
@@ -769,7 +567,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,20): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (5,20): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         L: { break L; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 20));
     }
@@ -788,7 +586,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,19): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (6,19): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //             break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(6, 19));
     }
@@ -807,7 +605,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,28): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (6,28): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         while (true) break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(6, 28));
     }
@@ -826,7 +624,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,25): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (6,25): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         if (true) break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(6, 25));
     }
@@ -845,7 +643,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,28): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (6,28): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         while (true) break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(6, 28));
     }
@@ -863,7 +661,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,29): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (5,29): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         L: lock (o) { break L; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 29));
     }
@@ -888,7 +686,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,31): error CS9389: No enclosing loop with the label 'outer' out of which to continue
+            // (7,31): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             default: continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 31));
     }
@@ -911,7 +709,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,30): error CS9388: No enclosing loop or switch statement with the label 'outer' out of which to break
+            // (6,30): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //         while (true) { break outer; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(6, 30));
     }
@@ -930,7 +728,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,33): error CS9389: No enclosing loop with the label 'outer' out of which to continue
+            // (5,33): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //         while (true) { continue outer; }
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(5, 33));
     }
@@ -952,7 +750,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,19): error CS9388: No enclosing loop or switch statement with the label 'outer' out of which to break
+            // (7,19): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //             break outer;
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 19));
     }
@@ -974,7 +772,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,22): error CS9389: No enclosing loop with the label 'outer' out of which to continue
+            // (7,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22));
     }
@@ -996,7 +794,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,22): error CS9388: No enclosing loop with the label 'outer' out of which to continue
+            // (7,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22),
             // (8,15): warning CS0164: This label has not been referenced
@@ -1025,7 +823,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,22): error CS9389: No enclosing loop with the label 'outer' out of which to continue
+            // (7,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22));
     }
@@ -1047,7 +845,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (8,22): error CS9389: No enclosing loop with the label 'outer' out of which to continue
+            // (8,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(8, 22));
     }
@@ -1069,7 +867,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,22): error CS9388: No enclosing loop with the label 'outer' out of which to continue
+            // (7,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22),
             // (8,15): warning CS0164: This label has not been referenced
@@ -1123,7 +921,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,30): error CS9388: No enclosing loop or switch statement with the label 'outer' out of which to break
+            // (7,30): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //             void F() { break outer; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 30));
     }
@@ -1146,7 +944,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (6,28): warning CS0164: This label has not been referenced
             //         Action a = () => { outer: while (true) { } };
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(6, 28),
-            // (7,15): error CS9388: No enclosing loop or switch statement with the label 'outer' out of which to break
+            // (7,15): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //         break outer;
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 15));
     }
@@ -1448,57 +1246,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (8,26): error CS8652: The feature 'labeled break and continue' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //                 continue outer;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "outer").WithArguments("labeled break and continue").WithLocation(8, 26));
-    }
-
-    #endregion
-
-    #region Top-level statements
-
-    [Fact]
-    public void Break_TopLevelStatements()
-    {
-        var source = """
-            outer: for (int i = 0; i < 1; i++)
-                break outer;
-            """;
-        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-            // (1,31): warning CS0162: Unreachable code detected
-            // outer: for (int i = 0; i < 1; i++)
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "i").WithLocation(1, 31));
-    }
-
-    [Fact]
-    public void Continue_TopLevelStatements()
-    {
-        var source = """
-            outer: for (int i = 0; i < 10; i++)
-            {
-                for (int j = 0; j < 10; j++)
-                    continue outer;
-            }
-            """;
-        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-            // (3,29): warning CS0162: Unreachable code detected
-            //     for (int j = 0; j < 10; j++)
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(3, 29));
-    }
-
-    [Fact]
-    public void Break_TopLevelStatements_Switch()
-    {
-        var source = """
-            int x = 0;
-            outer: switch (x)
-            {
-                case 0:
-                    switch (x)
-                    {
-                        case 0: break outer;
-                    }
-                    break;
-            }
-            """;
-        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
     }
 
     #endregion
@@ -1913,52 +1660,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_DuplicateLabel, "L").WithArguments("L").WithLocation(6, 9));
     }
 
-    // Labels live in their own name space, so a closer local with the same
-    // name as an enclosing label must not prevent break/continue from
-    // resolving the label.
-    [Fact]
-    public void LabelShadowing_LocalWithSameNameAsOuterLabel_Break_ResolvesToLabel()
-    {
-        var source = """
-            class C
-            {
-                static void M()
-                {
-                    outer: while (true)
-                    {
-                        int outer = 1;
-                        if (outer > 0)
-                            break outer;
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void LabelShadowing_LocalWithSameNameAsOuterLabel_Continue_ResolvesToLabel()
-    {
-        var source = """
-            class C
-            {
-                static void M()
-                {
-                    outer: for (int i = 0; i < 3; i++)
-                    {
-                        for (int j = 0; j < 3; j++)
-                        {
-                            int outer = j;
-                            if (outer == 1)
-                                continue outer;
-                        }
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics();
-    }
-
     #endregion
 
     #region Top-level statements: error cases
@@ -1976,7 +1677,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (1,1): warning CS0164: This label has not been referenced
             // outer: while (true)
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(1, 1),
-            // (3,11): error CS9388: No enclosing loop or switch statement with the label 'missing' out of which to breake
+            // (3,11): error CS9391: No enclosing loop or switch statement with the label 'missing' out of which to breake
             //     break missing;
             Diagnostic(ErrorCode.ERR_NoBreakId, "missing").WithArguments("missing").WithLocation(3, 11));
     }
@@ -1994,7 +1695,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (1,1): warning CS0164: This label has not been referenced
             // outer: while (true)
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(1, 1),
-            // (3,14): error CS9388: No enclosing loop with the label 'missing' out of which to continue
+            // (3,14): error CS9392: No enclosing loop with the label 'missing' out of which to continue
             //     continue missing;
             Diagnostic(ErrorCode.ERR_NoContinueId, "missing").WithArguments("missing").WithLocation(3, 14));
     }
@@ -2007,109 +1708,9 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             break L;
             """;
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-            // (2,7): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (2,7): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             // break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(2, 7));
-    }
-
-    #endregion
-
-    #region Async iterator and await foreach
-
-    [Fact]
-    public void Break_AwaitForeach_Labeled()
-    {
-        var source = """
-            using System.Collections.Generic;
-            using System.Threading.Tasks;
-            class C
-            {
-                async Task M(IAsyncEnumerable<int> items)
-                {
-                    outer: await foreach (var x in items)
-                    {
-                        await foreach (var y in items)
-                        {
-                            break outer;
-                        }
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Continue_AwaitForeach_Labeled()
-    {
-        var source = """
-            using System.Collections.Generic;
-            using System.Threading.Tasks;
-            class C
-            {
-                async Task M(IAsyncEnumerable<int> items)
-                {
-                    outer: await foreach (var x in items)
-                    {
-                        await foreach (var y in items)
-                        {
-                            continue outer;
-                        }
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Break_AsyncIterator_Labeled()
-    {
-        var source = """
-            using System.Collections.Generic;
-            using System.Threading.Tasks;
-            class C
-            {
-                async IAsyncEnumerable<int> M(int[] items)
-                {
-                    outer: foreach (var x in items)
-                    {
-                        foreach (var y in items)
-                        {
-                            await Task.Yield();
-                            yield return y;
-                            break outer;
-                        }
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
-    }
-
-    [Fact]
-    public void Continue_AsyncIterator_Labeled()
-    {
-        var source = """
-            using System.Collections.Generic;
-            using System.Threading.Tasks;
-            class C
-            {
-                async IAsyncEnumerable<int> M(int[] items)
-                {
-                    outer: foreach (var x in items)
-                    {
-                        foreach (var y in items)
-                        {
-                            await Task.Yield();
-                            yield return y;
-                            continue outer;
-                        }
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
     }
 
     #endregion
@@ -2229,7 +1830,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,22): error CS9388: No enclosing loop or switch statement with the label 'outer' out of which to break
+            // (5,22): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //         if (b) break outer;
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(5, 22));
     }
@@ -2247,7 +1848,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,25): error CS9388: No enclosing loop with the label 'outer' out of which to continue
+            // (5,25): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //         if (b) continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(5, 25));
     }
@@ -2377,7 +1978,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (10,9): warning CS0162: Unreachable code detected
             //         while (true) break outer;
             Diagnostic(ErrorCode.WRN_UnreachableCode, "while").WithLocation(10, 9),
-            // (10,28): error CS9388: No enclosing loop or switch statement with the label 'outer' out of which to break
+            // (10,28): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //         while (true) break outer;
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(10, 28));
     }
@@ -2408,7 +2009,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (8,13): error CS0157: Control cannot leave the body of a finally clause
             //             break L;
             Diagnostic(ErrorCode.ERR_BadFinallyLeave, "break").WithLocation(8, 13),
-            // (8,19): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (8,19): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //             break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(8, 19));
     }
@@ -2435,7 +2036,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (10,23): error CS9388: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (10,23): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //             break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(10, 23));
     }
@@ -2459,7 +2060,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (7,31): error CS9389: No enclosing loop with the label 'outer' out of which to continue
+            // (7,31): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             default: continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 31));
     }
@@ -2481,7 +2082,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,30): error CS9388: No enclosing loop or switch statement with the label 'outer' out of which to break
+            // (5,30): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //         while (true) { break outer; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(5, 30));
     }
@@ -2507,7 +2108,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             """;
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,30): error CS9388: No enclosing loop or switch statement with the label 'outer' out of which to break
+            // (7,30): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //             void F() { break outer; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 30));
 

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -81,7 +82,7 @@ internal sealed class CSharpCodeActionResolver(
             if (formattedChange is { } change)
             {
                 var sourceText = await editDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-                textDocumentEdit.TextDocument = new() { DocumentUri = new(editDocumentContext.Uri) };
+                textDocumentEdit.TextDocument = new() { DocumentUri = editDocumentContext.Uri };
                 textDocumentEdit.Edits = [sourceText.GetTextEdit(change)];
             }
             else
@@ -106,6 +107,6 @@ internal sealed class CSharpCodeActionResolver(
         }
 
         var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-        return new RemoteDocumentContext(razorDocument.CreateSystemUri(), razorDocumentSnapshot);
+        return new RemoteDocumentContext(razorDocument.GetURI(), razorDocumentSnapshot);
     }
 }

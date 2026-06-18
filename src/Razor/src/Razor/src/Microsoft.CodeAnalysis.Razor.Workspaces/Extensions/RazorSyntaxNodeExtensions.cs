@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
@@ -303,40 +302,6 @@ internal static class RazorSyntaxNodeExtensions
 
                 node = parent;
             }
-        }
-
-        return node;
-    }
-
-    public static bool ExistsOnTarget(this SyntaxNode node, SyntaxNode target)
-    {
-        // TODO: This looks like a potential allocation hotspot and performance bottleneck.
-
-        var nodeString = node.RemoveEmptyNewLines().ToString();
-        var matchingNode = target.DescendantNodesAndSelf()
-            // Empty new lines can affect our comparison so we remove them since they're insignificant.
-            .Where(n => n.RemoveEmptyNewLines().ToString() == nodeString)
-            .FirstOrDefault();
-
-        return matchingNode is not null;
-    }
-
-    public static SyntaxNode RemoveEmptyNewLines(this SyntaxNode node)
-    {
-        if (node is MarkupTextLiteralSyntax markupTextLiteral)
-        {
-            var literalTokens = markupTextLiteral.LiteralTokens;
-            using var literalTokensWithoutLines = new PooledArrayBuilder<SyntaxToken>(literalTokens.Count);
-
-            foreach (var token in literalTokens)
-            {
-                if (token.Kind != SyntaxKind.NewLine)
-                {
-                    literalTokensWithoutLines.Add(token);
-                }
-            }
-
-            return markupTextLiteral.WithLiteralTokens(literalTokensWithoutLines.ToList());
         }
 
         return node;

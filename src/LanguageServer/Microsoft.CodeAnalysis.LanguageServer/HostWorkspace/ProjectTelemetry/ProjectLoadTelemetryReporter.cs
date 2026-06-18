@@ -5,16 +5,25 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 
-[Export, Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(ProjectLoadTelemetryReporter)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration)
+internal sealed class ProjectLoadTelemetryReporterFactory(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory) : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+    {
+        return new ProjectLoadTelemetryReporter(lspServices.GetRequiredService<IClientLanguageServerManager>(), loggerFactory, serverConfiguration);
+    }
+}
+
+internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager clientLanguageServerManager, ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration) : ILspService
 {
     private static readonly string s_hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
 
@@ -93,11 +102,8 @@ internal sealed class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory,
         }
     }
 
-    private static async Task ReportEventAsync(ProjectLoadTelemetryEvent telemetryEvent, CancellationToken cancellationToken)
+    private async Task ReportEventAsync(ProjectLoadTelemetryEvent telemetryEvent, CancellationToken cancellationToken)
     {
-        var instance = LanguageServerHost.Instance;
-        Contract.ThrowIfNull(instance, nameof(instance));
-        var clientLanguageServerManager = instance.GetRequiredLspService<IClientLanguageServerManager>();
         await clientLanguageServerManager.SendNotificationAsync("workspace/projectConfigurationTelemetry", telemetryEvent, cancellationToken);
     }
 

@@ -52,7 +52,7 @@ internal sealed record class ServerConfiguration(
     string? ServerPipeName,
     bool UseStdIo,
     string? ExtensionLogDirectory,
-    bool AutoLoadProjects,
+    int? AutoLoadProjects,
     SourceGeneratorExecutionPreference SourceGeneratorExecutionPreference,
     int? ClientProcessId);
 

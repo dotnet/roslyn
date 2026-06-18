@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -46,6 +46,7 @@ public class CohostRoslynGoToDefTest(ITestOutputHelper testOutputHelper) : Cohos
     {
         return composition
             .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingService))
+            .AddParts(typeof(RazorSourceGeneratedDocumentSpanMappingServiceWrapper))
             .AddParts(typeof(ExportableRemoteServiceInvoker));
     }
 
@@ -65,7 +66,7 @@ public class CohostRoslynGoToDefTest(ITestOutputHelper testOutputHelper) : Cohos
         var invoker = LocalExportProvider.AssumeNotNull().GetExportedValue<ExportableRemoteServiceInvoker>();
         invoker.SetInvoker(RemoteServiceInvoker);
 
-        var definition = await GoToDefinition.GetDefinitionsAsync(LocalWorkspace, csharpDocument, typeOnly: false, csharpPosition, DisposalToken);
+        var definition = await RemoteGoToDefinitionService.TestAccessor.GetDefinitionsAsync(LocalWorkspace, csharpDocument, typeOnly: false, csharpPosition, DisposalToken);
         Assert.NotNull(definition);
 
         var def = Assert.Single(definition);

@@ -5544,7 +5544,6 @@ public class X
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "OperationCanceledException propagates without freeing DiagnosticBag")]
         public void BadPdbStreamWithPortablePdbEmit()
         {
             var comp = CreateCompilation("class C {}");
@@ -5576,7 +5575,6 @@ public class X
 
         [Fact]
         [WorkItem(9308, "https://github.com/dotnet/roslyn/issues/9308")]
-        [ValidatePooledObjects(LeakReason = "OperationCanceledException propagates without freeing DiagnosticBag")]
         public void FailingEmitterAllowsCancellationExceptionsThrough()
         {
             string source = @"

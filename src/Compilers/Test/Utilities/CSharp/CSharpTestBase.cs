@@ -251,11 +251,11 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
-        protected static readonly string ClosedAttributeDefinition = """
+        protected static readonly string IsClosedTypeAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-                public sealed class ClosedAttribute : Attribute { }
+                public sealed class IsClosedTypeAttribute : Attribute { }
             }
             """;
 
