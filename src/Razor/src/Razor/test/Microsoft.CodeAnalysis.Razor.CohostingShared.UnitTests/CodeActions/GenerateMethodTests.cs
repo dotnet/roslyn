@@ -368,7 +368,7 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
                 }
             }
 
-            @code {}
+            @code { }
             """;
 
         await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.GenerateMethod);
