@@ -1568,13 +1568,6 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
               </files>
               <methods>
                 <method containingType="C" name="M" parameterNames="b">
-                  <customDebugInfo>
-                    <encLocalSlotMap>
-                      <slot kind="1" offset="89" />
-                      <slot kind="1" offset="49" />
-                      <slot kind="1" offset="17" />
-                    </encLocalSlotMap>
-                  </customDebugInfo>
                   <sequencePoints>
                     <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="6" document="1" />
                     <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="15" document="1" />
@@ -1596,7 +1589,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 </method>
               </methods>
             </symbols>
-            """, format: DebugInformationFormat.PortablePdb);
+            """, format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeCustomDebugInformation);
     }
 
     [Fact]
@@ -1626,13 +1619,6 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
               </files>
               <methods>
                 <method containingType="C" name="M" parameterNames="b">
-                  <customDebugInfo>
-                    <encLocalSlotMap>
-                      <slot kind="1" offset="89" />
-                      <slot kind="1" offset="49" />
-                      <slot kind="1" offset="17" />
-                    </encLocalSlotMap>
-                  </customDebugInfo>
                   <sequencePoints>
                     <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="6" document="1" />
                     <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="15" document="1" />
@@ -1654,7 +1640,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 </method>
               </methods>
             </symbols>
-            """, format: DebugInformationFormat.PortablePdb);
+            """, format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeCustomDebugInformation);
     }
 
     #endregion
