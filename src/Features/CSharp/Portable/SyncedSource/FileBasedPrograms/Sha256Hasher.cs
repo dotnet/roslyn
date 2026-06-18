@@ -15,7 +15,7 @@ internal static class Sha256Hasher
     /// </summary>
     public static string Hash(string text)
     {
-#if NET
+#if NET10_0_OR_GREATER
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
 #else
         using var sha256 = SHA256.Create();
