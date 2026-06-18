@@ -153,6 +153,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\CSharpUseLocalFunctionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseNullConditionalAwait\CSharpUseNullConditionalAwaitDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseObjectInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternCombinators\AnalyzedPattern.cs" />

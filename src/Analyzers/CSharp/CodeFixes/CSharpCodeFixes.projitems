@@ -179,6 +179,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseNullCheckOverTypeCheckCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseNullConditionalAwait\CSharpUseNullConditionalAwaitCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseInitializerHelpers.cs" />

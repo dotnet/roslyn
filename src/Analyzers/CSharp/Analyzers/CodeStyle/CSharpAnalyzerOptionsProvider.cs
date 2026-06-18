@@ -44,6 +44,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options)
 
     public CodeStyleOption2<bool> ImplicitObjectCreationWhenTypeIsApparent => GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent);
     public CodeStyleOption2<bool> PreferNullCheckOverTypeCheck => GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck);
+    public CodeStyleOption2<bool> PreferNullConditionalAwait => GetOption(CSharpCodeStyleOptions.PreferNullConditionalAwait);
     public CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces => GetOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces);
     public CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer => GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer);
     public CodeStyleOption2<bool> AllowBlankLineAfterTokenInArrowExpressionClause => GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause);

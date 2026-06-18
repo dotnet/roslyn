@@ -253,6 +253,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_prefer_method_group_conversion", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferMethodGroupConversion")},
         {"csharp_style_prefer_not_pattern", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferNotPattern")},
         {"csharp_style_prefer_null_check_over_type_check", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferNullCheckOverTypeCheck")},
+        {"csharp_style_prefer_null_conditional_await", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferNullConditionalAwait")},
         {"csharp_style_prefer_pattern_matching", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferPatternMatching")},
         {"csharp_style_prefer_primary_constructors", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferPrimaryConstructors")},
         {"csharp_style_prefer_range_operator", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferRangeOperator")},

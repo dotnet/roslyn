@@ -252,6 +252,11 @@ internal static partial class CSharpCodeStyleOptions
         "csharp_style_prefer_null_check_over_type_check",
         defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
 
+    internal static readonly Option2<CodeStyleOption2<bool>> PreferNullConditionalAwait = CreateOption(
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
+        "csharp_style_prefer_null_conditional_await",
+        defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
+
     public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
         CodeStyleOptionGroups.NewLinePreferences,
         "csharp_style_allow_embedded_statements_on_same_line_experimental",

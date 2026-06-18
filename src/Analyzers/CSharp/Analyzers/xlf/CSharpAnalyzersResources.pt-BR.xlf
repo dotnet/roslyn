@@ -162,6 +162,11 @@
         <target state="translated">A verificação nula pode ser esclarecida</target>
         <note />
       </trans-unit>
+      <trans-unit id="Null_conditional_await_can_be_used">
+        <source>Null-conditional await can be used</source>
+        <target state="new">Null-conditional await can be used</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nullable_directive_is_redundant">
         <source>Nullable directive is redundant</source>
         <target state="translated">Diretiva que permite valor nulo é redundante</target>
@@ -411,6 +416,11 @@
         <source>Use 'new(...)'</source>
         <target state="translated">Usar 'new(...)'</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Use_null_conditional_await">
+        <source>Use null-conditional await</source>
+        <target state="new">Use null-conditional await</target>
+        <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>

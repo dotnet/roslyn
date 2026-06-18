@@ -91,6 +91,7 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
         yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferThrowExpression, CSharpVSResources.Prefer_throw_expression, options, updater);
         yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, options, updater);
         yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpAnalyzersResources.Prefer_null_check_over_type_check, options, updater);
+        yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferNullConditionalAwait, CSharpAnalyzersResources.Use_null_conditional_await, options, updater);
     }
 
     private static IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

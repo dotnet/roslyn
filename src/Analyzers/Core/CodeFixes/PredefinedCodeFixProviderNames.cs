@@ -173,6 +173,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseNotPattern = nameof(UseNotPattern);
     public const string UseNullCheckOverTypeCheck = nameof(UseNullCheckOverTypeCheck);
     public const string UseNullPropagation = nameof(UseNullPropagation);
+    public const string UseNullConditionalAwait = nameof(UseNullConditionalAwait);
     public const string UseObjectInitializer = nameof(UseObjectInitializer);
     public const string UsePatternCombinators = nameof(UsePatternCombinators);
     public const string UsePatternMatchingAsAndMemberAccess = nameof(UsePatternMatchingAsAndMemberAccess);
