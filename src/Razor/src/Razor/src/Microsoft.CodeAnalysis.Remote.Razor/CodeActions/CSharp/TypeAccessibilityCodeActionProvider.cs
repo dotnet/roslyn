@@ -163,50 +163,29 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
         foreach (var codeAction in codeActions)
         {
+            // For fully qualify, we just want to filter out single line expressions as the formatter doesn't support them and will
+            // drop the edits
             if (codeAction.Name is not null && codeAction.Name.Equals(PredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
             {
-                string action;
-
-                if (!TryGetOwner(context, out var owner))
+                if (TryGetOwner(context, out var owner) &&
+                    IsSingleLineDirectiveNode(owner))
                 {
-                    // Failed to locate a valid owner for the light bulb
                     continue;
                 }
-                else if (IsSingleLineDirectiveNode(owner))
-                {
-                    // Don't support single line directives
-                    continue;
-                }
-                else if (IsExplicitExpressionNode(owner))
-                {
-                    // Don't support explicit expressions
-                    continue;
-                }
-                else if (IsImplicitExpressionNode(owner))
-                {
-                    action = LanguageServerConstants.CodeActions.UnformattedRemap;
-                }
-                else
-                {
-                    // All other scenarios we support default formatted code action behavior
-                    action = LanguageServerConstants.CodeActions.Default;
-                }
-
-                typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCodeAction(context, action));
             }
-            // For add using suggestions, the code action title is of the form:
-            // `using System.Net;`
+            // For add using suggestions, we make the title more Razor-idiomatic
             else if (codeAction.Name is not null && codeAction.Name.Equals(PredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
                 UsingDirectiveHelper.TryExtractNamespace(codeAction.Title, out var @namespace, out var prefix))
             {
                 codeAction.Title = $"{prefix}@using {@namespace}";
-                typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCodeAction(context, LanguageServerConstants.CodeActions.Default));
             }
-            // Not a type accessibility code action
             else
             {
                 continue;
             }
+
+            // Type accessibility code actions need no special handling at edit time, so we just send them through the standard C# resolver
+            typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCodeAction(context, LanguageServerConstants.CodeActions.Default));
         }
 
         return typeAccessibilityCodeActions.ToImmutable();
@@ -227,24 +206,6 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
             }
 
             return true;
-        }
-
-        static bool IsImplicitExpressionNode(SyntaxNode owner)
-        {
-            // E.g, (| is position)
-            //
-            // `@|foo` - true
-            //
-            return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax);
-        }
-
-        static bool IsExplicitExpressionNode(SyntaxNode owner)
-        {
-            // E.g, (| is position)
-            //
-            // `@(|foo)` - true
-            //
-            return owner.AncestorsAndSelf().Any(n => n is CSharpExplicitExpressionBodySyntax);
         }
 
         static bool IsSingleLineDirectiveNode(SyntaxNode owner)

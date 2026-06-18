@@ -33,6 +33,62 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
     }
 
     [Fact]
+    public async Task FullyQualify_ImplicitExpression()
+    {
+        var input = """
+            @nameof([||]StringBuilder)
+            """;
+
+        var expected = """
+            @nameof(System.Text.StringBuilder)
+            """;
+
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.FullyQualify);
+    }
+
+    [Fact]
+    public async Task FullyQualify_ExplicitExpression()
+    {
+        var input = """
+            @(nameof([||]StringBuilder))
+            """;
+
+        var expected = """
+            @(nameof(System.Text.StringBuilder))
+            """;
+
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.FullyQualify);
+    }
+
+    [Fact]
+    public async Task FullyQualify_ExplicitStatememt()
+    {
+        var input = """
+            @{
+                var x = new [||]StringBuilder();
+            }
+            """;
+
+        var expected = """
+            @{
+                var x = new System.Text.StringBuilder();
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, LanguageServerConstants.CodeActions.FullyQualify);
+    }
+
+    [Fact]
+    public async Task FullyQualify_SingleLineDirective()
+    {
+        var input = """
+            @inject [||]StringBuilder sb
+            """;
+
+        await VerifyCodeActionAsync(input, expected: null, LanguageServerConstants.CodeActions.FullyQualify);
+    }
+
+    [Fact]
     public async Task FullyQualify_LegacyWithPageDirective()
     {
         var input = """
