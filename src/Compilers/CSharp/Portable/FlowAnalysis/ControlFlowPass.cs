@@ -223,9 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ContinueStatement:
                         {
                             var leave = pending.Branch;
-                            // If the break/continue is already in error, an error has already been reported at bind
-                            // time (e.g. ERR_NoBreakId/ERR_NoContinueId for a labeled break/continue with no enclosing
-                            // target).  No need for additional confusing errors.
+                            // Already-errored break/continue (e.g. ERR_NoBreakId) was reported at bind time; don't
+                            // pile on another error here.
                             if (leave.HasErrors)
                                 break;
 
