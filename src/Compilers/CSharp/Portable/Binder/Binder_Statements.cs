@@ -2965,13 +2965,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
 
-            // Suppress label-not-found errors here; if the lookup fails we'll instead report the
-            // more specific ERR_NoBreakId/ERR_NoContinueId/ERR_NoBreakOrCont below.  We still want
-            // to perform the lookup so we have a BoundLabel for the SemanticModel and so that
-            // ControlFlowPass marks the label as referenced (suppressing WRN_UnreferencedLabel).
+            // Pass "reportErrors: false" to suppress label-not-found errors here; if the lookup fails we'll instead
+            // report the more specific ERR_NoBreakId/ERR_NoContinueId/ERR_NoBreakOrCont below.  We still perform the
+            // lookup so we have a BoundLabel for the SemanticModel and so that ControlFlowPass marks the label as
+            // referenced (suppressing WRN_UnreferencedLabel).
             var label = name == null ? null : BindLabel(name, diagnostics, reportErrors: false) as BoundLabel;
+            var target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
 
-            LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
             var hasErrors = false;
             if (target == null)
             {
