@@ -42,7 +42,6 @@ internal sealed class Descriptors
         { RemoteModelService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { RemoteProjectInitializationStatusService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.SolutionSnapshotProvider.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-
         { BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
 
         // TODO: https://github.com/dotnet/roslyn/issues/84158
@@ -58,7 +57,6 @@ internal sealed class Descriptors
 
         { BrokeredServiceDescriptors.HotReloadLoggerService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-
         { BrokeredServiceDescriptors.DebuggerSymbolLocatorService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.DebuggerSourceLinkService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.ProjectSystemQueryExecutionService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },

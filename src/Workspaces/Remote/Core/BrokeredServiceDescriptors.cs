@@ -75,7 +75,7 @@ internal static class BrokeredServiceDescriptors
     public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadService = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(1, 0), streamOptions: ProtocolOptionsV3);
 
     // VS service:
-    public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(1, 0), streamOptions: ProtocolOptionsV3);
+    public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
 
     // DevKit service implemented in C#:
     public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadServiceLegacy = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(0, 1));

@@ -30,7 +30,7 @@ internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
         }
     }
 
-    private const string ComponentSymbol = "𝛌";
+    private const string ComponentSymbol = "🔣";
 
     private readonly AsyncBatchingWorkQueue<HotReloadLogMessage> _queue;
 
