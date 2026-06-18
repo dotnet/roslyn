@@ -2965,10 +2965,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
 
-            // Bind the label into a discarded bag: we don't want its label-not-found error (we report the more specific
-            // ERR_NoBreakId/ERR_NoContinueId/ERR_NoBreakOrCont below), but we still want the resulting BoundLabel for
-            // error recovery -- so the SemanticModel can resolve the identifier and ControlFlowPass marks the label as
-            // referenced (suppressing WRN_UnreferencedLabel).
+            // Bind the label into a discarded bag: we report our own error below, but still want the BoundLabel for
+            // error recovery (so the SemanticModel can resolve the identifier and ControlFlowPass treats the label as
+            // referenced, suppressing WRN_UnreferencedLabel).
             var label = name == null ? null : BindLabel(name, BindingDiagnosticBag.Discarded) as BoundLabel;
             LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
 
