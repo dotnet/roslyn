@@ -72,13 +72,15 @@ internal static class BrokeredServiceDescriptors
     internal const string DebuggerComponentName = "Debugger";
 
     public static readonly ServiceRpcDescriptor SolutionSnapshotProvider = CreateClientServiceDescriptor("SolutionSnapshotProvider", new Version(0, 1));
+
+    // VS service implemented in C#:
     public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadService = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(1, 0), streamOptions: ProtocolOptionsV3);
 
     // VS service:
     public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
 
     // DevKit service implemented in C#:
-    public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadServiceLegacy = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadServiceLegacy = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(0, 1), streamOptions: ProtocolOptionsV3);
 
     // DevKit service implemented in TypeScript:
     public static readonly ServiceRpcDescriptor HotReloadLoggerServiceLegacy = CreateDebuggerClientServiceDescriptor("HotReloadLogger", new Version(0, 1));
