@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum MessageID
     {
-        IDS_FeatureExtensionIndexers = MessageBase + 13000, // PROTOTYPE move to right position and compact/renumber
         None = 0,
         MessageBase = 1200,
 
@@ -313,6 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnions = MessageBase + 12860,
         IDS_FeatureStaticMembersInInterfaces = MessageBase + 12861,
         IDS_FeatureClosedClasses = MessageBase + 12862,
+        IDS_FeatureExtensionIndexers = MessageBase + 12863,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -498,6 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnions:
                 case MessageID.IDS_FeatureStaticMembersInInterfaces:
                 case MessageID.IDS_FeatureClosedClasses: // semantic check
+                case MessageID.IDS_FeatureExtensionIndexers:
                     return LanguageVersion.Preview;
 
                 // C# 14.0 features.
@@ -733,9 +734,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Special C# 2 feature: only a warning in C# 1.
                 case MessageID.IDS_FeatureModuleAttrLoc:
                     return LanguageVersion.CSharp1;
-
-                case MessageID.IDS_FeatureExtensionIndexers:
-                    return LanguageVersion.Preview; // PROTOTYPE move to right position
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(feature);
