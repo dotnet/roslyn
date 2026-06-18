@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,10 +27,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutputHelper) : AbstractLspMiscellaneousFilesWorkspaceTests(testOutputHelper)
 {
     /// <summary>
-    /// .NET SDK version used at runtime for tests. Note: right now this matches the repo-level SDK requirement.
-    /// In the near future we are going to experiment with ways for these tests to acquire
+    /// .NET SDK versions used for testing. Each test that is sensitive to SDK behavior
+    /// differences should be parameterized over these versions via <see cref="SdkVersions"/>.
+    /// The <see cref="SdkAcquisition"/> helper ensures each version is available before use,
+    /// downloading via <c>dotnetup</c> only when the SDK is not already installed ambiently.
     /// </summary>
-    private const string SdkVersion = "10.0.108";
+    private const string Net10SdkVersion = "10.0.108";
+    private const string Net11SdkVersion = "11.0.100-preview.5.26272.118";
+
+    /// <summary>
+    /// Provides SDK versions for parameterized tests. Each row is <c>(sdkVersion, isPrerelease)</c>.
+    /// </summary>
+    public static TheoryData<string, bool> SdkVersions => new()
+    {
+        { Net10SdkVersion, false },
+        { Net11SdkVersion, true },
+    };
 
     [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Simple(bool mutatingLspWorkspace)
@@ -66,6 +79,45 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // Diagnostics not reported for '#:'
         syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
+    }
+
+    [Theory, MemberData(nameof(SdkVersions))]
+    public async Task TestFileBasedProgram_MultiSdk(string sdkVersion, bool isPrerelease)
+    {
+        // Verifies file-based program loading works across SDK versions.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        var tempDir = CreateTempDirectoryWithGlobalJson(sdkVersion, isPrerelease);
+        var sourceText = """
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World!");
+            """;
+        var sourceFile = tempDir.CreateFile("App.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+        Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
+
+        // Log assembly name so we can see the SDK-dependent behavior
+        testOutputHelper.WriteLine($"SDK={sdkVersion} file=App.cs → AssemblyName={document.Project.AssemblyName}");
+
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
+
+        // Also test with a non-default filename
+        await testLspServer.CloseDocumentAsync(looseFileUri).ConfigureAwait(false);
+
+        var sourceFile2 = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+        var looseFileUri2 = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile2.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri2, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(looseFileUri2, testLspServer);
+
+        (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri2, testLspServer).ConfigureAwait(false);
+        testOutputHelper.WriteLine($"SDK={sdkVersion} file=SomeFile.cs → AssemblyName={document.Project.AssemblyName}");
     }
 
     [Theory, CombinatorialData]
@@ -546,14 +598,19 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     private TempDirectory CreateTempDirectoryWithGlobalJson()
+        => CreateTempDirectoryWithGlobalJson(Net10SdkVersion, allowPrerelease: false);
+
+    private TempDirectory CreateTempDirectoryWithGlobalJson(string sdkVersion, bool allowPrerelease)
     {
+        SdkAcquisition.EnsureSdkAvailable(sdkVersion, allowPrerelease);
+
         var tempDirectory = TempRoot.CreateDirectory();
         var globalJsonContent = $$"""
             {
                 "sdk": {
-                    "version": "{{SdkVersion}}",
-                    "allowPrerelease": true,
-                    "rollForward": "patch"
+                    "version": "{{sdkVersion}}",
+                    "allowPrerelease": {{(allowPrerelease ? "true" : "false")}},
+                    "rollForward": "latestPatch"
                 }
             }
             """;
