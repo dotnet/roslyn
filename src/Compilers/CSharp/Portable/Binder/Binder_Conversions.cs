@@ -1898,9 +1898,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // gives a consistent behavior, regardless of collection expression elements / arguments. Per the
                 // dictionary-expressions proposal, only the mutable IDictionary<K, V> target offers the capacity-based
                 // ctors; the read-only and base-interface targets only offer the () and (IEqualityComparer<K>) ctors.
-                bool isIDictionary = targetNamedType.OriginalDefinition.Equals(
-                    _binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV),
-                    TypeCompareKind.ConsiderEverything);
+                bool isIDictionary = ReferenceEquals(
+                    targetNamedType.OriginalDefinition,
+                    _binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV));
 
                 _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, _diagnostics, syntax: syntax);
                 // PROTOTYPE: Confirm that this constructor is desired when targeting IReadOnlyDictionary<K, V>, and that it should reflect Dictionary<K, V>
@@ -1914,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var setMethod = (MethodSymbol?)_binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, _diagnostics, syntax: syntax);
                 setMethod = (MethodSymbol?)setMethod?.SymbolAsMember(dictionaryType);
 
-                if (targetNamedType.OriginalDefinition.Equals(_binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV), TypeCompareKind.ConsiderEverything))
+                if (ReferenceEquals(targetNamedType.OriginalDefinition, _binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV)))
                 {
                     _ = _binder.GetWellKnownTypeMember(WellKnownMember.System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor, _diagnostics, syntax: syntax);
                 }
