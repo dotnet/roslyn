@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1595,7 +1596,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 </method>
               </methods>
             </symbols>
-            """);
+            """, format: DebugInformationFormat.PortablePdb);
     }
 
     [Fact]
@@ -1653,7 +1654,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 </method>
               </methods>
             </symbols>
-            """);
+            """, format: DebugInformationFormat.PortablePdb);
     }
 
     #endregion
