@@ -47,7 +47,7 @@ internal sealed class TestDiscoveryServiceContributorFactory() : ILspServiceFact
 /// is not present (for example, a C# extension build that does not ship the Dev Kit discovery component)
 /// nothing is registered or proffered.
 /// </summary>
-internal sealed class TestDiscoveryServiceContributor : ILspService
+internal sealed class TestDiscoveryServiceContributor : ILspService, IServiceBrokerInitializer
 {
     private readonly Func<ITestDiscoveryLanguageService?> _getTestDiscoveryLanguageService;
 
@@ -112,5 +112,10 @@ internal sealed class TestDiscoveryServiceContributor : ILspService
         Contract.ThrowIfNull(workspace, "We should always have a host workspace.");
 
         return workspace.Services.GetService<ITestDiscoveryLanguageService>();
+    }
+
+    public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
+    {
+        // No initialization is necessary; the service object is created and initialized on demand in the Proffer callback.
     }
 }

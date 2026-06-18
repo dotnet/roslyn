@@ -3,7 +3,6 @@ Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Contracts.ITestDiscoveryLang
 Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Contracts.ITestDiscoveryLanguageService.Descriptor.get -> Microsoft.ServiceHub.Framework.ServiceRpcDescriptor!
 Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Contracts.ITestDiscoveryLanguageService.InitializeAsync(Microsoft.ServiceHub.Framework.IServiceBroker! serviceBroker, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Internal.TestDiscoveryServiceContributor
-Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Internal.TestDiscoveryServiceContributor.Dispose() -> void
 Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Internal.TestDiscoveryServiceContributor.OnServiceBrokerInitialized(Microsoft.ServiceHub.Framework.IServiceBroker! serviceBroker, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Internal.TestDiscoveryServiceContributor.Proffer(Microsoft.VisualStudio.Utilities.ServiceBroker.GlobalBrokeredServiceContainer! container) -> void
 Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Internal.TestDiscoveryServiceContributor.ServicesToRegister.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.ServiceHub.Framework.ServiceMoniker!, Microsoft.VisualStudio.Utilities.ServiceBroker.ServiceRegistration>!

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery</RootNamespace>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
