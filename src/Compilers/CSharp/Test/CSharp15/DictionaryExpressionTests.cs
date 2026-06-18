@@ -724,6 +724,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Fact]
+        public void DictionaryInterface_UseSiteDiagnostics_TypeArgument()
+        {
+            var missingType = CreateCompilation("""
+                namespace MissingLib
+                {
+                    public class Key
+                    {
+                    }
+                }
+                """, assemblyName: "MissingLib").EmitToImageReference();
+
+            var container = CreateCompilation("""
+                public class Container
+                {
+                    public System.Collections.Generic.IDictionary<MissingLib.Key, int> Dictionary;
+                }
+                """, references: [missingType], assemblyName: "ContainerLib").EmitToImageReference();
+
+            var source = """
+                class Program
+                {
+                    static void M()
+                    {
+                        new Container().Dictionary = [];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, references: [container]);
+            comp.VerifyEmitDiagnostics(
+                // (5,25): error CS0012: The type 'Key' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingLib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         new Container().Dictionary = [];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "Dictionary").WithArguments("MissingLib.Key", "MissingLib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 25));
+        }
+
         [Theory]
         [InlineData("Dictionary")]
         [InlineData("IDictionary")]
