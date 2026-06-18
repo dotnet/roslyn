@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
         UnionDeclaration = 9082,
 
-        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/84112")]
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/84198")]
         KeyValuePairElement = 9083,
     }
 }
