@@ -129,5 +129,7 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
     public string ExtensionGroupingName => null;
     public string ExtensionMarkerName => null;
     public IParameterSymbol ExtensionParameter => null;
+
+    public override bool IsClosed => Modifiers.IsClosed;
 #endif
 }

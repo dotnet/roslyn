@@ -4585,6 +4585,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongSemanticModelType" xml:space="preserve">
     <value>Expected a {0} SemanticModel.</value>
   </data>
+  <data name="GetClosedDerivedTypeInfoMustBeClosed" xml:space="preserve">
+    <value>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</value>
+    <comment>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</comment>
+  </data>
   <data name="IDS_FeatureLambda" xml:space="preserve">
     <value>lambda expression</value>
   </data>
@@ -8351,7 +8355,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A union type must have at least one union creation member.</value>
   </data>
   <data name="ERR_MissingUnionValueProperty" xml:space="preserve">
-    <value>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</value>
+    <value>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</value>
   </data>
   <data name="ERR_MemberProviderInUnionDeclaration" xml:space="preserve">
     <value>A 'union' declaration cannot use a union member provider interface.</value>
