@@ -3040,5 +3040,144 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 15)
                 );
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84014")]
+        public void NotFieldLikeEvent_01()
+        {
+            var src1_0 = @"
+public partial class C
+{
+    public event System.Action OnEventAction { add { } remove { } }
+}
+";
+            var src1_1 = @"
+public partial class C
+{
+    static void Test()
+    {
+        var x = new C();
+
+#line 10
+        x.OnEventAction = null;
+        x.OnEventAction ??= null;
+
+        if (x.OnEventAction == null)
+        {
+        }
+    }
+}
+";
+
+            var comp1 = CreateCompilation([src1_0, src1_1]);
+            comp1.VerifyEmitDiagnostics(
+                // (10,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction = null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(10, 11),
+                // (11,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction ??= null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(11, 11),
+                // (13,15): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         if (x.OnEventAction == null)
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(13, 15)
+                );
+
+            var src2 = @"
+class Program
+{
+    static void Test(C x)
+    {
+        x.OnEventAction = null;
+    }
+}
+";
+            var src3 = @"
+class Program
+{
+    static void Test(C x)
+    {
+        x.OnEventAction ??= null;
+    }
+}
+";
+            var src4 = @"
+class Program
+{
+    static void Test(C x)
+    {
+        if (x.OnEventAction == null)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src1_0, src2]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction = null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation([src1_0, src3]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction ??= null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation([src1_0, src4]);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         if (x.OnEventAction == null)
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 15)
+                );
+
+            comp1 = CreateCompilation(src1_0);
+            MetadataReference comp1Ref = comp1.ToMetadataReference();
+
+            comp = CreateCompilation(src2, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction = null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation(src3, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction ??= null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation(src4, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         if (x.OnEventAction == null)
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 15)
+                );
+
+            comp1Ref = comp1.EmitToImageReference();
+
+            comp = CreateCompilation(src2, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction = null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation(src3, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         x.OnEventAction ??= null;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 11)
+                );
+
+            comp = CreateCompilation(src4, references: [comp1Ref]);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0079: The event 'C.OnEventAction' can only appear on the left hand side of += or -=
+                //         if (x.OnEventAction == null)
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "OnEventAction").WithArguments("C.OnEventAction").WithLocation(6, 15)
+                );
+        }
     }
 }

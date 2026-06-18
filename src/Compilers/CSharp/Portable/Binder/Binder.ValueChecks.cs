@@ -1848,15 +1848,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
-            // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
-            // accessibility, use site errors, and receiver variable-ness (for structs).
-            // Other operations are allowed only for field-like events and only where the backing field is accessible
-            // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
-
             BoundExpression receiver = boundEvent.ReceiverOpt;
             SyntaxNode eventSyntax = GetEventName(boundEvent); //does not include receiver
             EventSymbol eventSymbol = boundEvent.EventSymbol;
 
+            // For events, we intentionally do not filter out the lower bits of BindValueKind; they specify semantic information
+            // such as being increment/decrement or null-coalescing.
+            // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
+            // accessibility, use site errors, and receiver variable-ness (for structs).
+            // Other operations are allowed only for field-like events and only where the backing field is accessible
+            // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
             if (valueKind == BindValueKind.CompoundAssignment)
             {
                 // NOTE: accessibility has already been checked by lookup.
