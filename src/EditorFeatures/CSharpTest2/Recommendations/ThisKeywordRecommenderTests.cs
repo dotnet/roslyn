@@ -841,8 +841,9 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
-    public Task TestInIndexerInExtensionBlock()
-        => VerifyKeywordAsync(
+    public Task TestExtensionBlockIndexer_01()
+        => VerifyAbsenceAsync(
+            // Equivalent to TestAfterType for extension blocks.
             """
             static class E
             {
@@ -854,14 +855,40 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
-    public Task TestPartiallyTypedInIndexerInExtensionBlock()
-        => VerifyKeywordAsync(
+    public Task TestExtensionBlockIndexer_02()
+        => VerifyAbsenceAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int $$[int value]
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestExtensionBlockIndexer_03()
+        => VerifyAbsenceAsync(
             """
             static class E
             {
                 extension(int i)
                 {
                     public int th$$
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestExtensionBlockIndexer_04()
+        => VerifyAbsenceAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int th$$[int value]
                 }
             }
             """);
