@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task FullyQualify()
     {
         var input = """
@@ -64,7 +64,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
 #if !VSCODE
     // This uses a nested code action in Roslyn which we don't support in VS Code
     // https://github.com/dotnet/razor/issues/11832
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task FullyQualify_Multiple()
     {
         await VerifyCodeActionAsync(
@@ -94,7 +94,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
 
     // This uses a nested code action in Roslyn which we don't support in VS Code
     // https://github.com/dotnet/razor/issues/11832
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task FullyQualify_Multiple2()
     {
         await VerifyCodeActionAsync(
@@ -123,7 +123,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
     }
 #endif
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task AddUsing_Multiple()
     {
         await VerifyCodeActionAsync(
@@ -152,7 +152,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             codeActionIndex: 0);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task AddUsing_Multiple2()
     {
         await VerifyCodeActionAsync(
@@ -181,7 +181,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             codeActionIndex: 1);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task AddUsing_InjectDirective()
     {
         var input = """
@@ -219,7 +219,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
         await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.AddImport, fileKind: RazorFileKind.Legacy);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task AddUsing()
     {
         var input = """
@@ -332,7 +332,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task AddUsing_Typo()
     {
         var input = """
@@ -353,7 +353,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
         await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.AddImport);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task AddUsing_WithExisting()
     {
         var input = """

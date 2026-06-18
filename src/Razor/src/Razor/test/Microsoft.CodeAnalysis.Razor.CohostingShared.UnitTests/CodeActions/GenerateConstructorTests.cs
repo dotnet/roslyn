@@ -15,7 +15,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
     private const int PropertyActionIndex = 1;
     private const int NoFieldActionIndex = 2;
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_FromCodeBlock_ExistingCodeBlock()
     {
         var input = """
@@ -53,7 +53,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_ForClassInCodeBlock_WithoutParameter()
     {
         var input = """
@@ -102,7 +102,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_WithoutCodeBlock()
     {
         var input = """
@@ -169,7 +169,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_FromRazor_InOtherFile()
     {
         await VerifyCodeActionAsync(
@@ -220,7 +220,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_FromRazor_InOtherFile_Property()
     {
         await VerifyCodeActionAsync(
@@ -271,7 +271,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_FromRazor_InOtherFile_NoField()
     {
         await VerifyCodeActionAsync(
@@ -319,7 +319,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_FromRazor_InOtherRazorFile()
     {
         await VerifyCodeActionAsync(
@@ -364,7 +364,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_FromRazor_InOtherRazorFile_Property()
     {
         await VerifyCodeActionAsync(
@@ -409,7 +409,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_FromRazor_InOtherRazorFile_NoField()
     {
         await VerifyCodeActionAsync(
@@ -451,7 +451,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateConstructor_ForClassInCodeBlock()
     {
         var input = """
