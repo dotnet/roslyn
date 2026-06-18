@@ -55,7 +55,6 @@ internal sealed class Descriptors
         { new("Microsoft.VisualStudio.HotReload.ProjectHotReloadSession", new(2, 0)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { new("Microsoft.VisualStudio.HotReload.ProcessTrackingService", new(2, 0)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
 
-        { BrokeredServiceDescriptors.HotReloadLoggerService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.DebuggerSymbolLocatorService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.DebuggerSourceLinkService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
