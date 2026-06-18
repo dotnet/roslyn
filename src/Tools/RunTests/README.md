@@ -8,14 +8,15 @@ The purpose of RunTests is to run large batches of test assemblies efficiently b
 
 1. Scans `artifacts/bin/` for project directories matching `--include` regex patterns (default: `.*UnitTests.*`)
 2. Within each matching project, finds assemblies under `<Configuration>/<TargetFramework>/`
-3. Filters by target framework based on `--testFramework` (core, desktop, or both)
+3. Filters by target framework based on `--testFramework` (core or desktop, repeatable)
 4. Executes tests via multiple concurrent `dotnet test` processes, either locally or on Helix
 
 ## Quick Start
 
 ```bash
 # Build first (RunTests does NOT build for you)
-dotnet build
+dotnet build Roslyn.slnx
+
 # Then run all unit tests for Debug configuration
 dotnet run --project src/Tools/RunTests/RunTests.csproj -- --testConfiguration Debug
 
@@ -44,7 +45,7 @@ Key options:
 | `--testConfiguration` | `Debug` or `Release` (default: Debug) |
 | `--include` | Regex pattern to match test project names (repeatable) |
 | `--exclude` | Regex pattern to exclude test project names (repeatable) |
-| `--testFramework` | `core`, `desktop`, or `both` |
+| `--testFramework` | `core` or `desktop` (repeatable, defaults to both) |
 | `--testSet` | `compiler` to run only compiler test assemblies |
 | `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies` |
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |

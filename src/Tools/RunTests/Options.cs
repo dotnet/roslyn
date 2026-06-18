@@ -10,17 +10,17 @@ using Mono.Options;
 
 namespace RunTests
 {
+    [Flags]
     internal enum TestRuntime
     {
-        Both,
-        Core,
-        Framework
+        Core = 1,
+        Framework = 2,
     }
 
     internal class Options
     {
         /// <summary>
-        /// The list of compiler test assembly include patterns used when --testCompilerOnly is specified.
+        /// The list of compiler test assembly include patterns used when --testSet compiler is specified.
         /// </summary>
         internal static readonly string[] CompilerTestAssemblyPatterns = new[]
         {
@@ -59,7 +59,7 @@ namespace RunTests
         /// <summary>
         /// The set of target frameworks that should be probed for test assemblies.
         /// </summary>
-        public TestRuntime TestRuntime { get; set; } = TestRuntime.Both;
+        public TestRuntime TestRuntime { get; set; } = TestRuntime.Core | TestRuntime.Framework;
 
         public List<string> IncludeFilter { get; set; } = new List<string>();
 
@@ -138,7 +138,7 @@ namespace RunTests
             string? dotnetFilePath = null;
             var platform = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
             var includeHtml = false;
-            var testRuntime = TestRuntime.Both;
+            var testRuntime = TestRuntime.Core | TestRuntime.Framework;
             var configuration = "Debug";
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
@@ -151,9 +151,7 @@ namespace RunTests
             string? logFileDirectory = null;
             var collectDumps = false;
             string? artifactsPath = null;
-
-            // High-level test category flags (previously handled by build.ps1/build.sh)
-            string? testFramework = null;
+            var testFrameworks = new List<string>();
             string? testSet = null;
             string? testKind = null;
             var showHelp = false;
@@ -179,7 +177,7 @@ namespace RunTests
 
                 { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
                 { "collectdumps", "Gather dumps on timeouts and crashes (process executor only, not supported with --helix)", o => collectDumps = o is object },
-                { "testFramework:", "Test framework to run: core, desktop, or both", s => testFramework = s },
+                { "testFramework:", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
                 { "testSet:", "Test set to run: compiler (restricts to compiler test assemblies)", s => testSet = s },
                 { "testKind:", "Test kind to run: ioperation, runtimeasync, usedassemblies", s => testKind = s },
                 { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
@@ -224,17 +222,29 @@ namespace RunTests
                 return null;
             }
 
-            // Apply high-level test category flags. These replicate the logic previously
-            // in build.ps1's TestUsingRunTests function.
-            var testDesktop = string.Equals(testFramework, "desktop", StringComparison.OrdinalIgnoreCase);
-            var testCoreClr = string.Equals(testFramework, "core", StringComparison.OrdinalIgnoreCase);
-            var testBoth = string.Equals(testFramework, "both", StringComparison.OrdinalIgnoreCase);
-
-            if (testFramework is not null && !testDesktop && !testCoreClr && !testBoth)
+            if (testFrameworks.Count > 0)
             {
-                ConsoleUtil.WriteLine($"Invalid --testFramework value '{testFramework}'. Must be 'core', 'desktop', or 'both'.");
-                return null;
+                testRuntime = 0;
+                foreach (var tf in testFrameworks)
+                {
+                    if (string.Equals(tf, "core", StringComparison.OrdinalIgnoreCase))
+                    {
+                        testRuntime |= TestRuntime.Core;
+                    }
+                    else if (string.Equals(tf, "desktop", StringComparison.OrdinalIgnoreCase))
+                    {
+                        testRuntime |= TestRuntime.Framework;
+                    }
+                    else
+                    {
+                        ConsoleUtil.WriteLine($"Invalid --testFramework value '{tf}'. Must be 'core' or 'desktop'.");
+                        return null;
+                    }
+                }
             }
+
+            var testDesktop = (testRuntime & TestRuntime.Framework) != 0;
+            var testCoreClr = (testRuntime & TestRuntime.Core) != 0;
 
             var testCompilerOnly = string.Equals(testSet, "compiler", StringComparison.OrdinalIgnoreCase);
 
@@ -265,15 +275,13 @@ namespace RunTests
                 }
             }
 
-            if (testDesktop || testCoreClr || testBoth)
+            if (testFrameworks.Count > 0)
             {
                 if (testDesktop && environmentVariables.ContainsKey("DOTNET_RuntimeAsync"))
                 {
                     ConsoleUtil.WriteLine("Cannot run desktop tests with runtime async validation enabled.");
                     return null;
                 }
-
-                testRuntime = testBoth ? TestRuntime.Both : testDesktop ? TestRuntime.Framework : TestRuntime.Core;
 
                 if (testCompilerOnly)
                 {
@@ -326,25 +334,25 @@ namespace RunTests
             {
                 if (collectDumps)
                 {
-                    ConsoleUtil.WriteLine("--collectdumps is not supported with --helix. Dump collection is only available for process-based test execution.");
+                    ConsoleUtil.Error("--collectdumps is not supported with --helix. Dump collection is only available for process-based test execution.");
                     return null;
                 }
 
                 if (timeout is not null)
                 {
-                    ConsoleUtil.WriteLine("--timeout is not supported with --helix. Timeout is managed by the helix infrastructure.");
+                    ConsoleUtil.Error("--timeout is not supported with --helix. Timeout is managed by the helix infrastructure.");
                     return null;
                 }
 
                 if (includeHtml)
                 {
-                    ConsoleUtil.WriteLine("--html is not supported with --helix.");
+                    ConsoleUtil.Error("--html is not supported with --helix.");
                     return null;
                 }
 
                 if (testFilter is not null)
                 {
-                    ConsoleUtil.WriteLine("--testfilter is not supported with --helix.");
+                    ConsoleUtil.Error("--testfilter is not supported with --helix.");
                     return null;
                 }
             }
@@ -354,13 +362,13 @@ namespace RunTests
 
                 if (helixApiAccessToken is not null)
                 {
-                    ConsoleUtil.WriteLine("--helixApiAccessToken is not supported without --helix.");
+                    ConsoleUtil.Error("--helixApiAccessToken is not supported without --helix.");
                     return null;
                 }
 
                 if (helixQueueName != "Windows.10.Amd64.Open")
                 {
-                    ConsoleUtil.WriteLine("--helixQueueName is not supported without --helix.");
+                    ConsoleUtil.Error("--helixQueueName is not supported without --helix.");
                     return null;
                 }
             }

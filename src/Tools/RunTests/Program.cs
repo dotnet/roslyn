@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -70,7 +68,7 @@ namespace RunTests
                 int result;
                 if (options.Timeout is { } timeout)
                 {
-                    result = await RunCoreAsync(options, cts.Token);
+                    result = await RunCoreAsync(options, timeout, cts.Token);
                 }
                 else
                 {
@@ -94,11 +92,11 @@ namespace RunTests
             }
         }
 
-        private static async Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunCoreAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunAsync(options, cts.Token);
-            var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
+            var timeoutTask = Task.Delay(timeout, cancellationToken);
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
@@ -275,7 +273,7 @@ namespace RunTests
             WriteLogFile(options);
         }
 
-        private static string FindProcDump(string artifactsDirectory)
+        private static string? FindProcDump(string artifactsDirectory)
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return null;
@@ -386,14 +384,16 @@ namespace RunTests
                 return false;
             }
 
-            static bool IsMatch(TestRuntime testRuntime, string dirName) =>
-                testRuntime switch
-                {
-                    TestRuntime.Both => IsCompatibleWithCurrentPlatform(dirName),
-                    TestRuntime.Core => Regex.IsMatch(dirName, @"^net\d+\.") && IsCompatibleWithCurrentPlatform(dirName),
-                    TestRuntime.Framework => dirName is "net472",
-                    _ => throw new InvalidOperationException($"Unexpected {nameof(TestRuntime)} value: {testRuntime}"),
-                };
+            static bool IsMatch(TestRuntime testRuntime, string dirName)
+            {
+                if (dirName is "net472")
+                    return (testRuntime & TestRuntime.Framework) != 0;
+
+                if (Regex.IsMatch(dirName, @"^net\d+\."))
+                    return (testRuntime & TestRuntime.Core) != 0 && IsCompatibleWithCurrentPlatform(dirName);
+
+                return IsCompatibleWithCurrentPlatform(dirName);
+            }
 
             static bool IsCompatibleWithCurrentPlatform(string tfmDirName)
             {
