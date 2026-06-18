@@ -4216,7 +4216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (collectionKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                 {
-                    Debug.Assert(targetElementType.HasType);
+                    Debug.Assert(targetElementType.HasType || node.HasErrors);
                 }
 
                 return (collectionKind, targetElementType);
