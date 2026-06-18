@@ -101,23 +101,10 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.True(document.Project.State.HasAllInformation);
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
-
-        // Log assembly name so we can see the SDK-dependent behavior
-        testOutputHelper.WriteLine($"SDK={sdkVersion} file=App.cs → AssemblyName={document.Project.AssemblyName}");
+        Assert.Equal("App", document.Project.AssemblyName);
 
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
-
-        // Also test with a non-default filename
-        await testLspServer.CloseDocumentAsync(looseFileUri).ConfigureAwait(false);
-
-        var sourceFile2 = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
-        var looseFileUri2 = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile2.Path);
-        await testLspServer.OpenDocumentAsync(looseFileUri2, sourceText).ConfigureAwait(false);
-        await WaitForProjectLoad(looseFileUri2, testLspServer);
-
-        (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri2, testLspServer).ConfigureAwait(false);
-        testOutputHelper.WriteLine($"SDK={sdkVersion} file=SomeFile.cs → AssemblyName={document.Project.AssemblyName}");
     }
 
     [Theory, CombinatorialData]
@@ -180,11 +167,12 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
     }
 
-    [Theory, CombinatorialData]
-    public async Task TestMultipleFileBasedPrograms_WithWorkspaceDiscovery(bool mutatingLspWorkspace)
+    [Theory, MemberData(nameof(SdkVersions))]
+    public async Task TestMultipleFileBasedPrograms_WithWorkspaceDiscovery(string sdkVersion, bool isPrerelease)
     {
         // Test discovering and loading several file-based apps in a single batch.
-        var tempDir = CreateTempDirectoryWithGlobalJson();
+        // This is a regression test for MSB4025 caused by multi-node MSBuild re-evaluation of virtual projects.
+        var tempDir = CreateTempDirectoryWithGlobalJson(sdkVersion, isPrerelease);
 
         var app1Text = """
             #!/usr/bin/env dotnet
@@ -204,7 +192,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             """;
         var app3File = tempDir.CreateFile("app3.cs").WriteAllText(app3Text);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }],
