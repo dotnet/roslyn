@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -29,8 +30,7 @@ using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 [Export(typeof(ICSharpCodeActionProvider)), Shared]
 internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
 {
-    private static readonly IEnumerable<string> s_supportedDiagnostics = new[]
-    {
+    private static readonly FrozenSet<string> s_supportedDiagnostics = FrozenSet.Create(StringComparer.OrdinalIgnoreCase, [
         // `The type or namespace name 'type/namespace' could not be found
         //  (are you missing a using directive or an assembly reference?)`
         // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0246
@@ -42,7 +42,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
         // `The name 'identifier' does not exist in the current context`
         "IDE1007"
-    };
+    ]);
 
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(
         RazorCodeActionContext context,
@@ -74,7 +74,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
             diagnostic is { Severity: LspDiagnosticSeverity.Error, Code: { } code } &&
             code.TryGetSecond(out var str) &&
-            s_supportedDiagnostics.Any(d => str.Equals(d, StringComparison.OrdinalIgnoreCase)));
+            s_supportedDiagnostics.Contains(str));
 
         if (diagnostics is null || !diagnostics.Any())
         {
