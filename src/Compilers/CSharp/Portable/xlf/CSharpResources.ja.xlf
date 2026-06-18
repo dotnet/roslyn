@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractBaseRecordImplementation">
         <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
-        <target state="new">Record member '{0}' must be declared explicitly because '{1}' is abstract.</target>
+        <target state="translated">'{1}' は抽象であるため、レコード メンバー '{0}' を明示的に宣言する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
@@ -1528,8 +1528,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="translated">共用体メンバー プロバイダー型には、型が 'object?' または 'object' のパブリック インスタンス 'Value' プロパティが必要です。このプロパティには get アクセサーが必要です。</target>
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -2911,6 +2911,11 @@
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">汎用タスクのような戻り値の型が必要ですが、'AsyncMethodBuilder' 属性で見つかった型 '{0}' が適切ではありませんでした。アリティの非バインド ジェネリック型である必要があり、それを含む型 (存在する場合) は非ジェネリックでなければなりません。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
       </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>

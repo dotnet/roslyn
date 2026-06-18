@@ -4689,10 +4689,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol GetStackAllocType(SyntaxNode node, TypeWithAnnotations elementTypeWithAnnotations, BindingDiagnosticBag diagnostics, out bool hasErrors)
         {
+            Debug.Assert(node is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax);
+
             var inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
             hasErrors = !inLegalPosition;
             if (inLegalPosition && !isStackallocTargetTyped(node))
             {
+                var hasInitializer = node switch
+                {
+                    StackAllocArrayCreationExpressionSyntax { Initializer: null } => false,
+                    StackAllocArrayCreationExpressionSyntax => true,
+                    ImplicitStackAllocArrayCreationExpressionSyntax => true,
+                    _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
+                };
+
+                ReportUnsafeForUninitializedSpanStackAllocIfRequired(node, diagnostics, hasInitializer);
+
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);

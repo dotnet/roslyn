@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Contracts;
+using Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Internal;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
@@ -108,6 +110,61 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
         var pipeName = NamedPipeTestUtilities.CreateShortPipeName("rsb-");
 
         Assert.InRange((HelixUnixPipePathPrefix + pipeName).Length, 1, MacOSUnixDomainSocketMaxPathLength);
+    }
+
+    [Fact]
+    public void ServicesToRegister_AdvertisesServiceMoniker_WhenImplementationPresent()
+    {
+        var service = new FakeTestDiscoveryLanguageService();
+        var contributor = new TestDiscoveryServiceContributor(() => service);
+
+        var servicesToRegister = contributor.ServicesToRegister;
+
+        Assert.Single(servicesToRegister);
+        Assert.True(servicesToRegister.ContainsKey(service.Descriptor.Moniker));
+    }
+
+    [Fact]
+    public void ServicesToRegister_IsEmpty_WhenImplementationAbsent()
+    {
+        var contributor = new TestDiscoveryServiceContributor(() => null);
+
+        Assert.Empty(contributor.ServicesToRegister);
+    }
+
+    [Fact]
+    public void Proffer_DoesNothing_WhenImplementationAbsent()
+    {
+        var container = new TestBrokeredServiceContainer(new TraceSource(nameof(TestBrokeredServiceContainer)));
+        var contributor = new TestDiscoveryServiceContributor(() => null);
+
+        // Should be a no-op (and must not throw) when there is no implementation to proffer.
+        contributor.Proffer(container);
+    }
+
+    [Fact]
+    public async Task ProfferedService_IsAcquirable_AndInitializeIsInvoked()
+    {
+        var service = new FakeTestDiscoveryLanguageService();
+        var contributor = new TestDiscoveryServiceContributor(() => service);
+
+        var container = new TestBrokeredServiceContainer(new TraceSource(nameof(TestBrokeredServiceContainer)));
+
+        // Mirror the production ordering performed by BrokeredServiceContainer.CreateAsync /
+        // ServiceBrokerFactory.CreateAsync: register the advertised monikers, then proffer.
+        container.RegisterServices(contributor.ServicesToRegister);
+        contributor.Proffer(container);
+
+        // The proffered moniker is advertised and serviceable: acquiring a proxy via the implementation's
+        // descriptor runs the proffer factory callback, which invokes InitializeAsync before handing back
+        // the proffered instance. Invoking an RPC method then round-trips to that instance.
+        var proxy = await GetRequiredServiceAsync<IFakeTestDiscoveryRpc>(
+            container.GetFullAccessServiceBroker(), service.Descriptor, CancellationToken.None);
+
+        await service.InitializeCalled.Task.WaitAsync(CancellationToken.None);
+        Assert.Equal(1, service.InitializeCallCount);
+
+        Assert.Equal("pong", await proxy.PingAsync(CancellationToken.None));
     }
 
     private static async Task<IReadOnlyCollection<ServiceMoniker>> GetAvailableServerServicesAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
@@ -300,6 +357,39 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
     {
         public ValueTask<IDisposable> SubscribeInitializationCompletionAsync(IObserver<ProjectInitializationCompletionState> observer, CancellationToken cancellationToken)
             => ValueTask.FromResult<IDisposable>(new EmptyDisposable());
+    }
+
+    /// <summary>
+    /// Fake RPC surface standing in for the rich, closed-source discovery contract defined in C# Dev Kit.
+    /// Roslyn never references this interface; it is used here only to prove that the proffered service is
+    /// reachable over the service broker.
+    /// </summary>
+    private interface IFakeTestDiscoveryRpc
+    {
+        Task<string> PingAsync(CancellationToken cancellationToken);
+    }
+
+    private sealed class FakeTestDiscoveryLanguageService : ITestDiscoveryLanguageService, IFakeTestDiscoveryRpc
+    {
+        public TaskCompletionSource InitializeCalled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public int InitializeCallCount { get; private set; }
+
+        public ServiceRpcDescriptor Descriptor { get; } = new ServiceJsonRpcDescriptor(
+            new ServiceMoniker("Microsoft.VisualStudio.CSharpDevKit.SourceTestDiscoveryService", new Version(0, 1)),
+            ServiceJsonRpcDescriptor.Formatters.MessagePack,
+            ServiceJsonRpcDescriptor.MessageDelimiters.BigEndianInt32LengthHeader)
+            .WithExceptionStrategy(StreamJsonRpc.ExceptionProcessing.ISerializable);
+
+        public Task InitializeAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
+        {
+            InitializeCallCount++;
+            InitializeCalled.TrySetResult();
+            return Task.CompletedTask;
+        }
+
+        public Task<string> PingAsync(CancellationToken cancellationToken)
+            => Task.FromResult("pong");
     }
 
     private sealed class TestAuthorizationService : IAuthorizationService
