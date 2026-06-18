@@ -200,4 +200,67 @@ public sealed class LabeledBreakContinueFlowTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Interactions: stackalloc/Span and expression trees
+
+    [Fact]
+    public void Span_StackallocInLoop_BreakOuter_NoRefSafetyError()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(bool b)
+                {
+                    outer: while (b)
+                    {
+                        Span<int> s = stackalloc int[4];
+                        s[0] = 1;
+                        while (b)
+                        {
+                            if (b)
+                                break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExpressionTree_StatementLambdaWithLabeledBreak_ReportsStatementBodyError()
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+            class C
+            {
+                void M()
+                {
+                    Expression<Action> e = () =>
+                    {
+                        outer: while (true)
+                        {
+                            break outer;
+                        }
+                    };
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,32): error CS0834: A lambda expression with a statement body cannot be converted to an expression tree
+            //         Expression<Action> e = () =>
+            Diagnostic(ErrorCode.ERR_StatementLambdaToExpressionTree, """
+                () =>
+                        {
+                            outer: while (true)
+                            {
+                                break outer;
+                            }
+                        }
+                """).WithLocation(7, 32));
+    }
+
+    #endregion
 }
