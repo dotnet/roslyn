@@ -72,17 +72,9 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - **MEF Lifecycle**: Use `[ImportingConstructor]` with `[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]`
 - **Null checks**: Use `Contract.ThrowIfNull()` instead of manual null checks
 - **Private fields**: `_camelCase` naming
-<<<<<<< HEAD:.github/copilot-instructions.md
-- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches and are disallowed in main branch. Do not add PROTOTYPE comments without asking for permission.
-- **TODO Comments**: Do not add TODO comments. Use TODO2 comments instead if needed. The CI correctness leg monitors those.
-- **Code Formatting**: Avoid trailing spaces and blank lines (lines with only whitespace). Ensure all lines either have content or are completely empty.
-||||||| 14f8212bdb8:.github/copilot-instructions.md
-- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches — disallowed in main branch
-- **Code Formatting**: Avoid trailing spaces. Blank lines must be completely empty (no whitespace characters).
-=======
 - **PROTOTYPE Comments**: Used to track follow-up work in feature branches. Do not flag them in feature-branch PR reviews solely for their existence; they are disallowed in PRs targeting `main` (CI enforces removal).
+- **TODO Comments**: Do not add TODO comments. Use TODO2 comments instead if needed. The CI correctness leg monitors those.
 - **Code Formatting**: Avoid trailing spaces. Blank lines must be completely empty (no whitespace characters).
->>>>>>> dotnet/main:AGENTS.md
 - **Public API Tracking**: Update `PublicAPI.Unshipped.txt` when adding/changing public APIs
 
 ## Code Generation
