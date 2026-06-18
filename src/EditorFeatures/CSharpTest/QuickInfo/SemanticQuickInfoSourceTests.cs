@@ -798,6 +798,23 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription("delegate void MyHandler(object? sender, string e)"));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84010")]
+    public Task TestNullableSynthesizedDelegateWithNullableParameter()
+        => TestWithOptionsAsync(TestOptions.Regular,
+            """
+            #nullable enable
+
+            class C
+            {
+                void M()
+                {
+                    $$var v = (ref object? sender) => sender?.ToString();
+                }
+            }
+            """,
+            MainDescription("delegate string <anonymous delegate>(ref object? arg)?"),
+            AnonymousTypes(""));
+
     [Fact]
     public Task TestTypeParameter()
         => TestAsync(

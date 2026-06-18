@@ -557,22 +557,28 @@ internal abstract partial class AbstractSymbolDisplayService
             {
                 var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-                // Under the covers anonymous delegates are represented with generic types.  However, we don't want
-                // to see the unbound form of that generic.  We want to see the fully instantiated signature.
-                var displayParts = symbol.IsAnonymousDelegateType()
+                // Under the covers anonymous delegates are represented with generic types. However, we don't want
+                // to see the unbound form of that generic. We want to see the fully instantiated signature.
+                var isAnonymousDelegate = symbol.IsAnonymousDelegateType();
+                var displayParts = isAnonymousDelegate
                     ? symbol.ToDisplayParts(style)
                     : symbol.OriginalDefinition.ToDisplayParts(style);
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription, WrapConstraints(symbol, displayParts));
+
+                // For non-anonymous delegates, we display OriginalDefinition which won't carry nullable
+                // annotation, so we need to add '?' separately.
+                if (!isAnonymousDelegate && symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                    AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
             }
             else
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     WrapConstraints(symbol.OriginalDefinition, symbol.OriginalDefinition.ToDisplayParts(s_descriptionStyle)));
-            }
 
-            if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
-                AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
+                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                    AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
+            }
 
             if (!symbol.IsUnboundGenericType &&
                 !TypeArgumentsAndParametersAreSame(symbol) &&
