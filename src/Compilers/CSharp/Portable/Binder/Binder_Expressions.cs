@@ -2507,7 +2507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.BindExpression(node, diagnostics, SyntaxFacts.IsInvoked(node), SyntaxFacts.IsIndexed(node));
         }
 
-        public BoundExpression BindLabel(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool reportErrors = true)
+        public BoundExpression BindLabel(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool reportErrors)
         {
             var name = node as IdentifierNameSyntax;
             if (name == null)
@@ -2525,9 +2525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.IsMultiViable)
             {
                 if (reportErrors)
-                {
                     Error(diagnostics, ErrorCode.ERR_LabelNotFound, node, labelName);
-                }
+
                 result.Free();
                 return BadExpression(node, result.Kind);
             }

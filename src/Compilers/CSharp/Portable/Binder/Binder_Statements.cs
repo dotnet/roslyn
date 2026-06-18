@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.GotoStatement:
-                    var expression = BindLabel(node.Expression, diagnostics);
+                    var expression = BindLabel(node.Expression, diagnostics, reportErrors: true);
                     var boundLabel = expression as BoundLabel;
                     if (boundLabel == null)
                     {
@@ -2970,7 +2970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // lookup so we have a BoundLabel for the SemanticModel and so that ControlFlowPass marks the label as
             // referenced (suppressing WRN_UnreferencedLabel).
             var label = name == null ? null : BindLabel(name, diagnostics, reportErrors: false) as BoundLabel;
-            var target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
+            LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
 
             var hasErrors = false;
             if (target == null)
