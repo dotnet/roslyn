@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
 /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
+/// In VS this service should only by instantiated in OOP and accessed remotely via <see cref="IRemoteEditAndContinueService"/>.
+/// The service is used directly only by dotnet-watch and for testing.
 /// </summary>
 internal sealed class EditAndContinueService : IEditAndContinueService
 {
