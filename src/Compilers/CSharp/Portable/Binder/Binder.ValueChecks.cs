@@ -540,9 +540,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Expression can be the operand of an increment or decrement operation.
-            /// Same as CompoundAssignment, the distinction is really just for error reporting.
+            /// Same as CompoundAssignment, the distinction is really just for error reporting
+            /// and event handling.
             /// </summary>
             IncrementDecrement = CompoundAssignment + 1,
+
+            /// <summary>
+            /// Expression can be the operand of a null-coalescing assignment operation (??=).
+            /// Same as CompoundAssignment, the distinction is really just for error reporting
+            /// and event handling.
+            /// </summary>
+            NullCoalescingAssignment = CompoundAssignment + 2,
 
             /// <summary>
             /// Expression is a r/o reference.
@@ -1840,15 +1848,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
-            // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
-            // accessibility, use site errors, and receiver variable-ness (for structs).
-            // Other operations are allowed only for field-like events and only where the backing field is accessible
-            // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
-
             BoundExpression receiver = boundEvent.ReceiverOpt;
             SyntaxNode eventSyntax = GetEventName(boundEvent); //does not include receiver
             EventSymbol eventSymbol = boundEvent.EventSymbol;
 
+            // For events, we intentionally do not filter out the lower bits of BindValueKind; they specify semantic information
+            // such as being increment/decrement or null-coalescing.
+            // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
+            // accessibility, use site errors, and receiver variable-ness (for structs).
+            // Other operations are allowed only for field-like events and only where the backing field is accessible
+            // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
             if (valueKind == BindValueKind.CompoundAssignment)
             {
                 // NOTE: accessibility has already been checked by lookup.
@@ -3502,6 +3511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case BindValueKind.CompoundAssignment:
+                case BindValueKind.NullCoalescingAssignment:
                 case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgReadonlyLocal;
 
@@ -3537,6 +3547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.Assignable:
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.IncrementDecrement:
+                case BindValueKind.NullCoalescingAssignment:
                     return ErrorCode.ERR_QueryRangeVariableReadOnly;
 
                 case BindValueKind.AddressOf:
@@ -3574,6 +3585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case BindValueKind.CompoundAssignment:
+                case BindValueKind.NullCoalescingAssignment:
                 case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgLvalueExpected;
 
