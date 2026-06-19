@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal struct DecisionDagReachabilityInfo(BoundDecisionDagNode source, bool whenTrue) : IEquatable<DecisionDagReachabilityInfo>
+        internal readonly struct DecisionDagReachabilityInfo(BoundDecisionDagNode source, bool whenTrue) : IEquatable<DecisionDagReachabilityInfo>
         {
             public readonly BoundDecisionDagNode Source = source;
             public readonly bool WhenTrue = whenTrue;
@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(node.Expression);
             var expressionState = ResultType;
-            var reachabilityInfo = PooledHashSet<DecisionDagReachabilityInfo>.GetInstance();
+            var reachabilityInfo = (!node.ReportedNotExhaustive && node.DefaultLabel != null) ? PooledHashSet<DecisionDagReachabilityInfo>.GetInstance() : null;
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.ReachabilityDecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null, reachabilityInfo: reachabilityInfo);
             var endState = UnreachableState();
 
@@ -1032,6 +1032,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 labelStateMap.TryGetValue(node.DefaultLabel, out var defaultLabelState) &&
                 defaultLabelState.believedReachable)
             {
+                Debug.Assert(reachabilityInfo is not null);
+
                 SetState(defaultLabelState.state);
                 var nodes = node.ReachabilityDecisionDag.TopologicallySortedNodes;
                 var leaf = nodes.Where(n => n is BoundLeafDecisionDagNode leaf && leaf.Label == node.DefaultLabel).First();
@@ -1044,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     samplePattern);
             }
 
-            reachabilityInfo.Free();
+            reachabilityInfo?.Free();
 
             // collect expressions, conversions and result types
             int numSwitchArms = node.SwitchArms.Length;
