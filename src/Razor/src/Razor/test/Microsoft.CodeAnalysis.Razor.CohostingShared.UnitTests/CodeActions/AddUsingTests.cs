@@ -61,7 +61,7 @@ public class AddUsingTests(ITestOutputHelper testOutputHelper) : CohostCodeActio
     }
 
     [Fact]
-    public async Task FullyQualify_ExplicitStatememt()
+    public async Task FullyQualify_ExplicitStatement()
     {
         var input = """
             @{

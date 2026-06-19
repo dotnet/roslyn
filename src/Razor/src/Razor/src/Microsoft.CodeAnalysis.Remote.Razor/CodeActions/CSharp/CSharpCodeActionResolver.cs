@@ -67,7 +67,7 @@ internal sealed class CSharpCodeActionResolver(
             var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
             if (razorDocument is null)
             {
-                _logger.LogWarning($"Could not get razr document for {generatedDocumentUri} processing {codeAction.Title}, so leaving original edit in place.");
+                _logger.LogWarning($"Could not get razor document for {generatedDocumentUri} processing {codeAction.Title}, so leaving original edit in place.");
                 continue;
             }
 
