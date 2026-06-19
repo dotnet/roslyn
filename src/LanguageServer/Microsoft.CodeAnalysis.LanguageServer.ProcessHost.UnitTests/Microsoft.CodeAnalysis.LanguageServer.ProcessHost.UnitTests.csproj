@@ -30,6 +30,11 @@
     -->
     <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\TestPaths.cs" Link="Utilities\TestPaths.cs" />
     <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\NamedPipeTestUtilities.cs" Link="Utilities\NamedPipeTestUtilities.cs" />
+    <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\LanguageServerTestComposition.cs" Link="Utilities\LanguageServerTestComposition.cs" />
+    <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\AbstractLanguageServerHostTests.cs" Link="Utilities\AbstractLanguageServerHostTests.cs" />
+    <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\FileWatcherReleaseTracker.cs" Link="Utilities\FileWatcherReleaseTracker.cs" />
+    <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\Utilities\ILspClient.cs" Link="Utilities\ILspClient.cs" />
+    <Compile Include="..\Microsoft.CodeAnalysis.LanguageServer.UnitTests\MiscellaneousFiles\AbstractLspMiscellaneousFilesWorkspaceTests.cs" Link="MiscellaneousFiles\AbstractLspMiscellaneousFilesWorkspaceTests.cs" />
   </ItemGroup>
 
   <!--
