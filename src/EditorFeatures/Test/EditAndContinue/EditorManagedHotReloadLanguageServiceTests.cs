@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue;
 [UseExportProvider]
 public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinueWorkspaceTestBase
 {
-    private static readonly Version s_currentHotReloadVersion = new(1, 0);
-    private static readonly Version s_legacyHotReloadVersion = new(0, 1);
-
     private sealed class TestServiceBroker(Func<ServiceRpcDescriptor, Type, object> createService) : IServiceBroker
     {
         public List<ServiceRpcDescriptor> RequestedDescriptors { get; } = [];
