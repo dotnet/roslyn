@@ -3746,8 +3746,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
+            ReportDisallowedExtensionBlockMethod(selectedMethod, syntax, diagnostics);
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, selectedMethod, syntax);
-            ReportDiagnosticsIfDisallowedExtension(diagnostics, selectedMethod, syntax);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process
