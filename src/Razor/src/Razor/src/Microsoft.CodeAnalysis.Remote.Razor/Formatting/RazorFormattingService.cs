@@ -81,8 +81,8 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         //
         // To defeat that, we simply don't do range formatting if there are diagnostics.
 
-        // Despite what it looks like, codeDocument.GetImplCSharpDocument().Diagnostics is actually the
-        // Razor diagnostics, not the C# diagnostics 🤦‍
+        // Despite what it looks like, getting diagnostics from a CSharpDocument is actually the
+        // Razor diagnostics, not the Roslyn C# diagnostics 🤦‍
         var sourceText = codeDocument.Source.Text;
         if (range is { } span)
         {
