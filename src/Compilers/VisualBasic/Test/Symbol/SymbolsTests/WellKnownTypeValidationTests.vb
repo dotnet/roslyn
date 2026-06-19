@@ -487,6 +487,7 @@ End Namespace
                 If special = SpecialMember.System_String__Concat_2ReadOnlySpans OrElse
                    special = SpecialMember.System_String__Concat_3ReadOnlySpans OrElse
                    special = SpecialMember.System_String__Concat_4ReadOnlySpans OrElse
+                   special = SpecialMember.System_String__ConcatReadOnlySpanString OrElse
                    special = SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention OrElse

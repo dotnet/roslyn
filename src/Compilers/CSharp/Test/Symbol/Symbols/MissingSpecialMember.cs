@@ -557,6 +557,7 @@ namespace System
                 if (special == SpecialMember.System_String__Concat_2ReadOnlySpans
                     || special == SpecialMember.System_String__Concat_3ReadOnlySpans
                     || special == SpecialMember.System_String__Concat_4ReadOnlySpans
+                    || special == SpecialMember.System_String__ConcatReadOnlySpanString
                     || special == SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
