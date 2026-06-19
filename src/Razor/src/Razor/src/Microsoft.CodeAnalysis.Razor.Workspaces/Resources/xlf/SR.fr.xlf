@@ -121,7 +121,7 @@
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
         <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">Tentative de visite d’un RazorMetaCode autre que '{' or '}'.</target>
+        <target state="new">Attempted to visit a RazorMetaCode other than '{' or '}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">

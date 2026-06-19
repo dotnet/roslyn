@@ -4,37 +4,37 @@
     <body>
       <trans-unit id="HtmlAttribute_async">
         <source>The script will be executed asynchronously, as soon as it is available.</source>
-        <target state="translated">指令碼只要一可用，就以非同步方式執行。</target>
+        <target state="new">The script will be executed asynchronously, as soon as it is available.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_defer">
         <source>The script is executed when the page has finished parsing.</source>
-        <target state="translated">指令碼是在網頁完成剖析時執行。</target>
+        <target state="new">The script is executed when the page has finished parsing.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_draggable">
         <source>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</source>
-        <target state="translated">元素具有 draggable 屬性時，還應具有 title 屬性來命名元素，以利非視覺上的互動。</target>
+        <target state="new">An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_integrity">
         <source>The integrity attribute represents integrity metadata for an element.</source>
-        <target state="translated">完整性屬性代表元素的完整性中繼資料。</target>
+        <target state="new">The integrity attribute represents integrity metadata for an element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_open">
         <source>When specified, it indicates that the dialog element is active and that the user can interact with it.</source>
-        <target state="translated">如有指定，表示對話元素作用中，而且使用者可以與其互動。</target>
+        <target state="new">When specified, it indicates that the dialog element is active and that the user can interact with it.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">
         <source>Image sizes between breakpoints.</source>
-        <target state="translated">中斷點之間的影像大小。</target>
+        <target state="new">Image sizes between breakpoints.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcset">
         <source>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</source>
-        <target state="translated">要在不同情況下使用的影像 (例如高解析度顯示器、小型螢幕等等)。</target>
+        <target state="new">Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_a">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_article">
         <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</source>
-        <target state="translated">article 元素代表文件、頁面、應用程式或網站中的完整或獨立複合元素，而且，原則上，即獨立散發或可重複使用的元素 (例如在整合中)。這可能是論壇文章、雜誌或報紙文章、部落格項目、使用者提交的註解、互動 Widget 或小工具，或者內容的任何其他獨立項目。</target>
+        <target state="new">The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_aside">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="HtmlElement_bdi">
         <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</source>
-        <target state="translated">bdi 元素代表基於雙向文字格式而與所圍住元素隔離的一段文字。</target>
+        <target state="new">The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdo">
         <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</source>
-        <target state="translated">bdo 元素代表其子系的明確文字方向格式控制。它允許作者透過明確地指定方向覆寫來覆寫 Unicode 雙向演算法。</target>
+        <target state="new">The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_blockquote">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_cite">
         <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</source>
-        <target state="translated">cite 元素代表創意工作的參照。它必須包括工作標題或作者名稱 (人員或組織) 或 URL 參照，而根據用於新增引文中繼資料的慣例，其可能為縮寫形式。</target>
+        <target state="new">The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_code">
@@ -229,42 +229,42 @@
       </trans-unit>
       <trans-unit id="HtmlElement_h1">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">這些元素代表其章節的標題。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h2">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">這些元素代表其章節的標題。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h3">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">這些元素代表其章節的標題。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h4">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">這些元素代表其章節的標題。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h5">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">這些元素代表其章節的標題。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h6">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">這些元素代表其章節的標題。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_head">
         <source>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</source>
-        <target state="translated">head 元素代表文件中繼資料集合。head 元素必須是 html 元素中的第一個元素。</target>
+        <target state="new">The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_header">
         <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</source>
-        <target state="translated">header 元素代表其最近上階章節內容或章節根元素的介紹內容。頁首通常會包含一組介紹或導覽輔助。</target>
+        <target state="new">The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_hr">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_li">
         <source>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
-        <target state="translated">li 元素代表清單項目。如果其父元素是 ol 或 ul，則該元素是上層元素清單的項目 (如針對那些元素所定義)。否則，清單項目不會定義清單與任何其他 li 元素的相關關聯性。</target>
+        <target state="new">The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_link">
@@ -349,7 +349,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_menu">
         <source>The menu element represents a list of commands.</source>
-        <target state="translated">menu 元素代表命令清單。</target>
+        <target state="new">The menu element represents a list of commands.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menuitem">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_output">
         <source>The output element represents the result of a calculation or user action.</source>
-        <target state="translated">output 元素代表計算或使用者動作的結果。</target>
+        <target state="new">The output element represents the result of a calculation or user action.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_p">
@@ -439,7 +439,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_picture">
         <source>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
-        <target state="translated">picture 元素是一個容器，可以提供其容納的圖形元素多個來源，以便讓作者以宣告方式，依畫面像素密度、檢視區大小、圖形格式及其他因素來控制或提供使用者代理程式要使用的圖形資源提示。它代表其子系。</target>
+        <target state="new">The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_polymer-element">
@@ -479,7 +479,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_ruby">
         <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</source>
-        <target state="translated">ruby 元素可用於為一或多段表示內容標記拼音註釋。拼音註釋是出現在基底文字旁的一段小段文字，主要出現在東亞印刷樣式中，用於指出發音或包含其他註釋。</target>
+        <target state="new">The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_s">
@@ -489,7 +489,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_samp">
         <source>The samp element represents (sample) output from a program or computing system.</source>
-        <target state="translated">samp 元素代表程式或運算系統的 (範例) 輸出。</target>
+        <target state="new">The samp element represents (sample) output from a program or computing system.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_script">
@@ -499,7 +499,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_section">
         <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</source>
-        <target state="translated">section 元素代表文件或應用程式的一般章節。此內容中的章節是內容的主題群組。每個章節的主題都應該識別 (一般是包括標題 (h1-h6 元素)) 為 section 元素的子系。</target>
+        <target state="new">The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_select">
@@ -539,7 +539,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_sub">
         <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="translated">sup 元素代表上標，而 sub 元素代表下標。</target>
+        <target state="new">The sup element represents a superscript and the sub element represents a subscript.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_summary">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_sup">
         <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="translated">sup 元素代表上標，而 sub 元素代表下標。</target>
+        <target state="new">The sup element represents a superscript and the sub element represents a subscript.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_svg">

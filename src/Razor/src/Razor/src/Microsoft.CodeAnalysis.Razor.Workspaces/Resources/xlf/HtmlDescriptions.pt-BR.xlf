@@ -4,37 +4,37 @@
     <body>
       <trans-unit id="HtmlAttribute_async">
         <source>The script will be executed asynchronously, as soon as it is available.</source>
-        <target state="translated">O script será executado de forma assíncrona, assim que estiver disponível.</target>
+        <target state="new">The script will be executed asynchronously, as soon as it is available.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_defer">
         <source>The script is executed when the page has finished parsing.</source>
-        <target state="translated">O script é executado quando a página termina a análise.</target>
+        <target state="new">The script is executed when the page has finished parsing.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_draggable">
         <source>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</source>
-        <target state="translated">Um elemento com um atributo draggable também deve ter um atributo title que nomeia o elemento para fins de interações não visuais.</target>
+        <target state="new">An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_integrity">
         <source>The integrity attribute represents integrity metadata for an element.</source>
-        <target state="translated">O atributo integrity representa metadados de integridade para um elemento.</target>
+        <target state="new">The integrity attribute represents integrity metadata for an element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_open">
         <source>When specified, it indicates that the dialog element is active and that the user can interact with it.</source>
-        <target state="translated">Quando especificado, ele indica que o elemento dialog está ativo e que o usuário pode interagir com ele.</target>
+        <target state="new">When specified, it indicates that the dialog element is active and that the user can interact with it.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">
         <source>Image sizes between breakpoints.</source>
-        <target state="translated">Tamanhos de imagem entre pontos de interrupção.</target>
+        <target state="new">Image sizes between breakpoints.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcset">
         <source>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</source>
-        <target state="translated">Imagens a serem usadas em situações diferentes (por exemplo, telas de alta resolução, monitores pequenos etc.).</target>
+        <target state="new">Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_a">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_article">
         <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</source>
-        <target state="translated">O elemento article representa uma composição completa, ou autônoma, em um documento, página, aplicativo ou site e que é, a princípio, independentemente distribuível ou reutilizável, por exemplo, em agregação. Isso pode ser uma postagem de fórum, um artigo de revista ou de jornal, uma entrada de blog, um comentário enviado pelo usuário, um widget interativo ou gadget ou qualquer outro item independente de conteúdo.</target>
+        <target state="new">The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_aside">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="HtmlElement_bdi">
         <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</source>
-        <target state="translated">O elemento bdi representa um intervalo de texto que deve ser isolado do seu redor para fins de formatação de texto bidirecional.</target>
+        <target state="new">The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdo">
         <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</source>
-        <target state="translated">O elemento bdo representa controle de formatação de direcionalidade de texto explícito para seus filhos. Ele permite que os autores substituam o algoritmo bidirecional Unicode especificando explicitamente uma substituição de direção.</target>
+        <target state="new">The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_blockquote">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_cite">
         <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</source>
-        <target state="translated">O elemento cite representa uma referência a um trabalho criativo. Ele deve incluir o título do trabalho ou o nome do autor (pessoa, pessoas ou organização) ou uma referência de URL, que pode estar em um formato abreviado de acordo com as convenções usadas para a adição de metadados de citação.</target>
+        <target state="new">The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_code">
@@ -229,42 +229,42 @@
       </trans-unit>
       <trans-unit id="HtmlElement_h1">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">Esses elementos representam títulos para suas seções.</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h2">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">Esses elementos representam títulos para suas seções.</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h3">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">Esses elementos representam títulos para suas seções.</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h4">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">Esses elementos representam títulos para suas seções.</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h5">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">Esses elementos representam títulos para suas seções.</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h6">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">Esses elementos representam títulos para suas seções.</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_head">
         <source>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</source>
-        <target state="translated">O elemento head representa uma coleção de metadados para o documento. O elemento head deve ser o primeiro elemento em um elemento html.</target>
+        <target state="new">The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_header">
         <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</source>
-        <target state="translated">O elemento header representa o conteúdo introdutório para seu elemento raiz de seccionamento ou conteúdo de seccionamento ancestral mais próximo. Um cabeçalho normalmente contém um grupo de auxílios introdutórios ou de navegação.</target>
+        <target state="new">The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_hr">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_li">
         <source>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
-        <target state="translated">O elemento li representa um item de lista. Se seu elemento pai é um ol, ou ul, o elemento é um item da lista do elemento pai, conforme definido para esses elementos. Caso contrário, o item de lista não tem nenhuma relação relacionada à lista definida com nenhum outro elemento li.</target>
+        <target state="new">The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_link">
@@ -349,7 +349,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_menu">
         <source>The menu element represents a list of commands.</source>
-        <target state="translated">O elemento menu representa uma lista de comandos.</target>
+        <target state="new">The menu element represents a list of commands.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menuitem">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_output">
         <source>The output element represents the result of a calculation or user action.</source>
-        <target state="translated">O elemento output representa o resultado de um cálculo ou ação do usuário.</target>
+        <target state="new">The output element represents the result of a calculation or user action.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_p">
@@ -439,7 +439,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_picture">
         <source>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
-        <target state="translated">O elemento picture é um contêiner que fornece múltiplas fontes para seu elemento img contido para permitir que os autores declarativamente controlem ou ofereçam dicas ao agente de usuário sobre qual recurso image usar, com base na densidade de pixels da tela, tamanho do visor, formato da imagem e outros fatores. Ele representa seus filhos.</target>
+        <target state="new">The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_polymer-element">
@@ -479,7 +479,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_ruby">
         <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</source>
-        <target state="translated">O elemento ruby permite que um ou mais intervalos de conteúdo de frases sejam marcados com anotações ruby. As anotações ruby são breves execuções de texto apresentadas ao lado do texto base, usadas principalmente na tipografia do Leste da Ásia como um guia para pronúncia ou para incluir outras anotações.</target>
+        <target state="new">The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_s">
@@ -489,7 +489,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_samp">
         <source>The samp element represents (sample) output from a program or computing system.</source>
-        <target state="translated">O elemento samp representa (exemplo) a saída de um programa ou sistema de computação.</target>
+        <target state="new">The samp element represents (sample) output from a program or computing system.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_script">
@@ -499,7 +499,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_section">
         <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</source>
-        <target state="translated">O elemento section representa uma seção genérica de um documento ou aplicativo. Uma seção, nesse contexto, é um agrupamento temático de conteúdo. O tema de cada seção deve ser identificado, normalmente incluindo um título (elemento h1-h6) como um filho do elemento section.</target>
+        <target state="new">The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_select">
@@ -539,7 +539,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_sub">
         <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="translated">O elemento sup representa um sobrescrito e o elemento sub representa um subscrito.</target>
+        <target state="new">The sup element represents a superscript and the sub element represents a subscript.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_summary">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_sup">
         <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="translated">O elemento sup representa um sobrescrito e o elemento sub representa um subscrito.</target>
+        <target state="new">The sup element represents a superscript and the sub element represents a subscript.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_svg">

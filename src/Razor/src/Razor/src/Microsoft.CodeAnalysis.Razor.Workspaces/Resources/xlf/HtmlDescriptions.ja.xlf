@@ -4,37 +4,37 @@
     <body>
       <trans-unit id="HtmlAttribute_async">
         <source>The script will be executed asynchronously, as soon as it is available.</source>
-        <target state="translated">スクリプトは使用可能になるとすぐに非同期で実行されます。</target>
+        <target state="new">The script will be executed asynchronously, as soon as it is available.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_defer">
         <source>The script is executed when the page has finished parsing.</source>
-        <target state="translated">ページが解析を終了すると、スクリプトが実行されます。</target>
+        <target state="new">The script is executed when the page has finished parsing.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_draggable">
         <source>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</source>
-        <target state="translated">ドラッグ可能な属性を持つ要素は、非表示型の操作を目的として、要素に命名するタイトル属性も持つ必要があります。</target>
+        <target state="new">An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_integrity">
         <source>The integrity attribute represents integrity metadata for an element.</source>
-        <target state="translated">integrity 属性は要素の整合性メタデータを表します。</target>
+        <target state="new">The integrity attribute represents integrity metadata for an element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_open">
         <source>When specified, it indicates that the dialog element is active and that the user can interact with it.</source>
-        <target state="translated">指定されている場合、ダイアログ要素がアクティブであり、ユーザーによる操作が可能なことを示します。</target>
+        <target state="new">When specified, it indicates that the dialog element is active and that the user can interact with it.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_sizes">
         <source>Image sizes between breakpoints.</source>
-        <target state="translated">ブレークポイント間のイメージ サイズ。</target>
+        <target state="new">Image sizes between breakpoints.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_srcset">
         <source>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</source>
-        <target state="translated">さまざまな状況 (高解像度ディスプレイや小型モニターなど) で使用する画像。</target>
+        <target state="new">Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_a">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_article">
         <source>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</source>
-        <target state="translated">article 要素は、ドキュメント、ページ、アプリケーション、またはサイト内の、完全であるか自己完結した (原則として、シンジケートのように単独で配布や再利用が可能な) 構成を表します。これは、フォーラム記事、雑誌や新聞の記事、ブログ投稿、ユーザーが送信したコメント、インタラクティブなウィジェットやガジェット、その他、コンテンツの独立した項目である場合があります。</target>
+        <target state="new">The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_aside">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="HtmlElement_bdi">
         <source>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</source>
-        <target state="translated">bdi 要素は、双方向テキストの書式設定のために、その周囲のものからは分離されるテキストの範囲を表します。</target>
+        <target state="new">The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_bdo">
         <source>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</source>
-        <target state="translated">bdo 要素は、その子に対する明示的なテキスト方向の書式設定制御を表します。これにより、作成者は明示的に方向を指定することで、Unicode 双方向アルゴリズムをオーバーライドできるようになります。</target>
+        <target state="new">The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_blockquote">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_cite">
         <source>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</source>
-        <target state="translated">cite 要素は創造的な作品への参照を表します。これには、作品のタイトル、作成者 (個人、人々または組織) の名前または URL 参照が含まれます。これは引用メタデータを追加するために使用される規則に従って省略された形式にできます。</target>
+        <target state="new">The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_code">
@@ -229,42 +229,42 @@
       </trans-unit>
       <trans-unit id="HtmlElement_h1">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h2">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h3">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h4">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h5">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_h6">
         <source>These elements represent headings for their sections.</source>
-        <target state="translated">これらの要素はそのセクションの見出しを表します。</target>
+        <target state="new">These elements represent headings for their sections.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_head">
         <source>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</source>
-        <target state="translated">head 要素はドキュメントのメタデータ コレクションを表します。head 要素は html 要素の中で最初の要素である必要があります。</target>
+        <target state="new">The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_header">
         <source>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</source>
-        <target state="translated">header 要素は、それに最も近い親要素のセクショニング コンテンツ、またはセクショニング ルート要素の導入コンテンツを表します。通常、ヘッダーには概要やナビゲーション補助のグループが含まれます。</target>
+        <target state="new">The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_hr">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_li">
         <source>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</source>
-        <target state="translated">li 要素はリスト項目を表します。この要素は、親要素が ol または ul である場合、それらの要素での定義に従い、親要素のリストの項目となります。それ以外の場合リスト アイテムは、別の li 要素に対し、定義済みのリスト関連のリレーションシップは持ちません。</target>
+        <target state="new">The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element's list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_link">
@@ -349,7 +349,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_menu">
         <source>The menu element represents a list of commands.</source>
-        <target state="translated">menu 要素はコマンドのリストを表します。</target>
+        <target state="new">The menu element represents a list of commands.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_menuitem">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_output">
         <source>The output element represents the result of a calculation or user action.</source>
-        <target state="translated">output 要素は計算またはユーザー操作の結果を表します。</target>
+        <target state="new">The output element represents the result of a calculation or user action.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_p">
@@ -439,7 +439,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_picture">
         <source>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</source>
-        <target state="translated">picture 要素は内包する img 要素に複数のソースを指定するコンテナーです。これにより作成者は、画面のピクセルの密度、ビューポートのサイズ、イメージの形式などの要因に基づいて、使用するイメージ リソースについてユーザー エージェントを宣言で制御したり、そのヒントを与えたりできます。これはその子を表します。</target>
+        <target state="new">The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_polymer-element">
@@ -479,7 +479,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_ruby">
         <source>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</source>
-        <target state="translated">ruby 要素は、表現コンテンツの 1 つ以上の範囲を、フリガナ注釈と共にマークアップできるようにします。フリガナ注釈とはベース テキストに沿って表示される短いテキストのことで、主に東アジアの文字体裁で発音のガイドとして使われたり、他の注釈を加えるために使われたりします。</target>
+        <target state="new">The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_s">
@@ -489,7 +489,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_samp">
         <source>The samp element represents (sample) output from a program or computing system.</source>
-        <target state="translated">samp 要素はプログラムやコンピューティング システムからの (サンプル) 出力を表します。</target>
+        <target state="new">The samp element represents (sample) output from a program or computing system.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_script">
@@ -499,7 +499,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_section">
         <source>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</source>
-        <target state="translated">section 要素は、ドキュメントやアプリケーションの一般的なセクションを表します。このコンテキストでは、セクションはコンテンツのテーマをグループ化します。各セクションのテーマは、通常、section 要素の子として見出し (h1 から h6 要素) を含めることで識別する必要があります。</target>
+        <target state="new">The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_select">
@@ -539,7 +539,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_sub">
         <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="translated">sup 要素は上付き文字を表し、sub 要素は下付き文字を表します。</target>
+        <target state="new">The sup element represents a superscript and the sub element represents a subscript.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_summary">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="HtmlElement_sup">
         <source>The sup element represents a superscript and the sub element represents a subscript.</source>
-        <target state="translated">sup 要素は上付き文字を表し、sub 要素は下付き文字を表します。</target>
+        <target state="new">The sup element represents a superscript and the sub element represents a subscript.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlElement_svg">
