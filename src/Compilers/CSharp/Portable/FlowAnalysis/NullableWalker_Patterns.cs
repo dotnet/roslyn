@@ -541,6 +541,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(foundTemp);
 
                             (int inputSlot, TypeSymbol inputType) = slotAndType;
+                            
+                            // Check the state BEFORE splitting to determine if the test is meaningful
+                            bool inputMayBeNullBeforeSplit = inputSlot > 0 && (IsConditionalState 
+                                ? GetState(ref this.StateWhenTrue, inputSlot).MayBeNull() || GetState(ref this.StateWhenFalse, inputSlot).MayBeNull()
+                                : GetState(ref this.State, inputSlot).MayBeNull());
+                            
                             Split();
                             switch (test)
                             {
@@ -553,8 +559,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
                                     break;
                                 case BoundDagNonNullTest t:
-                                    var inputMaybeNull = GetState(ref this.StateWhenTrue, inputSlot).MayBeNull();
-
                                     if (inputSlot > 0)
                                     {
                                         MarkDependentSlotsNotNull(inputSlot, inputType, ref this.StateWhenFalse);
@@ -565,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
-                                    gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable & inputMaybeNull);
+                                    gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable & inputMayBeNullBeforeSplit);
                                     break;
                                 case BoundDagExplicitNullTest _:
                                     if (inputSlot > 0)
