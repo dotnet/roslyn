@@ -32,7 +32,7 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory,
-    [Import(AllowDefault = true)] IEditAndContinueSessionTracker? sessionTracker)
+    IEditAndContinueSessionTracker encSessionTracker)
     : CohostDocumentPullDiagnosticsEndpointBase<DocumentDiagnosticParams, FullDocumentDiagnosticReport?>(
         incompatibleProjectService,
         remoteServiceInvoker,
@@ -40,7 +40,7 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
         clientCapabilitiesService,
         telemetryReporter,
         loggerFactory.GetOrCreateLogger<DocumentPullDiagnosticsEndpoint>(),
-        sessionTracker),
+        encSessionTracker),
       IDynamicRegistrationProvider
 {
     protected override string LspMethodName => Methods.TextDocumentDiagnosticName;

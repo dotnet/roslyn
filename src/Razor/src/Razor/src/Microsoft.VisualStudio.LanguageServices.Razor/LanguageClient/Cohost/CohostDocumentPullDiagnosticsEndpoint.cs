@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IDynamicRegistrationProvider))]
 [ExportRazorStatelessLspService(typeof(CohostDocumentPullDiagnosticsEndpoint))]
 [method: ImportingConstructor]
+#pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
@@ -36,8 +37,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory,
-    [Import(AllowDefault = true)] IEditAndContinueSessionTracker? encSessionTracker)
-#pragma warning restore RS0030 // Do not use banned APIs
+    IEditAndContinueSessionTracker encSessionTracker)
     : CohostDocumentPullDiagnosticsEndpointBase<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
         incompatibleProjectService,
         remoteServiceInvoker,

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor;
 [method: ImportingConstructor]
 internal sealed class OrganizeUsingsCommand(
     IRemoteServiceInvoker remoteServiceInvoker,
-    [Import(AllowDefault = true)] IEditAndContinueSessionTracker? encSessionTracker) : IInterceptedCommand
+    IEditAndContinueSessionTracker encSessionTracker) : IInterceptedCommand
 {
     // Roslyn C# command group (guidCSharpGrpId) — used for "Remove and Sort Usings"
     private static readonly Guid s_cSharpGroupGuid = new("5d7e7f65-a63f-46ee-84f1-990b2cab23f9");

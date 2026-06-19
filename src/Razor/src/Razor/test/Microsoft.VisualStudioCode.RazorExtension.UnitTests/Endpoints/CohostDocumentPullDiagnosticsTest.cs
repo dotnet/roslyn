@@ -96,7 +96,7 @@ public partial class CohostDocumentPullDiagnosticsTest
     {
         Assert.False(taskListRequest, "Not supported.");
 
-        var endpoint = new DocumentPullDiagnosticsEndpoint(incompatibleProjectService, remoteServiceInvoker, requestInvoker, clientCapabilitiesService, NoOpTelemetryReporter.Instance, loggerFactory, sessionTracker: null);
+        var endpoint = new DocumentPullDiagnosticsEndpoint(incompatibleProjectService, remoteServiceInvoker, requestInvoker, clientCapabilitiesService, NoOpTelemetryReporter.Instance, loggerFactory, VoidSessionTracker.Instance);
 
         return endpoint.GetTestAccessor().HandleRequestAsync(document, cancellationToken);
     }

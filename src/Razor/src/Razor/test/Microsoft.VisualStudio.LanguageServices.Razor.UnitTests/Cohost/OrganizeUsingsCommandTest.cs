@@ -620,7 +620,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind, additionalFiles: additionalFiles);
 
-        var command = new OrganizeUsingsCommand(RemoteServiceInvoker, encSessionTracker: null);
+        var command = new OrganizeUsingsCommand(RemoteServiceInvoker, VoidSessionTracker.Instance);
         var accessor = command.GetTestAccessor();
 
         Assert.True(accessor.QueryRemoveAndSortUsings());
@@ -637,7 +637,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind, additionalFiles: additionalFiles);
 
-        var command = new OrganizeUsingsCommand(RemoteServiceInvoker, encSessionTracker: null);
+        var command = new OrganizeUsingsCommand(RemoteServiceInvoker, VoidSessionTracker.Instance);
         var accessor = command.GetTestAccessor();
 
         Assert.True(accessor.QuerySortUsings());

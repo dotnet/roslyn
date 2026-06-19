@@ -24,7 +24,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter,
     ILogger logger,
-    IEditAndContinueSessionTracker? encSessionTracker)
+    IEditAndContinueSessionTracker encSessionTracker)
     : AbstractCohostDocumentEndpoint<TRequest, TResponse>(incompatibleProjectService)
     where TRequest : notnull
 {
@@ -33,7 +33,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = logger;
-    private readonly IEditAndContinueSessionTracker? _encSessionTracker = encSessionTracker;
+    private readonly IEditAndContinueSessionTracker _encSessionTracker = encSessionTracker;
 
     protected override bool MutatesSolutionState => false;
 
