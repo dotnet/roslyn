@@ -11,8 +11,12 @@ internal static class MethodImplAttributeExtensions
 {
     extension(MethodImplAttributes)
     {
-        // https://github.com/dotnet/roslyn/issues/79792: Use the real value when possible
-        public static MethodImplAttributes Async => (MethodImplAttributes)0x2000;
+        public static MethodImplAttributes Async =>
+#if NET10_0_OR_GREATER
+            MethodImplAttributes.Async;
+#else
+            (MethodImplAttributes)0x2000;
+#endif
     }
 }
 
@@ -20,7 +24,11 @@ internal static class MethodImplOptionsExtensions
 {
     extension(MethodImplOptions)
     {
-        // https://github.com/dotnet/roslyn/issues/79792: Use the real value when possible
-        public static MethodImplOptions Async => (MethodImplOptions)0x2000;
+        public static MethodImplOptions Async =>
+#if NET10_0_OR_GREATER
+            MethodImplOptions.Async;
+#else
+            (MethodImplOptions)0x2000;
+#endif
     }
 }
