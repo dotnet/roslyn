@@ -145,16 +145,19 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
         await using var testLspServer = await CreateAutoLoadLanguageServerAsync(workspaceContent);
 
         // The single solution file at the root is auto-loaded, which triggers a restore of the unrestored projects.
-        // Verify that the restore runs against the solution as a whole (a single "Restoring App.sln" stage) rather than
-        // restoring each contained project individually (which would report a "Restoring <project>.csproj" stage per project).
         var restoreUnit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(LanguageServerResources.Restore);
+        await restoreUnit.WaitForEndAsync();
 
-        // Assert on the restore stage as soon as it is reported (before the restore process completes) so the test does
-        // not depend on the dotnet restore process exiting.
-        var restoreStage = await restoreUnit.WaitForReportAsync(static progress => progress is WorkDoneProgressReport);
+        // Verify that the restore ran against the solution as a whole (a single "Restoring App.sln" stage) rather than
+        // restoring each contained project individually (which would report a "Restoring <project>.csproj" stage per project).
+        var restoreStages = restoreUnit.GetProgressReports()
+            .OfType<WorkDoneProgressReport>()
+            .Select(report => report.Message)
+            .Distinct()
+            .ToArray();
 
         var expectedStage = string.Format(LanguageServerResources.Restoring_0, "App.sln");
-        Assert.Equal(expectedStage, ((WorkDoneProgressReport)restoreStage).Message);
+        Assert.Equal(expectedStage, Assert.Single(restoreStages));
     }
 
     private Task<TestLspClient> CreateAutoLoadLanguageServerAsync(LspWorkspaceContent workspaceContent)

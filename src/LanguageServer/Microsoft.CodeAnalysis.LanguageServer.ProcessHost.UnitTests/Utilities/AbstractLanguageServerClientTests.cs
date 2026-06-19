@@ -176,7 +176,6 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
             private readonly object _gate = new();
             private readonly List<WorkDoneProgress> _progressReports = [];
             private readonly TaskCompletionSource<WorkDoneProgressEnd> _endSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            private readonly List<(Func<WorkDoneProgress, bool> Predicate, TaskCompletionSource<WorkDoneProgress> Source)> _reportWaiters = [];
 
             public string Token { get; } = token;
             public WorkDoneProgressCreateParams CreateParams { get; } = createParams;
@@ -194,35 +193,11 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
 
                     if (progress is WorkDoneProgressEnd end)
                         _endSource.TrySetResult(end);
-
-                    foreach (var (predicate, source) in _reportWaiters)
-                    {
-                        if (predicate(progress))
-                            source.TrySetResult(progress);
-                    }
                 }
             }
 
             public Task<WorkDoneProgressEnd> WaitForEndAsync()
                 => _endSource.Task;
-
-            /// <summary>
-            /// Waits for a progress report matching <paramref name="predicate"/> to be reported. Returns immediately if a
-            /// matching report has already been observed. Useful for asserting on progress that is reported before some
-            /// long-running (or never-completing) work, without having to wait for the work to finish.
-            /// </summary>
-            public Task<WorkDoneProgress> WaitForReportAsync(Func<WorkDoneProgress, bool> predicate)
-            {
-                lock (_gate)
-                {
-                    if (_progressReports.FirstOrDefault(predicate) is { } existing)
-                        return Task.FromResult(existing);
-
-                    var source = new TaskCompletionSource<WorkDoneProgress>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    _reportWaiters.Add((predicate, source));
-                    return source.Task;
-                }
-            }
 
             public ImmutableArray<WorkDoneProgress> GetProgressReports()
             {
