@@ -71,6 +71,23 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace));
     }
 
+    /// <summary>
+    /// When a solution has been opened (either explicitly or via auto-load), restore the solution as a whole rather
+    /// than restoring each contained project individually. A single solution-level restore is significantly faster than
+    /// running <c>dotnet restore</c> once per project, which matters most for large, completely unrestored solutions.
+    /// </summary>
+    protected override ImmutableArray<string> GetPathsToRestore(ImmutableArray<string> projectsThatNeedRestore)
+    {
+        var solutionPath = _hostProjectFactory.SolutionPath;
+        if (solutionPath is not null)
+        {
+            _logger.LogInformation("Restoring solution '{SolutionPath}' instead of {ProjectCount} individual project(s).", solutionPath, projectsThatNeedRestore.Length);
+            return [solutionPath];
+        }
+
+        return projectsThatNeedRestore;
+    }
+
     public async Task OpenSolutionAsync(string solutionFilePath, IProgress<LSP.WorkDoneProgress>? progressReporter = null)
     {
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
