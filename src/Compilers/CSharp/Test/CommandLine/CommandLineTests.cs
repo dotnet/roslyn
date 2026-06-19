@@ -9473,7 +9473,7 @@ public class C { }
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/79895")]
-        public void GeneratorTimingOutput_ReportedByDefault()
+        public void AnalyzerAndGeneratorTimingOutput_ReportedByDefault()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
             var srcDirectory = Path.GetDirectoryName(srcFile.Path);
@@ -9488,11 +9488,33 @@ public class C { }
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             var output = outWriter.ToString();
-            Assert.DoesNotContain("Total analyzer execution time:", output, StringComparison.Ordinal);
-            Assert.DoesNotContain($"{nameof(WarningDiagnosticAnalyzer)} (Warning01)", output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains($"{nameof(WarningDiagnosticAnalyzer)} (Warning01)", output, StringComparison.Ordinal);
             Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
             Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
-            Assert.DoesNotContain(CodeAnalysisResources.MultithreadedAnalyzerExecutionNote, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.MultithreadedAnalyzerExecutionNote, output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79895")]
+        public void AnalyzerTimingOutput_ReportedByDefault()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                new[] { "/t:library", srcFile.Path },
+                analyzers: [new WarningDiagnosticAnalyzer()]);
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains($"{nameof(WarningDiagnosticAnalyzer)} (Warning01)", output, StringComparison.Ordinal);
+            Assert.DoesNotContain(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 

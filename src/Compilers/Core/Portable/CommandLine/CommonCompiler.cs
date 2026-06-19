@@ -998,9 +998,9 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (Arguments.ReportAnalyzer || (driverTimingInfo is { } timingInfo && !timingInfo.GeneratorTimes.IsEmpty))
+                if (analyzerDriver is { } || (driverTimingInfo is { } timingInfo && !timingInfo.GeneratorTimes.IsEmpty))
                 {
-                    ReportAnalyzerUtil.Report(consoleOutput, Arguments.ReportAnalyzer ? analyzerDriver : null, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
+                    ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
                 }
 
                 if (Arguments.ReportInternalsVisibleToAttributes)
@@ -1543,7 +1543,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
-                    reportAnalyzer: Arguments.ReportAnalyzer || errorLogger != null,
+                    reportAnalyzer: true,
                     severityFilter,
                     trackSuppressedDiagnosticIds: errorLogger != null,
                     out compilation,
