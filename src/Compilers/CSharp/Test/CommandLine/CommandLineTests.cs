@@ -9515,6 +9515,7 @@ public class C { }
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
             Assert.Contains($"{nameof(WarningDiagnosticAnalyzer)} (Warning01)", output, StringComparison.Ordinal);
             Assert.DoesNotContain(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.MultithreadedAnalyzerExecutionNote, output, StringComparison.Ordinal);
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
