@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -484,6 +485,12 @@ public class C
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
+
+        var indexerDeclaration = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single().Members.OfType<IndexerDeclarationSyntax>().Single();
+        var declaredIndexer = model.GetDeclaredSymbol(indexerDeclaration);
+        AssertEx.Equal("E.extension(C).this[int]", declaredIndexer.ToDisplayString());
+        Assert.True(declaredIndexer.IsIndexer);
+
         var getterAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "c[0]");
         AssertEx.Equal("E.extension(C).this[int]", model.GetSymbolInfo(getterAccess).Symbol.ToDisplayString());
 
@@ -821,6 +828,12 @@ public static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
+
+        var indexerDeclaration = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single().Members.OfType<IndexerDeclarationSyntax>().Single();
+        var declaredIndexer = model.GetDeclaredSymbol(indexerDeclaration);
+        AssertEx.Equal("E.extension<T>(T).this[int]", declaredIndexer.ToDisplayString());
+        Assert.True(declaredIndexer.IsIndexer);
+
         var setterAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "o[0]");
         AssertEx.Equal("E.extension<object>(object).this[int]", model.GetSymbolInfo(setterAccess).Symbol.ToDisplayString());
 
@@ -862,6 +875,12 @@ public static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
+
+        var indexerDeclaration = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single().Members.OfType<IndexerDeclarationSyntax>().Single();
+        var declaredIndexer = model.GetDeclaredSymbol(indexerDeclaration);
+        AssertEx.Equal("E.extension<T>(object).this[T]", declaredIndexer.ToDisplayString());
+        Assert.True(declaredIndexer.IsIndexer);
+
         var setterAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "o[0]");
         AssertEx.Equal("E.extension<int>(object).this[int]", model.GetSymbolInfo(setterAccess).Symbol.ToDisplayString());
 
@@ -11710,6 +11729,61 @@ i[101] = 102;
             // (3,1): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // i[101] = 102;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "i[101]").WithArguments("extension indexers").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void Metadata_02_VisualBasic()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(int i)
+    {
+        public int this[int j]
+        {
+            get { System.Console.Write($"get({j}) "); return 42; }
+            set { System.Console.Write($"set({j}, {value}) "); }
+        }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+        var libRef = libComp.EmitToImageReference();
+
+        var source = """
+Module Program
+    Sub Main()
+        Dim i As Integer = 0
+        System.Console.Write(E.get_Item(i, 43))
+        E.set_Item(i, 101, 102)
+    End Sub
+End Module
+""";
+
+        var references = TargetFrameworkUtil.StandardAndVBRuntimeReferences;
+        var comp = CreateVisualBasicCompilation("Program", source, referencedAssemblies: references.Concat([libRef]), compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(comp, expectedOutput: "get(43) 42set(101, 102) ").VerifyDiagnostics();
+
+        source = """
+Module Program
+    Sub Main()
+        Dim i As Integer = 0
+        System.Console.Write(i(43))
+        i(101) = 102
+    End Sub
+End Module
+""";
+
+        comp = CreateVisualBasicCompilation("Program", source, referencedAssemblies: references.Concat([libRef]), compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        comp.VerifyEmitDiagnostics(
+            // (4,30): error BC30690: Structure 'Integer' cannot be indexed because it has no default property.
+            //         System.Console.Write(i(43))
+            Diagnostic(30690, "i").WithArguments("Integer").WithLocation(4, 30),
+            // (5,9): error BC30690: Structure 'Integer' cannot be indexed because it has no default property.
+            //         i(101) = 102
+            Diagnostic(30690, "i").WithArguments("Integer").WithLocation(5, 9));
     }
 
     [Theory, CombinatorialData]
