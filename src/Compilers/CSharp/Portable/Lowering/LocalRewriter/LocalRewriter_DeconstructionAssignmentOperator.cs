@@ -251,8 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (leftTarget.Kind != BoundKind.DiscardExpression)
                     {
+                        // Note: the receiver is known to be captured because of TransformCompoundAssignmentLHS in GetAssignmentTargetsAndSideEffects
                         effects.assignments.Add(MakeAssignmentOperator(resultPart.Syntax, leftTarget, resultPart,
-                            used: false, isChecked: false, AssignmentKind.Deconstruction));
+                            used: false, isChecked: false, AssignmentKind.Deconstruction, receiverIsKnownToBeCaptured: true));
                     }
                 }
                 Debug.Assert(builder is null || resultPart is { });
