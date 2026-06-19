@@ -18,14 +18,12 @@ namespace Test.Namespace
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"92c481f9b1b9a31021ed6835c8d889f2ac9590a6abd9eaadbab6c046b2638d62", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/PageWithNamespace.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_PageWithNamespace : global::Microsoft.AspNetCore.Mvc.RazorPages.Page
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             BeginContext(34, 20, true);
             WriteLiteral("<h1>Hi There!</h1>\r\n");
             EndContext();
         }
-        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

@@ -29,7 +29,6 @@ foo.bar<baz<biz>>.boz
 
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -42,7 +41,6 @@ Write(foo()
 #nullable disable
             );
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

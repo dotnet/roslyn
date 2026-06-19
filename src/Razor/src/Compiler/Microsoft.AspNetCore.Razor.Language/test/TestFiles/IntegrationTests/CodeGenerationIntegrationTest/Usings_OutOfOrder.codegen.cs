@@ -62,7 +62,6 @@ using System.Text
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Usings_OutOfOrder : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -103,7 +102,6 @@ Write(typeof(Foo).FullName
             );
             WriteLiteral("</p>\r\n\r\n");
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (3,13)-(5,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Usings_OutOfOrder.cshtml"
 

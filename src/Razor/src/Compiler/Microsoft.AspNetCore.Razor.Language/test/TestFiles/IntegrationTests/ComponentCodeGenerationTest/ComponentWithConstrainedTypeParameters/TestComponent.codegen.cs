@@ -63,7 +63,6 @@ where TItem3 : Image, new()
 #nullable disable
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, "<h1>Item1</h1>");
@@ -97,7 +96,6 @@ __builder.AddContent(2, ChildContent(item2)
 
             __builder.AddMarkupContent(4, "<p>Item3</p>");
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (16,8)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 

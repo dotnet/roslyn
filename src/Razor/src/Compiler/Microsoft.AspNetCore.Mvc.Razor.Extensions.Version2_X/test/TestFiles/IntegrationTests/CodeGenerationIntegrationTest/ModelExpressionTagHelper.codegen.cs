@@ -45,7 +45,6 @@ DateTime
             }
         }
         private global::InputTestTagHelper __InputTestTagHelper;
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             BeginContext(17, 2, true);
@@ -105,7 +104,6 @@ Model
             WriteLiteral("\r\n");
             EndContext();
         }
-        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

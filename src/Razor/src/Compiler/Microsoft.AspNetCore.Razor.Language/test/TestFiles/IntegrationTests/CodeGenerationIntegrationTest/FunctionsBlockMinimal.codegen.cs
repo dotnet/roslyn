@@ -21,12 +21,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_FunctionsBlockMinimal : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n\r\n");
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (3,13)-(7,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/FunctionsBlockMinimal.cshtml"
 

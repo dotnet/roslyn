@@ -53,12 +53,10 @@ namespace MyApp.Pages
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -170,12 +168,10 @@ namespace MyApp.Pages
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -197,12 +193,10 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Counter</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -254,12 +248,10 @@ namespace MyApp.Pages
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591",
@@ -281,12 +273,10 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Counter</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591");
@@ -343,12 +333,10 @@ namespace MyApp.Pages
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -370,12 +358,10 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Counter</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -417,12 +403,10 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h2>Counter</h2>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -480,12 +464,10 @@ namespace MyApp.Pages
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -507,12 +489,10 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Counter</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -596,12 +576,10 @@ namespace MyApp.Pages
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -623,12 +601,10 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Counter</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -693,12 +669,10 @@ namespace MyApp.Pages
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -720,12 +694,10 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Counter</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -776,7 +748,6 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h2>Counter</h2>\r\n"");
@@ -793,7 +764,6 @@ __builder.AddContent(3, count
             __builder.AddMarkupContent(4, ""\r\n"");
             __builder.AddMarkupContent(5, ""<button @onclick=\""Click\"">Click me</button>"");
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (7,2)-(11,1) ""Pages/Counter.razor""
     private int count;
@@ -862,12 +832,10 @@ namespace MyApp.Pages
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -889,12 +857,10 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Counter</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -947,7 +913,6 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h2>Counter</h2>\r\n"");
@@ -964,7 +929,6 @@ __builder.AddContent(3, count
             __builder.AddMarkupContent(4, ""\r\n"");
             __builder.AddMarkupContent(5, ""<button @onclick=\""Click\"">Click me</button>"");
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (7,2)-(13,1) ""Pages/Counter.razor""
     private int count;
@@ -1049,14 +1013,12 @@ using SurveyPromptRootNamspace;
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>\r\n"");
             __builder.OpenElement(1, ""SurveyPrompt"");
             __builder.CloseElement();
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -1078,12 +1040,10 @@ namespace MyApp.Pages
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Counter</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -1121,14 +1081,12 @@ using SurveyPromptRootNamspace;
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>\r\n"");
             __builder.OpenComponent<global::SurveyPromptRootNamspace.SurveyPrompt>(1);
             __builder.CloseComponent();
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -1247,12 +1205,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Pages_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -1299,12 +1255,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Views_Shared__Layout : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Layout</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -1401,7 +1355,6 @@ namespace AspNetCoreGeneratedDocument
                 @{ await RenderMyRazor(); }
 
                 @functions {
-                    #pragma warning disable 1998
                     async Task RenderMyRazor()
                     {
                         var lambdaWithUnnecessaryAsync1 = async () => { };
@@ -1514,12 +1467,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Pages_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -1566,12 +1517,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Views_Shared__Layout : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Layout</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -1635,12 +1584,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Views_Shared__Layout : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h2>Updated Layout</h2>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -1738,12 +1685,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Pages_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -1790,12 +1735,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Views_Shared__Layout : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Layout</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -1889,13 +1832,11 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Pages_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""\r\n"");
             WriteLiteral(""<h2>Hello world</h2>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -1942,12 +1883,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Views_Shared__Layout : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Layout</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -2056,13 +1995,11 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Pages_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""\r\n"");
             WriteLiteral(""<h1>Malformed h1\r\n}\r\n</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -2109,12 +2046,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Views_Shared__Layout : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Layout</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -2171,12 +2106,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Pages_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Fixed header</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -2242,12 +2175,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Pages_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Valid h1</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -2294,12 +2225,10 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Views_Shared__Layout : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""<h1>Layout</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -2359,13 +2288,11 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class Pages_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""\r\n"");
             WriteLiteral(""<h1>Malformed h1\r\n}\r\n</h1>"");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -2470,7 +2397,6 @@ namespace AspNetCoreGeneratedDocument
                             }
                         }
                         private global::AspNetCoreGeneratedDocument.Views_Home_Index.__Generated__TestViewComponentTagHelper __TestViewComponentTagHelper;
-                        #pragma warning disable 1998
                         public async override global::System.Threading.Tasks.Task ExecuteAsync()
                         {
                             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("vc:test", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
@@ -2491,7 +2417,6 @@ namespace AspNetCoreGeneratedDocument
                             Write(__tagHelperExecutionContext.Output);
                             __tagHelperExecutionContext = __tagHelperScopeManager.End();
                         }
-                        #pragma warning restore 1998
                         #nullable restore
                         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
                         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
@@ -2578,12 +2503,10 @@ namespace MyApp
     public partial class Component : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591
@@ -2661,12 +2584,10 @@ namespace MyApp
                     public partial class Component : global::Microsoft.AspNetCore.Components.ComponentBase
                     #nullable disable
                     {
-                        #pragma warning disable 1998
                         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
                         {
                             __builder.AddMarkupContent(0, "<h1>Hello world</h1>");
                         }
-                        #pragma warning restore 1998
                 #nullable restore
                 #line (4,2)-(6,1) "Component.Razor"
                     public class X {}
@@ -2920,7 +2841,6 @@ namespace MyApp
                     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
                     #nullable disable
                     {
-                        #pragma warning disable 1998
                         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
                         {
                             __builder.OpenElement(0, "div");
@@ -2936,7 +2856,6 @@ namespace MyApp
                             );
                             __builder.CloseElement();
                         }
-                        #pragma warning restore 1998
                     }
                 }
                 #pragma warning restore 1591
@@ -3008,7 +2927,6 @@ namespace MyApp
                     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
                     #nullable disable
                     {
-                        #pragma warning disable 1998
                         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
                         {
                             __builder.OpenElement(0, "div");
@@ -3023,7 +2941,6 @@ namespace MyApp
                             );
                             __builder.CloseElement();
                         }
-                        #pragma warning restore 1998
                     }
                 }
                 #pragma warning restore 1591

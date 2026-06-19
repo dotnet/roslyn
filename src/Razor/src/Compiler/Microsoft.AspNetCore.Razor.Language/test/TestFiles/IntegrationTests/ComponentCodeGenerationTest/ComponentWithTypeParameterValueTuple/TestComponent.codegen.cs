@@ -34,7 +34,6 @@ TItem2
     > : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, "<h1>Item</h1>\r\n\r\n");
@@ -76,7 +75,6 @@ __builder.AddContent(4, ChildContent(item)
 #nullable disable
 
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (14,8)-(18,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 

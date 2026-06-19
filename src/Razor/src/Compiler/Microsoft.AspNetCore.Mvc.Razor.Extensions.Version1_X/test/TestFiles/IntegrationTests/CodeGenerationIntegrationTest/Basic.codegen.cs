@@ -13,7 +13,6 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Basic_cshtml : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             BeginContext(0, 4, true);
@@ -76,7 +75,6 @@ Write(string.Format("{0}", "Hello"));
             WriteLiteral(" />\r\n");
             EndContext();
         }
-        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

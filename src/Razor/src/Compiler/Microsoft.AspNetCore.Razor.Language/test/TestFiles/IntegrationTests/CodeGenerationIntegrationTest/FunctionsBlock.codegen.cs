@@ -21,7 +21,6 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_FunctionsBlock : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -35,7 +34,6 @@ Write(RandomInt()
 #nullable disable
             );
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (5,13)-(10,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/FunctionsBlock.cshtml"
 

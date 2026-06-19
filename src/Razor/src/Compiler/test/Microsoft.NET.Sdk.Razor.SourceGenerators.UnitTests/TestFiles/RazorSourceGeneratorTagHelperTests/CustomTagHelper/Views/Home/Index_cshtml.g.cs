@@ -41,7 +41,6 @@ namespace AspNetCoreGeneratedDocument
             }
         }
         private global::EmailTagHelper __EmailTagHelper;
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -73,7 +72,6 @@ namespace AspNetCoreGeneratedDocument
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

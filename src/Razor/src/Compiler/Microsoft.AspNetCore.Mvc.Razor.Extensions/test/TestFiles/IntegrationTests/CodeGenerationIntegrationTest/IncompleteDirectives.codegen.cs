@@ -21,7 +21,6 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives : global::Microsoft.AspNetCore.Mvc.RazorPages.Page
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -34,7 +33,6 @@ namespace AspNetCoreGeneratedDocument
             WriteLiteral("\r\n");
             WriteLiteral("\r\n");
         }
-        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
 #nullable restore

@@ -14,7 +14,6 @@ namespace Test
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.InputText>(0);
@@ -38,7 +37,6 @@ person.Name
             __builder.AddComponentParameter(2, nameof(global::Test.InputText.ValueChanged), (global::System.Action<global::System.String>)(__value => person.Name = __value));
             __builder.CloseComponent();
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (4,2)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 

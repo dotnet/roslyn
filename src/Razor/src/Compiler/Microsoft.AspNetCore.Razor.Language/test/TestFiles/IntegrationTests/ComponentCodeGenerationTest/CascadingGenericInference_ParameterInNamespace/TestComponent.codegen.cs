@@ -21,7 +21,6 @@ MyApp.Components
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             {
@@ -41,7 +40,6 @@ new MyClass<string>()
                 __typeInferenceArg_0___arg0 = default;
             }
         }
-        #pragma warning restore 1998
     }
 }
 namespace __Blazor.MyApp.Components.TestComponent

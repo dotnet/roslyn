@@ -26,7 +26,6 @@ using Microsoft.AspNetCore.Components.Rendering
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, "<h1 TestCssScope>Element with no attributes</h1>\r\n");
@@ -113,7 +112,6 @@ myVariable
 #nullable disable
 
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (17,8)-(26,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 

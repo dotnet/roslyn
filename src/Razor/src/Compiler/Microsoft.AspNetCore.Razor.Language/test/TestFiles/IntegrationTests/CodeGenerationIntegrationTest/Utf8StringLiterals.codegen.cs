@@ -27,7 +27,6 @@ using System.Text
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8StringLiterals : global::Microsoft.AspNetCore.Mvc.RazorPages.Page
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n<div class=\"text-center\">\r\n");
@@ -101,7 +100,6 @@ Write(Encoding.UTF8.GetString("test"u8)
 
             WriteLiteral("</div>\r\n\r\n");
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (43,13)-(55,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
 

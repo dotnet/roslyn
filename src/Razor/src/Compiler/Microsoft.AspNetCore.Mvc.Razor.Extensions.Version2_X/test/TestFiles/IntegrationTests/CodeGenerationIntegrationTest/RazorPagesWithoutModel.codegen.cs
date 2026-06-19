@@ -47,7 +47,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages
             }
         }
         private global::DivTagHelper __DivTagHelper;
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             BeginContext(7, 2, true);
@@ -173,7 +172,6 @@ Write(Name
             WriteLiteral("\r\n</form>\r\n");
             EndContext();
         }
-        #pragma warning restore 1998
 #line (6,13)-(19,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
 
     public IActionResult OnPost(Customer customer)

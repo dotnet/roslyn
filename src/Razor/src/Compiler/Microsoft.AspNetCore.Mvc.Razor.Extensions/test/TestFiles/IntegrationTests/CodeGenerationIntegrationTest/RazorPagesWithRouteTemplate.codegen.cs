@@ -37,7 +37,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPagesWithRouteTemplate : global::Microsoft.AspNetCore.Mvc.RazorPages.Page
     #nullable disable
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -53,7 +52,6 @@ Write(Model.Name
             );
             WriteLiteral("</h1>\r\n");
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (6,13)-(11,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
 

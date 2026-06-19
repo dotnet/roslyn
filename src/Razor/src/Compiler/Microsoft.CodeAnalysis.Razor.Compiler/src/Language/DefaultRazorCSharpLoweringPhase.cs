@@ -189,10 +189,6 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            var writer = CodeWriter;
-
-            writer.WriteLine("#pragma warning disable 1998");
-
             using (CodeWriter.BuildMethodDeclaration(
                 node.Modifiers,
                 node.ReturnType,
@@ -201,8 +197,6 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
             {
                 VisitDefault(node);
             }
-
-            writer.WriteLine("#pragma warning restore 1998");
         }
 
         public override void VisitFieldDeclaration(FieldDeclarationIntermediateNode node)

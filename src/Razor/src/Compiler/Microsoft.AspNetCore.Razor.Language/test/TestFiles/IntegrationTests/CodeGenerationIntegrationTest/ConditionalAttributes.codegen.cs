@@ -43,7 +43,6 @@ namespace AspNetCoreGeneratedDocument
             }
         }
         private global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper __Microsoft_AspNetCore_Mvc_Razor_TagHelpers_UrlResolutionTagHelper;
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
@@ -201,7 +200,6 @@ null
             EndWriteAttribute();
             WriteLiteral(" />\r\n");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

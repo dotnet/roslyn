@@ -52,7 +52,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages
             }
         }
         private global::DivTagHelper __DivTagHelper;
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -142,7 +141,6 @@ Write(Name
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n</form>\r\n");
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (6,13)-(19,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
 

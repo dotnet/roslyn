@@ -15,11 +15,9 @@ namespace MyApp.Shared
     public partial class Component1 : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
         }
-        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Components.InjectAttribute] private 
 #nullable restore
 #line (1,9)-(1,25) "Shared/Component1.razor"

@@ -18,7 +18,6 @@ namespace AspNetCore
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"7afd23f4d24de7b2bec1fb06d0a708e2d98adee36c510f65d3424dfda5445dca", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives : global::Microsoft.AspNetCore.Mvc.RazorPages.Page
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             BeginContext(85, 2, true);
@@ -49,7 +48,6 @@ namespace AspNetCore
             WriteLiteral("\r\n");
             EndContext();
         }
-        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
 #line (12,9)-(12,18) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/IncompleteDirectives.cshtml"

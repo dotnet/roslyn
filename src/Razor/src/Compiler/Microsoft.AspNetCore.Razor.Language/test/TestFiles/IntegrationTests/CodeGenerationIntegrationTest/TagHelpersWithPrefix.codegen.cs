@@ -43,7 +43,6 @@ namespace AspNetCoreGeneratedDocument
             }
         }
         private global::InputTagHelper __InputTagHelper;
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("<form>\r\n    ");
@@ -74,7 +73,6 @@ WriteLiteral(Hello
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n</form>");
         }
-        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

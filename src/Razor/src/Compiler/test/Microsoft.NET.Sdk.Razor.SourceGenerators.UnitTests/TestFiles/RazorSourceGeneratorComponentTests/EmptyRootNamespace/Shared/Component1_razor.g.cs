@@ -15,7 +15,6 @@ namespace Shared
     public partial class Component1 : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, "Component1 in Shared namespace\r\n");
@@ -25,7 +24,6 @@ namespace Shared
             __builder.OpenComponent<global::Component4>(3);
             __builder.CloseComponent();
         }
-        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591

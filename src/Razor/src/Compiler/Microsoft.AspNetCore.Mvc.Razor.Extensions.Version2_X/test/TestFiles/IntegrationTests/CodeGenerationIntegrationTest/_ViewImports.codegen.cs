@@ -18,11 +18,9 @@ namespace AspNetCore
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"d62f98eaaf5b78af8d93afeee3b564ac056a55d715d72361969351a6dd2ca3b2", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/_ViewImports.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest__ViewImports : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
         }
-        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
 #line (1,9)-(1,20) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/_ViewImports.cshtml"

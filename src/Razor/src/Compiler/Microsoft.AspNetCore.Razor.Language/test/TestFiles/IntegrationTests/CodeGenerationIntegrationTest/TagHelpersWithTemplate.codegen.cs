@@ -46,7 +46,6 @@ namespace AspNetCoreGeneratedDocument
         }
         private global::DivTagHelper __DivTagHelper;
         private global::InputTagHelper __InputTagHelper;
-        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -128,7 +127,6 @@ Write(item
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n\r\n");
         }
-        #pragma warning restore 1998
 #nullable restore
 #line (3,13)-(10,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersWithTemplate.cshtml"
 
