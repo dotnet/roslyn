@@ -32,8 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundDecisionDagNode> nodes,
             BoundDecisionDagNode node,
             bool nullPaths,
+            HashSet<NullableWalker.DecisionDagReachabilityInfo> reachabilityInfo,
             out bool requiresFalseWhenClause)
         {
+            Debug.Assert(nullPaths == (reachabilityInfo is not null));
+
             // compute the distance from each node to the endpoint.
             var dist = PooledDictionary<BoundDecisionDagNode, (int distance, BoundDecisionDagNode next)>.GetInstance();
             int nodeCount = nodes.Length;
@@ -51,20 +54,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = nodeCount - 1; i >= 0; i--)
             {
                 var n = nodes[i];
-                dist.Add(n, n switch
+
+                (int distance, BoundDecisionDagNode next) distanceInfo;
+
+                switch (n)
                 {
-                    BoundEvaluationDecisionDagNode e => (distance(e.Next), e.Next),
-                    BoundTestDecisionDagNode { Test: BoundDagNonNullTest } t when !nullPaths => (1 + distance(t.WhenTrue), t.WhenTrue),
-                    BoundTestDecisionDagNode { Test: BoundDagExplicitNullTest } t when !nullPaths => (1 + distance(t.WhenFalse), t.WhenFalse),
-                    BoundTestDecisionDagNode t when distance(t.WhenTrue) is var trueDist1 && distance(t.WhenFalse) is var falseDist1 =>
-                        (trueDist1 <= falseDist1) ? (1 + trueDist1, t.WhenTrue) : (1 + falseDist1, t.WhenFalse),
-                    BoundWhenDecisionDagNode w when distance(w.WhenTrue) is var trueDist2 && distance(w.WhenFalse) is var falseDist2 =>
+                    case BoundEvaluationDecisionDagNode e:
+                        distanceInfo = (Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(e, true)) == false ? infinity : 0, distance(e.Next)), e.Next);
+                        break;
+                    case BoundTestDecisionDagNode { Test: BoundDagNonNullTest } t when !nullPaths:
+                        distanceInfo = (1 + distance(t.WhenTrue), t.WhenTrue);
+                        break;
+                    case BoundTestDecisionDagNode { Test: BoundDagExplicitNullTest } t when !nullPaths:
+                        distanceInfo = (1 + distance(t.WhenFalse), t.WhenFalse);
+                        break;
+                    case BoundTestDecisionDagNode t:
+                        var trueDist1 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(t, true)) == false ? infinity : 0, distance(t.WhenTrue));
+                        var falseDist1 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(t, false)) == false ? infinity : 0, distance(t.WhenFalse));
+                        distanceInfo = (trueDist1 <= falseDist1) ? (1 + trueDist1, t.WhenTrue) : (1 + falseDist1, t.WhenFalse);
+                        break;
+                    case BoundWhenDecisionDagNode w:
+                        var trueDist2 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(w, true)) == false ? infinity : 0, distance(w.WhenTrue));
+                        var falseDist2 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(w, false)) == false ? infinity : 0, distance(w.WhenFalse));
                         // add nodeCount to the distance if we need to flag that the path requires failure of a when clause
-                        (trueDist2 <= falseDist2) ? (1 + trueDist2, w.WhenTrue) : (1 + (falseDist2 < nodeCount ? nodeCount : 0) + falseDist2, w.WhenFalse),
+                        distanceInfo = (trueDist2 <= falseDist2) ? (1 + trueDist2, w.WhenTrue) : (1 + (falseDist2 < nodeCount ? nodeCount : 0) + falseDist2, w.WhenFalse);
+                        break;
                     // treat the endpoint as distance 1.
                     // treat other nodes as not on the path to the endpoint
-                    _ => ((n == node) ? 1 : infinity, null),
-                });
+                    default:
+                        distanceInfo = ((n == node) ? 1 : infinity, null);
+                        break;
+                }
+
+                dist.Add(n, distanceInfo);
             }
 
             // trace a path from the root node to the node of interest
@@ -222,10 +244,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundDecisionDagNode> nodes,
             BoundDecisionDagNode targetNode,
             bool nullPaths,
+            HashSet<NullableWalker.DecisionDagReachabilityInfo> reachabilityInfo,
             out bool requiresFalseWhenClause,
             out bool unnamedEnumValue)
         {
 #if DEBUG
+            Debug.Assert(nullPaths == (reachabilityInfo is not null));
+
             // Exercise enumeration of all paths to node
             VisitPathsToNode(nodes[0], targetNode, nullPaths: true, handler: (currentPathToNode, currentRequiresFalseWhenClause) => true);
             VisitPathsToNode(nodes[0], targetNode, nullPaths: false, handler: (currentPathToNode, currentRequiresFalseWhenClause) => true);
@@ -234,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             unnamedEnumValue = false;
 
             // Compute the path to the node, excluding the node itself.
-            var shortestPathToNode = ShortestPathToNode(nodes, targetNode, nullPaths, out requiresFalseWhenClause);
+            var shortestPathToNode = ShortestPathToNode(nodes, targetNode, nullPaths, reachabilityInfo, out requiresFalseWhenClause);
             gatherConstraintsAndEvaluations(binder, targetNode, shortestPathToNode, out var constraints, out var evaluations);
 
             try

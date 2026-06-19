@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6042,9 +6042,9 @@ class C
             // 0.cs(15,14): hidden CS9335: The pattern is redundant.
             //     { Count: 0 or > 1 } => 3, // 3
             Diagnostic(ErrorCode.HDN_RedundantPattern, "0 or > 1").WithLocation(15, 14),
-            // 0.cs(18,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-            // _ = new C() switch // 4
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(18, 13),
+            // 0.cs(18,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '[null]' is not covered.
+            // _ = new C() switch // 6
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("[null]").WithLocation(18, 13),
             // 0.cs(27,6): hidden CS9335: The pattern is redundant.
             //     [null] => 2, // 5
             Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(27, 6),
