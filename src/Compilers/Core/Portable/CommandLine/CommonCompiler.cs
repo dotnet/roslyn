@@ -1543,7 +1543,6 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
-                    reportAnalyzer: true,
                     severityFilter,
                     trackSuppressedDiagnosticIds: errorLogger != null,
                     out compilation,
