@@ -635,7 +635,7 @@ public partial class CohostDocumentPullDiagnosticsTest
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
-        var endpoint = new CohostDocumentPullDiagnosticsEndpoint(incompatibleProjectService, remoteServiceInvoker, requestInvoker, clientCapabilitiesService, NoOpTelemetryReporter.Instance, loggerFactory);
+        var endpoint = new CohostDocumentPullDiagnosticsEndpoint(incompatibleProjectService, remoteServiceInvoker, requestInvoker, clientCapabilitiesService, NoOpTelemetryReporter.Instance, loggerFactory, encSessionTracker: null);
 
         var result = taskListRequest
             ? await endpoint.GetTestAccessor().HandleTaskListItemRequestAsync(document, cancellationToken)

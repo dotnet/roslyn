@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -28,21 +29,24 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IDynamicRegistrationProvider))]
 [ExportRazorStatelessLspService(typeof(CohostDocumentPullDiagnosticsEndpoint))]
 [method: ImportingConstructor]
-#pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlRequestInvoker requestInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter,
-    ILoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory,
+    [Import(AllowDefault = true)] IEditAndContinueSessionTracker? encSessionTracker)
+#pragma warning restore RS0030 // Do not use banned APIs
     : CohostDocumentPullDiagnosticsEndpointBase<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
         incompatibleProjectService,
         remoteServiceInvoker,
         requestInvoker,
         clientCapabilitiesService,
         telemetryReporter,
-        loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>()), IDynamicRegistrationProvider
+        loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>(),
+        encSessionTracker),
+      IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;

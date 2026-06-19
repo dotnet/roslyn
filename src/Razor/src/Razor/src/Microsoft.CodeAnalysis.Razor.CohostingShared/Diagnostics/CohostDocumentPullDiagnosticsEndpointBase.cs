@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -22,7 +23,8 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     IHtmlRequestInvoker requestInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter,
-    ILogger logger)
+    ILogger logger,
+    IEditAndContinueSessionTracker? encSessionTracker)
     : AbstractCohostDocumentEndpoint<TRequest, TResponse>(incompatibleProjectService)
     where TRequest : notnull
 {
@@ -31,6 +33,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = logger;
+    private readonly IEditAndContinueSessionTracker? _encSessionTracker = encSessionTracker;
 
     protected override bool MutatesSolutionState => false;
 
@@ -115,7 +118,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
 
         using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, "Razor.ExternalAccess", TelemetryThresholds.DiagnosticsSubLSPTelemetryThreshold, correletionId);
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
-        var diagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocument, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        var diagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocument, _encSessionTracker, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
         return [.. diagnostics];
     }
 

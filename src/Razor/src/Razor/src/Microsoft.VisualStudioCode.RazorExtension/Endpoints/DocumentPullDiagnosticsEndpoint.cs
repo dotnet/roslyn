@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.EditAndContinue;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -30,14 +31,17 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
     IHtmlRequestInvoker requestInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter,
-    ILoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory,
+    [Import(AllowDefault = true)] IEditAndContinueSessionTracker? sessionTracker)
     : CohostDocumentPullDiagnosticsEndpointBase<DocumentDiagnosticParams, FullDocumentDiagnosticReport?>(
         incompatibleProjectService,
         remoteServiceInvoker,
         requestInvoker,
         clientCapabilitiesService,
         telemetryReporter,
-        loggerFactory.GetOrCreateLogger<DocumentPullDiagnosticsEndpoint>()), IDynamicRegistrationProvider
+        loggerFactory.GetOrCreateLogger<DocumentPullDiagnosticsEndpoint>(),
+        sessionTracker),
+      IDynamicRegistrationProvider
 {
     protected override string LspMethodName => Methods.TextDocumentDiagnosticName;
     protected override bool SupportsHtmlDiagnostics => false;

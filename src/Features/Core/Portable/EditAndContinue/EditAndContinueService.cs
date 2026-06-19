@@ -29,31 +29,18 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class WorkspaceServiceFactory(
-        [Import(AllowDefault = true)] IEditAndContinueSessionTracker? sessionTracker = null) : IWorkspaceServiceFactory
+    internal sealed class WorkspaceServiceFactory() : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new WorkspaceService(
                 // The host may optionally provide a log reporter (e.g. to forward EnC logs to the debugger's hot reload
                 // logger). When not available the service logs to file only.
-                new EditAndContinueService(workspaceServices.GetService<IEditAndContinueLogReporter>()),
-                sessionTracker ?? VoidSessionTracker.Instance);
+                new EditAndContinueService(workspaceServices.GetService<IEditAndContinueLogReporter>()));
     }
 
-    internal sealed class WorkspaceService(
-        IEditAndContinueService service,
-        IEditAndContinueSessionTracker sessionTracker) : IEditAndContinueWorkspaceService
+    internal sealed class WorkspaceService(IEditAndContinueService service) : IEditAndContinueWorkspaceService
     {
         public IEditAndContinueService Service { get; } = service;
-        public IEditAndContinueSessionTracker SessionTracker { get; } = sessionTracker;
-    }
-
-    internal sealed class VoidSessionTracker : IEditAndContinueSessionTracker
-    {
-        public static readonly VoidSessionTracker Instance = new();
-
-        public bool IsSessionActive => false;
-        public ImmutableArray<DiagnosticData> ApplyChangesDiagnostics => [];
     }
 
     private static readonly string? s_logDir = GetLogDirectory();
