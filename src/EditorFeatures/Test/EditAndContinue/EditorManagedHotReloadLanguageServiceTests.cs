@@ -62,10 +62,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     }
 
     private sealed class TestManagedHotReloadServiceProxy(IServiceBroker serviceBroker) :
-        BrokeredServiceProxy<DebuggerContracts.IManagedHotReloadService>(
-            serviceBroker,
-            BrokeredServiceDescriptors.DebuggerManagedHotReloadService,
-            BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy)
+        BrokeredServiceProxy<DebuggerContracts.IManagedHotReloadService>(serviceBroker, BrokeredServiceDescriptors.DebuggerManagedHotReloadService)
     {
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
             => InvokeAsync((service, cancellationToken) => service.GetCapabilitiesAsync(cancellationToken), cancellationToken);
@@ -106,10 +103,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     }
 
     private sealed class TestHotReloadLoggerProxy(IServiceBroker serviceBroker) :
-        BrokeredServiceProxy<DebuggerContracts.IHotReloadLogger>(
-            serviceBroker,
-            BrokeredServiceDescriptors.HotReloadLoggerService,
-            BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy)
+        BrokeredServiceProxy<DebuggerContracts.IHotReloadLogger>(serviceBroker, BrokeredServiceDescriptors.HotReloadLoggerService)
     {
         public ValueTask LogAsync(DebuggerContracts.HotReloadLogMessage message, CancellationToken cancellationToken)
             => InvokeAsync((service, cancellationToken) => service.LogAsync(message, cancellationToken), cancellationToken);
