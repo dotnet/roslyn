@@ -998,9 +998,9 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (Arguments.ReportAnalyzer)
+                if (Arguments.ReportAnalyzer || (driverTimingInfo is { } timingInfo && !timingInfo.GeneratorTimes.IsEmpty))
                 {
-                    ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
+                    ReportAnalyzerUtil.Report(consoleOutput, Arguments.ReportAnalyzer ? analyzerDriver : null, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
                 }
 
                 if (Arguments.ReportInternalsVisibleToAttributes)
