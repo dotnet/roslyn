@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -331,12 +330,11 @@ internal class RazorCompletionListProvider(
     private static void FilterCompletionItems(
         RazorVSInternalCompletionList completionList,
         SourceText sourceText,
-        int absoluteIndex)
+        int absoluteIndex,
+        int maxCompletionListSize = 1000)
     {
-        const int MaxRazorCompletionListSize = 1000;
-
         // If our completion list hasn't hit the max size, we don't need to filter
-        if (completionList.Items.Length <= MaxRazorCompletionListSize)
+        if (completionList.Items.Length <= maxCompletionListSize)
         {
             return;
         }
@@ -347,8 +345,8 @@ internal class RazorCompletionListProvider(
         using var matchResults = new PooledArrayBuilder<(VSInternalCompletionItem Item, int Index, RoslynPatternMatch? Match)>(completionList.Items.Length);
         AddMatchResults(completionList, filterText, ref matchResults.AsRef());
 
-        // Take top MaxRazorCompletionListSize items (like C# does)
-        var takeCount = Math.Min(MaxRazorCompletionListSize, matchResults.Count);
+        // Take top maxCompletionListSize items (like C# does)
+        var takeCount = Math.Min(maxCompletionListSize, matchResults.Count);
         var preselectCount = 0;
 
         // Count preselected items beyond takeCount (like C# does)
@@ -390,14 +388,15 @@ internal class RazorCompletionListProvider(
         static string GetFilterText(SourceText sourceText, int absoluteIndex)
         {
             // Clamp to valid range to avoid IndexOutOfRangeException
-            var start = Math.Min(absoluteIndex, sourceText.Length);
+            var end = Math.Min(absoluteIndex, sourceText.Length);
+            var start = end;
             while (start > 0 && IsWordCharacter(sourceText[start - 1]))
             {
                 start--;
             }
 
-            return (start < absoluteIndex)
-                ? sourceText.ToString(new TextSpan(start, absoluteIndex - start))
+            return (start < end)
+                ? sourceText.ToString(new TextSpan(start, end - start))
                 : string.Empty;
 
             static bool IsWordCharacter(char ch)
@@ -443,7 +442,7 @@ internal class RazorCompletionListProvider(
                     }
                 }
 
-                // Equal match quality - sort by SortText, then Label
+                // Equal match quality - sort by SortText, or Label if there is no SortText
                 var aSortText = a.Item.SortText ?? a.Item.Label;
                 var bSortText = b.Item.SortText ?? b.Item.Label;
                 var sortComparison = string.Compare(aSortText, bSortText, StringComparison.OrdinalIgnoreCase);
@@ -456,5 +455,15 @@ internal class RazorCompletionListProvider(
                 return a.Index.CompareTo(b.Index);
             });
         }
+    }
+
+    internal readonly struct TestAccessor
+    {
+        public static void FilterCompletionItems(
+            RazorVSInternalCompletionList completionList,
+            SourceText sourceText,
+            int absoluteIndex,
+            int maxCompletionListSize = 1000)
+            => RazorCompletionListProvider.FilterCompletionItems(completionList, sourceText, absoluteIndex, maxCompletionListSize);
     }
 }
