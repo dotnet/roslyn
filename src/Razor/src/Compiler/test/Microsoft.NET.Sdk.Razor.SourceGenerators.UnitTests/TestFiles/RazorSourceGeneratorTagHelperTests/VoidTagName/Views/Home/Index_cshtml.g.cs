@@ -41,6 +41,7 @@ namespace AspNetCoreGeneratedDocument
             }
         }
         private global::ColTagHelper __ColTagHelper;
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("col", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
@@ -79,6 +80,7 @@ code</col>
 #nullable disable
 
         }
+        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

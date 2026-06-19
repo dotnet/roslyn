@@ -41,6 +41,7 @@ namespace AspNetCoreGeneratedDocument
             }
         }
         private global::AspNetCoreGeneratedDocument.Views_Home_Index.__Generated__TestViewComponentTagHelper __TestViewComponentTagHelper;
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
@@ -83,6 +84,7 @@ num
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
         }
+        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

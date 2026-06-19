@@ -21,9 +21,11 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inject : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
         }
+        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
 #nullable restore

@@ -15,6 +15,7 @@ namespace MyApp.Folder2
     public partial class Component2 : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
@@ -26,6 +27,7 @@ namespace MyApp.Folder2
 #nullable disable
 
         }
+        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591

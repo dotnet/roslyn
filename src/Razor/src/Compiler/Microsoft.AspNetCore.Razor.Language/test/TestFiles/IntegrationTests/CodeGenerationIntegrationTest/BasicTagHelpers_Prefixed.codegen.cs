@@ -46,6 +46,7 @@ namespace AspNetCoreGeneratedDocument
         private global::TestNamespace.PTagHelper __TestNamespace_PTagHelper;
         private global::TestNamespace.InputTagHelper __TestNamespace_InputTagHelper;
         private global::TestNamespace.InputTagHelper2 __TestNamespace_InputTagHelper2;
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n<THSdiv class=\"randomNonTagHelperAttribute\">\r\n    ");
@@ -94,6 +95,7 @@ true
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n</THSdiv>");
         }
+        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

@@ -16,6 +16,7 @@ global::LegacyTemplateBase
 #nullable disable
 
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -41,6 +42,7 @@ Write(8 << amount
             );
             WriteLiteral("</div>");
         }
+        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591

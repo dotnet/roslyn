@@ -42,6 +42,7 @@ namespace AspNetCoreGeneratedDocument
             }
         }
         private global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper __Microsoft_AspNetCore_Mvc_Razor_TagHelpers_HeadTagHelper;
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("<html>\r\n    ");
@@ -69,6 +70,7 @@ Write(
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n</html>");
         }
+        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

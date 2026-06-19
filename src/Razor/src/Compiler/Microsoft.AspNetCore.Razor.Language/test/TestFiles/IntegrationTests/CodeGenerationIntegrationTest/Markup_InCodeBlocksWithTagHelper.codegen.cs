@@ -42,6 +42,7 @@ namespace AspNetCoreGeneratedDocument
             }
         }
         private global::DivTagHelper __DivTagHelper;
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
@@ -108,6 +109,7 @@ Write(person.Name
 
             WriteLiteral("\r\n");
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (17,13)-(21,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocksWithTagHelper.cshtml"
 

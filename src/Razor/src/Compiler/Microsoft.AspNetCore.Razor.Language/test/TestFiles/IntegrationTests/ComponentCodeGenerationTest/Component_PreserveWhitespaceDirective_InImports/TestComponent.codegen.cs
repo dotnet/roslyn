@@ -14,6 +14,7 @@ namespace Test
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenElement(0, "parent");
@@ -34,6 +35,7 @@ __builder.AddContent(4, DateTime.Now
             __builder.CloseElement();
             __builder.AddMarkupContent(7, "\r\n\r\n");
         }
+        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591

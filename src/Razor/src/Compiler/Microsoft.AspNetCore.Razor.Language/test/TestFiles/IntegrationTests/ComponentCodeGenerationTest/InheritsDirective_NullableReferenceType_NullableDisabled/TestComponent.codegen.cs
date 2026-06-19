@@ -22,6 +22,7 @@ BaseComponent<string?>
 
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, "<h1>My component</h1>\r\n");
@@ -34,6 +35,7 @@ __builder.AddContent(1, _field.ToString()
 #nullable disable
             );
         }
+        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591

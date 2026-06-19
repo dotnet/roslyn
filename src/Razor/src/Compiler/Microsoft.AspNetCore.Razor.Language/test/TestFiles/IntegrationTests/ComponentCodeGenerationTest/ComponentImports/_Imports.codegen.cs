@@ -35,6 +35,7 @@ MainLayout
     public partial class _Imports : object
     #nullable disable
     {
+        #pragma warning disable 1998
         protected void Execute()
         {
 #nullable restore
@@ -46,6 +47,7 @@ __builder.AddContent(0, Foo
 #nullable disable
             );
         }
+        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591

@@ -46,6 +46,7 @@ namespace AspNetCoreGeneratedDocument
         private global::TestNamespace.InputTagHelper __TestNamespace_InputTagHelper;
         private global::TestNamespace.InputTagHelper2 __TestNamespace_InputTagHelper2;
         private global::TestNamespace.PTagHelper __TestNamespace_PTagHelper;
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n<div>\r\n    ");
@@ -131,6 +132,7 @@ namespace AspNetCoreGeneratedDocument
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
             WriteLiteral("\r\n</div>");
         }
+        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

@@ -44,9 +44,11 @@ where T2 : D<T1, T2>
 #nullable disable
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
         }
+        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591

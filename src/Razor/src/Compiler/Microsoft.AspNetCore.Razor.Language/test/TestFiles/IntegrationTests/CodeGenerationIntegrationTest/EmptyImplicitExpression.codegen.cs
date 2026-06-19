@@ -21,6 +21,7 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EmptyImplicitExpression : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("This is markup\r\n\r\n");
@@ -34,6 +35,7 @@ Write(
             );
             WriteLiteral("!");
         }
+        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

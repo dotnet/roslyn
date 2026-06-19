@@ -14,10 +14,12 @@
     public partial class Component2 : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddContent(0, "Component2 in global namespace");
         }
+        #pragma warning restore 1998
     }
 
 #pragma warning restore 1591

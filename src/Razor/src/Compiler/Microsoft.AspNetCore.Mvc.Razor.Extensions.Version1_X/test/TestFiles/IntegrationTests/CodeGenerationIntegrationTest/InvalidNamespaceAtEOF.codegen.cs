@@ -13,12 +13,14 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InvalidNamespaceAtEOF_cshtml : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             BeginContext(10, 6, true);
             WriteLiteral(" Test.");
             EndContext();
         }
+        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

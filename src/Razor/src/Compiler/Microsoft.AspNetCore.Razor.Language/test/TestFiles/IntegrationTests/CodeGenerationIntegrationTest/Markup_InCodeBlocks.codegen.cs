@@ -21,6 +21,7 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Markup_InCodeBlocks : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -76,6 +77,7 @@ Write(person.Name
 
             WriteLiteral("\r\n");
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (17,13)-(21,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Markup_InCodeBlocks.cshtml"
 

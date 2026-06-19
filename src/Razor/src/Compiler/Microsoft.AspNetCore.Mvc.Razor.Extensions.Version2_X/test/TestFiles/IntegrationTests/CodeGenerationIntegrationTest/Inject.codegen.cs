@@ -18,9 +18,11 @@ namespace AspNetCore
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"f0ec78e6ab6def57bd9067e564edaa84059a8ecb9a3c1766a148a7df3096b7b0", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inject.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inject : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
         }
+        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public 
 #line (1,9)-(1,14) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inject.cshtml"

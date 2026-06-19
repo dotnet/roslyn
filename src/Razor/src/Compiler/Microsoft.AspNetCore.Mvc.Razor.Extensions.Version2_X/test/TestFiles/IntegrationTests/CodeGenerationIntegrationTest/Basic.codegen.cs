@@ -18,6 +18,7 @@ namespace AspNetCore
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"3b732a30f94dc763cbd74d150cca70825dbddec2bddfba4e4d82547d5ced9a82", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Basic : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             BeginContext(0, 4, true);
@@ -85,6 +86,7 @@ Write(cls
             WriteLiteral(" />\r\n");
             EndContext();
         }
+        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

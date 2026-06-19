@@ -33,9 +33,11 @@ using System
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"9194971d2fb7908a02b02841f18655ccc0908a204c2fa948e8dc7e947269da86", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/UsingDirectives.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_UsingDirectives : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
         }
+        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

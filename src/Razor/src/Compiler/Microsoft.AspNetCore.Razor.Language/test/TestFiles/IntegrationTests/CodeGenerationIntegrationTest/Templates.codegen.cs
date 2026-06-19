@@ -21,6 +21,7 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Templates : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -280,6 +281,7 @@ var parent = item;
             );
             WriteLiteral("\r\n</ul> ");
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (1,13)-(9,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml"
 

@@ -47,6 +47,7 @@ namespace AspNetCoreGeneratedDocument
         private global::SpanTagHelper __SpanTagHelper;
         private global::DivTagHelper __DivTagHelper;
         private global::InputTagHelper __InputTagHelper;
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("span", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "__UniqueIdSuppressedForTesting__", async() => {
@@ -97,6 +98,7 @@ namespace AspNetCoreGeneratedDocument
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
         }
+        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

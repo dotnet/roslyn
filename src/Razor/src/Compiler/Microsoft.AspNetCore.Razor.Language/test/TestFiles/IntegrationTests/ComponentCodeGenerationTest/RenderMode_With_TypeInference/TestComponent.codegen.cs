@@ -29,6 +29,7 @@ where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
 #nullable disable
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateTestComponent_0(__builder, 0, 1, 
@@ -50,6 +51,7 @@ Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
 #nullable disable
             );
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (6,2)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 

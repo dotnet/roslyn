@@ -43,6 +43,7 @@ namespace AspNetCore
         }
         private global::FormTagHelper __FormTagHelper;
         private global::InputTagHelper __InputTagHelper;
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             BeginContext(31, 28, true);
@@ -155,6 +156,7 @@ Write(Foo(
             EndContext();
             EndContext();
         }
+        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

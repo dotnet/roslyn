@@ -44,6 +44,7 @@ namespace AspNetCoreGeneratedDocument
         private global::AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalTestViewComponentTagHelper __OptionalTestViewComponentTagHelper;
         private global::AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalTestWithParamViewComponentTagHelper __OptionalTestWithParamViewComponentTagHelper;
         private global::AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalWithMultipleTypesViewComponentTagHelper __OptionalWithMultipleTypesViewComponentTagHelper;
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -304,6 +305,7 @@ DateTime.Now
             Write(__tagHelperExecutionContext.Output);
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
         }
+        #pragma warning restore 1998
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

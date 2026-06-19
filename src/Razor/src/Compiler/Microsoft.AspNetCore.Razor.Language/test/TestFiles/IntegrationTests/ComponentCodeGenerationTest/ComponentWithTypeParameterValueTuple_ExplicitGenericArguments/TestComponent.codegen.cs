@@ -44,6 +44,7 @@ where TValue : struct
 #nullable disable
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.TestComponent<
@@ -82,6 +83,7 @@ null
             ));
             __builder.CloseComponent();
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (6,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 

@@ -16,6 +16,7 @@ global::LegacyTemplateBase
 #nullable disable
 
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n");
@@ -39,6 +40,7 @@ Write(Value
             );
             WriteLiteral("</p>\r\n\r\n");
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (9,13)-(15,1) "TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml"
 

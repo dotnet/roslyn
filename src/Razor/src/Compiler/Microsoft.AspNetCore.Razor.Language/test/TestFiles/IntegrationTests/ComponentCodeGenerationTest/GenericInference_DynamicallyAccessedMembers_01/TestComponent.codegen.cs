@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Components.Forms
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateInputRadioGroup_0(__builder, 0, 1, 
@@ -53,6 +54,7 @@ value1
             }
             );
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (8,8)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 

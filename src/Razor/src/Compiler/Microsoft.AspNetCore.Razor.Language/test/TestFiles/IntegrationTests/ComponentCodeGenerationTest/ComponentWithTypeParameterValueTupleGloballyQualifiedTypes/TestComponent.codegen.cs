@@ -28,6 +28,7 @@ TParam
     > : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             global::__Blazor.Test.TestComponent.TypeInference.CreateTestComponent_0(__builder, 0, 1, 
@@ -59,6 +60,7 @@ __builder2.AddContent(5, context.I2.MyStructId
             }
             );
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (4,8)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 

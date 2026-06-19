@@ -23,6 +23,7 @@ IDisposable
 
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenElement(0, "div");
@@ -46,6 +47,7 @@ __builder.AddContent(3, string.Format("{0}", "Hello")
             );
             __builder.CloseElement();
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (7,13)-(9,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicComponent.cshtml"
 

@@ -15,6 +15,7 @@ namespace MyApp.Shared
     public partial class Component1 : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, "Component:\r\n");
@@ -89,6 +90,7 @@ __builder.AddContent(22, msg
             __builder.AddMarkupContent(27, "\r\n");
             __builder.AddMarkupContent(28, "<div>\r\n    console.log(\'No variable\');\r\n</div>");
         }
+        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591

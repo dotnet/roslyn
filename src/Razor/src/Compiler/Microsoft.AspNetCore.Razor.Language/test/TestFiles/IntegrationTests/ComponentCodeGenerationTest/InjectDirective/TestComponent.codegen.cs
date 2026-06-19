@@ -20,10 +20,12 @@ using System.Text
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, "<div>\r\n    Content\r\n</div>");
         }
+        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Components.InjectAttribute] private 
 #nullable restore
 #line (11,9)-(11,14) "x:\dir\subdir\Test\TestComponent.cshtml"

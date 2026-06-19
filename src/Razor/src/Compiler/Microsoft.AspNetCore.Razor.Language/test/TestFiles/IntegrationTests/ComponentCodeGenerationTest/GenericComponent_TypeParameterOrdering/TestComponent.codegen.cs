@@ -14,6 +14,7 @@ namespace Test
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
+        #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent<
@@ -90,6 +91,7 @@ _componentValue
             __builder.AddComponentParameter(6, nameof(global::Test.MyComponent<IComposedInterface, string>.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<string>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<string>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => _componentValue = __value, _componentValue))));
             __builder.CloseComponent();
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (4,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
 

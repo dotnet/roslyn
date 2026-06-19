@@ -18,12 +18,14 @@ namespace AspNetCore
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"189450bf29773af1b743c49fb8b24230b292c19db0334d587f0e094856e5218f", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MalformedPageDirective.cshtml")]
     public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_MalformedPageDirective : global::Microsoft.AspNetCore.Mvc.RazorPages.Page
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             BeginContext(6, 49, true);
             WriteLiteral("\"foo\r\n\r\n<h1>About Us</h1>\r\n<p>We are awesome.</p>");
             EndContext();
         }
+        #pragma warning restore 1998
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

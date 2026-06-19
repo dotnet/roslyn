@@ -21,6 +21,7 @@ namespace AspNetCoreGeneratedDocument
     internal sealed class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Await : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
     #nullable disable
     {
+        #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n<section>\r\n    <h1>Basic Asynchronous Expression Test</h1>\r\n    <p>Basic Asynchronous Expression: ");
@@ -137,6 +138,7 @@ Write(await ("wrrronggg")
             );
             WriteLiteral("</p>\r\n</section>");
         }
+        #pragma warning restore 1998
 #nullable restore
 #line (1,13)-(6,1) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml"
 
