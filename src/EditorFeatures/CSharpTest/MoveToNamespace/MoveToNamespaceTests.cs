@@ -1564,7 +1564,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
 
             namespace Tests
             {
-                internal class Foo[||]
+                internal class Goo[||]
                 {
                     public static int Do(Inner.Data d) => 42;
                 }
@@ -1578,7 +1578,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                     {
                         static void Main()
                         {
-                            Console.WriteLine(Foo.Do(new Data()));
+                            Console.WriteLine(Goo.Do(new Data()));
                         }
                     }
 
@@ -1593,7 +1593,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
 
             namespace {|Warning:Something.Else|}
             {
-                internal class Foo
+                internal class Goo
                 {
                     public static int Do(Data d) => 42;
                 }
@@ -1607,7 +1607,7 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
                     {
                         static void Main()
                         {
-                            Console.WriteLine(Foo.Do(new Data()));
+                            Console.WriteLine(Goo.Do(new Data()));
                         }
                     }
 
@@ -1618,6 +1618,6 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             targetNamespace: "Something.Else",
             expectedSymbolChanges: new Dictionary<string, string>()
             {
-                { "Tests.Foo", "Something.Else.Foo" }
+                { "Tests.Goo", "Something.Else.Goo" }
             });
 }
