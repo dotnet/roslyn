@@ -78,7 +78,8 @@ internal sealed class CohostCodeActionsEndpoint(
             (service, solutionInfo, cancellationToken) => service.GetCodeActionRequestInfoAsync(solutionInfo, razorDocument.Id, request, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        if (requestInfo is null or { LanguageKind: RazorLanguageKind.CSharp, CSharpRequest: null })
+        if (requestInfo is null ||
+            requestInfo is { LanguageKind: RazorLanguageKind.CSharp, CSharpRequest: null, CSharpDeclRequest: null })
         {
             return null;
         }
@@ -86,19 +87,26 @@ internal sealed class CohostCodeActionsEndpoint(
         // This is just to prevent a warning for an unused field in the VS Code extension
         Debug.Assert(_requestInvoker is not null);
 
-        var delegatedCodeActions = requestInfo.LanguageKind switch
-        {
-            // We don't support Html code actions in VS Code
 #if !VSCODE
-            RazorLanguageKind.Html => await GetHtmlCodeActionsAsync(razorDocument, request, correlationId, cancellationToken).ConfigureAwait(false),
+        var htmlCodeActions = requestInfo.LanguageKind == RazorLanguageKind.Html
+            ? await GetHtmlCodeActionsAsync(razorDocument, request, correlationId, cancellationToken).ConfigureAwait(false)
+            : [];
+#else
+        // We don't support Html code actions in VS Code
+        var htmlCodeActions = Array.Empty<RazorVSInternalCodeAction>();
 #endif
-            RazorLanguageKind.CSharp => await GetCSharpCodeActionsAsync(razorDocument, requestInfo.CSharpRequest.AssumeNotNull(), correlationId, cancellationToken).ConfigureAwait(false),
-            _ => []
-        };
+
+        var csharpCodeActions = requestInfo is { LanguageKind: RazorLanguageKind.CSharp, CSharpRequest: { } csharpRequest }
+            ? await GetCSharpCodeActionsAsync(razorDocument, csharpRequest, correlationId, cancellationToken).ConfigureAwait(false)
+            : [];
+
+        var csharpDeclCodeActions = requestInfo is { LanguageKind: RazorLanguageKind.CSharp, CSharpDeclRequest: { } csharpDeclRequest }
+            ? await GetCSharpCodeActionsAsync(razorDocument, csharpDeclRequest, correlationId, cancellationToken).ConfigureAwait(false)
+            : [];
 
         return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, SumType<Command, CodeAction>[]?>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetCodeActionsAsync(solutionInfo, razorDocument.Id, request, delegatedCodeActions, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetCodeActionsAsync(solutionInfo, razorDocument.Id, request, htmlCodeActions, csharpCodeActions, csharpDeclCodeActions, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 

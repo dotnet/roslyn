@@ -44,7 +44,7 @@ internal interface IRazorFormattingService
         CancellationToken cancellationToken);
 
     Task<TextChange?> TryGetCSharpCodeActionEditAsync(
-       DocumentContext documentContext,
+       IDocumentSnapshot documentSnapshot,
        ImmutableArray<TextChange> csharpEdits,
        bool declarationDocument,
        RazorFormattingOptions options,

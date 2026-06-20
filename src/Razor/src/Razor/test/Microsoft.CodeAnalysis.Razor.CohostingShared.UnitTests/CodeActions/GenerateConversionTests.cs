@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class GenerateConversionTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateExplicitConversion_FromCodeBlock_ExistingCodeBlock()
     {
         var input = """
@@ -46,7 +46,7 @@ public class GenerateConversionTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateExplicitConversion_FromExplicitExpression_WithoutCodeBlock()
     {
         var input = """
@@ -71,7 +71,7 @@ public class GenerateConversionTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task GenerateExplicitConversion_FromRazor_InOtherFile()
     {
         await VerifyCodeActionAsync(

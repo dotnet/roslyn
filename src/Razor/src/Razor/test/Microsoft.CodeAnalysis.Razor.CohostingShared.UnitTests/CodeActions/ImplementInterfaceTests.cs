@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_ExistingCodeBlock()
     {
         await VerifyCodeActionAsync(
@@ -46,7 +46,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_WithoutCodeBlock()
     {
         await VerifyCodeActionAsync(
@@ -76,7 +76,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_Legacy_ClassInFunctionsBlock()
     {
         await VerifyCodeActionAsync(
@@ -113,7 +113,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_Legacy_ImplementsDirective_WithFunctionsBlock()
     {
         await VerifyCodeActionAsync(
@@ -148,7 +148,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_Legacy_ImplementsDirective_WithoutFunctionsBlock()
     {
         await VerifyCodeActionAsync(
@@ -179,7 +179,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_Explicitly_ExistingCodeBlock()
     {
         await VerifyCodeActionAsync(
@@ -213,7 +213,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_Explicitly_WithInheritedPropertyEventAndIndexerNameCollisions()
     {
         await VerifyCodeActionAsync(
@@ -289,7 +289,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_Explicitly_PartialBaseImplementations_AddsDerivedMembers()
     {
         await VerifyCodeActionAsync(
@@ -324,9 +324,6 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
                     int IBase.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
                     string IBase.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-                    string IDerived.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-                    int IDerived.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
                     event EventHandler IBase.Event1
                     {
@@ -340,6 +337,10 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
                             throw new NotImplementedException();
                         }
                     }
+
+                    int IDerived.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    string IDerived.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
                     event EventHandler IDerived.Event1
                     {
@@ -380,7 +381,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [ConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public async Task ImplementInterface_IDisposableDisposePattern()
     {
         await VerifyCodeActionAsync(
@@ -424,7 +425,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_PartiallyImplemented_RemainingMethod()
     {
         await VerifyCodeActionAsync(
@@ -466,7 +467,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_PartiallyImplemented_IndexerOverload()
     {
         await VerifyCodeActionAsync(
@@ -503,7 +504,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_WithMethodPropertyEventAndIndexer()
     {
         await VerifyCodeActionAsync(
@@ -549,7 +550,7 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
             makeDiagnosticsRequest: true);
     }
 
-    [Fact(Skip = "PROTOTYPE(sonic): cohosting feature not yet decl/impl split aware; see PR #83887")]
+    [Fact]
     public async Task ImplementInterface_WithMultipleMembers_WithoutCodeBlock()
     {
         await VerifyCodeActionAsync(
