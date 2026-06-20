@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1554,5 +1554,70 @@ public sealed class MoveToNamespaceTests : AbstractMoveToNamespaceTests
             expectedSymbolChanges: new Dictionary<string, string>()
             {
                 {"A.MyClass", "B.MyClass" }
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50672")]
+    public Task MoveToNamespace_MoveType_AddsImportForChildNamespaceReference()
+        => TestMoveToNamespaceAsync(
+            """
+            using System;
+
+            namespace Tests
+            {
+                internal class Foo[||]
+                {
+                    public static int Do(Inner.Data d) => 42;
+                }
+            }
+
+            namespace Tests
+            {
+                namespace Inner
+                {
+                    public class App
+                    {
+                        static void Main()
+                        {
+                            Console.WriteLine(Foo.Do(new Data()));
+                        }
+                    }
+
+                    public class Data { }
+                }
+            }
+            """,
+            expectedMarkup: """
+            using System;
+            using Something.Else;
+            using Tests.Inner;
+
+            namespace {|Warning:Something.Else|}
+            {
+                internal class Foo
+                {
+                    public static int Do(Data d) => 42;
+                }
+            }
+
+            namespace Tests
+            {
+                namespace Inner
+                {
+                    public class App
+                    {
+                        static void Main()
+                        {
+                            Console.WriteLine(Foo.Do(new Data()));
+                        }
+                    }
+
+                    public class Data { }
+                }
+            }
+            """,
+            targetNamespace: "Something.Else",
+            expectedSymbolChanges: new Dictionary<string, string>()
+            {
+                { "Tests.Foo", "Something.Else.Foo" }
             });
 }
