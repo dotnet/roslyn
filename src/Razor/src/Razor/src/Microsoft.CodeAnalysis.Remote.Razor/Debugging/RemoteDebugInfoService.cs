@@ -179,32 +179,37 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         // If we can't map directly, then we need to find the next C# on the line, but each transition to C# could map to a different
         // C# document, which makes this a little more complicated than you might think.
 
-        SourceMapping? nextMapping = null;
-        RazorCSharpDocument? nextCSharpDocument = null;
         var hostDocumentLine = codeDocument.Source.Text.GetLinePosition(razorIndex).Line;
 
-        UpdateNextMapping(codeDocument.GetRequiredCSharpDocument(declarationDocument: false), documentIsDecl: false);
+        var selectedDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+        var selectedMapping = GetNextMapping(selectedDocument, razorIndex, hostDocumentLine);
 
         if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declDocument)
         {
-            UpdateNextMapping(declDocument, documentIsDecl: true);
+            var declMapping = GetNextMapping(declDocument, razorIndex, hostDocumentLine);
+            if (declMapping is not null &&
+                (selectedMapping is null ||
+                    declMapping.OriginalSpan.AbsoluteIndex < selectedMapping.OriginalSpan.AbsoluteIndex))
+            {
+                selectedMapping = declMapping;
+                selectedDocument = declDocument;
+            }
         }
 
-        if (nextMapping is { } mapping &&
-            nextCSharpDocument is { } document)
+        if (selectedMapping is null)
         {
-            csharpDocument = document;
-            csharpIndex = mapping.GeneratedSpan.AbsoluteIndex;
-            csharpPosition = document.Text.GetLinePosition(csharpIndex);
-            return true;
+            csharpDocument = null;
+            csharpPosition = default;
+            csharpIndex = default;
+            return false;
         }
 
-        csharpDocument = null;
-        csharpPosition = default;
-        csharpIndex = default;
-        return false;
+        csharpDocument = selectedDocument;
+        csharpIndex = selectedMapping.GeneratedSpan.AbsoluteIndex;
+        csharpPosition = selectedDocument.Text.GetLinePosition(csharpIndex);
+        return true;
 
-        void UpdateNextMapping(RazorCSharpDocument document, bool documentIsDecl)
+        static SourceMapping? GetNextMapping(RazorCSharpDocument document, int razorIndex, int hostDocumentLine)
         {
             foreach (var mapping in document.SourceMappingsSortedByOriginal)
             {
@@ -218,21 +223,10 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
                     break;
                 }
 
-                // The "next" C# location is only valid if it is on the same line in the source document
-                // as the requested position, and before any previous "next" C# position we have found,
-                // comparing their original positions.
-                if (nextMapping is null ||
-                    mapping.OriginalSpan.AbsoluteIndex < nextMapping.OriginalSpan.AbsoluteIndex ||
-                    (mapping.OriginalSpan.AbsoluteIndex == nextMapping.OriginalSpan.AbsoluteIndex &&
-                        nextCSharpDocument?.IsDeclarationDocument == true &&
-                        !documentIsDecl))
-                {
-                    nextMapping = mapping;
-                    nextCSharpDocument = document;
-                }
-
-                break;
+                return mapping;
             }
+
+            return null;
         }
     }
 

@@ -422,6 +422,26 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
         await VerifyBreakpointRangeAsync(input);
     }
 
+    [Fact]
+    public async Task ResolveBreakpointRangeAsync_InlineTemplateInCodeBlock()
+    {
+        var input = """
+            @code { private string hello = "Hello"; public RenderFragment Foo => @<div>$$@[|hello|]</div>; }
+            """;
+
+        await VerifyBreakpointRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task ResolveBreakpointRangeAsync_InlineTemplateInFunctionsBlock_Legacy()
+    {
+        var input = """
+            @functions { private string hello = "Hello"; public RenderFragment Foo => @<div>$$@[|hello|]</div>; }
+            """;
+
+        await VerifyBreakpointRangeAsync(input, RazorFileKind.Legacy);
+    }
+
     [Theory]
     [CombinatorialData]
     public async Task ResolveBreakpointRangeAsync_CodeBlockInMiddleOfDocument(bool legacy)
