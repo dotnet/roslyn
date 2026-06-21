@@ -16218,6 +16218,96 @@ _ = new C()[null];
     }
 
     [Fact]
+    public void UpdatedMemorySafetyRules_01()
+    {
+        // unsafe indexer
+        var libSrc = """
+public static class E
+{
+    extension(int x)
+    {
+        unsafe public int this[int i] { get => x + i; set { } }
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        var src = """
+var x = 111;
+x[0] = x[1] + 222;
+E.get_Item(x, 0); E.set_Item(x, 0, 0);
+unsafe { x[0] = x[1] + 333; }
+unsafe { E.get_Item(x, 0); E.set_Item(x, 0, 0); }
+""";
+
+        CreateCompilation(src, references: [libComp.EmitToImageReference()], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // (2,1): error CS9362: 'E.extension(int).this[int].set' must be used in an unsafe context because it is marked as 'unsafe'
+            // x[0] = x[1] + 222;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x[0]").WithArguments("E.extension(int).this[int].set").WithLocation(2, 1),
+            // (2,8): error CS9362: 'E.extension(int).this[int].get' must be used in an unsafe context because it is marked as 'unsafe'
+            // x[0] = x[1] + 222;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x[1]").WithArguments("E.extension(int).this[int].get").WithLocation(2, 8),
+            // (3,1): error CS9362: 'E.get_Item(int, int)' must be used in an unsafe context because it is marked as 'unsafe'
+            // E.get_Item(x, 0); E.set_Item(x, 0, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E.get_Item(x, 0)").WithArguments("E.get_Item(int, int)").WithLocation(3, 1),
+            // (3,19): error CS9362: 'E.set_Item(int, int, int)' must be used in an unsafe context because it is marked as 'unsafe'
+            // E.get_Item(x, 0); E.set_Item(x, 0, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E.set_Item(x, 0, 0)").WithArguments("E.set_Item(int, int, int)").WithLocation(3, 19));
+
+        CompileAndVerify(src,
+            references: [libComp.EmitToImageReference()],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void UpdatedMemorySafetyRules_02(bool useCompilationReference)
+    {
+        // unsafe receiver type
+        var libSrc = """
+public class C<T>
+{
+}
+
+public unsafe static class E
+{
+    extension(C<int*[]> c)
+    {
+        public int this[int i] { get => 0; set { } }
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, options: TestOptions.UnsafeReleaseDll, assemblyName: "lib");
+        var libRef = AsReference(libComp, useCompilationReference);
+
+        var src = """
+var c = new C<int*[]>();
+c[0] = c[0];
+E.get_Item(c, 0); E.set_Item(c, 0, 0);
+unsafe { c[0] = c[0]; }
+unsafe { E.get_Item(c, 0); E.set_Item(c, 0, 0); }
+""";
+
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // (2,1): error CS9363: 'E.extension(C<int*[]>).this[int].set' must be used in an unsafe context because it has pointers in its signature
+            // c[0] = c[0];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c[0]").WithArguments("E.extension(C<int*[]>).this[int].set").WithLocation(2, 1),
+            // (2,8): error CS9363: 'E.extension(C<int*[]>).this[int].get' must be used in an unsafe context because it has pointers in its signature
+            // c[0] = c[0];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c[0]").WithArguments("E.extension(C<int*[]>).this[int].get").WithLocation(2, 8),
+            // (3,1): error CS9363: 'E.get_Item(C<int*[]>, int)' must be used in an unsafe context because it has pointers in its signature
+            // E.get_Item(c, 0); E.set_Item(c, 0, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.get_Item(c, 0)").WithArguments("E.get_Item(C<int*[]>, int)").WithLocation(3, 1),
+            // (3,19): error CS9363: 'E.set_Item(C<int*[]>, int, int)' must be used in an unsafe context because it has pointers in its signature
+            // E.get_Item(c, 0); E.set_Item(c, 0, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.set_Item(c, 0, 0)").WithArguments("E.set_Item(C<int*[]>, int, int)").WithLocation(3, 19));
+
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void ConditionalAttribute_01()
     {
         var src = """
@@ -42194,4 +42284,3 @@ class Program
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 }
-
