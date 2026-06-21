@@ -1,5 +1,5 @@
 <#
-  Checks that TODO and PROTOTYPE comments are not present.
+  Checks that TODO2, PROTOTYPE, and merge conflict markers are not present.
 #>
 
 Set-StrictMode -version 2.0
@@ -18,7 +18,7 @@ function Get-GitGrepMatches([string] $pattern, [string[]] $pathspecs, [switch] $
   }
 
   $arguments += @('-e', $pattern, '--')
-  $arguments += $pathspecs
+  $arguments += ($pathspecs | ForEach-Object { $_.Replace('\', '/') })
 
   $result = & git @arguments
   if ($LASTEXITCODE -eq 0) {
@@ -33,10 +33,10 @@ function Get-GitGrepMatches([string] $pattern, [string[]] $pathspecs, [switch] $
 # Verify no PROTOTYPE marker left in main
 $prototypeExclusions = @(
   '.',
-  ':!eng\todo-check.ps1',
+  ':!eng/todo-check.ps1',
   ':!AGENTS.md',
   ':!azure-pipelines.yml',
-  ':!docs\wiki\Compiler-release-process.md'
+  ':!docs/wiki/Compiler-release-process.md'
 )
 
 if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
@@ -52,7 +52,7 @@ if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
 # Verify no TODO2 marker left
 $todo2Exclusions = @(
   '.',
-  ':!eng\todo-check.ps1'
+  ':!eng/todo-check.ps1'
 )
 
 $todo2s = Get-GitGrepMatches 'TODO2' $todo2Exclusions
@@ -65,12 +65,12 @@ if ($todo2s) {
 # Verify no merge markers left
 $mergeMarkerExclusions = @(
   '.',
-  ':!eng\todo-check.ps1',
-  ':!src\Analyzers\CSharp\Tests\ConflictMarkerResolution\ConflictMarkerResolutionTests.cs',
-  ':!src\Analyzers\VisualBasic\Tests\ConflictMarkerResolution\ConflictMarkerResolutionTests.vb',
-  ':!src\Compilers\CSharp\Test\Syntax\LexicalAndXml\LexicalTests.cs',
-  ':!src\EditorFeatures\Test2\Rename\RenameTagProducerTests.vb',
-  ':!src\EditorFeatures\VisualBasicTest\Classification\SyntacticClassifierTests.vb'
+  ':!eng/todo-check.ps1',
+  ':!src/Analyzers/CSharp/Tests/ConflictMarkerResolution/ConflictMarkerResolutionTests.cs',
+  ':!src/Analyzers/VisualBasic/Tests/ConflictMarkerResolution/ConflictMarkerResolutionTests.vb',
+  ':!src/Compilers/CSharp/Test/Syntax/LexicalAndXml/LexicalTests.cs',
+  ':!src/EditorFeatures/Test2/Rename/RenameTagProducerTests.vb',
+  ':!src/EditorFeatures/VisualBasicTest/Classification/SyntacticClassifierTests.vb'
 )
 
 $mergeMarkers = Get-GitGrepMatches '^(<<<<<<<|>>>>>>>)' $mergeMarkerExclusions -extendedRegex
