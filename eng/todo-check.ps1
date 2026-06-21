@@ -52,7 +52,8 @@ if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
 # Verify no TODO2 marker left
 $todo2Exclusions = @(
   '.',
-  ':!eng/todo-check.ps1'
+  ':!eng/todo-check.ps1',
+  ':!AGENTS.md'
 )
 
 $todo2s = Get-GitGrepMatches 'TODO2' $todo2Exclusions
