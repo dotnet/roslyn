@@ -6,11 +6,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -108,6 +112,48 @@ public sealed class FindReferencesTests : TestBase
         var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
         Assert.Equal(1, result.Count); // 1 symbol found
         Assert.Equal(3, result[0].Locations.Count()); // 3 locations found
+    }
+
+    [Fact]
+    public async Task AnonymousFunctionMethodReferencesAreNotSearched()
+    {
+        var text = """
+
+            using System;
+
+            public class C
+            {
+                public void M()
+                {
+                    Action a = () => { };
+                }
+            }
+
+            """;
+        using var workspace = CreateWorkspace();
+        var solution = GetSingleDocumentSolution(workspace, text);
+        var project = solution.Projects.Single();
+        var document = project.Documents.Single();
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+
+        Assert.Equal(MethodKind.AnonymousFunction, symbol.MethodKind);
+        Assert.Empty(symbol.Name);
+
+        var searchedDocuments = new List<Document>();
+        await OrdinaryMethodReferenceFinder.Instance.DetermineDocumentsToSearchAsync(
+            symbol,
+            globalAliases: null,
+            project,
+            documents: ImmutableHashSet.Create(document),
+            static (document, searchedDocuments) => searchedDocuments.Add(document),
+            searchedDocuments,
+            FindReferencesSearchOptions.Default,
+            CancellationToken.None);
+
+        Assert.Empty(searchedDocuments);
     }
 
     [Fact]
