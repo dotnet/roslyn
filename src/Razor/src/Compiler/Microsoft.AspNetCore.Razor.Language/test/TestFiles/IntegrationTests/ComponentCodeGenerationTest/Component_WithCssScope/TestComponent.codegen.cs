@@ -112,6 +112,46 @@ myVariable
 
         }
         #pragma warning restore 1998
+        
+    void MethodRenderingMarkup(RenderTreeBuilder __builder)
+    {
+        for (var i = 0; i < 10; i++)
+        {
+
+        __builder.OpenElement(23, "li");
+        __builder.AddAttribute(24, "data-index", 
+#nullable restore
+#line (26,29)-(26,30) "x:\dir\subdir\Test\TestComponent.cshtml"
+i
+
+#line default
+#line hidden
+#nullable disable
+        );
+        __builder.AddAttribute(25, "TestCssScope");
+        __builder.AddContent(26, "Something ");
+#nullable restore
+#line (26,42)-(26,43) 25 "x:\dir\subdir\Test\TestComponent.cshtml"
+__builder.AddContent(27, i
+
+#line default
+#line hidden
+#nullable disable
+        );
+        __builder.CloseElement();
+#nullable restore
+#line (27,1)-(33,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+        }
+
+        System.GC.KeepAlive(myElementReference);
+        System.GC.KeepAlive(myComponentReference);
+        System.GC.KeepAlive(myVariable);
+    }
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

@@ -14,30 +14,7 @@ namespace Test
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-#nullable restore
-#line (11,2)-(13,75) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-  [Parameter]
-  public RenderFragment<string> ChildContent { get; set; } = (context) => 
-
-#line default
-#line hidden
-#nullable disable
-
-        (__builder2) => {
-#nullable restore
-#line (13,80)-(13,87) 25 "x:\dir\subdir\Test\TestComponent.cshtml"
-__builder2.AddContent(0, context
-
-#line default
-#line hidden
-#nullable disable
-            );
-        }
-#nullable restore
-#line (13,91)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-;
-  [Parameter]
+          [Parameter]
   public bool Collapsed { get; set; }
   string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
   void Toggle()
@@ -45,9 +22,8 @@ __builder2.AddContent(0, context
     Collapsed = !Collapsed;
   }
 
-#line default
-#line hidden
-#nullable disable
+        [Parameter] public RenderFragment<string> ChildContent { get; set; } = __razor_synth_ChildContentBody();
+private static partial RenderFragment<string> __razor_synth_ChildContentBody();
 
     }
 }

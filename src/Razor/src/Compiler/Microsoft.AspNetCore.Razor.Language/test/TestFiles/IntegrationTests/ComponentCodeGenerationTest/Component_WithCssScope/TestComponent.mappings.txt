@@ -49,3 +49,30 @@ Generated Location: (3976:106,0 [3] )
 |}
 |
 
+Source Location: (912:25,28 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|i|
+Generated Location: (4488:126,0 [1] )
+|i|
+
+Source Location: (925:25,41 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|i|
+Generated Location: (4767:136,25 [1] )
+|i|
+
+Source Location: (933:26,0 [164] x:\dir\subdir\Test\TestComponent.cshtml)
+|        }
+
+        System.GC.KeepAlive(myElementReference);
+        System.GC.KeepAlive(myComponentReference);
+        System.GC.KeepAlive(myVariable);
+    }
+|
+Generated Location: (4949:145,0 [164] )
+|        }
+
+        System.GC.KeepAlive(myElementReference);
+        System.GC.KeepAlive(myComponentReference);
+        System.GC.KeepAlive(myVariable);
+    }
+|
+

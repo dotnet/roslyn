@@ -30,6 +30,26 @@ using Microsoft.AspNetCore.Components.Rendering;
 
         }
         #pragma warning restore 1998
+#nullable restore
+#line (5,8)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+
+    void RenderChildComponent(RenderTreeBuilder __builder)
+    {
+
+#line default
+#line hidden
+#nullable disable
+
+        __builder.OpenComponent<global::Test.MyComponent>(0);
+        __builder.CloseComponent();
+#nullable restore
+#line (9,1)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
+    }
+
+#line default
+#line hidden
+#nullable disable
+
     }
 }
 #pragma warning restore 1591

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -107,14 +107,59 @@ internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase
         var declNamespace = RazorCSharpDocumentWriter.CloneContainer(primaryNamespace);
         var declClass = RazorCSharpDocumentWriter.CloneContainer(primaryClass);
 
+        // Classify the user-@code chunks so we can route markup-bearing methods to
+        // the impl half (where tag-helper resolution has happened) while keeping
+        // surface members in decl. Split always succeeds — when there's no user @code
+        // or parsing fails, it returns a plan that routes everything to DeclOnly
+        // (preserving the single-file behavior). Using directives flow in so the
+        // splitter's alias map covers `@using ALIAS = TYPE` patterns when classifying
+        // surface property types.
+        var declUsings = primaryNamespace.FindDescendantNodes<UsingDirectiveIntermediateNode>();
+        var splitPlan = ClassBodySplitter.GetOrCreateSplitPlan(primaryClass, renderMethod, declUsings);
+
+        // Emit the DeclOnly user-code chunks the splitter produced. It owns ordering and
+        // any text-level splits needed to keep DeclOnly members intact when the parser
+        // bundled them with NeedsHelper text.
+        foreach (var routed in splitPlan.RoutedChunks)
+        {
+            if (routed.Target == ChunkTarget.DeclOnly)
+            {
+                declClass.Children.Add(routed.Chunk);
+            }
+        }
+
+        // Preserve primary-class children the splitter doesn't route -- notably the
+        // @inject property node, which emits a class-body member but isn't user @code
+        // text. The splitter excludes these (IsRoutableUserCodeChunk is false), so they
+        // never appear in RoutedChunks; without this they'd be dropped from both halves
+        // of the partial class. They stay in decl, matching where every non-markup
+        // member lives.
         foreach (var classChild in primaryClass.Children)
         {
             if (classChild == renderMethod || classChild.IsSynthesizedHelper)
             {
                 continue;
             }
+            if (!ClassBodySplitter.IsRoutableUserCodeChunk(classChild))
+            {
+                declClass.Children.Add(classChild);
+            }
+        }
 
-            declClass.Children.Add(classChild);
+        // Append the helper-delegation stubs that replace surface properties with
+        // markup bodies. Each stub keeps the surface declaration visible to
+        // cross-page tag-helper discovery while routing the markup-bearing body to
+        // a synthesized partial method that impl fills in. A property with markup in
+        // more than one accessor mints several synths but emits its rewritten property
+        // and all signatures from the first synth, leaving the rest with empty decl
+        // source -- skip those so we don't add empty nodes.
+        foreach (var synth in splitPlan.HelperSynths)
+        {
+            if (synth.SynthDeclSource.Length == 0)
+            {
+                continue;
+            }
+            declClass.Children.Add(IntermediateNodeFactory.CSharpCode(synth.SynthDeclSource));
         }
 
         foreach (var nsChild in primaryNamespace.Children)

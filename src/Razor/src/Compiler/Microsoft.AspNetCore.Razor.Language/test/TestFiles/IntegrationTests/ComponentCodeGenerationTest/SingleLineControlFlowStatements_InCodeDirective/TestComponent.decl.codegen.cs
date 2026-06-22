@@ -19,38 +19,6 @@ using Microsoft.AspNetCore.Components.Rendering;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-#nullable restore
-#line (3,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    void RenderChildComponent(RenderTreeBuilder __builder)
-    {
-        var output = string.Empty;
-        if (__builder == null) output = "Builder is null!";
-        else output = "Builder is not null!";
-
-#line default
-#line hidden
-#nullable disable
-
-        __builder.AddContent(0, "        ");
-        __builder.AddContent(1, "Output: ");
-#nullable restore
-#line (9,21)-(9,27) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
-__builder.AddContent(2, output
-
-#line default
-#line hidden
-#nullable disable
-        );
-        __builder.AddContent(3, "\r\n");
-#nullable restore
-#line (10,1)-(11,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

@@ -29,3 +29,8 @@ Generated Location: (1815:62,0 [5] )
 |  }
 |
 
+Source Location: (297:12,79 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|context|
+Generated Location: (2364:79,26 [7] )
+|context|
+

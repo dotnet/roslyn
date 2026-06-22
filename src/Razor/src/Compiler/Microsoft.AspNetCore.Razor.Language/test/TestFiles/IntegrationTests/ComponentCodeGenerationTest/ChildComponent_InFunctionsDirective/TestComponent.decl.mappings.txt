@@ -3,21 +3,3 @@
 Generated Location: (372:12,0 [48] )
 |using Microsoft.AspNetCore.Components.Rendering;|
 
-Source Location: (101:4,7 [69] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    void RenderChildComponent(RenderTreeBuilder __builder)
-    {
-|
-Generated Location: (709:23,0 [69] )
-|
-    void RenderChildComponent(RenderTreeBuilder __builder)
-    {
-|
-
-Source Location: (195:8,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
-|    }
-|
-Generated Location: (999:35,0 [7] )
-|    }
-|
-

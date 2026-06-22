@@ -69,6 +69,22 @@ __builder.AddContent(9, ChildContent
             __builder.CloseElement();
         }
         #pragma warning restore 1998
+        private static partial RenderFragment<string> __razor_synth_ChildContentBody() => (
+        (context) => 
+        (__builder2) => {
+            __builder2.OpenElement(10, "p");
+#nullable restore
+#line (13,80)-(13,87) 26 "x:\dir\subdir\Test\TestComponent.cshtml"
+__builder2.AddContent(11, context
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __builder2.CloseElement();
+        }
+        );
+
     }
 }
 #pragma warning restore 1591

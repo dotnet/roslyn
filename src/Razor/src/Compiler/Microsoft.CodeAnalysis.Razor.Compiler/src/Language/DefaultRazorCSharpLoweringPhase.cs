@@ -1,10 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -83,6 +84,15 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
         var implClass = RazorCSharpDocumentWriter.CloneContainerForImpl(primaryClass);
 
         implClass.Children.Add(renderMethod);
+
+        // Pull in compiler-synthesized helpers (e.g. __PrivateComponentRenderModeAttribute)
+        // AND any user @code chunks the splitter routed to impl. The latter covers user
+        // helper methods that contain markup -- they need to live where tag-helper
+        // resolution has happened, which is here.
+        var splitPlan = ClassBodySplitter.GetOrCreateSplitPlan(primaryClass, renderMethod, usings);
+
+        // Synthesized helpers (compiler plumbing such as __PrivateComponentRenderModeAttribute)
+        // are looked up via primary-class iteration; the splitter only owns user @code.
         foreach (var classChild in primaryClass.Children)
         {
             if (classChild.IsSynthesizedHelper)
@@ -90,6 +100,69 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
                 implClass.Children.Add(classChild);
             }
         }
+
+        // User @code routing flows entirely through the splitter's RoutedChunks. The
+        // chunks are already in source order, and any CSharpCode chunk that straddled
+        // members with different routing has been split into per-member / per-body
+        // slices.
+        //
+        // NeedsHelperBody chunks for a single surface property may appear as a run of
+        // consecutive entries (e.g. for `RenderFragment<T> Foo => (context) => @<p/>;`
+        // the run is `(context) => ` + the markup Template). Each such run is wrapped
+        // exactly once by the synth's open/close text so the captured user expression
+        // remains syntactically intact. Synths are consumed in declaration order: each
+        // time a new NeedsHelperBody run begins, the next pending synth is paired with
+        // it; the run ends when a non-body chunk follows.
+        HelperSynth? currentSynth = null;
+        using var _ = QueuePool<HelperSynth>.GetPooledObject(out var pendingSynths);
+        foreach (var synth in splitPlan.HelperSynths)
+        {
+            pendingSynths.Enqueue(synth);
+        }
+
+        void CloseCurrentSynth()
+        {
+            if (currentSynth is { } open)
+            {
+                implClass.Children.Add(IntermediateNodeFactory.CSharpCode(open.SynthImplCloseSource));
+                currentSynth = null;
+            }
+        }
+
+        foreach (var routed in splitPlan.RoutedChunks)
+        {
+            if (routed.Target == ChunkTarget.NeedsHelperBody)
+            {
+                if (currentSynth is null)
+                {
+                    if (pendingSynths.Count == 0)
+                    {
+                        // Defensive: no synth descriptor available for this body
+                        // chunk; emit the chunk as-is (no wrapper) so its content
+                        // isn't silently dropped.
+                        implClass.Children.Add(routed.Chunk);
+                        continue;
+                    }
+                    currentSynth = pendingSynths.Dequeue();
+                    implClass.Children.Add(IntermediateNodeFactory.CSharpCode(currentSynth.SynthImplOpenSource));
+                }
+                implClass.Children.Add(routed.Chunk);
+                continue;
+            }
+
+            // Any non-body chunk terminates the current synth's body run.
+            CloseCurrentSynth();
+
+            if (routed.Target == ChunkTarget.ImplOnly)
+            {
+                implClass.Children.Add(routed.Chunk);
+            }
+            // DeclOnly and NeedsHelperOmit chunks don't belong in impl.
+        }
+
+        // A NeedsHelperBody run that extends to the end of RoutedChunks still needs
+        // its closing wrapper appended.
+        CloseCurrentSynth();
 
         foreach (var usingDirective in usings)
         {

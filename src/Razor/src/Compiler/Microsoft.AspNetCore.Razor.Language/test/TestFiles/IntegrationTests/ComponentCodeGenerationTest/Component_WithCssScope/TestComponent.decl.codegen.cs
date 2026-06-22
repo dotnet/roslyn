@@ -26,54 +26,10 @@ using Microsoft.AspNetCore.Components.Rendering
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-#nullable restore
-#line (17,8)-(26,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
+        
     ElementReference myElementReference;
     TemplatedComponent myComponentReference;
     string myVariable;
-
-    void MethodRenderingMarkup(RenderTreeBuilder __builder)
-    {
-        for (var i = 0; i < 10; i++)
-        {
-
-#line default
-#line hidden
-#nullable disable
-
-        __builder.AddContent(0, "            ");
-#nullable restore
-#line (26,29)-(26,30) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
-__builder.AddContent(1, i
-
-#line default
-#line hidden
-#nullable disable
-        );
-        __builder.AddAttribute(2, "data-index");
-        __builder.AddContent(3, "Something ");
-#nullable restore
-#line (26,42)-(26,43) 24 "x:\dir\subdir\Test\TestComponent.cshtml"
-__builder.AddContent(4, i
-
-#line default
-#line hidden
-#nullable disable
-        );
-        __builder.AddContent(5, "\r\n");
-#nullable restore
-#line (27,1)-(33,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-        }
-
-        System.GC.KeepAlive(myElementReference);
-        System.GC.KeepAlive(myComponentReference);
-        System.GC.KeepAlive(myVariable);
-    }
-
-#line default
-#line hidden
-#nullable disable
 
     }
 }
