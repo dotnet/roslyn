@@ -21,13 +21,18 @@ function Get-GitGrepMatches([string] $pattern, [string[]] $pathspecs, [switch] $
   $arguments += ($pathspecs | ForEach-Object { $_.Replace('\', '/') })
 
   # A git grep exit code of 1 means no matches, not failure. Handle it below instead of letting PowerShell throw.
-  $previousNativeCommandUseErrorActionPreference = $PSNativeCommandUseErrorActionPreference
-  $PSNativeCommandUseErrorActionPreference = $false
+  $hasNativeCommandUseErrorActionPreference = Test-Path variable:PSNativeCommandUseErrorActionPreference
+  if ($hasNativeCommandUseErrorActionPreference) {
+    $previousNativeCommandUseErrorActionPreference = $PSNativeCommandUseErrorActionPreference
+    $PSNativeCommandUseErrorActionPreference = $false
+  }
   try {
     $result = & git @arguments
     $exitCode = $LASTEXITCODE
   } finally {
-    $PSNativeCommandUseErrorActionPreference = $previousNativeCommandUseErrorActionPreference
+    if ($hasNativeCommandUseErrorActionPreference) {
+      $PSNativeCommandUseErrorActionPreference = $previousNativeCommandUseErrorActionPreference
+    }
   }
 
   if ($exitCode -eq 0) {
