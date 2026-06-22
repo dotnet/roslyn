@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -22,15 +21,6 @@ using VerifyCS = CSharpCodeFixVerifier<ConvertToBlockScopedNamespaceDiagnosticAn
 
 public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
 {
-    public static IEnumerable<object[]> EndOfDocumentSequences
-    {
-        get
-        {
-            yield return new object[] { "" };
-            yield return new object[] { Environment.NewLine };
-        }
-    }
-
     #region Convert To Block Scoped
 
     [Fact]
@@ -339,9 +329,15 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
             }
         }.RunAsync();
 
-    [Theory]
-    [MemberData(nameof(EndOfDocumentSequences))]
-    public Task TestConvertToBlockWithNestedNamespaces5(string endOfDocumentSequence)
+    [Fact]
+    public Task TestConvertToBlockWithNestedNamespaces5()
+        => TestConvertToBlockWithNestedNamespaces5Async(endOfDocumentSequence: "");
+
+    [Fact]
+    public Task TestConvertToBlockWithNestedNamespaces5_WithTrailingNewline()
+        => TestConvertToBlockWithNestedNamespaces5Async(endOfDocumentSequence: Environment.NewLine);
+
+    private Task TestConvertToBlockWithNestedNamespaces5Async(string endOfDocumentSequence)
         => new VerifyCS.Test
         {
             TestCode = $$"""
