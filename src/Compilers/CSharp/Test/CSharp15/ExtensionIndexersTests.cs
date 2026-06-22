@@ -11780,10 +11780,10 @@ End Module
         comp.VerifyEmitDiagnostics(
             // (4,30): error BC30690: Structure 'Integer' cannot be indexed because it has no default property.
             //         System.Console.Write(i(43))
-            Diagnostic(30690, "i").WithArguments("Integer").WithLocation(4, 30),
+            Diagnostic(30690 /*ERRID.ERR_StructureNoDefault1*/, "i").WithArguments("Integer").WithLocation(4, 30),
             // (5,9): error BC30690: Structure 'Integer' cannot be indexed because it has no default property.
             //         i(101) = 102
-            Diagnostic(30690, "i").WithArguments("Integer").WithLocation(5, 9));
+            Diagnostic(30690 /*ERRID.ERR_StructureNoDefault1*/, "i").WithArguments("Integer").WithLocation(5, 9));
     }
 
     [Theory, CombinatorialData]
