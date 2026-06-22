@@ -244,16 +244,14 @@ internal static class UseCollectionExpressionHelpers
             // available, as the language guarantees that it will continue emitting a Dictionary<X,Y> for those targets.
             var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(
                 compilation, convertedType);
-            if (isWellKnownCollectionReadWriteInterface)
+            if (isWellKnownCollectionReadWriteInterface &&
+                type.AllInterfaces.Contains(convertedType))
             {
-                if (type.AllInterfaces.Contains(convertedType))
-                {
-                    if (Equals(type.OriginalDefinition, compilation.ListOfTType()))
-                        return true;
+                if (Equals(type.OriginalDefinition, compilation.ListOfTType()))
+                    return true;
 
-                    if (Equals(type.OriginalDefinition, compilation.DictionaryOfKVType()))
-                        return compilation.LanguageVersion().SupportsDictionaryExpressions();
-                }
+                if (Equals(type.OriginalDefinition, compilation.DictionaryOfKVType()))
+                    return compilation.LanguageVersion().SupportsDictionaryExpressions();
             }
 
             // Before this point are all the changes that we can detect that are always safe to make.
