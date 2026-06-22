@@ -196,8 +196,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
     }
 
     private static SyntaxNode GetLabelScope(SyntaxNode node, CancellationToken cancellationToken)
-        => node.AncestorsAndSelf().FirstOrDefault(
-            static n => n is BaseMethodDeclarationSyntax or AccessorDeclarationSyntax or LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax)
+        => node.AncestorsAndSelf().FirstOrDefault(static n => n.IsReturnableConstruct())
             ?? node.SyntaxTree.GetRoot(cancellationToken);
 
     /// <summary>
