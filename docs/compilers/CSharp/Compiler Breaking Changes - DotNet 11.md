@@ -276,7 +276,7 @@ For example:
 ```cs
 var c = new C();
 int a = c.M(null); // error always
-int b = c[null]; // error previously missing
+int b = c[null]; // no error in C# 14, reports CS9363 in C# Preview
 
 class C
 {
