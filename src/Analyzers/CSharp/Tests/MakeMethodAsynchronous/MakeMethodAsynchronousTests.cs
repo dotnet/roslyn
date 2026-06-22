@@ -335,6 +335,42 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task AwaitInMethodCalledInsideLambdaConvertedToDelegate_NoWarning()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private void DoWork()
+                {
+                    [|await Task.Delay(1);|]
+                }
+
+                private void Hookup()
+                {
+                    var a = (Action)(() => { DoWork(); });
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                private async Task DoWorkAsync()
+                {
+                    await Task.Delay(1);
+                }
+
+                private void Hookup()
+                {
+                    var a = (Action)(() => { DoWorkAsync(); });
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
     public Task AwaitInNonVoidMethodUsedAsDelegate_Warns()
         => TestInRegularAndScriptAsync("""
             using System;

@@ -125,7 +125,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 }
 
                 var syntaxNode = entry.Root.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-                if (IsDelegateReference(entry.SemanticModel, syntaxNode, cancellationToken))
+                if (IsDelegateReference(entry.SemanticModel, syntaxNode, methodSymbol, cancellationToken))
                     return true;
             }
         }
@@ -138,7 +138,10 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     /// converted to a delegate.
     /// </returns>
     private static bool IsDelegateReference(
-        SemanticModel semanticModel, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        SemanticModel semanticModel,
+        SyntaxNode syntaxNode,
+        IMethodSymbol methodSymbol,
+        CancellationToken cancellationToken)
     {
         IOperation? operation = null;
         foreach (var currentNode in syntaxNode.GetAncestorsOrThis<SyntaxNode>())
@@ -150,8 +153,20 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         for (; operation != null; operation = operation.Parent)
         {
+            // Don't walk past lambda/local-function boundaries. A method invocation inside a lambda
+            // that is then converted to a delegate should not be treated as a delegate reference to that method.
+            if (operation is IAnonymousFunctionOperation or ILocalFunctionOperation)
+                return false;
+
             if (operation is IDelegateCreationOperation delegateCreation)
-                return delegateCreation.Target is IMethodReferenceOperation;
+            {
+                if (delegateCreation.Target is not IMethodReferenceOperation methodReference)
+                    return false;
+
+                return SymbolEqualityComparer.Default.Equals(
+                    methodReference.Method.OriginalDefinition,
+                    methodSymbol.OriginalDefinition);
+            }
         }
 
         return false;
