@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -144,7 +144,7 @@ internal static class CollectionExpressionUtilities
 
     /// <summary>
     /// Gets the collection builder factory methods for the given collection expression type, if any.  Or <see
-    /// langword="null"/> if the type does not have a valid <see cref="CollectionBuilderAttribute"/> that can be
+    /// langword="null"/> if the type does not have a valid CollectionBuilderAttribute that can be
     /// resolved.  The returned methods are guaranteed to match the language rules about what a factory method
     /// must look like.  That means, at a minimum:
     /// <list type="number">
