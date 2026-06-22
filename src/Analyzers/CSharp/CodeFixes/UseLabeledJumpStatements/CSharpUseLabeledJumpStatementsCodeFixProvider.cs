@@ -204,7 +204,23 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
     /// Wraps the loop in <c>label: &lt;loop&gt;</c>, unless a prior fix already labeled it (then just updates it).
     /// </summary>
     private static void ReplaceLoop(SyntaxEditor editor, StatementSyntax loop, string labelName, StatementSyntax newLoop)
-        => editor.ReplaceNode(loop, loop.Parent is LabeledStatementSyntax ? newLoop : CreateLabeledLoop(labelName, loop, newLoop));
+    {
+        // A prior fix already labeled this loop; just swap in the rewritten loop.
+        if (loop.Parent is LabeledStatementSyntax)
+        {
+            editor.ReplaceNode(loop, newLoop);
+            return;
+        }
+
+        var labeled = CreateLabeledLoop(labelName, loop, newLoop);
+
+        // A labeled statement is only legal directly inside a block, switch section, or as a top-level statement.
+        // When the loop is the braceless embedded statement of an if/else/while/using/lock/fixed/etc., wrap the
+        // labeled loop in a block so the result remains legal C#.
+        editor.ReplaceNode(loop, loop.Parent is BlockSyntax or SwitchSectionSyntax or GlobalStatementSyntax
+            ? labeled
+            : SyntaxFactory.Block(labeled));
+    }
 
     private static LabeledStatementSyntax CreateLabeledLoop(string labelName, StatementSyntax originalLoop, StatementSyntax newLoop)
         => SyntaxFactory.LabeledStatement(

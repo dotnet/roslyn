@@ -1809,4 +1809,96 @@ public sealed class UseLabeledJumpStatementsTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact]
+    public Task TestGotoContinue_EmbeddedLoopWrappedInBlock()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool cond)
+                    {
+                        if (cond)
+                            for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                {
+                                    if (j == 5)
+                                        {|IDE0410:goto|} next;
+                                }
+                                next: ;
+                            }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool cond)
+                    {
+                        if (cond)
+                        {
+                        next: for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                {
+                                    if (j == 5)
+                                        continue next;
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlag_EmbeddedLoopWrappedInBlock()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool cond, bool c)
+                    {
+                        bool flag = false;
+                        if (cond)
+                            for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                    if (c)
+                                    {
+                                        flag = true;
+                                        {|IDE0410:break|};
+                                    }
+
+                                if (flag)
+                                    break;
+                            }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool cond, bool c)
+                    {
+                        if (cond)
+                        {
+                        loop_i: for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                    if (c)
+                                    {
+                                        break loop_i;
+                                    }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
 }
