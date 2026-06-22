@@ -38,6 +38,7 @@ function Get-GitGrepMatches([string] $pattern, [string[]] $pathspecs, [switch] $
   if ($exitCode -eq 0) {
     return $result
   } elseif ($exitCode -eq 1) {
+    $global:LASTEXITCODE = 0
     return @()
   }
 
