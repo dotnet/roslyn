@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,8 +21,6 @@ using VerifyCS = CSharpCodeRefactoringVerifier<ConvertNamespaceCodeRefactoringPr
 [UseExportProvider]
 public sealed class ConvertNamespaceRefactoringTests
 {
-    public static IEnumerable<object[]> EndOfDocumentSequences => [[""], [Environment.NewLine]];
-
     #region Convert To File Scoped
 
     [Fact]
@@ -531,9 +528,15 @@ public sealed class ConvertNamespaceRefactoringTests
 
     #region Convert To Block Scoped
 
-    [Theory]
-    [MemberData(nameof(EndOfDocumentSequences))]
-    public Task TestConvertToBlockScopedInCSharp9(string endOfDocumentSequence)
+    [Fact]
+    public Task TestConvertToBlockScopedInCSharp9()
+        => TestConvertToBlockScopedInCSharp9Async(endOfDocumentSequence: "");
+
+    [Fact]
+    public Task TestConvertToBlockScopedInCSharp9_WithTrailingNewline()
+        => TestConvertToBlockScopedInCSharp9Async(endOfDocumentSequence: Environment.NewLine);
+
+    private Task TestConvertToBlockScopedInCSharp9Async(string endOfDocumentSequence)
         => new VerifyCS.Test
         {
             TestCode = $$"""
