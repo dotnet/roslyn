@@ -223,4 +223,40 @@
   <data name="Edit_at_deletes" xml:space="preserve">
     <value>Edit at {0} deletes the non-whitespace content '{1}'.</value>
   </data>
+  <data name="Directive" xml:space="preserve">
+    <value>directive</value>
+  </data>
+  <data name="DirectiveSnippetDescription" xml:space="preserve">
+    <value>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</value>
+  </data>
+  <data name="ReTrigger_Completions_Title" xml:space="preserve">
+    <value>"Re-trigger completions..."</value>
+  </data>
+  <data name="Blazor_directive_attributes" xml:space="preserve">
+    <value>Blazor directive attributes</value>
+  </data>
+  <data name="ComponentCompletionWithRequiredAttributesLabel" xml:space="preserve">
+    <value>{0} (and req'd attributes...)</value>
+    <comment>The term "req'd" is an abbreviation for "required"</comment>
+  </data>
+  <data name="KeywordDescription" xml:space="preserve">
+    <value>{0} Keyword</value>
+  </data>
+  <data name="Baseline_Widely_Available" xml:space="preserve">
+    <value>✅ Widely available across major browsers{0}</value>
+    <comment>{0} is " (Baseline since YYYY)" or empty</comment>
+  </data>
+  <data name="Baseline_Newly_Available" xml:space="preserve">
+    <value>🆕 Newly available across major browsers{0}</value>
+    <comment>{0} is " (Baseline since YYYY)" or empty</comment>
+  </data>
+  <data name="MDN_Reference" xml:space="preserve">
+    <value>MDN Reference</value>
+    <comment>Link text for MDN documentation URL in HTML completion tooltips</comment>
+  </data>
+  <data name="Baseline_Since" xml:space="preserve">
+    <value> (Baseline since {0})</value>
+    <comment>{0} is the year the feature reached baseline status (e.g., "2015")</comment>
+  </data>
 </root>
