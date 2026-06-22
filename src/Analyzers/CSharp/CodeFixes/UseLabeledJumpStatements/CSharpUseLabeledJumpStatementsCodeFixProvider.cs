@@ -122,19 +122,19 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         ImmutableArray<GotoStatementSyntax> gotos,
         CancellationToken cancellationToken)
     {
-        if (semanticModel.GetDeclaredSymbol(labelDeclaration, cancellationToken) is not ILabelSymbol label)
-            return false;
-
-        // Labels are function-scoped, so scanning the enclosing member/function body finds every reference.
-        var scope = GetLabelScope(labelDeclaration, cancellationToken);
-
-        foreach (var candidate in scope.DescendantNodes().OfType<GotoStatementSyntax>())
+        if (semanticModel.GetDeclaredSymbol(labelDeclaration, cancellationToken) is ILabelSymbol label)
         {
-            if (!gotos.Contains(candidate) &&
-                candidate is GotoStatementSyntax(SyntaxKind.GotoStatement) { Expression: IdentifierNameSyntax identifier } &&
-                Equals(semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol, label))
+            // Labels are function-scoped, so scanning the enclosing member/function body finds every reference.
+            var scope = GetLabelScope(labelDeclaration, cancellationToken);
+
+            foreach (var candidate in scope.DescendantNodes().OfType<GotoStatementSyntax>())
             {
-                return true;
+                if (!gotos.Contains(candidate) &&
+                    candidate is GotoStatementSyntax(SyntaxKind.GotoStatement) { Expression: IdentifierNameSyntax identifier } &&
+                    Equals(semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol, label))
+                {
+                    return true;
+                }
             }
         }
 
