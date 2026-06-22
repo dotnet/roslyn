@@ -96,11 +96,11 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     }
 
     /// <summary>
-    /// Looks in the declaring projects for a location where <paramref name="methodSymbol"/> is
+    /// Looks in the current project for a location where <paramref name="methodSymbol"/> is
     /// converted to a delegate.
     /// </summary>
-    /// <returns><see langword="true"/> iff such a reference is found. There are no false positives.</returns>
-    private static async Task<bool> HasKnownReferencesAsDelegateAsync(
+    /// <returns><see langword="true"/> iff such a reference is found.</returns>
+    private static async Task<bool> HasReferenceAsDelegateInThisProjectAsync(
         Project project,
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
@@ -209,7 +209,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var returnTypeWillChange = methodSymbol.ReturnsVoid
             ? !keepVoid
             : !IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
-        var addWarningAnnotation = returnTypeWillChange && await HasKnownReferencesAsDelegateAsync(
+        var addWarningAnnotation = returnTypeWillChange && await HasReferenceAsDelegateInThisProjectAsync(
             document.Project, methodSymbol, cancellationToken).ConfigureAwait(false);
 
         return NeedsRename()
