@@ -302,9 +302,15 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
             }
         }.RunAsync();
 
-    [Theory]
-    [MemberData(nameof(EndOfDocumentSequences))]
-    public Task TestConvertToBlockWithNestedNamespaces4(string endOfDocumentSequence)
+    [Fact]
+    public Task TestConvertToBlockWithNestedNamespaces4()
+        => TestConvertToBlockWithNestedNamespaces4Async(endOfDocumentSequence: "");
+
+    [Fact]
+    public Task TestConvertToBlockWithNestedNamespaces4_WithTrailingNewline()
+        => TestConvertToBlockWithNestedNamespaces4Async(endOfDocumentSequence: Environment.NewLine);
+
+    private Task TestConvertToBlockWithNestedNamespaces4Async(string endOfDocumentSequence)
         => new VerifyCS.Test
         {
             TestCode = $$"""
