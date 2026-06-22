@@ -2113,4 +2113,444 @@ public sealed class UseLabeledJumpStatementsTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact]
+    public Task TestFlagBreak_SynthesizedLabelMatchesExistingLocalName()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        int loop_i = 0;
+                        bool found = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    found = true;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if (found)
+                                break;
+                        }
+
+                        System.Console.WriteLine(loop_i);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        int loop_i = 0;
+                    loop_i: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    break loop_i;
+                                }
+                            }
+                        }
+
+                        System.Console.WriteLine(loop_i);
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoBreak_BracelessLoopBodies()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        while (c)
+                            while (c)
+                                if (c)
+                                    {|IDE0410:goto|} found;
+
+                        found:
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                    found: while (c)
+                            while (c)
+                                if (c)
+                                    break found;
+
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoBreak_InsideTryBlock()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        try
+                        {
+                            for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                {
+                                    if (c)
+                                        {|IDE0410:goto|} found;
+                                }
+                            }
+
+                            found:
+                            System.Console.WriteLine();
+                        }
+                        finally
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        try
+                        {
+                        found: for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                {
+                                    if (c)
+                                        break found;
+                                }
+                            }
+
+                            System.Console.WriteLine();
+                        }
+                        finally
+                        {
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoBreak_InsideLocalFunction()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        void Local(bool c)
+                        {
+                            for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                {
+                                    if (c)
+                                        {|IDE0410:goto|} found;
+                                }
+                            }
+
+                            found:
+                            System.Console.WriteLine();
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        void Local(bool c)
+                        {
+                        found: for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                {
+                                    if (c)
+                                        break found;
+                                }
+                            }
+
+                            System.Console.WriteLine();
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlagBreak_InsideLambda()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        System.Action<bool> a = c =>
+                        {
+                            bool found = false;
+                            for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                {
+                                    if (c)
+                                    {
+                                        found = true;
+                                        {|IDE0410:break|};
+                                    }
+                                }
+
+                                if (found)
+                                    break;
+                            }
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        System.Action<bool> a = c =>
+                        {
+                        loop_i: for (int i = 0; i < 10; i++)
+                            {
+                                for (int j = 0; j < 10; j++)
+                                {
+                                    if (c)
+                                    {
+                                        break loop_i;
+                                    }
+                                }
+                            }
+                        };
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlagBreak_DeeplyNested()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool found = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                for (int k = 0; k < 10; k++)
+                                {
+                                    for (int l = 0; l < 10; l++)
+                                    {
+                                        if (c)
+                                        {
+                                            found = true;
+                                            {|IDE0410:break|};
+                                        }
+                                    }
+
+                                    if (found)
+                                        break;
+                                }
+
+                                if (found)
+                                    break;
+                            }
+
+                            if (found)
+                                break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                    loop_i: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                for (int k = 0; k < 10; k++)
+                                {
+                                    for (int l = 0; l < 10; l++)
+                                    {
+                                        if (c)
+                                        {
+                                            break loop_i;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_GotoDefault()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(int x)
+                    {
+                        switch (x)
+                        {
+                            case 1:
+                                for (int i = 0; i < 10; i++)
+                                    for (int j = 0; j < 10; j++)
+                                        goto default;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagGuardCompoundCondition()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c, bool d)
+                    {
+                        bool found = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found && d)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagGuardNegated()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool found = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (!found)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagSitesDifferentInnerLoops()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c, bool d)
+                    {
+                        bool found = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            for (int k = 0; k < 10; k++)
+                            {
+                                if (d)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
 }
