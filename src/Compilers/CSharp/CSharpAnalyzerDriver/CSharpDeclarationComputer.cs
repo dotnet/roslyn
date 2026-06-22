@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var typeDeclaration = (TypeDeclarationSyntax)node;
                             Debug.Assert(ctor.MethodKind == MethodKind.Constructor && typeDeclaration.ParameterList is object);
 
-                            var codeBlocks = ArrayBuilder<SyntaxNode>.GetInstance();
+                            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var codeBlocks);
                             AddParameterListInitializersAndAttributes(typeDeclaration.ParameterList, codeBlocks);
 
                             if (typeDeclaration.BaseList?.Types.FirstOrDefault() is PrimaryConstructorBaseTypeSyntax initializer)
@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             builder.Add(GetDeclarationInfo(node, associatedSymbol, codeBlocks));
-                            codeBlocks.Free();
                             return;
                         }
 
@@ -129,13 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         }
 
-                        var attributes = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var attributes);
 
                         AddAttributes(t.AttributeLists, attributes);
                         AddTypeParameterListAttributes(t.TypeParameterList, attributes);
 
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
-                        attributes.Free();
                         return;
                     }
 
@@ -147,23 +145,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         }
 
-                        var attributes = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var attributes);
                         AddAttributes(t.AttributeLists, attributes);
 
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
-                        attributes.Free();
+
                         return;
                     }
 
                 case SyntaxKind.EnumMemberDeclaration:
                     {
                         var t = (EnumMemberDeclarationSyntax)node;
-                        var codeBlocks = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var codeBlocks);
                         codeBlocks.Add(t.EqualsValue);
                         AddAttributes(t.AttributeLists, codeBlocks);
 
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
-                        codeBlocks.Free();
+
                         return;
                     }
 
@@ -171,13 +169,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var t = (DelegateDeclarationSyntax)node;
 
-                        var attributes = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var attributes);
                         AddAttributes(t.AttributeLists, attributes);
                         AddParameterListInitializersAndAttributes(t.ParameterList, attributes);
                         AddTypeParameterListAttributes(t.TypeParameterList, attributes);
 
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
-                        attributes.Free();
+
                         return;
                     }
 
@@ -191,11 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                             }
                         }
-                        var attributes = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var attributes);
                         AddAttributes(t.AttributeLists, attributes);
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, attributes, cancellationToken));
 
-                        attributes.Free();
                         return;
                     }
 
@@ -203,19 +200,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.FieldDeclaration:
                     {
                         var t = (BaseFieldDeclarationSyntax)node;
-                        var attributes = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var attributes);
                         AddAttributes(t.AttributeLists, attributes);
                         foreach (var decl in t.Declaration.Variables)
                         {
-                            var codeBlocks = ArrayBuilder<SyntaxNode>.GetInstance();
+                            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var codeBlocks);
                             codeBlocks.Add(decl.Initializer);
                             codeBlocks.AddRange(attributes);
 
                             builder.Add(GetDeclarationInfo(model, decl, getSymbol, codeBlocks, cancellationToken));
-                            codeBlocks.Free();
                         }
 
-                        attributes.Free();
                         return;
                     }
 
@@ -246,12 +241,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ComputeDeclarations(model, associatedSymbol: null, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
                         }
 
-                        var codeBlocks = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var codeBlocks);
                         codeBlocks.Add(t.Initializer);
                         AddAttributes(t.AttributeLists, codeBlocks);
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
 
-                        codeBlocks.Free();
                         return;
                     }
 
@@ -271,13 +265,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ComputeDeclarations(model, associatedSymbol: null, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
                         }
 
-                        var codeBlocks = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var codeBlocks);
                         AddParameterListInitializersAndAttributes(t.ParameterList, codeBlocks);
                         AddAttributes(t.AttributeLists, codeBlocks);
 
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
 
-                        codeBlocks.Free();
                         return;
                     }
 
@@ -288,12 +281,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InitAccessorDeclaration:
                     {
                         var t = (AccessorDeclarationSyntax)node;
-                        var blocks = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var blocks);
                         blocks.AddIfNotNull(t.Body);
                         blocks.AddIfNotNull(t.ExpressionBody);
                         AddAttributes(t.AttributeLists, blocks);
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, blocks, cancellationToken));
-                        blocks.Free();
 
                         return;
                     }
@@ -305,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OperatorDeclaration:
                     {
                         var t = (BaseMethodDeclarationSyntax)node;
-                        var codeBlocks = ArrayBuilder<SyntaxNode>.GetInstance();
+                        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var codeBlocks);
                         AddParameterListInitializersAndAttributes(t.ParameterList, codeBlocks);
                         codeBlocks.Add(t.Body);
 
@@ -328,8 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
-
-                        codeBlocks.Free();
                         return;
                     }
 
@@ -339,11 +329,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (associatedSymbol is IMethodSymbol)
                         {
-                            var codeBlocks = ArrayBuilder<SyntaxNode>.GetInstance();
+                            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var codeBlocks);
                             codeBlocks.Add(t);
 
                             builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
-                            codeBlocks.Free();
                         }
                         else
                         {
@@ -354,10 +343,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (t.AttributeLists.Any())
                             {
-                                var attributes = ArrayBuilder<SyntaxNode>.GetInstance();
+                                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var attributes);
                                 AddAttributes(t.AttributeLists, attributes);
                                 builder.Add(GetDeclarationInfo(model, node, getSymbol: false, attributes, cancellationToken));
-                                attributes.Free();
                             }
                         }
 
