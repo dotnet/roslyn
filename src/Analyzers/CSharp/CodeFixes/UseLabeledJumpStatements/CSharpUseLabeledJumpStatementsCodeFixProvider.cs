@@ -83,7 +83,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         var keepOriginalLabel = LabelIsReferencedOutside(semanticModel, labelDeclaration, gotos, cancellationToken);
         var labelName = existingLabel ?? (keepOriginalLabel ? SynthesizeLabelName(semanticModel, loop, cancellationToken) : labelDeclaration.Identifier.Text);
 
-        var newLoop = loop.ReplaceNodes(gotos, (original, _) => CreateJump(labelName, original, isBreak));
+        var newLoop = loop.ReplaceNodes(gotos, (original, _) => CreateJump(labelName, isBreak).WithTriviaFrom(original));
 
         if (isBreak)
         {
@@ -165,7 +165,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
 
         newLoop = newLoop.ReplaceNodes(
             pattern.AssignmentAndBreakSites.Select(site => newLoop.GetCurrentNode(site.Break)!),
-            (original, _) => CreateJump(labelName, original, pattern.IsBreak));
+            (original, _) => CreateJump(labelName, pattern.IsBreak).WithTriviaFrom(original));
 
         newLoop = newLoop.RemoveNodes(
             deadNodes.Select(node => newLoop.GetCurrentNode(node)!),
@@ -239,12 +239,12 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
             newLoop.WithoutLeadingTrivia());
 
 #pragma warning disable RSEXPERIMENTAL006 // Labeled break/continue is a preview language feature.
-    private static StatementSyntax CreateJump(string labelName, SyntaxNode original, bool isBreak)
+    private static StatementSyntax CreateJump(string labelName, bool isBreak)
     {
         var name = SyntaxFactory.IdentifierName(labelName);
-        return (isBreak
-            ? (StatementSyntax)SyntaxFactory.BreakStatement(name)
-            : SyntaxFactory.ContinueStatement(name)).WithTriviaFrom(original);
+        return isBreak
+            ? SyntaxFactory.BreakStatement(name)
+            : SyntaxFactory.ContinueStatement(name);
     }
 #pragma warning restore RSEXPERIMENTAL006
 }
