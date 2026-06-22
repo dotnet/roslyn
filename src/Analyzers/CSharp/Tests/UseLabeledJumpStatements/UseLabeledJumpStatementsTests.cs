@@ -1661,4 +1661,152 @@ public sealed class UseLabeledJumpStatementsTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact]
+    public Task TestFlag_NestedWhileLoopsSynthesizeDistinctLabels()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool p, bool q, bool r, bool x, bool y)
+                    {
+                        bool a = false;
+                        while (p)
+                        {
+                            bool b = false;
+                            while (q)
+                            {
+                                while (r)
+                                {
+                                    if (y)
+                                    {
+                                        b = true;
+                                        {|IDE0410:break|};
+                                    }
+                                }
+
+                                if (b)
+                                    break;
+
+                                if (x)
+                                {
+                                    a = true;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if (a)
+                                break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool p, bool q, bool r, bool x, bool y)
+                    {
+                    outer1: while (p)
+                        {
+                        outer: while (q)
+                            {
+                                while (r)
+                                {
+                                    if (y)
+                                    {
+                                        break outer;
+                                    }
+                                }
+
+                                if (x)
+                                {
+                                    break outer1;
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+            BatchFixedCode = """
+                class C
+                {
+                    void M(bool p, bool q, bool r, bool x, bool y)
+                    {
+                    outer: while (p)
+                        {
+                        outer1: while (q)
+                            {
+                                while (r)
+                                {
+                                    if (y)
+                                    {
+                                        break outer1;
+                                    }
+                                }
+
+                                if (x)
+                                {
+                                    break outer;
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlag_RemovedDeclarationKeepsUnbalancedDirectives()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                #if true
+                        bool found = false;
+                #endif
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (i * j > 20)
+                                {
+                                    found = true;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if (found)
+                                break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+
+                #if true
+                #endif
+                    loop_i: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (i * j > 20)
+                                {
+                                    break loop_i;
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
 }

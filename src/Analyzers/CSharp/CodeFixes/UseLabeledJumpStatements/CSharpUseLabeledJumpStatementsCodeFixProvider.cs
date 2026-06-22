@@ -62,7 +62,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
             if (CSharpUseLabeledJumpStatementsHelpers.TryGetFlagPatternFromInnerBreak(
                 breakStatement, semanticModel, cancellationToken, out var pattern))
             {
-                ConvertFlagPattern(editor, semanticModel, pattern);
+                ConvertFlagPattern(editor, semanticModel, pattern, cancellationToken);
             }
         }
     }
@@ -81,7 +81,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         // one.  Separately, only delete the original target label if no other jump still references it.
         var existingLabel = GetReusableLabelName(loop);
         var keepOriginalLabel = LabelIsReferencedOutside(semanticModel, labelDeclaration, gotos, cancellationToken);
-        var labelName = existingLabel ?? (keepOriginalLabel ? SynthesizeLabelName(semanticModel, loop) : labelDeclaration.Identifier.Text);
+        var labelName = existingLabel ?? (keepOriginalLabel ? SynthesizeLabelName(semanticModel, loop, cancellationToken) : labelDeclaration.Identifier.Text);
 
         var newLoop = loop.ReplaceNodes(gotos, (original, _) => CreateJump(labelName, original, isBreak));
 
@@ -94,7 +94,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
             if (!keepOriginalLabel)
             {
                 if (labelDeclaration.Statement is EmptyStatementSyntax)
-                    editor.RemoveNode(labelDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
+                    editor.RemoveNode(labelDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
                 else
                     editor.ReplaceNode(labelDeclaration, labelDeclaration.Statement.WithLeadingTrivia(labelDeclaration.GetLeadingTrivia()));
             }
@@ -126,9 +126,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
             return false;
 
         // Labels are function-scoped, so scanning the enclosing member/function body finds every reference.
-        var scope = labelDeclaration.AncestorsAndSelf().FirstOrDefault(
-            static node => node is BaseMethodDeclarationSyntax or AccessorDeclarationSyntax or LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax)
-            ?? labelDeclaration.SyntaxTree.GetRoot(cancellationToken);
+        var scope = GetLabelScope(labelDeclaration, cancellationToken);
 
         foreach (var candidate in scope.DescendantNodes().OfType<GotoStatementSyntax>())
         {
@@ -143,10 +141,10 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         return false;
     }
 
-    private static void ConvertFlagPattern(SyntaxEditor editor, SemanticModel semanticModel, FlagJumpPattern pattern)
+    private static void ConvertFlagPattern(SyntaxEditor editor, SemanticModel semanticModel, FlagJumpPattern pattern, CancellationToken cancellationToken)
     {
         var loop = pattern.LoopStatement;
-        var labelName = GetReusableLabelName(loop) ?? SynthesizeLabelName(semanticModel, loop);
+        var labelName = GetReusableLabelName(loop) ?? SynthesizeLabelName(semanticModel, loop, cancellationToken);
 
         // Rewrite the inner breaks and delete the now-dead flag assignments and guard inside the loop in one rebuild.
         var newLoop = loop.TrackNodes(pattern.AssignmentAndBreakSites
@@ -161,10 +159,10 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         newLoop = newLoop.RemoveNodes(
             pattern.AssignmentAndBreakSites.Select(site => (SyntaxNode)newLoop.GetCurrentNode(site.Assignment)!)
                 .Concat(pattern.GuardStatements.Select(guard => (SyntaxNode)newLoop.GetCurrentNode(guard)!)),
-            SyntaxRemoveOptions.KeepNoTrivia)!;
+            SyntaxRemoveOptions.KeepUnbalancedDirectives)!;
 
         ReplaceLoop(editor, loop, labelName, newLoop);
-        editor.RemoveNode(pattern.LocalDeclarationStatement, SyntaxRemoveOptions.KeepNoTrivia);
+        editor.RemoveNode(pattern.LocalDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
     }
 
     private static string? GetReusableLabelName(StatementSyntax loop)
@@ -174,7 +172,7 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
     /// Synthesizes a label for <paramref name="loop"/> (<c>loop_i</c>/<c>loop_x</c> from a for/foreach variable, else
     /// <c>outer</c>), uniquified against the labels in scope at the loop.
     /// </summary>
-    private static string SynthesizeLabelName(SemanticModel semanticModel, StatementSyntax loop)
+    private static string SynthesizeLabelName(SemanticModel semanticModel, StatementSyntax loop, CancellationToken cancellationToken)
     {
         var baseName = loop switch
         {
@@ -184,11 +182,23 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         };
 
         using var _ = PooledHashSet<string>.GetInstance(out var inScope);
+
+        // Labels in scope at the loop, plus every label declared anywhere in the enclosing function body.  The latter
+        // matters because a label a prior fix placed on a nested loop is not in scope at this (outer) loop's position
+        // (it lives in a descendant block), yet would still collide with a label we place here.
         foreach (var label in semanticModel.LookupLabels(loop.SpanStart))
             inScope.Add(label.Name);
 
+        foreach (var labeled in GetLabelScope(loop, cancellationToken).DescendantNodes().OfType<LabeledStatementSyntax>())
+            inScope.Add(labeled.Identifier.ValueText);
+
         return NameGenerator.GenerateUniqueName(baseName, name => !inScope.Contains(name));
     }
+
+    private static SyntaxNode GetLabelScope(SyntaxNode node, CancellationToken cancellationToken)
+        => node.AncestorsAndSelf().FirstOrDefault(
+            static n => n is BaseMethodDeclarationSyntax or AccessorDeclarationSyntax or LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax)
+            ?? node.SyntaxTree.GetRoot(cancellationToken);
 
     /// <summary>
     /// Wraps the loop in <c>label: &lt;loop&gt;</c>, unless a prior fix already labeled it (then just updates it).
