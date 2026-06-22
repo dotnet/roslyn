@@ -10696,17 +10696,24 @@ class C
         {
             for (var i = 0; i < resourceFormat.Length; i++)
             {
-                if (resourceFormat[i] != '{' || i + 1 >= resourceFormat.Length || !char.IsDigit(resourceFormat[i + 1]))
+                if (i + 1 >= resourceFormat.Length)
                 {
                     continue;
                 }
 
-                var formatEnd = i + 2;
-                while (formatEnd < resourceFormat.Length && char.IsDigit(resourceFormat[formatEnd]))
+                if (resourceFormat[i] != '{' || !char.IsDigit(resourceFormat[i + 1]))
                 {
-                    formatEnd++;
+                    continue;
                 }
 
+                var remaining = resourceFormat.AsSpan(i + 2);
+                var digitCount = 0;
+                while (digitCount < remaining.Length && char.IsDigit(remaining[digitCount]))
+                {
+                    digitCount++;
+                }
+
+                var formatEnd = i + 2 + digitCount;
                 if (formatEnd == resourceFormat.Length ||
                     resourceFormat[formatEnd] is '}' or ':' or ',')
                 {
@@ -10717,6 +10724,7 @@ class C
             return resourceFormat;
         }
 
+        // Timing reports start on new lines; only match line starts so diagnostic messages containing the same text are preserved.
         private static int IndexOfTimingMarker(string output, string marker)
         {
             var index = output.IndexOf(marker, StringComparison.Ordinal);
@@ -10733,6 +10741,7 @@ class C
             return -1;
         }
 
+        // Remove analyzer and generator timing reports from command-line output when tests assert diagnostic output.
         private static string RemoveTimingOutput(string output)
         {
             var index = output.Length;
