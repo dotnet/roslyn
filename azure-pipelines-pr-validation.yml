@@ -43,6 +43,10 @@ variables:
   - name: _DevDivDropAccessToken
     value: $(System.AccessToken)
 
+  # Build the test projects and run unit tests unless the SkipTests queue-time variable is set to 'true'.
+  - name: BuildTests
+    value: $[ne(variables['SkipTests'], 'true')]
+
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
@@ -244,7 +248,6 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(OriginalBuildNumber)
-                       -officialSkipTests $(SkipTests)
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
@@ -256,7 +259,24 @@ extends:
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
                        /p:PreReleaseVersionLabel=pr-validation
+                       /p:DotNetBuildTests=$(BuildTests)
           condition: succeeded()
+
+        - task: PowerShell@2
+          displayName: Run Tests
+          inputs:
+            targetType: inline
+            script: |
+              & "$(Build.SourcesDirectory)\.dotnet\dotnet.exe" exec `
+                "$(Build.SourcesDirectory)\artifacts\bin\RunTests\$(BuildConfiguration)\net10.0\RunTests.dll" `
+                --dotnet "$(Build.SourcesDirectory)\.dotnet\dotnet.exe" `
+                --logs "$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)" `
+                --testConfiguration $(BuildConfiguration) `
+                --testFramework:desktop `
+                --collectdumps `
+                --ci `
+                --timeout 90
+          condition: and(succeeded(), ne(variables['SkipTests'], 'true'))
 
         - template: /eng/common/templates-official/steps/generate-sbom.yml@self
 

@@ -11,8 +11,8 @@
 #   - publish
 #
 # Each of these phases has a separate command which can be executed independently. For instance
-# it's fine to call `build.ps1 -build -testFramework desktop` followed by repeated calls to
-# `.\build.ps1 -testFramework desktop`.
+# it's fine to call `build.ps1 -build -testVsi` followed by repeated calls to
+# `.\build.ps1 -testVsi`.
 
 [CmdletBinding(PositionalBinding=$false)]
 param (
@@ -53,17 +53,12 @@ param (
   # official build settings
   [string]$officialBuildId = "",
   [string]$officialSkipApplyOptimizationData = "",
-  [string]$officialSkipTests = "",
   [string]$officialSourceBranchName = "",
   [string]$officialIbcDrop = "",
   [string]$officialVisualStudioDropAccessToken = "",
 
   # Test actions
-  [string]$testPlatform = "x64",
   [switch]$testVsi,
-  [string]$testFramework = "",
-  [string]$testSet = "",
-  [string]$testKind = "",
   [switch]$skipCustomRoslynDeploy = $false,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
@@ -90,10 +85,6 @@ function Print-Usage() {
   Write-Host "  -help                     Print help and exit"
   Write-Host ""
   Write-Host "Test actions"
-  Write-Host "  -testFramework <value>    Test framework to run: core, desktop, or both"
-  Write-Host "  -testPlatform <value>     Architecture to test on: x86, x64 or arm64 (default: x64)"
-  Write-Host "  -testSet <value>          Test set to run: compiler"
-  Write-Host "  -testKind <value>         Test kind: ioperation, runtimeasync, usedassemblies"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -skipCustomRoslynDeploy   Skip custom Roslyn deployment when running integration tests (uses Roslyn from the VS)"
   Write-Host ""
@@ -115,7 +106,6 @@ function Print-Usage() {
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                                  An official build id, e.g. 20190102.3"
-  Write-Host "  -officialSkipTests <bool>                         Pass 'true' to not run tests"
   Write-Host "  -officialSkipApplyOptimizationData <bool>         Pass 'true' to not apply optimization data"
   Write-Host "  -officialSourceBranchName <string>                The source branch name"
   Write-Host "  -officialIbcDrop <string>                         IBC data drop to use (e.g. 'ProfilingOutputs/DevDiv/VS/..')."
@@ -130,7 +120,7 @@ function Print-Usage() {
 #
 # In this function it's okay to use two arguments to extend the effect of another. For
 # example it's okay to look at $testVsi and infer $runAnalyzers. It's not okay though to infer
-# $build based on say $testFramework. It's possible the developer wanted only for testing
+# $build based on say $testVsi. It's possible the developer wanted only for testing
 # to execute, not any build.
 function Process-Arguments() {
   function OfficialBuildOnly([string]$argName) {
@@ -152,7 +142,6 @@ function Process-Arguments() {
        exit 0
   }
 
-  OfficialBuildOnly "officialSkipTests"
   OfficialBuildOnly "officialSkipApplyOptimizationData"
   OfficialBuildOnly "officialSourceBranchName"
   OfficialBuildOnly "officialVisualStudioDropAccessToken"
@@ -160,14 +149,9 @@ function Process-Arguments() {
   if ($officialBuildId) {
     $script:useGlobalNuGetCache = $false
     $script:collectDumps = $true
-    if (![System.Boolean]::Parse($officialSkipTests)) {
-      $script:testFramework = "desktop"
-    }
-    $script:buildTests = !([System.Boolean]::Parse($officialSkipTests))
     $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
   } else {
     $script:applyOptimizationData = $false
-    $script:buildTests = $null
   }
 
   if ($binaryLogName -ne "") {
@@ -184,12 +168,6 @@ function Process-Arguments() {
 
   if ($bootstrapDir -ne "") {
     $script:bootstrap = $true
-  }
-
-  $anyUnit = $testFramework -ne ""
-  if ($anyUnit -and $testVsi) {
-    Write-Host "Cannot combine unit and VSI testing"
-    exit 1
   }
 
   if ($testVsi) {
@@ -260,7 +238,6 @@ function BuildSolution() {
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
-  $dotnetBuildTests = if ($buildTests -ne $null -and !$buildTests) { "/p:DotNetBuildTests=false" } else { "" }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -290,7 +267,6 @@ function BuildSolution() {
       $msbuildWarnNotAsError `
       $generateDocumentationFile `
       $roslynUseHardLinks `
-      $dotnetBuildTests `
       @properties
   }
   finally {
@@ -376,11 +352,8 @@ function TestUsingRunTests() {
   $args += " --dotnet `"$dotnetExe`""
   $args += " --logs `"$LogDir`""
   $args += " --testConfiguration $configuration"
-  $args += " --testPlatform $testPlatform"
 
-  if ($testFramework) {
-    $args += " --testFramework:$testFramework"
-  } elseif ($testVsi) {
+  if ($testVsi) {
     $args += " --testFramework:core --testFramework:desktop"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
@@ -388,14 +361,6 @@ function TestUsingRunTests() {
     if ($lspEditor) {
       $testFilters += "Editor=LanguageServerProtocol"
     }
-  }
-
-  if ($testSet) {
-    $args += " --testSet:$testSet"
-  }
-
-  if ($testKind) {
-    $args += " --testKind:$testKind"
   }
 
   if (-not $ci -and -not $testVsi) {
@@ -705,7 +670,7 @@ try {
 
   try
   {
-    if ($testFramework -or $testVsi) {
+    if ($testVsi) {
       TestUsingRunTests
     }
   }
