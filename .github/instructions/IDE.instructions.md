@@ -66,7 +66,6 @@ public class MyTests
 
 ### Test Conventions
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) for test source code
-- Always add `WorkItem` alongside test attributes, for example `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`, replacing `1234` with the GitHub issue number
 - Keep tests focused — avoid unnecessary intermediary assertions
 - Use `[UseExportProvider]` for any test that depends on MEF services
 

@@ -194,7 +194,6 @@ await new VerifyCS.Test
 - Use `TestInRegularAndScriptAsync` to cover both regular and script contexts
 - Use `TestMissingInRegularAndScriptAsync` to verify no fix is offered
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) for test source code
-- Always add `WorkItem` alongside test attributes, for example `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`, replacing `1234` with the GitHub issue number
 - Keep tests focused — avoid unnecessary intermediary assertions
 
 ## Checklist for New Analyzer + Code Fix

@@ -54,7 +54,6 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 
 ## Testing
 
-- Always add `WorkItem` alongside test attributes, for example `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`, replacing `1234` with the GitHub issue number.
 - Use `TestCode` with `[|...|]` span markers for before/after test scenarios. Access
   `input.Text` (cleaned) and `input.Span` (marked range).
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`).
