@@ -610,4 +610,85 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
     }
 
     #endregion
+
+    #region LookupSymbols / GetEnclosingSymbol / speculative model
+
+    [Fact]
+    public void LookupLabels_AtLabeledBreak_FindsEnclosingLabel()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        break outer;
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var breakStatement = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
+        var labels = model.LookupLabels(breakStatement.SpanStart);
+        Assert.Contains(labels, l => l.Name == "outer");
+    }
+
+    [Fact]
+    public void GetEnclosingSymbol_AtLabeledBreak_ReturnsContainingMethod()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        break outer;
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var breakStatement = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
+        var enclosing = model.GetEnclosingSymbol(breakStatement.SpanStart);
+        Assert.Equal("M", enclosing!.Name);
+    }
+
+    [Fact]
+    public void SpeculativeSemanticModel_LabeledBreak_ResolvesToLabel()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        System.Console.WriteLine();
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var existing = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().Single();
+        var speculative = (BreakStatementSyntax)SyntaxFactory.ParseStatement("break outer;");
+
+        Assert.True(model.TryGetSpeculativeSemanticModel(existing.SpanStart, speculative, out var speculativeModel));
+
+        var symbol = speculativeModel!.GetSymbolInfo(speculative.Name!).Symbol;
+        Assert.Equal(SymbolKind.Label, symbol!.Kind);
+        Assert.Equal("outer", symbol.Name);
+    }
+
+    #endregion
 }
