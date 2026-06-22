@@ -237,8 +237,8 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
-            // It is always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it
-            // will continue emitting a List<X> for those target types.
+            // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
+            // continue emitting a List<X> for those target types.
             //
             // Similarly, it is safe to convert Dictionary<X,Y> to IDictionary<X,Y> when dictionary expressions are
             // available, as the language guarantees that it will continue emitting a Dictionary<X,Y> for those targets.
