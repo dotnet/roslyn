@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1539,7 +1538,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
 
     #endregion
 
-    #region PDB sequence points
+    #region Sequence points
 
     [Fact]
     public void SequencePoints_LabeledBreak()
@@ -1560,36 +1559,53 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        var comp = CreateCompilation(source, options: TestOptions.DebugDll);
-        comp.VerifyPdb("C.M", """
-            <symbols>
-              <files>
-                <file id="1" name="" language="C#" />
-              </files>
-              <methods>
-                <method containingType="C" name="M" parameterNames="b">
-                  <sequencePoints>
-                    <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="6" document="1" />
-                    <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="15" document="1" />
-                    <entry offset="0x2" hidden="true" document="1" />
-                    <entry offset="0x4" startLine="6" startColumn="9" endLine="6" endColumn="10" document="1" />
-                    <entry offset="0x5" hidden="true" document="1" />
-                    <entry offset="0x7" startLine="8" startColumn="13" endLine="8" endColumn="14" document="1" />
-                    <entry offset="0x8" startLine="9" startColumn="17" endLine="9" endColumn="23" document="1" />
-                    <entry offset="0xa" hidden="true" document="1" />
-                    <entry offset="0xd" startLine="10" startColumn="21" endLine="10" endColumn="33" document="1" />
-                    <entry offset="0xf" startLine="11" startColumn="13" endLine="11" endColumn="14" document="1" />
-                    <entry offset="0x10" startLine="7" startColumn="13" endLine="7" endColumn="22" document="1" />
-                    <entry offset="0x12" hidden="true" document="1" />
-                    <entry offset="0x15" startLine="12" startColumn="9" endLine="12" endColumn="10" document="1" />
-                    <entry offset="0x16" startLine="5" startColumn="16" endLine="5" endColumn="25" document="1" />
-                    <entry offset="0x18" hidden="true" document="1" />
-                    <entry offset="0x1b" startLine="13" startColumn="5" endLine="13" endColumn="6" document="1" />
-                  </sequencePoints>
-                </method>
-              </methods>
-            </symbols>
-            """, format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeCustomDebugInformation);
+        CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: """
+            {
+              // Code size       28 (0x1c)
+              .maxstack  1
+              .locals init (bool V_0,
+                            bool V_1,
+                            bool V_2)
+              // sequence point: {
+              IL_0000:  nop
+              // sequence point: outer:
+              IL_0001:  nop
+              // sequence point: <hidden>
+              IL_0002:  br.s       IL_0016
+              // sequence point: {
+              IL_0004:  nop
+              // sequence point: <hidden>
+              IL_0005:  br.s       IL_0010
+              // sequence point: {
+              IL_0007:  nop
+              // sequence point: if (b)
+              IL_0008:  ldarg.0
+              IL_0009:  stloc.0
+              // sequence point: <hidden>
+              IL_000a:  ldloc.0
+              IL_000b:  brfalse.s  IL_000f
+              // sequence point: break outer;
+              IL_000d:  br.s       IL_001b
+              // sequence point: }
+              IL_000f:  nop
+              // sequence point: while (b)
+              IL_0010:  ldarg.0
+              IL_0011:  stloc.1
+              // sequence point: <hidden>
+              IL_0012:  ldloc.1
+              IL_0013:  brtrue.s   IL_0007
+              // sequence point: }
+              IL_0015:  nop
+              // sequence point: while (b)
+              IL_0016:  ldarg.0
+              IL_0017:  stloc.2
+              // sequence point: <hidden>
+              IL_0018:  ldloc.2
+              IL_0019:  brtrue.s   IL_0004
+              // sequence point: }
+              IL_001b:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -1611,36 +1627,53 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        var comp = CreateCompilation(source, options: TestOptions.DebugDll);
-        comp.VerifyPdb("C.M", """
-            <symbols>
-              <files>
-                <file id="1" name="" language="C#" />
-              </files>
-              <methods>
-                <method containingType="C" name="M" parameterNames="b">
-                  <sequencePoints>
-                    <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="6" document="1" />
-                    <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="15" document="1" />
-                    <entry offset="0x2" hidden="true" document="1" />
-                    <entry offset="0x4" startLine="6" startColumn="9" endLine="6" endColumn="10" document="1" />
-                    <entry offset="0x5" hidden="true" document="1" />
-                    <entry offset="0x7" startLine="8" startColumn="13" endLine="8" endColumn="14" document="1" />
-                    <entry offset="0x8" startLine="9" startColumn="17" endLine="9" endColumn="23" document="1" />
-                    <entry offset="0xa" hidden="true" document="1" />
-                    <entry offset="0xd" startLine="10" startColumn="21" endLine="10" endColumn="36" document="1" />
-                    <entry offset="0xf" startLine="11" startColumn="13" endLine="11" endColumn="14" document="1" />
-                    <entry offset="0x10" startLine="7" startColumn="13" endLine="7" endColumn="22" document="1" />
-                    <entry offset="0x12" hidden="true" document="1" />
-                    <entry offset="0x15" startLine="12" startColumn="9" endLine="12" endColumn="10" document="1" />
-                    <entry offset="0x16" startLine="5" startColumn="16" endLine="5" endColumn="25" document="1" />
-                    <entry offset="0x18" hidden="true" document="1" />
-                    <entry offset="0x1b" startLine="13" startColumn="5" endLine="13" endColumn="6" document="1" />
-                  </sequencePoints>
-                </method>
-              </methods>
-            </symbols>
-            """, format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeCustomDebugInformation);
+        CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: """
+            {
+              // Code size       28 (0x1c)
+              .maxstack  1
+              .locals init (bool V_0,
+                            bool V_1,
+                            bool V_2)
+              // sequence point: {
+              IL_0000:  nop
+              // sequence point: outer:
+              IL_0001:  nop
+              // sequence point: <hidden>
+              IL_0002:  br.s       IL_0016
+              // sequence point: {
+              IL_0004:  nop
+              // sequence point: <hidden>
+              IL_0005:  br.s       IL_0010
+              // sequence point: {
+              IL_0007:  nop
+              // sequence point: if (b)
+              IL_0008:  ldarg.0
+              IL_0009:  stloc.0
+              // sequence point: <hidden>
+              IL_000a:  ldloc.0
+              IL_000b:  brfalse.s  IL_000f
+              // sequence point: continue outer;
+              IL_000d:  br.s       IL_0016
+              // sequence point: }
+              IL_000f:  nop
+              // sequence point: while (b)
+              IL_0010:  ldarg.0
+              IL_0011:  stloc.1
+              // sequence point: <hidden>
+              IL_0012:  ldloc.1
+              IL_0013:  brtrue.s   IL_0007
+              // sequence point: }
+              IL_0015:  nop
+              // sequence point: while (b)
+              IL_0016:  ldarg.0
+              IL_0017:  stloc.2
+              // sequence point: <hidden>
+              IL_0018:  ldloc.2
+              IL_0019:  brtrue.s   IL_0004
+              // sequence point: }
+              IL_001b:  ret
+            }
+            """);
     }
 
     #endregion
