@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Operations;
@@ -89,6 +90,9 @@ internal static class UseCollectionExpressionHelpers
     {
         var compilation = semanticModel.Compilation;
         changesSemantics = false;
+
+        if (!compilation.LanguageVersion().SupportsCollectionExpressions())
+            return false;
 
         var topMostExpression = expression.WalkUpParentheses();
         if (topMostExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
@@ -233,14 +237,23 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
-            // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
-            // continue emitting a List<X> for those target types.
-            var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(convertedType);
-            if (isWellKnownCollectionReadWriteInterface &&
-                Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
-                type.AllInterfaces.Contains(convertedType))
+            // It is always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it
+            // will continue emitting a List<X> for those target types.
+            //
+            // Similarly, it is safe to convert Dictionary<X,Y> to IDictionary<X,Y> when dictionary expressions are
+            // available, as the language guarantees that it will continue emitting a Dictionary<X,Y> for those targets.
+            var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(
+                compilation, convertedType);
+            if (isWellKnownCollectionReadWriteInterface)
             {
-                return true;
+                if (type.AllInterfaces.Contains(convertedType))
+                {
+                    if (Equals(type.OriginalDefinition, compilation.ListOfTType()))
+                        return true;
+
+                    if (Equals(type.OriginalDefinition, compilation.DictionaryOfKVType()))
+                        return compilation.LanguageVersion().SupportsDictionaryExpressions();
+                }
             }
 
             // Before this point are all the changes that we can detect that are always safe to make.
@@ -261,7 +274,7 @@ internal static class UseCollectionExpressionHelpers
             //
             // `IEnumerable<object> obj = Array.Empty<object>();` or
             // `IEnumerable<string> obj = new[] { "" };`
-            if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
+            if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(compilation, convertedType) && type.AllInterfaces.Contains(convertedType))
             {
                 // The observable collections are known to have significantly different behavior than List<T>.  So
                 // disallow converting those types to ensure semantics are preserved.  We do this even though

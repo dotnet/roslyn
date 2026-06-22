@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,27 +9,43 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class CollectionExpressionUtilities
 {
-    public static bool IsWellKnownCollectionInterface(ITypeSymbol type)
-        => IsWellKnownCollectionReadOnlyInterface(type) || IsWellKnownCollectionReadWriteInterface(type);
+    public static bool IsWellKnownCollectionInterface(Compilation compilation, ITypeSymbol type)
+        => IsWellKnownCollectionReadOnlyInterface(compilation, type) ||
+           IsWellKnownCollectionReadWriteInterface(compilation, type);
 
-    public static bool IsWellKnownCollectionReadOnlyInterface(ITypeSymbol type)
+    public static bool IsWellKnownCollectionReadOnlyInterface(Compilation compilation, ITypeSymbol type)
     {
-        return type.OriginalDefinition.SpecialType
-            is SpecialType.System_Collections_Generic_IEnumerable_T
-            or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
-            or SpecialType.System_Collections_Generic_IReadOnlyList_T;
+        if (type.OriginalDefinition.SpecialType
+                is SpecialType.System_Collections_Generic_IEnumerable_T
+                or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
+                or SpecialType.System_Collections_Generic_IReadOnlyList_T)
+        {
+            return true;
+        }
+
+        return compilation.LanguageVersion().SupportsDictionaryExpressions() &&
+            type.OriginalDefinition.Equals(compilation.IReadOnlyDictionaryOfKVType());
     }
 
-    public static bool IsWellKnownCollectionReadWriteInterface(ITypeSymbol type)
+    public static bool IsWellKnownCollectionReadWriteInterface(Compilation compilation, ITypeSymbol type)
     {
-        return type.OriginalDefinition.SpecialType
-            is SpecialType.System_Collections_Generic_ICollection_T
-            or SpecialType.System_Collections_Generic_IList_T;
+        if (type.OriginalDefinition.SpecialType
+                is SpecialType.System_Collections_Generic_ICollection_T
+                or SpecialType.System_Collections_Generic_IList_T)
+        {
+            return true;
+        }
+
+        return compilation.LanguageVersion().SupportsDictionaryExpressions() &&
+            type.OriginalDefinition.Equals(compilation.IDictionaryOfKVType());
     }
 
     public static bool IsConstructibleCollectionType(
@@ -81,7 +97,7 @@ internal static class CollectionExpressionUtilities
             if (collectionBuilderMethods is [var builderMethod, ..])
                 return true;
 
-            if (IsWellKnownCollectionInterface(namedType))
+            if (IsWellKnownCollectionInterface(compilation, namedType))
                 return true;
 
             // At this point, all that is left are collection-initializer types.  These need to derive from
