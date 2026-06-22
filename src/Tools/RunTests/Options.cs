@@ -275,34 +275,24 @@ namespace RunTests
                 }
             }
 
-            if (testFrameworks.Count > 0)
+            if (testDesktop && environmentVariables.ContainsKey("DOTNET_RuntimeAsync"))
             {
-                if (testDesktop && environmentVariables.ContainsKey("DOTNET_RuntimeAsync"))
-                {
-                    ConsoleUtil.WriteLine("Cannot run desktop tests with runtime async validation enabled.");
-                    return null;
-                }
+                ConsoleUtil.WriteLine("Cannot run desktop tests with runtime async validation enabled.");
+                return null;
+            }
 
-                if (testCompilerOnly)
+            if (testCompilerOnly)
+            {
+                foreach (var pattern in CompilerTestAssemblyPatterns)
                 {
-                    foreach (var pattern in CompilerTestAssemblyPatterns)
-                    {
-                        includeFilter.Add(pattern);
-                    }
+                    includeFilter.Add(pattern);
                 }
-                else
-                {
-                    if (includeFilter.Count == 0)
-                    {
-                        includeFilter.Add(@"\.UnitTests");
-                    }
-                }
+            }
 
-                // Desktop x64 excludes InteractiveHost tests
-                if (testDesktop && platform != "x86")
-                {
-                    excludeFilter.Add(@"\.InteractiveHost");
-                }
+            // Desktop x64 excludes InteractiveHost tests
+            if (testDesktop && platform != "x86")
+            {
+                excludeFilter.Add(@"\.InteractiveHost");
             }
 
             if (includeFilter.Count == 0)
