@@ -222,8 +222,10 @@ lock(…) … // including variant on an instance of the `System.Threading.Lock`
 using (…) … // including `await` variant
 yield return …;
 yield break;
-break; // including labeled variant `break label;`
-continue; // including labeled variant `continue label;`
+break;
+continue;
+break label;
+continue label;
 ```
 
 ## Expression classifications
