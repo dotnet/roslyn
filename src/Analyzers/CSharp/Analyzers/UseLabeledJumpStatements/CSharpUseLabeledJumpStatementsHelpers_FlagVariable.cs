@@ -55,8 +55,8 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is not ILocalSymbol { Type.SpecialType: SpecialType.System_Boolean } flag)
             return false;
 
-        using var _ = ArrayBuilder<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)>.GetInstance(out var sites);
-        using var _1 = PooledHashSet<IfStatementSyntax>.GetInstance(out var guards);
+        using var _1 = ArrayBuilder<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)>.GetInstance(out var sites);
+        using var _2 = PooledHashSet<IfStatementSyntax>.GetInstance(out var guards);
 
         // Classify every reference to the flag.  It may only be a 'flag = true;' (immediately before a 'break;') or an
         // 'if (flag) break/continue;' guard.  Anything else means the flag is doing more than propagating a jump.
@@ -92,7 +92,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
                 return false;
         }
 
-        using var _2 = ArrayBuilder<IfStatementSyntax>.GetInstance(out var orderedGuards);
+        using var _3 = ArrayBuilder<IfStatementSyntax>.GetInstance(out var orderedGuards);
         if (!TryWalkGuardChain(innerLoop, guards, orderedGuards, out var targetLoop, out var isBreak))
             return false;
 
