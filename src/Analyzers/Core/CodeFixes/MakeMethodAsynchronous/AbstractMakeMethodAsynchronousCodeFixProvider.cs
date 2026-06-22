@@ -111,7 +111,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
             project.Documents.ToImmutableHashSet(),
             cancellationToken).ConfigureAwait(false);
 
-        var cache = new Dictionary<DocumentId, (SyntaxNode Root, SemanticModel SemanticModel)>();
+        var cache = new Dictionary<DocumentId, SemanticDocument>();
 
         foreach (var referencedSymbol in referencedSymbols)
         {
@@ -120,9 +120,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 var document = location.Document;
                 if (!cache.TryGetValue(document.Id, out var entry))
                 {
-                    entry = (
-                        await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false),
-                        await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
+                    entry = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
                     cache.Add(document.Id, entry);
                 }
 
