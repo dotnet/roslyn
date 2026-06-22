@@ -808,9 +808,16 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Coh
         TestFileMarkupParser.GetSpan(text, out text, out var span);
         return (SourceText.From(text), span);
     }
+    internal async Task<(IDocumentSnapshot primary, SourceGeneratedDocument generatedDocument, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource, CancellationToken cancellationToken, RazorFileKind? fileKind = null)
+    {
+        var (razorSourceText, primarySpan) = CreateText(razorSource);
+        var (primary, generatedDocument, declarationDocument) = await InitializeDocumentAsync(razorSourceText, primarySpan, fileKind, cancellationToken);
+        var generatedSpan = await GetSecondarySpanAsync(primary, primarySpan, generatedDocument, declarationDocument, cancellationToken);
+        return (primary, generatedDocument, generatedSpan);
+    }
 
     // Adds the text to a ProjectSnapshot, generates code, and updates the workspace.
-    private async Task<(RemoteDocumentSnapshot primary, SourceGeneratedDocument secondary, bool declarationDocument)> InitializeDocumentAsync(SourceText sourceText, TextSpan primarySpan, CancellationToken cancellationToken, RazorFileKind? fileKind)
+    private async Task<(RemoteDocumentSnapshot primary, SourceGeneratedDocument secondary, bool declarationDocument)> InitializeDocumentAsync(SourceText sourceText, TextSpan primarySpan, RazorFileKind? fileKind, CancellationToken cancellationToken)
     {
         var document = CreateProjectAndRazorDocument(sourceText.ToString(), fileKind);
 
@@ -822,14 +829,6 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Coh
 
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken);
         return (snapshot, generatedDocument, inDeclDocument);
-    }
-
-    internal async Task<(IDocumentSnapshot primary, SourceGeneratedDocument generatedDocument, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource, CancellationToken cancellationToken, RazorFileKind? fileKind = null)
-    {
-        var (razorSourceText, primarySpan) = CreateText(razorSource);
-        var (primary, generatedDocument, declarationDocument) = await InitializeDocumentAsync(razorSourceText, primarySpan, cancellationToken, fileKind);
-        var generatedSpan = await GetSecondarySpanAsync(primary, primarySpan, generatedDocument, declarationDocument, cancellationToken);
-        return (primary, generatedDocument, generatedSpan);
     }
 
     // Maps a span in the primary buffer to the secondary buffer. This is only valid for C# code
