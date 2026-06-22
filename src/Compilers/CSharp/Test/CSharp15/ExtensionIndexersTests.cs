@@ -16121,6 +16121,22 @@ _ = 42[null];
 E.get_Item(42, null);
 """;
         var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp.VerifyDiagnostics(
+            // (1,5): error CS9363: 'E.extension(int).this[int*].get' must be used in an unsafe context because it has pointers in its signature
+            // _ = 42[null];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "42[null]").WithArguments("E.extension(int).this[int*].get").WithLocation(1, 5),
+            // (2,1): error CS9363: 'E.get_Item(int, int*)' must be used in an unsafe context because it has pointers in its signature
+            // E.get_Item(42, null);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.get_Item(42, null)").WithArguments("E.get_Item(int, int*)").WithLocation(2, 1));
+
+        src = """
+unsafe
+{
+    _ = 42[null];
+    E.get_Item(42, null);
+}
+""";
+        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics();
 
         // Compared with non-extension indexers
@@ -16140,6 +16156,18 @@ public unsafe class C
 _ = new C()[null];
 """;
         comp = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp.VerifyDiagnostics(
+            // (1,5): error CS9363: 'C.this[int*].get' must be used in an unsafe context because it has pointers in its signature
+            // _ = new C()[null];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "new C()[null]").WithArguments("C.this[int*].get").WithLocation(1, 5));
+
+        src = """
+unsafe
+{
+    _ = new C()[null];
+}
+""";
+        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics();
     }
 
