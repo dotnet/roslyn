@@ -1327,9 +1327,15 @@ public sealed class ConvertToTopLevelStatementsAnalyzerTests
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
         }.RunAsync();
 
-    [Theory]
-    [MemberData(nameof(EndOfDocumentSequences))]
-    public Task TestInTopLevelNamespaceWithOtherType(string endOfDocumentSequence)
+    [Fact]
+    public Task TestInTopLevelNamespaceWithOtherType()
+        => TestInTopLevelNamespaceWithOtherTypeAsync(endOfDocumentSequence: "");
+
+    [Fact]
+    public Task TestInTopLevelNamespaceWithOtherType_WithTrailingNewline()
+        => TestInTopLevelNamespaceWithOtherTypeAsync(endOfDocumentSequence: Environment.NewLine);
+
+    private Task TestInTopLevelNamespaceWithOtherTypeAsync(string endOfDocumentSequence)
         => new VerifyCS.Test
         {
             TestCode = $$"""
