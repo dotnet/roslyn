@@ -97,7 +97,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         OrderedSet<Symbol> variablesToHoist = new OrderedSet<Symbol>();
         var hoistedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
         var factory = new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics);
-        var rewriter = new RuntimeAsyncRewriter(factory, variablesToHoist, hoistedLocals);
+        var rewriter = new RuntimeAsyncRewriter(factory, methodOrdinal: -1, variablesToHoist, hoistedLocals);
         var result = (BoundStatement)rewriter.Visit(node);
 
         hoistedLocals.Free();

@@ -364,17 +364,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.IsDefinition);
             Debug.Assert(method is not Symbols.Metadata.PE.PEMethodSymbol);
 
-<<<<<<< HEAD
-            TypeSymbol returnType = method.ReturnType;
-            if (!IsValidRuntimeAsyncIteratorReturnType(returnType) && !IsValidRuntimeAsyncReturnType(returnType))
-||||||| 6e85d46be61
-            var methodReturn = method.ReturnType.OriginalDefinition;
-            if (((InternalSpecialType)methodReturn.ExtendedSpecialType) is not (
-                    InternalSpecialType.System_Threading_Tasks_Task or
-                    InternalSpecialType.System_Threading_Tasks_Task_T or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask or
-                    InternalSpecialType.System_Threading_Tasks_ValueTask_T))
-=======
             var runtimeAsyncEnabledInMethod = method.RuntimeAsyncMethodGenerationAttributeSetting switch
             {
                 ThreeState.True => true,
@@ -383,7 +372,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 
             if (!runtimeAsyncEnabledInMethod)
->>>>>>> dotnet/main
             {
                 return false;
             }
@@ -400,11 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            return ((InternalSpecialType)methodReturn.ExtendedSpecialType) is (
-                InternalSpecialType.System_Threading_Tasks_Task or
-                InternalSpecialType.System_Threading_Tasks_Task_T or
-                InternalSpecialType.System_Threading_Tasks_ValueTask or
-                InternalSpecialType.System_Threading_Tasks_ValueTask_T);
+            return IsValidRuntimeAsyncIteratorReturnType(methodReturn) || IsValidRuntimeAsyncReturnType(methodReturn);
         }
 
         /// <summary>

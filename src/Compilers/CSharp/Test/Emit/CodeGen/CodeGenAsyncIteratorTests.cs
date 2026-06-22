@@ -723,12 +723,9 @@ class C
             CompileAndVerify(comp, expectedOutput: expectedOutput)
                 .VerifyDiagnostics();
 
-            // PROTOTYPE Tracked by https://github.com/dotnet/roslyn/issues/79762
             comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics(
-                // (10,22): error CS9328: Method 'C.<M>d__0.IAsyncEnumerator<int>.MoveNextAsync()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         yield return await d;
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "await d").WithArguments("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()").WithLocation(10, 22));
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Skipped)
+                .VerifyDiagnostics();
         }
 
         [Fact]
