@@ -1901,4 +1901,216 @@ public sealed class UseLabeledJumpStatementsTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact]
+    public Task TestFlagBreak_ForEachSynthesizesLoopVariableName()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IEnumerable<int> items)
+                    {
+                        bool found = false;
+                        foreach (var item in items)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (item == j)
+                                {
+                                    found = true;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if (found)
+                                break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(IEnumerable<int> items)
+                    {
+                    loop_item: foreach (var item in items)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (item == j)
+                                {
+                                    break loop_item;
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlagBreak_DoWhileSynthesizesOuter()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool found = false;
+                        do
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    found = true;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if (found)
+                                break;
+                        } while (c);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                    outer: do
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    break outer;
+                                }
+                            }
+                        } while (c);
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlag_BraceWrappedGuard()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool flag = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    flag = true;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if (flag)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                    loop_i: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    break loop_i;
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagDeclaredInsideTargetLoop()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        for (int i = 0; i < 10; i++)
+                        {
+                            bool found = false;
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found)
+                                break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotOffered_FlagGuardHasElse()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool found = false;
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found)
+                                break;
+                            else
+                                System.Console.WriteLine();
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
 }
