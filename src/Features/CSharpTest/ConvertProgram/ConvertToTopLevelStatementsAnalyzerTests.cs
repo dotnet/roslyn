@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,15 +19,6 @@ using VerifyCS = CSharpCodeFixVerifier<ConvertToTopLevelStatementsDiagnosticAnal
 
 public sealed class ConvertToTopLevelStatementsAnalyzerTests
 {
-    public static IEnumerable<object[]> EndOfDocumentSequences
-    {
-        get
-        {
-            yield return new object[] { "" };
-            yield return new object[] { Environment.NewLine };
-        }
-    }
-
     [Fact]
     public Task NotOfferedWhenUserPrefersProgramMain()
         => new VerifyCS.Test
@@ -1418,9 +1408,15 @@ public sealed class ConvertToTopLevelStatementsAnalyzerTests
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
         }.RunAsync();
 
-    [Theory]
-    [MemberData(nameof(EndOfDocumentSequences))]
-    public Task TestInTopLevelNamespaceWithOtherTypeThatIsReferenced(string endOfDocumentSequence)
+    [Fact]
+    public Task TestInTopLevelNamespaceWithOtherTypeThatIsReferenced()
+        => TestInTopLevelNamespaceWithOtherTypeThatIsReferencedAsync(endOfDocumentSequence: "");
+
+    [Fact]
+    public Task TestInTopLevelNamespaceWithOtherTypeThatIsReferenced_WithTrailingNewline()
+        => TestInTopLevelNamespaceWithOtherTypeThatIsReferencedAsync(endOfDocumentSequence: Environment.NewLine);
+
+    private Task TestInTopLevelNamespaceWithOtherTypeThatIsReferencedAsync(string endOfDocumentSequence)
         => new VerifyCS.Test
         {
             TestCode = $$"""
