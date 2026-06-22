@@ -1312,6 +1312,110 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
 
     #endregion
 
+    #region ControlFlowGraph
+
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ControlFlowGraph_LabeledBreak_OutOfNestedLoops()
+    {
+        string source = """
+            class C
+            {
+                void M(bool b)
+                /*<bind>*/{
+                    outer: while (b)
+                    {
+                        while (b)
+                        {
+                            if (b)
+                                break outer;
+                        }
+                    }
+                }/*</bind>*/
+            }
+            """;
+        string expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+            Block[B1] - Block
+                Predecessors: [B0] [B2]
+                Statements (0)
+                Jump if False (Regular) to Block[B4]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1] [B3]
+                Statements (0)
+                Jump if False (Regular) to Block[B1]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (0)
+                Jump if False (Regular) to Block[B2]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B4]
+            Block[B4] - Exit
+                Predecessors: [B1] [B3]
+                Statements (0)
+            """;
+        var expectedDiagnostics = DiagnosticDescription.None;
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
+
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ControlFlowGraph_LabeledContinue_ToOuterLoop()
+    {
+        string source = """
+            class C
+            {
+                void M(bool b)
+                /*<bind>*/{
+                    outer: while (b)
+                    {
+                        while (b)
+                        {
+                            if (b)
+                                continue outer;
+                        }
+                    }
+                }/*</bind>*/
+            }
+            """;
+        string expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+            Block[B1] - Block
+                Predecessors: [B0] [B2] [B3]
+                Statements (0)
+                Jump if False (Regular) to Block[B4]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1] [B3]
+                Statements (0)
+                Jump if False (Regular) to Block[B1]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (0)
+                Jump if False (Regular) to Block[B2]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B1]
+            Block[B4] - Exit
+                Predecessors: [B1]
+                Statements (0)
+            """;
+        var expectedDiagnostics = DiagnosticDescription.None;
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
+
+    #endregion
+
     #region Helpers
 
     private static IOperation? GetCorrespondingOperation<TSyntax>(string source) where TSyntax : SyntaxNode
