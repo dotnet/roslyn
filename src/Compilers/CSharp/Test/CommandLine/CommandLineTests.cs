@@ -10665,6 +10665,19 @@ class C
             return n;
         }
 
+        [Fact]
+        public void RemoveTimingOutput_RemovesReportSections()
+        {
+            Assert.Equal("Total analyzer execution time: ", GetResourcePrefix(CodeAnalysisResources.AnalyzerTotalExecutionTime));
+            Assert.Equal("No format item", GetResourcePrefix("No format item"));
+            Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput($"""
+                warning CS0169: field is unused
+                {CodeAnalysisResources.MultithreadedAnalyzerExecutionNote}
+                """));
+            Assert.Equal("", RemoveTimingOutput(string.Format(CodeAnalysisResources.GeneratorTotalExecutionTime, "0.000")));
+            Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput("warning CS0169: field is unused"));
+        }
+
         private static string GetResourcePrefix(string resourceFormat)
         {
             var formatIndex = resourceFormat.IndexOf("{0}", StringComparison.Ordinal);
