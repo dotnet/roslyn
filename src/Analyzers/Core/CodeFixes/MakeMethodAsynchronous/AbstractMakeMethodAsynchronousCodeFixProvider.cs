@@ -96,9 +96,8 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     }
 
     /// <summary>
-    /// Looks in the current project for a location where <paramref name="methodSymbol"/> is
-    /// converted to a delegate. Only meaningful for ordinary methods and local functions; lambdas
-    /// are anonymous and can never be referenced by name from elsewhere.
+    /// Looks in the current project for a location where <paramref name="methodSymbol"/>
+    /// is converted to a delegate.
     /// </summary>
     /// <returns><see langword="true"/> iff such a reference is found.</returns>
     private static async Task<bool> HasReferenceAsDelegateInThisProjectAsync(
@@ -226,9 +225,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         var returnTypeWillChange = methodSymbol.ReturnsVoid
             ? !keepVoid
             : !IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
-        // Lambdas can never be passed by name to a delegate-typed parameter, so skip the lookup.
         var addWarningAnnotation = returnTypeWillChange
-            && methodSymbol.IsOrdinaryMethodOrLocalFunction()
             && await HasReferenceAsDelegateInThisProjectAsync(
                 document.Project, methodSymbol, cancellationToken).ConfigureAwait(false);
 
