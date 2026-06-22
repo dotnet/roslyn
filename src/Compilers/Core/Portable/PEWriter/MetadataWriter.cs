@@ -1192,7 +1192,7 @@ namespace Microsoft.Cci
             var signatureEncoder = new BlobEncoder(builder).MethodSignature(convention: signature.CallingConvention.ToSignatureConvention(), genericParameterCount: 0, isInstanceMethod: false);
             SerializeReturnValueAndParameters(signatureEncoder, signature, varargParameters: ImmutableArray<IParameterTypeInformation>.Empty);
 
-            BlobHandle blobIndex = metadata.GetOrAddBlob(builder);
+            BlobHandle blobIndex = metadata.GetOrAddBlobAndFree(builder);
             StandaloneSignatureHandle handle = GetOrAddStandaloneSignatureHandle(blobIndex);
             return handle;
         }
@@ -1757,6 +1757,10 @@ namespace Microsoft.Cci
             catch (Exception e) when (e is not OperationCanceledException)
             {
                 throw new PeWritingException(e);
+            }
+            finally
+            {
+                mappedFieldDataBuilder?.Free();
             }
 
             if (portablePdbStreamOpt != null)
@@ -2524,36 +2528,47 @@ namespace Microsoft.Cci
         {
             resourceDataWriter = null;
 
-            if (dynamicAnalysisData != null)
+            try
             {
-                resourceDataWriter = PooledBlobBuilder.GetInstance();
-                metadata.AddManifestResource(
-                    attributes: ManifestResourceAttributes.Private,
-                    name: metadata.GetOrAddString("<DynamicAnalysisData>"),
-                    implementation: default(EntityHandle),
-                    offset: writeBuilderResourceAndGetOffset(dynamicAnalysisData, resourceDataWriter)
-                );
+                if (dynamicAnalysisData != null)
+                {
+                    resourceDataWriter = PooledBlobBuilder.GetInstance();
+                    metadata.AddManifestResource(
+                        attributes: ManifestResourceAttributes.Private,
+                        name: metadata.GetOrAddString("<DynamicAnalysisData>"),
+                        implementation: default(EntityHandle),
+                        offset: writeBuilderResourceAndGetOffset(dynamicAnalysisData, resourceDataWriter)
+                    );
+                }
+
+                foreach (var resource in this.module.GetResources(Context))
+                {
+                    EntityHandle implementation;
+                    if (resource.ExternalFile != null)
+                    {
+                        // Length checked on insertion into the file table.
+                        implementation = GetAssemblyFileHandle(resource.ExternalFile);
+                    }
+                    else
+                    {
+                        // This is an embedded resource, we don't support references to resources from referenced assemblies.
+                        implementation = default(EntityHandle);
+                    }
+
+                    metadata.AddManifestResource(
+                        attributes: resource.IsPublic ? ManifestResourceAttributes.Public : ManifestResourceAttributes.Private,
+                        name: GetStringHandleForNameAndCheckLength(resource.Name),
+                        implementation: implementation,
+                        offset: writeManagedResourceAndGetOffset(resource, ref resourceDataWriter));
+                }
             }
-
-            foreach (var resource in this.module.GetResources(Context))
+            catch
             {
-                EntityHandle implementation;
-                if (resource.ExternalFile != null)
-                {
-                    // Length checked on insertion into the file table.
-                    implementation = GetAssemblyFileHandle(resource.ExternalFile);
-                }
-                else
-                {
-                    // This is an embedded resource, we don't support references to resources from referenced assemblies.
-                    implementation = default(EntityHandle);
-                }
-
-                metadata.AddManifestResource(
-                    attributes: resource.IsPublic ? ManifestResourceAttributes.Public : ManifestResourceAttributes.Private,
-                    name: GetStringHandleForNameAndCheckLength(resource.Name),
-                    implementation: implementation,
-                    offset: writeManagedResourceAndGetOffset(resource, ref resourceDataWriter));
+                // Exceptions (e.g. ResourceException) are handled as diagnostics by the caller.
+                // Free the builder to avoid pool leaks.
+                resourceDataWriter?.Free();
+                resourceDataWriter = null;
+                throw;
             }
 
             // the stream should be aligned:
@@ -3461,14 +3476,9 @@ namespace Microsoft.Cci
         {
             Debug.Assert(fieldReference.RefCustomModifiers.Length == 0 || fieldReference.IsByReference);
 
-            // https://github.com/dotnet/roslyn/issues/61385: Use System.Reflection.Metadata.Ecma335.FieldTypeEncoder
-            // instead, since that type supports ref fields directly.
-            var typeEncoder = new BlobEncoder(builder).FieldSignature();
-            SerializeCustomModifiers(new CustomModifiersEncoder(builder), fieldReference.RefCustomModifiers);
-            if (fieldReference.IsByReference)
-            {
-                typeEncoder.Builder.WriteByte((byte)SignatureTypeCode.ByReference);
-            }
+            var fieldTypeEncoder = new BlobEncoder(builder).Field();
+            SerializeCustomModifiers(fieldTypeEncoder.CustomModifiers(), fieldReference.RefCustomModifiers);
+            var typeEncoder = fieldTypeEncoder.Type(fieldReference.IsByReference);
             SerializeTypeReference(typeEncoder, fieldReference.GetType(Context));
         }
 

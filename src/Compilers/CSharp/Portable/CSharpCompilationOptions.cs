@@ -22,10 +22,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     public sealed class CSharpCompilationOptions : CompilationOptions, IEquatable<CSharpCompilationOptions>
 #pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode().
     {
+        // When adding new fields/properties, you should update
+        // Equals, GetHashCode, CSharpDeterministicKeyBuilder, and the following tests:
+        // - CSharpCompilationOptionsTests.TestFieldsForEqualsAndGetHashCode
+        // - CSharpDeterministicKeyBuilderTests.CSharpCompilationOptionsCombination
+        // - CSharpDeterministicKeyBuilderTests.VerifyUpToDate
+
         /// <summary>
         /// Allow unsafe regions (i.e. unsafe modifiers on members and unsafe blocks).
         /// </summary>
         public bool AllowUnsafe { get; private set; }
+
+        // https://github.com/dotnet/roslyn/issues/82546: public API
+        internal int MemorySafetyRules { get; private set; }
 
         /// <summary>
         /// Global namespace usings.
@@ -262,6 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             topLevelBinderFlags: other.TopLevelBinderFlags,
             nullableContextOptions: other.NullableContextOptions)
         {
+            // https://github.com/dotnet/roslyn/issues/82546: should be in the constructor
+            MemorySafetyRules = other.MemorySafetyRules;
         }
 
         public override string Language => LanguageNames.CSharp;
@@ -419,6 +430,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new CSharpCompilationOptions(this) { AllowUnsafe = enabled };
         }
+
+        // https://github.com/dotnet/roslyn/issues/82546: public API
+        internal CSharpCompilationOptions WithMemorySafetyRules(int version)
+        {
+            if (version == this.MemorySafetyRules)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { MemorySafetyRules = version };
+        }
+
+        // https://github.com/dotnet/roslyn/issues/82546: determine what the "updated" number should be
+        internal const int UpdatedMemorySafetyRulesVersion = 2;
+
+        internal CSharpCompilationOptions WithUpdatedMemorySafetyRules(bool enabled = true)
+            => WithMemorySafetyRules(enabled ? UpdatedMemorySafetyRulesVersion : 0);
+
+        internal bool UseUpdatedMemorySafetyRules => MemorySafetyRules >= UpdatedMemorySafetyRulesVersion;
 
         public new CSharpCompilationOptions WithPlatform(Platform platform)
         {
@@ -722,6 +752,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(MetadataImportOptions), MetadataImportOptions.ToString()));
             }
 
+            // https://github.com/dotnet/roslyn/issues/82546: validate the value of MemorySafetyRules?
+
             // TODO: add check for 
             //          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             //          (version >= "6.2")
@@ -740,6 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return this.AllowUnsafe == other.AllowUnsafe &&
+                   this.MemorySafetyRules == other.MemorySafetyRules &&
                    this.TopLevelBinderFlags == other.TopLevelBinderFlags &&
                    (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal) &&
                    this.NullableContextOptions == other.NullableContextOptions);
@@ -753,9 +786,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override int ComputeHashCode()
         {
             return Hash.Combine(GetHashCodeHelper(),
+                   Hash.Combine(this.MemorySafetyRules,
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
-                   Hash.Combine(((uint)TopLevelBinderFlags).GetHashCode(), ((int)this.NullableContextOptions).GetHashCode()))));
+                   Hash.Combine(((uint)TopLevelBinderFlags).GetHashCode(), ((int)this.NullableContextOptions).GetHashCode())))));
         }
 
         internal override Diagnostic? FilterDiagnostic(Diagnostic diagnostic, CancellationToken cancellationToken)

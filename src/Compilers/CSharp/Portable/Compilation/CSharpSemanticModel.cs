@@ -3545,12 +3545,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols = OneOrMany.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol));
                             resultKind = conversion.ResultKind;
                         }
-                        else if (conversion.ConversionKind.IsUserDefinedConversion())
+                        else if (conversion.ConversionKind.IsUserDefinedConversion() || conversion.ConversionKind.IsUnionConversion())
                         {
-                            GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, conversion.Conversion.OriginalUserDefinedConversions, out symbols, out resultKind);
+                            GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, conversion.Conversion.OriginalUserDefinedOrUnionConversions, out symbols, out resultKind);
                         }
                         else
                         {
+                            if (conversion.ConversionGroupOpt?.Conversion.IsUnion == true &&
+                                conversion.Operand is BoundConversion { Conversion.IsUnion: true } unionConversion &&
+                                unionConversion.ConversionGroupOpt == conversion.ConversionGroupOpt)
+                            {
+                                GetSymbolsAndResultKind(unionConversion, unionConversion.SymbolOpt, unionConversion.Conversion.OriginalUserDefinedOrUnionConversions, out symbols, out resultKind);
+                            }
+
                             goto default;
                         }
                     }

@@ -233,7 +233,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         CancellationToken cancellationToken)
     {
         var (destinationDeclaration, availableIndices) =
-            FindMostRelevantDeclaration(context.Solution, destination, context.Context.BestLocation, cancellationToken);
+            FindMostRelevantDeclaration(context.Solution, destination, context.Context, context.Context.BestLocation, cancellationToken);
 
         if (destinationDeclaration == null)
             throw new ArgumentException(WorkspaceExtensionsResources.Could_not_find_location_to_generation_symbol_into);

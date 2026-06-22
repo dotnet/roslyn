@@ -32,6 +32,11 @@
         <target state="translated">NuGet 패키지 참조를 추가합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adds_a_file_reference">
+        <source>Adds a file reference.</source>
+        <target state="translated">파일 참조를 추가합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adds_a_project_reference">
         <source>Adds a project reference.</source>
         <target state="translated">프로젝트 참조를 추가합니다.</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Apply_blank_lines_between_consecutive_braces_preferences_experimental">
         <source>Apply blank lines between consecutive braces preferences (experimental)</source>
         <target state="translated">연속 중괄호 사이에 빈 줄 적용 기본 설정(실험적)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_collection_expression_preferences">
+        <source>Apply collection expression preferences</source>
+        <target state="translated">컬렉션 식 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
@@ -246,6 +256,11 @@
         <source>Global 'using' directives</source>
         <target state="translated">전역 'using' 지시문</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Include_directive_file_path">
+        <source>path</source>
+        <target state="translated">경로</target>
+        <note>'path' is a placeholder for a file path or glob in a directive like '#:include path'.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
@@ -519,7 +534,7 @@
       </trans-unit>
       <trans-unit id="unsafe_block">
         <source>unsafe block</source>
-        <target state="new">unsafe block</target>
+        <target state="translated">안전하지 않은 블록</target>
         <note />
       </trans-unit>
       <trans-unit id="using_declaration">

@@ -1076,8 +1076,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyCompanyAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyProductAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyProductAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
-            ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttribute) Then
-                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyInformationalVersionAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.SatelliteContractVersionAttribute) Then
                 'just check the format of this one, don't do anything else with it.
                 Dim dummy As Version = Nothing
@@ -1303,7 +1301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             NoLocation.Singleton,
                             diagnostics)
 
-                    ElseIf String.Compare(_compilation.Options.CryptoKeyContainer, assemblyKeyContainerAttributeSetting, StringComparison.OrdinalIgnoreCase) <> 0 Then
+                    ElseIf Not String.Equals(_compilation.Options.CryptoKeyContainer, assemblyKeyContainerAttributeSetting, StringComparison.OrdinalIgnoreCase) Then
                         ' If we are building a .NET module, things get more complicated. In particular, we don't sign the module, we emit an attribute with the key 
                         ' information, which will be used to sign an assembly once the module is linked into it. If there is already an attribute like that in source,
                         ' native compiler emits both of them, synthetic attribute is emitted after the one from source. Incidentally, ALink picks the last attribute
@@ -1328,7 +1326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             NoLocation.Singleton,
                             diagnostics)
 
-                    ElseIf String.Compare(_compilation.Options.CryptoKeyFile, assemblyKeyFileAttributeSetting, StringComparison.OrdinalIgnoreCase) <> 0 Then
+                    ElseIf Not String.Equals(_compilation.Options.CryptoKeyFile, assemblyKeyFileAttributeSetting, StringComparison.OrdinalIgnoreCase) Then
                         ' Comment in similar section for CryptoKeyContainer is applicable here as well.
                         diagnostics.Add(ERRID.ERR_CmdOptionConflictsSource, NoLocation.Singleton, AttributeDescription.AssemblyKeyFileAttribute.FullName, "CryptoKeyFile")
                     End If

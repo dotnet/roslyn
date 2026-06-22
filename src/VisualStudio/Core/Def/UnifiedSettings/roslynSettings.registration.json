@@ -1,0 +1,18 @@
+﻿// NOTE:
+// When this file is changed. Please also update the cache tag under settings entry in src/VisualStudio/Core/Def/PackageRegistration.pkgdef
+// Otherwise your change might be ignored.
+// See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more details
+{
+  "properties": {
+    "test.includeSourceGeneratedFilesInRealTimeDiscovery": {
+      "title": "@Include_Roslyn_source_generated_files;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "enableWhen": "${config:test.realTimeDiscovery} == 'true'",
+      "alternateDefault": {
+        "flagName": "UnitTesting.DisableRoslynSourceGeneratedFiles",
+        "default": false
+      }
+    }
+  }
+}

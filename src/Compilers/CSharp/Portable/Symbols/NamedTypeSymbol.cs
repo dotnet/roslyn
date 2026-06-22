@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -451,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var candidate in candidates)
                     {
-                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate, LanguageVersion.Preview))
                         {
                             // Not supported yet
                             continue;
@@ -489,8 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                if ((options & LookupOptions.AllMethodsOnArityZero) == 0
-                    && arity != member.GetMemberArityIncludingExtension())
+                Debug.Assert(member.Kind != SymbolKind.NamedType);
+                if (Binder.WrongArity(member, arity, diagnose: false, options, out _))
                 {
                     return false;
                 }
@@ -697,6 +698,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasDeclaredRequiredMembers { get; }
 
 #nullable enable
+        /// <summary>Returns true if the type is 'closed', i.e. an abstract class where subtyping is only permitted in the current module.</summary>
+        internal abstract bool IsClosed { get; }
+
+        /// <summary>
+        /// Tries to get the set of possible subtypes of a closed type.
+        /// </summary>
+        /// <remarks>
+        /// When a closed class contains type parameters, it's possible that some subtype may or
+        /// may not apply, depending on what type substitution is ultimately performed at a later stage.
+        /// This call will return <see langword="false"/> and only the subtypes which are speakable in terms of type parameters on <see langword="this"/> in that situation.
+        /// </remarks>
+        internal bool TryGetClosedSubtypes(out ImmutableArray<NamedTypeSymbol> subtypes, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!IsClosed)
+            {
+                subtypes = [];
+                return false;
+            }
+
+            var candidateSubtypes = CandidateClosedSubtypeDefinitions;
+            if (!IsGenericType && candidateSubtypes.All(subtype => !subtype.IsGenericType))
+            {
+                subtypes = candidateSubtypes;
+                return true;
+            }
+
+            var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
+            var baseTypeTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            this.FindTypeParameters(baseTypeTypeParameters);
+
+            var success = tryGetSpeakableSubtypes(this, candidateSubtypes, resultBuilder, baseTypeTypeParameters, cancellationToken);
+            baseTypeTypeParameters.Free();
+
+            subtypes = resultBuilder.ToImmutableAndFree();
+            return success;
+
+            static bool tryGetSpeakableSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes, ArrayBuilder<NamedTypeSymbol> resultBuilder, HashSet<TypeParameterSymbol> baseTypeTypeParameters, CancellationToken cancellationToken)
+            {
+                bool allSubtypesAreSpeakable = true;
+                foreach (var candidateSubtype in candidateSubtypes)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (TypeUnification.TryUnifyClosedSubtype(candidateSubtype, closedType: @this) is { } unifiedSubtype)
+                    {
+                        if (unifiedSubtype.IsGenericType && unifiedSubtype.ContainsAdditionalTypeParameter(allowedTypeParameters: baseTypeTypeParameters))
+                        {
+                            // If 'unifiedSubtype' contains type parameters which are not present in '@this',
+                            // it implies 'unifiedSubtype' was able to unify but is not speakable at the use site.
+                            allSubtypesAreSpeakable = false;
+                            continue;
+                        }
+
+                        resultBuilder.Add(unifiedSubtype);
+                    }
+                }
+
+                return allSubtypesAreSpeakable;
+            }
+        }
+
+        /// <summary>
+        /// Gets the set of subtype definitions in the same module whose base type has same original definition as 'this'.
+        /// </summary>
+        internal abstract ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions { get; }
+
         /// <summary>
         /// Whether the type encountered an error while trying to build its complete list of required members.
         /// </summary>
@@ -1797,6 +1864,204 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         /// <returns>True if this is an interface type.</returns>
         internal abstract bool IsInterface { get; }
+
+        internal bool IsUnionType
+        {
+            get
+            {
+                return TypeKind is TypeKind.Class or TypeKind.Struct &&
+                       IsUnionTypeCore;
+            }
+        }
+
+        internal abstract bool IsUnionTypeCore { get; }
+
+#nullable enable
+
+        internal ImmutableArray<TypeSymbol> UnionCaseTypesNoUseSiteDiagnostics
+        {
+            get
+            {
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return UnionCaseTypes(ref discardedUseSiteInfo);
+            }
+        }
+
+        internal ImmutableArray<TypeSymbol> UnionCaseTypes(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) // https://github.com/dotnet/roslyn/issues/82636: Cache result?
+        {
+            if (!IsUnionType)
+            {
+                return [];
+            }
+
+            var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+            var set = TypeSymbol.AllIgnoreOptionsSetPool.Allocate();
+            ForEachUnionFactoryMethod(addCaseType, (builder, set), ref useSiteInfo);
+            set.Free();
+            return builder.ToImmutableAndFree();
+
+            static bool addCaseType(MethodSymbol factory, (ArrayBuilder<TypeSymbol> builder, PooledHashSet<TypeSymbol> set) arg)
+            {
+                (ArrayBuilder<TypeSymbol> builder, HashSet<TypeSymbol> set) = arg;
+                var candidate = factory.Parameters[0].Type;
+                if (set.Add(candidate))
+                {
+                    builder.Add(candidate);
+                }
+
+                return false;
+            }
+        }
+
+        /// <param name="action">If the action returns true, the iteration stops.</param>
+        /// <returns>MethodSymbol for factory method for which action returned true; otherwise, null.</returns>
+        internal MethodSymbol? ForEachUnionFactoryMethod<TArg>(Func<MethodSymbol, TArg, bool> action, TArg arg, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(IsUnionType);
+
+            NamedTypeSymbol? membersInterfaceForDefinition = GetMemberProviderInterfaceForDefinition();
+
+            if (membersInterfaceForDefinition is not null)
+            {
+                var definition = this.OriginalDefinition;
+                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(this);
+
+                ArrayBuilder<MethodSymbol>? shadowingMethods = membersInterfaceForDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty ? null : ArrayBuilder<MethodSymbol>.GetInstance();
+
+                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
+                {
+                    if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
+                    {
+                        method = method.AsMember(membersInterface);
+
+                        if (action(method, arg))
+                        {
+                            shadowingMethods?.Free();
+                            return method;
+                        }
+
+                        shadowingMethods?.Add(method);
+                    }
+                }
+
+                foreach (var baseInterfaceForDefinition in membersInterfaceForDefinition.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                {
+                    Debug.Assert(shadowingMethods is not null);
+                    NamedTypeSymbol? constructedOrSubstitutedBaseInterface = null;
+                    bool canShadow = !baseInterfaceForDefinition.OriginalDefinition.InterfacesNoUseSiteDiagnostics().IsEmpty;
+
+                    foreach (var member in baseInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
+                    {
+                        if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
+                        {
+                            if (!this.IsDefinition)
+                            {
+                                if (constructedOrSubstitutedBaseInterface is null)
+                                {
+                                    constructedOrSubstitutedBaseInterface = this.TypeSubstitution.SubstituteNamedType(baseInterfaceForDefinition);
+                                }
+
+                                method = method.OriginalDefinition.AsMember(constructedOrSubstitutedBaseInterface);
+                            }
+
+                            foreach (MethodSymbol shadowingMethod in shadowingMethods)
+                            {
+                                if (MemberSignatureComparer.CSharpOverrideComparer.Equals(shadowingMethod, method) &&
+                                    shadowingMethod.ContainingType.AllInterfacesNoUseSiteDiagnostics.Contains(method.ContainingType, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                                {
+                                    // Shadowed
+                                    goto nextMember;
+                                }
+                            }
+
+                            if (action(method, arg))
+                            {
+                                shadowingMethods.Free();
+                                return method;
+                            }
+
+                            if (canShadow)
+                            {
+                                shadowingMethods.Add(method);
+                            }
+                        }
+
+nextMember:
+                        ;
+                    }
+                }
+
+                shadowingMethods?.Free();
+            }
+            else
+            {
+                foreach (var ctor in this.InstanceConstructors)
+                {
+                    if (IsSuitableUnionConstructor(ctor))
+                    {
+                        if (action(ctor, arg))
+                        {
+                            return ctor;
+                        }
+                    }
+                }
+            }
+
+            return null;
+
+            static bool isSuitableUnionFactory(NamedTypeSymbol unionType, MethodSymbol factory)
+            {
+                Debug.Assert(unionType.IsDefinition);
+                Debug.Assert(unionType.IsUnionType);
+                Debug.Assert(factory.IsDefinition || factory.ContainingType.IsInterface);
+
+                return factory is
+                {
+                    IsStatic: true,
+                    Arity: 0,
+                    MethodKind: MethodKind.Ordinary,
+                    DeclaredAccessibility: Accessibility.Public,
+                    ReturnsVoid: false,
+                    RefKind: RefKind.None,
+                    ParameterCount: 1,
+                    Parameters: [{ RefKind: RefKind.In or RefKind.None }]
+                } &&
+                unionType.Equals(factory.ReturnType, TypeCompareKind.AllIgnoreOptions);
+            }
+        }
+
+        internal NamedTypeSymbol? GetMemberProviderInterfaceForDefinition()
+        {
+            Debug.Assert(IsUnionType);
+
+            foreach (var type in this.OriginalDefinition.GetTypeMembers(WellKnownMemberNames.UnionMembersInterfaceName))
+            {
+                if (type.Arity != 0)
+                {
+                    continue;
+                }
+
+                if (type.DeclaredAccessibility != Accessibility.Public ||
+                    !type.IsInterface ||
+                    !this.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Contains(type, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                {
+                    return null;
+                }
+
+                Debug.Assert(type.IsDefinition);
+                return type;
+            }
+
+            return null;
+        }
+
+        internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
+        {
+            Debug.Assert(ctor.MethodKind is MethodKind.Constructor);
+            return ctor is { DeclaredAccessibility: Accessibility.Public, ParameterCount: 1, Parameters: [{ RefKind: RefKind.In or RefKind.None }] };
+        }
+
+#nullable disable
 
         /// <summary>
         /// Verify if the given type can be used to back a tuple type 

@@ -26,7 +26,7 @@ internal sealed class SelectionRangeParams : ITextDocumentParams, IWorkDoneProgr
     /// <summary>
     /// The positions inside the text document.
     /// </summary>
-    [JsonPropertyName("textDocument")]
+    [JsonPropertyName("positions")]
     [JsonRequired]
     public Position[] Positions { get; init; }
 

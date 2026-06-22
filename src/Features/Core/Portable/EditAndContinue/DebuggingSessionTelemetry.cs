@@ -110,7 +110,8 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
                 // all rude edits (errors and warnings)
                 map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
 
-                // Number of emit errors. These are any errors only produced during emitting deltas and do not include document analysis errors.
+                // Emit errors. These are any errors only produced during emitting deltas and do not include document analysis errors.
+                // Includes compiler errors and unsupported project updates.
                 map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
 
                 // False for Hot Reload session, true or missing for EnC session (missing in older data that did not have this property).

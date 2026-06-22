@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Test.Utilities</RootNamespace>
-    <TargetFrameworks>$(NetVS);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsShipping>false</IsShipping>
     <IsTestUtilityProject>true</IsTestUtilityProject>
@@ -29,7 +29,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />

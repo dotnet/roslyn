@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(NetVSCode)</TargetFramework>
@@ -22,7 +22,7 @@
     <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
-    <PublishReadyToRun Condition="'$(Configuration)' == 'Release' ">true</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)' == 'Release' AND '$(DotNetBuildUseMonoRuntime)' != 'true' ">true</PublishReadyToRun>
 
   </PropertyGroup>
 
@@ -33,9 +33,6 @@
   <ItemGroup>
     <!-- Include MIBC data if available.  This is produced by a separate profiling pipeline for the C# extension, and injected in official builds -->
     <PublishReadyToRunPgoFiles Condition="'$(VSCodeOptimizationDataRoot)'!=''" Include="$(VSCodeOptimizationDataRoot)\*.mibc" />
-
-    <!-- Workaround https://github.com/dotnet/dotnet/issues/3995 -->
-    <PublishReadyToRunExclude Include="Microsoft.VisualStudio.TestPlatform.Common.dll" />
   </ItemGroup>
 
   <Target Name="SetCrossgen2ExtraArgs" BeforeTargets="ResolveReadyToRunCompilers" Condition="'$(PublishReadyToRun)' == 'true'">
@@ -70,7 +67,6 @@
     <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" Aliases="MSBuildWorkspaces" />
     <ProjectReference Include="..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="MSBuildWorkspacesContracts" />
 
-    <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
 
     <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
@@ -83,10 +79,12 @@
     <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
     <ProjectReference Include="..\..\Features\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj" />
     <ProjectReference Include="..\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
+    <ProjectReference Include="..\ExternalAccess\TestDiscovery\Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.csproj" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\Xaml\Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
     <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <ProjectReference Include="..\ExternalAccess\Copilot\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+    <!-- Ship the VS Code Razor entrypoint as a real runtime dependency so it participates in the server deps.json. -->
+    <ProjectReference Include="..\..\Razor\src\Razor\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -111,6 +109,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests" />
 
     <!--
       Only allow C# DevKit to use types from Microsoft.CodeAnalysis.Contracts namespace. The contracts should not introduce breaking changes between versions,

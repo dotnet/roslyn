@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -225,11 +223,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var members = GetMembers(((CSharpCompilation)compilation).GlobalNamespace, qualifiedName, out lastContainer);
             if (members.IsEmpty)
             {
-                Assert.True(false, string.Format("Could not find member named '{0}'.  Available members:\r\n{1}",
+                Assert.Fail(string.Format("Could not find member named '{0}'.  Available members:\r\n{1}",
                     qualifiedName, string.Join("\r\n", lastContainer.GetMembers().Select(m => "\t\t" + m.Name))));
             }
             return members;
         }
+
+        public static ImmutableArray<T> GetMembersByQualifiedName<T>(this NamespaceOrTypeSymbol container, string qualifiedName) where T : Symbol
+            => GetMembersByQualifiedName(container, qualifiedName).SelectAsArray(s => (T)s);
+
+        public static ImmutableArray<Symbol> GetMembersByQualifiedName(this NamespaceOrTypeSymbol container, string qualifiedName)
+            => GetMembers(container, qualifiedName, lastContainer: out _);
 
         private static ImmutableArray<Symbol> GetMembers(NamespaceOrTypeSymbol container, string qualifiedName, out NamespaceOrTypeSymbol lastContainer)
         {
@@ -287,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else if (members.Length > 1)
             {
-                Assert.True(false, "Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
+                Assert.Fail("Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
             }
 
             return members.Single();
@@ -303,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else if (members.Length > 1)
             {
-                Assert.True(false, "Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
+                Assert.Fail("Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
             }
 
             return members.Single();
@@ -612,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     break;
                 default:
-                    Assert.False(true, "Unexpected accessor kind " + accessor.MethodKind);
+                    Assert.Fail("Unexpected accessor kind " + accessor.MethodKind);
                     break;
             }
         }
@@ -626,6 +630,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(propertyOrEvent.IsSealed, accessor.IsSealed);
             Assert.Equal(propertyOrEvent.IsExtern, accessor.IsExtern);
             Assert.Equal(propertyOrEvent.IsStatic, accessor.IsStatic);
+        }
+
+        internal static bool IsMetadataNewSlot(this MethodSymbol method)
+        {
+            return method.IsMetadataNewSlot(context: method.ContainingModule);
+        }
+
+        internal static bool IsMetadataVirtual(this MethodSymbol method)
+        {
+            return method.IsMetadataVirtual(context: method.ContainingModule);
         }
     }
 }

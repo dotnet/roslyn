@@ -24,7 +24,7 @@ public sealed class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtoco
     protected override TestComposition Composition => base.Composition.AddParts(
             typeof(TestWorkspaceCommandHandler));
 
-    public ExecuteWorkspaceCommandTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    public ExecuteWorkspaceCommandTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 
@@ -39,7 +39,7 @@ public sealed class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtoco
             Command = TestWorkspaceCommandHandler.CommandName
         };
         var response = await server.ExecuteRequestAsync<ExecuteCommandParams, object>(Methods.WorkspaceExecuteCommandName, request, CancellationToken.None);
-        AssertEx.NotNull(response);
+        Assert.NotNull(response);
         Assert.True((bool)response);
 
     }

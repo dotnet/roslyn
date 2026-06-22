@@ -26,9 +26,16 @@ namespace Microsoft.CodeAnalysis
             false;
 #endif
 
+        /// <summary>
+        /// Disable JIT tiered compilation on .NET Framework (i.e., keep it enabled on 'dotnet build' but not 'msbuild' which would slow down VS startup perf).
+        /// The caller should also check that the environment variable is not already set to avoid overriding user preferences.
+        /// </summary>
+        internal static bool ShouldDisableTieredCompilation => !IsCoreClrRuntime;
+
         internal const string DotNetRootEnvironmentName = "DOTNET_ROOT";
         internal const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
         internal const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
+        internal const string DotNetTieredCompilationEnvironmentName = "DOTNET_TieredCompilation";
 
         /// <summary>
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.

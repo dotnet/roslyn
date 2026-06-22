@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         Me._directivesToKeep.Clear()
                     End If
 
-                    Dim directivesInSpan = node.DescendantTrivia(span, Function(n) n.ContainsDirectives, descendIntoTrivia:=True) _
+                    Dim directivesInSpan = node.DescendantTrivia(span, descendIntoChildrenGreen:=Function(n) n.ContainsDirectives, descendIntoChildrenRed:=Nothing, descendIntoTrivia:=True) _
                                                .Where(Function(tr) tr.IsDirective) _
                                                .Select(Function(tr) DirectCast(tr.GetStructure(), DirectiveTriviaSyntax))
 

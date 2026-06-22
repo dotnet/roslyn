@@ -141,6 +141,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     emitOptions.PdbFilePath,
                     cancellationToken);
             }
+            else
+            {
+                // SerializeToDeltaStreams frees these on success; free on the failure path.
+                foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitionsOrEmpty())
+                {
+                    builder.Free();
+                }
+            }
 
             return new EmitDifferenceResult(
                 success: newBaseline != null,

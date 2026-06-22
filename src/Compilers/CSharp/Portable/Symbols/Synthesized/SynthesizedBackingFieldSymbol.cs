@@ -119,7 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Location> Locations
             => _property.Locations;
 
+        public override Location TryGetFirstLocation()
+            => _property.TryGetFirstLocation();
+
         public override RefKind RefKind => _property.RefKind;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
 

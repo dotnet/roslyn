@@ -9,4 +9,5 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler;
 internal sealed partial class SolutionCrawlerRegistrationService
 {
     internal static readonly Option2<bool> EnableSolutionCrawler = new("dotnet_enable_solution_crawler", defaultValue: true);
+    internal static readonly Option2<bool> ProcessRoslynSourceGeneratedFiles = new Option2<bool>("dotnet_process_roslyn_source_generated_files_in_solution_crawler", defaultValue: true);
 }

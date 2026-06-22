@@ -73,7 +73,7 @@ internal sealed class EditSessionTelemetry
         }
     }
 
-    public bool IsEmpty => !(_hadSyntaxErrors || _hadBlockingRudeEdits || _hadValidChanges || _hadValidInsignificantChanges);
+    public bool IsEmpty => !(_hadSyntaxErrors || _hadBlockingRudeEdits || _hadValidChanges || _hadValidInsignificantChanges || _emitErrorIds.Count > 0);
 
     public void SetBreakState(bool value)
         => _inBreakState = value;

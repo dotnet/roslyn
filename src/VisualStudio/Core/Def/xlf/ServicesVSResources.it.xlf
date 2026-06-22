@@ -287,6 +287,11 @@
         <target state="translated">Commenti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
+        <source>Completion behavior for items from unimported namespaces</source>
+        <target state="translated">Comportamento di completamento per elementi provenienti da spazi dei nomi non importati</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Membro contenitore</target>
@@ -482,6 +487,11 @@
         <target state="translated">Formatta documento</target>
         <note />
       </trans-unit>
+      <trans-unit id="Formatting_new_document">
+        <source>Formatting new document...</source>
+        <target state="translated">Formattazione del nuovo documento in corso...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Genera file con estensione editorconfig dalle impostazioni</target>
@@ -571,6 +581,11 @@
         <source>In other operators</source>
         <target state="translated">In altri operatori</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Include_Roslyn_source_generated_files">
+        <source>Include Roslyn source-generated files</source>
+        <target state="translated">Includere file generati dall'origine Roslyn</target>
+        <note>Used in the unified settings registration for real-time test discovery</note>
       </trans-unit>
       <trans-unit id="Include_global_imports">
         <source>Include global imports</source>
@@ -665,6 +680,11 @@
       <trans-unit id="Location">
         <source>Location</source>
         <target state="translated">Posizione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Logging_Roslyn_Workspace_structure">
+        <source>Logging Roslyn Workspace structure...</source>
+        <target state="translated">Registrazione della struttura dell'area di lavoro Roslyn in corso...</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1362,6 +1382,11 @@
         <target state="translated">Risultati della ricerca semantica</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_Inheritance">
+        <source>Show Inheritance</source>
+        <target state="translated">Mostra ereditarietà</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
         <source>Show "Remove Unused References" command in Solution Explorer</source>
         <target state="translated">Mostra il comando "Rimuovi riferimenti inutilizzati" in Esplora soluzioni</target>
@@ -1695,6 +1720,11 @@
       <trans-unit id="Value_to_inject_at_call_sites">
         <source>Value to inject at call sites</source>
         <target state="translated">Valore da inserire nei siti di chiamata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio">
+        <source>Visual Studio</source>
+        <target state="translated">Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">

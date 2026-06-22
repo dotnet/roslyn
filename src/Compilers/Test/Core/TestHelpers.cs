@@ -9,8 +9,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
@@ -22,6 +24,24 @@ namespace Roslyn.Test.Utilities
 {
     public static class TestHelpers
     {
+        /// <summary>
+        /// Ensures that the assembly containing <paramref name="typeHandle"/> is loaded into
+        /// the current process via <see cref="RuntimeHelpers.RunClassConstructor"/>. The
+        /// <paramref name="assemblyName"/> is validated against the actual assembly name so
+        /// that callers are forced to update both if the type moves to a different assembly.
+        /// </summary>
+        /// <remarks>
+        /// This is used before taking assembly snapshots in tests that verify no unexpected
+        /// assemblies are loaded during test execution. Without this, lazily-loaded assemblies
+        /// can appear as unexpected additions after the snapshot.
+        /// </remarks>
+        public static void EnsureAssemblyLoaded(string assemblyName, RuntimeTypeHandle typeHandle)
+        {
+            var type = Type.GetTypeFromHandle(typeHandle);
+            Debug.Assert(type.Assembly.GetName().Name == assemblyName, $"Expected assembly '{assemblyName}' but type '{type.FullName}' is in '{type.Assembly.GetName().Name}'");
+            RuntimeHelpers.RunClassConstructor(typeHandle);
+        }
+
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
         /// </summary>
@@ -176,5 +196,18 @@ namespace Roslyn.Test.Utilities
 #endif
             }
         }
+
+        /// <summary>
+        /// Create an absolute path for the current OS platform with the given suffix.
+        /// NOTE: the path is not appropriate for actually writing files during tests, use TempRoot instead for that.
+        /// </summary>
+        public static string CreateAbsolutePath(string suffix)
+            => Path.Combine(Path.GetTempPath(), suffix);
+
+        public const string WindowsRoot = @"Q:\";
+        public const string UnixRoot = @"/q/";
+        public static string Root => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsRoot : UnixRoot;
+
+        public static string GetRootedPath(params string[] relativePath) => Path.Combine([Root, .. relativePath]);
     }
 }

@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -23,8 +23,12 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
 
+        if (request.ProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
+            context.Logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
+
+        var lspServices = context.GetRequiredService<ILspServices>();
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
-        var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);
+        var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities, lspServices);
 
         // Record a telemetry event indicating what capabilities are being provided by the server.
         // Useful for figuring out if a particular session is opted into an LSP feature.
@@ -34,9 +38,14 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
             m["capabilities"] = JsonSerializer.Serialize(serverCapabilities, ProtocolConversions.LspJsonSerializerOptions);
         }));
 
-        return new InitializeResult
+        return new RoslynInitializeResult
         {
             Capabilities = serverCapabilities,
+            ProcessId = RoslynLanguageServer.ServerProcessId,
+            ServerInfo = new ServerInfo
+            {
+                Name = context.ServerKind.ToTelemetryString(),
+            },
         };
     }
 }

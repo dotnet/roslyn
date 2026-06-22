@@ -419,12 +419,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
 
-        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal sealed override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
@@ -502,6 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => _reducedFrom.ReturnNotNullIfParameterNotNull;
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => _reducedFrom.FlowAnalysisAnnotations;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
@@ -601,6 +603,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool UseUpdatedEscapeRules => _reducedFrom.UseUpdatedEscapeRules;
 

@@ -516,7 +516,9 @@ namespace GenerateDocumentationAndConfigFiles
                         <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="WithCulture" />
                         <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GenerateSource" />
                         <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RelativeDir" />
+                        <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="Link" />
                         <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="ClassName" />
+                        <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="ManifestResourceName" />
                         <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="OmitGetResourceString" />
                         <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="AsConstants" />
                         <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="IncludeDefaultValues" />

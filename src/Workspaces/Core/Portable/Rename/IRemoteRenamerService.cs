@@ -34,6 +34,7 @@ internal interface IRemoteRenamerService
         Checksum solutionChecksum,
         SerializableSymbolAndProjectId symbolAndProjectId,
         SymbolRenameOptions options,
+        bool allowRenamesInRazorSourceGeneratedDocuments,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
@@ -136,7 +137,7 @@ internal sealed partial class SymbolicRenameLocations
             serializableLocations.Options,
             locations,
             implicitLocations,
-            referencedSymbols);
+            referencedSymbols!);
     }
 }
 

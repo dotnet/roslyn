@@ -29,6 +29,6 @@ internal sealed class SelectionRange
     /// </para>
     /// </summary>
     [JsonPropertyName("parent")]
-    [JsonRequired]
-    public SelectionRange Parent { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SelectionRange? Parent { get; init; }
 }

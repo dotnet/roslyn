@@ -94,26 +94,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                         Assert.True(errString.StartsWith("ERR_"), GetErrorMessage(errString))
 
                     Case < WarningsStart
-                        Assert.True(False, GetErrorMessage(errString))
+                        Assert.Fail(GetErrorMessage(errString))
 
                     Case WarningsStart To ERRID.WRN_NextAvailable
                         Assert.True(errString.StartsWith("WRN_"), GetErrorMessage(errString))
 
                     Case < HiddenInfoStart
-                        Assert.True(False, GetErrorMessage(errString))
+                        Assert.Fail(GetErrorMessage(errString))
 
                     Case HiddenInfoStart To ERRID.HDN_NextAvailable
                         Assert.True(errString.StartsWith("HDN_") OrElse errString.StartsWith("INF_"),
                                     GetErrorMessage(errString))
 
                     Case < IdsStart
-                        Assert.True(False, GetErrorMessage(errString))
+                        Assert.Fail(GetErrorMessage(errString))
 
                     Case IdsStart To ERRID.IDS_NextAvailable
                         Assert.True(errString.StartsWith("IDS_"), GetErrorMessage(errString))
 
                     Case < FeatureStart
-                        Assert.True(False, GetErrorMessage(errString))
+                        Assert.Fail(GetErrorMessage(errString))
 
                     Case >= FeatureStart
                         Assert.True(errString.StartsWith("FEATURE_"), GetErrorMessage(errString))

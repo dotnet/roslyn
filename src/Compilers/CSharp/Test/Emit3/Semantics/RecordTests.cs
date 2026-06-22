@@ -15927,6 +15927,139 @@ record B(int X, int Y) : A
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_GetHashCode_01()
+        {
+            var source =
+@"
+abstract record R
+{
+    public abstract override int GetHashCode();
+}
+
+record S : R;
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,8): error CS9391: Record member 'S.GetHashCode()' must be declared explicitly because 'R.GetHashCode()' is abstract.
+                // record S : R;
+                Diagnostic(ErrorCode.ERR_AbstractBaseRecordImplementation, "S").WithArguments("S.GetHashCode()", "R.GetHashCode()").WithLocation(7, 8)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_GetHashCode_02()
+        {
+            var source =
+@"
+abstract record R
+{
+    public abstract override int GetHashCode();
+}
+
+record S : R
+{
+    public override int GetHashCode() => 0;
+}
+";
+
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_PrintMembers_01()
+        {
+            var source =
+@"
+abstract record R
+{
+    protected abstract bool PrintMembers(System.Text.StringBuilder builder);
+}
+
+record S : R;
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (7,8): error CS9391: Record member 'S.PrintMembers(StringBuilder)' must be declared explicitly because 'R.PrintMembers(StringBuilder)' is abstract.
+                // record S : R;
+                Diagnostic(ErrorCode.ERR_AbstractBaseRecordImplementation, "S").WithArguments("S.PrintMembers(System.Text.StringBuilder)", "R.PrintMembers(System.Text.StringBuilder)").WithLocation(7, 8)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_PrintMembers_02()
+        {
+            var source =
+@"
+abstract record R
+{
+    protected abstract bool PrintMembers(System.Text.StringBuilder builder);
+}
+
+record S : R
+{
+    protected override bool PrintMembers(System.Text.StringBuilder builder) => false;
+}
+";
+
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_RecordEquals_01()
+        {
+            var source =
+@"
+#pragma warning disable CS8851 // defines 'Equals' but not 'GetHashCode'
+
+public abstract record R
+{
+    public abstract bool Equals(R other);
+}
+
+record S : R;
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (9,8): error CS9391: Record member 'S.Equals(S?)' must be declared explicitly because 'R.Equals(R)' is abstract.
+                // record S : R;
+                Diagnostic(ErrorCode.ERR_AbstractBaseRecordImplementation, "S").WithArguments("S.Equals(S?)", "R.Equals(R)").WithLocation(9, 8)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82645")]
+        public void Overrides_AbstractBaseCalls_RecordEquals_02()
+        {
+            var source =
+@"
+#pragma warning disable CS8851 // defines 'Equals' but not 'GetHashCode'
+
+public abstract record R
+{
+    public abstract bool Equals(R other);
+}
+
+record S : R
+{
+    public virtual bool Equals(S other) => true;
+}
+";
+
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ObjectEquals_01()
         {
             var ilSource = @"
@@ -24371,15 +24504,9 @@ record B : A<int>;
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
-                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record A<T>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
-                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record B : A<int>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
@@ -24436,18 +24563,12 @@ record B : A<int>, System.IEquatable<B>;
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
-                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(1, 8),
                 // (1,22): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<A<T>>").WithArguments("IEquatable<>", "System").WithLocation(1, 22),
-                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record B : A<int>, System.IEquatable<B>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>, System.IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
@@ -24510,18 +24631,12 @@ record B : A<int>, IEquatable<B>;
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
-                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
                 // (2,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 8),
                 // (2,15): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<A<T>>").WithArguments("IEquatable<>").WithLocation(2, 15),
-                // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                // record B : A<int>, IEquatable<B>;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
                 // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>, IEquatable<B>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),

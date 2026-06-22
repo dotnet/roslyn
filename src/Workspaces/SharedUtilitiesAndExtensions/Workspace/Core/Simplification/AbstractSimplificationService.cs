@@ -219,9 +219,12 @@ internal abstract class AbstractSimplificationService<
                                 ? nodeOrToken.Parent.ReplaceNode(nodeOrToken.AsNode()!, currentNodeOrToken.AsNode()!)
                                 : nodeOrToken.Parent.ReplaceToken(nodeOrToken.AsToken(), currentNodeOrToken.AsToken());
 
+                            // Use .First() instead of .Single() to avoid walking the entire enumerable.
+                            // The Debug.Assert below catches if the invariant of exactly one result is ever broken.
                             currentNodeOrToken = replacedParent
-                                .ChildNodesAndTokens()
-                                .Single(c => c.HasAnnotation(annotation));
+                                .GetAnnotatedNodesAndTokens(annotation)
+                                .First();
+                            Debug.Assert(replacedParent.GetAnnotatedNodesAndTokens(annotation).Count() == 1);
                         }
 
                         if (isNode)
@@ -235,7 +238,12 @@ internal abstract class AbstractSimplificationService<
                                 var newDocument = document.WithSyntaxRoot(newRoot);
                                 semanticModelForReduce = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                                 newRoot = await semanticModelForReduce.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                                currentNodeOrToken = newRoot.DescendantNodes().Single(c => c.HasAnnotation(marker));
+                                // Use .First() instead of .Single() to avoid walking the entire enumerable.
+                                // The Debug.Assert below catches if the invariant of exactly one result is ever broken.
+                                currentNodeOrToken = newRoot
+                                    .GetAnnotatedNodesAndTokens(marker)
+                                    .First();
+                                Debug.Assert(newRoot.GetAnnotatedNodesAndTokens(marker).Count() == 1);
                             }
                             else
                             {

@@ -96,6 +96,13 @@ public sealed class MSBuildWorkspace : Workspace
     internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider)
         => _loader.LoggerFactory.AddProvider(loggerProvider);
 
+    protected override void Dispose(bool finalize)
+    {
+        // Dispose the LoggerFactory to ensure any logger providers added via AddLoggerProvider are disposed.
+        _loader.LoggerFactory.Dispose();
+        base.Dispose(finalize);
+    }
+
     /// <summary>
     /// The MSBuild properties used when interpreting project files.
     /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.
@@ -586,19 +593,19 @@ public sealed class MSBuildWorkspace : Workspace
             {
                 // Since the location of the reference is in GAC, need to use full identity name to find it again.
                 // This typically happens when you base the reference off of a reflection assembly location.
-                _applyChangesProjectFile.AddMetadataReferenceAsync(identity.GetDisplayName(), metadataReference.Properties.Aliases, hintPath: null, CancellationToken.None).Wait();
+                _applyChangesProjectFile.AddMetadataReferenceAsync(identity.GetDisplayName(), [.. metadataReference.Properties.Aliases], hintPath: null, CancellationToken.None).Wait();
             }
             else if (IsFrameworkReferenceAssembly(peRef.FilePath))
             {
                 // just use short name since this will be resolved by msbuild relative to the known framework reference assemblies.
                 var fileName = identity != null ? identity.Name : Path.GetFileNameWithoutExtension(peRef.FilePath);
-                _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties.Aliases, hintPath: null, CancellationToken.None).Wait();
+                _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, [.. metadataReference.Properties.Aliases], hintPath: null, CancellationToken.None).Wait();
             }
             else // other location -- need hint to find correct assembly
             {
                 var relativePath = PathUtilities.GetRelativePath(Path.GetDirectoryName(CurrentSolution.GetRequiredProject(projectId).FilePath)!, peRef.FilePath);
                 var fileName = Path.GetFileNameWithoutExtension(peRef.FilePath);
-                _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties.Aliases, relativePath, CancellationToken.None).Wait();
+                _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, [.. metadataReference.Properties.Aliases], relativePath, CancellationToken.None).Wait();
             }
         }
 
@@ -655,7 +662,7 @@ public sealed class MSBuildWorkspace : Workspace
         if (project?.FilePath is not null)
         {
             // Only "ReferenceOutputAssembly=true" project references are represented in the workspace:
-            var reference = new ProjectFileReference(project.FilePath, projectReference.Aliases, referenceOutputAssembly: true);
+            var reference = new ProjectFileReference(project.FilePath, [.. projectReference.Aliases], referenceOutputAssembly: true);
             _applyChangesProjectFile.AddProjectReferenceAsync(project.Name, reference, CancellationToken.None).Wait();
         }
 

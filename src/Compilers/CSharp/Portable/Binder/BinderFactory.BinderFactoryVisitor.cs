@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             resultBinder = new InMethodBinder(accessor, resultBinder);
 
                             resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(
-                                modifiers: default,
+                                modifiers: parent.Modifiers,
                                 isIteratorBody: accessor.IsIterator);
                         }
                     }
@@ -803,6 +803,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override Binder VisitStructDeclaration(StructDeclarationSyntax node)
+            {
+                return VisitTypeDeclarationCore(node);
+            }
+
+            public override Binder VisitUnionDeclaration(UnionDeclarationSyntax node)
             {
                 return VisitTypeDeclarationCore(node);
             }

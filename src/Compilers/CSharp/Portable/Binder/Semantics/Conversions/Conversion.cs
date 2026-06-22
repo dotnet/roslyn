@@ -9,6 +9,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -136,12 +137,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CollectionExpressionUncommonData(collectionExpressionTypeKind, elementType, constructor, constructorUsedInExpandedForm, elementConversions));
         }
 
+        internal static Conversion CreateUnionConversion(UserDefinedConversionResult conversionResult)
+        {
+            return new Conversion(
+                ConversionKind.Union,
+                new MethodUncommonData(
+                    isExtensionMethod: false,
+                    isArrayIndex: false,
+                    conversionResult: conversionResult,
+                    conversionMethod: null));
+        }
+
         private Conversion(
             ConversionKind kind,
             UncommonData? uncommonData = null)
         {
             _kind = kind;
             _uncommonData = uncommonData;
+
+            Validate();
+        }
+
+        [Conditional("DEBUG")]
+        private void Validate()
+        {
+            Debug.Assert(!(this is { IsNullable: true, UnderlyingConversions: var underlying } && (underlying[0].IsUserDefined || underlying[0].IsUnion)));
         }
 
         internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
@@ -157,6 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isArrayIndex: false,
                     conversionResult: conversionResult,
                     conversionMethod: null);
+
+            Validate();
         }
 
         // For the method group, lambda and anonymous method conversions
@@ -168,6 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isArrayIndex: false,
                 conversionResult: default,
                 conversionMethod: conversionMethod);
+
+            Validate();
         }
 
         internal Conversion(ConversionKind kind, ImmutableArray<Conversion> nestedConversions)
@@ -175,6 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._kind = kind;
             _uncommonData = new NestedUncommonData(
                 nestedConversions: nestedConversions);
+
+            Validate();
         }
 
         internal Conversion(ConversionKind kind, DeconstructMethodInfo deconstructMethodInfo, ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> deconstructConversionInfo)
@@ -183,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this._kind = kind;
             _uncommonData = new DeconstructionUncommonData(deconstructMethodInfo, deconstructConversionInfo);
+
+            Validate();
         }
 
         internal Conversion SetConversionMethod(MethodSymbol conversionMethod)
@@ -433,6 +461,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UserDefinedFromConversion.AssertUnderlyingConversionsCheckedRecursive();
                 UserDefinedToConversion.AssertUnderlyingConversionsCheckedRecursive();
             }
+            else if (IsUnion && BestUnionConversionAnalysis is { } analysis)
+            {
+                analysis.SourceConversion.AssertUnderlyingConversionsCheckedRecursive();
+                analysis.TargetConversion.AssertUnderlyingConversionsCheckedRecursive();
+            }
         }
 
         [Conditional("DEBUG")]
@@ -471,6 +504,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     UserDefinedFromConversion.MarkUnderlyingConversionsCheckedRecursive();
                     UserDefinedToConversion.MarkUnderlyingConversionsCheckedRecursive();
+                }
+                else if (IsUnion && BestUnionConversionAnalysis is { } analysis)
+                {
+                    analysis.SourceConversion.MarkUnderlyingConversionsCheckedRecursive();
+                    analysis.TargetConversion.MarkUnderlyingConversionsCheckedRecursive();
                 }
             }
 #endif
@@ -581,10 +619,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Debug.Assert(!this.IsUserDefined);
+                    Debug.Assert(!this.IsUnion);
                     return true;
                 }
 
-                return !this.IsUserDefined ||
+                return (!this.IsUserDefined && !this.IsUnion) ||
                     this.Method is object ||
                     (_uncommonData as MethodUncommonData)?._conversionResult.Kind == UserDefinedConversionResultKind.Valid;
             }
@@ -852,6 +891,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the conversion is an implicit union conversion.
+        /// </summary>
+        public bool IsUnion
+        {
+            [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
+            get
+            {
+                return Kind.IsUnionConversion();
+            }
+        }
+
+        /// <summary>
         /// Returns true if the conversion is an implicit boxing conversion.
         /// </summary>
         /// <remarks>
@@ -1009,6 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns the method used to create the delegate for a method group conversion if <see cref="IsMethodGroup"/> is true 
         /// or the method used to perform the conversion for a user-defined conversion if <see cref="IsUserDefined"/> is true.
+        /// or the method used to perform the conversion for a union conversion if <see cref="IsUnion"/> is true.
         /// Otherwise, returns null.
         /// </summary>
         /// <remarks>
@@ -1101,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The user-defined operators that were considered when attempting this conversion
         /// (i.e. the arguments to overload resolution).
         /// </summary>
-        internal ImmutableArray<MethodSymbol> OriginalUserDefinedConversions
+        internal ImmutableArray<MethodSymbol> OriginalUserDefinedOrUnionConversions
         {
             get
             {
@@ -1129,7 +1181,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_uncommonData is MethodUncommonData { _conversionResult: { Kind: UserDefinedConversionResultKind.Valid } conversionResult })
+                if (!IsUnion && _uncommonData is MethodUncommonData { _conversionResult: { Kind: UserDefinedConversionResultKind.Valid } conversionResult })
+                {
+                    UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
+                    return analysis;
+                }
+
+                return null;
+            }
+        }
+
+        internal UserDefinedConversionAnalysis? BestUnionConversionAnalysis
+        {
+            get
+            {
+                if (IsUnion && _uncommonData is MethodUncommonData { _conversionResult: { Kind: UserDefinedConversionResultKind.Valid } conversionResult })
                 {
                     UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
                     return analysis;
@@ -1150,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public CommonConversion ToCommonConversion()
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
-            var (methodSymbol, constrainedToType) = IsUserDefined ? (MethodSymbol, ConstrainedToType) : (null, null);
+            var (methodSymbol, constrainedToType) = IsUserDefined || IsUnion ? (MethodSymbol, ConstrainedToType) : (null, null);
             return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol, constrainedToType);
         }
 

@@ -55,7 +55,7 @@ internal sealed class CodeGenerationEventSymbol(
 
     public IEventSymbol? OverriddenEvent => null;
 
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
     public IEventSymbol? PartialImplementationPart => null;
 
     public IEventSymbol? PartialDefinitionPart => null;

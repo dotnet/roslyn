@@ -44,13 +44,6 @@ internal abstract class AbstractEmbeddedLanguageQuickInfoProvider : CommonQuickI
 
         return null;
     }
-
-    protected override Task<QuickInfoItem?> BuildQuickInfoAsync(CommonQuickInfoContext context, SyntaxToken token)
-    {
-        // Not implemented as this entrypoint appears to be dead code.
-        throw new NotImplementedException();
-    }
-
     /// <summary>
     /// A derivation of <see cref="AbstractEmbeddedLanguageFeatureService{TService}"/> so we can fetch providers. Normally, our providers implement an interface,
     /// and the combined provider directly inherits from <see cref="AbstractEmbeddedLanguageFeatureService{TService}"/>. Unfortunately Quick Info is a bit different:

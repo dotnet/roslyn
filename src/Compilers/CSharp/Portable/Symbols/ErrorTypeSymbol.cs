@@ -141,6 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasDeclaredRequiredMembers => false;
 
+        internal sealed override bool IsClosed => false;
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => [];
+
         /// <summary>
         /// Get all the members of this symbol.
         /// </summary>
@@ -449,6 +453,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
+
+        internal override bool IsUnionTypeCore => false;
 
         internal override bool IsInterpolatedStringHandlerType => false;
 

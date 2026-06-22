@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (intersects)
                 {
-                    info[pair.i].LocalDefs.Free();
+                    info[pair.i].Free();
                     info.Remove(pair.i);
                 }
                 else
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // but when a pointer is converted to a user-defined ref local, it becomes a use of a "safe" feature where we should guarantee the ref is tracked by GC.
                 else if (localSymbol.RefKind != RefKind.None &&
                     localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    right.Kind == BoundKind.PointerIndirectionOperator)
+                    PointerIndirectionMayFlowToRefResultVisitor.Check(right, _recursionDepth))
                 {
                     ShouldNotSchedule(localSymbol);
                 }
@@ -1079,6 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.Sequence:
+                    // The assignment should have been pushed inside the sequence during lowering,
+                    // so instead of `{...side-effects..., val} = something` we should get here with `{...side-effects..., (val = something)}`.
                     Debug.Assert(!IsIndirectAssignment(node.Update(((BoundSequence)node.Left).Value, node.Right, node.IsRef, node.Type)),
                         "indirect assignment to a sequence is unexpected");
                     return false;
@@ -1178,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     _counter += 1;
 
-                    if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } } typeExpression)
                     {
                         receiver = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
@@ -2027,6 +2029,53 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
         }
+
+        /// <summary>
+        /// Checks whether there is a pointer indirection that may directly contribute to the final by-ref result of the visited expression.
+        /// For example, <c>*ptr</c> or <c>ptr->Field</c>, but not <c>Method(ref *ptr)</c>.
+        /// If such expression is assigned to a ref local, we cannot optimize that local away, so that GC can retrack the address.
+        /// This is a conservative check (we prefer correctness over optimization).
+        /// </summary>
+        private sealed class PointerIndirectionMayFlowToRefResultVisitor : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private bool _pointerIndirectionMayFlowToRefResult;
+
+            private PointerIndirectionMayFlowToRefResultVisitor(int recursionDepth) : base(recursionDepth) { }
+
+            public static bool Check(BoundExpression expression, int recursionDepth)
+            {
+                var visitor = new PointerIndirectionMayFlowToRefResultVisitor(recursionDepth);
+                visitor.Visit(expression);
+                return visitor._pointerIndirectionMayFlowToRefResult;
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                if (_pointerIndirectionMayFlowToRefResult)
+                {
+                    // No need to continue visiting nodes if the result is `true`.
+                    return node;
+                }
+
+                return base.Visit(node);
+            }
+
+            public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
+            {
+                _pointerIndirectionMayFlowToRefResult = true;
+                return node;
+            }
+
+            public override BoundNode VisitCall(BoundCall node)
+            {
+                return node;
+            }
+
+            public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+            {
+                return node;
+            }
+        }
     }
 
     // Rewrites the tree to account for destructive nature of stack local reads.
@@ -2272,7 +2321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     _nodeCounter++;
 
-                    if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } } typeExpression)
                     {
                         receiverOpt = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));

@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -139,13 +137,29 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(5, count);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/13844")]
+        public async Task WaitForServerProcessExitAsync_CompletesWhenServerMutexIsNotOpen()
+        {
+            var pipeName = ServerUtil.GetPipeName();
+            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
+            using var currentProcess = Process.GetCurrentProcess();
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            Assert.False(currentProcess.HasExited);
+            Assert.False(BuildServerConnection.WasServerMutexOpen(mutexName));
+
+            var waitTask = BuildServerConnection.WaitForServerProcessExitAsync(pipeName, currentProcess.Id, cancellationTokenSource.Token);
+            var completedTask = await Task.WhenAny(waitTask, Task.Delay(TimeSpan.FromSeconds(5), cancellationTokenSource.Token));
+            Assert.Same(waitTask, completedTask);
+            await waitTask;
+        }
+
         [Fact]
         public void GetServerEnvironmentVariables_IncludesDotNetRoot()
         {
             // This test verifies that GetServerEnvironmentVariables properly sets up DOTNET_ROOT
             // without modifying the current process environment
             var currentEnvironment = Environment.GetEnvironmentVariables();
-            var originalDotNetRoot = currentEnvironment[RuntimeHostInfo.DotNetRootEnvironmentName];
+            var originalDotNetRoot = (string?)currentEnvironment[RuntimeHostInfo.DotNetRootEnvironmentName];
 
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(currentEnvironment);
 
@@ -162,10 +176,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 // Should not have modified the current process environment
                 Assert.Equal(originalDotNetRoot, Environment.GetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName));
             }
-            else
+            else if (envVars != null)
             {
-                // If no DOTNET_ROOT is needed, should return null
-                Assert.Null(envVars);
+                // No DOTNET_ROOT modification is needed
+                var modifiedDotNetRoot = envVars.TryGetValue(RuntimeHostInfo.DotNetRootEnvironmentName, out var value) ? value : null;
+                Assert.Equal(originalDotNetRoot, modifiedDotNetRoot);
             }
         }
 
@@ -190,8 +205,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
 
-            if (envVars != null)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) != null)
             {
+                Assert.NotNull(envVars);
+
                 // Should set DOTNET_ROOT* variants to empty string to prevent inheritance
                 foreach (var testEnvVar in testEnvVars)
                 {

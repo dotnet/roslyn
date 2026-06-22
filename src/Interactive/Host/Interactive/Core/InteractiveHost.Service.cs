@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 AppDomain.CurrentDomain.ProcessExit += HandleProcessExit;
             }
 
-            private void HandleProcessExit(object sender, EventArgs e)
+            private void HandleProcessExit(object? sender, EventArgs e)
             {
                 Dispose();
                 AppDomain.CurrentDomain.ProcessExit -= HandleProcessExit;
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 var assemblyLoader = new InteractiveAssemblyLoader(metadataFileProvider);
                 var replServiceProviderType = Type.GetType(replServiceProviderTypeName);
-                var replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
+                var replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType!)!;
                 var globals = new InteractiveScriptGlobals(Console.Out, replServiceProvider.ObjectFormatter);
 
                 _serviceState = new ServiceState(assemblyLoader, metadataFileProvider, replServiceProvider, globals);
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     return;
                 }
 
-                var serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                var serverStream = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
                 await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
 
                 var jsonRpc = CreateRpc(serverStream, incomingCallTarget: new Service(invokeOnMainThread));
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public async Task<RemoteExecutionResult.Data> SetPathsAsync(
                 string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
-                string? baseDirectory)
+                string baseDirectory)
             {
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 TaskCompletionSource<RemoteExecutionResult> completionSource,
                 string[]? referenceSearchPaths,
                 string[]? sourceSearchPaths,
-                string? baseDirectory)
+                string baseDirectory)
             {
                 var serviceState = GetServiceState();
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // Otherwise, platform assemblies are looked up in PlatformAssemblyPaths directly.
                         var sdkDirectory = s_currentPlatformInfo.PlatformAssemblyPaths.IsEmpty ? RuntimeEnvironment.GetRuntimeDirectory() : null;
 
-                        var rspDirectory = Path.GetDirectoryName(initializationFilePath);
+                        var rspDirectory = Path.GetDirectoryName(initializationFilePath)!;
                         var args = parser.Parse(new[] { "@" + initializationFilePath }, baseDirectory: rspDirectory, sdkDirectory, additionalReferenceDirectories: null);
 
                         foreach (var error in args.Errors)
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private static void DisplaySearchPaths(TextWriter writer, List<string> attemptedFilePaths)
             {
-                var directories = attemptedFilePaths.Select(path => Path.GetDirectoryName(path)).ToArray();
+                var directories = attemptedFilePaths.Select(path => Path.GetDirectoryName(path)!).ToArray();
                 var uniqueDirectories = new HashSet<string>(directories);
 
                 writer.WriteLine(uniqueDirectories.Count == 1

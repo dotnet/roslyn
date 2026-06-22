@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(NetVSAndVSCode);$(NetFxVS);netstandard2.0</TargetFrameworks>
+    <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the language server library assets.</Description>
+    <EnableApiCheck>false</EnableApiCheck>
+    <IsShippingPackage>false</IsShippingPackage>
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
+    <RootNamespace>Microsoft.AspNetCore.Razor</RootNamespace>
+    <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Dependencies\Contracts\CollectionBuilderAttribute.cs" Link="LanguageSupport\CollectionBuilderAttribute.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\CompilerFeatureRequiredAttribute.cs" Link="LanguageSupport\CompilerFeatureRequiredAttribute.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\Index.cs" Link="LanguageSupport\Index.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\InterpolatedStringHandlerArgumentAttribute.cs" Link="LanguageSupport\InterpolatedStringHandlerArgumentAttribute.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\InterpolatedStringHandlerAttribute.cs" Link="LanguageSupport\InterpolatedStringHandlerAttribute.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\NullableAttributes.cs" Link="LanguageSupport\NullableAttributes.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\Range.cs" Link="LanguageSupport\Range.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\ReferenceEqualityComparer.cs" Link="LanguageSupport\ReferenceEqualityComparer.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\RequiredMemberAttribute.cs" Link="LanguageSupport\RequiredMemberAttribute.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Contracts\SetsRequiredMembersAttribute.cs" Link="LanguageSupport\SetsRequiredMembersAttribute.cs" />
+    <Compile Include="..\..\..\..\Dependencies\Collections\Extensions\KeyValuePairExtensions.cs" Link="KeyValuePairExtensions.cs" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.AspNetCore.Razor.SharedUtilities\Microsoft.AspNetCore.Razor.SharedUtilities.projitems" Label="Shared" />
+  <Import Project="..\..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+  </ItemGroup>
+
+  <ItemGroup Label="String Resources">
+    <EmbeddedResource Update="Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>$(ProjectName).Resources</Namespace>
+    </EmbeddedResource>
+
+    <Using Include="$(ProjectName).Resources" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Language.Legacy.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Language.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.UnitTests" Key="$(RazorKey)" />
+  </ItemGroup>
+
+</Project>

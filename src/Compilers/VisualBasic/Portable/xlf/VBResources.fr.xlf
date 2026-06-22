@@ -341,7 +341,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
+                                  SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -464,7 +464,7 @@
 -ruleset:&lt;file&gt;                   Spécifier un fichier d’ensemble de règles qui désactive des
                                   diagnostics spécifiques.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Spécifier un fichier pour consigner tous les diagnostics du compilateur et de l’analyseur
+                                  Spécifiez un fichier pour consigner tous les diagnostics du compilateur et de l’analyseur
                                   au format SARIF.
                                   sarif_version:{1|2|2.1} La valeur par défaut est 1. 2 et 2.1,
                                   les deux indiquant la version 2.1.0 de SARIF.
@@ -509,7 +509,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Spécifier l’algorithme pour calculer la somme de contrôle du fichier
                                   source stocké dans la PDB. Les valeurs prises en charge sont les suivantes :
-                                  SHA1 ou SHA256 (par défaut).
+                                  SHA1, SHA256 (par défaut), SHA384 ou SHA512.
 -codepage:&lt;number&gt;                Spécifie la page de code à utiliser lors de l’ouverture
                                   des fichiers sources.
 -delaysign[+|-]                   Retarder la signature de l’assembly en utilisant uniquement

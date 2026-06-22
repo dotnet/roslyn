@@ -3,12 +3,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/BoundTreeGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/IOperationGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/CSharpErrorFactsGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/VisualBasicSyntaxGenerator/
-#:project ../src/Tools/Source/CompilerGeneratorTools/Source/VisualBasicErrorFactsGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/BoundTreeGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/IOperationGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/CSharpErrorFactsGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/VisualBasicSyntaxGenerator/
+#:project ../src/Tools/CompilerGeneratorTools/Source/VisualBasicErrorFactsGenerator/
 
 using System.Runtime.CompilerServices;
 
@@ -67,7 +67,7 @@ if (test)
 Console.WriteLine(retVal == 0 ? "Generation succeeded." : "Generation failed.");
 return retVal;
 
-static (bool test, string configuration, string roslynDirectory) ParseArgs(string[] args, [CallerFilePath] string sourceFilePath = "")
+static (bool test, string configuration, string roslynDirectory) ParseArgs(string[] args)
 {
     var test = false;
     var configuration = "Debug";
@@ -90,7 +90,10 @@ static (bool test, string configuration, string roslynDirectory) ParseArgs(strin
         }
     }
 
-    if (Path.GetDirectoryName(sourceFilePath) is not string engDir || Path.GetDirectoryName(engDir) is not string roslynRoot || !File.Exists(Path.Join(roslynRoot, "eng", Path.GetFileName(sourceFilePath))))
+    if (AppContext.GetData("EntryPointFilePath") is not string sourceFilePath ||
+        Path.GetDirectoryName(sourceFilePath) is not string engDir ||
+        Path.GetDirectoryName(engDir) is not string roslynRoot ||
+        !File.Exists(Path.Join(roslynRoot, "eng", Path.GetFileName(sourceFilePath))))
     {
         Console.WriteLine("Could not determine source file path. This script must be located in the 'eng' directory of the Roslyn repo.");
         Environment.Exit(1);
