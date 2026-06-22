@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractBaseRecordImplementation">
         <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
-        <target state="new">Record member '{0}' must be declared explicitly because '{1}' is abstract.</target>
+        <target state="translated">Le membre d'enregistrement « {0} » doit être déclaré explicitement car « {1} » est abstrait.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
@@ -893,8 +893,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Une arborescence d’expression ne peut pas contenir un accès à une propriété d’extension</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="new">An expression tree may not contain an extension property or indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1528,8 +1528,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="translated">Un type fournisseur de membre d’une union doit avoir une propriété d’instance publique « Value » de type « object? » ou « object ». La propriété doit avoir un accesseur get.</target>
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -2912,6 +2912,11 @@
         <target state="translated">Un type de retour de type tâche générique est attendu, mais le type « {0} » trouvé dans l’attribut ’AsyncMethodBuilder’ n’était pas approprié. Il doit s’agir d’un type générique indépendant d’arité One, et son type conteneur (le cas échéant) doit être non générique.</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
         <target state="translated">La directive using pour « {0} » est apparue précédemment comme using global</target>
@@ -3005,6 +3010,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">modèles de propriétés étendues</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="new">extension indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">

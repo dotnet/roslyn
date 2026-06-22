@@ -73,6 +73,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - **Null checks**: Use `Contract.ThrowIfNull()` instead of manual null checks
 - **Private fields**: `_camelCase` naming
 - **PROTOTYPE Comments**: Used to track follow-up work in feature branches. Do not flag them in feature-branch PR reviews solely for their existence; they are disallowed in PRs targeting `main` (CI enforces removal).
+- **TODO Comments**: Do not add TODO comments. Use TODO2 comments instead if needed. The CI correctness leg monitors those.
 - **Code Formatting**: Avoid trailing spaces. Blank lines must be completely empty (no whitespace characters).
 - **Public API Tracking**: Update `PublicAPI.Unshipped.txt` when adding/changing public APIs
 

@@ -4585,6 +4585,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongSemanticModelType" xml:space="preserve">
     <value>Expected a {0} SemanticModel.</value>
   </data>
+  <data name="GetClosedDerivedTypeInfoMustBeClosed" xml:space="preserve">
+    <value>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</value>
+    <comment>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</comment>
+  </data>
   <data name="IDS_FeatureLambda" xml:space="preserve">
     <value>lambda expression</value>
   </data>
@@ -8068,7 +8072,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</value>
   </data>
   <data name="ERR_ExpressionTreeContainsExtensionPropertyAccess" xml:space="preserve">
-    <value>An expression tree may not contain an extension property access</value>
+    <value>An expression tree may not contain an extension property or indexer access</value>
   </data>
   <data name="ERR_PPIgnoredFollowsToken" xml:space="preserve">
     <value>'#:' directives cannot be after first token in file</value>
@@ -8260,6 +8264,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
+  <data name="IDS_FeatureExtensionIndexers" xml:space="preserve">
+    <value>extension indexers</value>
+  </data>
   <data name="IDS_FeatureUnsafeEvolution" xml:space="preserve">
     <value>updated memory safety rules</value>
   </data>
@@ -8351,7 +8358,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A union type must have at least one union creation member.</value>
   </data>
   <data name="ERR_MissingUnionValueProperty" xml:space="preserve">
-    <value>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</value>
+    <value>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</value>
   </data>
   <data name="ERR_MemberProviderInUnionDeclaration" xml:space="preserve">
     <value>A 'union' declaration cannot use a union member provider interface.</value>

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (DecisionDagBuilder.IsUnionValue(input, out BoundDagTemp? unionInstance))
             {
                 var unionType = (NamedTypeSymbol)unionInstance.Type;
-                if (unionType.UnionCaseTypes is not [])
+                if (unionType.UnionCaseTypesNoUseSiteDiagnostics is not [])
                 {
                     return new UnionTypeTypeUnionValueSetFactory(unionType);
                 }
