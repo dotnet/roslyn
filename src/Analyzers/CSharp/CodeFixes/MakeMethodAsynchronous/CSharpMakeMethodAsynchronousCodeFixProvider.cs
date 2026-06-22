@@ -59,7 +59,7 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
         => CSharpCodeFixesResources.Make_method_async;
 
     protected override string GetUsedAsDelegateWarningResource()
-        => CSharpCodeFixesResources.Changing_the_return_type_of_a_delegate_may_result_in_build_errors;
+        => CSharpCodeFixesResources.This_method_is_used_as_a_delegate_changing_the_return_type_may_result_in_build_errors;
 
     protected override string GetMakeAsyncVoidFunctionResource()
         => CSharpCodeFixesResources.Make_method_async_remain_void;

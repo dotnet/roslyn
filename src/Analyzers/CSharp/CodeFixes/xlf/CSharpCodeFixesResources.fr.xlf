@@ -47,9 +47,9 @@
         <target state="translated">Changer le type de retour de {0} en {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_return_type_of_a_delegate_may_result_in_build_errors">
-        <source>Changing the return type of a delegate may result in build errors</source>
-        <target state="new">Changing the return type of a delegate may result in build errors</target>
+      <trans-unit id="This_method_is_used_as_a_delegate_changing_the_return_type_may_result_in_build_errors">
+        <source>This method is used as a delegate; changing the return type may result in build errors</source>
+        <target state="new">This method is used as a delegate; changing the return type may result in build errors</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
