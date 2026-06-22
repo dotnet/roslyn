@@ -4370,6 +4370,7 @@ public sealed partial class KeyValuePairElementSyntax : CollectionElementSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitKeyValuePairElement(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitKeyValuePairElement(this);
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/84198")]
     public KeyValuePairElementSyntax Update(ExpressionSyntax keyExpression, SyntaxToken colonToken, ExpressionSyntax valueExpression)
     {
         if (keyExpression != this.KeyExpression || colonToken != this.ColonToken || valueExpression != this.ValueExpression)
