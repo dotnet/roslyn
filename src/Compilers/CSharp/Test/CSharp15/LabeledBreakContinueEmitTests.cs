@@ -1536,6 +1536,106 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             """);
     }
 
+    [Fact]
+    public void IL_LabeledBreak_SameAsGoto()
+    {
+        // A labeled 'break' out of nested loops must emit the exact same IL as the equivalent 'goto' to a label
+        // placed after the loops, so the JIT's loop recognition treats them identically.
+        var source = """
+            class C
+            {
+                static void Labeled(bool b1, bool b2)
+                {
+                    outer: while (b1)
+                    {
+                        while (b2)
+                        {
+                            break outer;
+                        }
+                    }
+                }
+
+                static void Goto(bool b1, bool b2)
+                {
+                    while (b1)
+                    {
+                        while (b2)
+                        {
+                            goto outerEnd;
+                        }
+                    }
+                    outerEnd: ;
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source).VerifyDiagnostics();
+
+        const string expectedIL = """
+            {
+              // Code size        9 (0x9)
+              .maxstack  1
+              IL_0000:  br.s       IL_0005
+              IL_0002:  ldarg.1
+              IL_0003:  brtrue.s   IL_0008
+              IL_0005:  ldarg.0
+              IL_0006:  brtrue.s   IL_0002
+              IL_0008:  ret
+            }
+            """;
+        verifier.VerifyIL("C.Labeled", expectedIL);
+        verifier.VerifyIL("C.Goto", expectedIL);
+    }
+
+    [Fact]
+    public void IL_LabeledContinue_SameAsGoto()
+    {
+        // A labeled 'continue' to an outer loop must emit the exact same IL as the equivalent 'goto' to a label at
+        // the end of that loop's body (which falls through to the condition re-check).
+        var source = """
+            class C
+            {
+                static void Labeled(bool b1, bool b2)
+                {
+                    outer: while (b1)
+                    {
+                        while (b2)
+                        {
+                            continue outer;
+                        }
+                    }
+                }
+
+                static void Goto(bool b1, bool b2)
+                {
+                    while (b1)
+                    {
+                        while (b2)
+                        {
+                            goto outerContinue;
+                        }
+                        outerContinue: ;
+                    }
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source).VerifyDiagnostics();
+
+        const string expectedIL = """
+            {
+              // Code size        8 (0x8)
+              .maxstack  1
+              IL_0000:  br.s       IL_0004
+              IL_0002:  ldarg.1
+              IL_0003:  pop
+              IL_0004:  ldarg.0
+              IL_0005:  brtrue.s   IL_0002
+              IL_0007:  ret
+            }
+            """;
+        verifier.VerifyIL("C.Labeled", expectedIL);
+        verifier.VerifyIL("C.Goto", expectedIL);
+    }
+
     #endregion
 
     #region Sequence points
