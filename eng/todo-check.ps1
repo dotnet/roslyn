@@ -20,14 +20,23 @@ function Get-GitGrepMatches([string] $pattern, [string[]] $pathspecs, [switch] $
   $arguments += @('-e', $pattern, '--')
   $arguments += ($pathspecs | ForEach-Object { $_.Replace('\', '/') })
 
-  $result = & git @arguments
-  if ($LASTEXITCODE -eq 0) {
+  # A git grep exit code of 1 means no matches, not failure. Handle it below instead of letting PowerShell throw.
+  $previousNativeCommandUseErrorActionPreference = $PSNativeCommandUseErrorActionPreference
+  $PSNativeCommandUseErrorActionPreference = $false
+  try {
+    $result = & git @arguments
+    $exitCode = $LASTEXITCODE
+  } finally {
+    $PSNativeCommandUseErrorActionPreference = $previousNativeCommandUseErrorActionPreference
+  }
+
+  if ($exitCode -eq 0) {
     return $result
-  } elseif ($LASTEXITCODE -eq 1) {
+  } elseif ($exitCode -eq 1) {
     return @()
   }
 
-  throw "git grep failed with exit code $LASTEXITCODE"
+  throw "git grep failed with exit code $exitCode"
 }
 
 # Verify no PROTOTYPE marker left in main
