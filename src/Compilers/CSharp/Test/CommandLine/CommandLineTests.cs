@@ -10671,6 +10671,8 @@ class C
             Assert.Equal("No format item", GetResourcePrefix("No format item"));
             Assert.Equal("Value ", GetResourcePrefix("Value {0:000}"));
             Assert.Equal("Value ", GetResourcePrefix("Value {1}"));
+            Assert.Equal("Value ", GetResourcePrefix("Value {0} and {1}"));
+            Assert.Equal("Value ", GetResourcePrefix("Value {10}"));
             Assert.Equal("", RemoveTimingOutput(string.Format(CodeAnalysisResources.AnalyzerTotalExecutionTime, "0.123")));
             Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput($"""
                 warning CS0169: field is unused
@@ -10694,7 +10696,19 @@ class C
         {
             for (var i = 0; i < resourceFormat.Length; i++)
             {
-                if (resourceFormat[i] == '{' && i + 1 < resourceFormat.Length && char.IsDigit(resourceFormat[i + 1]))
+                if (resourceFormat[i] != '{' || i + 1 >= resourceFormat.Length || !char.IsDigit(resourceFormat[i + 1]))
+                {
+                    continue;
+                }
+
+                var formatEnd = i + 2;
+                while (formatEnd < resourceFormat.Length && char.IsDigit(resourceFormat[formatEnd]))
+                {
+                    formatEnd++;
+                }
+
+                if (formatEnd == resourceFormat.Length ||
+                    resourceFormat[formatEnd] is '}' or ':' or ',')
                 {
                     return resourceFormat[..i];
                 }
@@ -13644,7 +13658,7 @@ dotnet_analyzer_diagnostic.severity = suggestion";
 
             if (prefix == null)
             {
-                Assert.DoesNotContain($"{diagnosticId}: {analyzer.Descriptor.MessageFormat}", RemoveTimingOutput(outWriter.ToString()));
+                Assert.DoesNotContain(diagnosticId, RemoveTimingOutput(outWriter.ToString()));
             }
             else
             {
@@ -13888,7 +13902,7 @@ dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerC
             }
             else
             {
-                Assert.DoesNotContain($"{descriptor.Id}: {descriptor.MessageFormat}", RemoveTimingOutput(outWriter.ToString()));
+                Assert.DoesNotContain(descriptor.Id.ToString(), RemoveTimingOutput(outWriter.ToString()));
             }
         }
 
