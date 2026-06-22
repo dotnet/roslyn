@@ -44,7 +44,7 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
         var provider2 = StrictMock.Of<IRazorCompletionItemProvider>(p =>
             p.GetCompletionItems(context) == ImmutableArray.Create(completionItem2));
 
-        var completionFactsService = new TestRazorCompletionFactsProvider(provider1, provider2);
+        var completionFactsService = new RazorCompletionFactsService([provider1, provider2]);
 
         // Act
         var result = completionFactsService.GetCompletionItems(context);
@@ -52,8 +52,4 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
         // Assert
         Assert.Equal<RazorCompletionItem>([completionItem1, completionItem2], result);
     }
-
-    private sealed class TestRazorCompletionFactsProvider(
-        params ImmutableArray<IRazorCompletionItemProvider> providers)
-        : AbstractRazorCompletionFactsService(providers);
 }

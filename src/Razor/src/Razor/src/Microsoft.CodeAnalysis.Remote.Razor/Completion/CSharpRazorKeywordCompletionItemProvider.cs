@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -10,7 +11,8 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal class CSharpRazorKeywordCompletionItemProvider : IRazorCompletionItemProvider
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class CSharpRazorKeywordCompletionItemProvider : IRazorCompletionItemProvider
 {
     internal static readonly ImmutableArray<RazorCommitCharacter> KeywordCommitCharacters = DefaultCommitCharacters.GetKeywordCommitCharacters();
 

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
@@ -14,7 +15,9 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal class RazorCompletionListProvider(
+[Export(typeof(RazorCompletionListProvider)), Shared]
+[method: ImportingConstructor]
+internal sealed class RazorCompletionListProvider(
     IRazorCompletionFactsService completionFactsService,
     CompletionListCache completionListCache,
     ILoggerFactory loggerFactory)
@@ -28,8 +31,7 @@ internal class RazorCompletionListProvider(
         Title = SR.ReTrigger_Completions_Title,
     };
 
-    // virtual for tests
-    public virtual RazorVSInternalCompletionList? GetCompletionList(
+    public RazorVSInternalCompletionList? GetCompletionList(
         RazorCompletionContext razorCompletionContext,
         VSInternalClientCapabilities clientCapabilities)
     {
@@ -63,7 +65,7 @@ internal class RazorCompletionListProvider(
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
 
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
 
         return new RazorCompletionContext(
             codeDocument,

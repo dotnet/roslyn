@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -18,7 +19,9 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+[method: ImportingConstructor]
+internal sealed class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider
 {
     // Internal for testing
     internal static ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters => DefaultCommitCharacters.GetMinimizedAttributeCommitCharacters();

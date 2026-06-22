@@ -424,7 +424,7 @@ public partial class DirectiveAttributeCompletionItemProviderTest : RazorTooling
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
 
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
 
         return new RazorCompletionContext(codeDocument, testCode.Position, owner, syntaxTree, tagHelperContext);
     }

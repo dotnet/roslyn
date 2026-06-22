@@ -130,7 +130,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
         var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
         var context = new RazorCompletionContext(
             codeDocument,
             testCode.Position,
@@ -194,7 +194,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
         var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
         var context = new RazorCompletionContext(
             codeDocument,
             testCode.Position,
@@ -228,7 +228,7 @@ public class BlazorDataAttributeCompletionItemProviderTest : RazorToolingIntegra
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
 
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
 
         return new RazorCompletionContext(codeDocument, testCode.Position, owner, syntaxTree, tagHelperContext, CompletionReason.Typing, _defaultRazorCompletionOptions);
     }

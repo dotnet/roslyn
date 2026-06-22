@@ -5,6 +5,7 @@
 using System;
 #endif
 using System.Collections.Immutable;
+using System.Composition;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.Completion;
@@ -13,7 +14,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal class DirectiveAttributeTransitionCompletionItemProvider(IClientCapabilitiesService clientCapabilitiesService) : DirectiveAttributeCompletionItemProviderBase
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+[method: ImportingConstructor]
+internal sealed class DirectiveAttributeTransitionCompletionItemProvider(IClientCapabilitiesService clientCapabilitiesService) : DirectiveAttributeCompletionItemProviderBase
 {
     private const string DisplayText = "@...";
     private static readonly DirectiveCompletionDescription s_descriptionInfo = new(SR.Blazor_directive_attributes);

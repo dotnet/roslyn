@@ -115,7 +115,7 @@ public class CSharpRazorKeywordCompletionItemProviderTests(ITestOutputHelper tes
 
         var tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers: []);
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
 
         return new RazorCompletionContext(codeDocument, absoluteIndex, owner, syntaxTree, tagHelperDocumentContext, CompletionReason.Invoked);
     }

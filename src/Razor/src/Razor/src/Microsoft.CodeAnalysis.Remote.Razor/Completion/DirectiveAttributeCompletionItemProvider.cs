@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
@@ -17,7 +18,8 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed partial class DirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
     private const string Ellipsis = "...";
     private const string QuotedAttributeValueSnippetSuffix = "=\"$0\"";

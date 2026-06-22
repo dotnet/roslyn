@@ -27,7 +27,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Too
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
 
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
 
         var context = new RazorCompletionContext(
             codeDocument,
@@ -61,7 +61,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Too
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
 
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
 
         var context = new RazorCompletionContext(
             codeDocument,
@@ -109,7 +109,7 @@ public class TagHelperCompletionProviderTest(ITestOutputHelper testOutput) : Too
         var tagHelperContext = codeDocument.GetRequiredTagHelperContext();
 
         var owner = syntaxTree.Root.FindInnermostNode(testCode.Position, includeWhitespace: true, walkMarkersBack: true);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, testCode.Position);
 
         var context = new RazorCompletionContext(
             codeDocument,

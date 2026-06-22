@@ -5,6 +5,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -14,7 +15,8 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
 {
     internal static ImmutableArray<RazorCommitCharacter> SingleLineDirectiveCommitCharacters => DefaultCommitCharacters.GetDirectiveCommitCharacters(isBlock: false);
     internal static ImmutableArray<RazorCommitCharacter> BlockDirectiveCommitCharacters => DefaultCommitCharacters.GetDirectiveCommitCharacters(isBlock: true);

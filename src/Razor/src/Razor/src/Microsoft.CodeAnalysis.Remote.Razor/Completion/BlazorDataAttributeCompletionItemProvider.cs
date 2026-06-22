@@ -5,6 +5,7 @@
 using System;
 #endif
 using System.Collections.Immutable;
+using System.Composition;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -17,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 /// <summary>
 /// Provides completions for Blazor-specific data-* attributes used for enhanced navigation and form handling.
 /// </summary>
-internal class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemProvider
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class BlazorDataAttributeCompletionItemProvider : IRazorCompletionItemProvider
 {
     private static ImmutableArray<RazorCommitCharacter> AttributeCommitCharacters => DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
 

@@ -26,7 +26,7 @@ public class RazorCompletionListProviderTest
 
     public RazorCompletionListProviderTest(ITestOutputHelper testOutput)
     {
-        _completionFactsService = new LspRazorCompletionFactsService(GetCompletionProviders());
+        _completionFactsService = new RazorCompletionFactsService(GetCompletionProviders());
         _completionListCache = new CompletionListCache();
         _clientCapabilities = new VSInternalClientCapabilities()
         {
@@ -531,7 +531,7 @@ public class RazorCompletionListProviderTest
         // Set up desired options
         var razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: false, CommitElementsWithSpace: true, IsVsCode: false);
 
-        var completionFactsService = new LspRazorCompletionFactsService(GetCompletionProviders());
+        var completionFactsService = new RazorCompletionFactsService(GetCompletionProviders());
         var provider = new RazorCompletionListProvider(completionFactsService, _completionListCache, _loggerFactory);
 
         // Act

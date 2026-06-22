@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Composition;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal class DirectiveAttributeEventParameterCompletionItemProvider : IRazorCompletionItemProvider
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class DirectiveAttributeEventParameterCompletionItemProvider : IRazorCompletionItemProvider
 {
     private static readonly ImmutableArray<RazorCompletionItem> s_eventCompletionItems = HtmlFacts.FormEvents
         .SelectAsArray(e => RazorCompletionItem.CreateDirectiveAttributeEventParameterHtmlEventValue(e, e, s_commitCharacters));

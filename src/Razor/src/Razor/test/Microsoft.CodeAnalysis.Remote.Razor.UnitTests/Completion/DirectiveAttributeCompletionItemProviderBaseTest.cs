@@ -235,7 +235,7 @@ public class DirectiveAttributeCompletionItemProviderBaseTest(ITestOutputHelper 
         var result = CompileToCSharp(testCode.Text, throwOnFailure: false);
         var root = result.CodeDocument.GetRequiredSyntaxRoot();
         var owner = root.FindInnermostNode(index, includeWhitespace: true, walkMarkersBack: true);
-        owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, index);
+        owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, index);
 
         Assert.NotNull(owner);
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -13,7 +14,8 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProvider
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProvider
 {
     private static RazorCompletionItem? s_markupTransitionCompletionItem;
 

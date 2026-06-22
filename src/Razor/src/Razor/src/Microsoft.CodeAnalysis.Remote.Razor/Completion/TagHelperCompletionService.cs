@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
@@ -14,7 +15,8 @@ using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal class TagHelperCompletionService : ITagHelperCompletionService
+[Export(typeof(ITagHelperCompletionService)), Shared]
+internal sealed class TagHelperCompletionService : ITagHelperCompletionService
 {
     private static readonly HashSetPool<TagHelperDescriptor> s_shortNameSetPool =
         HashSetPool<TagHelperDescriptor>.Create(ShortNameToFullyQualifiedComparer.Instance);
