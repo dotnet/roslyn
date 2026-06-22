@@ -14,7 +14,7 @@ dotnet run --project HtmlCompletionDataGenerator.csproj -- <schemaFilesDir> <out
 
 Example:
 ```powershell
-dotnet run -- "Q:\src\webtools\src\Languages\html\Editor\Schemas\SchemaFiles" "..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Completion\Html\Generated\HtmlCompletionData.g.cs"
+dotnet run -- "Q:\src\webtools\src\Languages\html\Editor\Schemas\SchemaFiles" "..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Completion\Html\Generated\HtmlCompletionData.g.cs"
 ```
 
 ## Input Files
