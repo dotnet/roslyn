@@ -101,14 +101,14 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     /// </summary>
     /// <returns><see langword="true"/> iff such a reference is found. There are no false positives.</returns>
     private static async Task<bool> HasKnownReferencesAsDelegateAsync(
-        Solution solution,
+        Project project,
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
     {
         var referencedSymbols = await SymbolFinder.FindReferencesAsync(
             methodSymbol,
-            solution,
-            documents: GetReferenceSearchScope(solution, methodSymbol),
+            project.Solution,
+            project.Documents.ToImmutableHashSet(),
             cancellationToken).ConfigureAwait(false);
 
         var cache = new Dictionary<DocumentId, (SyntaxNode Root, SemanticModel SemanticModel)>();
@@ -133,35 +133,6 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         }
 
         return false;
-    }
-
-    /// <returns>
-    /// All documents in all projects where the symbol is declared.
-    /// </returns>
-    private static IImmutableSet<Document> GetReferenceSearchScope(Solution solution, IMethodSymbol methodSymbol)
-    {
-        var builder = ImmutableHashSet.CreateBuilder<Document>();
-
-        var declaringSymbol = (ISymbol?)methodSymbol.ContainingType ?? methodSymbol;
-        var projectIds = new HashSet<ProjectId>();
-        foreach (var location in declaringSymbol.Locations)
-        {
-            if (location.SourceTree is { } tree &&
-                solution.GetDocument(tree) is { } document)
-            {
-                projectIds.Add(document.Project.Id);
-            }
-        }
-
-        foreach (var projectId in projectIds)
-        {
-            foreach (var document in solution.GetRequiredProject(projectId).Documents)
-            {
-                builder.Add(document);
-            }
-        }
-
-        return builder.ToImmutable();
     }
 
     /// <returns>
@@ -226,7 +197,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
             ? !keepVoid
             : !IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
         var addWarningAnnotation = returnTypeWillChange && await HasKnownReferencesAsDelegateAsync(
-            document.Project.Solution, methodSymbol, cancellationToken).ConfigureAwait(false);
+            document.Project, methodSymbol, cancellationToken).ConfigureAwait(false);
 
         return NeedsRename()
             ? await RenameThenAddAsyncTokenAsync(keepVoid, addWarningAnnotation, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
