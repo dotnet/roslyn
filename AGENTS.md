@@ -57,7 +57,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 ```
 
 **Testing Conventions**:
-- Always add `WorkItem` alongside test attributes, for example `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`, replacing `1234` with the GitHub issue number
+- If the change is related to a GitHub issue, add `WorkItem` alongside test attributes, for example `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`, replacing `1234` with the GitHub issue number
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) when creating test source code
 - Keep tests focused — do minimal work to validate the core issue
   - Use `.Single()` instead of asserting count and extracting elements
