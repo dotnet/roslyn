@@ -24,13 +24,6 @@ usage()
   echo "  --sign                     Sign build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
-  echo "Test actions:"
-  echo "  --testFramework <value>    Test framework to run: core, desktop, or both (short: --test, -t implies core)"
-  echo "  --testMono                 Run unit tests on Mono (deprecated, will be removed in .NET 11)"
-  echo "  --testPlatform <value>     Architecture to test on: x86, x64 or arm64 (default: x64)"
-  echo "  --testSet <value>          Test set to run: compiler"
-  echo "  --testKind <value>         Test kind: ioperation, runtimeasync, usedassemblies"
-  echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
   echo "  --bootstrap                Build using a bootstrap compilers"
@@ -65,11 +58,6 @@ rebuild=false
 pack=false
 sign=false
 publish=false
-test_framework=""
-test_mono=false
-test_platform="x64"
-test_set=""
-test_kind=""
 
 configuration="Debug"
 verbosity='minimal'
@@ -132,28 +120,6 @@ while [[ $# > 0 ]]; do
       ;;
     --sign)
       sign=true
-      ;;
-    --testframework)
-      test_framework=$2
-      shift
-      ;;
-    --test|-t)
-      test_framework="core"
-      ;;
-    --testmono)
-      test_mono=true
-      ;;
-    --testplatform)
-      test_platform=$2
-      shift
-      ;;
-    --testset)
-      test_set=$2
-      shift
-      ;;
-    --testkind)
-      test_kind=$2
-      shift
       ;;
     --ci)
       ci=true
@@ -259,24 +225,6 @@ function BuildSolution {
     ulimit -n 6500 || echo "Cannot change ulimit"
   fi
 
-  local test=false
-  local test_runtime=""
-  local mono_tool=""
-  local test_runtime_args=""
-  if [[ "$test_mono" == true ]]; then
-    mono_path=`command -v mono`
-    # Echo out the mono version to the command line so it's visible in CI logs. It's not fixed
-    # as we're using a feed vs. a hard coded package.
-    if [[ "$ci" == true ]]; then
-      mono --version
-    fi
-
-    test=true
-    test_runtime="/p:TestRuntime=Mono"
-    mono_tool="/p:MonoTool=\"$mono_path\""
-    test_runtime_args="--debug"
-  fi
-
   local msbuild_warn_as_error=""
   if [[ "$warn_as_error" == true ]]; then
     msbuild_warn_as_error="/warnAsError"
@@ -305,7 +253,6 @@ function BuildSolution {
     /p:Restore=$restore \
     /p:Build=$build \
     /p:Rebuild=$rebuild \
-    /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
     /p:Sign=$sign \
@@ -313,12 +260,9 @@ function BuildSolution {
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=$warn_as_error \
-    /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildSourceOnly=$source_build \
     /p:DotNetBuild=$product_build \
     /p:DotNetBuildFromVMR=$from_vmr \
-    $test_runtime \
-    $mono_tool \
     $msbuild_warn_as_error \
     $msbuild_warn_not_as_error \
     $generate_documentation_file \
@@ -327,7 +271,7 @@ function BuildSolution {
 }
 
 install=false
-if [[ "$restore" == true || -n "$test_framework" ]]; then
+if [[ "$restore" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
@@ -342,32 +286,8 @@ if [[ "$bootstrap" == true ]]; then
   bootstrap_dir=$_MakeBootstrapBuild
 fi
 
-if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mono" == true ]]; then
+if [[ "$restore" == true || "$build" == true || "$rebuild" == true ]]; then
   BuildSolution
 fi
 
-if [[ -n "$test_framework" ]]; then
-  runtests_args="--testFramework:$test_framework"
-  runtests_args="$runtests_args --testConfiguration $configuration"
-  runtests_args="$runtests_args --logs ${log_dir}"
-  runtests_args="$runtests_args --dotnet ${_InitializeDotNetCli}/dotnet"
-  runtests_args="$runtests_args --testPlatform $test_platform"
-
-  if [[ -n "$test_set" ]]; then
-    runtests_args="$runtests_args --testSet:$test_set"
-  fi
-
-  if [[ -n "$test_kind" ]]; then
-    runtests_args="$runtests_args --testKind:$test_kind"
-  fi
-
-  if [[ "$ci" == true ]]; then
-    runtests_args="$runtests_args --ci"
-    runtests_args="$runtests_args --timeout 90"
-  else
-    runtests_args="$runtests_args --html"
-  fi
-
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net10.0/RunTests.dll" $runtests_args
-fi
 ExitWithExitCode 0
