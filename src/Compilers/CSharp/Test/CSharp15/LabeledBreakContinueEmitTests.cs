@@ -1537,4 +1537,144 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Sequence points
+
+    [Fact]
+    public void SequencePoints_LabeledBreak()
+    {
+        var source = """
+            class C
+            {
+                static void M(bool b)
+                {
+                    outer: while (b)
+                    {
+                        while (b)
+                        {
+                            if (b)
+                                break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: """
+            {
+              // Code size       28 (0x1c)
+              .maxstack  1
+              .locals init (bool V_0,
+                            bool V_1,
+                            bool V_2)
+              // sequence point: {
+              IL_0000:  nop
+              // sequence point: outer:
+              IL_0001:  nop
+              // sequence point: <hidden>
+              IL_0002:  br.s       IL_0016
+              // sequence point: {
+              IL_0004:  nop
+              // sequence point: <hidden>
+              IL_0005:  br.s       IL_0010
+              // sequence point: {
+              IL_0007:  nop
+              // sequence point: if (b)
+              IL_0008:  ldarg.0
+              IL_0009:  stloc.0
+              // sequence point: <hidden>
+              IL_000a:  ldloc.0
+              IL_000b:  brfalse.s  IL_000f
+              // sequence point: break outer;
+              IL_000d:  br.s       IL_001b
+              // sequence point: }
+              IL_000f:  nop
+              // sequence point: while (b)
+              IL_0010:  ldarg.0
+              IL_0011:  stloc.1
+              // sequence point: <hidden>
+              IL_0012:  ldloc.1
+              IL_0013:  brtrue.s   IL_0007
+              // sequence point: }
+              IL_0015:  nop
+              // sequence point: while (b)
+              IL_0016:  ldarg.0
+              IL_0017:  stloc.2
+              // sequence point: <hidden>
+              IL_0018:  ldloc.2
+              IL_0019:  brtrue.s   IL_0004
+              // sequence point: }
+              IL_001b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void SequencePoints_LabeledContinue()
+    {
+        var source = """
+            class C
+            {
+                static void M(bool b)
+                {
+                    outer: while (b)
+                    {
+                        while (b)
+                        {
+                            if (b)
+                                continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: """
+            {
+              // Code size       28 (0x1c)
+              .maxstack  1
+              .locals init (bool V_0,
+                            bool V_1,
+                            bool V_2)
+              // sequence point: {
+              IL_0000:  nop
+              // sequence point: outer:
+              IL_0001:  nop
+              // sequence point: <hidden>
+              IL_0002:  br.s       IL_0016
+              // sequence point: {
+              IL_0004:  nop
+              // sequence point: <hidden>
+              IL_0005:  br.s       IL_0010
+              // sequence point: {
+              IL_0007:  nop
+              // sequence point: if (b)
+              IL_0008:  ldarg.0
+              IL_0009:  stloc.0
+              // sequence point: <hidden>
+              IL_000a:  ldloc.0
+              IL_000b:  brfalse.s  IL_000f
+              // sequence point: continue outer;
+              IL_000d:  br.s       IL_0016
+              // sequence point: }
+              IL_000f:  nop
+              // sequence point: while (b)
+              IL_0010:  ldarg.0
+              IL_0011:  stloc.1
+              // sequence point: <hidden>
+              IL_0012:  ldloc.1
+              IL_0013:  brtrue.s   IL_0007
+              // sequence point: }
+              IL_0015:  nop
+              // sequence point: while (b)
+              IL_0016:  ldarg.0
+              IL_0017:  stloc.2
+              // sequence point: <hidden>
+              IL_0018:  ldloc.2
+              IL_0019:  brtrue.s   IL_0004
+              // sequence point: }
+              IL_001b:  ret
+            }
+            """);
+    }
+
+    #endregion
 }
