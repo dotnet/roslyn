@@ -10,8 +10,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Completion;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
 {

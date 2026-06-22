@@ -3,9 +3,10 @@
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal class DirectiveAttributeEventParameterCompletionItemProvider : IRazorCompletionItemProvider
 {

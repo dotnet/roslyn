@@ -4,7 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
 
 internal static partial class LocalHtmlCompletionProvider
 {

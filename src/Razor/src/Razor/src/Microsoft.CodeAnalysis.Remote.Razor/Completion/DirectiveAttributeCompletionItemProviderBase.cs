@@ -6,11 +6,12 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode>;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal abstract class DirectiveAttributeCompletionItemProviderBase : IRazorCompletionItemProvider
 {

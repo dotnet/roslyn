@@ -14,7 +14,7 @@ using System.Linq;
 #endif
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
 
 /// <summary>
 /// Public entry point for HTML schema data. Provides element lookup and access to all elements.

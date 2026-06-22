@@ -3,9 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal abstract class CompletionItemResolver
 {

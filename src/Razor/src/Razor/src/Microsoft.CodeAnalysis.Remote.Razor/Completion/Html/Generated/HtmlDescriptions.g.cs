@@ -5,7 +5,7 @@
 
 using System.Resources;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
 
 /// <summary>
 /// Provides localized HTML element and attribute descriptions from embedded resources.
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
 internal static class HtmlDescriptions
 {
     private static readonly ResourceManager s_resourceManager =
-        new("Microsoft.CodeAnalysis.Razor.Workspaces.Resources.HtmlDescriptions",
+        new("Microsoft.CodeAnalysis.Remote.Razor.Resources.HtmlDescriptions",
             typeof(HtmlDescriptions).Assembly);
 
     internal static string GetElementDescription(string elementName)

@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.Razor.Completion;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 

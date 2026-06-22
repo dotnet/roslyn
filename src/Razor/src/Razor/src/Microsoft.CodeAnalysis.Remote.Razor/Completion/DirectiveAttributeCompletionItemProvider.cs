@@ -9,12 +9,13 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
@@ -391,7 +392,7 @@ internal partial class DirectiveAttributeCompletionItemProvider : DirectiveAttri
         // Verify not an indexer attribute, as those don't commit with standard chars
         if (!attributeName.EndsWith(Ellipsis, StringComparison.Ordinal))
         {
-            commitCharacters = Completion.DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
+            commitCharacters = DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true);
         }
 
         attributeCompletions[attributeName] = new(kind, descriptions, commitCharacters);

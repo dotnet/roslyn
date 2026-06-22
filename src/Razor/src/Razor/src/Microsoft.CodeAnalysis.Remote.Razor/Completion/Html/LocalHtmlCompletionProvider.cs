@@ -7,12 +7,14 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Roslyn.Text.Adornments;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
 
 /// <summary>
 /// Produces HTML element, attribute, attribute-value, and entity completions directly from the

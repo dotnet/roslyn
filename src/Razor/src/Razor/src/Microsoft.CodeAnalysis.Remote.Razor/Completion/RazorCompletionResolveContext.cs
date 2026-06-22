@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Razor.Completion;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal record RazorCompletionResolveContext(string FilePath, ImmutableArray<RazorCompletionItem> CompletionItems) : ICompletionResolveContext;

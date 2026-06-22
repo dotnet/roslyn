@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Composition;
-using Microsoft.CodeAnalysis.Razor.Completion;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 

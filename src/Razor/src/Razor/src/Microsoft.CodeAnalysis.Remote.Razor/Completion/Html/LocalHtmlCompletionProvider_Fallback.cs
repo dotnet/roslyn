@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
 
 internal static partial class LocalHtmlCompletionProvider
 {

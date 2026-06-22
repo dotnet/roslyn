@@ -5,7 +5,7 @@ using System;
 using Roslyn.Core.Imaging;
 using Roslyn.Text.Adornments;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
 
 /// <summary>
 /// Image monikers for icons in HTML completion lists.

@@ -7,7 +7,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
 
 /// <summary>
 /// Per-element child lists that are unique to a single parent element.

@@ -7,7 +7,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
 
 /// <summary>
 /// Shared groups of valid attribute values (used by more than one attribute).

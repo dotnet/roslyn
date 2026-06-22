@@ -4,7 +4,7 @@
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal static class CompletionContextHelper
 {

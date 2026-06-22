@@ -7,7 +7,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion.Html;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
 
 /// <summary>
 /// Element attribute arrays unique to a single element.

@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal sealed class LspRazorCompletionFactsService(IEnumerable<IRazorCompletionItemProvider> providers)
     : AbstractRazorCompletionFactsService(providers.ToImmutableArray())
