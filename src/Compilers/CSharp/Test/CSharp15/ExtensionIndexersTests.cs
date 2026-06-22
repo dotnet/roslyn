@@ -16232,6 +16232,7 @@ public static class E
 """;
 
         var libComp = CreateCompilation(libSrc, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        var libRef = libComp.EmitToImageReference();
         var src = """
 var x = 111;
 x[0] = x[1] + 222;
@@ -16240,7 +16241,7 @@ unsafe { x[0] = x[1] + 333; }
 unsafe { E.get_Item(x, 0); E.set_Item(x, 0, 0); }
 """;
 
-        CreateCompilation(src, references: [libComp.EmitToImageReference()], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
             // (2,1): error CS9362: 'E.extension(int).this[int].set' must be used in an unsafe context because it is marked as 'unsafe'
             // x[0] = x[1] + 222;
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x[0]").WithArguments("E.extension(int).this[int].set").WithLocation(2, 1),
@@ -16255,7 +16256,7 @@ unsafe { E.get_Item(x, 0); E.set_Item(x, 0, 0); }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E.set_Item(x, 0, 0)").WithArguments("E.set_Item(int, int, int)").WithLocation(3, 19));
 
         CompileAndVerify(src,
-            references: [libComp.EmitToImageReference()],
+            references: [libRef],
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
