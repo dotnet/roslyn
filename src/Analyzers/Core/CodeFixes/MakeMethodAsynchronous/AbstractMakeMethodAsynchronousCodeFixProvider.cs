@@ -106,28 +106,44 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         IMethodSymbol methodSymbol,
         CancellationToken cancellationToken)
     {
-        var referencedSymbols = await SymbolFinder.FindReferencesAsync(
-            methodSymbol,
-            project.Solution,
-            project.Documents.ToImmutableHashSet(),
-            cancellationToken).ConfigureAwait(false);
+        var symbolsToSearch = ImmutableArray.CreateBuilder<IMethodSymbol>(3);
+        symbolsToSearch.Add(methodSymbol);
+
+        if (methodSymbol.PartialDefinitionPart is { } partialDefinitionPart)
+            symbolsToSearch.Add(partialDefinitionPart);
+
+        if (methodSymbol.PartialImplementationPart is { } partialImplementationPart)
+            symbolsToSearch.Add(partialImplementationPart);
 
         var cache = new Dictionary<DocumentId, SemanticDocument>();
+        var seenSymbols = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
 
-        foreach (var referencedSymbol in referencedSymbols)
+        foreach (var symbol in symbolsToSearch)
         {
-            foreach (var location in referencedSymbol.Locations)
-            {
-                var document = location.Document;
-                if (!cache.TryGetValue(document.Id, out var entry))
-                {
-                    entry = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                    cache.Add(document.Id, entry);
-                }
+            if (!seenSymbols.Add(symbol))
+                continue;
 
-                var syntaxNode = entry.Root.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-                if (IsDelegateReference(entry.SemanticModel, syntaxNode, methodSymbol, cancellationToken))
-                    return true;
+            var referencedSymbols = await SymbolFinder.FindReferencesAsync(
+                symbol,
+                project.Solution,
+                project.Documents.ToImmutableHashSet(),
+                cancellationToken).ConfigureAwait(false);
+
+            foreach (var referencedSymbol in referencedSymbols)
+            {
+                foreach (var location in referencedSymbol.Locations)
+                {
+                    var document = location.Document;
+                    if (!cache.TryGetValue(document.Id, out var entry))
+                    {
+                        entry = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+                        cache.Add(document.Id, entry);
+                    }
+
+                    var syntaxNode = entry.Root.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
+                    if (IsDelegateReference(entry.SemanticModel, syntaxNode, symbol, cancellationToken))
+                        return true;
+                }
             }
         }
 
