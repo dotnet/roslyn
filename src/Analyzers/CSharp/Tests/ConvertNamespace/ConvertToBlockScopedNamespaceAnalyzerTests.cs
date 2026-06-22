@@ -173,9 +173,15 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
             }
         }.RunAsync();
 
-    [Theory]
-    [MemberData(nameof(EndOfDocumentSequences))]
-    public Task TestConvertToBlockWithMultipleNamespaces(string endOfDocumentSequence)
+    [Fact]
+    public Task TestConvertToBlockWithMultipleNamespaces()
+        => TestConvertToBlockWithMultipleNamespacesAsync(endOfDocumentSequence: "");
+
+    [Fact]
+    public Task TestConvertToBlockWithMultipleNamespaces_WithTrailingNewline()
+        => TestConvertToBlockWithMultipleNamespacesAsync(endOfDocumentSequence: Environment.NewLine);
+
+    private Task TestConvertToBlockWithMultipleNamespacesAsync(string endOfDocumentSequence)
         => new VerifyCS.Test
         {
             TestCode = $$"""
