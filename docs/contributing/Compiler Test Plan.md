@@ -224,6 +224,8 @@ yield return …;
 yield break;
 break;
 continue;
+break label;
+continue label;
 ```
 
 ## Expression classifications
