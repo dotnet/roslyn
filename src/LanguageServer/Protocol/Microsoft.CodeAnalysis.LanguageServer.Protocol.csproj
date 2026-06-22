@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
@@ -33,21 +34,19 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
-    <!-- Restricted IVT is direct for protocol types only -->
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <!-- Restricted IVT for protocol types for Razor tests and other non shipping code -->
-    <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Cohosting" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.Razor.IntegrationTests" Namespace="Roslyn.Text.Adornments" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.UnitTests" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.UnitTests" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.UnitTests" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.RazorExtension" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Cohosting" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Razor.IntegrationTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.UnitTests" Key="$(RazorKey)" />
     <!-- Full IVT is through ExternalAccess for functionality -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xaml" />
     <!-- Restricted IVT is direct for protocol types only -->
@@ -89,7 +88,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.Example" />
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities" />
@@ -101,6 +99,7 @@
   <ItemGroup>
     <None Include="Protocol\.editorconfig" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery" />
   </ItemGroup>
 
   <ItemGroup>

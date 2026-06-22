@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -40,7 +40,7 @@ internal sealed class HtmlRequestInvoker(
             return default;
         }
 
-        if (!_documentManager.TryGetDocument(razorDocument.CreateUri(), out var snapshot))
+        if (!_documentManager.TryGetDocument(razorDocument.CreateSystemUri(), out var snapshot))
         {
             _logger.LogError($"Couldn't find document in LSPDocumentManager for {razorDocument.FilePath}");
             return default;
@@ -52,7 +52,7 @@ internal sealed class HtmlRequestInvoker(
             return default;
         }
 
-        var existingChecksum = (ChecksumWrapper)htmlDocument.State.AssumeNotNull();
+        var existingChecksum = (Checksum)htmlDocument.State.AssumeNotNull();
         if (!existingChecksum.Equals(syncResult.Checksum))
         {
             _logger.LogError($"Checksum for {snapshot.Uri}, {htmlDocument.State} doesn't match {syncResult.Checksum}.");
@@ -61,7 +61,7 @@ internal sealed class HtmlRequestInvoker(
 
         // If the request is for a text document, we need to update the Uri to point to the Html document,
         // and most importantly set it back again before leaving the method in case a caller uses it.
-        UpdateTextDocumentUri(request, new(htmlDocument.Uri), out var originalUri);
+        UpdateTextDocumentUri(request, htmlDocument.Uri.CreateDocumentUriFromSystemUri(), out var originalUri);
 
         try
         {

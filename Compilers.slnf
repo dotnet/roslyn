@@ -48,6 +48,7 @@
       "src\\Compilers\\VisualBasic\\vbc\\VbcCommandLine.shproj",
       "src\\Compilers\\VisualBasic\\vbc\\arm64\\vbc-arm64.csproj",
       "src\\Dependencies\\CodeAnalysis.Debugging\\Microsoft.CodeAnalysis.Debugging.shproj",
+      "src\\Dependencies\\Contracts\\Microsoft.CodeAnalysis.Contracts.shproj",
       "src\\Dependencies\\Collections\\Microsoft.CodeAnalysis.Collections.shproj",
       "src\\Dependencies\\PooledObjects\\Microsoft.CodeAnalysis.PooledObjects.shproj",
       "src\\ExpressionEvaluator\\CSharp\\Source\\ExpressionCompiler\\Microsoft.CodeAnalysis.CSharp.ExpressionCompiler.csproj",

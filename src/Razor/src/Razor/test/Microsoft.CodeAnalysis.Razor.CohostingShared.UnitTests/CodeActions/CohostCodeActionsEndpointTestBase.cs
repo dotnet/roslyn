@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
@@ -36,7 +36,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         RazorFileKind? fileKind = null,
         string? documentFilePath = null,
         (string filePath, string contents)[]? additionalFiles = null,
-        (Uri fileUri, string contents)[]? additionalExpectedFiles = null,
+        (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null,
         bool addDefaultImports = true,
         bool makeDiagnosticsRequest = false)
     {
@@ -56,7 +56,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
             ? codeAction.Edit.AssumeNotNull()
             : await ResolveCodeActionAsync(document, codeAction);
 
-        var expectedChanges = (additionalExpectedFiles ?? []).Concat([(document.CreateUri(), expected)]);
+        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (e.fileUri, e.contents)).Concat([(document.GetURI(), expected)]);
         await workspaceEdit.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 
@@ -176,7 +176,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
         var request = new VSCodeActionParams
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = document.CreateDocumentUri() },
+            TextDocument = new VSTextDocumentIdentifier { DocumentUri = document.GetURI() },
             Range = range,
             Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics.ToArray() }
         };

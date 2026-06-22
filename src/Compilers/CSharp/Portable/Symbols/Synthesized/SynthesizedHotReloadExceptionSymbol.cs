@@ -100,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override NamedTypeSymbol ConstructedFrom => this;
         public override bool MightContainExtensions => false;
         internal override bool HasDeclaredRequiredMembers => false;
+        internal override bool IsClosed => false;
+        internal override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => [];
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
         public override TypeKind TypeKind => TypeKind.Class;
         public override Symbol ContainingSymbol => _namespace;

@@ -24,15 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Encapsulates a symbol used in ref safety analysis. For properties and indexers this
-        /// captures the accessor(s) on it that were used. The particular accessor used is 
-        /// important as it can impact ref safety analysis.
+        /// captures the accessor on it that is used.
         /// </summary>
         private readonly struct MethodInfo
         {
             internal Symbol Symbol { get; }
 
             /// <summary>
-            /// This is the primary <see cref="MethodSymbol" /> used in ref safety analysis.
+            /// This is the <see cref="MethodSymbol" /> used in ref safety analysis.
             /// </summary>
             /// <remarks>
             /// This will be null in error scenarios. For example when an indexer with only a set
@@ -41,60 +40,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </remarks>
             internal MethodSymbol? Method { get; }
 
-            /// <summary>
-            /// In the case of a compound operation on non-ref return property or indexer 
-            /// <see cref="Method"/> will represent the `get` accessor and this will 
-            /// represent the `set` accessor. 
-            /// </summary>
-            internal MethodSymbol? SetMethod { get; }
-
             internal bool UseUpdatedEscapeRules => Method?.UseUpdatedEscapeRules == true;
             internal bool ReturnsRefToRefStruct =>
                 Method is { RefKind: not RefKind.None, ReturnType: { } returnType } &&
                 returnType.IsRefLikeOrAllowsRefLikeType();
 
-            private MethodInfo(Symbol symbol, MethodSymbol? method, MethodSymbol? setMethod)
+            private MethodInfo(Symbol symbol, MethodSymbol? method)
             {
                 Symbol = symbol;
                 Method = method;
-                SetMethod = setMethod;
             }
 
             internal static MethodInfo Create(MethodSymbol method)
             {
-                return new MethodInfo(method, method, null);
+                return new MethodInfo(method, method);
             }
 
-            internal static MethodInfo Create(PropertySymbol property)
+            internal static MethodInfo CreateFromPropertyGetter(PropertySymbol property)
             {
-                return new MethodInfo(
-                    property,
-                    property.GetOwnOrInheritedGetMethod() ?? property.GetOwnOrInheritedSetMethod(),
-                    null);
+                return new MethodInfo(property, property.GetOwnOrInheritedGetMethod());
             }
 
-            internal static MethodInfo Create(PropertySymbol property, AccessorKind accessorKind) =>
-                accessorKind switch
-                {
-                    AccessorKind.Get => new MethodInfo(property, property.GetOwnOrInheritedGetMethod(), setMethod: null),
-                    AccessorKind.Set => new MethodInfo(property, property.GetOwnOrInheritedSetMethod(), setMethod: null),
-                    AccessorKind.Both => new MethodInfo(property, property.GetOwnOrInheritedGetMethod(), property.GetOwnOrInheritedSetMethod()),
-                    _ => throw ExceptionUtilities.UnexpectedValue(accessorKind),
-                };
-
-            internal static MethodInfo Create(BoundIndexerAccess expr) =>
-                Create(expr.Indexer, expr.AccessorKind);
+            internal static MethodInfo CreateFromPropertySetter(PropertySymbol property)
+            {
+                return new MethodInfo(property, property.GetOwnOrInheritedSetMethod());
+            }
 
             internal MethodInfo ReplaceWithExtensionImplementation(out bool wasError)
             {
                 var method = replace(Method);
-                var setMethod = replace(SetMethod);
                 Symbol symbol = ReferenceEquals(Symbol, Method) && method is not null ? method : Symbol;
 
-                Debug.Assert(SetMethod?.IsExtensionBlockMember() != true);
-                wasError = (Method is not null && method is null) || (SetMethod is not null && setMethod is null);
+                wasError = Method is not null && method is null;
 
-                return new MethodInfo(symbol, method, setMethod);
+                return new MethodInfo(symbol, method);
 
                 static MethodSymbol? replace(MethodSymbol? method)
                 {
@@ -172,10 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
-            public static MethodInvocationInfo FromIndexerAccess(BoundIndexerAccess indexerAccess, BoundExpression? substitutedReceiver = null)
-                => new MethodInvocationInfo
+            public static MethodInvocationInfo FromIndexerGetter(BoundIndexerAccess indexerAccess, BoundExpression? substitutedReceiver = null)
+            {
+                Debug.Assert(indexerAccess.AccessorKind != AccessorKind.Set);
+                return new MethodInvocationInfo
                 {
-                    MethodInfo = MethodInfo.Create(indexerAccess),
+                    MethodInfo = MethodInfo.CreateFromPropertyGetter(indexerAccess.Indexer),
                     Receiver = substitutedReceiver ?? indexerAccess.ReceiverOpt,
                     ReceiverIsSubjectToCloning = indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                     Parameters = indexerAccess.Indexer.Parameters,
@@ -184,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ArgsToParamsOpt = indexerAccess.ArgsToParamsOpt,
                     HasAnyErrors = indexerAccess.HasAnyErrors
                 };
+            }
 
             public static MethodInvocationInfo FromObjectCreation(BoundObjectCreationExpressionBase objectCreation)
             {
@@ -319,14 +301,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HasAnyErrors = hasAnyErrors
                 };
 
-            public static MethodInvocationInfo FromProperty(BoundPropertyAccess propertyAccess)
-                => new MethodInvocationInfo
+            public static MethodInvocationInfo FromPropertyGetter(BoundPropertyAccess propertyAccess)
+            {
+                Debug.Assert(propertyAccess.AutoPropertyAccessorKind != AccessorKind.Set);
+                return new MethodInvocationInfo
                 {
-                    MethodInfo = MethodInfo.Create(propertyAccess.PropertySymbol),
+                    MethodInfo = MethodInfo.CreateFromPropertyGetter(propertyAccess.PropertySymbol),
                     Receiver = propertyAccess.ReceiverOpt,
                     ReceiverIsSubjectToCloning = propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                     HasAnyErrors = propertyAccess.HasAnyErrors,
                 };
+            }
 
             public static MethodInvocationInfo FromCollectionElementInitializer(BoundCollectionElementInitializer colElement)
                 => new MethodInvocationInfo
@@ -540,9 +525,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Expression can be the operand of an increment or decrement operation.
-            /// Same as CompoundAssignment, the distinction is really just for error reporting.
+            /// Same as CompoundAssignment, the distinction is really just for error reporting
+            /// and event handling.
             /// </summary>
             IncrementDecrement = CompoundAssignment + 1,
+
+            /// <summary>
+            /// Expression can be the operand of a null-coalescing assignment operation (??=).
+            /// Same as CompoundAssignment, the distinction is really just for error reporting
+            /// and event handling.
+            /// </summary>
+            NullCoalescingAssignment = CompoundAssignment + 2,
 
             /// <summary>
             /// Expression is a r/o reference.
@@ -635,10 +628,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var coreValueKind = valueKind & ValueKindSignificantBitsMask;
             AccessorKind accessorKind = GetIndexerAccessorKind(indexerAccess, valueKind);
-            var useSetAccessor = coreValueKind == BindValueKind.Assignable && indexerAccess.Indexer.RefKind != RefKind.Ref;
+            PropertySymbol indexer = indexerAccess.Indexer;
+            var useSetAccessor = coreValueKind == BindValueKind.Assignable && indexer.RefKind != RefKind.Ref;
             var accessorForDefaultArguments = useSetAccessor
-                ? indexerAccess.Indexer.GetOwnOrInheritedSetMethod()
-                : indexerAccess.Indexer.GetOwnOrInheritedGetMethod();
+                ? indexer.GetOwnOrInheritedSetMethod()
+                : indexer.GetOwnOrInheritedGetMethod();
             if (accessorForDefaultArguments is not null)
             {
                 var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(accessorForDefaultArguments.ParameterCount);
@@ -665,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BitVector defaultArguments = default;
-                Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
+                Debug.Assert(parameters.Length == indexer.Parameters.Length);
 
                 ImmutableArray<string?> argumentNamesOpt = indexerAccess.ArgumentNamesOpt;
 
@@ -691,9 +685,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // Tracked by https://github.com/dotnet/roslyn/issues/78829 : caller info on extension parameter of an extension indexer will need the receiver/argument to be passed
-                    Debug.Assert(!indexerAccess.Indexer.IsExtensionBlockMember());
-                    BindDefaultArguments(indexerAccess.Syntax, parameters, extensionReceiver: null, argumentsBuilder, refKindsBuilderOpt, namesBuilder, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics: diagnostics);
+                    BoundExpression? extensionReceiver = indexer.IsExtensionBlockMember() ? indexerAccess.ReceiverOpt : null;
+                    BindDefaultArguments(indexerAccess.Syntax, parameters, extensionReceiver, argumentsBuilder, refKindsBuilderOpt, namesBuilder, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics: diagnostics);
 
                     if (namesBuilder is object)
                     {
@@ -705,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexerAccess = indexerAccess.Update(
                     indexerAccess.ReceiverOpt,
                     indexerAccess.InitialBindingReceiverIsSubjectToCloning,
-                    indexerAccess.Indexer,
+                    indexer,
                     argumentsBuilder.ToImmutableAndFree(),
                     argumentNamesOpt,
                     refKindsBuilderOpt?.ToImmutableOrNull() ?? default,
@@ -1165,7 +1158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
-                    break;
+                    {
+                        var placeholder = (BoundImplicitIndexerReceiverPlaceholder)expr;
+                        return CheckValueKind(node, placeholder.Receiver, valueKind, checkingReceiver, diagnostics);
+                    }
 
                 case BoundKind.DeconstructValuePlaceholder:
                     break;
@@ -1840,15 +1836,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
-            // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
-            // accessibility, use site errors, and receiver variable-ness (for structs).
-            // Other operations are allowed only for field-like events and only where the backing field is accessible
-            // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
-
             BoundExpression receiver = boundEvent.ReceiverOpt;
             SyntaxNode eventSyntax = GetEventName(boundEvent); //does not include receiver
             EventSymbol eventSymbol = boundEvent.EventSymbol;
 
+            // For events, we intentionally do not filter out the lower bits of BindValueKind; they specify semantic information
+            // such as being increment/decrement or null-coalescing.
+            // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
+            // accessibility, use site errors, and receiver variable-ness (for structs).
+            // Other operations are allowed only for field-like events and only where the backing field is accessible
+            // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
             if (valueKind == BindValueKind.CompoundAssignment)
             {
                 // NOTE: accessibility has already been checked by lookup.
@@ -2760,32 +2757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static EscapeArgument getReceiver(in MethodInfo methodInfo, BoundExpression receiver)
             {
-                // When there is compound usage the receiver is used once but both the get and 
-                // set methods are invoked. This will prefer an accessor that has a writable 
-                // `this` as it's more dangerous from a ref safety standpoint. 
-                if (methodInfo.Method is not null && methodInfo.SetMethod is not null)
-                {
-                    var getArgument = getReceiverCore(methodInfo.Method, receiver);
-                    if (getArgument.RefKind == RefKind.Ref)
-                    {
-                        return getArgument;
-                    }
-
-                    var setArgument = getReceiverCore(methodInfo.SetMethod, receiver);
-                    if (setArgument.RefKind == RefKind.Ref)
-                    {
-                        return setArgument;
-                    }
-
-                    Debug.Assert(!getArgument.RefKind.IsWritableReference());
-                    return getArgument;
-                }
-
-                return getReceiverCore(methodInfo.Method, receiver);
-            }
-
-            static EscapeArgument getReceiverCore(MethodSymbol? method, BoundExpression receiver)
-            {
+                MethodSymbol? method = methodInfo.Method;
                 if (method is FunctionPointerMethodSymbol)
                 {
                     return new EscapeArgument(parameter: null, receiver, RefKind.None);
@@ -2901,7 +2873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (methodInfo.Symbol.RequiresInstanceReceiver())
             {
                 // We have an instance method receiver.
-                if (!hasRefToRefStructThis(methodInfo.Method) && !hasRefToRefStructThis(methodInfo.SetMethod))
+                if (!hasRefToRefStructThis(methodInfo.Method))
                 {
                     return;
                 }
@@ -3502,6 +3474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case BindValueKind.CompoundAssignment:
+                case BindValueKind.NullCoalescingAssignment:
                 case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgReadonlyLocal;
 
@@ -3537,6 +3510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.Assignable:
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.IncrementDecrement:
+                case BindValueKind.NullCoalescingAssignment:
                     return ErrorCode.ERR_QueryRangeVariableReadOnly;
 
                 case BindValueKind.AddressOf:
@@ -3574,6 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case BindValueKind.CompoundAssignment:
+                case BindValueKind.NullCoalescingAssignment:
                 case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgLvalueExpected;
 
@@ -3773,6 +3748,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                     return _localScopeDepth;
 
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    Debug.Assert(false);
+                    return GetRefEscape(((BoundImplicitIndexerReceiverPlaceholder)expr).Receiver);
+
                 case BoundKind.ThisReference:
                     var thisParam = ((MethodSymbol)_symbol).ThisParameter;
                     Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
@@ -3854,7 +3833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerSymbol = indexerAccess.Indexer;
 
                         return GetInvocationEscapeScope(
-                            MethodInvocationInfo.FromIndexerAccess(indexerAccess),
+                            MethodInvocationInfo.FromIndexerGetter(indexerAccess),
                             isRefEscape: true);
                     }
 
@@ -3869,7 +3848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var indexerSymbol = indexerAccess.Indexer;
 
                             return GetInvocationEscapeScope(
-                                MethodInvocationInfo.FromIndexerAccess(indexerAccess, implicitIndexerAccess.Receiver),
+                                MethodInvocationInfo.FromIndexerGetter(indexerAccess, implicitIndexerAccess.Receiver),
                                 isRefEscape: true);
 
                         case BoundArrayAccess:
@@ -3923,7 +3902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // not passing any arguments/parameters
                     return GetInvocationEscapeScope(
-                        MethodInvocationInfo.FromProperty(propertyAccess),
+                        MethodInvocationInfo.FromPropertyGetter(propertyAccess),
                         isRefEscape: true);
 
                 case BoundKind.AssignmentOperator:
@@ -4068,6 +4047,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    Debug.Assert(false);
+                    return CheckRefEscape(node, ((BoundImplicitIndexerReceiverPlaceholder)expr).Receiver, escapeTo, checkingReceiver, diagnostics);
+
                 case BoundKind.ThisReference:
                     var thisParam = ((MethodSymbol)_symbol).ThisParameter;
                     Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
@@ -4135,7 +4118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return CheckInvocationEscape(
                             indexerAccess.Syntax,
-                            MethodInvocationInfo.FromIndexerAccess(indexerAccess),
+                            MethodInvocationInfo.FromIndexerGetter(indexerAccess),
                             checkingReceiver,
                             escapeTo,
                             diagnostics,
@@ -4159,7 +4142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             return CheckInvocationEscape(
                                 indexerAccess.Syntax,
-                                MethodInvocationInfo.FromIndexerAccess(indexerAccess, implicitIndexerAccess.Receiver),
+                                MethodInvocationInfo.FromIndexerGetter(indexerAccess, implicitIndexerAccess.Receiver),
                                 checkingReceiver,
                                 escapeTo,
                                 diagnostics,
@@ -4248,7 +4231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // not passing any arguments/parameters
                     return CheckInvocationEscape(
                         propertyAccess.Syntax,
-                        MethodInvocationInfo.FromProperty(propertyAccess),
+                        MethodInvocationInfo.FromPropertyGetter(propertyAccess),
                         checkingReceiver,
                         escapeTo,
                         diagnostics,
@@ -4429,6 +4412,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var placeholder = (BoundCapturedReceiverPlaceholder)expr;
                     return GetValEscape(placeholder.Receiver);
 
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    Debug.Assert(false);
+                    return GetValEscape(((BoundImplicitIndexerReceiverPlaceholder)expr).Receiver);
+
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
                     return SafeContext.CurrentMethod;
@@ -4495,7 +4482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerSymbol = indexerAccess.Indexer;
 
                         return GetInvocationEscapeScope(
-                            MethodInvocationInfo.FromIndexerAccess(indexerAccess),
+                            MethodInvocationInfo.FromIndexerGetter(indexerAccess),
                             isRefEscape: false);
                     }
 
@@ -4510,7 +4497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var indexerSymbol = indexerAccess.Indexer;
 
                             return GetInvocationEscapeScope(
-                                MethodInvocationInfo.FromIndexerAccess(indexerAccess, implicitIndexerAccess.Receiver),
+                                MethodInvocationInfo.FromIndexerGetter(indexerAccess, implicitIndexerAccess.Receiver),
                                 isRefEscape: false);
 
                         case BoundArrayAccess:
@@ -4549,7 +4536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // not passing any arguments/parameters
                     return GetInvocationEscapeScope(
-                        MethodInvocationInfo.FromProperty(propertyAccess),
+                        MethodInvocationInfo.FromPropertyGetter(propertyAccess),
                         isRefEscape: false);
 
                 case BoundKind.ObjectCreationExpression:
@@ -4985,8 +4972,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundObjectInitializerMember expr,
                 SafeContext rightEscapeScope)
             {
-                Debug.Assert(expr.AccessorKind != AccessorKind.Unknown);
-                var methodInfo = MethodInfo.Create(indexer, expr.AccessorKind);
+                bool isSet = indexer.RefKind == RefKind.None;
+                var methodInfo = isSet ? MethodInfo.CreateFromPropertySetter(indexer) : MethodInfo.CreateFromPropertyGetter(indexer);
                 if (methodInfo.Method is null)
                 {
                     return SafeContext.CallingMethod;
@@ -5041,8 +5028,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol property,
                 SafeContext rightEscapeScope)
             {
-                var accessorKind = property.RefKind == RefKind.None ? AccessorKind.Set : AccessorKind.Get;
-                var methodInfo = MethodInfo.Create(property, accessorKind);
+                bool isSet = property.RefKind == RefKind.None;
+                var methodInfo = isSet ? MethodInfo.CreateFromPropertySetter(property) : MethodInfo.CreateFromPropertyGetter(property);
                 if (methodInfo.Method is null || methodInfo.Method.IsEffectivelyReadOnly)
                 {
                     return SafeContext.CallingMethod;
@@ -5212,6 +5199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // for ref-like fields defer to the receiver.
                     return CheckValEscape(node, fieldAccess.ReceiverOpt, escapeTo, true, diagnostics);
 
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    Debug.Assert(false);
+                    return CheckValEscape(node, ((BoundImplicitIndexerReceiverPlaceholder)expr).Receiver, escapeTo, checkingReceiver, diagnostics);
+
                 case BoundKind.Call:
                     {
                         var call = (BoundCall)expr;
@@ -5250,7 +5241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return CheckInvocationEscape(
                             indexerAccess.Syntax,
-                            MethodInvocationInfo.FromIndexerAccess(indexerAccess),
+                            MethodInvocationInfo.FromIndexerGetter(indexerAccess),
                             checkingReceiver,
                             escapeTo,
                             diagnostics,
@@ -5269,7 +5260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             return CheckInvocationEscape(
                                 indexerAccess.Syntax,
-                                MethodInvocationInfo.FromIndexerAccess(indexerAccess, implicitIndexerAccess.Receiver),
+                                MethodInvocationInfo.FromIndexerGetter(indexerAccess, implicitIndexerAccess.Receiver),
                                 checkingReceiver,
                                 escapeTo,
                                 diagnostics,
@@ -5322,7 +5313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // not passing any arguments/parameters
                     return CheckInvocationEscape(
                         propertyAccess.Syntax,
-                        MethodInvocationInfo.FromProperty(propertyAccess),
+                        MethodInvocationInfo.FromPropertyGetter(propertyAccess),
                         checkingReceiver,
                         escapeTo,
                         diagnostics,

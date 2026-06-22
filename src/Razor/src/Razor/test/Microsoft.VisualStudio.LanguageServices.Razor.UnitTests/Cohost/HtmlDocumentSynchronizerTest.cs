@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -75,7 +75,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         Assert.True(syncResult.Synchronized);
 
         // "Close" the document
-        synchronizer.DocumentRemoved(document.CreateUri(), DisposalToken);
+        synchronizer.DocumentRemoved(document.CreateSystemUri(), DisposalToken);
 
         Assert.True((await synchronizer.TrySynchronizeAsync(document, DisposalToken)).Synchronized);
 
@@ -363,7 +363,7 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
         public bool OOPReturnsNull { get; set; }
         public Func<Task>? GenerateTask { get; set; } = generateTask;
 
-        public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
+        public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
         {
             Assert.Equal(typeof(string), typeof(TResult));
             Assert.Equal(typeof(IRemoteHtmlDocumentService), typeof(TService));

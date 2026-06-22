@@ -46,7 +46,7 @@ internal partial class RazorEditService
 
     private async Task MapTextDocumentEditAsync(IDocumentSnapshot contextDocumentSnapshot, TextDocumentEdit entry, CancellationToken cancellationToken)
     {
-        var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredParsedUri();
+        var generatedDocumentUri = entry.TextDocument.DocumentUri.GetRequiredSystemUri();
 
         // For Html we just map the Uri, the range will be the same
         if (_filePathService.IsVirtualHtmlFile(generatedDocumentUri))
@@ -54,7 +54,7 @@ internal partial class RazorEditService
             var razorUri = _filePathService.GetRazorDocumentUri(generatedDocumentUri);
             entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
             {
-                DocumentUri = new(razorUri),
+                DocumentUri = razorUri.CreateDocumentUriFromSystemUri(),
             };
             return;
         }
@@ -89,7 +89,7 @@ internal partial class RazorEditService
         // Update the entry in-place
         entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
         {
-            DocumentUri = new(razorDocumentUri),
+            DocumentUri = razorDocumentUri.CreateDocumentUriFromSystemUri(),
         };
         entry.Edits = mappedEdits.SelectAsPlainArray(static e => new SumType<TextEdit, AnnotatedTextEdit>(e));
     }

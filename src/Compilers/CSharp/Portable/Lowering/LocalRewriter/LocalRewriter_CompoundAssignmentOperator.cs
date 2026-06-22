@@ -227,16 +227,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
 
+                // Note: the receiver is known to be captured because of TransformCompoundAssignmentLHS
                 if (IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the binary operation
                     BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
-                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
+                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
                     Debug.Assert(assignment.Type is { });
                     return new BoundSequence(syntax, [binaryResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
             }
         }
 
@@ -329,9 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             temps.Add(receiverTemp.LocalSymbol);
 
             if (receiverTemp.LocalSymbol.IsRef &&
-                (propertyOrEvent.IsExtensionBlockMember() ?
-                     !receiverTemp.Type.IsValueType :
-                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
+                IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(propertyOrEvent, receiverTemp) &&
                 !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp))
             {
                 BoundAssignmentOperator? extraRefInitialization;
@@ -554,12 +553,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
         {
             Debug.Assert(implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None);
-            var access = GetUnderlyingIndexerOrSliceAccess(
+            var access = VisitIndexPatternIndexerAccess(
                 implicitIndexerAccess,
                 isLeftOfAssignment: true,
                 isRegularAssignment: false,
                 cacheAllArgumentsOnly: false,
-                stores, temps);
+                stores, temps,
+                out bool receiverIsKnownToBeCaptured);
+
+            Debug.Assert(receiverIsKnownToBeCaptured);
 
             if (access is BoundIndexerAccess indexerAccess)
             {
@@ -750,8 +752,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerAccess:
                     {
                         var implicitIndexerAccess = (BoundImplicitIndexerAccess)originalLHS;
-                        Debug.Assert(implicitIndexerAccess.Argument.Type!.Equals(_compilation.GetWellKnownType(WellKnownType.System_Index))
-                            || implicitIndexerAccess.Argument.Type!.Equals(_compilation.GetWellKnownType(WellKnownType.System_Range)));
+                        Debug.Assert(Binder.IsWellKnownSystemIndex(implicitIndexerAccess.Argument.Type, _compilation)
+                            || Binder.IsWellKnownSystemRange(implicitIndexerAccess.Argument.Type, _compilation));
 
                         if (implicitIndexerAccess.GetRefKind() == RefKind.None)
                         {

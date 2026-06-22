@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -7,11 +7,12 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CallHierarchy;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Remote;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -34,7 +35,7 @@ internal sealed class CohostPrepareCallHierarchyEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.CallHierarchy?.DynamicRegistration == true)
         {
@@ -48,8 +49,8 @@ internal sealed class CohostPrepareCallHierarchyEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(CallHierarchyPrepareParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(CallHierarchyPrepareParams request)
+        => request.TextDocument;
 
     protected override async Task<CallHierarchyItem[]?> HandleRequestAsync(CallHierarchyPrepareParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -71,7 +72,7 @@ internal sealed class CohostPrepareCallHierarchyEndpoint(
 
     private static CallHierarchyItem WrapRazorItem(CallHierarchyItem item, TextDocumentIdentifier textDocument)
     {
-        var uri = item.Uri.GetRequiredParsedUri();
+        var uri = item.Uri;
         return uri.GetDocumentFilePathFromUri().IsRazorFilePath()
             ? RazorCallHierarchyResolveData.Wrap(item, textDocument.WithUri(uri))
             : item;

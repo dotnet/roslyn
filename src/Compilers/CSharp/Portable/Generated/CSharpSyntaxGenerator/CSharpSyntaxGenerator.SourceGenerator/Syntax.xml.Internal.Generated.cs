@@ -3682,6 +3682,105 @@ internal sealed partial class CheckedExpressionSyntax : ExpressionSyntax
         => new CheckedExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
 }
 
+/// <summary>Class which represents the syntax node for Unsafe expression.</summary>
+internal sealed partial class UnsafeExpressionSyntax : ExpressionSyntax
+{
+    internal readonly SyntaxToken keyword;
+    internal readonly SyntaxToken openParenToken;
+    internal readonly ExpressionSyntax expression;
+    internal readonly SyntaxToken closeParenToken;
+
+    internal UnsafeExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+    }
+
+    internal UnsafeExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+    }
+
+    internal UnsafeExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+      : base(kind)
+    {
+        this.SlotCount = 4;
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        this.AdjustFlagsAndWidth(expression);
+        this.expression = expression;
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+    }
+
+    /// <summary>SyntaxToken representing the unsafe keyword.</summary>
+    public SyntaxToken Keyword => this.keyword;
+    /// <summary>SyntaxToken representing open parenthesis.</summary>
+    public SyntaxToken OpenParenToken => this.openParenToken;
+    /// <summary>Operand of the unsafe expression.</summary>
+    public ExpressionSyntax Expression => this.expression;
+    /// <summary>SyntaxToken representing close parenthesis.</summary>
+    public SyntaxToken CloseParenToken => this.closeParenToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.keyword,
+            1 => this.openParenToken,
+            2 => this.expression,
+            3 => this.closeParenToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.UnsafeExpressionSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnsafeExpression(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnsafeExpression(this);
+
+    public UnsafeExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    {
+        if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
+        {
+            var newNode = SyntaxFactory.UnsafeExpression(keyword, openParenToken, expression, closeParenToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new UnsafeExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new UnsafeExpressionSyntax(this.Kind, this.keyword, this.openParenToken, this.expression, this.closeParenToken, GetDiagnostics(), annotations);
+}
+
 /// <summary>Class which represents the syntax node for Default expression.</summary>
 internal sealed partial class DefaultExpressionSyntax : ExpressionSyntax
 {
@@ -17170,7 +17269,7 @@ internal sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
 
     public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
-    /// <summary>Gets the struct or union keyword token.</summary>
+    /// <summary>Gets the struct keyword token.</summary>
     public override SyntaxToken Keyword => this.keyword;
     public override SyntaxToken Identifier => this.identifier;
     public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
@@ -17209,7 +17308,7 @@ internal sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
         if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.StructDeclaration(this.Kind, attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+            var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
             var diags = GetDiagnostics();
             if (diags?.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -17227,6 +17326,264 @@ internal sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         => new StructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+}
+
+/// <summary>Union type declaration syntax.</summary>
+internal sealed partial class UnionDeclarationSyntax : TypeDeclarationSyntax
+{
+    internal readonly GreenNode? attributeLists;
+    internal readonly GreenNode? modifiers;
+    internal readonly SyntaxToken keyword;
+    internal readonly SyntaxToken identifier;
+    internal readonly TypeParameterListSyntax? typeParameterList;
+    internal readonly ParameterListSyntax? parameterList;
+    internal readonly BaseListSyntax? baseList;
+    internal readonly GreenNode? constraintClauses;
+    internal readonly SyntaxToken? openBraceToken;
+    internal readonly GreenNode? members;
+    internal readonly SyntaxToken? closeBraceToken;
+    internal readonly SyntaxToken? semicolonToken;
+
+    internal UnionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 12;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        this.AdjustFlagsAndWidth(identifier);
+        this.identifier = identifier;
+        if (typeParameterList != null)
+        {
+            this.AdjustFlagsAndWidth(typeParameterList);
+            this.typeParameterList = typeParameterList;
+        }
+        if (parameterList != null)
+        {
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+        }
+        if (baseList != null)
+        {
+            this.AdjustFlagsAndWidth(baseList);
+            this.baseList = baseList;
+        }
+        if (constraintClauses != null)
+        {
+            this.AdjustFlagsAndWidth(constraintClauses);
+            this.constraintClauses = constraintClauses;
+        }
+        if (openBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+        }
+        if (members != null)
+        {
+            this.AdjustFlagsAndWidth(members);
+            this.members = members;
+        }
+        if (closeBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+        if (semicolonToken != null)
+        {
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+    }
+
+    internal UnionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 12;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        this.AdjustFlagsAndWidth(identifier);
+        this.identifier = identifier;
+        if (typeParameterList != null)
+        {
+            this.AdjustFlagsAndWidth(typeParameterList);
+            this.typeParameterList = typeParameterList;
+        }
+        if (parameterList != null)
+        {
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+        }
+        if (baseList != null)
+        {
+            this.AdjustFlagsAndWidth(baseList);
+            this.baseList = baseList;
+        }
+        if (constraintClauses != null)
+        {
+            this.AdjustFlagsAndWidth(constraintClauses);
+            this.constraintClauses = constraintClauses;
+        }
+        if (openBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+        }
+        if (members != null)
+        {
+            this.AdjustFlagsAndWidth(members);
+            this.members = members;
+        }
+        if (closeBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+        if (semicolonToken != null)
+        {
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+    }
+
+    internal UnionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+      : base(kind)
+    {
+        this.SlotCount = 12;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
+        if (modifiers != null)
+        {
+            this.AdjustFlagsAndWidth(modifiers);
+            this.modifiers = modifiers;
+        }
+        this.AdjustFlagsAndWidth(keyword);
+        this.keyword = keyword;
+        this.AdjustFlagsAndWidth(identifier);
+        this.identifier = identifier;
+        if (typeParameterList != null)
+        {
+            this.AdjustFlagsAndWidth(typeParameterList);
+            this.typeParameterList = typeParameterList;
+        }
+        if (parameterList != null)
+        {
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+        }
+        if (baseList != null)
+        {
+            this.AdjustFlagsAndWidth(baseList);
+            this.baseList = baseList;
+        }
+        if (constraintClauses != null)
+        {
+            this.AdjustFlagsAndWidth(constraintClauses);
+            this.constraintClauses = constraintClauses;
+        }
+        if (openBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+        }
+        if (members != null)
+        {
+            this.AdjustFlagsAndWidth(members);
+            this.members = members;
+        }
+        if (closeBraceToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+        }
+        if (semicolonToken != null)
+        {
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+    }
+
+    public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override CoreSyntax.SyntaxList<SyntaxToken> Modifiers => new CoreSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+    /// <summary>Gets the union keyword token.</summary>
+    public override SyntaxToken Keyword => this.keyword;
+    public override SyntaxToken Identifier => this.identifier;
+    public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+    public override ParameterListSyntax? ParameterList => this.parameterList;
+    public override BaseListSyntax? BaseList => this.baseList;
+    public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+    public override SyntaxToken? OpenBraceToken => this.openBraceToken;
+    public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+    public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
+    public override SyntaxToken? SemicolonToken => this.semicolonToken;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.attributeLists,
+            1 => this.modifiers,
+            2 => this.keyword,
+            3 => this.identifier,
+            4 => this.typeParameterList,
+            5 => this.parameterList,
+            6 => this.baseList,
+            7 => this.constraintClauses,
+            8 => this.openBraceToken,
+            9 => this.members,
+            10 => this.closeBraceToken,
+            11 => this.semicolonToken,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.UnionDeclarationSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnionDeclaration(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnionDeclaration(this);
+
+    public UnionDeclarationSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, BaseListSyntax baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+    {
+        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+        {
+            var newNode = SyntaxFactory.UnionDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new UnionDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new UnionDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 }
 
 /// <summary>Interface type declaration syntax.</summary>
@@ -27147,6 +27504,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitUnsafeExpression(UnsafeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
@@ -27272,6 +27630,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitUnionDeclaration(UnionDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
@@ -27400,6 +27759,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitUnsafeExpression(UnsafeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
@@ -27525,6 +27885,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
     public virtual void VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitUnionDeclaration(UnionDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
@@ -27735,6 +28096,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
         => node.Update((SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.Comma), (TypeSyntax)Visit(node.Type), (SyntaxToken)Visit(node.CloseParenToken));
 
     public override CSharpSyntaxNode VisitCheckedExpression(CheckedExpressionSyntax node)
+        => node.Update((SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseParenToken));
+
+    public override CSharpSyntaxNode VisitUnsafeExpression(UnsafeExpressionSyntax node)
         => node.Update((SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseParenToken));
 
     public override CSharpSyntaxNode VisitDefaultExpression(DefaultExpressionSyntax node)
@@ -28110,6 +28474,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
 
     public override CSharpSyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
+        => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
+
+    public override CSharpSyntaxNode VisitUnionDeclaration(UnionDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
 
     public override CSharpSyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
@@ -29428,6 +29795,21 @@ internal partial class ContextAwareSyntax
 #endif
 
         return new CheckedExpressionSyntax(kind, keyword, openParenToken, expression, closeParenToken, this.context);
+    }
+
+    public UnsafeExpressionSyntax UnsafeExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    {
+#if DEBUG
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(keyword));
+        if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
+        if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
+        if (closeParenToken == null) throw new ArgumentNullException(nameof(closeParenToken));
+        if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+#endif
+
+        return new UnsafeExpressionSyntax(SyntaxKind.UnsafeExpression, keyword, openParenToken, expression, closeParenToken, this.context);
     }
 
     public DefaultExpressionSyntax DefaultExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
@@ -31908,22 +32290,11 @@ internal partial class ContextAwareSyntax
         return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
     }
 
-    public StructDeclarationSyntax StructDeclaration(SyntaxKind kind, CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    public StructDeclarationSyntax StructDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
     {
-        switch (kind)
-        {
-            case SyntaxKind.StructDeclaration:
-            case SyntaxKind.UnionDeclaration: break;
-            default: throw new ArgumentException(nameof(kind));
-        }
 #if DEBUG
         if (keyword == null) throw new ArgumentNullException(nameof(keyword));
-        switch (keyword.Kind)
-        {
-            case SyntaxKind.StructKeyword:
-            case SyntaxKind.UnionKeyword: break;
-            default: throw new ArgumentException(nameof(keyword));
-        }
+        if (keyword.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(keyword));
         if (identifier == null) throw new ArgumentNullException(nameof(identifier));
         if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
         if (openBraceToken != null)
@@ -31955,7 +32326,46 @@ internal partial class ContextAwareSyntax
         }
 #endif
 
-        return new StructDeclarationSyntax(kind, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
+        return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
+    }
+
+    public UnionDeclarationSyntax UnionDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    {
+#if DEBUG
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.UnionKeyword) throw new ArgumentException(nameof(keyword));
+        if (identifier == null) throw new ArgumentNullException(nameof(identifier));
+        if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+        if (openBraceToken != null)
+        {
+            switch (openBraceToken.Kind)
+            {
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(openBraceToken));
+            }
+        }
+        if (closeBraceToken != null)
+        {
+            switch (closeBraceToken.Kind)
+            {
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(closeBraceToken));
+            }
+        }
+        if (semicolonToken != null)
+        {
+            switch (semicolonToken.Kind)
+            {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(semicolonToken));
+            }
+        }
+#endif
+
+        return new UnionDeclarationSyntax(SyntaxKind.UnionDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
     }
 
     public InterfaceDeclarationSyntax InterfaceDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
@@ -34851,6 +35261,21 @@ internal static partial class SyntaxFactory
         return new CheckedExpressionSyntax(kind, keyword, openParenToken, expression, closeParenToken);
     }
 
+    public static UnsafeExpressionSyntax UnsafeExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+    {
+#if DEBUG
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(keyword));
+        if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
+        if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+        if (expression == null) throw new ArgumentNullException(nameof(expression));
+        if (closeParenToken == null) throw new ArgumentNullException(nameof(closeParenToken));
+        if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+#endif
+
+        return new UnsafeExpressionSyntax(SyntaxKind.UnsafeExpression, keyword, openParenToken, expression, closeParenToken);
+    }
+
     public static DefaultExpressionSyntax DefaultExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
     {
 #if DEBUG
@@ -37329,22 +37754,11 @@ internal static partial class SyntaxFactory
         return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
     }
 
-    public static StructDeclarationSyntax StructDeclaration(SyntaxKind kind, CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    public static StructDeclarationSyntax StructDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
     {
-        switch (kind)
-        {
-            case SyntaxKind.StructDeclaration:
-            case SyntaxKind.UnionDeclaration: break;
-            default: throw new ArgumentException(nameof(kind));
-        }
 #if DEBUG
         if (keyword == null) throw new ArgumentNullException(nameof(keyword));
-        switch (keyword.Kind)
-        {
-            case SyntaxKind.StructKeyword:
-            case SyntaxKind.UnionKeyword: break;
-            default: throw new ArgumentException(nameof(keyword));
-        }
+        if (keyword.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(keyword));
         if (identifier == null) throw new ArgumentNullException(nameof(identifier));
         if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
         if (openBraceToken != null)
@@ -37376,7 +37790,46 @@ internal static partial class SyntaxFactory
         }
 #endif
 
-        return new StructDeclarationSyntax(kind, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+        return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+    }
+
+    public static UnionDeclarationSyntax UnionDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    {
+#if DEBUG
+        if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.UnionKeyword) throw new ArgumentException(nameof(keyword));
+        if (identifier == null) throw new ArgumentNullException(nameof(identifier));
+        if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+        if (openBraceToken != null)
+        {
+            switch (openBraceToken.Kind)
+            {
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(openBraceToken));
+            }
+        }
+        if (closeBraceToken != null)
+        {
+            switch (closeBraceToken.Kind)
+            {
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(closeBraceToken));
+            }
+        }
+        if (semicolonToken != null)
+        {
+            switch (semicolonToken.Kind)
+            {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(semicolonToken));
+            }
+        }
+#endif
+
+        return new UnionDeclarationSyntax(SyntaxKind.UnionDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
     }
 
     public static InterfaceDeclarationSyntax InterfaceDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)

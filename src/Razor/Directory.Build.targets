@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
+  <Import Project="$(MSBuildThisFileDirectory)eng\targets\RewriteRazorVsixManifest.targets" />
 
   <PropertyGroup>
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(Version)</PackageVersion>
+  </PropertyGroup>
+
+  <!-- Match Roslyn's non-official CI build shape so correctness rebuild compares unsigned/public-signed artifacts. -->
+  <PropertyGroup Condition="('$(CI)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true') AND '$(OfficialBuild)' != 'true' AND '$(SignAssembly)' != 'false' AND '$(StrongNameKeyId)' == 'MicrosoftAspNetCore'">
+    <PublicSign>true</PublicSign>
   </PropertyGroup>
 
   <Target Name="MoveRazorShippingSymbolsPackageToNonShipping" AfterTargets="Pack" Condition="'$(IsPackable)' == 'true' and '$(PackageOutputPath)' != '' and ($([System.String]::Copy('$(PackageOutputPath)').Contains('\Shipping\')) or $([System.String]::Copy('$(PackageOutputPath)').Contains('/Shipping/')))">

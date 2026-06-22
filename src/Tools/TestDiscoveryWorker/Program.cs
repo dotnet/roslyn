@@ -77,10 +77,11 @@ try
                 messageSink: sink,
                 discoveryOptions: TestFrameworkOptions.ForDiscovery(configuration));
 
-    var testsToWrite = new HashSet<string>();
-    await foreach (var fullyQualifiedName in sink.GetTestCaseNamesAsync().ConfigureAwait(false))
+    var testsToWrite = new Dictionary<string, bool>();
+    await foreach (var (fullyQualifiedName, hasAsyncLifetime) in sink.GetTestCaseInfosAsync().ConfigureAwait(false))
     {
-        testsToWrite.Add(fullyQualifiedName);
+        if (!testsToWrite.ContainsKey(fullyQualifiedName))
+            testsToWrite[fullyQualifiedName] = hasAsyncLifetime;
     }
 
     if (sink.AnyWriteFailures)
@@ -91,8 +92,12 @@ try
 
     Console.WriteLine($"{testsToWrite.Count} found");
 
+    var testInfos = testsToWrite
+        .OrderBy(x => x.Key)
+        .Select(x => new TestInfo(x.Key, x.Value))
+        .ToArray();
     using var fileStream = new FileStream(outputFilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
-    await JsonSerializer.SerializeAsync(fileStream, testsToWrite.OrderBy(x => x)).ConfigureAwait(false);
+    await JsonSerializer.SerializeAsync(fileStream, testInfos).ConfigureAwait(false);
     return ExitSuccess;
 }
 catch (OptionException e)
@@ -108,18 +113,33 @@ catch (Exception ex)
     return ExitFailure;
 }
 
+file class TestInfo
+{
+    public string MethodName { get; set; } = "";
+    public bool HasAsyncLifetime { get; set; }
+
+    public TestInfo() { }
+
+    public TestInfo(string methodName, bool hasAsyncLifetime)
+    {
+        MethodName = methodName;
+        HasAsyncLifetime = hasAsyncLifetime;
+    }
+}
+
 file class Sink : IMessageSink
 {
     public bool AnyWriteFailures { get; private set; }
 
     public Sink()
     {
-        _channel = Channel.CreateUnbounded<string>();
+        _channel = Channel.CreateUnbounded<(string FullName, bool HasAsyncLifetime)>();
     }
 
-    private readonly Channel<string> _channel;
+    private readonly Channel<(string FullName, bool HasAsyncLifetime)> _channel;
+    private readonly Dictionary<string, bool> _asyncLifetimeCache = new();
 
-    public async IAsyncEnumerable<string> GetTestCaseNamesAsync()
+    public async IAsyncEnumerable<(string FullName, bool HasAsyncLifetime)> GetTestCaseInfosAsync()
     {
         while (await _channel.Reader.WaitToReadAsync(CancellationToken.None).ConfigureAwait(false))
         {
@@ -147,12 +167,26 @@ file class Sink : IMessageSink
 
     private void OnTestDiscovered(ITestCaseDiscoveryMessage testCaseDiscovered)
     {
-        var fullName = $"{testCaseDiscovered.TestCase.TestMethod.TestClass.Class.Name}.{testCaseDiscovered.TestCase.TestMethod.Method.Name}";
+        var testClass = testCaseDiscovered.TestCase.TestMethod.TestClass.Class;
+        var fullName = $"{testClass.Name}.{testCaseDiscovered.TestCase.TestMethod.Method.Name}";
+        var hasAsyncLifetime = HasAsyncLifetime(testClass);
+
         // this shouldn't happen as our channel is unbounded but we are Paranoid Coding™️
-        if (!_channel.Writer.TryWrite(fullName))
+        if (!_channel.Writer.TryWrite((fullName, hasAsyncLifetime)))
         {
             AnyWriteFailures = true;
         }
+    }
+
+    private bool HasAsyncLifetime(ITypeInfo typeInfo)
+    {
+        var typeName = typeInfo.Name;
+        if (_asyncLifetimeCache.TryGetValue(typeName, out var cached))
+            return cached;
+
+        var result = typeInfo.Interfaces.Any(i => i.Name == "Xunit.IAsyncLifetime");
+        _asyncLifetimeCache[typeName] = result;
+        return result;
     }
 }
 

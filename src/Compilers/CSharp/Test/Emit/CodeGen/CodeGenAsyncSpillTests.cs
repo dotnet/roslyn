@@ -7209,12 +7209,9 @@ class Test
 }";
             CompileAndVerify(source, "0", references: new[] { CSharpRef });
 
-            var comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (14,19): error CS9328: Method 'Test.Goo()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         var rez = await mc.Goo<string>(null, await ((Func<Task<string>>)(async () => { await Task.Delay(1); return "Test"; }))());
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, @"await mc.Goo<string>(null, await ((Func<Task<string>>)(async () => { await Task.Delay(1); return ""Test""; }))())").WithArguments("Test.Goo()").WithLocation(14, 19)
-            );
+            // Dynamic awaits with spilled arguments are now supported in runtime async.
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails);
         }
 
         [Fact]
