@@ -10668,14 +10668,20 @@ class C
         [Fact]
         public void RemoveTimingOutput_RemovesReportSections()
         {
-            Assert.Equal("Total analyzer execution time: ", GetResourcePrefix(CodeAnalysisResources.AnalyzerTotalExecutionTime));
             Assert.Equal("No format item", GetResourcePrefix("No format item"));
             Assert.Equal("Value ", GetResourcePrefix("Value {0:000}"));
             Assert.Equal("Value ", GetResourcePrefix("Value {1}"));
+            Assert.Equal("", RemoveTimingOutput(string.Format(CodeAnalysisResources.AnalyzerTotalExecutionTime, "0.123")));
             Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput($"""
                 warning CS0169: field is unused
                 {string.Format(CodeAnalysisResources.AnalyzerTotalExecutionTime, "0.123")}
                 """));
+            Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput($"""
+                warning CS0169: field is unused
+                {string.Format(CodeAnalysisResources.AnalyzerTotalExecutionTime, "0.123")}
+                {string.Format(CodeAnalysisResources.GeneratorTotalExecutionTime, "0.000")}
+                """));
+            Assert.Equal($"warning CS0000: {CodeAnalysisResources.MultithreadedAnalyzerExecutionNote}", RemoveTimingOutput($"warning CS0000: {CodeAnalysisResources.MultithreadedAnalyzerExecutionNote}"));
             Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput($"""
                 warning CS0169: field is unused
                 {CodeAnalysisResources.MultithreadedAnalyzerExecutionNote}
@@ -10686,15 +10692,31 @@ class C
 
         private static string GetResourcePrefix(string resourceFormat)
         {
-            for (var i = 0; i < resourceFormat.Length - 1; i++)
+            for (var i = 0; i < resourceFormat.Length; i++)
             {
-                if (resourceFormat[i] == '{' && char.IsDigit(resourceFormat[i + 1]))
+                if (resourceFormat[i] == '{' && i + 1 < resourceFormat.Length && char.IsDigit(resourceFormat[i + 1]))
                 {
                     return resourceFormat[..i];
                 }
             }
 
             return resourceFormat;
+        }
+
+        private static int IndexOfTimingMarker(string output, string marker)
+        {
+            var index = output.IndexOf(marker, StringComparison.Ordinal);
+            while (index >= 0)
+            {
+                if (index == 0 || output[index - 1] is '\n' or '\r')
+                {
+                    return index;
+                }
+
+                index = output.IndexOf(marker, index + marker.Length, StringComparison.Ordinal);
+            }
+
+            return -1;
         }
 
         private static string RemoveTimingOutput(string output)
@@ -10710,7 +10732,7 @@ class C
                 GetResourcePrefix(CodeAnalysisResources.GeneratorTotalExecutionTime),
             })
             {
-                var markerIndex = output.IndexOf(marker, StringComparison.Ordinal);
+                var markerIndex = IndexOfTimingMarker(output, marker);
                 if (markerIndex >= 0)
                 {
                     index = Math.Min(index, markerIndex);
