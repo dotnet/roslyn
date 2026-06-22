@@ -26,6 +26,7 @@
 - Tests inherit from base classes: `CSharpTestBase`, `VisualBasicTestBase` (compiler), `AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor` (IDE analyzers)
 - Use `[UseExportProvider]` for MEF-dependent tests
 - Copilot coding agent setup preinstalls `roslyn-language-server` as a global tool and syncs the `dotnet/skills` catalog into `~/.copilot/skills`
+- Tests may take a while to build and run. Monitor output and wait until tests complete unless you're confident tests are hanging.
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
