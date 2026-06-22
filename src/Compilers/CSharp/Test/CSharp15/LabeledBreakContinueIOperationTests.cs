@@ -1421,8 +1421,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
     public void ControlFlowGraph_LabeledBreak_OutOfNestedSwitches()
     {
         string source = """
@@ -1494,8 +1493,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
     public void ControlFlowGraph_LabeledBreak_OutOfTryFinallyInLoops()
     {
         string source = """
@@ -1568,8 +1566,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
     public void ControlFlowGraph_LabeledContinue_OutOfTryFinallyInLoops()
     {
         string source = """
@@ -1642,8 +1639,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
     public void ControlFlowGraph_LabeledBreak_OutOfUsingInLoops()
     {
         string source = """
@@ -1733,8 +1729,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
     public void ControlFlowGraph_LabeledBreak_OutOfTryFinallyInSwitch()
     {
         string source = """
