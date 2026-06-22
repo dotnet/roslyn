@@ -144,25 +144,36 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
     private static void ConvertFlagPattern(SyntaxEditor editor, SemanticModel semanticModel, FlagJumpPattern pattern, CancellationToken cancellationToken)
     {
         var loop = pattern.LoopStatement;
+        var declaration = pattern.LocalDeclarationStatement;
         var labelName = GetReusableLabelName(loop) ?? SynthesizeLabelName(semanticModel, loop, cancellationToken);
 
-        // Rewrite the inner breaks and delete the now-dead flag assignments and guard inside the loop in one rebuild.
+        // The flag declaration is usually outside the loop we relabel, but can also sit inside it.  When inside, it
+        // must be removed as part of the single loop rebuild below (a separate editor.RemoveNode would not compose with
+        // the ReplaceNode of the loop); when outside, it is removed on its own afterwards.
+        var declarationInsideLoop = loop.Contains(declaration);
+
+        // Rewrite the inner breaks and delete the now-dead flag assignments and guards (and the declaration, if it
+        // lives inside the loop) in one rebuild.
+        var deadNodes = pattern.AssignmentAndBreakSites.Select(static site => (SyntaxNode)site.Assignment)
+            .Concat(pattern.GuardStatements.Select(static guard => (SyntaxNode)guard));
+        if (declarationInsideLoop)
+            deadNodes = deadNodes.Concat([(SyntaxNode)declaration]);
+
         var newLoop = loop.TrackNodes(pattern.AssignmentAndBreakSites
             .Select(static site => (SyntaxNode)site.Break)
-            .Concat(pattern.AssignmentAndBreakSites.Select(static site => (SyntaxNode)site.Assignment))
-            .Concat(pattern.GuardStatements.Select(static guard => (SyntaxNode)guard)));
+            .Concat(deadNodes));
 
         newLoop = newLoop.ReplaceNodes(
             pattern.AssignmentAndBreakSites.Select(site => newLoop.GetCurrentNode(site.Break)!),
             (original, _) => CreateJump(labelName, original, pattern.IsBreak));
 
         newLoop = newLoop.RemoveNodes(
-            pattern.AssignmentAndBreakSites.Select(site => (SyntaxNode)newLoop.GetCurrentNode(site.Assignment)!)
-                .Concat(pattern.GuardStatements.Select(guard => (SyntaxNode)newLoop.GetCurrentNode(guard)!)),
+            deadNodes.Select(node => newLoop.GetCurrentNode(node)!),
             SyntaxRemoveOptions.KeepUnbalancedDirectives)!;
 
         ReplaceLoop(editor, loop, labelName, newLoop);
-        editor.RemoveNode(pattern.LocalDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+        if (!declarationInsideLoop)
+            editor.RemoveNode(declaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
     }
 
     private static string? GetReusableLabelName(StatementSyntax loop)

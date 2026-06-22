@@ -2053,7 +2053,7 @@ public sealed class UseLabeledJumpStatementsTests
         }.RunAsync();
 
     [Fact]
-    public Task TestNotOffered_FlagDeclaredInsideTargetLoop()
+    public Task TestFlag_DeclaredInsideTargetLoop()
         => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.Preview,
@@ -2070,12 +2070,30 @@ public sealed class UseLabeledJumpStatementsTests
                                 if (c)
                                 {
                                     found = true;
-                                    break;
+                                    {|IDE0410:break|};
                                 }
                             }
 
                             if (found)
                                 break;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                    loop_i: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                if (c)
+                                {
+                                    break loop_i;
+                                }
+                            }
                         }
                     }
                 }
@@ -2548,6 +2566,58 @@ public sealed class UseLabeledJumpStatementsTests
 
                             if (found)
                                 break;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestFlagContinue_DeclaredInsideTargetLoop()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool a, bool b)
+                    {
+                        while (a)
+                        {
+                            bool skip = false;
+                            while (b)
+                            {
+                                if (a && b)
+                                {
+                                    skip = true;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if (skip)
+                                continue;
+
+                            System.Console.WriteLine();
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool a, bool b)
+                    {
+                    outer: while (a)
+                        {
+                            while (b)
+                            {
+                                if (a && b)
+                                {
+                                    continue outer;
+                                }
+                            }
+
+                            System.Console.WriteLine();
                         }
                     }
                 }

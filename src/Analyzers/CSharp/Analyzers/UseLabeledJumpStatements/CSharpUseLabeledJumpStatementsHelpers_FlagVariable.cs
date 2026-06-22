@@ -96,11 +96,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         if (!TryWalkGuardChain(innerLoop, guards, orderedGuards, out var targetLoop, out var isBreak))
             return false;
 
-        // The declaration must live outside the loop we relabel (the fix removes it separately), and no site may cross
-        // a 'finally' on its way out to that loop.
-        if (targetLoop.Contains(declaration))
-            return false;
-
+        // No site may cross a 'finally' on its way out to the loop we relabel.
         foreach (var (_, innerBreak) in sites)
         {
             if (CrossesFinally(innerBreak, targetLoop))
