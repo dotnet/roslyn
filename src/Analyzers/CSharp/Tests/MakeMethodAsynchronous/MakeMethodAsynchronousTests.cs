@@ -701,6 +701,32 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public Task AwaitInLambdaActionMakeAsyncTask_NoWarning()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Action a = () => [|await Task.Delay(1);|]
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Action a = async () => await Task.Delay(1);
+                }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public Task BadAwaitInNonAsyncMethod()
         => TestInRegularAndScriptAsync("""
