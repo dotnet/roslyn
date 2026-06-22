@@ -229,7 +229,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // braces (and initial elements) match whatever the initializer correct looks like.
 
                 var initialCollection = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
-                    initializer, wasOnSingleLine: false);
+                    document.Text, initializer, wasOnSingleLine: false);
 
                 if (!makeMultiLineCollectionExpression &&
                     document.Text.AreOnSameLine(initializer.Expressions.First().GetFirstToken(), initializer.Expressions.Last().GetLastToken()))
@@ -268,7 +268,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // end.
 
                 var initialCollection = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
-                    initializer, wasOnSingleLine: false);
+                    document.Text, initializer, wasOnSingleLine: false);
 
                 if (document.Text.AreOnSameLine(initializer.OpenBraceToken.GetPreviousToken(), initializer.OpenBraceToken))
                 {
@@ -317,7 +317,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // First, convert the existing initializer (and its expressions) into a corresponding collection
                 // expression.  This will fixup the braces properly for the collection expression.
                 var initialCollection = UseCollectionExpressionHelpers.ConvertInitializerToCollectionExpression(
-                    initializer, wasOnSingleLine: true);
+                    document.Text, initializer, wasOnSingleLine: true);
 
                 // now, add all the matches in after the existing elements.
                 var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredIndentation: null);
@@ -478,8 +478,6 @@ internal static class CSharpCollectionExpressionRewriter
 
                 if (match.UseKeyValue)
                 {
-                    // Enable when dictionary-expressions come online.
-#if false
                     if (expressionStatement.Expression is InvocationExpressionSyntax invocation)
                     {
                         var arguments = invocation.ArgumentList.Arguments;
@@ -500,9 +498,6 @@ internal static class CSharpCollectionExpressionRewriter
                     {
                         throw ExceptionUtilities.Unreachable();
                     }
-#else
-                    throw ExceptionUtilities.Unreachable();
-#endif
                 }
                 else
                 {

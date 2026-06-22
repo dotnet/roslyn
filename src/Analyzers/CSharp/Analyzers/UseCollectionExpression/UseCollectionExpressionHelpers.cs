@@ -596,8 +596,7 @@ internal static class UseCollectionExpressionHelpers
     }
 
     public static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
-        // Enable when dictionary-expressions come online.
-        // SourceText text,
+        SourceText text,
         InitializerExpressionSyntax initializer, bool wasOnSingleLine)
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
@@ -622,8 +621,6 @@ internal static class UseCollectionExpressionHelpers
 
         CollectionElementSyntax CreateElement(ExpressionSyntax expression)
         {
-            // Enable when dictionary-expressions come online.
-#if false
             if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression1, var valueExpression1] } initializer)
             {
                 // If we have `{ key, ... }` we want to move the leading trivia of the `{` to the key so that it is
@@ -657,9 +654,6 @@ internal static class UseCollectionExpressionHelpers
             {
                 return ExpressionElement(expression);
             }
-#else
-            return ExpressionElement(expression);
-#endif
         }
     }
 

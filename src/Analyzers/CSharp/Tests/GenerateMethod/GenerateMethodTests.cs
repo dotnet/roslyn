@@ -10765,8 +10765,6 @@ public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : Abst
             """);
     }
 
-    // Enable when dictionary-expressions come online.
-#if false
     [Fact]
     public async Task GenerateInDictionaryExpressionKey()
     {
@@ -10836,7 +10834,6 @@ public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : Abst
             }
             """);
     }
-#endif
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60136")]
     public Task GenerateIntoTopLevelProgramWithPartialType()

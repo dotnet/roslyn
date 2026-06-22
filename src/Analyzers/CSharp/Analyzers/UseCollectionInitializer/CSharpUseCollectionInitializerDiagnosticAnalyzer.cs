@@ -85,8 +85,6 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             {
                 foreach (var expression in initializer.Expressions)
                 {
-                    // Enable when dictionary-expressions come online.
-#if false
                     if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression1] })
                     {
                         // { k, v } -> [k: v]
@@ -105,9 +103,6 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
                     {
                         yield return ExpressionElement(expression);
                     }
-#else
-                    yield return ExpressionElement(expression);
-#endif
                 }
             }
         }
