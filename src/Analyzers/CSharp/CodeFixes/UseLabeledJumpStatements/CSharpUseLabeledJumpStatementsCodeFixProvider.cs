@@ -76,12 +76,11 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         bool isBreak,
         CancellationToken cancellationToken)
     {
-        // Reuse a label a prior fix already put on the loop.  Otherwise reuse the goto target's own label and delete
-        // it -- unless other jumps still reference that label, in which case introduce a fresh label on the loop and
-        // leave the original (and its remaining references) untouched.
+        // Pick the label to break to: reuse one already on the loop (from a prior fix or the user); otherwise the
+        // goto target's own label; otherwise -- when other jumps still need that target label -- a fresh synthesized
+        // one.  Separately, only delete the original target label if no other jump still references it.
         var existingLabel = GetReusableLabelName(loop);
-        var keepOriginalLabel = existingLabel is null &&
-            LabelIsReferencedOutside(semanticModel, labelDeclaration, gotos, cancellationToken);
+        var keepOriginalLabel = LabelIsReferencedOutside(semanticModel, labelDeclaration, gotos, cancellationToken);
         var labelName = existingLabel ?? (keepOriginalLabel ? SynthesizeLabelName(semanticModel, loop) : labelDeclaration.Identifier.Text);
 
         var newLoop = loop.ReplaceNodes(gotos, (original, _) => CreateJump(labelName, original, isBreak));

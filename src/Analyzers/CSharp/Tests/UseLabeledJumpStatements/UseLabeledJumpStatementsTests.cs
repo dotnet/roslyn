@@ -1562,4 +1562,103 @@ public sealed class UseLabeledJumpStatementsTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact]
+    public Task TestFlagContinue_ForLoopWithTrailingStatement()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        int count = 0;
+                        bool skip = false;
+                        for (int i = 0; i < 3; i++)
+                        {
+                            for (int j = 0; j < 1; j++)
+                            {
+                                if (i == 0)
+                                {
+                                    skip = true;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if (skip)
+                                continue;
+
+                            count++;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        int count = 0;
+                    loop_i: for (int i = 0; i < 3; i++)
+                        {
+                            for (int j = 0; j < 1; j++)
+                            {
+                                if (i == 0)
+                                {
+                                    continue loop_i;
+                                }
+                            }
+
+                            count++;
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestGotoBreak_ExistingLoopLabelWithExternalReference()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        if (b)
+                            goto found;
+
+                    existing: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                                {|IDE0410:goto|} found;
+                        }
+
+                        found:
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool b)
+                    {
+                        if (b)
+                            goto found;
+
+                    existing: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                                break existing;
+                        }
+
+                        found:
+                        System.Console.WriteLine();
+                    }
+                }
+                """,
+        }.RunAsync();
 }
