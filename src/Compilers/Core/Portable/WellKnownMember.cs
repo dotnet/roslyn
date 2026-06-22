@@ -732,6 +732,16 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_UnionAttribute__ctor,
 
+        System_Collections_Generic_Dictionary_KV__ctor,
+        System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+        System_Collections_Generic_Dictionary_KV__ctor_Int32,
+        System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
+        System_Collections_Generic_Dictionary_KV__set_Item,
+        System_Collections_Generic_KeyValuePair_KV__ctor,
+        System_Collections_Generic_KeyValuePair_KV__get_Key,
+        System_Collections_Generic_KeyValuePair_KV__get_Value,
+        System_Collections_ObjectModel_ReadOnlyDictionary_KV__ctor,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

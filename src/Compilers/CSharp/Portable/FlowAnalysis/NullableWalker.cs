@@ -4119,6 +4119,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             RemovePlaceholderReplacement(elementPlaceholder);
                         }
                         break;
+                    case BoundKeyValuePairElement keyValuePair:
+                        VisitRvalue(keyValuePair.Key);
+                        VisitRvalue(keyValuePair.Value);
+                        // PROTOTYPE: Check nullability from conversions of key and value.
+                        break;
+                    case BoundKeyValuePairConversion keyValuePairConversion:
+                        VisitRvalue(keyValuePairConversion);
+                        // PROTOTYPE: Check nullability from conversions of key and value.
+                        break;
                     default:
                         var elementExpr = (BoundExpression)element;
                         if (!targetElementType.HasType)
@@ -4196,20 +4205,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (CollectionExpressionTypeKind, TypeWithAnnotations) getCollectionDetails(BoundCollectionExpression node, TypeSymbol collectionType)
             {
-                var collectionKind = ConversionsBase.GetCollectionExpressionTypeKind(this.compilation, collectionType, out var targetElementType);
+                var collectionKind = ConversionsBase.GetCollectionExpressionTypeKind(_binder, node.Syntax, collectionType, out var targetElementType);
                 if (collectionKind is CollectionExpressionTypeKind.CollectionBuilder)
                 {
                     var createMethod = node.CollectionBuilderMethod;
                     if (createMethod is not null)
                     {
-                        var foundIterationType = _binder.TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
-                        Debug.Assert(foundIterationType);
+                        Debug.Assert(targetElementType.HasType);
                     }
                 }
-                else if (collectionKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
+                else if (collectionKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                 {
-                    Debug.Assert(!targetElementType.HasType);
-                    _binder.TryGetCollectionIterationType(node.Syntax, collectionType, out targetElementType);
+                    Debug.Assert(targetElementType.HasType || node.HasErrors);
                 }
 
                 return (collectionKind, targetElementType);
@@ -4240,6 +4247,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.EnumeratorInfoOpt is null);
             }
 
+            return null;
+        }
+
+        public override BoundNode? VisitKeyValuePairConversion(BoundKeyValuePairConversion node)
+        {
+            VisitRvalue(node.Expression);
+            SetUnknownResultNullability(node);
             return null;
         }
 

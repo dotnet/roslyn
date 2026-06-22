@@ -283,3 +283,34 @@ If your code is impacted, you can either:
       Span<int> a = stackalloc int[5] { 0, 0, 0, 0, 0 };
   }
   ```
+
+## Dictionary interface overloads are applicable to collection expressions
+
+***Introduced in Visual Studio 2026 version 18.9***
+
+When the LangVersion is set to 15 or greater, collection expressions can convert to dictionary interface types such as `IDictionary<TKey, TValue>` and `IReadOnlyDictionary<TKey, TValue>`.
+This can change overload resolution because dictionary interface overloads that were previously not applicable may now be considered.
+
+```cs
+using System.Collections.Generic;
+
+class C
+{
+    static void Test()
+    {
+        M([]); // C# 14: calls M(List<int>); C# 15: error CS0121
+    }
+
+    static void M(List<int> value) { }
+    static void M(IDictionary<string, int> values) { }
+    static void M(IReadOnlyDictionary<string, int> values) { }
+}
+```
+
+If your code is impacted by this breaking change, use a cast or explicit target type to choose the intended overload:
+
+```cs
+M((List<int>)[]);
+M((IDictionary<string, int>)[]);
+M((IReadOnlyDictionary<string, int>)[]);
+```

@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     using var _3 = new PlaceholderRegion(this, spreadPlaceholders);
 
-                    if (TryGetCollectionExpressionElementValEscape(element, out var spreadEscape))
+                    if (TryGetCollectionExpressionElementValEscape(node, element, out var spreadEscape))
                     {
                         elementsScope = elementsScope.Intersect(spreadEscape);
                     }
@@ -1400,15 +1400,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(spreadElement.HasErrors
                                 || spreadElement.IteratorBody is null
-                                or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer });
+                                or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer or BoundKeyValuePairConversion });
                         }
                     }
                 }
                 else
                 {
-                    Debug.Assert(element is BoundCollectionElementInitializer or BoundExpression, $"Unexpected collection expression element {element}");
+                    Debug.Assert(element is BoundCollectionElementInitializer or BoundExpression or BoundKeyValuePairElement, $"Unexpected collection expression element {element}");
 
-                    if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
+                    if (TryGetCollectionExpressionElementValEscape(node, element, out var elementSafeContext))
                     {
                         elementsScope = elementsScope.Intersect(elementSafeContext);
                     }

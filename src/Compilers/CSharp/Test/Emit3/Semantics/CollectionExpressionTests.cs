@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
+        private static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol type, out TypeWithAnnotations elementType)
+        {
+            var syntax = (CSharpSyntaxNode)compilation.SyntaxTrees.Last().GetRoot();
+            return ConversionsBase.GetCollectionExpressionTypeKind(compilation.GetBinder(syntax), syntax, type, out elementType);
+        }
+
         internal const string s_collectionExtensions = """
             using System;
             using System.Collections;
@@ -4988,7 +4994,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[5]").WithArguments("System.Collections.Generic.ID<object, object>").WithLocation(10, 32));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, GetCollectionExpressionTypeKind(comp, collectionType, out _));
         }
 
         [Fact]
@@ -5043,7 +5049,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("System.IEquatable<int>").WithLocation(8, 29));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, GetCollectionExpressionTypeKind(comp, collectionType, out _));
         }
 
         [Theory, CombinatorialData]
@@ -6107,7 +6113,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 30));
 
             var listType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, listType, out var elementType));
+            Assert.Equal(CollectionExpressionTypeKind.None, GetCollectionExpressionTypeKind(comp, listType, out var elementType));
             Assert.False(elementType.HasType);
         }
 
@@ -9662,12 +9668,12 @@ static class Program
                 // (14,42): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
                 //         MyCollection<object> x = new() { 1 };
                 Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(14, 42),
-                // (17,35): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                // (17,37): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
                 //         MyCollection<object> z = [..x, ..y, 3, v];
-                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "..x").WithArguments("1").WithLocation(17, 35),
-                // (17,40): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "x").WithArguments("1").WithLocation(17, 37),
+                // (17,42): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
                 //         MyCollection<object> z = [..x, ..y, 3, v];
-                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "..y").WithArguments("1").WithLocation(17, 40),
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "y").WithArguments("1").WithLocation(17, 42),
                 // (17,45): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
                 //         MyCollection<object> z = [..x, ..y, 3, v];
                 Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "3").WithArguments("1").WithLocation(17, 45));
@@ -11171,7 +11177,7 @@ static class Program
             CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[], ");
         }
 
-        [Fact(Skip = "PROTOTYPE: implement binding")]
+        [Fact]
         public void DictionaryElement_02()
         {
             string source = """
@@ -11182,25 +11188,15 @@ static class Program
                     {
                         Dictionary<int, int> d;
                         d = [default];
+                        d.Report();
                         d = [new KeyValuePair<int, int>(1, 2)];
+                        d.Report();
                         d = [3:4];
+                        d.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                // (8,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [new KeyValuePair<int, int>(1, 2)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(8, 13),
-                // (9,15): error CS1003: Syntax error, ',' expected
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(9, 15),
-                // (9,16): error CS1003: Syntax error, ',' expected
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_SyntaxError, "4").WithArguments(",").WithLocation(9, 16));
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[[0, 0]], [[1, 2]], [[3, 4]], ");
         }
 
         [Theory]
@@ -12900,42 +12896,42 @@ static class Program
             if (targetElementType == "int")
             {
                 comp.VerifyEmitDiagnostics(
-                    // 1.cs(10,27): error CS1503: Argument 1: cannot convert from 'object' to 'int'
-                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..d1").WithArguments("1", "object", "int").WithLocation(10, 27),
                     // 1.cs(10,29): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d1").WithArguments("MyCollection.Add(int)").WithLocation(10, 29),
-                    // 1.cs(10,33): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    // 1.cs(10,29): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..d2").WithArguments("1", "object", "int").WithLocation(10, 33),
+                    Diagnostic(ErrorCode.ERR_BadArgType, "d1").WithArguments("1", "object", "int").WithLocation(10, 29),
                     // 1.cs(10,35): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "d2").WithArguments("MyCollection.Add(int)").WithLocation(10, 35),
-                    // 1.cs(10,39): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    // 1.cs(10,35): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..e1").WithArguments("1", "object", "int").WithLocation(10, 39),
+                    Diagnostic(ErrorCode.ERR_BadArgType, "d2").WithArguments("1", "object", "int").WithLocation(10, 35),
                     // 1.cs(10,41): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e1").WithArguments("MyCollection.Add(int)").WithLocation(10, 41),
-                    // 1.cs(10,45): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    // 1.cs(10,41): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..e2").WithArguments("1", "object", "int").WithLocation(10, 45),
+                    Diagnostic(ErrorCode.ERR_BadArgType, "e1").WithArguments("1", "object", "int").WithLocation(10, 41),
                     // 1.cs(10,47): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "e2").WithArguments("MyCollection.Add(int)").WithLocation(10, 47),
-                    // 1.cs(14,14): error CS1503: Argument 1: cannot convert from 'object' to 'int'
-                    //         c = [..(dynamic)x, ..(IEnumerable)y];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..(dynamic)x").WithArguments("1", "object", "int").WithLocation(14, 14),
+                    // 1.cs(10,47): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         MyCollection c = [..d1, ..d2, ..e1, ..e2];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "e2").WithArguments("1", "object", "int").WithLocation(10, 47),
                     // 1.cs(14,16): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         c = [..(dynamic)x, ..(IEnumerable)y];
                     Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(dynamic)x").WithArguments("MyCollection.Add(int)").WithLocation(14, 16),
-                    // 1.cs(14,28): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    // 1.cs(14,16): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                     //         c = [..(dynamic)x, ..(IEnumerable)y];
-                    Diagnostic(ErrorCode.ERR_BadArgType, "..(IEnumerable)y").WithArguments("1", "object", "int").WithLocation(14, 28),
+                    Diagnostic(ErrorCode.ERR_BadArgType, "(dynamic)x").WithArguments("1", "object", "int").WithLocation(14, 16),
                     // 1.cs(14,30): error CS1950: The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer has some invalid arguments
                     //         c = [..(dynamic)x, ..(IEnumerable)y];
-                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(IEnumerable)y").WithArguments("MyCollection.Add(int)").WithLocation(14, 30));
+                    Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "(IEnumerable)y").WithArguments("MyCollection.Add(int)").WithLocation(14, 30),
+                    // 1.cs(14,30): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                    //         c = [..(dynamic)x, ..(IEnumerable)y];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "(IEnumerable)y").WithArguments("1", "object", "int").WithLocation(14, 30));
             }
             else
             {
@@ -16015,9 +16011,9 @@ namespace System
                 bool m() => throw null!;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,22): warning CS8601: Possible null reference assignment.
+                // (6,21): warning CS8601: Possible null reference assignment.
                 //     object[] b = [..(m() ? a1 : a2)];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "m() ? a1 : a2").WithLocation(6, 22));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(m() ? a1 : a2)").WithLocation(6, 21));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
@@ -29610,7 +29606,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
                 // (4,52): error CS9215: Collection expression type 'Dictionary<string, object>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //     Dictionary<string, object> Config => /*<bind>*/[
@@ -29903,9 +29899,9 @@ partial class Program
                 // (5,27): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgType, "F1()").WithArguments("1", "int", "string").WithLocation(5, 27),
-                // (5,33): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                // (5,35): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "..F2()").WithArguments("1", "int", "string").WithLocation(5, 33),
+                Diagnostic(ErrorCode.ERR_BadArgType, "F2()").WithArguments("1", "int", "string").WithLocation(5, 35),
                 // (5,35): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(string)' for the collection initializer has some invalid arguments
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "F2()").WithArguments("MyCollection<int>.Add(string)").WithLocation(5, 35));
@@ -29996,9 +29992,9 @@ partial class Program
                 // (5,27): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgType, "F1()").WithArguments("2", "int", "string").WithLocation(5, 27),
-                // (5,33): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                // (5,35): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "..F2()").WithArguments("2", "int", "string").WithLocation(5, 33),
+                Diagnostic(ErrorCode.ERR_BadArgType, "F2()").WithArguments("2", "int", "string").WithLocation(5, 35),
                 // (5,35): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
                 //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "F2()").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(5, 35));
@@ -30087,9 +30083,9 @@ partial class Program
                 // (5,27): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "string").WithLocation(5, 27),
-                // (5,30): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                // (5,32): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "string").WithLocation(5, 30),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("2", "int", "string").WithLocation(5, 32),
                 // (5,32): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, params string[])' for the collection initializer has some invalid arguments
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions.Add<int>(MyCollection<int>, params string[])").WithLocation(5, 32));
@@ -32540,8 +32536,8 @@ partial class Program
                 """);
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out var elementType));
-            Assert.False(elementType.HasType);
+            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, GetCollectionExpressionTypeKind(comp, collectionType, out var elementType));
+            Assert.Equal(SpecialType.System_Int32, elementType.Type.SpecialType);
         }
 
         [Fact]
@@ -32600,7 +32596,7 @@ partial class Program
 
             var comp = (CSharpCompilation)verifier.Compilation;
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, GetCollectionExpressionTypeKind(comp, collectionType, out _));
         }
 
         [Fact]
@@ -32811,7 +32807,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, GetCollectionExpressionTypeKind(comp, collectionType, out _));
 
             // ImmutableCollectionsMarshal.AsImmutableArray is not sufficient to optimize collection expressions
             // targeting ImmutableArray<T>. ImmutableArray<T> must also have a [CollectionBuilder] attribute.
@@ -32835,7 +32831,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, GetCollectionExpressionTypeKind(comp, collectionType, out _));
         }
 
         [Fact]
@@ -32870,7 +32866,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, GetCollectionExpressionTypeKind(comp, collectionType, out _));
 
             // With ImmutableCollectionsMarshal.AsImmutableArray.
             string sourceB = """
@@ -32892,7 +32888,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, GetCollectionExpressionTypeKind(comp, collectionType, out _));
         }
 
         [Fact]
@@ -32924,7 +32920,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.None, GetCollectionExpressionTypeKind(comp, collectionType, out _));
 
             // With ImmutableCollectionsMarshal.AsImmutableArray.
             string sourceB = """
@@ -32946,7 +32942,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.None, GetCollectionExpressionTypeKind(comp, collectionType, out _));
         }
 
         [Fact]
@@ -42123,9 +42119,9 @@ partial class Program
                 // (7,33): error CS1503: Argument 1: cannot convert from 'int?' to 'string'
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int?", "string").WithLocation(7, 33),
-                // (7,36): error CS1503: Argument 1: cannot convert from 'int?' to 'string'
+                // (7,38): error CS1503: Argument 1: cannot convert from 'int?' to 'string'
                 //         MyCollection<int?> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int?", "string").WithLocation(7, 36),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int?", "string").WithLocation(7, 38),
                 // (7,38): error CS1950: The best overloaded Add method 'MyCollection<int?>.Add(string)' for the collection initializer has some invalid arguments
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int?>.Add(string)").WithLocation(7, 38));
@@ -42373,9 +42369,9 @@ partial class Program
                 // (21,33): error CS1503: Argument 1: cannot convert from 'int' to 'R'
                 //         MyCollection<int?> z = [x, ..y, null];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "R").WithLocation(21, 33),
-                // (21,36): error CS1503: Argument 1: cannot convert from 'int' to 'R'
+                // (21,38): error CS1503: Argument 1: cannot convert from 'int' to 'R'
                 //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int", "R").WithLocation(21, 36),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int", "R").WithLocation(21, 38),
                 // (21,38): error CS1950: The best overloaded Add method 'MyCollection<int?>.Add(R)' for the collection initializer has some invalid arguments
                 //         MyCollection<int?> z = [x, ..y, null];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int?>.Add(R)").WithLocation(21, 38),
@@ -42842,9 +42838,9 @@ partial class Program
                 // (7,33): error CS1503: Argument 1: cannot convert from 'int' to 'int?[]'
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "int?[]").WithLocation(7, 33),
-                // (7,36): error CS1503: Argument 1: cannot convert from 'int' to 'int?[]'
+                // (7,38): error CS1503: Argument 1: cannot convert from 'int' to 'int?[]'
                 //         MyCollection<int?> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int", "int?[]").WithLocation(7, 36),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int", "int?[]").WithLocation(7, 38),
                 // (7,38): error CS1950: The best overloaded Add method 'MyCollection<int?>.Add(int?[])' for the collection initializer has some invalid arguments
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int?>.Add(int?[])").WithLocation(7, 38));
@@ -43034,9 +43030,9 @@ partial class Program
                 // (8,32): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "string").WithLocation(8, 32),
-                // (8,35): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                // (8,37): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int", "string").WithLocation(8, 35),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int", "string").WithLocation(8, 37),
                 // (8,37): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(string)' for the collection initializer has some invalid arguments
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int>.Add(string)").WithLocation(8, 37));
@@ -43151,9 +43147,9 @@ partial class Program
                 // (7,35): error CS1503: Argument 1: cannot convert from 'object' to 'string'
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "object", "string").WithLocation(7, 35),
-                // (7,38): error CS1503: Argument 1: cannot convert from 'object' to 'string'
+                // (7,40): error CS1503: Argument 1: cannot convert from 'object' to 'string'
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "object", "string").WithLocation(7, 38),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "object", "string").WithLocation(7, 40),
                 // (7,40): error CS1950: The best overloaded Add method 'MyCollection<object>.Add(string)' for the collection initializer has some invalid arguments
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<object>.Add(string)").WithLocation(7, 40));
@@ -43629,9 +43625,9 @@ partial class Program
                 // (8,32): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "string").WithLocation(8, 32),
-                // (8,35): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                // (8,37): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "string").WithLocation(8, 35),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("2", "int", "string").WithLocation(8, 37),
                 // (8,37): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(8, 37));
@@ -44728,9 +44724,9 @@ partial class Program
                 // (7,35): error CS1503: Argument 1: cannot convert from 'int' to 'void*'
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "void*").WithLocation(7, 35),
-                // (7,38): error CS1503: Argument 1: cannot convert from 'int' to 'void*'
+                // (7,40): error CS1503: Argument 1: cannot convert from 'int' to 'void*'
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int", "void*").WithLocation(7, 38),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "int", "void*").WithLocation(7, 40),
                 // (7,40): error CS1950: The best overloaded Add method 'MyCollection<object>.Add(void*)' for the collection initializer has some invalid arguments
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<object>.Add(void*)").WithLocation(7, 40));
@@ -44776,9 +44772,9 @@ partial class Program
                 // (7,35): error CS1503: Argument 2: cannot convert from 'int' to 'void*'
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "void*").WithLocation(7, 35),
-                // (7,38): error CS1503: Argument 2: cannot convert from 'int' to 'void*'
+                // (7,40): error CS1503: Argument 2: cannot convert from 'int' to 'void*'
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "void*").WithLocation(7, 38),
+                Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("2", "int", "void*").WithLocation(7, 40),
                 // (7,40): error CS1950: The best overloaded Add method 'Extensions1.Add<object>(MyCollection<object>, void*)' for the collection initializer has some invalid arguments
                 //         MyCollection<object> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions1.Add<object>(MyCollection<object>, void*)").WithLocation(7, 40));

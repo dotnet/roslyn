@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var syntax = node.Syntax;
-            var collectionTypeKind = GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
+            var collectionTypeKind = GetCollectionExpressionTypeKind(_binder, syntax, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
             var elementType = elementTypeWithAnnotations.Type;
             switch (collectionTypeKind)
             {
@@ -170,14 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
                 case CollectionExpressionTypeKind.CollectionBuilder:
+                    if (elementType is null)
                     {
-                        _binder.TryGetCollectionIterationType(syntax, targetType, out elementTypeWithAnnotations);
-                        elementType = elementTypeWithAnnotations.Type;
-                        if (elementType is null)
-                        {
-                            return Conversion.NoConversion;
-                        }
+                        return Conversion.NoConversion;
                     }
                     break;
             }
@@ -188,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? constructor = null;
             bool isExpanded = false;
 
-            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
             {
                 if (!_binder.HasCollectionExpressionApplicableConstructor(
                         node.WithElement, node.WithElement?.Syntax ?? syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
@@ -196,17 +193,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
                 }
 
-                if (elements.Length > 0 &&
+                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                    elements.Length > 0 &&
                     !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
             }
 
+            var elementKeyValueTypes = TryGetCollectionKeyValuePairTypes(Compilation, elementType);
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
+                Conversion elementConversion = GetCollectionExpressionElementConversion(element, elementType, elementKeyValueTypes, ref useSiteInfo);
                 if (!elementConversion.Exists)
                 {
                     builder.Free();
@@ -217,29 +216,114 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
+        }
 
-            Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion GetCollectionExpressionElementConversion(
+            BoundNode element,
+            TypeSymbol elementType,
+            (TypeSymbol Key, TypeSymbol Value)? elementKeyValueTypes,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            switch (element)
             {
-                return element switch
+                case BoundCollectionExpressionSpreadElement spreadElement:
+                    {
+                        var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
+                        if (enumeratorInfo is { })
+                        {
+                            var elementConversion = GetCollectionExpressionSpreadElementConversion(spreadElement.Syntax, elementType, enumeratorInfo, ref useSiteInfo);
+                            if (elementConversion.Exists)
+                            {
+                                return elementConversion;
+                            }
+                            else if (elementKeyValueTypes is { } keyValueTypes)
+                            {
+                                var keyValuePairConversion = classifyKeyValuePairElementConversionFromType(enumeratorInfo.ElementType, keyValueTypes, ref useSiteInfo);
+                                if (keyValuePairConversion.Exists)
+                                {
+                                    Debug.Assert(!keyValuePairConversion.IsIdentity);
+                                    return keyValuePairConversion;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case BoundKeyValuePairElement keyValuePairElement:
+                    {
+                        if (elementKeyValueTypes is (var keyType, var valueType))
+                        {
+                            var keyConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Key, keyType, ref useSiteInfo);
+                            var valueConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Value, valueType, ref useSiteInfo);
+                            if (keyConversion.Exists && valueConversion.Exists)
+                            {
+                                return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
+                            }
+                        }
+                    }
+                    break;
+                case BoundExpression expressionElement:
+                    {
+                        var elementConversion = ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
+                        if (elementConversion.Exists)
+                        {
+                            return elementConversion;
+                        }
+                        else if (expressionElement.Type is { } expressionType &&
+                                 elementKeyValueTypes is { } keyValueTypes)
+                        {
+                            var keyValuePairConversion = classifyKeyValuePairElementConversionFromType(expressionType, keyValueTypes, ref useSiteInfo);
+                            if (keyValuePairConversion.Exists)
+                            {
+                                return keyValuePairConversion;
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            return Conversion.NoConversion;
+
+            // Classifies the conversion of a spread item or expression element of type 'sourceType' to a dictionary
+            // element when the collection's element type is KeyValuePair<K, V>. A value of type KeyValuePair<K1, V1>
+            // converts to the dictionary element type KeyValuePair<K, V> when there is an implicit conversion from K1
+            // to K and from V1 to V.
+            Conversion classifyKeyValuePairElementConversionFromType(
+                TypeSymbol sourceType,
+                (TypeSymbol Key, TypeSymbol Value) keyValueTypes,
+                ref CompoundUseSiteInfo<AssemblySymbol> elementUseSiteInfo)
+            {
+                if (IsKeyValuePairType(Compilation, sourceType, out var sourceKeyType, out var sourceValueType))
                 {
-                    BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                    _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
-                };
+                    var keyConversion = ClassifyImplicitConversionFromType(sourceKeyType, keyValueTypes.Key, ref elementUseSiteInfo);
+                    var valueConversion = ClassifyImplicitConversionFromType(sourceValueType, keyValueTypes.Value, ref elementUseSiteInfo);
+                    if (keyConversion.Exists && valueConversion.Exists)
+                    {
+                        // The key and value conversions cannot both be identity conversions. If they were, the source
+                        // type would be identical to the element type KeyValuePair<K, V>, and the direct element
+                        // conversion attempted by the caller would already have succeeded, so this key-value pair
+                        // fallback would never be reached.
+                        Debug.Assert(!keyConversion.IsIdentity || !valueConversion.IsIdentity);
+                        return Conversion.CreateKeyValuePairConversion(keyConversion, valueConversion);
+                    }
+                }
+
+                return Conversion.NoConversion;
             }
         }
 
         internal Conversion GetCollectionExpressionSpreadElementConversion(
-            BoundCollectionExpressionSpreadElement element,
+            SyntaxNode syntax,
             TypeSymbol targetType,
+            ForEachEnumeratorInfo enumeratorInfo,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var enumeratorInfo = element.EnumeratorInfoOpt;
-            if (enumeratorInfo is null)
-            {
-                return Conversion.NoConversion;
-            }
+            // The specification classifies this as a conversion from type, but using a conversion from expression here
+            // preserves existing dynamic behavior. Switching to conversion from type would be a breaking change for
+            // that case. For instance, the following would become an error:
+            // dynamic[] x = [1, 2, 3];
+            // int[] y = [.. x];
             return ClassifyImplicitConversionFromExpression(
-                new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
+                new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType),
                 targetType,
                 ref useSiteInfo);
         }

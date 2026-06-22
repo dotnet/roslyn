@@ -5371,6 +5371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => @this.BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
                     ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
+                    KeyValuePairElementSyntax keyValuePairElementSyntax => @this.BindKeyValuePairElement(keyValuePairElementSyntax, diagnostics),
                     SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics, @this),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
@@ -5498,6 +5499,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Free();
                 return (withElement, badExpression);
             }
+        }
+
+        private BoundNode BindKeyValuePairElement(KeyValuePairElementSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax.ColonToken);
+            var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
+            var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
+            return new BoundKeyValuePairElement(syntax, key, value);
         }
 #nullable disable
 
@@ -6708,11 +6717,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElementAddMethod(
+        private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElement<TArg>(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
-            Binder collectionInitializerAddMethodBinder,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
+            Func<Binder, ExpressionSyntax, BoundValuePlaceholder, BoundObjectOrCollectionValuePlaceholder?, TArg, BindingDiagnosticBag, BoundExpression> bindItem,
+            TArg arg,
             BindingDiagnosticBag diagnostics)
         {
             var enumeratorInfo = element.EnumeratorInfoOpt;
@@ -6729,22 +6739,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
-            var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
-            var addMethodInvocation = BindCollectionInitializerElementAddMethod(
-                syntax.Expression,
-                ImmutableArray.Create((BoundExpression)addElementPlaceholder),
-                hasEnumerableInitializerType: true,
-                collectionInitializerAddMethodBinder,
-                diagnostics,
-                implicitReceiver);
+            var spreadExpressionSyntax = syntax.Expression;
+            var itemPlaceholder = new BoundValuePlaceholder(spreadExpressionSyntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
+            itemPlaceholder = (BoundValuePlaceholder)itemPlaceholder.WithSuppression(element.Expression.IsSuppressed);
+            var item = bindItem(
+                this,
+                spreadExpressionSyntax,
+                itemPlaceholder,
+                implicitReceiver,
+                arg,
+                diagnostics);
             return element.Update(
                 element.Expression,
                 expressionPlaceholder: element.ExpressionPlaceholder,
                 conversion: element.Conversion,
                 enumeratorInfo,
                 lengthOrCount: element.LengthOrCount,
-                elementPlaceholder: addElementPlaceholder,
-                iteratorBody: new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true });
+                elementPlaceholder: itemPlaceholder,
+                iteratorBody: new BoundExpressionStatement(syntax, item) { WasCompilerGenerated = true });
         }
 #nullable disable
 

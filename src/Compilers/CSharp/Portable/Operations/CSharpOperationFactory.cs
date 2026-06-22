@@ -303,6 +303,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
+                case BoundKind.KeyValuePairElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
+                case BoundKind.KeyValuePairConversion: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -1282,6 +1284,8 @@ namespace Microsoft.CodeAnalysis.Operations
                         return null;
                     case CollectionExpressionTypeKind.ArrayInterface:
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
+                    case CollectionExpressionTypeKind.DictionaryInterface:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         return expr.CollectionBuilderMethod;
@@ -1332,9 +1336,13 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundCollectionExpressionElement(BoundCollectionExpression expr, BoundNode element)
         {
-            return element is BoundCollectionExpressionSpreadElement spreadElement ?
-                CreateBoundCollectionExpressionSpreadElement(expr, spreadElement) :
-                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false));
+            return element switch
+            {
+                BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(expr, spreadElement),
+                BoundKeyValuePairElement keyValuePairElement => Create(keyValuePairElement),
+                BoundKeyValuePairConversion keyValuePairConversion => Create(keyValuePairConversion),
+                _ => Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false))
+            };
         }
 
         private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpression expr, BoundCollectionExpressionSpreadElement element)
@@ -1346,7 +1354,10 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
             var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
-            var elementConversion = BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
+            // https://github.com/dotnet/roslyn/issues/77872: For key-value pairs, we probably need a pair of conversions rather than a single conversion.
+            var elementConversion = iteratorItem is BoundKeyValuePairConversion or BoundConversion { Operand: BoundKeyValuePairConversion } ?
+                Conversion.Identity :
+                BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
             return new SpreadOperation(
                 collection,
                 elementType: elementType,

@@ -8211,6 +8211,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureCollectionExpressionArguments" xml:space="preserve">
     <value>collection expression arguments</value>
   </data>
+  <data name="IDS_FeatureDictionaryExpressions" xml:space="preserve">
+    <value>dictionary expressions</value>
+  </data>
   <data name="ERR_CollectionArgumentsMustBeFirst" xml:space="preserve">
     <value>'with(...)' element must be the first element</value>
   </data>
@@ -8228,6 +8231,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadCollectionArgumentsArgCount" xml:space="preserve">
     <value>No overload for method '{0}' takes {1} 'with(...)' element arguments</value>
+  </data>
+  <data name="ERR_CollectionExpressionKeyValuePairNotSupported" xml:space="preserve">
+    <value>Collection expression type '{0}' does not support key-value pair elements.</value>
   </data>
   <data name="ERR_AmbigExtension" xml:space="preserve">
     <value>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</value>

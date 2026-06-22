@@ -4279,6 +4279,7 @@ public sealed partial class SpreadElementSyntax : CollectionElementSyntax
 /// <item><description><see cref="SyntaxKind.KeyValuePairElement"/></description></item>
 /// </list>
 /// </remarks>
+[Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/84198")]
 public sealed partial class KeyValuePairElementSyntax : CollectionElementSyntax
 {
     private ExpressionSyntax? keyExpression;

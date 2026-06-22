@@ -4796,20 +4796,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Otherwise, we need to do deeper analysis to decide if this collection expression can escape, or if it has
             // to stay local.
-            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
+            var collectionTypeKind = expr.CollectionTypeKind;
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
-                    Debug.Assert(elementType.Type is { });
+                    ConversionsBase.IsSpanOrListType(_compilation, expr.Type, WellKnownType.System_ReadOnlySpan_T, out var readOnlySpanElementType);
+                    Debug.Assert(readOnlySpanElementType.Type is { });
 
                     // An empty ReadOnlySpan can always be returned outwards.  Similarly if this is a span we're going
                     // to create out of a readonly-data segment of the program.
-                    return LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type)
+                    return LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, readOnlySpanElementType.Type)
                         ? SafeContext.CallingMethod
                         : _localScopeDepth;
 
                 case CollectionExpressionTypeKind.Span:
-                    Debug.Assert(elementType.Type is { });
+                    ConversionsBase.IsSpanOrListType(_compilation, expr.Type, WellKnownType.System_Span_T, out var spanElementType);
+                    Debug.Assert(spanElementType.Type is { });
                     return _localScopeDepth;
 
                 case CollectionExpressionTypeKind.CollectionBuilder:
@@ -4824,13 +4826,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(expr.CollectionCreation);
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
                     var receiverScope = expr.CollectionCreation is { } collectionCreation
                         ? GetValEscape(collectionCreation)
                         : _localScopeDepth;
                     var scope = receiverScope;
                     foreach (var element in expr.Elements)
                     {
-                        if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
+                        if (TryGetCollectionExpressionElementValEscape(expr, element, out var elementSafeContext))
                         {
                             scope = scope.Intersect(elementSafeContext);
                         }
@@ -4842,7 +4845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool TryGetCollectionExpressionElementValEscape(BoundNode element, out SafeContext safeContext)
+        private bool TryGetCollectionExpressionElementValEscape(BoundCollectionExpression expr, BoundNode element, out SafeContext safeContext)
         {
             if (element is BoundCollectionElementInitializer colElement)
             {
@@ -4860,7 +4863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(spreadElement.HasErrors
                         || spreadElement.IteratorBody is null
-                        or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer });
+                        or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer or BoundKeyValuePairConversion });
                     safeContext = GetValEscape(spreadElement.Expression);
                 }
 
@@ -4870,6 +4873,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (element is BoundExpression elementExpression)
             {
                 safeContext = GetValEscape(elementExpression);
+                return true;
+            }
+
+            if (element is BoundKeyValuePairElement keyValuePairElement)
+            {
+                // PROTOTYPE: Is there a ref-returning indexer scenario to test here? Spec currently assumes there must be a
+                // set method (so indexer cannot return by ref), but is that a requirement we want to hold?
+                if (expr.IndexerSetMethod is { } indexerSetMethod)
+                {
+                    // The key and value are stored into the collection via an invocation of the indexer's set
+                    // accessor. If that accessor captures a ref to one of its arguments into the receiver (for
+                    // example, via an `[UnscopedRef] in` key parameter on a ref struct), then the collection's
+                    // safe-context is narrowed to the safe-context of that argument.
+                    Debug.Assert(expr.Placeholder is { });
+                    safeContext = GetInvocationEscapeToReceiver(
+                        MethodInvocationInfo.FromCallParts(
+                            indexerSetMethod,
+                            expr.Placeholder,
+                            [keyValuePairElement.Key, keyValuePairElement.Value],
+                            ThreeState.False));
+                }
+                else
+                {
+                    safeContext = GetValEscape(keyValuePairElement.Key).Intersect(GetValEscape(keyValuePairElement.Value));
+                }
+
                 return true;
             }
 

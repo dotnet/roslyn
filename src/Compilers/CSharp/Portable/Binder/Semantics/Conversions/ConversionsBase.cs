@@ -1666,10 +1666,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination, compilation) == LambdaConversionResult.Success;
         }
 
-        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(Binder binder, SyntaxNode syntax, TypeSymbol destination, out TypeWithAnnotations elementType)
         {
-            Debug.Assert(compilation is { });
+            Debug.Assert(binder is { });
+            Debug.Assert(syntax is { });
 
+            var compilation = binder.Compilation;
             if (destination is ArrayTypeSymbol arrayType)
             {
                 if (arrayType.IsSZArray)
@@ -1688,8 +1690,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
             {
-                elementType = default;
+                binder.TryGetCollectionIterationType(syntax, destination, out elementType);
                 return CollectionExpressionTypeKind.CollectionBuilder;
+            }
+            else if (destination.IsInterfaceType())
+            {
+                if (destination.IsArrayInterface(out elementType))
+                {
+                    return CollectionExpressionTypeKind.ArrayInterface;
+                }
+                else if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
+                    (isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IDictionary_KV, out elementType) ||
+                     isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV, out elementType)))
+                {
+                    return CollectionExpressionTypeKind.DictionaryInterface;
+                }
             }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
             {
@@ -1700,11 +1715,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // to check for nullable to disallow: Nullable<StructCollection> s = [];
                 // Instead, we just walk the implemented interfaces.
                 elementType = default;
+
+                if (binder.HasParamsCollectionTypeApplicableIndexerInProgress(syntax, destination, out TypeWithAnnotations inProgressIterationType))
+                {
+                    elementType = inProgressIterationType;
+                    return CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                }
+
+                if (binder.TryGetCollectionIterationType(syntax, destination, out TypeWithAnnotations iterationType))
+                {
+                    elementType = iterationType;
+                    var indexerBinder = new ParamsCollectionTypeApplicableIndexerInProgress(syntax, destination, iterationType, binder);
+                    if (indexerBinder.GetCollectionExpressionApplicableIndexer(syntax, destination, iterationType.Type, BindingDiagnosticBag.Discarded) is { })
+                    {
+                        return CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                    }
+                }
+
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
-            }
-            else if (destination.IsArrayInterface(out elementType))
-            {
-                return CollectionExpressionTypeKind.ArrayInterface;
             }
 
             elementType = default;
@@ -1712,13 +1740,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool implementsSpecialInterface(CSharpCompilation compilation, TypeSymbol targetType, SpecialType specialInterface)
             {
+                Debug.Assert(!targetType.IsInterfaceType());
                 var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var specialType = compilation.GetSpecialType(specialInterface);
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
+
+            static bool isDictionaryType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType dictionaryType, out TypeWithAnnotations elementType)
+            {
+                if (targetType is NamedTypeSymbol { Arity: 2 } namedType &&
+                    ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(dictionaryType)))
+                {
+                    elementType = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)
+                        .Construct(namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics));
+                    return true;
+                }
+
+                elementType = default;
+                return false;
+            }
         }
 
-        internal static bool IsSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
+        internal static bool IsSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, out TypeWithAnnotations elementType)
         {
             if (targetType is NamedTypeSymbol { Arity: 1 } namedType
                 && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
@@ -1728,6 +1771,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             elementType = default;
             return false;
+        }
+
+        internal static bool IsKeyValuePairType(
+            CSharpCompilation compilation,
+            [NotNullWhen(true)] TypeSymbol? type,
+            [NotNullWhen(true)] out TypeSymbol? keyType,
+            [NotNullWhen(true)] out TypeSymbol? valueType)
+        {
+            if (type is NamedTypeSymbol { Arity: 2 } namedType
+                && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)))
+            {
+                var typeArguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                keyType = typeArguments[0].Type;
+                valueType = typeArguments[1].Type;
+                return true;
+            }
+
+            keyType = null;
+            valueType = null;
+            return false;
+        }
+
+        internal static (TypeSymbol Key, TypeSymbol Value)? TryGetCollectionKeyValuePairTypes(
+            CSharpCompilation compilation,
+            TypeSymbol elementType)
+        {
+            if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
+                IsKeyValuePairType(compilation, elementType, out var keyType, out var valueType))
+            {
+                return (keyType, valueType);
+            }
+
+            return null;
         }
 #nullable disable
 
