@@ -422,6 +422,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestNormalizeLabeledBreakAndContinue()
+        {
+            TestNormalizeStatement("break;", "break;");
+            TestNormalizeStatement("break   myLabel  ;", "break myLabel;");
+            TestNormalizeStatement("continue;", "continue;");
+            TestNormalizeStatement("continue   myLabel  ;", "continue myLabel;");
+        }
+
+        [Fact]
         public void TestNormalizeBlockStatements()
         {
             TestNormalizeStatement(
