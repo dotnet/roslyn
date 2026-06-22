@@ -23,9 +23,11 @@
 **Testing**:
 - Windows: `test.cmd` / Unix: `test.sh` — Run all tests
 - `dotnet test <path to test .csproj>` — Run specific test project
+- `dotnet test <path to test .csproj> --filter "FullyQualifiedName~TestMethodName"` — Run a single test method without discovering all tests
 - Tests inherit from base classes: `CSharpTestBase`, `VisualBasicTestBase` (compiler), `AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor` (IDE analyzers)
 - Use `[UseExportProvider]` for MEF-dependent tests
 - Copilot coding agent setup preinstalls `roslyn-language-server` as a global tool and syncs the `dotnet/skills` catalog into `~/.copilot/skills`
+- **C# Dev Kit (VS Code)**: `.vscode/settings.json` sets `dotnet.testWindow.disableAutoDiscovery: true` so the test panel never discovers all 400K+ tests automatically. To run one test without triggering full discovery, place the cursor inside a test method and use the inline CodeLens **Run Test** link, or run the VS Code command **Testing: Run Test At Cursor** (`Ctrl+; Ctrl+C` / `⌘+; ⌘+C`).
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
