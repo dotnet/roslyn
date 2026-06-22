@@ -97,7 +97,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderCodeFixProv
             => new(analysisResult.DiagnosticLocation,
                    root.GetCurrentNode(analysisResult.LocalDeclarationStatement)!,
                    root.GetCurrentNode(analysisResult.CreationExpression)!,
-                   analysisResult.Matches.SelectAsArray(m => new CollectionMatch<SyntaxNode>(root.GetCurrentNode(m.Node)!, m.UseSpread, m.UseKeyValue)),
+                   analysisResult.Matches.SelectAsArray(m => new CollectionMatch<SyntaxNode>(root.GetCurrentNode(m.Node)!, UseSpread: m.UseSpread, UseCast: m.UseCast, UseKeyValue: m.UseKeyValue)),
                    analysisResult.ChangesSemantics);
 
         // Creates a new document with all of the relevant nodes in analysisResult tracked so that we can find them

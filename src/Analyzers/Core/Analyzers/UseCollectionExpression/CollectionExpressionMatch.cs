@@ -18,5 +18,5 @@ namespace Microsoft.CodeAnalysis.UseCollectionExpression;
 internal readonly record struct CollectionMatch<TMatchNode>(
     TMatchNode Node,
     bool UseSpread,
-    bool UseCast = false,
-    bool UseKeyValue = false) where TMatchNode : SyntaxNode;
+    bool UseCast,
+    bool UseKeyValue) where TMatchNode : SyntaxNode;
