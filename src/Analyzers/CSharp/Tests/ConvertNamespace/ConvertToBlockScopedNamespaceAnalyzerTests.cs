@@ -85,9 +85,15 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
             }
         }.RunAsync();
 
-    [Theory]
-    [MemberData(nameof(EndOfDocumentSequences))]
-    public Task TestConvertToBlockScopedInCSharp10WithFileScopedPreference(string endOfDocumentSequence)
+    [Fact]
+    public Task TestConvertToBlockScopedInCSharp10WithFileScopedPreference()
+        => TestConvertToBlockScopedInCSharp10WithFileScopedPreferenceAsync(endOfDocumentSequence: "");
+
+    [Fact]
+    public Task TestConvertToBlockScopedInCSharp10WithFileScopedPreference_WithTrailingNewline()
+        => TestConvertToBlockScopedInCSharp10WithFileScopedPreferenceAsync(endOfDocumentSequence: Environment.NewLine);
+
+    private Task TestConvertToBlockScopedInCSharp10WithFileScopedPreferenceAsync(string endOfDocumentSequence)
         => new VerifyCS.Test
         {
             TestCode = $$"""
