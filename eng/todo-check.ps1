@@ -46,7 +46,7 @@ function Get-GitGrepMatches([string] $pattern, [string[]] $pathspecs, [switch] $
 }
 
 # Verify no PROTOTYPE marker left in main
-$prototypeExclusions = @(
+$prototypePathSpecs = @(
   '.',
   ':!eng/todo-check.ps1',
   ':!AGENTS.md',
@@ -56,7 +56,7 @@ $prototypeExclusions = @(
 
 if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
   Write-Host "Checking no PROTOTYPE markers in checked-in files"
-  $prototypes = Get-GitGrepMatches 'PROTOTYPE' $prototypeExclusions
+  $prototypes = Get-GitGrepMatches 'PROTOTYPE' $prototypePathSpecs
   if ($prototypes) {
     Write-Host "Found PROTOTYPE markers in checked-in files:"
     Write-Host $prototypes
@@ -65,13 +65,13 @@ if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
 }
 
 # Verify no TODO2 marker left
-$todo2Exclusions = @(
+$todo2PathSpecs = @(
   '.',
   ':!eng/todo-check.ps1',
   ':!AGENTS.md'
 )
 
-$todo2s = Get-GitGrepMatches 'TODO2' $todo2Exclusions
+$todo2s = Get-GitGrepMatches 'TODO2' $todo2PathSpecs
 if ($todo2s) {
   Write-Host "Found TODO2 markers in checked-in files:"
   Write-Host $todo2s
@@ -79,7 +79,7 @@ if ($todo2s) {
 }
 
 # Verify no merge markers left
-$mergeMarkerExclusions = @(
+$mergeMarkerPathSpecs = @(
   '.',
   ':!eng/todo-check.ps1',
   ':!src/Analyzers/CSharp/Tests/ConflictMarkerResolution/ConflictMarkerResolutionTests.cs',
@@ -89,7 +89,7 @@ $mergeMarkerExclusions = @(
   ':!src/EditorFeatures/VisualBasicTest/Classification/SyntacticClassifierTests.vb'
 )
 
-$mergeMarkers = Get-GitGrepMatches '^(<<<<<<<|\|\|\|\|\|\||>>>>>>>)' $mergeMarkerExclusions -extendedRegex
+$mergeMarkers = Get-GitGrepMatches '^(<<<<<<<|\|\|\|\|\|\||>>>>>>>)' $mergeMarkerPathSpecs -extendedRegex
 if ($mergeMarkers) {
   Write-Host "Found merge markers in checked-in files:"
   Write-Host $mergeMarkers
