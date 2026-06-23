@@ -2965,33 +2965,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
 
+            var hasErrors = false;
             LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
-            if (target != null)
-                return createJumpStatement(target, bindLabel(diagnostics), hasErrors: false);
 
-            // No matching break/continue target was found.  For error recovery, we still bind the label name (if
-            // any), discarding any diagnostics from that binding since the error we report here is the one we want.
-            // Keeping the resulting BoundLabel lets the SemanticModel resolve the identifier and makes
-            // ControlFlowPass treat the label as referenced (suppressing WRN_UnreferencedLabel).
-            Error(diagnostics,
-                labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
-                name ?? (SyntaxNode)node,
-                labelName == null ? [] : [labelName]);
+            // If we didn't get a target, still try to bind the label name to get a BoundLabel for error recovery.
+            // But pass in a discarded diagnostics bag since we'll just want to report our own specific error below.
+            BoundLabel? label = name == null ? null : BindLabel(name, target != null ? diagnostics : BindingDiagnosticBag.Discarded) as BoundLabel;
+            if (target is null)
+            {
+                Error(diagnostics,
+                    labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
+                    name ?? (SyntaxNode)node,
+                    labelName == null ? [] : [labelName]);
 
-            var label = bindLabel(BindingDiagnosticBag.Discarded);
-            target = label?.Label;
-            if (target != null)
-                return createJumpStatement(target, label, hasErrors: true);
+                target = label?.Label;
+                hasErrors = true;
+            }
 
-            return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
+            if (target is null)
+                return new BoundBadStatement(node, childBoundNodes: [], hasErrors);
 
-            BoundLabel? bindLabel(BindingDiagnosticBag diagnostics)
-                => name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
-
-            BoundStatement createJumpStatement(LabelSymbol target, BoundLabel? label, bool hasErrors)
-                => isBreak
-                    ? new BoundBreakStatement(node, target, label, hasErrors)
-                    : new BoundContinueStatement(node, target, label, hasErrors);
+            return isBreak
+                ? new BoundBreakStatement(node, target, label, hasErrors)
+                : new BoundContinueStatement(node, target, label, hasErrors);
         }
 #nullable disable
 
