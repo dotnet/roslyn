@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Text;
 
+using SourceLocation = Microsoft.AspNetCore.Razor.Language.SourceLocation;
+
 internal static class SourceTextExtensions
 {
     /// <summary>

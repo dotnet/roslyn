@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
             End If
 
             ' Check identifier text is 'Yield'
-            If String.Compare(identifier.Identifier.Text, "Yield", StringComparison.OrdinalIgnoreCase) <> 0 Then
+            If Not String.Equals(identifier.Identifier.Text, "Yield", StringComparison.OrdinalIgnoreCase) Then
                 Return Nothing
             End If
 

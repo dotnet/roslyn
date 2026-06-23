@@ -104,9 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  Cast expressions, provided the target type is one of the types listed above.
                 case SyntaxKind.CastExpression:
 
-                //  checked and unchecked expressions
+                //  checked, unchecked, unsafe expressions
                 case SyntaxKind.UncheckedExpression:
                 case SyntaxKind.CheckedExpression:
+                case SyntaxKind.UnsafeExpression:
 
                 //  Default value expressions
                 case SyntaxKind.DefaultExpression:

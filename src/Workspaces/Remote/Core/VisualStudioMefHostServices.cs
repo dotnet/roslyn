@@ -82,8 +82,8 @@ internal sealed class VisualStudioMefHostServices : HostServices, IMefHostExport
         }
 
         public bool Equals(ExportKey other)
-            => string.Compare(ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase) == 0 &&
-               string.Compare(MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase) == 0;
+            => string.Equals(ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase) &&
+               string.Equals(MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase);
 
         public override bool Equals(object? obj)
             => obj is ExportKey key && Equals(key);

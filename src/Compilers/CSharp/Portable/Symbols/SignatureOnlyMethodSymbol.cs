@@ -162,9 +162,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) { throw ExceptionUtilities.Unreachable(); }
+        internal sealed override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false) { throw ExceptionUtilities.Unreachable(); }
 
-        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) { throw ExceptionUtilities.Unreachable(); }
+        internal sealed override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false) { throw ExceptionUtilities.Unreachable(); }
 
         internal override bool IsMetadataFinal
         {

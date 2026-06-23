@@ -184,6 +184,19 @@ public sealed class GetKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
+    public Task TestAfterExtensionIndexer()
+        => VerifyKeywordAsync(
+            """
+            static class C
+            {
+               extension(int i)
+               {
+                   int this[int j] { $$
+               }
+            }
+            """);
+
+    [Fact]
     public Task TestAfterIndexerPrivate()
         => VerifyKeywordAsync(
             """

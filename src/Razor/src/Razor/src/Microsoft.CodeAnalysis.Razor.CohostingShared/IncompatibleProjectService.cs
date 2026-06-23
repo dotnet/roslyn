@@ -30,7 +30,7 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
             return;
         }
 
-        if (textDocumentIdentifier?.DocumentUri.ParsedUri is not Uri uri)
+        if (textDocumentIdentifier?.DocumentUri.GetSystemUri() is not Uri uri)
         {
             // Can't do anything without a uri
             return;
@@ -51,6 +51,12 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
 
             if (filePathSpan.StartsWith(PathUtilities.GetDirectoryName(project.FilePath.AsSpan()), PathUtilities.OSSpecificPathComparison))
             {
+                if (!project.State.HasAllInformation)
+                {
+                    // Additional documents may still be incomplete while the project is loading, so don't report or cache it yet.
+                    break;
+                }
+
                 if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static (set, id) => set.Add(id), project.Id))
                 {
                     _incompatibleProjectNotifier.NotifyMissingDocument(project, filePath);

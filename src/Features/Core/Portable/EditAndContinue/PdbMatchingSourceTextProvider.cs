@@ -5,13 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,36 +18,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Gives us an opportunity to observe the version of the source text that matches the one used to produce the PDB. After the document is opened the content can be updated in-memory (in the editor),
 /// saved to disk and the version that matches the PDB lost.
 /// </summary>
-[ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-[Export(typeof(PdbMatchingSourceTextProvider))]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatchingSourceTextProvider
+internal sealed class PdbMatchingSourceTextProvider : IPdbMatchingSourceTextProvider, IDisposable
 {
     private readonly object _guard = new();
 
     private bool _isActive;
     private int _baselineSolutionContentVersion;
     private readonly Dictionary<string, (DocumentState state, int solutionVersion)> _documentsWithChangedLoaderByPath = [];
-    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+    private readonly WorkspaceEventRegistration _workspaceChangedDisposer;
 
-    public void StartListening(Workspace workspace)
+    public PdbMatchingSourceTextProvider(Workspace workspace)
     {
-        // TODO: Workaround for LSP tests creating two Host workspaces. https://github.com/dotnet/roslyn/issues/82917
-        if (workspace.GetType().Name == "LspTestWorkspace")
-        {
-            return;
-        }
-
-        Debug.Assert(_workspaceChangedDisposer == null);
-
         _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(WorkspaceChanged);
     }
 
-    public void StopListening(Workspace workspace)
+    public void Dispose()
     {
-        _workspaceChangedDisposer?.Dispose();
-        _workspaceChangedDisposer = null;
+        _workspaceChangedDisposer.Dispose();
     }
 
     private void WorkspaceChanged(WorkspaceChangeEventArgs e)
