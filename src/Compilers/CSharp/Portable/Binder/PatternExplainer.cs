@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (n)
                 {
                     case BoundEvaluationDecisionDagNode e:
-                        distanceInfo = (Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(e, true)) == false ? infinity : 0, distance(e.Next)), e.Next);
+                        distanceInfo = (Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(e, whenTrueBranch: true)) == false ? infinity : 0, distance(e.Next)), e.Next);
                         break;
                     case BoundTestDecisionDagNode { Test: BoundDagNonNullTest } t when !nullPaths:
                         distanceInfo = (1 + distance(t.WhenTrue), t.WhenTrue);
@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         distanceInfo = (1 + distance(t.WhenFalse), t.WhenFalse);
                         break;
                     case BoundTestDecisionDagNode t:
-                        var trueDist1 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(t, true)) == false ? infinity : 0, distance(t.WhenTrue));
-                        var falseDist1 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(t, false)) == false ? infinity : 0, distance(t.WhenFalse));
+                        var trueDist1 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(t, whenTrueBranch: true)) == false ? infinity : 0, distance(t.WhenTrue));
+                        var falseDist1 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(t, whenTrueBranch: false)) == false ? infinity : 0, distance(t.WhenFalse));
                         distanceInfo = (trueDist1 <= falseDist1) ? (1 + trueDist1, t.WhenTrue) : (1 + falseDist1, t.WhenFalse);
                         break;
                     case BoundWhenDecisionDagNode w:
-                        var trueDist2 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(w, true)) == false ? infinity : 0, distance(w.WhenTrue));
-                        var falseDist2 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(w, false)) == false ? infinity : 0, distance(w.WhenFalse));
+                        var trueDist2 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(w, whenTrueBranch: true)) == false ? infinity : 0, distance(w.WhenTrue));
+                        var falseDist2 = Math.Max(reachabilityInfo?.Contains(new NullableWalker.DecisionDagReachabilityInfo(w, whenTrueBranch: false)) == false ? infinity : 0, distance(w.WhenFalse));
                         // add nodeCount to the distance if we need to flag that the path requires failure of a when clause
                         distanceInfo = (trueDist2 <= falseDist2) ? (1 + trueDist2, w.WhenTrue) : (1 + (falseDist2 < nodeCount ? nodeCount : 0) + falseDist2, w.WhenFalse);
                         break;
