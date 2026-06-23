@@ -2499,6 +2499,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SafeModifierUnsupportedTarget = 9388,
         ERR_ExternMemberRequiresUnsafeOrSafe = 9389,
         ERR_PartialMemberSafeDifference = 9390,
+        ERR_AbstractBaseRecordImplementation = 9391,
+        ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe = 9392,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

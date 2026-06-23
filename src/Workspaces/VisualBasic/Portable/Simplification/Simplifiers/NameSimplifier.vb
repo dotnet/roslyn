@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 ' When the replacement is an Alias we don't want the "Attribute" Suffix to be removed because this will result in symbol change
                 Dim aliasSymbol = semanticModel.GetAliasInfo(name, cancellationToken)
                 If aliasSymbol IsNot Nothing AndAlso
-                   String.Compare(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) = 0 Then
+                   String.Equals(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) Then
                     Return False
                 End If
 

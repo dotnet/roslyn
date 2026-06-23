@@ -5,7 +5,6 @@
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
-using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -18,18 +17,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 /// - Thorough behavioral testing.
 /// - Testing of more intricate behaviors which are subject to change.
 /// </summary>
-public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostTests
+public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    public VirtualProjectXmlProviderTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
     private async Task<VirtualProjectXmlProvider> GetProjectXmlProviderAsync()
     {
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, extensionPaths: null);
+        var exportProvider = LanguageServerTestComposition.GetSharedExportProvider(DefaultServerConfiguration, LoggerFactory);
         return exportProvider.GetExportedValue<VirtualProjectXmlProvider>();
     }
+
+    private DotnetCliHelper GetDotnetCliHelper()
+      => new(LoggerFactory);
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/79464")]
     public async Task GetProjectXml_FileBasedProgram_SdkTooOld_01()
@@ -51,7 +48,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """));
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
         Assert.Null(contentNullable);
     }
 
@@ -76,7 +73,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             """);
 
         var logger = LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>();
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, logger, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), logger, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var virtualProjectXml = content.VirtualProjectXml;
@@ -109,7 +106,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(content.VirtualProjectXml);
@@ -135,7 +132,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
         Assert.Null(content);
     }
 
@@ -161,7 +158,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var diagnostic = content.Diagnostics.Single();

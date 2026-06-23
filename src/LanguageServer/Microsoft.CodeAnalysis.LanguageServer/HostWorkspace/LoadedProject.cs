@@ -136,6 +136,8 @@ internal sealed class LoadedProject : IDisposable
     {
         _sourceFileCreatedOrDeletedChangeContext?.Dispose();
         _projectFileChangeContext?.Dispose();
+        _mostRecentProjectAssetsFileWatcher?.Dispose();
+        _assetsFileChangeContext.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
     }

@@ -22,11 +22,12 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-internal abstract class LanguageServerProjectLoader
+internal abstract class LanguageServerProjectLoader : IDisposable
 {
     private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
 
     private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToReload;
+    private bool _isDisposed;
 
     protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ProjectTargetFrameworkManager _projectTargetFrameworkManager;
@@ -93,6 +94,13 @@ internal abstract class LanguageServerProjectLoader
     /// </summary>
     protected virtual bool EnableProgressReporting => true;
 
+    /// <summary>
+    /// The max MSBuild node count to use for design-time builds.
+    /// </summary>
+    protected virtual int MaxNodeCount
+        // Don't overload the machine, so leave some CPU cores open. This was chosen without much supporting evidence, other than that it's still pretty close to max.
+        => Math.Max(Environment.ProcessorCount / 2, 1);
+
     protected LanguageServerProjectLoader(
         ILspServices lspServices,
         IGlobalOptionService globalOptionService,
@@ -110,7 +118,7 @@ internal abstract class LanguageServerProjectLoader
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-        _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
+        _logger = loggerFactory.CreateLogger(this.GetTypeDisplayName());
         _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;
         _dotnetCliHelper = dotnetCliHelper;
@@ -175,7 +183,7 @@ internal abstract class LanguageServerProjectLoader
                 knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
                 globalMSBuildProperties: AdditionalProperties,
                 binaryLogPathProvider: _binLogPathProvider,
-                maxNodeCount: Math.Max(Environment.ProcessorCount / 2, 1), // Don't overload the machine, so leave some CPU cores open. This chosen without much support evidence, other than it's still pretty close to max.
+                maxNodeCount: MaxNodeCount,
                 loggerFactory: LoggerFactory))
             {
                 var toastErrorReporter = new ToastErrorReporter(_clientLanguageServerManager);
@@ -222,6 +230,7 @@ internal abstract class LanguageServerProjectLoader
         public required ProjectSystemProjectFactory ProjectFactory { get; init; }
         public required bool IsFileBasedProgram { get; init; }
         public required bool IsMiscellaneousFile { get; init; }
+        public required bool HasFileBasedAppDirectives { get; init; }
         public required bool HasAllInformation { get; init; }
         public required BuildHostProcessKind PreferredBuildHostKind { get; init; }
         public required BuildHostProcessKind ActualBuildHostKind { get; init; }
@@ -238,9 +247,10 @@ internal abstract class LanguageServerProjectLoader
         BuildHostProcessKind? preferredBuildHostKindThatWeDidNotGet = null;
         var projectPath = projectToLoad.Path;
 
-        // Before doing any work, check if the project has already been unloaded.
+        // Before doing any work, check if the project has already been unloaded
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!_loadedProjects.ContainsKey(projectPath))
             {
                 return null;
@@ -289,6 +299,7 @@ internal abstract class LanguageServerProjectLoader
 
             using (await _gate.DisposableWaitAsync(cancellationToken))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!_loadedProjects.TryGetValue(projectPath, out var currentLoadState))
                 {
                     // Project was unloaded. Do not proceed with reloading it.
@@ -318,6 +329,7 @@ internal abstract class LanguageServerProjectLoader
                             HasSolutionFile = _workspaceFactory.HostProjectFactory.SolutionPath is not null,
                             IsMiscellaneousFile = isMiscellaneousFile,
                             IsFileBasedProgram = remoteProjectLoadResult.IsFileBasedProgram,
+                            HasFileBasedAppDirectives = remoteProjectLoadResult.HasFileBasedAppDirectives,
                         };
                     }
                 }
@@ -433,6 +445,8 @@ internal abstract class LanguageServerProjectLoader
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
+            Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
+
             if (_loadedProjects.TryGetValue(projectPath, out var existingState))
             {
                 // Note: this generally only happens if we fall through to the "add to misc workspace" path,
@@ -480,6 +494,8 @@ internal abstract class LanguageServerProjectLoader
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
+            Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
+
             // If project has already begun loading, no need to do any further work.
             if (_loadedProjects.ContainsKey(projectPath))
             {
@@ -504,6 +520,32 @@ internal abstract class LanguageServerProjectLoader
                 var removed = await TryUnloadProject_NoLockAsync(key);
                 Contract.ThrowIfFalse(removed); // We obtained lock before enumerating, how was this already removed?
             }
+        }
+    }
+
+    public virtual void Dispose()
+    {
+        using (_gate.DisposableWait(CancellationToken.None))
+        {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            _projectsToReload.Dispose();
+
+            foreach (var (_, loadState) in _loadedProjects)
+            {
+                // Disposing a LoadedProject unloads it, releasing its file watches and removing it from the workspace.
+                // Primordial projects don't own any file watches; their placeholder projects are torn down along with
+                // the workspace, so there's nothing to release for them here.
+                if (loadState is ProjectLoadState.LoadedTargets(var loadedProjectTargets))
+                {
+                    foreach (var loadedProject in loadedProjectTargets)
+                        loadedProject.Dispose();
+                }
+            }
+
+            _loadedProjects.Clear();
         }
     }
 

@@ -1,0 +1,12 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [70] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                    LazyIntermediateToken - (40:2,0 [8] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <section
+                    LazyIntermediateToken - (48:2,8 [1] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                    LazyIntermediateToken - (49:2,9 [49] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - Razor markup literal emitted from generated code.
+                    LazyIntermediateToken - (98:2,58 [10] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </section>
