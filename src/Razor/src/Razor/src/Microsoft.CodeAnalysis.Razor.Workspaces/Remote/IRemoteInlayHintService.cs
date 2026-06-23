@@ -3,13 +3,12 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteInlayHintService : IRemoteJsonService
 {
-    ValueTask<InlayHint[]?> GetInlayHintsAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken);
+    ValueTask<InlayHint[]?> GetInlayHintsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHintParams inlayHintParams, bool displayAllOverride, CancellationToken cancellationToken);
 
-    ValueTask<InlayHint> ResolveHintAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHint inlayHint, CancellationToken cancellationToken);
+    ValueTask<InlayHint> ResolveHintAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, InlayHint inlayHint, CancellationToken cancellationToken);
 }

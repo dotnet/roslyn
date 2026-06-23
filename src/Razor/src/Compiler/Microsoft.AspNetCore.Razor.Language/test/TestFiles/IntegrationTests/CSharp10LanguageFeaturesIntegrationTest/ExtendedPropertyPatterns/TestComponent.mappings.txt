@@ -1,0 +1,25 @@
+﻿Source Location: (2:0,2 [76] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var value = new { A = new { B = 1 } };
+    _ = value is { A.B: 1 };
+|
+Generated Location: (733:21,0 [76] )
+|
+    var value = new { A = new { B = 1 } };
+    _ = value is { A.B: 1 };
+|
+
+Source Location: (84:5,1 [29] x:\dir\subdir\Test\TestComponent.razor)
+|if (value is { A.B: 1 })
+{
+|
+Generated Location: (940:31,0 [29] )
+|if (value is { A.B: 1 })
+{
+|
+
+Source Location: (133:8,0 [1] x:\dir\subdir\Test\TestComponent.razor)
+|}|
+Generated Location: (1162:41,0 [1] )
+|}|
+

@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Microsoft.CodeAnalysis.Razor.Remote;
@@ -30,7 +29,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
     };
 
     public ValueTask<string> GetCSharpDocumentTextAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -44,7 +43,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             cancellationToken);
 
     public ValueTask<string> GetHtmlDocumentTextAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -58,7 +57,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             cancellationToken);
 
     public ValueTask<string> GetFormattingDocumentTextAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -76,7 +75,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
             cancellationToken);
 
     public ValueTask<string> GetTagHelpersJsonAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         TagHelpersKind kind,
         CancellationToken cancellationToken)
@@ -165,7 +164,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
     }
 
     public ValueTask<SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
+        RazorSolutionWrapper solutionInfo,
         DocumentId razorDocumentId,
         CancellationToken cancellationToken)
         => RunServiceAsync(

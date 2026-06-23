@@ -140,9 +140,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         /// <summary>
         /// Verifies that any new assemblies loaded into the given context since the snapshot was taken
-        /// are located next to the unit test DLL. Assemblies next to the test DLL are expected to be
-        /// lazily loaded by the test infrastructure or the runtime itself. Assemblies from other locations
-        /// (like the test fixture temp directory) would indicate incorrect loading behavior.
+        /// are located next to the unit test DLL or in the shared runtime directory. Assemblies from
+        /// those locations are expected to be lazily loaded by the test infrastructure or the runtime
+        /// itself. Assemblies from other locations (like the test fixture temp directory) would indicate
+        /// incorrect loading behavior.
         /// </summary>
         private static void VerifyNoNewNonLocalAssemblies(
             ITestOutputHelper testOutputHelper,
@@ -151,6 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string contextName)
         {
             var testDllDirectory = Path.GetDirectoryName(typeof(InvokeUtil).Assembly.Location)!;
+            var runtimeDirectory = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
             var unexpectedAssemblies = new List<string>();
 
             foreach (var assembly in currentAssemblies)
@@ -175,9 +177,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     continue;
                 }
 
-                // Assemblies next to the unit test DLL are expected lazy loads
                 var assemblyDirectory = Path.GetDirectoryName(location)!;
+
+                // Assemblies next to the unit test DLL are expected lazy loads
                 if (PathUtilities.Comparer.Equals(assemblyDirectory, testDllDirectory))
+                {
+                    continue;
+                }
+
+                // Assemblies from the shared runtime directory (Microsoft.NETCore.App) are
+                // expected — the runtime may lazily load framework assemblies at any time.
+                if (PathUtilities.Comparer.Equals(assemblyDirectory, runtimeDirectory))
                 {
                     continue;
                 }

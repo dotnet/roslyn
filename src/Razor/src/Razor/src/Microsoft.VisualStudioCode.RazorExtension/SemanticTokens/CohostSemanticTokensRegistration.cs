@@ -3,9 +3,8 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text.Json;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -17,19 +16,22 @@ internal sealed class CohostSemanticTokensRegistration(ISemanticTokensLegendServ
 {
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
         {
             var semanticTokensRefreshQueue = requestContext.GetRequiredService<IRazorSemanticTokensRefreshQueue>();
-            var clientCapabilitiesString = JsonSerializer.Serialize(clientCapabilities);
-            semanticTokensRefreshQueue.Initialize(clientCapabilitiesString);
+            semanticTokensRefreshQueue.Initialize(clientCapabilities);
+
+            // We prefer Range over Full for performance reasons, so only advertise full support if Range isn't
+            // available. The Range capability is SumType<bool, object> which is why the check is a bit odd.
+            var supportsSemanticTokensRange = clientCapabilities.TextDocument?.SemanticTokens?.Requests?.Range?.Value is not (false or null);
 
             return [new Registration()
             {
                 Method = Methods.TextDocumentSemanticTokensName,
                 RegisterOptions = new SemanticTokensRegistrationOptions()
-                    .EnableSemanticTokens(_semanticTokensLegendService)
+                    .EnableSemanticTokens(_semanticTokensLegendService, supportsSemanticTokensRange)
             }];
         }
 

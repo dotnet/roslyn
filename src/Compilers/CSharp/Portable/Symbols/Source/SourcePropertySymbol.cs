@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
-            allowedModifiers |= DeclarationModifiers.Extern;
+            allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Safe;
 
             bool hasExplicitAccessMod;
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
@@ -776,6 +776,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
             }
 
+            if (HasSafeModifier != implementation.HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberSafeDifference, implementation.GetFirstLocation());
+            }
+
             if (this.IsParams() != implementation.IsParams())
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberParamsDifference, implementation.GetFirstLocation());
@@ -828,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ContainingModule.UseUpdatedMemorySafetyRules)
                 {
-                    return HasUnsafeModifier || IsExtern
+                    return HasUnsafeModifier
                         ? CallerUnsafeMode.Explicit
                         : CallerUnsafeMode.None;
                 }

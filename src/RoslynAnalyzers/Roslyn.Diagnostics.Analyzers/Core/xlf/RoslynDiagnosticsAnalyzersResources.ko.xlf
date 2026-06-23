@@ -258,33 +258,33 @@
         <note />
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterDescription">
-        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</source>
-        <target state="new">Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not JSON serializable.</target>
-        <note>{Locked="IRemoteJsonService"}{Locked="RazorPinnedSolutionInfoWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
+        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorSolutionWrapper or DocumentId as they are not JSON serializable.</source>
+        <target state="translated">IRemoteJsonService에서 상속되는 인터페이스의 메서드는 JSON으로 직렬화할 수 없으므로 RazorSolutionWrapper 또는 DocumentId 형식의 매개 변수를 사용할 수 없습니다.</target>
+        <note>{Locked="IRemoteJsonService"}{Locked="RazorSolutionWrapper"}{Locked="DocumentId"}{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterMessage">
         <source>Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</source>
-        <target state="new">Parameter '{0}' in '{1}.{2}' is of type '{3}', which is not allowed in a JSON service</target>
+        <target state="translated">'{1}.{2}'의 '{0}' 매개 변수는 '{3}' 형식입니다. 이 형식은 JSON 서비스에서 허용되지 않습니다.</target>
         <note>{Locked="JSON"}</note>
       </trans-unit>
       <trans-unit id="IRemoteJsonServiceParameterTitle">
         <source>Invalid parameter type in IRemoteJsonService method</source>
-        <target state="new">Invalid parameter type in IRemoteJsonService method</target>
+        <target state="translated">IRemoteJsonService 메서드의 매개 변수 형식이 잘못되었습니다.</target>
         <note>{Locked="IRemoteJsonService"}</note>
       </trans-unit>
       <trans-unit id="ImmutableArrayBoxingDescription">
         <source>Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</source>
-        <target state="new">Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</target>
+        <target state="translated">ImmutableArray&lt;T&gt;에서 EnumerableExtensions 또는 ReadOnlyListExtensions 메서드를 호출하면 구조체가 boxing되어 불필요한 할당이 발생합니다. 대신 해당 ImmutableArray&lt;T&gt; 확장 메서드를 사용합니다.</target>
         <note>{Locked="EnumerableExtensions"}{Locked="ReadOnlyListExtensions"}{Locked="ImmutableArray&lt;T&gt;"}</note>
       </trans-unit>
       <trans-unit id="ImmutableArrayBoxingMessage">
         <source>Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</source>
-        <target state="new">Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</target>
+        <target state="translated">ImmutableArray&lt;T&gt;에서 '{0}'을(를) 호출하면 boxing이 발생합니다. 대신 ImmutableArray&lt;T&gt; 확장 메서드를 사용해 보세요.</target>
         <note>{Locked="ImmutableArray&lt;T&gt;"}</note>
       </trans-unit>
       <trans-unit id="ImmutableArrayBoxingTitle">
         <source>ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</source>
-        <target state="new">ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</target>
+        <target state="translated">ImmutableArray&lt;T&gt;이(가) IReadOnlyList&lt;T&gt;(으)로 boxing되고 있습니다.</target>
         <note>{Locked="ImmutableArray&lt;T&gt;"}{Locked="IReadOnlyList&lt;T&gt;"}</note>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
@@ -339,17 +339,17 @@
       </trans-unit>
       <trans-unit id="PooledArrayBuilderAsRefDescription">
         <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</source>
-        <target state="new">Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</target>
+        <target state="translated">PooledArrayBuilder&lt;T&gt;.AsRef() 인스턴스는 반드시 'using' 변수여야 합니다.</target>
         <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PooledArrayBuilderAsRefMessage">
         <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">PooledArrayBuilder&lt;T&gt;.AsRef() 인스턴스는 반드시 'using' 변수여야 합니다.</target>
         <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PooledArrayBuilderAsRefTitle">
         <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">PooledArrayBuilder&lt;T&gt;.AsRef() 인스턴스는 반드시 'using' 변수여야 합니다.</target>
         <note>{Locked="PooledArrayBuilder&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">

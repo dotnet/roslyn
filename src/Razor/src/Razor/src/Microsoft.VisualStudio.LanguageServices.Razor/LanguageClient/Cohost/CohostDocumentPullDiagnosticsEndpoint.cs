@@ -9,13 +9,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -23,7 +27,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(VSInternalMethods.DocumentPullDiagnosticName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportCohostStatelessLspService(typeof(CohostDocumentPullDiagnosticsEndpoint))]
+[ExportRazorStatelessLspService(typeof(CohostDocumentPullDiagnosticsEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostDocumentPullDiagnosticsEndpoint(
@@ -32,14 +36,17 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     IHtmlRequestInvoker requestInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter,
-    ILoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory,
+    IEditAndContinueSessionTracker encSessionTracker)
     : CohostDocumentPullDiagnosticsEndpointBase<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
         incompatibleProjectService,
         remoteServiceInvoker,
         requestInvoker,
         clientCapabilitiesService,
         telemetryReporter,
-        loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>()), IDynamicRegistrationProvider
+        loggerFactory.GetOrCreateLogger<CohostDocumentPullDiagnosticsEndpoint>(),
+        encSessionTracker),
+      IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
@@ -47,7 +54,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     protected override string LspMethodName => VSInternalMethods.DocumentPullDiagnosticName;
     protected override bool SupportsHtmlDiagnostics => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration is true)
         {
@@ -64,8 +71,8 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
-        => request.TextDocument?.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
+        => request.TextDocument;
 
     protected override async Task<VSInternalDiagnosticReport[]?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -101,7 +108,8 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         // for diagnostics. Rather than try to replicate any of this behaviour directly, we just take Roslyn as the source of truth,
         // and force the project information to match what it would produce, regardless of where it comes from or how we might have
         // filtered or converted it.
-        var projectInfo = new[] { ExternalHandlers.Diagnostics.GetProjectInformation(razorDocument.Project) };
+        var service = razorDocument.Project.Solution.Services.GetRequiredService<IDiagnosticProjectInformationService>();
+        var projectInfo = new[] { service.GetDiagnosticProjectInformation(razorDocument.Project) };
 
         var results = new VSDiagnostic[diagnostics.Length];
         for (var i = 0; i < diagnostics.Length; i++)
@@ -124,7 +132,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     {
         return new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = new(uri) }
+            TextDocument = new TextDocumentIdentifier { DocumentUri = uri.CreateDocumentUriFromSystemUri() }
         };
     }
 
@@ -175,7 +183,10 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         }
 
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
-        var csharpTaskItems = await ExternalHandlers.Diagnostics.GetTaskListAsync(generatedDocument, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        var solutionServices = generatedDocument.Project.Solution.Services;
+        var globalOptionsService = solutionServices.ExportProvider.GetService<IGlobalOptionService>();
+        var items = await TaskListDiagnosticSource.GetTaskListItemsAsync(generatedDocument, globalOptionsService, cancellationToken).ConfigureAwait(false);
+        var csharpTaskItems = CohostDocumentPullDiagnosticsHelpers.ConvertDiagnostics(generatedDocument, supportsVisualStudioExtensions, globalOptionsService, items);
         return [.. csharpTaskItems];
     }
 

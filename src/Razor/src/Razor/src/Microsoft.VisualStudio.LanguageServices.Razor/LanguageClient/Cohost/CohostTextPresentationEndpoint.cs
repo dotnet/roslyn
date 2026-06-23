@@ -6,7 +6,9 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -16,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(VSInternalMethods.TextDocumentTextPresentationName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportCohostStatelessLspService(typeof(CohostTextPresentationEndpoint))]
+[ExportRazorStatelessLspService(typeof(CohostTextPresentationEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostTextPresentationEndpoint(
@@ -32,7 +34,7 @@ internal sealed class CohostTextPresentationEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RazorCohostRequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.SupportsVisualStudioExtensions)
         {
@@ -46,8 +48,8 @@ internal sealed class CohostTextPresentationEndpoint(
         return [];
     }
 
-    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalTextPresentationParams request)
-        => request.TextDocument.ToRazorTextDocumentIdentifier();
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalTextPresentationParams request)
+        => request.TextDocument;
 
     protected override async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalTextPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
@@ -67,10 +69,10 @@ internal sealed class CohostTextPresentationEndpoint(
         // CreateFile, RenameFile, or DeleteFile operations that may be in DocumentChanges.
         foreach (var edit in workspaceEdit.EnumerateTextDocumentEdits())
         {
-            if (edit.TextDocument.DocumentUri.ParsedUri is { } uri &&
+            if (edit.TextDocument.DocumentUri.GetSystemUri() is { } uri &&
                 _filePathService.IsVirtualHtmlFile(uri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(_filePathService.GetRazorDocumentUri(uri)) };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = _filePathService.GetRazorDocumentUri(uri).CreateDocumentUriFromSystemUri() };
             }
         }
 

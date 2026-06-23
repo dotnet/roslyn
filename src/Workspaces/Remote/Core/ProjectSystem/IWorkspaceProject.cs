@@ -35,7 +35,10 @@ internal interface IWorkspaceProject : IDisposable
     Task AddAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken cancellationToken);
     Task RemoveAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken cancellationToken);
 
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken);
+
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken);
 
     Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken cancellationToken);

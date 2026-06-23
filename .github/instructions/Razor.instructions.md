@@ -4,7 +4,7 @@ applyTo: "src/Razor/**/*.{cs,vb}"
 
 # Razor Tooling and Compiler Instructions for AI Coding Agents
 
-These instructions complement the repository-wide `copilot-instructions.md` and apply to
+These instructions complement the repository-wide `AGENTS.md` and apply to
 all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 `dotnet/razor`, and most files keep their original sub-tree layout
 (`src/Razor/src/Razor/...`, `src/Razor/src/Compiler/...`, `src/Razor/src/Shared/...`,
@@ -21,11 +21,6 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
   The bug is more likely in existing logic than a missing feature.
 - **Helpers**: Review existing helpers (`UsingDirectiveHelper`, `AddUsingsHelper`, etc.)
   before writing new utility methods. Don't duplicate.
-- **Avoid blind `dotnet test` over the whole Razor tree**: Razor includes Playwright-based
-  VS Code integration tests under
-  `src\Razor\src\Razor\test\Microsoft.VisualStudioCode.Razor.IntegrationTests`. They require
-  VS Code and waste significant time. Target a specific test project with
-  `dotnet test path\to\Project.csproj` instead.
 - **Shared projects need `.projitems` entries**: Files under
   `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.CohostingShared\` and
   `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\`
@@ -86,12 +81,3 @@ When adding a new `IRemote*Service` and `Remote*Service`:
    `ClassName="{FullTypeName}+Factory"`. The `ShortName` is your interface name with
    `IRemote` and `Service` stripped (e.g., `IRemoteFrobulatorService` becomes `Frobulator`).
 5. Validate: `dotnet test src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Remote.Razor.UnitTests --filter "FullyQualifiedName~RazorServicesTest"`
-
-## VS Code Validation
-
-Run Playwright E2E tests (the one place where `dotnet test` over a whole project tree is fine):
-
-```powershell
-cd src\Razor\src\Razor\test\Microsoft.VisualStudioCode.Razor.IntegrationTests
-dotnet test
-```

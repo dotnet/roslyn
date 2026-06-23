@@ -43,6 +43,7 @@ using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
+    [ValidatePooledObjects(WaitForOutstandingObjectsToBeFreed = true)]
     public class CommandLineTests : CommandLineTestBase
     {
 #if NET
@@ -6354,6 +6355,7 @@ public class CS1698_a {}
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
+        [ValidatePooledObjects(LeakReason = "Binary file detection exception path")]
         public void BinaryFileErrorTest()
         {
             var binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path;

@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 
-interface IWorkDoneProgressReporter : IDisposable, IProgress<WorkDoneProgress>
+interface IWorkDoneProgressReporter : IAsyncDisposable, IProgress<WorkDoneProgress>
 {
     /// <summary>
     /// Cancellation token that can be monitored to know when work done progress has been cancelled,

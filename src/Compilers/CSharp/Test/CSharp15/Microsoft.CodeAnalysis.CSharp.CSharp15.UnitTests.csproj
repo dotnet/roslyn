@@ -21,6 +21,7 @@
     <PackageReference Include="Basic.Reference.Assemblies.Net80" />
     <PackageReference Include="Basic.Reference.Assemblies.Net90" />
     <PackageReference Include="Basic.Reference.Assemblies.Net100" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net110" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

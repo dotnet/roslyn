@@ -15,6 +15,10 @@ The current implementation is intentionally scoped as an experiment:
 - it is primarily designed for repeated local or CI builds that produce identical outputs
 - it is expected to evolve as we learn more about correctness, diagnostics, and operational behavior
 
+## Security
+
+The contents of the cache folder are an input to the compilation. When a cache hit occurs, the cached outputs (and their associated metadata) are restored and used as the result of the compilation, so what is stored in the cache directly affects what the build produces. Users of this feature must add appropriate access controls to the cache folder to ensure its contents are trusted to the same degree as any other compilation input, such as source files, references, and analyzers. A cache whose contents can be written or modified by untrusted parties should be treated as an untrusted input.
+
 ## Goals
 
 The experiment has four primary goals:
@@ -140,7 +144,7 @@ For each eligible compilation request, the compiler server:
 1. Computes the deterministic key.
 2. Hashes that key.
 3. Looks for an existing entry under the cache root.
-4. If a valid cached assembly is present, copies the cached outputs to the requested output locations and reports success.
+4. If a valid cached assembly is present, copies the cached outputs to the requested output locations, stamps them with the UTC time captured immediately before input/key inspection began, and reports success.
 5. Otherwise performs a normal compilation.
 6. After a successful compilation, attempts to publish the outputs into the cache for future requests.
 

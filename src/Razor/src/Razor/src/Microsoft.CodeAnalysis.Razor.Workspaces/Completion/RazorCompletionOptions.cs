@@ -7,4 +7,4 @@ internal record struct RazorCompletionOptions(
     bool SnippetsSupported,
     bool AutoInsertAttributeQuotes,
     bool CommitElementsWithSpace,
-    bool UseVsCodeCompletionCommitCharacters);
+    bool IsVsCode);
