@@ -1414,6 +1414,392 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void ControlFlowGraph_LabeledBreak_OutOfNestedSwitches()
+    {
+        string source = """
+            class C
+            {
+                void M(int x)
+                /*<bind>*/{
+                    outer: switch (x)
+                    {
+                        case 0:
+                            switch (x)
+                            {
+                                case 1:
+                                    break outer;
+                            }
+                            break;
+                    }
+                }/*</bind>*/
+            }
+            """;
+        string expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                CaptureIds: [0]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                          Value:
+                            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                    Jump if False (Regular) to Block[B3]
+                        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '0')
+                          Left:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                          Right:
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Leaving: {R1}
+                    Next (Regular) Block[B2]
+                        Entering: {R2}
+                .locals {R2}
+                {
+                    CaptureIds: [1]
+                    Block[B2] - Block
+                        Predecessors: [B1]
+                        Statements (1)
+                            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                              Value:
+                                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                        Jump if False (Regular) to Block[B3]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
+                              Left:
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            Leaving: {R2} {R1}
+                        Next (Regular) Block[B3]
+                            Leaving: {R2} {R1}
+                }
+            }
+            Block[B3] - Exit
+                Predecessors: [B1] [B2*2]
+                Statements (0)
+            """;
+        var expectedDiagnostics = DiagnosticDescription.None;
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void ControlFlowGraph_LabeledBreak_OutOfTryFinallyInLoops()
+    {
+        string source = """
+            class C
+            {
+                void M(bool b)
+                /*<bind>*/{
+                    outer: while (b)
+                    {
+                        while (b)
+                        {
+                            try
+                            {
+                                break outer;
+                            }
+                            finally
+                            {
+                                b = false;
+                            }
+                        }
+                    }
+                }/*</bind>*/
+            }
+            """;
+        string expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+            Block[B1] - Block
+                Predecessors: [B0] [B2]
+                Statements (0)
+                Jump if False (Regular) to Block[B5]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (0)
+                Jump if False (Regular) to Block[B1]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B3]
+                    Entering: {R1} {R2}
+            .try {R1, R2}
+            {
+                Block[B3] - Block
+                    Predecessors: [B2]
+                    Statements (0)
+                    Next (Regular) Block[B5]
+                        Finalizing: {R3}
+                        Leaving: {R2} {R1}
+            }
+            .finally {R3}
+            {
+                Block[B4] - Block
+                    Predecessors (0)
+                    Statements (1)
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = false;')
+                          Expression:
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = false')
+                              Left:
+                                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                    Next (StructuredExceptionHandling) Block[null]
+            }
+            Block[B5] - Exit
+                Predecessors: [B1] [B3]
+                Statements (0)
+            """;
+        var expectedDiagnostics = DiagnosticDescription.None;
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void ControlFlowGraph_LabeledContinue_OutOfTryFinallyInLoops()
+    {
+        string source = """
+            class C
+            {
+                void M(bool b)
+                /*<bind>*/{
+                    outer: while (b)
+                    {
+                        while (b)
+                        {
+                            try
+                            {
+                                continue outer;
+                            }
+                            finally
+                            {
+                                b = false;
+                            }
+                        }
+                    }
+                }/*</bind>*/
+            }
+            """;
+        string expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+            Block[B1] - Block
+                Predecessors: [B0] [B2] [B3]
+                Statements (0)
+                Jump if False (Regular) to Block[B5]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (0)
+                Jump if False (Regular) to Block[B1]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B3]
+                    Entering: {R1} {R2}
+            .try {R1, R2}
+            {
+                Block[B3] - Block
+                    Predecessors: [B2]
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Finalizing: {R3}
+                        Leaving: {R2} {R1}
+            }
+            .finally {R3}
+            {
+                Block[B4] - Block
+                    Predecessors (0)
+                    Statements (1)
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = false;')
+                          Expression:
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = false')
+                              Left:
+                                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                    Next (StructuredExceptionHandling) Block[null]
+            }
+            Block[B5] - Exit
+                Predecessors: [B1]
+                Statements (0)
+            """;
+        var expectedDiagnostics = DiagnosticDescription.None;
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void ControlFlowGraph_LabeledBreak_OutOfUsingInLoops()
+    {
+        string source = """
+            class C
+            {
+                void M(bool b, System.IDisposable d)
+                /*<bind>*/{
+                    outer: while (b)
+                    {
+                        while (b)
+                        {
+                            using (d)
+                            {
+                                break outer;
+                            }
+                        }
+                    }
+                }/*</bind>*/
+            }
+            """;
+        string expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+            Block[B1] - Block
+                Predecessors: [B0] [B2]
+                Statements (0)
+                Jump if False (Regular) to Block[B8]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (0)
+                Jump if False (Regular) to Block[B1]
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Next (Regular) Block[B3]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                CaptureIds: [0]
+                Block[B3] - Block
+                    Predecessors: [B2]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd')
+                          Value:
+                            IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.IDisposable) (Syntax: 'd')
+                    Next (Regular) Block[B4]
+                        Entering: {R2} {R3}
+                .try {R2, R3}
+                {
+                    Block[B4] - Block
+                        Predecessors: [B3]
+                        Statements (0)
+                        Next (Regular) Block[B8]
+                            Finalizing: {R4}
+                            Leaving: {R3} {R2} {R1}
+                }
+                .finally {R4}
+                {
+                    Block[B5] - Block
+                        Predecessors (0)
+                        Statements (0)
+                        Jump if True (Regular) to Block[B7]
+                            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'd')
+                              Operand:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'd')
+                        Next (Regular) Block[B6]
+                    Block[B6] - Block
+                        Predecessors: [B5]
+                        Statements (1)
+                            IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'd')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'd')
+                              Arguments(0)
+                        Next (Regular) Block[B7]
+                    Block[B7] - Block
+                        Predecessors: [B5] [B6]
+                        Statements (0)
+                        Next (StructuredExceptionHandling) Block[null]
+                }
+            }
+            Block[B8] - Exit
+                Predecessors: [B1] [B4]
+                Statements (0)
+            """;
+        var expectedDiagnostics = DiagnosticDescription.None;
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void ControlFlowGraph_LabeledBreak_OutOfTryFinallyInSwitch()
+    {
+        string source = """
+            class C
+            {
+                void M(int x)
+                /*<bind>*/{
+                    outer: switch (x)
+                    {
+                        case 0:
+                            try
+                            {
+                                break outer;
+                            }
+                            finally
+                            {
+                                x = 0;
+                            }
+                    }
+                }/*</bind>*/
+            }
+            """;
+        string expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                CaptureIds: [0]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                          Value:
+                            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                    Jump if False (Regular) to Block[B4]
+                        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '0')
+                          Left:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                          Right:
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Leaving: {R1}
+                    Next (Regular) Block[B2]
+                        Entering: {R2} {R3}
+                .try {R2, R3}
+                {
+                    Block[B2] - Block
+                        Predecessors: [B1]
+                        Statements (0)
+                        Next (Regular) Block[B4]
+                            Finalizing: {R4}
+                            Leaving: {R3} {R2} {R1}
+                }
+                .finally {R4}
+                {
+                    Block[B3] - Block
+                        Predecessors (0)
+                        Statements (1)
+                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 0;')
+                              Expression:
+                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 0')
+                                  Left:
+                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                                  Right:
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Next (StructuredExceptionHandling) Block[null]
+                }
+            }
+            Block[B4] - Exit
+                Predecessors: [B1] [B2]
+                Statements (0)
+            """;
+        var expectedDiagnostics = DiagnosticDescription.None;
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
+
     #endregion
 
     #region Helpers
