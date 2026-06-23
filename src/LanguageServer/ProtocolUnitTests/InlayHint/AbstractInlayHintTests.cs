@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint;
 
 public abstract class AbstractInlayHintTests : AbstractLanguageServerProtocolTests
 {
-    protected AbstractInlayHintTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    protected AbstractInlayHintTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 

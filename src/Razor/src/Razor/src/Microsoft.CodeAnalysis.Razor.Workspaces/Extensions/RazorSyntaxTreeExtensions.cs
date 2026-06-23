@@ -46,7 +46,9 @@ internal static class RazorSyntaxTreeExtensions
         this RazorSyntaxTree syntaxTree, Func<TDirective, bool>? predicate = null)
         where TDirective : BaseRazorDirectiveSyntax
     {
-        foreach (var node in syntaxTree.Root.DescendantNodes(MayContainDirectives))
+#pragma warning disable CS0618 // Iterator method requires IEnumerable (ref struct cannot span yield points)
+        foreach (var node in syntaxTree.Root.DescendantNodesAsIEnumerable(MayContainDirectives))
+#pragma warning restore CS0618
         {
             if (node is TDirective directive && (predicate == null || predicate(directive)))
             {

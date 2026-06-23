@@ -112,6 +112,7 @@ modifier
   | 'readonly'
   | 'ref'
   | 'required'
+  | 'safe'
   | 'scoped'
   | 'sealed'
   | 'static'
@@ -328,6 +329,7 @@ type_declaration
   | interface_declaration
   | record_declaration
   | struct_declaration
+  | union_declaration
   ;
 
 class_declaration
@@ -347,7 +349,11 @@ record_declaration
   ;
 
 struct_declaration
-  : attribute_list* modifier* ('struct' | 'union') identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* 'struct' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  ;
+
+union_declaration
+  : attribute_list* modifier* 'union' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 delegate_declaration
@@ -782,6 +788,7 @@ expression
   | tuple_expression
   | type
   | type_of_expression
+  | unsafe_expression
   | with_expression
   ;
 
@@ -1147,6 +1154,10 @@ tuple_expression
 
 type_of_expression
   : 'typeof' '(' type ')'
+  ;
+
+unsafe_expression
+  : 'unsafe' '(' expression ')'
   ;
 
 with_expression

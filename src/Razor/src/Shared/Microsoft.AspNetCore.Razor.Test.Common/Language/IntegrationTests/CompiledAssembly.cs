@@ -24,5 +24,7 @@ public class CompiledAssembly
 
     public Compilation Compilation { get; }
 
+    public byte[] ImageBytes { get; init; }
+
     public ImmutableArray<Diagnostic> EmitDiagnostics { get; init; }
 }

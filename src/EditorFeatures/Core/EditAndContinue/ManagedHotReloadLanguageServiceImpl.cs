@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// </summary>
 internal sealed class ManagedHotReloadLanguageServiceImpl(
     EditAndContinueSessionState sessionState,
-    Lazy<IHostWorkspaceProvider> workspaceProvider,
+    IHostWorkspaceProvider workspaceProvider,
     IManagedHotReloadService debuggerService,
     ISolutionSnapshotProvider solutionSnapshotProvider,
     PdbMatchingSourceTextProvider sourceTextProvider,
@@ -180,7 +180,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
         {
         }
 
-        workspaceProvider.Value.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
+        workspaceProvider.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
     }
 
     public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)

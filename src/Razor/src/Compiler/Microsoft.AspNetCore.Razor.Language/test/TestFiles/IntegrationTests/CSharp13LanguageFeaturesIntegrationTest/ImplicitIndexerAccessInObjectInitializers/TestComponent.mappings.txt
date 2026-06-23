@@ -1,0 +1,11 @@
+﻿Source Location: (2:0,2 [92] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var buffer = new IndexerBuffer { [0] = 1, [1] = 2 };
+    _ = buffer[0] + buffer[1];
+|
+Generated Location: (733:21,0 [92] )
+|
+    var buffer = new IndexerBuffer { [0] = 1, [1] = 2 };
+    _ = buffer[0] + buffer[1];
+|
+

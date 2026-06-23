@@ -14,7 +14,6 @@
     <PackageReference Include="System.Management" />
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
   <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" />

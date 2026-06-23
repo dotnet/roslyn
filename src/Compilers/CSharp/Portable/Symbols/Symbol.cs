@@ -758,6 +758,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        /// <summary>
+        /// Called for each member from <see cref="SourceMemberContainerTypeSymbol.AfterMembersCompletedChecks"/>.
+        /// </summary>
+        internal virtual void AfterTypeMembersCompletedChecks(BindingDiagnosticBag diagnostics)
+        {
+        }
+
         // Note: This is no public "IsNew". This is intentional, because new has no syntactic meaning.
         // It serves only to remove a warning. Furthermore, it can not be inferred from 
         // metadata. For symbols defined in source, the modifiers in the syntax tree
@@ -1538,7 +1545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RequiresLocationAttribute = 1 << 14,
             ExtensionMarkerAttribute = 1 << 15,
             MemorySafetyRulesAttribute = 1 << 16,
-            ClosedAttribute = 1 << 17,
+            IsClosedTypeAttribute = 1 << 17,
+            RequiresUnsafeAttribute = 1 << 18,
         }
 
         // https://github.com/dotnet/roslyn/issues/83627: Remove unnecessary 'permitted' flags from call sites of this method
@@ -1624,8 +1632,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ExtensionMarkerAttribute))
             {
             }
-            else if ((permitted & ReservedAttributes.ClosedAttribute) == 0 &&
-                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ClosedAttribute))
+            else if ((permitted & ReservedAttributes.IsClosedTypeAttribute) == 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.IsClosedTypeAttribute))
+            {
+            }
+            else if ((permitted & ReservedAttributes.RequiresUnsafeAttribute) == 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RequiresUnsafeAttribute))
             {
             }
             else

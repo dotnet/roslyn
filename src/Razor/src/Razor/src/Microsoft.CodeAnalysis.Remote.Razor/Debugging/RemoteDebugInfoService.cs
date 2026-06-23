@@ -6,7 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.CSharp.Debugging;
+using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -24,7 +27,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
 
-    public ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePositionSpan span, CancellationToken cancellationToken)
+    public ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, LinePositionSpan span, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
@@ -43,7 +46,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
         var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        var result = await ExternalAccess.Razor.Cohost.Handlers.ValidateBreakableRange.GetBreakableRangeAsync(generatedDocument, mappedSpan, cancellationToken).ConfigureAwait(false);
+        var result = await GetBreakableRangeAsync(generatedDocument, mappedSpan, cancellationToken).ConfigureAwait(false);
         if (result is { } csharpSpan &&
             _documentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), csharpSpan, MappingBehavior.Inclusive, out var hostSpan))
         {
@@ -53,7 +56,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         return null;
     }
 
-    public ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
+    public ValueTask<LinePositionSpan?> ResolveBreakpointRangeAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
@@ -70,7 +73,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
         // Now ask Roslyn to adjust the breakpoint to a valid location in the code
         var syntaxTree = await context.Snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        if (!RazorBreakpointSpans.TryGetBreakpointSpan(syntaxTree, projectedIndex, cancellationToken, out var csharpBreakpointSpan))
+        if (!BreakpointSpans.TryGetBreakpointSpan(syntaxTree, projectedIndex, cancellationToken, out var csharpBreakpointSpan))
         {
             return null;
         }
@@ -89,7 +92,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         return hostDocumentRange;
     }
 
-    public ValueTask<string[]?> ResolveProximityExpressionsAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
+    public ValueTask<string[]?> ResolveProximityExpressionsAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, LinePosition position, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
@@ -106,7 +109,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
         // Now ask Roslyn to adjust the breakpoint to a valid location in the code
         var syntaxTree = await context.Snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var result = RazorCSharpProximityExpressionResolverService.GetProximityExpressions(syntaxTree, projectedIndex, cancellationToken);
+        var result = CSharpProximityExpressionsService.GetProximityExpressions(syntaxTree, projectedIndex, cancellationToken);
 
         return result?.ToArray();
     }
@@ -156,5 +159,17 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         }
 
         return false;
+    }
+
+    private static async Task<LinePositionSpan?> GetBreakableRangeAsync(
+        Document document,
+        LinePositionSpan span,
+        CancellationToken cancellationToken)
+    {
+        var range = ProtocolConversions.LinePositionToRange(span);
+        var result = await ValidateBreakableRangeHandler.GetBreakableRangeAsync(document, range, cancellationToken).ConfigureAwait(false);
+        return result is null
+            ? null
+            : ProtocolConversions.RangeToLinePositionSpan(result);
     }
 }

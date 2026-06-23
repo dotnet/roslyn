@@ -1,0 +1,3 @@
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsClosed.get -> bool
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsClosed(bool isClosed) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+[RSEXPERIMENTAL006]static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Closed.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers

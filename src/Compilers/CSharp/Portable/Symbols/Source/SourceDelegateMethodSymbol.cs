@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -143,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        protected sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
         internal sealed override bool CanBeCallerUnsafe => false;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -439,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var p in currentParameters)
             {
-                if (string.CompareOrdinal(p.Name, name) == 0)
+                if (string.Equals(p.Name, name, StringComparison.Ordinal))
                 {
                     return false;
                 }

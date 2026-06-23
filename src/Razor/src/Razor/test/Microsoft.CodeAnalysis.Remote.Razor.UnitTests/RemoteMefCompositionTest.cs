@@ -46,6 +46,18 @@ public class RemoteMefCompositionTest(ITestOutputHelper testOutputHelper) : Tool
     }
 
     [Fact]
+    public async Task NoCacheDirectoryCreatesFreshProviders()
+    {
+        RemoteMefComposition.TestAccessor.ClearSaveCacheFileTask();
+
+        var firstExportProvider = await RemoteMefComposition.CreateExportProviderAsync(cacheDirectory: null, DisposalToken);
+        var secondExportProvider = await RemoteMefComposition.CreateExportProviderAsync(cacheDirectory: null, DisposalToken);
+
+        Assert.NotSame(firstExportProvider, secondExportProvider);
+        Assert.Null(RemoteMefComposition.TestAccessor.SaveCacheFileTask);
+    }
+
+    [Fact]
     public async Task CorruptCacheFileIsOverwritten()
     {
         using var tempRoot = new TempRoot();
