@@ -11,11 +11,22 @@ public abstract partial class TagHelperCollection
 {
     private sealed class ChecksumSetPool : CustomObjectPool<HashSet<Checksum>>
     {
-        private const int MaximumObjectSize = 2048;
+        // Large projects can have thousands of tag helpers, causing the HashSet to grow well past
+        // the LOH threshold (85KB) during document compilation. With a small retention limit, the
+        // set is trimmed on return and must re-grow (through multiple LOH-allocating resizes) on
+        // every subsequent use. Traces have shown GBs of allocation pressure from this resize churn.
+        // A higher retention limit keeps the grown set in the pool, trading a few MB of stable
+        // potentially LOH memory (across ~20 pool slots, most of which remain empty) for
+        // eliminating repeated resize allocations. The initial capacity is kept smaller so that
+        // small projects don't immediately allocate LOH-sized arrays.
+#if NET
+        private const int InitialCapacity = 2048;
+#endif
+        private const int MaximumRetainedCapacity = 16384;
 
         public static readonly ChecksumSetPool Default = new(Policy.Instance, DefaultPoolSize);
 
-        private ChecksumSetPool(PooledObjectPolicy policy, Optional<int> poolSize)
+        private ChecksumSetPool(PooledObjectPolicy policy, Opt<int> poolSize)
             : base(policy, poolSize)
         {
         }
@@ -31,7 +42,7 @@ public abstract partial class TagHelperCollection
             public override HashSet<Checksum> Create()
             {
 #if NET
-                return new(capacity: MaximumObjectSize);
+                return new(capacity: InitialCapacity);
 #else
                 return [];
 #endif
@@ -42,10 +53,10 @@ public abstract partial class TagHelperCollection
                 var count = set.Count;
                 set.Clear();
 
-                if (count > MaximumObjectSize)
+                if (count > MaximumRetainedCapacity)
                 {
 #if NET9_0_OR_GREATER
-                    set.TrimExcess(MaximumObjectSize);
+                    set.TrimExcess(InitialCapacity);
 #else
                     set.TrimExcess();
 #endif

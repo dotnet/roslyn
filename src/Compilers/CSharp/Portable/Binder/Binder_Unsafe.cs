@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ctor.ParameterCount == 0)
                     {
-                        // An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
+                        // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
                         @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
                         break;
                     }
@@ -149,6 +149,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (shouldCheckConstraints && symbol is NamedTypeSymbol { TypeParameters.Length: > 0 })
             {
                 Debug.Fail($"Symbol {symbol} is a generic type.");
+            }
+        }
+
+        /// <summary>
+        /// Reports CS9361 if an uninitialized span stackalloc requires an unsafe context under updated memory safety rules.
+        /// </summary>
+        internal void ReportUnsafeForUninitializedSpanStackAllocIfRequired(SyntaxNodeOrToken node, BindingDiagnosticBag diagnostics, bool hasInitializer)
+        {
+            // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
+            // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
+            // https://github.com/dotnet/roslyn/issues/82546: Confirm this rule with LDM.
+            if (!hasInitializer &&
+                Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
+                ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
+            {
+                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
             }
         }
 

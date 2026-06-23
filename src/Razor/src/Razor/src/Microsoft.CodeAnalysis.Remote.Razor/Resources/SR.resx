@@ -193,4 +193,10 @@
   <data name="Remove_unnecessary_directives" xml:space="preserve">
     <value>Remove unnecessary directives</value>
   </data>
+  <data name="Unsupported_type_0" xml:space="preserve">
+    <value>Unsupported type: '{0}'.</value>
+  </data>
+  <data name="Unknown_RazorMetaCode" xml:space="preserve">
+    <value>Attempted to visit a RazorMetaCode other than '{' or '}'.</value>
+  </data>
 </root>

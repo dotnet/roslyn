@@ -13,17 +13,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
-  </ItemGroup>
+  <Import Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.SharedUtilities\Microsoft.AspNetCore.Razor.SharedUtilities.projitems" Label="Shared" />
 
   <ItemGroup Label="String Resources">
     <EmbeddedResource Update="Resources\SR.resx">
@@ -65,9 +65,6 @@
     <ProjectReference Update="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Update="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj">
-      <Private>true</Private>
-    </ProjectReference>
     <ProjectReference Update="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Private>true</Private>
     </ProjectReference>
@@ -83,16 +80,16 @@
     <ProjectReference Include="..\..\..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj">
+    <ProjectReference Update="..\..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj">
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj">
+    <ProjectReference Update="..\..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj">
+    <ProjectReference Update="..\..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj">
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj">

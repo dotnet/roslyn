@@ -1,14 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.TypeHierarchy;
 using Microsoft.CodeAnalysis.Text;
@@ -71,22 +69,22 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
 
         var document = CreateProjectAndRazorDocument(input.Text);
         var preparedItem = Assert.Single(await GetPreparedItemsAsync(document, input.Position));
-        AssertItems([preparedItem], (document.GetURI().GetRequiredSystemUri(), input, ["derivedDef"]));
+        AssertItems([preparedItem], (document.GetURI(), input, ["derivedDef"]));
 
         var supertypes = await GetSupertypesAsync(document, preparedItem);
-        AssertItems(supertypes, (document.GetURI().GetRequiredSystemUri(), input, ["midDef"]));
+        AssertItems(supertypes, (document.GetURI(), input, ["midDef"]));
         var midItem = Assert.Single(supertypes);
 
         var midSupertypes = await GetSupertypesAsync(document, midItem);
-        AssertItems(midSupertypes, (document.GetURI().GetRequiredSystemUri(), input, ["baseDef"]));
+        AssertItems(midSupertypes, (document.GetURI(), input, ["baseDef"]));
         var baseItem = Assert.Single(midSupertypes);
 
         var baseSupertypes = await GetSupertypesAsync(document, baseItem);
-        AssertItems(baseSupertypes, (document.GetURI().GetRequiredSystemUri(), input, ["midInterfaceDef"]));
+        AssertItems(baseSupertypes, (document.GetURI(), input, ["midInterfaceDef"]));
         var midInterfaceItem = Assert.Single(baseSupertypes);
 
         var midInterfaceSupertypes = await GetSupertypesAsync(document, midInterfaceItem);
-        AssertItems(midInterfaceSupertypes, (document.GetURI().GetRequiredSystemUri(), input, ["topInterfaceDef"]));
+        AssertItems(midInterfaceSupertypes, (document.GetURI(), input, ["topInterfaceDef"]));
     }
 
     [Fact]
@@ -123,18 +121,18 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
 
         var document = CreateProjectAndRazorDocument(input.Text);
         var preparedItem = Assert.Single(await GetPreparedItemsAsync(document, input.Position));
-        AssertItems([preparedItem], (document.GetURI().GetRequiredSystemUri(), input, ["rootDef"]));
+        AssertItems([preparedItem], (document.GetURI(), input, ["rootDef"]));
 
         var subtypes = await GetSubtypesAsync(document, preparedItem);
-        AssertItems(subtypes, (document.GetURI().GetRequiredSystemUri(), input, ["childDef", "directImplDef"]));
+        AssertItems(subtypes, (document.GetURI(), input, ["childDef", "directImplDef"]));
 
         var childItem = Assert.Single(subtypes, item => item.Name == "IChild");
         var childSubtypes = await GetSubtypesAsync(document, childItem);
-        AssertItems(childSubtypes, (document.GetURI().GetRequiredSystemUri(), input, ["grandchildDef"]));
+        AssertItems(childSubtypes, (document.GetURI(), input, ["grandchildDef"]));
         var grandchildItem = Assert.Single(childSubtypes);
 
         var grandchildSubtypes = await GetSubtypesAsync(document, grandchildItem);
-        AssertItems(grandchildSubtypes, (document.GetURI().GetRequiredSystemUri(), input, ["indirectImplDef"]));
+        AssertItems(grandchildSubtypes, (document.GetURI(), input, ["indirectImplDef"]));
     }
 
     private async Task<TypeHierarchyItem[]> GetPreparedItemsAsync(
@@ -192,7 +190,7 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
     private static TypeHierarchyItem RoundTripItemData(TypeHierarchyItem item)
         => RazorTypeHierarchyResolveData.WithData(item, JsonSerializer.SerializeToElement(item.Data, JsonHelpers.JsonSerializerOptions));
 
-    private static void AssertItems(TypeHierarchyItem[] items, params (Uri uri, TestCode code, string[]? names)[] expectedSources)
+    private static void AssertItems(TypeHierarchyItem[] items, params (DocumentUri uri, TestCode code, string[]? names)[] expectedSources)
     {
         var expectedItems = GetExpectedItems(expectedSources);
         Assert.Equal(expectedItems.Length, items.Length);
@@ -207,12 +205,12 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
     private static void AssertItem(TypeHierarchyItem item, ExpectedTypeHierarchyItem expectedItem)
     {
         Assert.Equal(expectedItem.Name, item.Name);
-        Assert.Equal(expectedItem.Uri, item.Uri.ParsedUri);
+        Assert.Equal(expectedItem.Uri, item.Uri);
         Assert.Equal(expectedItem.SelectionRange, item.SelectionRange);
         Assert.Equal(expectedItem.Uri, GetResolveDataDocumentUri(item));
     }
 
-    private static ExpectedTypeHierarchyItem[] GetExpectedItems((Uri uri, TestCode code, string[]? names)[] expectedSources)
+    private static ExpectedTypeHierarchyItem[] GetExpectedItems((DocumentUri uri, TestCode code, string[]? names)[] expectedSources)
     {
         return
         [
@@ -224,7 +222,7 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         ];
     }
 
-    private static ExpectedTypeHierarchyItem GetExpectedItem(Uri uri, TestCode code, string name)
+    private static ExpectedTypeHierarchyItem GetExpectedItem(DocumentUri uri, TestCode code, string name)
     {
         var span = Assert.Single(code.NamedSpans[name]);
         var sourceText = SourceText.From(code.Text);
@@ -234,7 +232,7 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             sourceText.GetRange(span));
     }
 
-    private static Uri GetResolveDataDocumentUri(TypeHierarchyItem item)
+    private static DocumentUri GetResolveDataDocumentUri(TypeHierarchyItem item)
     {
         var data = item.Data switch
         {
@@ -251,8 +249,8 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             : textDocument.GetProperty("Uri").GetString();
 
         Assert.NotNull(uriString);
-        return new Uri(uriString);
+        return new DocumentUri(uriString);
     }
 
-    private sealed record ExpectedTypeHierarchyItem(string Name, Uri Uri, TypeHierarchyRange SelectionRange);
+    private sealed record ExpectedTypeHierarchyItem(string Name, DocumentUri Uri, TypeHierarchyRange SelectionRange);
 }

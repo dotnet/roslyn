@@ -3972,6 +3972,86 @@ class C
         }
 
         [Fact]
+        public void Nullable_01()
+        {
+            var source = @"
+#nullable enable
+
+object? o1 = null;
+Infer(o1)[^1].ToString();
+
+object? o2 = null;
+Infer(o2)[..].ToString();
+
+object? o3 = new object();
+Infer(o3)[^1].ToString();
+Infer(o3)[..].ToString();
+
+C<T> Infer<T>(T t) => throw null!;
+
+class C<T>
+{
+    public int Length => 0;
+    public T this[int i] => throw null!;
+    public T Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+            comp.VerifyDiagnostics(
+                // 0.cs(5,1): warning CS8602: Dereference of a possibly null reference.
+                // Infer(o1)[^1].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Infer(o1)[^1]").WithLocation(5, 1),
+                // 0.cs(8,1): warning CS8602: Dereference of a possibly null reference.
+                // Infer(o2)[..].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Infer(o2)[..]").WithLocation(8, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82802")]
+        public void Nullable_02()
+        {
+            var source = @"
+#nullable enable
+
+object? o1 = null;
+if (Infer(o1) is [var x])
+{
+    x.ToString();
+}
+
+object? o2 = null;
+if (Infer(o2) is [.. var y])
+{
+    y.ToString(); // (assumed not-null)
+}
+
+object? o3 = new object();
+if (Infer(o3) is [var z1])
+{
+    z1.ToString();
+}
+
+if (Infer(o3) is [.. var z2])
+{
+    z2.ToString();
+}
+
+C<T> Infer<T>(T t) => throw null!;
+
+class C<T>
+{
+    public int Length => 0;
+    public T this[int i] => throw null!;
+    public T Slice(int i, int j) => throw null!;
+}
+";
+            var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
+            comp.VerifyDiagnostics(
+                // 0.cs(7,5): warning CS8602: Dereference of a possibly null reference.
+                //     x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 5));
+        }
+
+        [Fact]
         public void PatternIndexArrayAndAwait_01()
         {
             var src = @"
@@ -4783,6 +4863,213 @@ static class C
   IL_0011:  call       "int System.Index.GetOffset(int)"
   IL_0016:  callvirt   "string string.Substring(int)"
   IL_001b:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void SliceStart_11()
+        {
+            var src = """
+class Program
+{
+    public static string F;
+
+    static void Main()
+    {
+        F = "1";
+        Test();
+        System.Console.Write($"final:{F}");
+    }
+
+    static void Test()
+    {
+        _ = F[GetStart()..];
+    }
+
+    public static int GetStart() { System.Console.Write($"GetStart:{Program.F} "); Program.F = "2"; return 1; }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart:1 final:2"), verify: Verification.Skipped)
+                 .VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     "string Program.F"
+  IL_0006:  call       "int Program.GetStart()"
+  IL_000b:  callvirt   "string string.Substring(int)"
+  IL_0010:  pop
+  IL_0011:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void SliceStart_12()
+        {
+            var src = """
+class Program
+{
+    public static string F;
+
+    static void Main()
+    {
+        F = "1";
+        Test(ref F);
+        System.Console.Write($"final:{F}");
+    }
+
+    static void Test(ref string f)
+    {
+        _ = f[GetStart()..];
+    }
+
+    public static int GetStart() { System.Console.Write($"GetStart:{Program.F} "); Program.F = "2"; return 1; }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart:1 final:2"), verify: Verification.Skipped)
+                 .VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test", """
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldind.ref
+  IL_0003:  call       "int Program.GetStart()"
+  IL_0008:  callvirt   "string string.Substring(int)"
+  IL_000d:  pop
+  IL_000e:  ret
+}
+""");
+        }
+
+        [Theory]
+        [InlineData("Span<char>")]
+        [InlineData("ReadOnlySpan<char>")]
+        public void SliceStart_13(string typeName)
+        {
+            // Span<T>/ReadOnlySpan<T> with [GetStart()..]: UseAsIs strategy + start-only Slice optimization (struct receiver)
+            var src = $$"""
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        {{typeName}} s = "0123".ToCharArray();
+        System.Console.Write(Test(ref s).ToString());
+    }
+
+    static {{typeName}} Test(ref {{typeName}} s) => s[GetStart()..];
+
+    static int GetStart() { System.Console.Write("GetStart "); return 1; }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart 123"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       "int Program.GetStart()"
+  IL_0006:  call       "System.{{typeName}} System.{{typeName}}.Slice(int)"
+  IL_000b:  ret
+}
+""");
+        }
+
+        [Theory]
+        [InlineData("Memory<int>")]
+        [InlineData("ReadOnlyMemory<int>")]
+        public void SliceStart_14(string typeName)
+        {
+            // Memory<T>/ReadOnlyMemory<T> with [GetStart()..]: UseAsIs strategy + start-only Slice optimization (struct receiver)
+            var src = $$"""
+class Program
+{
+    public static System.{{typeName}} F;
+
+    static void Main()
+    {
+        F = new int[] { 1, 2, 3, 4 };
+        Test();
+        System.Console.Write($"final:{F.Span[0]}");
+    }
+
+    static void Test()
+    {
+        _ = F[GetStart()..];
+    }
+
+    static int GetStart() { System.Console.Write($"GetStart:{F.Span[0]} "); F = new int[] { 9, 9 }; return 1; }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart:1 final:9"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldsflda    "System.{{typeName}} Program.F"
+  IL_0005:  call       "int Program.GetStart()"
+  IL_000a:  call       "System.{{typeName}} System.{{typeName}}.Slice(int)"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+        }
+
+        [Theory]
+        [InlineData("Span<char>")]
+        [InlineData("ReadOnlySpan<char>")]
+        public void SliceStart_15(string typeName)
+        {
+            // Span<T>/ReadOnlySpan<T> with [^GetStart()..]: SubtractFromLength strategy + start-only Slice optimization (struct receiver)
+            var src = $$"""
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        {{typeName}} s = "0123".ToCharArray();
+        System.Console.Write(Test(ref s).ToString());
+    }
+
+    static {{typeName}} Test(ref {{typeName}} s) => s[^GetStart()..];
+
+    static int GetStart() { System.Console.Write("GetStart "); return 1; }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart 3"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       21 (0x15)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "int Program.GetStart()"
+  IL_0006:  stloc.0
+  IL_0007:  dup
+  IL_0008:  call       "int System.{{typeName}}.Length.get"
+  IL_000d:  ldloc.0
+  IL_000e:  sub
+  IL_000f:  call       "System.{{typeName}} System.{{typeName}}.Slice(int)"
+  IL_0014:  ret
 }
 """);
         }

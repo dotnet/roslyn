@@ -34,6 +34,7 @@ Imports TestResources.Analyzers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
+    <ValidatePooledObjects(WaitForOutstandingObjectsToBeFreed:=True)>
     Partial Public Class CommandLineTests
         Inherits BasicTestBase
 

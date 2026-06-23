@@ -130,12 +130,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         try
                         {
-                            var process = Process.GetProcessById(shutdownBuildResponse.ServerProcessId);
-#if NET5_0_OR_GREATER
-                            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-#else
-                            process.WaitForExit();
-#endif
+                            await WaitForServerProcessExitAsync(pipeName, shutdownBuildResponse.ServerProcessId, cancellationToken).ConfigureAwait(false);
                         }
                         catch (Exception)
                         {
@@ -162,6 +157,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 string mutexName = GetServerMutexName(pipeName);
                 return WasServerMutexOpen(mutexName);
+            }
+        }
+
+        internal static async Task WaitForServerProcessExitAsync(
+            string pipeName,
+            int serverProcessId,
+            CancellationToken cancellationToken)
+        {
+            var mutexName = GetServerMutexName(pipeName);
+            using var process = Process.GetProcessById(serverProcessId);
+
+            while (!process.HasExited && WasServerMutexOpen(mutexName))
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -324,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 else
                 {
-                    logger.LogError($"Client disconnect for {request.RequestId}");
+                    logger.Log($"Client disconnect for {request.RequestId}");
                     response = new RejectedBuildResponse($"Client disconnected");
                 }
 
@@ -412,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // IOException: The server is connected to another client and the
                     //              time-out period has expired.
 
-                    logger.Log($"Connecting to server timed out after {timeoutMs} ms: '{e.GetType().Name}' '{e.Message}'");
+                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
                     pipeStream.Dispose();
                     return null;
                 }
@@ -432,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
-                logger.Log($"Exception while connecting to process: '{e.GetType().Name}' '{e.Message}'");
+                logger.LogException(e, "Exception while connecting to process");
                 pipeStream?.Dispose();
                 return null;
             }

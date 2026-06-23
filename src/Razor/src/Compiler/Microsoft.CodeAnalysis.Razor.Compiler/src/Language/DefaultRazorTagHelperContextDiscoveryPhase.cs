@@ -205,14 +205,8 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
     internal sealed class TagHelperDirectiveVisitor : DirectiveVisitor
     {
         /// <summary>
-        /// A larger pool of <see cref="TagHelperDescriptor"/> lists to handle scenarios where tag helpers
-        /// originate from a large number of assemblies.
-        /// </summary>
-        private static readonly ListPool<TagHelperDescriptor> s_pool = ListPool<TagHelperDescriptor>.Create(poolSize: 100);
-
-        /// <summary>
         /// A map from assembly name to list of <see cref="TagHelperDescriptor"/>. Lists are allocated from and returned to
-        /// <see cref="s_pool"/>.
+        /// <see cref="TagHelperCollection.TagHelperDescriptorListPool.Default"/>.
         /// </summary>
         private readonly Dictionary<string, List<TagHelperDescriptor>> _tagHelperMap = new(StringComparer.Ordinal);
 
@@ -253,7 +247,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
                                 if (!_tagHelperMap.TryGetValue(currentAssemblyName, out currentTagHelpers))
                                 {
-                                    currentTagHelpers = s_pool.Get();
+                                    currentTagHelpers = TagHelperCollection.TagHelperDescriptorListPool.Default.Get();
                                     _tagHelperMap.Add(currentAssemblyName, currentTagHelpers);
                                 }
                             }
@@ -281,7 +275,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         {
             foreach (var (_, tagHelpers) in _tagHelperMap)
             {
-                s_pool.Return(tagHelpers);
+                TagHelperCollection.TagHelperDescriptorListPool.Default.Return(tagHelpers);
             }
 
             _tagHelperMap.Clear();
@@ -323,7 +317,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             }
 
             // We only record directives if we're visiting the source document, so no point collecting them either.
-            var contributed = IsSourceDocument ? ListPool<TagHelperDescriptor>.Default.Get() : null;
+            var contributed = IsSourceDocument ? TagHelperCollection.TagHelperDescriptorListPool.Default.Get() : null;
             switch (GetMemoryWithoutGlobalPrefix(addTagHelper.TypePattern).Span)
             {
                 case ['*']:
@@ -359,7 +353,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             if (contributed is not null)
             {
                 RecordDirectiveTagHelperContribution(node, TagHelperCollection.Create(contributed));
-                ListPool<TagHelperDescriptor>.Default.Return(contributed);
+                TagHelperCollection.TagHelperDescriptorListPool.Default.Return(contributed);
             }
         }
 
@@ -456,14 +450,14 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
                 if (typeNamespace.IsEmpty)
                 {
-                    _componentsWithoutNamespace ??= ListPool<TagHelperDescriptor>.Default.Get();
+                    _componentsWithoutNamespace ??= TagHelperCollection.TagHelperDescriptorListPool.Default.Get();
                     _componentsWithoutNamespace.Add(component);
                 }
                 else
                 {
                     if (!_namespaceToComponentsMap.TryGetValue(typeNamespace, out var components))
                     {
-                        components = ListPool<TagHelperDescriptor>.Default.Get();
+                        components = TagHelperCollection.TagHelperDescriptorListPool.Default.Get();
                         _namespaceToComponentsMap.Add(typeNamespace, components);
                     }
 
@@ -484,13 +478,13 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         {
             if (_componentsWithoutNamespace != null)
             {
-                ListPool<TagHelperDescriptor>.Default.Return(_componentsWithoutNamespace);
+                TagHelperCollection.TagHelperDescriptorListPool.Default.Return(_componentsWithoutNamespace);
                 _componentsWithoutNamespace = null;
             }
 
             foreach (var (_, components) in _namespaceToComponentsMap)
             {
-                ListPool<TagHelperDescriptor>.Default.Return(components);
+                TagHelperCollection.TagHelperDescriptorListPool.Default.Return(components);
             }
 
             _namespaceToComponentsMap.Clear();

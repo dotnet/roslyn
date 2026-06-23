@@ -34,9 +34,7 @@ pr:
       - azure-pipelines-integration-scouting.yml
       - azure-pipelines-official.yml
       - azure-pipelines-pr-validation.yml
-      - CODE-OF-CONDUCT.md
-      - CONTRIBUTING.md
-      - README.md
+      - '*.md'
 
 variables:
   # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
@@ -597,7 +595,7 @@ stages:
 
   - job: Correctness_Analyzers
     pool: ${{ parameters.ubuntuPool }}
-    timeoutInMinutes: 35
+    timeoutInMinutes: 40
     variables:
       - template: eng/pipelines/variables-build.yml
         parameters:
