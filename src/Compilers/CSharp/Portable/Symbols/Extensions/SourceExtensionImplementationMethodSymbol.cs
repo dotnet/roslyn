@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsAbstract => false;
         public sealed override bool IsSealed => false;
 
-        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
+        internal sealed override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
         internal sealed override bool IsMetadataFinal => false;
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal sealed override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
 
         internal sealed override bool IsAccessCheckedOnOverride => false;
 

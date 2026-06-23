@@ -1,0 +1,14 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [97] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [97] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    var values = new[] { 1, 2, 3, 4 };\n    var slice = values[1..^1];\n    _ = slice.Length;\n
+                HtmlContent - (142:7,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (142:7,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpExpression - (145:8,1 [13] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (145:8,1 [13] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - values[1..^1]

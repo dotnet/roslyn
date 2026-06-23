@@ -1613,14 +1613,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (op1)
                     {
-                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet, ReceiverOpt: var receiver } when propSet.IsExtensionBlockMember():
-                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, receiver, args: [op2], receiverIsSubjectToCloning: ThreeState.Unknown);
-                            handleExtensionSetter(in methodInvocationInfo);
+                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet } property:
+                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, property.ReceiverOpt, args: [op2], receiverIsSubjectToCloning: property.InitialBindingReceiverIsSubjectToCloning);
+                            analyzeSetterInvocation(in methodInvocationInfo);
                             return;
-                        case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer when indexerSet.IsExtensionBlockMember():
-                            methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(indexer);
-                            Debug.Assert(ReferenceEquals(methodInvocationInfo.MethodInfo.Method, indexerSet));
-                            handleExtensionSetter(in methodInvocationInfo);
+                        case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer:
+                            methodInvocationInfo = MethodInvocationInfo.FromCallParts(indexerSet, indexer.ReceiverOpt, args: [.. indexer.Arguments, op2], receiverIsSubjectToCloning: indexer.InitialBindingReceiverIsSubjectToCloning);
+                            analyzeSetterInvocation(in methodInvocationInfo);
                             return;
                     }
                 }
@@ -1651,12 +1650,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return "";
             }
 
-            void handleExtensionSetter(ref readonly MethodInvocationInfo methodInvocationInfo)
+            void analyzeSetterInvocation(ref readonly MethodInvocationInfo methodInvocationInfo)
             {
                 // Analyze as if this is a call to the setter directly, not an assignment.
                 var localMethodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
                 Debug.Assert(methodInvocationInfo.MethodInfo.Method is not null);
-                CheckInvocationArgMixing(node, in localMethodInvocationInfo, methodInvocationInfo.MethodInfo.Method, diagnostics);
+
+                CheckInvocationArgMixing(node, in localMethodInvocationInfo,
+                    symbolForReporting: methodInvocationInfo.MethodInfo.Method.AssociatedSymbol, diagnostics);
             }
         }
     }
@@ -3941,6 +3942,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // there is no need to look up "x".
             Binder outerBinder;
 
+            var flags = BinderFlags.ConstructorInitializer;
+
             if ((object?)sourceConstructor == null)
             {
                 // The constructor is implicit. We need to get the binder for the body
@@ -3970,6 +3973,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
 
                         outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
+
+                        if (ctorDecl.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+                        {
+                            flags |= BinderFlags.UnsafeRegion;
+                        }
+
                         break;
 
                     case TypeDeclarationSyntax typeDecl:
@@ -3983,7 +3992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // wrap in ConstructorInitializerBinder for appropriate errors
             // Handle scoping for possible pattern variables declared in the initializer
-            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(flags, constructor);
 
             return initializerBinder.BindConstructorInitializer(null, constructor, diagnostics);
         }

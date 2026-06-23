@@ -13,15 +13,12 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class IRemoteJsonServiceParameterAnalyzerTests
     {
         private const string Boilerplate = """
-            namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
-            {
-                public class RazorPinnedSolutionInfoWrapper
-                {
-                }
-            }
-
             namespace Microsoft.CodeAnalysis.Razor.Remote
             {
+                public class RazorSolutionWrapper
+                {
+                }
+
                 public interface IRemoteJsonService
                 {
                 }
@@ -36,16 +33,15 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             """;
 
         [Fact]
-        public Task RazorPinnedSolutionInfoWrapper_Report()
+        public Task RazorSolutionWrapper_Report()
             => new VerifyCS.Test
             {
                 TestCode = $$"""
-                    using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-                    using Microsoft.CodeAnalysis.Razor.Remote;
+                                        using Microsoft.CodeAnalysis.Razor.Remote;
 
                     interface ITestService : IRemoteJsonService
                     {
-                        void TestMethod(RazorPinnedSolutionInfoWrapper {|RS0065:parameter|});
+                        void TestMethod(RazorSolutionWrapper {|RS0065:parameter|});
                     }
 
                     {{Boilerplate}}

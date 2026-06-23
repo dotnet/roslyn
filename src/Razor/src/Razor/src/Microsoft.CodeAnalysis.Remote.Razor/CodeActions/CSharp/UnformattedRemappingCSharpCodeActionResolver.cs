@@ -70,7 +70,7 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver(IDocumentMapp
 
         var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
         {
-            DocumentUri = new(documentContext.Uri),
+            DocumentUri = documentContext.Uri,
         };
         codeAction.Edit = new WorkspaceEdit()
         {

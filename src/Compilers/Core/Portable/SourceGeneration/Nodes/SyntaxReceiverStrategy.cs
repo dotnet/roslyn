@@ -64,6 +64,11 @@ namespace Microsoft.CodeAnalysis
                 tables.SetTable(_key, _nodeStateTable.ToImmutableAndFree());
             }
 
+            public void FreeUnderlying()
+            {
+                _nodeStateTable.Free();
+            }
+
             public void VisitTree(
                 Lazy<SyntaxNode> root,
                 EntryState state,

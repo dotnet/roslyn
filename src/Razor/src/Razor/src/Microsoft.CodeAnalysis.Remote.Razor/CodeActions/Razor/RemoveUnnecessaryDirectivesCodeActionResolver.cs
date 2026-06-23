@@ -41,7 +41,7 @@ internal sealed class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCode
             {
                 new TextDocumentEdit
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri },
                     Edits = edits.ToArrayAndClear(),
                 }
             }
