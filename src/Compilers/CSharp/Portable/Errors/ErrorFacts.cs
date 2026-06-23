@@ -642,7 +642,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
-                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_NonTaskMainCantBeAsync
                 or ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
                 or ErrorCode.ERR_EncUpdateFailedMissingSymbol
