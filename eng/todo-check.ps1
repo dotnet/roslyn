@@ -89,7 +89,7 @@ $mergeMarkerExclusions = @(
   ':!src/EditorFeatures/VisualBasicTest/Classification/SyntacticClassifierTests.vb'
 )
 
-$mergeMarkers = Get-GitGrepMatches '^(<<<<<<<|>>>>>>>)' $mergeMarkerExclusions -extendedRegex
+$mergeMarkers = Get-GitGrepMatches '^(<<<<<<<|\|\|\|\|\|\||>>>>>>>)' $mergeMarkerExclusions -extendedRegex
 if ($mergeMarkers) {
   Write-Host "Found merge markers in checked-in files:"
   Write-Host $mergeMarkers
