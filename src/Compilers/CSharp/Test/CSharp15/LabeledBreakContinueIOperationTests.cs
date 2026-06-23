@@ -1800,6 +1800,39 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void ControlFlowGraph_InvalidLabeledBreak_LabelNotOnLoop()
+    {
+        string source = """
+            class C
+            {
+                void F()
+                /*<bind>*/{
+                    L: { while (true) { break L; } }
+                }/*</bind>*/
+            }
+            """;
+        string expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+            Block[B1] - Block
+                Predecessors: [B0] [B1]
+                Statements (0)
+                Jump if False (Regular) to Block[B2]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Next (Regular) Block[B1]
+            Block[B2] - Exit [UnReachable]
+                Predecessors: [B1]
+                Statements (0)
+            """;
+        var expectedDiagnostics = new[]
+        {
+            Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 35),
+        };
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
+
     #endregion
 
     #region Helpers

@@ -778,7 +778,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     }
 
     [Fact]
-    public void Break_LabelOnDeeperNestedLoop()
+    public void Continue_LabelOnDeeperNestedLoop()
     {
         var source = """
             class C
@@ -797,6 +797,31 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (7,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22),
+            // (8,15): warning CS0164: This label has not been referenced
+            //             { outer: foreach (var y in new int[0]) { } }
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(8, 15));
+    }
+
+    [Fact]
+    public void Break_LabelOnDeeperNestedLoop()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    foreach (var x in new int[0])
+                    {
+                        break outer;
+                        { outer: foreach (var y in new int[0]) { } }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,19): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
+            //             break outer;
+            Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 19),
             // (8,15): warning CS0164: This label has not been referenced
             //             { outer: foreach (var y in new int[0]) { } }
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(8, 15));
@@ -848,31 +873,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (8,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(8, 22));
-    }
-
-    [Fact]
-    public void Break_LabelOnContainingForEach_InsideNestedBlock()
-    {
-        var source = """
-            class C
-            {
-                void M()
-                {
-                    foreach (var x in new int[0])
-                    {
-                        continue outer;
-                        { outer: foreach (var y in new int[0]) { } }
-                    }
-                }
-            }
-            """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (7,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
-            //             continue outer;
-            Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22),
-            // (8,15): warning CS0164: This label has not been referenced
-            //             { outer: foreach (var y in new int[0]) { } }
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(8, 15));
     }
 
     #endregion
