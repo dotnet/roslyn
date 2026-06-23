@@ -224,30 +224,27 @@ namespace RunTests
             var dumpDir = options.LogFilesDirectory;
             Directory.CreateDirectory(dumpDir);
 
-            var counter = 0;
-            foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
+            if (options.CollectDumps)
             {
-                var name = proc.ProcessName;
-
-                // Skip processes that won't contribute to bug investigations.
-                if (name is "procdump" or "conhost")
+                var counter = 0;
+                foreach (var proc in ProcessUtil.GetTestHostProcesses().OrderBy(x => x.ProcessName))
                 {
-                    continue;
-                }
+                    var name = proc.ProcessName;
 
-                var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
-                ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
+                    var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
+                    ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
 
-                if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
-                {
-                    ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
-                }
-                else
-                {
-                    ConsoleUtil.WriteLine("FAILED");
-                }
+                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
+                    {
+                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
+                    }
+                    else
+                    {
+                        ConsoleUtil.WriteLine("FAILED");
+                    }
 
-                counter++;
+                    counter++;
+                }
             }
 
             WriteLogFile(options);

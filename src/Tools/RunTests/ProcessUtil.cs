@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
 
@@ -12,19 +13,50 @@ namespace RunTests
 {
     internal static class ProcessUtil
     {
-        internal static int? TryGetParentProcessId(Process p)
+        /// <summary>
+        /// Get the command line of the provided <paramref name="process"/>, or <see langword="null"/>
+        /// if it can't be determined.
+        /// </summary>
+        /// <remarks>
+        /// This is a best effort API. The process may exit while the command line is being read, or the
+        /// current platform may not be supported.
+        /// </remarks>
+        internal static string? TryGetCommandLine(Process process)
         {
-            // System.Management is not supported outside of Windows.
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return TryGetCommandLineWindows(process);
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return TryGetCommandLineLinux(process);
+            }
+
+            return null;
+        }
+
+        private static string? TryGetCommandLineWindows(Process process)
+        {
+            try
+            {
+                using var mo = new ManagementObject("win32_process.handle='" + process.Id + "'");
+                mo.Get();
+                return mo["CommandLine"] as string;
+            }
+            catch
             {
                 return null;
             }
+        }
 
+        private static string? TryGetCommandLineLinux(Process process)
+        {
             try
             {
-                ManagementObject mo = new ManagementObject("win32_process.handle='" + p.Id + "'");
-                mo.Get();
-                return Convert.ToInt32(mo["ParentProcessId"]);
+                // /proc/<pid>/cmdline contains the arguments separated by null characters.
+                var raw = File.ReadAllText($"/proc/{process.Id}/cmdline");
+                return raw.Replace('\0', ' ').Trim();
             }
             catch
             {
@@ -33,22 +65,23 @@ namespace RunTests
         }
 
         /// <summary>
-        /// Return the list of processes which are direct children of the provided <paramref name="process"/> 
-        /// instance.
+        /// Return the set of <c>testhost</c> processes spawned by <c>dotnet test</c>. A process is
+        /// considered a test host when either:
+        /// <list type="number">
+        /// <item>its process name starts with <c>testhost</c>; or</item>
+        /// <item>its process name is <c>dotnet</c> and its command line references <c>testhost</c>.</item>
+        /// </list>
         /// </summary>
         /// <remarks>
         /// This is a best effort API.  It can be thwarted by process instances starting / stopping during
         /// the building of this list.
         /// </remarks>
-        internal static List<Process> GetProcessChildren(Process process) => GetProcessChildrenCore(process, Process.GetProcesses());
-
-        private static List<Process> GetProcessChildrenCore(Process parentProcess, IEnumerable<Process> processes)
+        internal static List<Process> GetTestHostProcesses()
         {
             var list = new List<Process>();
-            foreach (var process in processes)
+            foreach (var process in Process.GetProcesses())
             {
-                var parentId = TryGetParentProcessId(process);
-                if (parentId == parentProcess.Id)
+                if (IsTestHostProcess(process))
                 {
                     list.Add(process);
                 }
@@ -57,33 +90,42 @@ namespace RunTests
             return list;
         }
 
-        /// <summary>
-        /// Return the list of processes which are direct or indirect children of the provided <paramref name="process"/> 
-        /// instance.
-        /// </summary>
-        /// <remarks>
-        /// This is a best effort API.  It can be thwarted by process instances starting / stopping during
-        /// the building of this list.
-        /// </remarks>
-        internal static List<Process> GetProcessTree(Process process)
+        private static bool IsTestHostProcess(Process process)
         {
-            var processes = Process.GetProcesses();
-            var list = new List<Process>();
-            var toVisit = new Queue<Process>();
-            toVisit.Enqueue(process);
-
-            while (toVisit.Count > 0)
+            string name;
+            try
             {
-                var cur = toVisit.Dequeue();
-                var children = GetProcessChildrenCore(cur, processes);
-                foreach (var child in children)
+                name = process.ProcessName;
+            }
+            catch
+            {
+                // The process may have exited between enumeration and inspection.
+                return false;
+            }
+
+            // Process.ProcessName omits the file extension, but normalize defensively in case a future
+            // runtime change includes it.
+            if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+            {
+                name = name.Substring(0, name.Length - 4);
+            }
+
+            if (name.StartsWith("testhost", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(name, "dotnet", StringComparison.OrdinalIgnoreCase))
+            {
+                var commandLine = TryGetCommandLine(process);
+                if (commandLine is not null &&
+                    commandLine.IndexOf("testhost", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    toVisit.Enqueue(child);
-                    list.Add(child);
+                    return true;
                 }
             }
 
-            return list;
+            return false;
         }
     }
 }
