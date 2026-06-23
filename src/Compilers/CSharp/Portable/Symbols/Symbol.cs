@@ -623,6 +623,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Whether this member is considered unsafe under the updated memory safety rules.
         /// See <see cref="CSharp.CallerUnsafeMode"/> for more details.
         /// </summary>
+        /// <remarks>
+        /// During binding, use <see cref="Binder.GetCallerUnsafeMode"/> helper instead of this.
+        /// </remarks>
         internal abstract CallerUnsafeMode CallerUnsafeMode { get; }
 
         /// <summary>
