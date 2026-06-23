@@ -2986,7 +2986,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
 
-
             BoundLabel? bindLabel(BindingDiagnosticBag diagnostics)
                 => name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
 
