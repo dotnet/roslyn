@@ -164,7 +164,7 @@ internal partial class CSharpTypeInferenceService
                 InitializerExpressionSyntax initializerExpression => InferTypeInInitializerExpression(initializerExpression, expression),
                 IsPatternExpressionSyntax isPatternExpression => InferTypeInIsPatternExpression(isPatternExpression, node),
                 LockStatementSyntax lockStatement => InferTypeInLockStatement(lockStatement),
-#if false
+#if !OLDER_ROSLYN
                 KeyValuePairElementSyntax keyValuePairElement => InferTypeInKeyValuePairElement(keyValuePairElement, expression),
 #endif
                 MemberAccessExpressionSyntax memberAccessExpression => InferTypeInMemberAccessExpression(memberAccessExpression, expression),
@@ -1266,7 +1266,7 @@ internal partial class CSharpTypeInferenceService
             return [];
         }
 
-#if false
+#if !OLDER_ROSLYN
         private IEnumerable<TypeInferenceInfo> InferTypeInKeyValuePairElement(
             KeyValuePairElementSyntax keyValuePairElement, ExpressionSyntax expression)
         {

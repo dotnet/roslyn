@@ -193,7 +193,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenInvocation = true;
-                return new(expressionStatement, UseSpread: false, useKeyValue);
+                return new(expressionStatement, UseSpread: false, UseCast: false, UseKeyValue: useKeyValue);
             }
         }
 
@@ -203,7 +203,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
-                return new(expressionStatement, UseSpread: false, UseKeyValue: this.State.SyntaxFacts.SupportsKeyValuePairElement(statement.SyntaxTree.Options));
+                return new(expressionStatement, UseSpread: false, UseCast: false, UseKeyValue: this.State.SyntaxFacts.SupportsKeyValuePairElement(statement.SyntaxTree.Options));
             }
         }
 

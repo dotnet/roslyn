@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Operations;
@@ -89,6 +90,9 @@ internal static class UseCollectionExpressionHelpers
     {
         var compilation = semanticModel.Compilation;
         changesSemantics = false;
+
+        if (!compilation.LanguageVersion().SupportsCollectionExpressions())
+            return false;
 
         var topMostExpression = expression.WalkUpParentheses();
         if (topMostExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
@@ -235,12 +239,19 @@ internal static class UseCollectionExpressionHelpers
 
             // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
             // continue emitting a List<X> for those target types.
-            var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(convertedType);
+            //
+            // Similarly, it is safe to convert Dictionary<X,Y> to IDictionary<X,Y> when dictionary expressions are
+            // available, as the language guarantees that it will continue emitting a Dictionary<X,Y> for those targets.
+            var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(
+                compilation, convertedType);
             if (isWellKnownCollectionReadWriteInterface &&
-                Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
                 type.AllInterfaces.Contains(convertedType))
             {
-                return true;
+                if (Equals(type.OriginalDefinition, compilation.ListOfTType()))
+                    return true;
+
+                if (Equals(type.OriginalDefinition, compilation.DictionaryOfKVType()))
+                    return compilation.LanguageVersion().SupportsDictionaryExpressions();
             }
 
             // Before this point are all the changes that we can detect that are always safe to make.
@@ -261,7 +272,7 @@ internal static class UseCollectionExpressionHelpers
             //
             // `IEnumerable<object> obj = Array.Empty<object>();` or
             // `IEnumerable<string> obj = new[] { "" };`
-            if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
+            if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(compilation, convertedType) && type.AllInterfaces.Contains(convertedType))
             {
                 // The observable collections are known to have significantly different behavior than List<T>.  So
                 // disallow converting those types to ensure semantics are preserved.  We do this even though
@@ -596,8 +607,7 @@ internal static class UseCollectionExpressionHelpers
     }
 
     public static CollectionExpressionSyntax ConvertInitializerToCollectionExpression(
-        // Enable when dictionary-expressions come online.
-        // SourceText text,
+        SourceText text,
         InitializerExpressionSyntax initializer, bool wasOnSingleLine)
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
@@ -622,8 +632,6 @@ internal static class UseCollectionExpressionHelpers
 
         CollectionElementSyntax CreateElement(ExpressionSyntax expression)
         {
-            // Enable when dictionary-expressions come online.
-#if false
             if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression1, var valueExpression1] } initializer)
             {
                 // If we have `{ key, ... }` we want to move the leading trivia of the `{` to the key so that it is
@@ -657,9 +665,6 @@ internal static class UseCollectionExpressionHelpers
             {
                 return ExpressionElement(expression);
             }
-#else
-            return ExpressionElement(expression);
-#endif
         }
     }
 
@@ -849,7 +854,7 @@ internal static class UseCollectionExpressionHelpers
 
                         // this looks like a good statement, add to the right size of the assignment to track as that's what
                         // we'll want to put in the final collection expression.
-                        matches.Add(new(expressionStatement, UseSpread: false, UseKeyValue: false));
+                        matches.Add(new(expressionStatement, UseSpread: false, UseCast: false, UseKeyValue: false));
                         currentStatement = currentStatement.GetNextStatement();
                     }
                 }

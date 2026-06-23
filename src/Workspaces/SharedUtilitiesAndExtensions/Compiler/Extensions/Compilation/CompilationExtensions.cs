@@ -183,6 +183,15 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? IReadOnlySetOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(IReadOnlySet<>).FullName!);
 
+    public static INamedTypeSymbol? DictionaryOfKVType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Dictionary<,>).FullName!);
+
+    public static INamedTypeSymbol? IDictionaryOfKVType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName!);
+
+    public static INamedTypeSymbol? IReadOnlyDictionaryOfKVType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IReadOnlyDictionary<,>).FullName!);
+
     public static INamedTypeSymbol? IAsyncEnumerableOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1");
 

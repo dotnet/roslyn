@@ -12731,8 +12731,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 var v = [ with ( 1 , 2 ) , 3];
                 """);
 
-    // Enable when dictionary-expressions come online.
-#if false
     [Fact]
     public Task FormatKeyValuePair1()
         => AssertFormatAsync(
@@ -12762,7 +12760,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             code: """
                 var v = [ null :  1  +  1 , ( x . y ) :  from   x    in   y    select  z ];
                 """);
-#endif
 
     [Fact]
     public Task StandaloneBlocksShouldNotCollapseWhenMethodBraceOptionIsOff()

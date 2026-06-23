@@ -432,7 +432,7 @@ internal readonly struct UpdateExpressionState<
                     expression, allowLinq: false, cancellationToken, out var instance, out var useSpread, out var useKeyValue) &&
                 @this.ValuePatternMatches(instance))
             {
-                return new(expressionStatement, useSpread, useKeyValue);
+                return new(expressionStatement, UseSpread: useSpread, UseCast: false, UseKeyValue: useKeyValue);
             }
 
             // `x[y] = z` can be converted to `y:z` element if the destination type has an indexer with exactly 1 arg.
@@ -440,7 +440,7 @@ internal readonly struct UpdateExpressionState<
                 @this.TryAnalyzeIndexAssignment(expressionStatement, cancellationToken, out instance, supportedArgumentCount: 1) &&
                 @this.ValuePatternMatches(instance))
             {
-                return new(expressionStatement, UseSpread: false, UseKeyValue: true);
+                return new(expressionStatement, UseSpread: false, UseCast: false, UseKeyValue: true);
             }
 
             return null;
@@ -512,7 +512,7 @@ internal readonly struct UpdateExpressionState<
                 {
                     // add the form `.. x ? [y] : []` to the result
                     return @this.SyntaxFacts.SupportsCollectionExpressionNaturalType(ifStatement.SyntaxTree.Options)
-                        ? new(ifStatement, UseSpread: true, useKeyValue)
+                        ? new(ifStatement, UseSpread: true, UseCast: false, UseKeyValue: useKeyValue)
                         : null;
                 }
 
@@ -529,7 +529,7 @@ internal readonly struct UpdateExpressionState<
                     @this.ValuePatternMatches(instance))
                 {
                     // add the form `x ? y : z` to the result
-                    return new(ifStatement, UseSpread: false, useKeyValue);
+                    return new(ifStatement, UseSpread: false, UseCast: false, UseKeyValue: useKeyValue);
                 }
             }
 
