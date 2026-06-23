@@ -114,7 +114,7 @@ public sealed class FindReferencesTests : TestBase
         Assert.Equal(3, result[0].Locations.Count()); // 3 locations found
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
     public async Task AnonymousFunctionMethodReferencesAreNotSearched()
     {
         var text = """
