@@ -493,15 +493,19 @@ internal abstract partial class AbstractChangeNamespaceService<
             : root.ReplaceNodes(replacements.Keys, (original, _) => replacements[original]);
     }
 
-    private static async Task<ImmutableArray<string>> GetChildNamespaceImportsAsync(
-        Document document,
+    /// <summary>
+    /// Enumerates the distinct "highest" name nodes within <paramref name="container"/> whose bound symbol lives in a
+    /// namespace strictly nested under <paramref name="oldNamespaceSymbol"/> (the namespace the declaration is moving
+    /// out of). These are the references that may need an import and/or simplification once the declaration moves,
+    /// since a name that used to bind through the old namespace can become over- or under-qualified afterwards.
+    /// </summary>
+    private static IEnumerable<(SyntaxNode highestName, ISymbol symbol, INamespaceSymbol containingNamespace)> EnumerateChildNamespaceReferences(
+        SemanticModel semanticModel,
         SyntaxNode container,
         INamespaceSymbol oldNamespaceSymbol,
         CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        using var _1 = PooledHashSet<SyntaxNode>.GetInstance(out var processedNames);
-        using var _2 = PooledHashSet<string>.GetInstance(out var imports);
+        using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var processedNames);
 
         foreach (var node in container.DescendantNodes())
         {
@@ -514,8 +518,7 @@ internal abstract partial class AbstractChangeNamespaceService<
 
             var nameForBinding = highestName as TNameSyntax ?? nameSyntax;
             var symbolInfo = semanticModel.GetSymbolInfo(nameForBinding, cancellationToken);
-            var symbol = symbolInfo.Symbol
-                ?? symbolInfo.CandidateSymbols.FirstOrDefault()
+            var symbol = symbolInfo.GetAnySymbol()
                 ?? semanticModel.GetTypeInfo(nameForBinding, cancellationToken).Type;
             if (symbol?.ContainingNamespace is not { IsGlobalNamespace: false } containingNamespace ||
                 !IsTransitivelyContainedWithin(containingNamespace, oldNamespaceSymbol))
@@ -523,6 +526,22 @@ internal abstract partial class AbstractChangeNamespaceService<
                 continue;
             }
 
+            yield return (highestName, symbol, containingNamespace);
+        }
+    }
+
+    private static async Task<ImmutableArray<string>> GetChildNamespaceImportsAsync(
+        Document document,
+        SyntaxNode container,
+        INamespaceSymbol oldNamespaceSymbol,
+        CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        using var _ = PooledHashSet<string>.GetInstance(out var imports);
+
+        foreach (var (_, _, containingNamespace) in EnumerateChildNamespaceReferences(
+            semanticModel, container, oldNamespaceSymbol, cancellationToken))
+        {
             imports.Add(containingNamespace.ToDisplayString());
         }
 
@@ -820,29 +839,11 @@ internal abstract partial class AbstractChangeNamespaceService<
         if (container is not null && oldNamespaceSymbol is not null)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            using var _1 = PooledHashSet<SyntaxNode>.GetInstance(out var processedNames);
-            using var _2 = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance(out var replacements);
+            using var _1 = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance(out var replacements);
 
-            foreach (var node in container.DescendantNodes())
+            foreach (var (highestName, symbol, _) in EnumerateChildNamespaceReferences(
+                semanticModel, container, oldNamespaceSymbol, cancellationToken))
             {
-                if (node is not TNameSyntax nameSyntax)
-                    continue;
-
-                var highestName = GetHighestNameOrCref(nameSyntax);
-                if (!processedNames.Add(highestName))
-                    continue;
-
-                var nameForBinding = highestName as TNameSyntax ?? nameSyntax;
-                var symbolInfo = semanticModel.GetSymbolInfo(nameForBinding, cancellationToken);
-                var symbol = symbolInfo.Symbol
-                    ?? symbolInfo.CandidateSymbols.FirstOrDefault()
-                    ?? semanticModel.GetTypeInfo(nameForBinding, cancellationToken).Type;
-                if (symbol?.ContainingNamespace is not { IsGlobalNamespace: false } containingNamespace ||
-                    !IsTransitivelyContainedWithin(containingNamespace, oldNamespaceSymbol))
-                {
-                    continue;
-                }
-
                 if (highestName is TNameSyntax highestNameSyntax)
                 {
                     var rightmostSimpleName = GetRightmostName(highestNameSyntax);
