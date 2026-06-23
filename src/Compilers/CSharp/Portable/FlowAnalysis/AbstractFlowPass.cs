@@ -625,8 +625,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node"></param>
         protected void VisitCondition(BoundExpression node)
         {
+            if (TryVisitCondition(node))
+            {
+                return;
+            }
+
             Visit(node);
             AdjustConditionalState(node);
+        }
+
+        protected virtual bool TryVisitCondition(BoundExpression node)
+        {
+            return false;
         }
 
         protected void AdjustConditionalState(BoundExpression node)

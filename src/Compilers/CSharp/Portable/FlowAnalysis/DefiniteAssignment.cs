@@ -2355,6 +2355,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        protected sealed override bool TryVisitCondition(BoundExpression node)
+        {
+            // Debug instrumentation wraps conditions in a sequence that stores the result in a branch discriminator.
+            // Preserve the original condition's true/false assignment states through that wrapper.
+            if (node is not BoundSequence
+                {
+                    Locals: [var local],
+                    SideEffects: [BoundAssignmentOperator { IsRef: false, Left: BoundLocal { LocalSymbol: var assignedLocal }, Right: var condition } assignment]
+                } sequence ||
+                local.SynthesizedKind != SynthesizedLocalKind.ConditionalBranchDiscriminator ||
+                !ReferenceEquals(local, assignedLocal) ||
+                !isConditionalBranchDiscriminatorValue(sequence.Value, local))
+            {
+                return false;
+            }
+
+            _ = GetOrCreateSlot(local);
+
+            VisitCondition(condition);
+            var whenTrue = StateWhenTrue;
+            var whenFalse = StateWhenFalse;
+
+            SetState(whenTrue);
+            Assign(assignment.Left, condition);
+            whenTrue = State;
+
+            SetState(whenFalse);
+            Assign(assignment.Left, condition);
+            whenFalse = State;
+
+            SetConditionalState(whenTrue, whenFalse);
+            return true;
+
+            static bool isConditionalBranchDiscriminatorValue(BoundExpression value, LocalSymbol local)
+            {
+                if (value is BoundSequencePointExpression sequencePoint)
+                {
+                    value = sequencePoint.Expression;
+                }
+
+                return value is BoundLocal { LocalSymbol: var valueLocal } && ReferenceEquals(valueLocal, local);
+            }
+        }
+
         public override BoundNode VisitLocalId(BoundLocalId node)
             => null;
 
