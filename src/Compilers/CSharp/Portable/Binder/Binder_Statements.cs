@@ -2965,15 +2965,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
 
-            // Check for success case first, and return immediately if found.  Otherwise continue error recovery below.
             LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
             if (target != null)
                 return createJumpStatement(target, bindLabel(diagnostics), hasErrors: false);
 
-            // No matching break/continue target was found.  Report the error below.  For error recovery, we still bind
-            // the label name (if any), discarding any diagnostics from that binding since the error we report here is
-            // the one we want.  Keeping the resulting BoundLabel lets the SemanticModel resolve the identifier and
-            // makes ControlFlowPass treat the label as referenced (suppressing WRN_UnreferencedLabel).
+            // No matching break/continue target was found.  For error recovery, we still bind the label name (if
+            // any), discarding any diagnostics from that binding since the error we report here is the one we want.
+            // Keeping the resulting BoundLabel lets the SemanticModel resolve the identifier and makes
+            // ControlFlowPass treat the label as referenced (suppressing WRN_UnreferencedLabel).
             Error(diagnostics,
                 labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
                 name ?? (SyntaxNode)node,
