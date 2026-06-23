@@ -325,7 +325,7 @@ internal partial class CSharpTypeInferenceService
             }
 
             if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
-                argument.Parent.Parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
+                argument.Parent.Parent?.Parent is AssignmentExpressionSyntax &&
                 argument.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) &&
                 argument.Parent.Parent.Parent.Parent?.Parent is BaseObjectCreationExpressionSyntax objectCreation)
             {

@@ -644,7 +644,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     {
         initializedInstance = null;
         if (node is IdentifierNameSyntax identifier &&
-            identifier.IsLeftSideOfAssignExpression())
+            identifier.IsLeftSideOfAnyAssignExpression())
         {
             if (identifier.Parent.IsParentKind(SyntaxKind.WithInitializerExpression))
             {
@@ -1479,10 +1479,10 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => node is TypeSyntax;
 
     public bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
-        => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: IdentifierNameSyntax };
+        => node is AssignmentExpressionSyntax { Left: IdentifierNameSyntax };
 
     public bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node)
-        => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: ImplicitElementAccessSyntax };
+        => node is AssignmentExpressionSyntax { Left: ImplicitElementAccessSyntax };
 
     public bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
         => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression);
