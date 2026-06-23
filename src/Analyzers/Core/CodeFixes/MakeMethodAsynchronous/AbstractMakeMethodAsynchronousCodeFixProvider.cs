@@ -118,6 +118,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         var cache = new Dictionary<DocumentId, SemanticDocument>();
         var seenSymbols = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
+        var documentSet = project.Documents.ToImmutableHashSet();
 
         foreach (var symbol in symbolsToSearch)
         {
@@ -127,7 +128,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
             var referencedSymbols = await SymbolFinder.FindReferencesAsync(
                 symbol,
                 project.Solution,
-                project.Documents.ToImmutableHashSet(),
+                documentSet,
                 cancellationToken).ConfigureAwait(false);
 
             foreach (var referencedSymbol in referencedSymbols)
