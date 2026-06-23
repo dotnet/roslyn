@@ -615,6 +615,71 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
+        <WpfFact>
+        Public Async Function QuickInfoForExtensionBlockIndexer_01() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+                        <Document>
+                            static class E
+                            {
+                                extension(int i)
+                                {
+                                    public int this[int j] { get => i + j; set { } }
+                                }
+                            }
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    var x = 1$$[2];
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.PropertyPublic)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "E", navigationAction:=Sub() Return, "E"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "extension"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "this"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "["),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "j", navigationAction:=Sub() Return, "int j"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "]"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "{"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "get"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "set"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "}"))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
+
         <WpfTheory>
         <InlineData("<para>text1</para><para>text2</para>")>
         <InlineData("text1<br/><br/>text2")>
