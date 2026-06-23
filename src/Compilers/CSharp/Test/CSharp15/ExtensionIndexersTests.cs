@@ -16318,7 +16318,8 @@ unsafe { c[0] = c[0]; }
 unsafe { E.get_Item(c, 0); E.set_Item(c, 0, 0); }
 """;
 
-        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (2,1): error CS9363: 'E.extension(C<int*[]>).this[int].set' must be used in an unsafe context because it has pointers in its signature
             // c[0] = c[0];
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c[0]").WithArguments("E.extension(C<int*[]>).this[int].set").WithLocation(2, 1),
@@ -16330,10 +16331,12 @@ unsafe { E.get_Item(c, 0); E.set_Item(c, 0, 0); }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.get_Item(c, 0)").WithArguments("E.get_Item(C<int*[]>, int)").WithLocation(3, 1),
             // (3,19): error CS9363: 'E.set_Item(C<int*[]>, int, int)' must be used in an unsafe context because it has pointers in its signature
             // E.get_Item(c, 0); E.set_Item(c, 0, 0);
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.set_Item(c, 0, 0)").WithArguments("E.set_Item(C<int*[]>, int, int)").WithLocation(3, 19));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.set_Item(c, 0, 0)").WithArguments("E.set_Item(C<int*[]>, int, int)").WithLocation(3, 19),
+        };
 
-        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
-        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
