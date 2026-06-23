@@ -2541,6 +2541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
                 or ErrorCode.ERR_MemberNameSameAsExtendedType
                 or ErrorCode.ERR_FeatureNotAvailableInVersion14
+                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_ExtensionBlockCollision
                 or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
                 or ErrorCode.ERR_AttributeCannotBeAppliedManually
