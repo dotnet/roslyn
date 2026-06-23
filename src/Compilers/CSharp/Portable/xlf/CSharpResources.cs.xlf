@@ -2848,7 +2848,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
         <target state="translated">Metoda {0} používá funkci, kterou aktuální asynchronní režim runtime nepodporuje. Vyjádřete výslovný nesouhlas s asynchronním zpracováním metody za běhu tak, že ji označíte atributem System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false).</target>
         <note />
       </trans-unit>

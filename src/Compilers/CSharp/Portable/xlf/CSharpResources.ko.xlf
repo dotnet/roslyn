@@ -2848,7 +2848,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
         <target state="translated">메서드 '{0}'이(가) 현재 런타임 비동기에서 지원되지 않는 기능을 사용합니다. 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)' 특성을 지정하여 런타임 비동기에서 제외하세요.</target>
         <note />
       </trans-unit>
