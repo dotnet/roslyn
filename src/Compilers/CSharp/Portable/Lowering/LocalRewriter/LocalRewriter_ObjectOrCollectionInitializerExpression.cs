@@ -422,12 +422,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (TypeSymbol.Equals(implicitIndexer.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
             {
-                var rewritten = GetUnderlyingIndexerOrSliceAccess(
+                var rewritten = VisitIndexPatternIndexerAccess(
                     implicitIndexer,
                     isLeftOfAssignment: true,
                     isRegularAssignment: true,
                     cacheAllArgumentsOnly: true,
-                    result, temps);
+                    result, temps,
+                    receiverIsKnownToBeCaptured: out _);
 
                 if (rewritten is BoundIndexerAccess indexerAccess)
                 {
@@ -716,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Rewrite simple assignment to field/property.
                                 var rewrittenRight = VisitExpression(right);
                                 Debug.Assert(assignment.Type.IsDynamic() || TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, used: false, AssignmentKind.SimpleAssignment));
+                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, used: false, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: true));
                                 return;
                             }
                         }
@@ -769,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(getSubArrayCall.Arguments.Length == 2);
                             var rangeArgument = getSubArrayCall.Arguments[1];
-                            Debug.Assert(TypeSymbol.Equals(rangeArgument.Type, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything));
+                            Debug.Assert(Binder.IsWellKnownSystemRange(rangeArgument.Type, _compilation));
 
                             var rangeTemp = _factory.StoreToTemp(rangeArgument, out BoundAssignmentOperator rangeStore);
                             temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
@@ -788,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Rewrite simple assignment to field/property.
                             var rewrittenRight = VisitExpression(right);
                             Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: false));
                             return;
                         }
 
@@ -805,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Rewrite as simple assignment.
                             var rewrittenRight = VisitExpression(right);
                             Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: false));
                             return;
                         }
 
@@ -818,12 +819,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (TypeSymbol.Equals(implicitIndexer.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
                     {
-                        rewrittenAccess = GetUnderlyingIndexerOrSliceAccess(
+                        rewrittenAccess = VisitIndexPatternIndexerAccess(
                             implicitIndexer,
                             isLeftOfAssignment: !isRhsNestedInitializer,
                             isRegularAssignment: true,
                             cacheAllArgumentsOnly: true,
-                            result, temps);
+                            result, temps,
+                            receiverIsKnownToBeCaptured: out _);
 
                         if (rewrittenAccess is BoundIndexerAccess indexerAccess)
                         {
@@ -839,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var rewrittenRight = VisitExpression(right);
                         Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, used: false, AssignmentKind.SimpleAssignment));
+                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, used: false, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured: true));
                         return;
                     }
 
@@ -1029,7 +1031,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenLeft.ArgsToParamsOpt,
                             rewrittenLeft.DefaultArguments,
                             rewrittenLeft,
-                            isLeftOfAssignment: !isRhsNestedInitializer);
+                            isLeftOfAssignment: !isRhsNestedInitializer,
+                            receiverIsKnownToBeCaptured: false);
                     }
                     else
                     {

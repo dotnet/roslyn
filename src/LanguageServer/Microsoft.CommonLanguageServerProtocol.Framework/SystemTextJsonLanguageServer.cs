@@ -15,8 +15,8 @@ using StreamJsonRpc;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
-    JsonRpc jsonRpc, JsonSerializerOptions options, ILspLogger logger, AbstractTypeRefResolver? typeRefResolver = null)
-    : AbstractLanguageServer<TRequestContext>(jsonRpc, logger, typeRefResolver)
+    JsonRpc jsonRpc, JsonSerializerOptions options, AbstractTypeRefResolver? typeRefResolver = null)
+    : AbstractLanguageServer<TRequestContext>(jsonRpc, typeRefResolver)
 {
     /// <summary>
     /// JsonSerializer options used by streamjsonrpc (and for serializing / deserializing the requests to streamjsonrpc).

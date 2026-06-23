@@ -764,6 +764,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
                     // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named,
                     // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
+                    // For runtime async, the rewriter still receives methodOrdinal = -1 and instead uses the current function name as a suffix on any synthesized
+                    // dynamic call-site container. That way different synthesized methods (which all share methodOrdinal = -1) still get distinct container type names.
+                    // This relies on the fact that, per containing type, the names of methods passed to CompileSynthesizedMethods are unique; for local functions
+                    // that holds because local functions cannot be overloaded.
                     const int methodOrdinal = -1;
                     MethodBody emittedBody = null;
 
@@ -779,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AsyncStateMachine asyncStateMachine = null;
                             if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
                             {
-                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, diagnosticsThisMethod);
+                                loweredBody = RuntimeAsyncRewriter.Rewrite(loweredBody, method, compilationState, methodOrdinal, diagnosticsThisMethod);
                             }
                             else
                             {
@@ -1603,7 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AsyncStateMachine asyncStateMachine = null;
                 if (compilationState.Compilation.IsRuntimeAsyncEnabledIn(method))
                 {
-                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, diagnostics);
+                    bodyWithoutAsync = RuntimeAsyncRewriter.Rewrite(bodyWithoutIterators, method, compilationState, methodOrdinal, diagnostics);
                 }
                 else
                 {

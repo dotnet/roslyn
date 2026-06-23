@@ -3013,7 +3013,7 @@ for (var x = 0; x < 10; x++)
     var a = Infer(s);
     if (a is [_, .. var z, _])
     {
-        z.ToString();
+        z.ToString(); // (assumed not-null)
     }
 
     s = null;

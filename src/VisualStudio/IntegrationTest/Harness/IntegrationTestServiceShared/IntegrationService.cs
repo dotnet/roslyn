@@ -7,8 +7,10 @@ namespace Microsoft.VisualStudio.IntegrationTestService
     using System;
     using System.Collections.Concurrent;
     using System.Diagnostics;
+    using System.IO;
     using System.Reflection;
     using System.Runtime.Remoting;
+    using Microsoft.VisualStudio.IntegrationTest;
 
     /// <summary>
     /// Provides a means of executing code in the Visual Studio host process.
@@ -58,7 +60,9 @@ namespace Microsoft.VisualStudio.IntegrationTestService
 
         public string? Execute(string assemblyFilePath, string typeFullName, string methodName)
         {
-            var assembly = Assembly.LoadFrom(assemblyFilePath);
+            IntegrationTestAssemblyResolver.AddCodeBaseDirectory(Path.GetDirectoryName(assemblyFilePath));
+
+            var assembly = IntegrationTestAssemblyResolver.LoadAssemblyFromPath(assemblyFilePath);
             var type = assembly.GetType(typeFullName);
             var methodInfo = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
             var result = methodInfo.Invoke(null, null);

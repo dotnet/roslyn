@@ -53,7 +53,7 @@
     <value>The area element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map.</value>
   </data>
   <data name="HtmlElement_article" xml:space="preserve">
-    <value>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content.</value>
+    <value>The article element represents a complete, or self-contained, composition in a document, page, application, or site and that is, in principle, independently distributable or reusable, e.g. in syndication. This could be a forum post, a magazine or newspaper article, a blog entry, a user-submitted comment, an interactive widget or gadget, or any other independent item of content. Each article should be identified, typically by including a heading (h1–h6 element) as a child of the article element.</value>
   </data>
   <data name="HtmlElement_aside" xml:space="preserve">
     <value>The aside element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content. Such sections are often represented as sidebars in printed typography.</value>
@@ -68,10 +68,10 @@
     <value>The base element allows authors to specify the document base URL for the purposes of resolving relative URLs, and the name of the default browsing context for the purposes of following hyperlinks. The element does not represent any content beyond this information.</value>
   </data>
   <data name="HtmlElement_bdi" xml:space="preserve">
-    <value>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting.</value>
+    <value>The bdi element represents a span of text that is to be isolated from its surroundings for the purposes of bidirectional text formatting. [BIDI]</value>
   </data>
   <data name="HtmlElement_bdo" xml:space="preserve">
-    <value>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override.</value>
+    <value>The bdo element represents explicit text directionality formatting control for its children. It allows authors to override the Unicode bidirectional algorithm by explicitly specifying a direction override. [BIDI]</value>
   </data>
   <data name="HtmlElement_blockquote" xml:space="preserve">
     <value>The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a footer or cite element, and optionally with in-line changes such as annotations and abbreviations.</value>
@@ -92,7 +92,7 @@
     <value>The caption element represents the title of the table that is its parent, if it has a parent and that is a table element.</value>
   </data>
   <data name="HtmlElement_cite" xml:space="preserve">
-    <value>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, which may be in an abbreviated form as per the conventions used for the addition of citation metadata.</value>
+    <value>The cite element represents a reference to a creative work. It must include the title of the work or the name of the author(person, people or organization) or an URL reference, or a reference in abbreviated form as per the conventions used for the addition of citation metadata.</value>
   </data>
   <data name="HtmlElement_code" xml:space="preserve">
     <value>The code element represents a fragment of computer code. This could be an XML element name, a file name, a computer program, or any other string that a computer would recognize.</value>
@@ -108,6 +108,9 @@
   </data>
   <data name="HtmlElement_content" xml:space="preserve">
     <value>The content element represents an insertion point in the shadow tree.</value>
+  </data>
+  <data name="HtmlElement_data" xml:space="preserve">
+    <value>The data element links a given piece of content with a machine-readable translation.</value>
   </data>
   <data name="HtmlElement_datalist" xml:space="preserve">
     <value>The datalist element represents a set of option elements that represent predefined options for other controls. In the rendering, the datalist element represents nothing and it, along with its children, should be hidden.</value>
@@ -155,28 +158,28 @@
     <value>The form element represents a collection of form-associated elements, some of which can represent editable values that can be submitted to a server for processing.</value>
   </data>
   <data name="HtmlElement_h1" xml:space="preserve">
-    <value>These elements represent headings for their sections.</value>
+    <value>The h1 element represents a section heading.</value>
   </data>
   <data name="HtmlElement_h2" xml:space="preserve">
-    <value>These elements represent headings for their sections.</value>
+    <value>The h2 element represents a section heading.</value>
   </data>
   <data name="HtmlElement_h3" xml:space="preserve">
-    <value>These elements represent headings for their sections.</value>
+    <value>The h3 element represents a section heading.</value>
   </data>
   <data name="HtmlElement_h4" xml:space="preserve">
-    <value>These elements represent headings for their sections.</value>
+    <value>The h4 element represents a section heading.</value>
   </data>
   <data name="HtmlElement_h5" xml:space="preserve">
-    <value>These elements represent headings for their sections.</value>
+    <value>The h5 element represents a section heading.</value>
   </data>
   <data name="HtmlElement_h6" xml:space="preserve">
-    <value>These elements represent headings for their sections.</value>
+    <value>The h6 element represents a section heading.</value>
   </data>
   <data name="HtmlElement_head" xml:space="preserve">
-    <value>The head element represents a collection of metadata for the document. Head element must be the first element in an html element.</value>
+    <value>The head element represents a collection of metadata for the Document.</value>
   </data>
   <data name="HtmlElement_header" xml:space="preserve">
-    <value>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids.</value>
+    <value>The header element represents introductory content for its nearest ancestor sectioning content or sectioning root element. A header typically contains a group of introductory or navigational aids. When the nearest ancestor sectioning content or sectioning root element is the body element, then it applies to the whole page.</value>
   </data>
   <data name="HtmlElement_hr" xml:space="preserve">
     <value>The hr element represents a paragraph-level thematic break, e.g. a scene change in a story, or a transition to another topic within a section of a reference book.</value>
@@ -209,7 +212,7 @@
     <value>The legend element represents a caption for the rest of the contents of the legend element&apos;s parent fieldset element, if any.</value>
   </data>
   <data name="HtmlElement_li" xml:space="preserve">
-    <value>The li element represents a list item. If its parent element is an ol, or ul, then the element is an item of the parent element&apos;s list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</value>
+    <value>The li element represents a list item. If its parent element is an ol, ul, or menu element, then the element is an item of the parent element&apos;s list, as defined for those elements. Otherwise, the list item has no defined list-related relationship to any other li element.</value>
   </data>
   <data name="HtmlElement_link" xml:space="preserve">
     <value>The link element allows authors to link their document to other resources.</value>
@@ -227,7 +230,7 @@
     <value>The math element from the MathML namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</value>
   </data>
   <data name="HtmlElement_menu" xml:space="preserve">
-    <value>The menu element represents a list of commands.</value>
+    <value>The menu element represents an unordered list of interactive items.</value>
   </data>
   <data name="HtmlElement_menuitem" xml:space="preserve">
     <value>The menuitem element represents a command that the user can invoke from a popup menu (either a context menu or the menu of a menu button).</value>
@@ -272,7 +275,7 @@
     <value>The option element represents an option in a select element or as part of a list of suggestions in a datalist element.</value>
   </data>
   <data name="HtmlElement_output" xml:space="preserve">
-    <value>The output element represents the result of a calculation or user action.</value>
+    <value>The output element represents the result of a calculation performed by the application, or the result of a user action.</value>
   </data>
   <data name="HtmlElement_p" xml:space="preserve">
     <value>The p element represents a paragraph.</value>
@@ -281,7 +284,7 @@
     <value>The param element defines parameters for plugins invoked by object elements. It does not represent anything on its own.</value>
   </data>
   <data name="HtmlElement_picture" xml:space="preserve">
-    <value>The picture element is a container which provides multiples sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</value>
+    <value>The picture element is a container which provides multiple sources to its contained img element to allow authors to declaratively control or give hints to the user agent about which image resource to use, based on the screen pixel density, viewport size, image format, and other factors. It represents its children.</value>
   </data>
   <data name="HtmlElement_polymer-element" xml:space="preserve">
     <value>A polymer-element is used to create new HTML elements using the Polymer JavaScript library.</value>
@@ -305,25 +308,31 @@
     <value>The rtc element marks a ruby text container for ruby text components in a ruby annotation. When it is the child of a ruby element it doesn&apos;t represent anything itself, but its parent ruby element uses it as part of determining what it represents.</value>
   </data>
   <data name="HtmlElement_ruby" xml:space="preserve">
-    <value>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations.</value>
+    <value>The ruby element allows one or more spans of phrasing content to be marked with ruby annotations. Ruby annotations are short runs of text presented alongside base text, primarily used in East Asian typography as a guide for pronunciation or to include other annotations. In Japanese, this form of typography is also known as furigana. Ruby text can appear on either side, and sometimes both sides, of the base text, and it is possible to control its position using CSS. A more complete introduction to ruby can be found in the Use Cases &amp; Exploratory Approaches for Ruby Markup document as well as in CSS Ruby Module Level 1. [RUBY-UC] [CSSRUBY]</value>
   </data>
   <data name="HtmlElement_s" xml:space="preserve">
     <value>The s element represents contents that are no longer accurate or no longer relevant.</value>
   </data>
   <data name="HtmlElement_samp" xml:space="preserve">
-    <value>The samp element represents (sample) output from a program or computing system.</value>
+    <value>The samp element represents sample or quoted output from another program or computing system.</value>
   </data>
   <data name="HtmlElement_script" xml:space="preserve">
     <value>The script element allows authors to include dynamic script and data blocks in their documents. The element does not represent content for the user.</value>
   </data>
+  <data name="HtmlElement_search" xml:space="preserve">
+    <value>The search element represents the parts of the document or application with form controls or other content related to performing a search or filtering operation.</value>
+  </data>
   <data name="HtmlElement_section" xml:space="preserve">
-    <value>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. The theme of each section should be identified, typically by including a heading (h1-h6 element) as a child of the section element.</value>
+    <value>The section element represents a generic section of a document or application. A section, in this context, is a thematic grouping of content. Each section should be identified, typically by including a heading ( h1- h6 element) as a child of the section element.</value>
   </data>
   <data name="HtmlElement_select" xml:space="preserve">
     <value>The select element represents a control for selecting amongst a set of options.</value>
   </data>
   <data name="HtmlElement_shadow" xml:space="preserve">
     <value>The shadow element represents an shadow insertion point in a shadow tree.</value>
+  </data>
+  <data name="HtmlElement_slot" xml:space="preserve">
+    <value>The slot element is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.</value>
   </data>
   <data name="HtmlElement_small" xml:space="preserve">
     <value>The small element represents side comments such as small print.</value>
@@ -341,13 +350,13 @@
     <value>The style element allows authors to embed style information in their documents. The style element is one of several inputs to the styling processing model. The element does not represent content for the user.</value>
   </data>
   <data name="HtmlElement_sub" xml:space="preserve">
-    <value>The sup element represents a superscript and the sub element represents a subscript.</value>
+    <value>The sub element represents a subscript.</value>
   </data>
   <data name="HtmlElement_summary" xml:space="preserve">
     <value>The summary element represents a summary, caption, or legend for the rest of the contents of the summary element&apos;s parent details element, if any.</value>
   </data>
   <data name="HtmlElement_sup" xml:space="preserve">
-    <value>The sup element represents a superscript and the sub element represents a subscript.</value>
+    <value>The sup element represents a superscript.</value>
   </data>
   <data name="HtmlElement_svg" xml:space="preserve">
     <value>The svg element from the SVG namespace falls into the embedded content, phrasing content, and flow content categories for the purposes of the content models in this specification.</value>
@@ -406,25 +415,1016 @@
   <data name="HtmlElement_x-ms-webview" xml:space="preserve">
     <value>Displays HTML content in an app.</value>
   </data>
-  <data name="HtmlAttribute_integrity" xml:space="preserve">
-    <value>The integrity attribute represents integrity metadata for an element.</value>
+  <data name="HtmlAttribute_manifest" xml:space="preserve">
+    <value>Specifies the URI of a resource manifest indicating resources that should be cached locally. See [Using the application cache](https://developer.mozilla.org/en-US/docs/Web/HTML/Using_the_application_cache) for details.</value>
   </data>
-  <data name="HtmlAttribute_draggable" xml:space="preserve">
-    <value>An element with a draggable attribute should also have a title attribute that names the element for the purpose of non-visual interactions.</value>
+  <data name="HtmlAttribute_profile" xml:space="preserve">
+    <value>The URIs of one or more metadata profiles, separated by white space.</value>
   </data>
-  <data name="HtmlAttribute_defer" xml:space="preserve">
-    <value>The script is executed when the page has finished parsing.</value>
+  <data name="HtmlAttribute_href" xml:space="preserve">
+    <value>The base URL to be used throughout the document for relative URL addresses. If this attribute is specified, this element must come before any other elements with attributes whose values are URLs. Absolute and relative URLs are allowed.</value>
   </data>
-  <data name="HtmlAttribute_async" xml:space="preserve">
-    <value>The script will be executed asynchronously, as soon as it is available.</value>
+  <data name="HtmlAttribute_target" xml:space="preserve">
+    <value>A name or keyword indicating the default location to display the result when hyperlinks or forms cause navigation, for elements that do not have an explicit target reference. It is a name of, or keyword for, a _browsing context_ (for example: tab, window, or inline frame). The following keywords have special meanings:
+
+* `_self`: Load the result into the same browsing context as the current one. This value is the default if the attribute is not specified.
+* `_blank`: Load the result into a new unnamed browsing context.
+* `_parent`: Load the result into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
+* `_top`: Load the result into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.
+
+If this attribute is specified, this element must come before any other elements with attributes whose values are URLs.</value>
   </data>
-  <data name="HtmlAttribute_open" xml:space="preserve">
-    <value>When specified, it indicates that the dialog element is active and that the user can interact with it.</value>
+  <data name="HtmlAttribute_as" xml:space="preserve">
+    <value>This attribute is only used when `rel=&quot;preload&quot;` or `rel=&quot;prefetch&quot;` has been set on the `&lt;link&gt;` element. It specifies the type of content being loaded by the `&lt;link&gt;`, which is necessary for content prioritization, request matching, application of correct [content security policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), and setting of correct [`Accept`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept &quot;The Accept request HTTP header advertises which content types, expressed as MIME types, the client is able to understand. Using content negotiation, the server then selects one of the proposals, uses it and informs the client of its choice with the Content-Type response header. Browsers set adequate values for this header depending on the context where the request is done: when fetching a CSS stylesheet a different value is set for the request than when fetching an image, video or a script.&quot;) request header.</value>
   </data>
-  <data name="HtmlAttribute_srcset" xml:space="preserve">
-    <value>Images to use in different situations (e.g. high-resolution displays, small monitors, etc).</value>
+  <data name="HtmlAttribute_hreflang" xml:space="preserve">
+    <value>This attribute indicates the language of the linked resource. It is purely advisory. Allowed values are determined by [BCP47](https://www.ietf.org/rfc/bcp/bcp47.txt). Use this attribute only if the [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute is present.</value>
+  </data>
+  <data name="HtmlAttribute_rel" xml:space="preserve">
+    <value>This attribute names a relationship of the linked document to the current document. The attribute must be a space-separated list of the [link types values](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types).</value>
+  </data>
+  <data name="HtmlAttribute_media" xml:space="preserve">
+    <value>This attribute specifies the media that the linked resource applies to. Its value must be a media type / [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries). This attribute is mainly useful when linking to external stylesheets — it allows the user agent to pick the best adapted one for the device it runs on.
+
+**Notes:**
+
+* In HTML 4, this can only be a simple white-space-separated list of media description literals, i.e., [media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), where defined and allowed as values for this attribute, such as `print`, `screen`, `aural`, `braille`. HTML5 extended this to any kind of [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), which are a superset of the allowed values of HTML 4.
+* Browsers not supporting [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) won&apos;t necessarily recognize the adequate link; do not forget to set fallback links, the restricted set of media queries defined in HTML 4.</value>
+  </data>
+  <data name="HtmlAttribute_type" xml:space="preserve">
+    <value>This attribute is used to define the type of the content linked to. The value of the attribute should be a MIME type such as **text/html**, **text/css**, and so on. The common use of this attribute is to define the type of stylesheet being referenced (such as **text/css**), but given that CSS is the only stylesheet language used on the web, not only is it possible to omit the `type` attribute, but is actually now recommended practice. It is also used on `rel=&quot;preload&quot;` link types, to make sure the browser only downloads file types that it supports.</value>
   </data>
   <data name="HtmlAttribute_sizes" xml:space="preserve">
-    <value>Image sizes between breakpoints.</value>
+    <value>This attribute defines the sizes of the icons for visual media contained in the resource. It must be present only if the [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) contains a value of `icon` or a non-standard type such as Apple&apos;s `apple-touch-icon`. It may have the following values:
+
+* `any`, meaning that the icon can be scaled to any size as it is in a vector format, like `image/svg+xml`.
+* a white-space separated list of sizes, each in the format `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` or `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Each of these sizes must be contained in the resource.
+
+**Note:** Most icon formats are only able to store one single icon; therefore most of the time the [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) contains only one entry. MS&apos;s ICO format does, as well as Apple&apos;s ICNS. ICO is more ubiquitous; you should definitely use it.</value>
+  </data>
+  <data name="HtmlAttribute_integrity" xml:space="preserve">
+    <value>Contains inline metadata — a base64-encoded cryptographic hash of the resource (file) you’re telling the browser to fetch. The browser can use this to verify that the fetched resource has been delivered free of unexpected manipulation. See [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity).</value>
+  </data>
+  <data name="HtmlAttribute_crossorigin" xml:space="preserve">
+    <value>This enumerated attribute indicates whether [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS &quot;CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.&quot;) must be used when fetching the resource. [CORS-enabled images](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_Enabled_Image) can be reused in the [`&lt;canvas&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas &quot;Use the HTML &lt;canvas&gt; element with either the canvas scripting API or the WebGL API to draw graphics and animations.&quot;) element without being _tainted_. The allowed values are:
+
+`anonymous`
+
+A cross-origin request (i.e. with an [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin &quot;The Origin request header indicates where a fetch originates from. It doesn&apos;t include any path information, but only the server name. It is sent with CORS requests, as well as with POST requests. It is similar to the Referer header, but, unlike this header, it doesn&apos;t disclose the whole path.&quot;) HTTP header) is performed, but no credential is sent (i.e. no cookie, X.509 certificate, or HTTP Basic authentication). If the server does not give credentials to the origin site (by not setting the [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin &quot;The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given origin.&quot;) HTTP header) the image will be tainted and its usage restricted.
+
+`use-credentials`
+
+A cross-origin request (i.e. with an `Origin` HTTP header) is performed along with a credential sent (i.e. a cookie, certificate, and/or HTTP Basic authentication is performed). If the server does not give credentials to the origin site (through [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials &quot;The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to frontend JavaScript code when the request&apos;s credentials mode (Request.credentials) is &quot;include&quot;.&quot;) HTTP header), the resource will be _tainted_ and its usage restricted.
+
+If the attribute is not present, the resource is fetched without a [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS &quot;CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.&quot;) request (i.e. without sending the `Origin` HTTP header), preventing its non-tainted usage. If invalid, it is handled as if the enumerated keyword **anonymous** was used. See [CORS settings attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for additional information.</value>
+  </data>
+  <data name="HtmlAttribute_referrerpolicy" xml:space="preserve">
+    <value>A string indicating which referrer to use when fetching the resource:
+
+* `no-referrer` means that the [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer &quot;The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.&quot;) header will not be sent.
+* `no-referrer-when-downgrade` means that no [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer &quot;The Referer request header contains the address of the previous web page from which a link to the currently requested page was followed. The Referer header allows servers to identify where people are visiting them from and may use that data for analytics, logging, or optimized caching, for example.&quot;) header will be sent when navigating to an origin without TLS (HTTPS). This is a user agent’s default behavior, if no policy is otherwise specified.
+* `origin` means that the referrer will be the origin of the page, which is roughly the scheme, the host, and the port.
+* `origin-when-cross-origin` means that navigating to other origins will be limited to the scheme, the host, and the port, while navigating on the same origin will include the referrer&apos;s path.
+* `unsafe-url` means that the referrer will include the origin and the path (but not the fragment, password, or username). This case is unsafe because it can leak origins and paths from TLS-protected resources to insecure origins.</value>
+  </data>
+  <data name="HtmlAttribute_http-equiv" xml:space="preserve">
+    <value>Defines a pragma directive. The attribute is named `**http-equiv**(alent)` because all the allowed values are names of particular HTTP headers:
+
+* `&quot;content-language&quot;` 
+Defines the default language of the page. It can be overridden by the [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) attribute on any element.
+
+**Warning:** Do not use this value, as it is obsolete. Prefer the `lang` attribute on the [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html &quot;The HTML &lt;html&gt; element represents the root (top-level element) of an HTML document, so it is also referred to as the root element. All other elements must be descendants of this element.&quot;) element.
+
+* `&quot;content-security-policy&quot;` 
+Allows page authors to define a [content policy](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) for the current page. Content policies mostly specify allowed server origins and script endpoints which help guard against cross-site scripting attacks.
+* `&quot;content-type&quot;` 
+Defines the [MIME type](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) of the document, followed by its character encoding. It follows the same syntax as the HTTP `content-type` entity-header field, but as it is inside a HTML page, most values other than `text/html` are impossible. Therefore the valid syntax for its `content` is the string &apos;`text/html`&apos; followed by a character set with the following syntax: &apos;`; charset=_IANAcharset_`&apos;, where `IANAcharset` is the _preferred MIME name_ for a character set as [defined by the IANA.](https://www.iana.org/assignments/character-sets)
+
+**Warning:** Do not use this value, as it is obsolete. Use the [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute on the [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta &quot;The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.&quot;) element.
+
+**Note:** As [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta &quot;The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.&quot;) can&apos;t change documents&apos; types in XHTML or HTML5&apos;s XHTML serialization, never set the MIME type to an XHTML MIME type with `&lt;meta&gt;`.
+
+* `&quot;refresh&quot;` 
+This instruction specifies:
+* The number of seconds until the page should be reloaded - only if the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute contains a positive integer.
+* The number of seconds until the page should redirect to another - only if the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute contains a positive integer followed by the string &apos;`;url=`&apos;, and a valid URL.
+* `&quot;set-cookie&quot;` 
+Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page. Its content must follow the syntax defined in the [IETF HTTP Cookie Specification](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14).
+
+**Warning:** Do not use this instruction, as it is obsolete. Use the HTTP header [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie) instead.</value>
+  </data>
+  <data name="HtmlAttribute_name" xml:space="preserve">
+    <value>This attribute defines the name of a piece of document-level metadata. It should not be set if one of the attributes [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop), [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) is also set.
+
+This metadata name is associated with the value contained by the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) attribute. The possible values for the name attribute are:
+
+* `application-name` which defines the name of the application running in the web page.
+
+**Note:**
+
+* Browsers may use this to identify the application. It is different from the [`&lt;title&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title &quot;The HTML Title element (&lt;title&gt;) defines the document&apos;s title that is shown in a browser&apos;s title bar or a page&apos;s tab.&quot;) element, which usually contain the application name, but may also contain information like the document name or a status.
+* Simple web pages shouldn&apos;t define an application-name.
+
+* `author` which defines the name of the document&apos;s author.
+* `description` which contains a short and accurate summary of the content of the page. Several browsers, like Firefox and Opera, use this as the default description of bookmarked pages.
+* `generator` which contains the identifier of the software that generated the page.
+* `keywords` which contains words relevant to the page&apos;s content separated by commas.
+* `referrer` which controls the [`Referer` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) attached to requests sent from the document:
+
+Values for the `content` attribute of `&lt;meta name=&quot;referrer&quot;&gt;`
+
+`no-referrer`
+
+Do not send a HTTP `Referrer` header.
+
+`origin`
+
+Send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) of the document.
+
+`no-referrer-when-downgrade`
+
+Send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) as a referrer to URLs as secure as the current page, (https→https), but does not send a referrer to less secure URLs (https→http). This is the default behaviour.
+
+`origin-when-cross-origin`
+
+Send the full URL (stripped of parameters) for same-origin requests, but only send the [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) for other cases.
+
+`same-origin`
+
+A referrer will be sent for [same-site origins](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy), but cross-origin requests will contain no referrer information.
+
+`strict-origin`
+
+Only send the origin of the document as the referrer to a-priori as-much-secure destination (HTTPS-&gt;HTTPS), but don&apos;t send it to a less secure destination (HTTPS-&gt;HTTP).
+
+`strict-origin-when-cross-origin`
+
+Send a full URL when performing a same-origin request, only send the origin of the document to a-priori as-much-secure destination (HTTPS-&gt;HTTPS), and send no header to a less secure destination (HTTPS-&gt;HTTP).
+
+`unsafe-URL`
+
+Send the full URL (stripped of parameters) for same-origin or cross-origin requests.
+
+**Notes:**
+
+* Some browsers support the deprecated values of `always`, `default`, and `never` for referrer.
+* Dynamically inserting `&lt;meta name=&quot;referrer&quot;&gt;` (with [`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) or [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)) makes the referrer behaviour unpredictable.
+* When several conflicting policies are defined, the no-referrer policy is applied.
+
+
+This attribute may also have a value taken from the extended list defined on [WHATWG Wiki MetaExtensions page](https://wiki.whatwg.org/wiki/MetaExtensions). Although none have been formally accepted yet, a few commonly used names are:
+
+* `creator` which defines the name of the creator of the document, such as an organization or institution. If there are more than one, several [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta &quot;The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.&quot;) elements should be used.
+* `googlebot`, a synonym of `robots`, is only followed by Googlebot (the indexing crawler for Google).
+* `publisher` which defines the name of the document&apos;s publisher.
+* `robots` which defines the behaviour that cooperative crawlers, or &quot;robots&quot;, should use with the page. It is a comma-separated list of the values below:
+
+Values for the content of `&lt;meta name=&quot;robots&quot;&gt;`
+
+Value
+
+Description
+
+Used by
+
+`index`
+
+Allows the robot to index the page (default).
+
+All
+
+`noindex`
+
+Requests the robot to not index the page.
+
+All
+
+`follow`
+
+Allows the robot to follow the links on the page (default).
+
+All
+
+`nofollow`
+
+Requests the robot to not follow the links on the page.
+
+All
+
+`none`
+
+Equivalent to `noindex, nofollow`
+
+[Google](https://support.google.com/webmasters/answer/79812)
+
+`noodp`
+
+Prevents using the [Open Directory Project](https://www.dmoz.org/) description, if any, as the page description in search engine results.
+
+[Google](https://support.google.com/webmasters/answer/35624#nodmoz), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/meta-tags-robotstxt-yahoo-search-sln2213.html#cont5), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+`noarchive`
+
+Requests the search engine not to cache the page content.
+
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/SLN2213.html), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+`nosnippet`
+
+Prevents displaying any description of the page in search engine results.
+
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+`noimageindex`
+
+Requests this page not to appear as the referring page of an indexed image.
+
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives)
+
+`nocache`
+
+Synonym of `noarchive`.
+
+[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
+
+**Notes:**
+
+* Only cooperative robots follow these rules. Do not expect to prevent e-mail harvesters with them.
+* The robot still needs to access the page in order to read these rules. To prevent bandwidth consumption, use a _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt &quot;robots.txt: Robots.txt is a file which is usually placed in the root of any website. It decides whether crawlers are permitted or forbidden access to the web site.&quot;)_ file.
+* If you want to remove a page, `noindex` will work, but only after the robot visits the page again. Ensure that the `robots.txt` file is not preventing revisits.
+* Some values are mutually exclusive, like `index` and `noindex`, or `follow` and `nofollow`. In these cases the robot&apos;s behaviour is undefined and may vary between them.
+* Some crawler robots, like Google, Yahoo and Bing, support the same values for the HTTP header `X-Robots-Tag`; this allows non-HTML documents like images to use these rules.
+
+* `slurp`, is a synonym of `robots`, but only for Slurp - the crawler for Yahoo Search.
+* `viewport`, which gives hints about the size of the initial size of the [viewport](https://developer.mozilla.org/en-US/docs/Glossary/viewport &quot;viewport: A viewport represents a polygonal (normally rectangular) area in computer graphics that is currently being viewed. In web browser terms, it refers to the part of the document you&apos;re viewing which is currently visible in its window (or the screen, if the document is being viewed in full screen mode). Content outside the viewport is not visible onscreen until scrolled into view.&quot;). Used by mobile devices only.
+
+Values for the content of `&lt;meta name=&quot;viewport&quot;&gt;`
+
+Value
+
+Possible subvalues
+
+Description
+
+`width`
+
+A positive integer number, or the text `device-width`
+
+Defines the pixel width of the viewport that you want the web site to be rendered at.
+
+`height`
+
+A positive integer, or the text `device-height`
+
+Defines the height of the viewport. Not used by any browser.
+
+`initial-scale`
+
+A positive number between `0.0` and `10.0`
+
+Defines the ratio between the device width (`device-width` in portrait mode or `device-height` in landscape mode) and the viewport size.
+
+`maximum-scale`
+
+A positive number between `0.0` and `10.0`
+
+Defines the maximum amount to zoom in. It must be greater or equal to the `minimum-scale` or the behaviour is undefined. Browser settings can ignore this rule and iOS10+ ignores it by default.
+
+`minimum-scale`
+
+A positive number between `0.0` and `10.0`
+
+Defines the minimum zoom level. It must be smaller or equal to the `maximum-scale` or the behaviour is undefined. Browser settings can ignore this rule and iOS10+ ignores it by default.
+
+`user-scalable`
+
+`yes` or `no`
+
+If set to `no`, the user is not able to zoom in the webpage. The default is `yes`. Browser settings can ignore this rule, and iOS10+ ignores it by default.
+
+Specification
+
+Status
+
+Comment
+
+[CSS Device Adaptation 
+The definition of &apos;&lt;meta name=&quot;viewport&quot;&gt;&apos; in that specification.](https://drafts.csswg.org/css-device-adapt/#viewport-meta)
+
+Working Draft
+
+Non-normatively describes the Viewport META element
+
+See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport &quot;The @viewport CSS at-rule lets you configure the viewport through which the document is viewed. It&apos;s primarily used for mobile devices, but is also used by desktop browsers that support features like &quot;snap to edge&quot; (such as Microsoft Edge).&quot;)
+
+**Notes:**
+
+* Though unstandardized, this declaration is respected by most mobile browsers due to de-facto dominance.
+* The default values may vary between devices and browsers.
+* To learn about this declaration in Firefox for Mobile, see [this article](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag &quot;Mobile/Viewport meta tag&quot;).</value>
+  </data>
+  <data name="HtmlAttribute_content" xml:space="preserve">
+    <value>This attribute contains the value for the [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) or [`name`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-name) attribute, depending on which is used.</value>
+  </data>
+  <data name="HtmlAttribute_charset" xml:space="preserve">
+    <value>This attribute declares the page&apos;s character encoding. It must contain a [standard IANA MIME name for character encodings](https://www.iana.org/assignments/character-sets). Although the standard doesn&apos;t request a specific encoding, it suggests:
+
+* Authors are encouraged to use [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8).
+* Authors should not use ASCII-incompatible encodings to avoid security risk: browsers not supporting them may interpret harmful content as HTML. This happens with the `JIS_C6226-1983`, `JIS_X0212-1990`, `HZ-GB-2312`, `JOHAB`, the ISO-2022 family and the EBCDIC family.
+
+**Note:** ASCII-incompatible encodings are those that don&apos;t map the 8-bit code points `0x20` to `0x7E` to the `0x0020` to `0x007E` Unicode code points)
+
+* Authors **must not** use `CESU-8`, `UTF-7`, `BOCU-1` and/or `SCSU` as [cross-site scripting](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) attacks with these encodings have been demonstrated.
+* Authors should not use `UTF-32` because not all HTML5 encoding algorithms can distinguish it from `UTF-16`.
+
+**Notes:**
+
+* The declared character encoding must match the one the page was saved with to avoid garbled characters and security holes.
+* The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta &quot;The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.&quot;) element declaring the encoding must be inside the [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head &quot;The HTML &lt;head&gt; element provides general information (metadata) about the document, including its title and links to its scripts and style sheets.&quot;) element and **within the first 1024 bytes** of the HTML as some browsers only look at those bytes before choosing an encoding.
+* This [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta &quot;The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.&quot;) element is only one part of the [algorithm to determine a page&apos;s character set](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm &quot;Algorithm charset page&quot;). The [`Content-Type` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) and any [Byte-Order Marks](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark &quot;The definition of that term (Byte-Order Marks) has not been written yet; please consider contributing it!&quot;) override this element.
+* It is strongly recommended to define the character encoding. If a page&apos;s encoding is undefined, cross-scripting techniques are possible, such as the [`UTF-7` fallback cross-scripting technique](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
+* The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta &quot;The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.&quot;) element with a `charset` attribute is a synonym for the pre-HTML5 `&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=_IANAcharset_&quot;&gt;`, where _`IANAcharset`_ contains the value of the equivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute. This syntax is still allowed, although no longer recommended.</value>
+  </data>
+  <data name="HtmlAttribute_scheme" xml:space="preserve">
+    <value>This attribute defines the scheme in which metadata is described. A scheme is a context leading to the correct interpretations of the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) value, like a format.
+
+**Warning:** Do not use this value, as it is obsolete. There is no replacement as there was no real usage for it.</value>
+  </data>
+  <data name="HtmlAttribute_nonce" xml:space="preserve">
+    <value>A cryptographic nonce (number used once) used to allow inline styles in a [style-src Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src). The server must generate a unique nonce value each time it transmits a policy. It is critical to provide a nonce that cannot be guessed as bypassing a resource’s policy is otherwise trivial.</value>
+  </data>
+  <data name="HtmlAttribute_accesskey" xml:space="preserve">
+    <value>Provides a hint for generating a keyboard shortcut for the current element. This attribute consists of a space-separated list of characters. The browser should use the first one that exists on the computer keyboard layout.</value>
+  </data>
+  <data name="HtmlAttribute_class" xml:space="preserve">
+    <value>A space-separated list of the classes of the element. Classes allows CSS and JavaScript to select and access specific elements via the [class selectors](https://developer.mozilla.org/docs/Web/CSS/Class_selectors) or functions like the method [`Document.getElementsByClassName()`](https://developer.mozilla.org/docs/Web/API/Document/getElementsByClassName &quot;returns an array-like object of all child elements which have all of the given class names.&quot;).</value>
+  </data>
+  <data name="HtmlAttribute_contextmenu" xml:space="preserve">
+    <value>The `[**id**](#attr-id)` of a [`&lt;menu&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/menu &quot;The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.&quot;) to use as the contextual menu for this element.</value>
+  </data>
+  <data name="HtmlAttribute_dir" xml:space="preserve">
+    <value>An enumerated attribute indicating the directionality of the element&apos;s text. It can have the following values:
+
+* `ltr`, which means _left to right_ and is to be used for languages that are written from the left to the right (like English);
+* `rtl`, which means _right to left_ and is to be used for languages that are written from the right to the left (like Arabic);
+* `auto`, which lets the user agent decide. It uses a basic algorithm as it parses the characters inside the element until it finds a character with a strong directionality, then it applies that directionality to the whole element.</value>
+  </data>
+  <data name="HtmlAttribute_dropzone" xml:space="preserve">
+    <value>An enumerated attribute indicating what types of content can be dropped on an element, using the [Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). It can have the following values:
+
+* `copy`, which indicates that dropping will create a copy of the element that was dragged
+* `move`, which indicates that the element that was dragged will be moved to this new location.
+* `link`, will create a link to the dragged data.</value>
+  </data>
+  <data name="HtmlAttribute_id" xml:space="preserve">
+    <value>Defines a unique identifier (ID) which must be unique in the whole document. Its purpose is to identify the element when linking (using a fragment identifier), scripting, or styling (with CSS).</value>
+  </data>
+  <data name="HtmlAttribute_inert" xml:space="preserve">
+    <value>Indicates that the element and all of its flat tree descendants become _inert_. Modal `&lt;dialog&gt;`s generated with [`showModal()`](https://developer.mozilla.org/docs/Web/API/HTMLDialogElement/showModal) escape inertness, meaning that they don&apos;t inherit inertness from their ancestors, but can only be made inert by having the `inert` attribute explicitly set on themselves.</value>
+  </data>
+  <data name="HtmlAttribute_popover" xml:space="preserve">
+    <value>Designates an element as a popover element.</value>
+  </data>
+  <data name="HtmlAttribute_autocapitalize" xml:space="preserve">
+    <value>Controls whether and how text input is automatically capitalized as it is entered/edited by the user. It can have the following values:
+
+* `off` or `none`, no autocapitalization is applied (all letters default to lowercase)
+* `on` or `sentences`, the first letter of each sentence defaults to a capital letter; all other letters default to lowercase
+* `words`, the first letter of each word defaults to a capital letter; all other letters default to lowercase
+* `characters`, all letters should default to uppercase</value>
+  </data>
+  <data name="HtmlAttribute_autocorrect" xml:space="preserve">
+    <value>Controls whether autocorrection of editable text is enabled for spelling and/or punctuation errors.</value>
+  </data>
+  <data name="HtmlAttribute_hidden" xml:space="preserve">
+    <value>A Boolean attribute indicates that the element is not yet, or is no longer, _relevant_. For example, it can be used to hide elements of the page that can&apos;t be used until the login process has been completed. The browser won&apos;t render such elements. This attribute must not be used to hide content that could legitimately be shown.</value>
+  </data>
+  <data name="HtmlAttribute_lang" xml:space="preserve">
+    <value>Helps define the language of an element: the language that non-editable elements are in, or the language that editable elements should be written in by the user. The attribute contains one “language tag” (made of hyphen-separated “language subtags”) in the format defined in [_Tags for Identifying Languages (BCP47)_](https://www.ietf.org/rfc/bcp/bcp47.txt). [**xml:lang**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/lang#attr-xml:lang) has priority over it.</value>
+  </data>
+  <data name="HtmlAttribute_style" xml:space="preserve">
+    <value>Contains [CSS](https://developer.mozilla.org/docs/Web/CSS) styling declarations to be applied to the element. Note that it is recommended for styles to be defined in a separate file or files. This attribute and the [`&lt;style&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/style &quot;The HTML &lt;style&gt; element contains style information for a document, or part of a document.&quot;) element have mainly the purpose of allowing for quick styling, for example for testing purposes.</value>
+  </data>
+  <data name="HtmlAttribute_tabindex" xml:space="preserve">
+    <value>An integer attribute indicating if the element can take input focus (is _focusable_), if it should participate to sequential keyboard navigation, and if so, at what position. It can take several values:
+
+* a _negative value_ means that the element should be focusable, but should not be reachable via sequential keyboard navigation;
+* `0` means that the element should be focusable and reachable via sequential keyboard navigation, but its relative order is defined by the platform convention;
+* a _positive value_ means that the element should be focusable and reachable via sequential keyboard navigation; the order in which the elements are focused is the increasing value of the [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex). If several elements share the same tabindex, their relative order follows their relative positions in the document.</value>
+  </data>
+  <data name="HtmlAttribute_title" xml:space="preserve">
+    <value>Contains a text representing advisory information related to the element it belongs to. Such information can typically, but not necessarily, be presented to the user as a tooltip.</value>
+  </data>
+  <data name="HtmlAttribute_translate" xml:space="preserve">
+    <value>An enumerated attribute that is used to specify whether an element&apos;s attribute values and the values of its [`Text`](https://developer.mozilla.org/docs/Web/API/Text &quot;The Text interface represents the textual content of Element or Attr. If an element has no markup within its content, it has a single child implementing Text that contains the element&apos;s text. However, if the element contains markup, it is parsed into information items and Text nodes that form its children.&quot;) node children are to be translated when the page is localized, or whether to leave them unchanged. It can have the following values:
+
+* empty string and `yes`, which indicates that the element will be translated.
+* `no`, which indicates that the element will not be translated.</value>
+  </data>
+  <data name="HtmlAttribute_autofocus" xml:space="preserve">
+    <value>Indicates that an element should be focused on page load, or when the [`&lt;dialog&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/dialog) that it is part of is displayed.</value>
+  </data>
+  <data name="HtmlAttribute_enterkeyhint" xml:space="preserve">
+    <value>An enumerated attribute defining what action label (or icon) to present for the enter key on virtual keyboards.</value>
+  </data>
+  <data name="HtmlAttribute_exportparts" xml:space="preserve">
+    <value>Used to transitively export shadow parts from a nested shadow tree into a containing light tree.</value>
+  </data>
+  <data name="HtmlAttribute_inputmode" xml:space="preserve">
+    <value>Provides a hint to browsers as to the type of virtual keyboard configuration to use when editing this element or its contents. Used primarily on [`&lt;input&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/input &quot;The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.&quot;) elements, but is usable on any element while in `[contenteditable](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-contenteditable)` mode.</value>
+  </data>
+  <data name="HtmlAttribute_is" xml:space="preserve">
+    <value>Allows you to specify that a standard HTML element should behave like a registered custom built-in element (see [Using custom elements](https://developer.mozilla.org/docs/Web/Web_Components/Using_custom_elements) for more details).</value>
+  </data>
+  <data name="HtmlAttribute_part" xml:space="preserve">
+    <value>A space-separated list of the part names of the element. Part names allows CSS to select and style specific elements in a shadow tree via the [`::part`](https://developer.mozilla.org/docs/Web/CSS/::part &quot;The ::part CSS pseudo-element represents any element within a shadow tree that has a matching part attribute.&quot;) pseudo-element.</value>
+  </data>
+  <data name="HtmlAttribute_slot" xml:space="preserve">
+    <value>Assigns a slot in a [shadow DOM](https://developer.mozilla.org/docs/Web/Web_Components/Shadow_DOM) shadow tree to an element: An element with a `slot` attribute is assigned to the slot created by the [`&lt;slot&gt;`](https://developer.mozilla.org/docs/Web/HTML/Element/slot &quot;The HTML &lt;slot&gt; element—part of the Web Components technology suite—is a placeholder inside a web component that you can fill with your own markup, which lets you create separate DOM trees and present them together.&quot;) element whose `[name](https://developer.mozilla.org/docs/Web/HTML/Element/slot#attr-name)` attribute&apos;s value matches that `slot` attribute&apos;s value.</value>
+  </data>
+  <data name="HtmlAttribute_virtualkeyboardpolicy" xml:space="preserve">
+    <value>When specified on an element that the element&apos;s content is editable (for example, it is an `&lt;input&gt;` or `&lt;textarea&gt;` element, or an element with the `contenteditable` attribute set), it controls the on-screen virtual keyboard behavior on devices such as tablets, mobile phones, or other devices where a hardware keyboard may not be available.</value>
+  </data>
+  <data name="HtmlAttribute_contenteditable" xml:space="preserve">
+    <value>An enumerated attribute indicating if the element should be editable by the user. If so, the browser modifies its widget to allow editing. The attribute must take one of the following values:
+
+* `true` or the _empty string_, which indicates that the element must be editable;
+* `false`, which indicates that the element must not be editable.</value>
+  </data>
+  <data name="HtmlAttribute_draggable" xml:space="preserve">
+    <value>An enumerated attribute indicating whether the element can be dragged, using the [Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). It can have the following values:
+
+* `true`, which indicates that the element may be dragged
+* `false`, which indicates that the element may not be dragged.</value>
+  </data>
+  <data name="HtmlAttribute_spellcheck" xml:space="preserve">
+    <value>An enumerated attribute defines whether the element may be checked for spelling errors. It may have the following values:
+
+* `true`, which indicates that the element should be, if possible, checked for spelling errors;
+* `false`, which indicates that the element should not be checked for spelling errors.</value>
+  </data>
+  <data name="HtmlAttribute_src" xml:space="preserve">
+    <value>This attribute specifies the URI of an external script; this can be used as an alternative to embedding a script directly within a document.
+
+If a `script` element has a `src` attribute specified, it should not have a script embedded inside its tags.</value>
+  </data>
+  <data name="HtmlAttribute_defer" xml:space="preserve">
+    <value>This Boolean attribute is set to indicate to a browser that the script is meant to be executed after the document has been parsed, but before firing [`DOMContentLoaded`](https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded &quot;/en-US/docs/Web/Events/DOMContentLoaded&quot;).
+
+Scripts with the `defer` attribute will prevent the `DOMContentLoaded` event from firing until the script has loaded and finished evaluating.
+
+This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts), in this case it would have no effect.
+
+To achieve a similar effect for dynamically inserted scripts use `async=&quot;false&quot;` instead. Scripts with the `defer` attribute will execute in the order in which they appear in the document.</value>
+  </data>
+  <data name="HtmlAttribute_async" xml:space="preserve">
+    <value>This is a Boolean attribute indicating that the browser should, if possible, load the script asynchronously.
+
+This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts). If it is included in this case it will have no effect.
+
+Browsers usually assume the worst case scenario and load scripts synchronously, (i.e. `async=&quot;false&quot;`) during HTML parsing.
+
+Dynamically inserted scripts (using [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement &quot;In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn&apos;t recognized.&quot;)) load asynchronously by default, so to turn on synchronous loading (i.e. scripts load in the order they were inserted) set `async=&quot;false&quot;`.
+
+See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) for notes on browser support. See also [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</value>
+  </data>
+  <data name="HtmlAttribute_nomodule" xml:space="preserve">
+    <value>This Boolean attribute is set to indicate that the script should not be executed in browsers that support [ES2015 modules](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/) — in effect, this can be used to serve fallback scripts to older browsers that do not support modular JavaScript code.</value>
+  </data>
+  <data name="HtmlAttribute_onafterprint" xml:space="preserve">
+    <value>Function to call after the user has printed the document.</value>
+  </data>
+  <data name="HtmlAttribute_onbeforeprint" xml:space="preserve">
+    <value>Function to call when the user requests printing of the document.</value>
+  </data>
+  <data name="HtmlAttribute_onbeforeunload" xml:space="preserve">
+    <value>Function to call when the document is about to be unloaded.</value>
+  </data>
+  <data name="HtmlAttribute_onhashchange" xml:space="preserve">
+    <value>Function to call when the fragment identifier part (starting with the hash (`&apos;#&apos;`) character) of the document&apos;s current address has changed.</value>
+  </data>
+  <data name="HtmlAttribute_onmessage" xml:space="preserve">
+    <value>Function to call when the document has received a message.</value>
+  </data>
+  <data name="HtmlAttribute_onoffline" xml:space="preserve">
+    <value>Function to call when network communication has failed.</value>
+  </data>
+  <data name="HtmlAttribute_ononline" xml:space="preserve">
+    <value>Function to call when network communication has been restored.</value>
+  </data>
+  <data name="HtmlAttribute_onpopstate" xml:space="preserve">
+    <value>Function to call when the user has navigated session history.</value>
+  </data>
+  <data name="HtmlAttribute_onredo" xml:space="preserve">
+    <value>Function to call when the user has moved forward in undo transaction history.</value>
+  </data>
+  <data name="HtmlAttribute_onresize" xml:space="preserve">
+    <value>Function to call when the document has been resized.</value>
+  </data>
+  <data name="HtmlAttribute_onstorage" xml:space="preserve">
+    <value>Function to call when the storage area has changed.</value>
+  </data>
+  <data name="HtmlAttribute_onundo" xml:space="preserve">
+    <value>Function to call when the user has moved backward in undo transaction history.</value>
+  </data>
+  <data name="HtmlAttribute_onunload" xml:space="preserve">
+    <value>Function to call when the document is going away.</value>
+  </data>
+  <data name="HtmlAttribute_open" xml:space="preserve">
+    <value>Indicates that the dialog is active and available for interaction. When the `open` attribute is not set, the dialog shouldn&apos;t be shown to the user.</value>
+  </data>
+  <data name="HtmlAttribute_cite" xml:space="preserve">
+    <value>A URL that designates a source document or message for the information quoted. This attribute is intended to point to information explaining the context or the reference for the quote.</value>
+  </data>
+  <data name="HtmlAttribute_start" xml:space="preserve">
+    <value>This integer attribute specifies the start value for numbering the individual list items. Although the ordering type of list elements might be Roman numerals, such as XXXI, or letters, the value of start is always represented as a number. To start numbering elements from the letter &quot;C&quot;, use `&lt;ol start=&quot;3&quot;&gt;`.
+
+**Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.</value>
+  </data>
+  <data name="HtmlAttribute_reversed" xml:space="preserve">
+    <value>This Boolean attribute specifies that the items of the list are specified in reversed order.</value>
+  </data>
+  <data name="HtmlAttribute_value" xml:space="preserve">
+    <value>This integer attribute indicates the current ordinal value of the list item as defined by the [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol &quot;The HTML &lt;ol&gt; element represents an ordered list of items, typically rendered as a numbered list.&quot;) element. The only allowed value for this attribute is a number, even if the list is displayed with Roman numerals or letters. List items that follow this one continue numbering from the value set. The **value** attribute has no meaning for unordered lists ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul &quot;The HTML &lt;ul&gt; element represents an unordered list of items, typically rendered as a bulleted list.&quot;)) or for menus ([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu &quot;The HTML &lt;menu&gt; element represents a group of commands that a user can perform or activate. This includes both list menus, which might appear across the top of a screen, as well as context menus, such as those that might appear underneath a button after it has been clicked.&quot;)).
+
+**Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.
+
+**Note:** Prior to Gecko 9.0, negative values were incorrectly converted to 0. Starting in Gecko 9.0 all integer values are correctly parsed.</value>
+  </data>
+  <data name="HtmlAttribute_download" xml:space="preserve">
+    <value>This attribute instructs browsers to download a URL instead of navigating to it, so the user will be prompted to save it as a local file. If the attribute has a value, it is used as the pre-filled file name in the Save prompt (the user can still change the file name if they want). There are no restrictions on allowed values, though `/` and `\` are converted to underscores. Most file systems limit some punctuation in file names, and browsers will adjust the suggested name accordingly.
+
+**Notes:**
+
+* This attribute only works for [same-origin URLs](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
+* Although HTTP(s) URLs need to be in the same-origin, [`blob:` URLs](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) and [`data:` URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) are allowed so that content generated by JavaScript, such as pictures created in an image-editor Web app, can be downloaded.
+* If the HTTP header [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) gives a different filename than this attribute, the HTTP header takes priority over this attribute.
+* If `Content-Disposition:` is set to `inline`, Firefox prioritizes `Content-Disposition`, like the filename case, while Chrome prioritizes the `download` attribute.</value>
+  </data>
+  <data name="HtmlAttribute_ping" xml:space="preserve">
+    <value>Contains a space-separated list of URLs to which, when the hyperlink is followed, [`POST`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST &quot;The HTTP POST method sends data to the server. The type of the body of the request is indicated by the Content-Type header.&quot;) requests with the body `PING` will be sent by the browser (in the background). Typically used for tracking.</value>
+  </data>
+  <data name="HtmlAttribute_max" xml:space="preserve">
+    <value>This attribute describes how much work the task indicated by the `progress` element requires. The `max` attribute, if present, must have a value greater than zero and be a valid floating point number. The default value is 1.</value>
+  </data>
+  <data name="HtmlAttribute_min" xml:space="preserve">
+    <value>The lower numeric bound of the measured range. This must be less than the maximum value (`max` attribute), if specified. If unspecified, the minimum value is 0.</value>
+  </data>
+  <data name="HtmlAttribute_low" xml:space="preserve">
+    <value>The upper numeric bound of the low end of the measured range. This must be greater than the minimum value (`min` attribute), and it also must be less than the high value and maximum value (`high` attribute and `max` attribute, respectively), if any are specified. If unspecified, or if less than the minimum value, the `low` value is equal to the minimum value.</value>
+  </data>
+  <data name="HtmlAttribute_high" xml:space="preserve">
+    <value>The lower numeric bound of the high end of the measured range. This must be less than the maximum value (`max` attribute), and it also must be greater than the low value and minimum value (`low` attribute and **min** attribute, respectively), if any are specified. If unspecified, or if greater than the maximum value, the `high` value is equal to the maximum value.</value>
+  </data>
+  <data name="HtmlAttribute_optimum" xml:space="preserve">
+    <value>This attribute indicates the optimal numeric value. It must be within the range (as defined by the `min` attribute and `max` attribute). When used with the `low` attribute and `high` attribute, it gives an indication where along the range is considered preferable. For example, if it is between the `min` attribute and the `low` attribute, then the lower range is considered preferred.</value>
+  </data>
+  <data name="HtmlAttribute_datetime" xml:space="preserve">
+    <value>This attribute indicates the time and/or date of the element and must be in one of the formats described below.</value>
+  </data>
+  <data name="HtmlAttribute_alt" xml:space="preserve">
+    <value>This attribute defines an alternative text description of the image.
+
+**Note:** Browsers do not always display the image referenced by the element. This is the case for non-graphical browsers (including those used by people with visual impairments), if the user chooses not to display images, or if the browser cannot display the image because it is invalid or an [unsupported type](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats). In these cases, the browser may replace the image with the text defined in this element&apos;s `alt` attribute. You should, for these reasons and others, provide a useful value for `alt` whenever possible.
+
+**Note:** Omitting this attribute altogether indicates that the image is a key part of the content, and no textual equivalent is available. Setting this attribute to an empty string (`alt=&quot;&quot;`) indicates that this image is _not_ a key part of the content (decorative), and that non-visual browsers may omit it from rendering.</value>
+  </data>
+  <data name="HtmlAttribute_loading" xml:space="preserve">
+    <value>Indicates how the browser should load the image.</value>
+  </data>
+  <data name="HtmlAttribute_fetchpriority" xml:space="preserve">
+    <value>Provides a hint of the relative priority to use when fetching the image.</value>
+  </data>
+  <data name="HtmlAttribute_decoding" xml:space="preserve">
+    <value>Provides an image decoding hint to the browser. The allowed values are:
+`sync`
+
+Decode the image synchronously for atomic presentation with other content.
+
+`async`
+
+Decode the image asynchronously to reduce delay in presenting other content.
+
+`auto`
+
+Default mode, which indicates no preference for the decoding mode. The browser decides what is best for the user.</value>
+  </data>
+  <data name="HtmlAttribute_srcset" xml:space="preserve">
+    <value>A list of one or more strings separated by commas indicating a set of possible image sources for the user agent to use. Each string is composed of:
+
+1. a URL to an image,
+2. optionally, whitespace followed by one of:
+* A width descriptor, or a positive integer directly followed by &apos;`w`&apos;. The width descriptor is divided by the source size given in the `sizes` attribute to calculate the effective pixel density.
+* A pixel density descriptor, which is a positive floating point number directly followed by &apos;`x`&apos;.
+
+If no descriptor is specified, the source is assigned the default descriptor: `1x`.
+
+It is incorrect to mix width descriptors and pixel density descriptors in the same `srcset` attribute. Duplicate descriptors (for instance, two sources in the same `srcset` which are both described with &apos;`2x`&apos;) are also invalid.
+
+The user agent selects any one of the available sources at its discretion. This provides them with significant leeway to tailor their selection based on things like user preferences or bandwidth conditions. See our [Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) tutorial for an example.</value>
+  </data>
+  <data name="HtmlAttribute_height" xml:space="preserve">
+    <value>The intrinsic height of the image in pixels.</value>
+  </data>
+  <data name="HtmlAttribute_width" xml:space="preserve">
+    <value>The intrinsic width of the image in pixels.</value>
+  </data>
+  <data name="HtmlAttribute_usemap" xml:space="preserve">
+    <value>The partial URL (starting with &apos;#&apos;) of an [image map](https://developer.mozilla.org/en-US/docs/HTML/Element/map) associated with the element.
+
+**Note:** You cannot use this attribute if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a &quot;The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.&quot;) or [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button &quot;The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.&quot;) element.</value>
+  </data>
+  <data name="HtmlAttribute_ismap" xml:space="preserve">
+    <value>This Boolean attribute indicates that the image is part of a server-side map. If so, the precise coordinates of a click are sent to the server.
+
+**Note:** This attribute is allowed only if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a &quot;The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.&quot;) element with a valid [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute.</value>
+  </data>
+  <data name="HtmlAttribute_srcdoc" xml:space="preserve">
+    <value>Inline HTML to embed, overriding the `src` attribute. If a browser does not support the `srcdoc` attribute, it will fall back to the URL in the `src` attribute.</value>
+  </data>
+  <data name="HtmlAttribute_allow" xml:space="preserve">
+    <value>Specifies a [feature policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Feature_Policy) for the `&lt;iframe&gt;`.</value>
+  </data>
+  <data name="HtmlAttribute_allowfullscreen" xml:space="preserve">
+    <value>Set to `true` if the `&lt;iframe&gt;` can activate fullscreen mode by calling the [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen &quot;The Element.requestFullscreen() method issues an asynchronous request to make the element be displayed in full-screen mode.&quot;) method.
+This attribute is considered a legacy attribute and redefined as `allow=&quot;fullscreen&quot;`.</value>
+  </data>
+  <data name="HtmlAttribute_sandbox" xml:space="preserve">
+    <value>Applies extra restrictions to the content in the frame. The value of the attribute can either be empty to apply all restrictions, or space-separated tokens to lift particular restrictions:
+
+* `allow-forms`: Allows the resource to submit forms. If this keyword is not used, form submission is blocked.
+* `allow-modals`: Lets the resource [open modal windows](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag).
+* `allow-orientation-lock`: Lets the resource [lock the screen orientation](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation).
+* `allow-pointer-lock`: Lets the resource use the [Pointer Lock API](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock).
+* `allow-popups`: Allows popups (such as `window.open()`, `target=&quot;_blank&quot;`, or `showModalDialog()`). If this keyword is not used, the popup will silently fail to open.
+* `allow-popups-to-escape-sandbox`: Lets the sandboxed document open new windows without those windows inheriting the sandboxing. For example, this can safely sandbox an advertisement without forcing the same restrictions upon the page the ad links to.
+* `allow-presentation`: Lets the resource start a [presentation session](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest).
+* `allow-same-origin`: If this token is not used, the resource is treated as being from a special origin that always fails the [same-origin policy](https://developer.mozilla.org/en-US/docs/Glossary/same-origin_policy &quot;same-origin policy: The same-origin policy is a critical security mechanism that restricts how a document or script loaded from one origin can interact with a resource from another origin.&quot;).
+* `allow-scripts`: Lets the resource run scripts (but not create popup windows).
+* `allow-storage-access-by-user-activation` : Lets the resource request access to the parent&apos;s storage capabilities with the [Storage Access API](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API).
+* `allow-top-navigation`: Lets the resource navigate the top-level browsing context (the one named `_top`).
+* `allow-top-navigation-by-user-activation`: Lets the resource navigate the top-level browsing context, but only if initiated by a user gesture.
+
+**Notes about sandboxing:**
+
+* When the embedded document has the same origin as the embedding page, it is **strongly discouraged** to use both `allow-scripts` and `allow-same-origin`, as that lets the embedded document remove the `sandbox` attribute — making it no more secure than not using the `sandbox` attribute at all.
+* Sandboxing is useless if the attacker can display content outside a sandboxed `iframe` — such as if the viewer opens the frame in a new tab. Such content should be also served from a _separate origin_ to limit potential damage.
+* The `sandbox` attribute is unsupported in Internet Explorer 9 and earlier.</value>
+  </data>
+  <data name="HtmlAttribute_csp" xml:space="preserve">
+    <value>A [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) enforced for the embedded resource. See [`HTMLIFrameElement.csp`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/csp &quot;The csp property of the HTMLIFrameElement interface specifies the Content Security Policy that an embedded document must agree to enforce upon itself.&quot;) for details.</value>
+  </data>
+  <data name="HtmlAttribute_classid" xml:space="preserve">
+    <value>The URI of the object&apos;s implementation. It can be used together with, or in place of, the **data** attribute.</value>
+  </data>
+  <data name="HtmlAttribute_data" xml:space="preserve">
+    <value>The address of the resource as a valid URL. At least one of **data** and **type** must be defined.</value>
+  </data>
+  <data name="HtmlAttribute_form" xml:space="preserve">
+    <value>The form element, if any, that the object element is associated with (its _form owner_). The value of the attribute must be an ID of a [`&lt;form&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form &quot;The HTML &lt;form&gt; element represents a document section that contains interactive controls for submitting information to a web server.&quot;) element in the same document.</value>
+  </data>
+  <data name="HtmlAttribute_valuetype" xml:space="preserve">
+    <value>Specifies the type of the `value` attribute. Possible values are:
+
+* data: Default value. The value is passed to the object&apos;s implementation as a string.
+* ref: The value is a URI to a resource where run-time values are stored.
+* object: An ID of another [`&lt;object&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object &quot;The HTML &lt;object&gt; element represents an external resource, which can be treated as an image, a nested browsing context, or a resource to be handled by a plugin.&quot;) in the same document.</value>
+  </data>
+  <data name="HtmlAttribute_itemscope" xml:space="preserve">
+    <value>`itemscope` (usually) works along with `[itemtype](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemtype)` to specify that the HTML contained in a block is about a particular item. `itemscope` creates the Item and defines the scope of the `itemtype` associated with it. `itemtype` is a valid URL of a vocabulary (such as [schema.org](https://schema.org/)) that describes the item and its properties context.</value>
+  </data>
+  <data name="HtmlAttribute_itemtype" xml:space="preserve">
+    <value>Specifies the URL of the vocabulary that will be used to define `itemprop`s (item properties) in the data structure. `[itemscope](https://developer.mozilla.org/docs/Web/HTML/Global_attributes#attr-itemscope)` is used to set the scope of where in the data structure the vocabulary set by `itemtype` will be active.</value>
+  </data>
+  <data name="HtmlAttribute_itemprop" xml:space="preserve">
+    <value>Used to add properties to an item. Every HTML element may have an `itemprop` attribute specified, where an `itemprop` consists of a name and value pair.</value>
+  </data>
+  <data name="HtmlAttribute_itemref" xml:space="preserve">
+    <value>Properties that are not descendants of an element with the `itemscope` attribute can be associated with the item using an `itemref`. It provides a list of element ids (not `itemid`s) with additional properties elsewhere in the document.</value>
+  </data>
+  <data name="HtmlAttribute_itemid" xml:space="preserve">
+    <value>The unique, global identifier of an item.</value>
+  </data>
+  <data name="HtmlAttribute_kind" xml:space="preserve">
+    <value>How the text track is meant to be used. If omitted the default kind is `subtitles`. If the attribute is not present, it will use the `subtitles`. If the attribute contains an invalid value, it will use `metadata`. (Versions of Chrome earlier than 52 treated an invalid value as `subtitles`.) The following keywords are allowed:
+
+* `subtitles`
+* Subtitles provide translation of content that cannot be understood by the viewer. For example dialogue or text that is not English in an English language film.
+* Subtitles may contain additional content, usually extra background information. For example the text at the beginning of the Star Wars films, or the date, time, and location of a scene.
+* `captions`
+* Closed captions provide a transcription and possibly a translation of audio.
+* It may include important non-verbal information such as music cues or sound effects. It may indicate the cue&apos;s source (e.g. music, text, character).
+* Suitable for users who are deaf or when the sound is muted.
+* `descriptions`
+* Textual description of the video content.
+* Suitable for users who are blind or where the video cannot be seen.
+* `chapters`
+* Chapter titles are intended to be used when the user is navigating the media resource.
+* `metadata`
+* Tracks used by scripts. Not visible to the user.</value>
+  </data>
+  <data name="HtmlAttribute_srclang" xml:space="preserve">
+    <value>Language of the track text data. It must be a valid [BCP 47](https://r12a.github.io/app-subtags/) language tag. If the `kind` attribute is set to `subtitles,` then `srclang` must be defined.</value>
+  </data>
+  <data name="HtmlAttribute_label" xml:space="preserve">
+    <value>A user-readable title of the text track which is used by the browser when listing available text tracks.</value>
+  </data>
+  <data name="HtmlAttribute_default" xml:space="preserve">
+    <value>This attribute indicates that the track should be enabled unless the user&apos;s preferences indicate that another track is more appropriate. This may only be used on one `track` element per media element.</value>
+  </data>
+  <data name="HtmlAttribute_accept-charset" xml:space="preserve">
+    <value>A space- or comma-delimited list of character encodings that the server accepts. The browser uses them in the order in which they are listed. The default value, the reserved string `&quot;UNKNOWN&quot;`, indicates the same encoding as that of the document containing the form element. 
+In previous versions of HTML, the different character encodings could be delimited by spaces or commas. In HTML5, only spaces are allowed as delimiters.</value>
+  </data>
+  <data name="HtmlAttribute_action" xml:space="preserve">
+    <value>The URI of a program that processes the form information. This value can be overridden by a [`formaction`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formaction) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button &quot;The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.&quot;) or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input &quot;The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.&quot;) element.</value>
+  </data>
+  <data name="HtmlAttribute_autocomplete" xml:space="preserve">
+    <value>Indicates whether input elements can by default have their values automatically completed by the browser. This setting can be overridden by an `autocomplete` attribute on an element belonging to the form. Possible values are:
+
+* `off`: The user must explicitly enter a value into each field for every use, or the document provides its own auto-completion method; the browser does not automatically complete entries.
+* `on`: The browser can automatically complete values based on values that the user has previously entered in the form.
+
+For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) setting the autocomplete attribute will not prevent a browser&apos;s password manager from asking the user if they want to store login fields (username and password), if the user permits the storage the browser will autofill the login the next time the user visits the page. See [The autocomplete attribute and login fields](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
+**Note:** If you set `autocomplete` to `off` in a form because the document provides its own auto-completion, then you should also set `autocomplete` to `off` for each of the form&apos;s `input` elements that the document can auto-complete. For details, see the note regarding Google Chrome in the [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</value>
+  </data>
+  <data name="HtmlAttribute_enctype" xml:space="preserve">
+    <value>When the value of the `method` attribute is `post`, enctype is the [MIME type](https://en.wikipedia.org/wiki/Mime_type) of content that is used to submit the form to the server. Possible values are:
+
+* `application/x-www-form-urlencoded`: The default value if the attribute is not specified.
+* `multipart/form-data`: The value used for an [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input &quot;The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.&quot;) element with the `type` attribute set to &quot;file&quot;.
+* `text/plain`: (HTML5)
+
+This value can be overridden by a [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button &quot;The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.&quot;) or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input &quot;The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.&quot;) element.</value>
+  </data>
+  <data name="HtmlAttribute_method" xml:space="preserve">
+    <value>The [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) method that the browser uses to submit the form. Possible values are:
+
+* `post`: Corresponds to the HTTP [POST method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) ; form data are included in the body of the form and sent to the server.
+* `get`: Corresponds to the HTTP [GET method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3); form data are appended to the `action` attribute URI with a &apos;?&apos; as separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
+* `dialog`: Use when the form is inside a [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog &quot;The HTML &lt;dialog&gt; element represents a dialog box or other interactive component, such as an inspector or window.&quot;) element to close the dialog when submitted.
+
+This value can be overridden by a [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button &quot;The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.&quot;) or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input &quot;The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.&quot;) element.</value>
+  </data>
+  <data name="HtmlAttribute_novalidate" xml:space="preserve">
+    <value>This Boolean attribute indicates that the form is not to be validated when submitted. If this attribute is not specified (and therefore the form is validated), this default setting can be overridden by a [`formnovalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formnovalidate) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button &quot;The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.&quot;) or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input &quot;The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.&quot;) element belonging to the form.</value>
+  </data>
+  <data name="HtmlAttribute_disabled" xml:space="preserve">
+    <value>If this Boolean attribute is set, all form controls that are descendants of the `&lt;fieldset&gt;`, are disabled, meaning they are not editable and won&apos;t be submitted along with the `&lt;form&gt;`. They won&apos;t receive any browsing events, like mouse clicks or focus-related events. By default browsers display such controls grayed out. Note that form elements inside the [`&lt;legend&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/legend &quot;The HTML &lt;legend&gt; element represents a caption for the content of its parent &lt;fieldset&gt;.&quot;) element won&apos;t be disabled.</value>
+  </data>
+  <data name="HtmlAttribute_for" xml:space="preserve">
+    <value>The [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) of a [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) form-related element in the same document as the `&lt;label&gt;` element. The first element in the document with an `id` matching the value of the `for` attribute is the _labeled control_ for this label element, if it is a labelable element. If it is not labelable then the `for` attribute has no effect. If there are other elements which also match the `id` value, later in the document, they are not considered.
+
+**Note**: A `&lt;label&gt;` element can have both a `for` attribute and a contained control element, as long as the `for` attribute points to the contained control element.</value>
+  </data>
+  <data name="HtmlAttribute_formaction" xml:space="preserve">
+    <value>The URI of a program that processes the information submitted by the button. If specified, it overrides the [`action`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-action) attribute of the button&apos;s form owner.</value>
+  </data>
+  <data name="HtmlAttribute_formenctype" xml:space="preserve">
+    <value>If the button is a submit button, this attribute specifies the type of content that is used to submit the form to the server. Possible values are:
+
+* `application/x-www-form-urlencoded`: The default value if the attribute is not specified.
+* `multipart/form-data`: Use this value if you are using an [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input &quot;The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.&quot;) element with the [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type) attribute set to `file`.
+* `text/plain`
+
+If this attribute is specified, it overrides the [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) attribute of the button&apos;s form owner.</value>
+  </data>
+  <data name="HtmlAttribute_formmethod" xml:space="preserve">
+    <value>If the button is a submit button, this attribute specifies the HTTP method that the browser uses to submit the form. Possible values are:
+
+* `post`: The data from the form are included in the body of the form and sent to the server.
+* `get`: The data from the form are appended to the **form** attribute URI, with a &apos;?&apos; as a separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
+
+If specified, this attribute overrides the [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) attribute of the button&apos;s form owner.</value>
+  </data>
+  <data name="HtmlAttribute_formnovalidate" xml:space="preserve">
+    <value>If the button is a submit button, this Boolean attribute specifies that the form is not to be validated when it is submitted. If this attribute is specified, it overrides the [`novalidate`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-novalidate) attribute of the button&apos;s form owner.</value>
+  </data>
+  <data name="HtmlAttribute_formtarget" xml:space="preserve">
+    <value>If the button is a submit button, this attribute is a name or keyword indicating where to display the response that is received after submitting the form. This is a name of, or keyword for, a _browsing context_ (for example, tab, window, or inline frame). If this attribute is specified, it overrides the [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) attribute of the button&apos;s form owner. The following keywords have special meanings:
+
+* `_self`: Load the response into the same browsing context as the current one. This value is the default if the attribute is not specified.
+* `_blank`: Load the response into a new unnamed browsing context.
+* `_parent`: Load the response into the parent browsing context of the current one. If there is no parent, this option behaves the same way as `_self`.
+* `_top`: Load the response into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.</value>
+  </data>
+  <data name="HtmlAttribute_multiple" xml:space="preserve">
+    <value>This Boolean attribute indicates that multiple options can be selected in the list. If it is not specified, then only one option can be selected at a time. When `multiple` is specified, most browsers will show a scrolling list box instead of a single line dropdown.</value>
+  </data>
+  <data name="HtmlAttribute_required" xml:space="preserve">
+    <value>A Boolean attribute indicating that an option with a non-empty string value must be selected.</value>
+  </data>
+  <data name="HtmlAttribute_size" xml:space="preserve">
+    <value>If the control is presented as a scrolling list box (e.g. when `multiple` is specified), this attribute represents the number of rows in the list that should be visible at one time. Browsers are not required to present a select element as a scrolled list box. The default value is 0.
+
+**Note:** According to the HTML5 specification, the default value for size should be 1; however, in practice, this has been found to break some web sites, and no other browser currently does that, so Mozilla has opted to continue to return 0 for the time being with Firefox.</value>
+  </data>
+  <data name="HtmlAttribute_selected" xml:space="preserve">
+    <value>If present, this Boolean attribute indicates that the option is initially selected. If the `&lt;option&gt;` element is the descendant of a [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select &quot;The HTML &lt;select&gt; element represents a control that provides a menu of options&quot;) element whose [`multiple`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select#attr-multiple) attribute is not set, only one single `&lt;option&gt;` of this [`&lt;select&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select &quot;The HTML &lt;select&gt; element represents a control that provides a menu of options&quot;) element may have the `selected` attribute.</value>
+  </data>
+  <data name="HtmlAttribute_maxlength" xml:space="preserve">
+    <value>The maximum number of characters (unicode code points) that the user can enter. If this value isn&apos;t specified, the user can enter an unlimited number of characters.</value>
+  </data>
+  <data name="HtmlAttribute_placeholder" xml:space="preserve">
+    <value>A hint to the user of what can be entered in the control. Carriage returns or line-feeds within the placeholder text must be treated as line breaks when rendering the hint.
+
+**Note:** Placeholders should only be used to show an example of the type of data that should be entered into a form; they are _not_ a substitute for a proper [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label &quot;The HTML &lt;label&gt; element represents a caption for an item in a user interface.&quot;) element tied to the input. See [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders &quot;The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.&quot;) in [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input &quot;The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.&quot;) for a full explanation.</value>
+  </data>
+  <data name="HtmlAttribute_readonly" xml:space="preserve">
+    <value>This Boolean attribute indicates that the user cannot modify the value of the control. Unlike the `disabled` attribute, the `readonly` attribute does not prevent the user from clicking or selecting in the control. The value of a read-only control is still submitted with the form.</value>
+  </data>
+  <data name="HtmlAttribute_rows" xml:space="preserve">
+    <value>The number of visible text lines for the control.</value>
+  </data>
+  <data name="HtmlAttribute_cols" xml:space="preserve">
+    <value>The visible width of the text control, in average character widths. If it is specified, it must be a positive integer. If it is not specified, the default value is `20`.</value>
+  </data>
+  <data name="HtmlAttribute_wrap" xml:space="preserve">
+    <value>Indicates how the control wraps text. Possible values are:
+
+* `hard`: The browser automatically inserts line breaks (CR+LF) so that each line has no more than the width of the control; the `cols` attribute must also be specified for this to take effect.
+* `soft`: The browser ensures that all line breaks in the value consist of a CR+LF pair, but does not insert any additional line breaks.
+* `off` : Like `soft` but changes appearance to `white-space: pre` so line segments exceeding `cols` are not wrapped and the `&lt;textarea&gt;` becomes horizontally scrollable.
+
+If this attribute is not specified, `soft` is its default value.</value>
+  </data>
+  <data name="HtmlAttribute_minlength" xml:space="preserve">
+    <value>The minimum number of characters (unicode code points) required that the user should enter.</value>
+  </data>
+  <data name="HtmlAttribute_align" xml:space="preserve">
+    <value>This enumerated attribute indicates how the table must be aligned inside the containing document. It may have the following values:
+
+* left: the table is displayed on the left side of the document;
+* center: the table is displayed in the center of the document;
+* right: the table is displayed on the right side of the document.
+
+**Usage Note**
+
+* **Do not use this attribute**, as it has been deprecated. The [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table &quot;The HTML &lt;table&gt; element represents tabular data — that is, information presented in a two-dimensional table comprised of rows and columns of cells containing data.&quot;) element should be styled using [CSS](https://developer.mozilla.org/en-US/docs/CSS). Set [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left &quot;The margin-left CSS property sets the margin area on the left side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.&quot;) and [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right &quot;The margin-right CSS property sets the margin area on the right side of an element. A positive value places it farther from its neighbors, while a negative value places it closer.&quot;) to `auto` or [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin &quot;The margin CSS property sets the margin area on all four sides of an element. It is a shorthand for margin-top, margin-right, margin-bottom, and margin-left.&quot;) to `0 auto` to achieve an effect that is similar to the align attribute.
+* Prior to Firefox 4, Firefox also supported the `middle`, `absmiddle`, and `abscenter` values as synonyms of `center`, in quirks mode only.</value>
+  </data>
+  <data name="HtmlAttribute_abbr" xml:space="preserve">
+    <value>This attribute contains a short abbreviated description of the cell&apos;s content. Some user-agents, such as speech readers, may present this description before the content itself.</value>
+  </data>
+  <data name="HtmlAttribute_axis" xml:space="preserve">
+    <value>This attribute contains a list of space-separated strings. Each string is the `id` of a group of cells that this header applies to.
+
+**Note:** Do not use this attribute as it is obsolete in the latest standard: use the [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) attribute instead.</value>
+  </data>
+  <data name="HtmlAttribute_onabort" xml:space="preserve">
+    <value>The loading of a resource has been aborted.</value>
+  </data>
+  <data name="HtmlAttribute_onblur" xml:space="preserve">
+    <value>An element has lost focus (does not bubble).</value>
+  </data>
+  <data name="HtmlAttribute_oncanplay" xml:space="preserve">
+    <value>The user agent can play the media, but estimates that not enough data has been loaded to play the media up to its end without having to stop for further buffering of content.</value>
+  </data>
+  <data name="HtmlAttribute_oncanplaythrough" xml:space="preserve">
+    <value>The user agent can play the media up to its end without having to stop for further buffering of content.</value>
+  </data>
+  <data name="HtmlAttribute_onchange" xml:space="preserve">
+    <value>The change event is fired for &lt;input&gt;, &lt;select&gt;, and &lt;textarea&gt; elements when a change to the element&apos;s value is committed by the user.</value>
+  </data>
+  <data name="HtmlAttribute_onclick" xml:space="preserve">
+    <value>A pointing device button has been pressed and released on an element.</value>
+  </data>
+  <data name="HtmlAttribute_oncontextmenu" xml:space="preserve">
+    <value>The right button of the mouse is clicked (before the context menu is displayed).</value>
+  </data>
+  <data name="HtmlAttribute_ondblclick" xml:space="preserve">
+    <value>A pointing device button is clicked twice on an element.</value>
+  </data>
+  <data name="HtmlAttribute_ondrag" xml:space="preserve">
+    <value>An element or text selection is being dragged (every 350ms).</value>
+  </data>
+  <data name="HtmlAttribute_ondragend" xml:space="preserve">
+    <value>A drag operation is being ended (by releasing a mouse button or hitting the escape key).</value>
+  </data>
+  <data name="HtmlAttribute_ondragenter" xml:space="preserve">
+    <value>A dragged element or text selection enters a valid drop target.</value>
+  </data>
+  <data name="HtmlAttribute_ondragleave" xml:space="preserve">
+    <value>A dragged element or text selection leaves a valid drop target.</value>
+  </data>
+  <data name="HtmlAttribute_ondragover" xml:space="preserve">
+    <value>An element or text selection is being dragged over a valid drop target (every 350ms).</value>
+  </data>
+  <data name="HtmlAttribute_ondragstart" xml:space="preserve">
+    <value>The user starts dragging an element or text selection.</value>
+  </data>
+  <data name="HtmlAttribute_ondrop" xml:space="preserve">
+    <value>An element is dropped on a valid drop target.</value>
+  </data>
+  <data name="HtmlAttribute_ondurationchange" xml:space="preserve">
+    <value>The duration attribute has been updated.</value>
+  </data>
+  <data name="HtmlAttribute_onemptied" xml:space="preserve">
+    <value>The media has become empty; for example, this event is sent if the media has already been loaded (or partially loaded), and the load() method is called to reload it.</value>
+  </data>
+  <data name="HtmlAttribute_onended" xml:space="preserve">
+    <value>Playback has stopped because the end of the media was reached.</value>
+  </data>
+  <data name="HtmlAttribute_onerror" xml:space="preserve">
+    <value>A resource failed to load.</value>
+  </data>
+  <data name="HtmlAttribute_onfocus" xml:space="preserve">
+    <value>An element has received focus (does not bubble).</value>
+  </data>
+  <data name="HtmlAttribute_oninput" xml:space="preserve">
+    <value>The value of an element changes or the content of an element with the attribute contenteditable is modified.</value>
+  </data>
+  <data name="HtmlAttribute_oninvalid" xml:space="preserve">
+    <value>A submittable element has been checked and doesn&apos;t satisfy its constraints.</value>
+  </data>
+  <data name="HtmlAttribute_onkeydown" xml:space="preserve">
+    <value>A key is pressed down.</value>
+  </data>
+  <data name="HtmlAttribute_onkeypress" xml:space="preserve">
+    <value>A key is pressed down and that key normally produces a character value (use input instead).</value>
+  </data>
+  <data name="HtmlAttribute_onkeyup" xml:space="preserve">
+    <value>A key is released.</value>
+  </data>
+  <data name="HtmlAttribute_onload" xml:space="preserve">
+    <value>A resource and its dependent resources have finished loading.</value>
+  </data>
+  <data name="HtmlAttribute_onloadeddata" xml:space="preserve">
+    <value>The first frame of the media has finished loading.</value>
+  </data>
+  <data name="HtmlAttribute_onloadedmetadata" xml:space="preserve">
+    <value>The metadata has been loaded.</value>
+  </data>
+  <data name="HtmlAttribute_onloadstart" xml:space="preserve">
+    <value>Progress has begun.</value>
+  </data>
+  <data name="HtmlAttribute_onmousedown" xml:space="preserve">
+    <value>A pointing device button (usually a mouse) is pressed on an element.</value>
+  </data>
+  <data name="HtmlAttribute_onmousemove" xml:space="preserve">
+    <value>A pointing device is moved over an element.</value>
+  </data>
+  <data name="HtmlAttribute_onmouseout" xml:space="preserve">
+    <value>A pointing device is moved off the element that has the listener attached or off one of its children.</value>
+  </data>
+  <data name="HtmlAttribute_onmouseover" xml:space="preserve">
+    <value>A pointing device is moved onto the element that has the listener attached or onto one of its children.</value>
+  </data>
+  <data name="HtmlAttribute_onmouseup" xml:space="preserve">
+    <value>A pointing device button is released over an element.</value>
+  </data>
+  <data name="HtmlAttribute_onpause" xml:space="preserve">
+    <value>Playback has been paused.</value>
+  </data>
+  <data name="HtmlAttribute_onplay" xml:space="preserve">
+    <value>Playback has begun.</value>
+  </data>
+  <data name="HtmlAttribute_onplaying" xml:space="preserve">
+    <value>Playback is ready to start after having been paused or delayed due to lack of data.</value>
+  </data>
+  <data name="HtmlAttribute_onprogress" xml:space="preserve">
+    <value>In progress.</value>
+  </data>
+  <data name="HtmlAttribute_onratechange" xml:space="preserve">
+    <value>The playback rate has changed.</value>
+  </data>
+  <data name="HtmlAttribute_onreadystatechange" xml:space="preserve">
+    <value>The readyState attribute of a document has changed.</value>
+  </data>
+  <data name="HtmlAttribute_onreset" xml:space="preserve">
+    <value>A form is reset.</value>
+  </data>
+  <data name="HtmlAttribute_onscroll" xml:space="preserve">
+    <value>The document view or an element has been scrolled.</value>
+  </data>
+  <data name="HtmlAttribute_onseeked" xml:space="preserve">
+    <value>A seek operation completed.</value>
+  </data>
+  <data name="HtmlAttribute_onseeking" xml:space="preserve">
+    <value>A seek operation began.</value>
+  </data>
+  <data name="HtmlAttribute_onselect" xml:space="preserve">
+    <value>Some text is being selected.</value>
+  </data>
+  <data name="HtmlAttribute_onshow" xml:space="preserve">
+    <value>A contextmenu event was fired on/bubbled to an element that has a contextmenu attribute</value>
+  </data>
+  <data name="HtmlAttribute_onstalled" xml:space="preserve">
+    <value>The user agent is trying to fetch media data, but data is unexpectedly not forthcoming.</value>
+  </data>
+  <data name="HtmlAttribute_onsubmit" xml:space="preserve">
+    <value>A form is submitted.</value>
+  </data>
+  <data name="HtmlAttribute_onsuspend" xml:space="preserve">
+    <value>Media data loading has been suspended.</value>
+  </data>
+  <data name="HtmlAttribute_ontimeupdate" xml:space="preserve">
+    <value>The time indicated by the currentTime attribute has been updated.</value>
+  </data>
+  <data name="HtmlAttribute_onvolumechange" xml:space="preserve">
+    <value>The volume has changed.</value>
+  </data>
+  <data name="HtmlAttribute_onwaiting" xml:space="preserve">
+    <value>Playback has stopped because of a temporary lack of data.</value>
   </data>
 </root>

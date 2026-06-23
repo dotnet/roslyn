@@ -66,39 +66,47 @@ namespace Microsoft.CodeAnalysis
             var totalEntryItemCount = sourceTable.GetTotalEntryItemCount();
             var tableBuilder = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
-            foreach (var entry in sourceTable)
+            try
             {
-                var inputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
-                if (entry.State == EntryState.Removed)
+                foreach (var entry in sourceTable)
                 {
-                    tableBuilder.TryRemoveEntries(TimeSpan.Zero, inputs);
-                }
-                else if (entry.State != EntryState.Cached || !tableBuilder.TryUseCachedEntries(TimeSpan.Zero, inputs))
-                {
-                    var stopwatch = SharedStopwatch.StartNew();
-                    // generate the new entries
-                    ImmutableArray<TOutput> newOutputs;
-                    try
+                    var inputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+                    if (entry.State == EntryState.Removed)
                     {
-                        newOutputs = _func(entry.Item, cancellationToken);
+                        tableBuilder.TryRemoveEntries(TimeSpan.Zero, inputs);
                     }
-                    catch (Exception e) when (_wrapUserFunc && !ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
+                    else if (entry.State != EntryState.Cached || !tableBuilder.TryUseCachedEntries(TimeSpan.Zero, inputs))
                     {
-                        throw new UserFunctionException(e);
-                    }
+                        var stopwatch = SharedStopwatch.StartNew();
+                        // generate the new entries
+                        ImmutableArray<TOutput> newOutputs;
+                        try
+                        {
+                            newOutputs = _func(entry.Item, cancellationToken);
+                        }
+                        catch (Exception e) when (_wrapUserFunc && !ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
+                        {
+                            throw new UserFunctionException(e);
+                        }
 
-                    if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, stopwatch.Elapsed, inputs, entry.State))
-                    {
-                        tableBuilder.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
+                        if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, stopwatch.Elapsed, inputs, entry.State))
+                        {
+                            tableBuilder.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
+                        }
                     }
                 }
+
+                // Can't assert anything about the count of items.  _func may have produced a different amount of items if
+                // it's not a 1:1 function.
+                var newTable = tableBuilder.ToImmutableAndFree();
+                tableBuilder = null;
+                this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
+                return newTable;
             }
-
-            // Can't assert anything about the count of items.  _func may have produced a different amount of items if
-            // it's not a 1:1 function.
-            var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
-            return newTable;
+            finally
+            {
+                tableBuilder?.Free();
+            }
         }
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(output);

@@ -3021,6 +3021,7 @@ class Program
                     case ErrorCode.ERR_EncNoPIAReference:
                     case ErrorCode.ERR_EncReferenceToAddedMember:
                     case ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime:
+                    case ErrorCode.ERR_AbstractBaseRecordImplementation:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 
