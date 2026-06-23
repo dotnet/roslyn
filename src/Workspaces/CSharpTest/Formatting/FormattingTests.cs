@@ -299,6 +299,36 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact]
+    public Task ObjectInitializer_CompoundAssignments()
+        => AssertFormatAsync("""
+            public class C
+            {
+                public int A;
+                public int B;
+                public string C;
+                public C M() => new C
+                {
+                    A += 1,
+                    B -= 2,
+                    C ??= "x"
+                };
+            }
+            """, """
+            public class C
+            {
+                public int A;
+                public int B;
+                public string C;
+                public C M() => new C
+                                    {
+                                A += 1,
+                            B -= 2,
+                                    C ??= "x"
+                                            };
+            }
+            """);
+
+    [Fact]
     public Task AnonymousType()
         => AssertFormatAsync("""
             class C

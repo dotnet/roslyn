@@ -11622,7 +11622,7 @@ done:
                 // precedence level.  Examples include binary operator, assignment operators, range operators `..`, as
                 // well as `switch` and `with` clauses.
 
-                var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
+                var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 0);
 
                 if (operatorTokenKind == SyntaxKind.None)
                     return null;
@@ -11792,13 +11792,13 @@ done:
             }
         }
 
-        private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind()
+        private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind(int peekIndex)
         {
             // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
             // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
             // an attribute.
 
-            var token1 = this.CurrentToken;
+            var token1 = this.PeekToken(peekIndex);
             var token1Kind = token1.ContextualKind;
 
             // Merge two consecutive dots into a DotDotToken
@@ -11809,12 +11809,12 @@ done:
             //
             // In all those cases, update token1Kind to be the merged token kind.  It will then be handled by the code below.
             if (token1Kind == SyntaxKind.GreaterThanToken
-                && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
+                && this.PeekToken(peekIndex + 1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
                 && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
             {
                 if (token2.Kind == SyntaxKind.GreaterThanToken)
                 {
-                    if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token3
+                    if (this.PeekToken(peekIndex + 2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token3
                         && NoTriviaBetween(token2, token3)) // check to see if they really are adjacent
                     {
                         // >>>  or  >>>=
@@ -11841,10 +11841,10 @@ done:
             if (IsExpectedAssignmentOperator(token1Kind))
                 return (token1Kind, SyntaxFacts.GetAssignmentExpression(token1Kind));
 
-            if (token1Kind == SyntaxKind.SwitchKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+            if (token1Kind == SyntaxKind.SwitchKeyword && this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenBraceToken)
                 return (token1Kind, SyntaxKind.SwitchExpression);
 
-            if (token1Kind == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+            if (token1Kind == SyntaxKind.WithKeyword && this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenBraceToken)
                 return (token1Kind, SyntaxKind.WithExpression);
 
             // Something that doesn't expand the current expression we're looking at.  Bail out and see if we
@@ -12474,7 +12474,7 @@ done:
 
                     // a?.b = c
                     // a?.b! = c
-                    var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
+                    var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 0);
                     if (IsExpectedAssignmentOperator(operatorTokenKind))
                     {
                         return ParseAssignmentExpression(operatorExpressionKind, expr, EatExpressionOperatorToken(operatorTokenKind));
@@ -13431,7 +13431,20 @@ done:
 
         private bool IsNamedMemberInitializer()
         {
-            return IsTrueIdentifier() && this.PeekToken(1).Kind is SyntaxKind.EqualsToken or SyntaxKind.ColonToken;
+            // Accept `Identifier =`, `Identifier :` (recovered to `=`), or `Identifier op=` for any compound
+            // assignment operator (including `??=`, `>>=`, `>>>=`). Compound operators on member initializers
+            // are legal under the compound-assignment-in-initializer feature; binder checks language version
+            // and target legality. Detection of split `>>=` / `>>>=` (lexed as multiple tokens to keep nested
+            // generic argument lists parseable) rides on `GetExpressionOperatorTokenKindAndExpressionKind`'s
+            // existing merge logic.
+            if (!IsTrueIdentifier())
+                return false;
+
+            if (this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+                return true;
+
+            var (operatorTokenKind, _) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 1);
+            return SyntaxFacts.IsAssignmentExpressionOperatorToken(operatorTokenKind);
         }
 
         private bool IsDictionaryInitializer()
@@ -13568,12 +13581,12 @@ done:
                     return true;
 
                 // We have at least one initializer expression. If at least one initializer expression is a named
-                // assignment, this is an object initializer. Otherwise, this is a collection initializer.
+                // assignment (simple or compound) targeting an identifier or implicit element access, this is an
+                // object initializer. Otherwise, this is a collection initializer.
                 for (int i = 0, n = initializers.Count; i < n; i++)
                 {
                     if (initializers[i] is AssignmentExpressionSyntax
                         {
-                            Kind: SyntaxKind.SimpleAssignmentExpression,
                             Left.Kind: SyntaxKind.IdentifierName or SyntaxKind.ImplicitElementAccess,
                         })
                     {
@@ -13626,12 +13639,15 @@ done:
 
         private AssignmentExpressionSyntax ParseObjectInitializerNamedAssignment()
         {
+            var name = this.ParseIdentifierName();
+            var (operatorToken, expressionKind) = this.EatMemberInitializerOperatorToken();
+
+            // Nested `{ ... }` initializer shape is only legal on the `=` branch, but we accept it for any operator
+            // during parsing so the tree is well-formed for resilience. Binder rejects the non-`=` nested form.
             return _syntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                this.ParseIdentifierName(),
-                this.CurrentToken.Kind == SyntaxKind.ColonToken
-                    ? this.EatTokenAsKind(SyntaxKind.EqualsToken)
-                    : this.EatToken(SyntaxKind.EqualsToken),
+                expressionKind,
+                name,
+                operatorToken,
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()
                     : this.ParsePossibleRefExpression());
@@ -13639,13 +13655,39 @@ done:
 
         private AssignmentExpressionSyntax ParseDictionaryInitializer()
         {
+            var elementAccess = _syntaxFactory.ImplicitElementAccess(this.ParseBracketedArgumentList());
+            var (operatorToken, expressionKind) = this.EatMemberInitializerOperatorToken();
+
             return _syntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                _syntaxFactory.ImplicitElementAccess(this.ParseBracketedArgumentList()),
-                this.EatToken(SyntaxKind.EqualsToken),
+                expressionKind,
+                elementAccess,
+                operatorToken,
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()
                     : this.ParsePossibleRefExpression());
+        }
+
+        /// <summary>
+        /// Consume the operator token that separates the target and value of a member initializer.
+        /// Accepts `=`, `:` (recovered to `=`), and any compound assignment operator (including `??=`,
+        /// `>>=`, and `>>>=` which the lexer splits into multiple tokens). Returns the consumed token
+        /// alongside the matching <see cref="AssignmentExpressionSyntax"/> kind.
+        /// </summary>
+        private (SyntaxToken operatorToken, SyntaxKind expressionKind) EatMemberInitializerOperatorToken()
+        {
+            // Defer to the expression parser's operator detection + merger. This handles any compound
+            // assignment operator, including the split `>>=` / `>>>=` forms that the lexer produces as
+            // multiple tokens.
+            var (operatorTokenKind, expressionKind) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 0);
+            if (SyntaxFacts.IsAssignmentExpressionOperatorToken(operatorTokenKind))
+                return (EatExpressionOperatorToken(operatorTokenKind), expressionKind);
+
+            // Recover to a simple `=`: a literal `:` is recovered as `=`; anything else is eaten as a
+            // missing `=`.
+            var operatorToken = this.CurrentToken.Kind == SyntaxKind.ColonToken
+                ? this.EatTokenAsKind(SyntaxKind.EqualsToken)
+                : this.EatToken(SyntaxKind.EqualsToken);
+            return (operatorToken, SyntaxKind.SimpleAssignmentExpression);
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()
