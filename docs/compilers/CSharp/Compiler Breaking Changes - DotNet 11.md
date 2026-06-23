@@ -214,7 +214,7 @@ object with(object a, object b) { ... }
 
 ***Introduced in Visual Studio 2026 version 18.7***
 
-In a future C# version (currently in `langversion:preview`), pointer types (e.g., `int*`, `delegate*<void>`) no longer require an unsafe context.
+In C# 16, pointer types (e.g., `int*`, `delegate*<void>`) no longer require an unsafe context.
 Only pointer indirection operations (dereference, member access via `->`, element access, etc.) require unsafe.
 This is part of the [unsafe evolution](https://github.com/dotnet/csharplang/issues/9704) feature.
 
@@ -227,7 +227,7 @@ class Program
 {
     static void Main()
     {
-        M(x => { }); // C# 14: prints "2"; C# preview: error CS0121 (ambiguous)
+        M(x => { }); // C# 15: prints "2"; C# 16: error CS0121 (ambiguous)
     }
 
     static void M(F1 f) { Console.WriteLine(1); }
@@ -251,7 +251,7 @@ M((int x) => { }); // Resolves to M(F2)
 
 ***Introduced in Visual Studio 2026 version 18.9***
 
-In a future C# version (currently in `langversion:preview`), `safe` is a keyword when placed as a modifier on member declarations.
+In C# 16, `safe` is a keyword when placed as a modifier on member declarations.
 That can break cases where it was previously referring to a type.
 To mitigate the break, it is possible to use `@`.
 
@@ -270,13 +270,13 @@ class C
 ***Introduced in Visual Studio 2026 version 18.9***
 
 Previously, C# compiler did not report errors for calling some members with pointers even outside the `unsafe` context.
-This has been fixed under `langversion:preview`.
+This has been fixed under `langversion:16`.
 For example:
 
 ```cs
 var c = new C();
 int a = c.M(null); // error always
-int b = c[null]; // no error in C# 14, reports CS9363 in C# Preview
+int b = c[null]; // no error in C# 15, reports CS9363 in C# 16
 
 class C
 {
