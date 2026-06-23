@@ -66,7 +66,6 @@ public class MyTests
 
 ### Test Conventions
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) for test source code
-- Add `[WorkItem("https://github.com/dotnet/roslyn/issues/NNN")]` for tests fixing specific issues
 - Keep tests focused — avoid unnecessary intermediary assertions
 - Use `[UseExportProvider]` for any test that depends on MEF services
 

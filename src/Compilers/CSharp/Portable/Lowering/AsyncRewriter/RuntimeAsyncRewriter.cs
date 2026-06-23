@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
@@ -17,6 +18,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         BoundStatement node,
         MethodSymbol method,
         TypeCompilationState compilationState,
+        int methodOrdinal,
         BindingDiagnosticBag diagnostics)
     {
         if (!method.IsAsync)
@@ -27,9 +29,21 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(compilationState.Compilation, method, node, isRuntimeAsync: true, diagnostics.DiagnosticBag);
         var hoistedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
         var factory = new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics);
-        var rewriter = new RuntimeAsyncRewriter(factory, variablesToHoist, hoistedLocals);
+        var rewriter = new RuntimeAsyncRewriter(factory, methodOrdinal, variablesToHoist, hoistedLocals);
         var thisStore = hoistThisIfNeeded(rewriter);
-        var result = (BoundStatement)rewriter.Visit(node);
+        BoundStatement result;
+        try
+        {
+            result = (BoundStatement)rewriter.Visit(node);
+        }
+        catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+        {
+            // Dynamic await lowering can introduce helper member references after binding has completed. Report missing
+            // predefined members here, matching other lowering passes that synthesize required member calls.
+            diagnostics.Add(ex.Diagnostic);
+            hoistedLocals.Free();
+            return new BoundBadStatement(node.Syntax, ImmutableArray.Create<BoundNode>(node), hasErrors: true);
+        }
 
         if (thisStore is not null)
         {
@@ -71,16 +85,25 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
     }
 
     private readonly SyntheticBoundNodeFactory _factory;
+    private readonly LoweredDynamicOperationFactory _dynamicFactory;
     private readonly Dictionary<BoundAwaitableValuePlaceholder, BoundExpression> _placeholderMap;
     private readonly IReadOnlySet<Symbol> _variablesToHoist;
     private readonly RefInitializationHoister<LocalSymbol, BoundLocal> _refInitializationHoister;
     private readonly ArrayBuilder<LocalSymbol> _hoistedLocals;
     private readonly Dictionary<Symbol, CapturedSymbolReplacement> _proxies = [];
 
-    private RuntimeAsyncRewriter(SyntheticBoundNodeFactory factory, IReadOnlySet<Symbol> variablesToHoist, ArrayBuilder<LocalSymbol> hoistedLocals)
+    private RuntimeAsyncRewriter(SyntheticBoundNodeFactory factory, int methodOrdinal, IReadOnlySet<Symbol> variablesToHoist, ArrayBuilder<LocalSymbol> hoistedLocals)
     {
         Debug.Assert(factory.CurrentFunction != null);
         _factory = factory;
+        // Use the current function's name as the dynamic call site container suffix so that the runtime async container
+        // is distinct from any container created by LocalRewriter for the same method (which uses null/local function
+        // ordinal as the suffix), and so that distinct local functions lowered with methodOrdinal -1 get distinct
+        // containers (avoiding nested type name collisions in the enclosing type). The name may contain '.' (for
+        // example, explicit interface implementations have metadata names like "IFoo.M"), so sanitize it the same way
+        // MakeMethodScopedSynthesizedName sanitizes type names — dots would otherwise break metadata APIs that combine
+        // type names with namespaces.
+        _dynamicFactory = new LoweredDynamicOperationFactory(factory, methodOrdinal, factory.CurrentFunction.Name.Replace('.', GeneratedNameConstants.DotReplacementInTypeNames));
         _placeholderMap = [];
         _variablesToHoist = variablesToHoist;
         _refInitializationHoister = new RefInitializationHoister<LocalSymbol, BoundLocal>(_factory, _factory.CurrentFunction, TypeMap.Empty);
@@ -114,13 +137,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
         if (awaitableInfo.IsDynamic)
         {
-            // https://github.com/dotnet/roslyn/issues/79762: await dynamic will need runtime checks, see AsyncMethodToStateMachine.GenerateAwaitOnCompletedDynamic
-            Debug.Assert(_factory.CurrentFunction is not null);
-            // Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-            _factory.Diagnostics.Add(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync,
-                node.Syntax.Location,
-                _factory.CurrentFunction);
-            return node.WithHasErrors();
+            return RewriteDynamicAwaiterAwait(node, resultDiscarded: false);
         }
 
         var runtimeAsyncAwaitCall = awaitableInfo.RuntimeAsyncAwaitCall;
@@ -206,6 +223,91 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             locals: [tmp.LocalSymbol],
             sideEffects: [_factory.ExpressionStatement(store), ifNotCompleted],
             result: getResultCall);
+    }
+
+    private BoundExpression RewriteDynamicAwaiterAwait(BoundAwaitExpression node, bool resultDiscarded)
+    {
+        // await expr
+        // becomes
+        // dynamic _tmp = expr.GetAwaiter();
+        // if (!_tmp.IsCompleted)
+        // {
+        //     ICriticalNotifyCompletion critTemp = _tmp as ICriticalNotifyCompletion;
+        //     if (critTemp != null)
+        //         UnsafeAwaitAwaiter<ICriticalNotifyCompletion>(critTemp);
+        //     else
+        //         AwaitAwaiter<INotifyCompletion>((INotifyCompletion)_tmp);
+        // }
+        // _tmp.GetResult()
+
+        var expr = VisitExpression(node.Expression);
+        Debug.Assert(expr is not null);
+
+        var getAwaiter = MakeDynamicMemberInvocation(expr, WellKnownMemberNames.GetAwaiter);
+
+        var tmp = _factory.StoreToTemp(getAwaiter, out BoundAssignmentOperator store, kind: SynthesizedLocalKind.Awaiter);
+
+        var isCompletedCall = _dynamicFactory.MakeDynamicConversion(
+            _dynamicFactory.MakeDynamicGetMember(
+                tmp,
+                WellKnownMemberNames.IsCompleted,
+                resultIndexed: false).ToExpression(),
+            isExplicit: true,
+            isArrayIndex: false,
+            isChecked: false,
+            resultType: _factory.SpecialType(SpecialType.System_Boolean)).ToExpression();
+
+        // ICriticalNotifyCompletion path (preferred)
+        var criticalNotifyCompletionType = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion);
+        var critTemp = _factory.SynthesizedLocal(criticalNotifyCompletionType);
+        var critTempAssignment = _factory.AssignmentExpression(_factory.Local(critTemp), _factory.As(tmp, criticalNotifyCompletionType));
+
+        var unsafeAwaitAwaiterDefinition = (MethodSymbol)_factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter);
+        var unsafeAwaitMethod = unsafeAwaitAwaiterDefinition.Construct(criticalNotifyCompletionType);
+        var unsafeAwaitCall = _factory.Call(
+            receiver: null,
+            unsafeAwaitMethod,
+            _factory.Local(critTemp));
+
+        // INotifyCompletion path (fallback)
+        var notifyCompletionType = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion);
+        var awaitAwaiterDefinition = (MethodSymbol)_factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter);
+        var awaitMethod = awaitAwaiterDefinition.Construct(notifyCompletionType);
+        var safeAwaitCall = _factory.Call(
+            receiver: null,
+            awaitMethod,
+            _factory.Convert(notifyCompletionType, tmp, Conversion.ExplicitReference));
+
+        var awaitBranch = _factory.Block(
+            [critTemp],
+            _factory.ExpressionStatement(critTempAssignment),
+            _factory.If(
+                condition: _factory.ObjectNotEqual(_factory.Local(critTemp), _factory.Null(criticalNotifyCompletionType)),
+                thenClause: _factory.ExpressionStatement(unsafeAwaitCall),
+                elseClauseOpt: _factory.ExpressionStatement(safeAwaitCall)));
+
+        var ifNotCompleted = _factory.HiddenSequencePoint(
+            _factory.If(_factory.Not(isCompletedCall), awaitBranch));
+
+        var getResultCall = MakeDynamicMemberInvocation(tmp, WellKnownMemberNames.GetResult, resultDiscarded);
+
+        return _factory.SpillSequence(
+            locals: [tmp.LocalSymbol],
+            sideEffects: [_factory.ExpressionStatement(store), ifNotCompleted],
+            result: getResultCall);
+    }
+
+    private BoundExpression MakeDynamicMemberInvocation(BoundExpression receiver, string methodName, bool resultDiscarded = false)
+    {
+        return _dynamicFactory.MakeDynamicMemberInvocation(
+            methodName,
+            receiver,
+            typeArgumentsWithAnnotations: ImmutableArray<TypeWithAnnotations>.Empty,
+            loweredArguments: ImmutableArray<BoundExpression>.Empty,
+            argumentNames: ImmutableArray<string?>.Empty,
+            refKinds: ImmutableArray<RefKind>.Empty,
+            hasImplicitReceiver: false,
+            resultDiscarded).ToExpression();
     }
 
     public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
@@ -316,6 +418,11 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
     public override BoundNode? VisitExpressionStatement(BoundExpressionStatement node)
     {
+        if (node.Expression is BoundAwaitExpression { AwaitableInfo.IsDynamic: true } awaitExpression)
+        {
+            return node.Update(RewriteDynamicAwaiterAwait(awaitExpression, resultDiscarded: true));
+        }
+
         var expr = VisitExpression(node.Expression);
         if (expr is null)
         {
