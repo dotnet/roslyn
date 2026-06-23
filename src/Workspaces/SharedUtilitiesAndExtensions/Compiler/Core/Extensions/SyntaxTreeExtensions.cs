@@ -242,7 +242,7 @@ internal static partial class SyntaxTreeExtensions
 
         // Otherwise, fallback to generated code heuristic.
         return GeneratedCodeUtilities.IsGeneratedCode(
-            syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
+            syntaxTree, syntaxFacts.IsRegularComment, cancellationToken);
     }
 
     /// <summary>

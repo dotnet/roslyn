@@ -1,0 +1,29 @@
+﻿RazorDocument - [0..38)::38 - [@{LF    #pragma warning disable 123LF}]
+    MarkupBlock - [0..38)::38
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..38)::38
+            CSharpStatement - [0..38)::38
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [1..38)::37
+                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..37)::35
+                        CSharpStatementLiteral - [2..37)::35 - [LF    #pragma warning disable 123LF] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Hash;[#];
+                            Identifier;[pragma];
+                            Whitespace;[ ];
+                            Identifier;[warning];
+                            Whitespace;[ ];
+                            Identifier;[disable];
+                            Whitespace;[ ];
+                            IntegerLiteral;[123];
+                            NewLine;[LF];
+                    RazorMetaCode - [37..38)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupTextLiteral - [38..38)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+    EndOfFile;[];

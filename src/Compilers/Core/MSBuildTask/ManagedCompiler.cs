@@ -552,10 +552,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // Note: using ToolArguments here (the property) since
                 // commandLineCommands (the parameter) may have been mucked with
                 // (to support using the dotnet cli)
+                var buildRequestArguments = GenerateCommandLineArgsList(responseFileCommands);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, logger.Log);
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
-                    GenerateCommandLineArgsList(responseFileCommands),
+                    buildRequestArguments,
                     workingDirectory: CurrentDirectoryToUse(),
                     tempDirectory: tempDirectory,
                     keepAlive: null,
@@ -854,11 +856,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     throw new ArgumentException(e.Message, "Sources");
                 }
-                if (string.Compare(TargetType, "library", StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Equals(TargetType, "library", StringComparison.OrdinalIgnoreCase))
                 {
                     OutputAssembly.ItemSpec += ".dll";
                 }
-                else if (string.Compare(TargetType, "module", StringComparison.OrdinalIgnoreCase) == 0)
+                else if (string.Equals(TargetType, "module", StringComparison.OrdinalIgnoreCase))
                 {
                     OutputAssembly.ItemSpec += ".netmodule";
                 }
@@ -1055,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (_store[nameof(DebugType)] != null)
             {
                 // If debugtype is none then only show debug- else use the debug type and the debugsymbols as is.
-                if (string.Compare((string?)_store[nameof(DebugType)], "none", StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Equals((string?)_store[nameof(DebugType)], "none", StringComparison.OrdinalIgnoreCase))
                 {
                     _store[nameof(DebugType)] = null;
                     _store[nameof(EmitDebugInformation)] = false;

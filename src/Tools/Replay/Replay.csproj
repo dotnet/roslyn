@@ -5,6 +5,14 @@
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
     <SignAssembly>false</SignAssembly>
     <DefineConstants>$(DefineConstants);ROSLYN_NO_INDEXRANGE</DefineConstants>
+    <!-- This project is not a test project in context of how this repo views test projects.
+         Marking it as such will change TFMs, bring in additional targets, and generally fail to build.
+         However, it depends on utilities that should not be CG-checked during official builds.
+         So, when test projects are excluded, exclude this tool project.
+         See https://github.com/dotnet/arcade/blob/main/Documentation/UnifiedBuild/Unified-Build-Controls.md for information
+         on controls. -->
+    <ExcludeFromDotNetBuild Condition="'$(DotNetBuildTests)' != 'true'">true</ExcludeFromDotNetBuild>
+    <ExcludeFromBuild Condition="'$(DotNetBuildTests)' == 'false'">true</ExcludeFromBuild>
   </PropertyGroup>
 
   <ItemGroup>

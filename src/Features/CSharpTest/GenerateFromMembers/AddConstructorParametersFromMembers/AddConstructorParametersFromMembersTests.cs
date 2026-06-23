@@ -132,7 +132,8 @@ public sealed class AddConstructorParametersFromMembersTests
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58040")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/58040")]
     public Task TestProperlyWrapParameters2()
         => new VerifyCS.Test
         {
@@ -179,7 +180,8 @@ public sealed class AddConstructorParametersFromMembersTests
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i, string s)"), codeAction.Title)
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58040")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/58040")]
     public Task TestProperlyWrapParameters3()
         => new VerifyCS.Test
         {
@@ -224,7 +226,8 @@ public sealed class AddConstructorParametersFromMembersTests
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i, string s)"), codeAction.Title)
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58040")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/58040")]
     public Task TestProperlyWrapParameters4()
         => new VerifyCS.Test
         {
@@ -2434,7 +2437,8 @@ public sealed class AddConstructorParametersFromMembersTests
             CodeActionIndex = 1
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60816")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/60816")]
     public Task TestAddMultipleParametersWithWrapping()
         => new VerifyCS.Test
         {

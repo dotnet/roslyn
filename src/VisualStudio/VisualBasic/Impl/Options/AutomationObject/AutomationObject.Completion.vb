@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Providers
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
@@ -48,6 +49,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
             Set(value As Integer)
                 SetBooleanOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, value)
+            End Set
+        End Property
+
+        Public Property Option_ImportCompletionOption As Integer
+            Get
+                Return GetOption(CompletionOptionsStorage.ImportCompletionCommitBehavior)
+            End Get
+            Set(value As Integer)
+                SetOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, DirectCast(value, ImportCompletionCommitBehavior))
             End Set
         End Property
 

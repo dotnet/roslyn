@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -10,8 +10,6 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -38,7 +36,7 @@ namespace IdeBenchmarks.Lsp
         [Params("Automatic", "Balanced")]
         public string ExecutionPreference { get; set; } = "Automatic";
 
-        public LspSourceGeneratorBenchmarks() : base(null)
+        public LspSourceGeneratorBenchmarks() : base(NoOpTestOutputHelper.Instance)
         {
         }
 
@@ -127,13 +125,13 @@ namespace IdeBenchmarks.Lsp
 
             var sgIdentity = sourceGeneratedDocuments.Single().Identity;
             var sgUri = SourceGeneratedDocumentUri.Create(sgIdentity);
-            var sgText = await testServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(
-                SourceGeneratedDocumentGetTextHandler.MethodName,
-                new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { DocumentUri = sgUri }, ResultId: null),
+            var sgResult = await testServer.ExecuteRequestAsync<LSP.TextDocumentContentParams, LSP.TextDocumentContentResult>(
+                LSP.Methods.WorkspaceTextDocumentContentName,
+                new LSP.TextDocumentContentParams { Uri = sgUri },
                 CancellationToken.None);
 
-            AssertEx.NotNull(sgText);
-            Assert.Contains("public partial class C", sgText.Text);
+            Assert.NotNull(sgResult);
+            Assert.Contains("public partial class C", sgResult.Text);
         }
 
         [IterationCleanup]

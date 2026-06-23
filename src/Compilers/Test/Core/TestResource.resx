@@ -439,6 +439,7 @@ namespace My
             {
                 int* p = null;
             }
+            int @unsafe = unsafe(*(default(int*)));
             try
             {
                 throw null;
@@ -896,6 +897,10 @@ class CollectionExpressions
   static int[] X = [0];
   static int[] Y = [..X];
   static int[] X = [with()];
+}
+
+union U1(int, string)
+{
 }
 
 #line 6

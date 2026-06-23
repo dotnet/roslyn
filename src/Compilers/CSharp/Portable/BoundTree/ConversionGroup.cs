@@ -68,12 +68,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         TupleLiteralExplicitIdentity = 1 << 2,
         FunctionTypeDelegate = 1 << 3,
         FunctionTypeDelegateToTarget = 1 << 4,
+
         UserDefinedFromConversion = 1 << 5,
         UserDefinedFromConversionAdjustment = 1 << 6,
         UserDefinedOperator = 1 << 7,
         UserDefinedReturnTypeAdjustment = 1 << 8,
         UserDefinedFinal = 1 << 9,
         UserDefinedErroneous = 1 << 10,
+
+        UserDefinedAllFlags = UserDefinedOperator | UserDefinedFromConversion | UserDefinedFromConversionAdjustment | UserDefinedReturnTypeAdjustment | UserDefinedFinal | UserDefinedErroneous,
+
         TupleBinaryOperatorPendingLowering = 1 << 11,
+
+        UnionSourceConversion = 1 << 12,
+        UnionConstructor = 1 << 13,
+        UnionFinal = 1 << 14,
+        UnionErroneous = 1 << 15,
+
+        UnionAllFlags = UnionConstructor | UnionSourceConversion | UnionFinal | UnionErroneous,
     }
 }

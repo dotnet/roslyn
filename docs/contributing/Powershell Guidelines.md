@@ -104,8 +104,10 @@ The Roslyn infrastructure should use `powershell` for execution not `pwsh`. The 
 still uses `Powershell` and calls into our scripts. Moving to `pwsh` in our scripts creates errors
 in source and unified build. Until that moves to `pwsh` our scripts need to stay on `Powershell`.
 
-The exception is that our VS Code helper scripts should use `pwsh`. That is not a part of our 
-infrastructure and needs to run cross platform hence `pwsh` is appropriate.
+`pwsh` is permitted in cases which are not part of our infrastructure. i.e., scripts that are not under the `eng/` folder, and not expected to be run by the build process.
+This is necessary in scenarios where the script needs to run cross-platform, such as:
+- VS Code helper scripts
+- AI skills
 
 ### Supporting .cmd file
 

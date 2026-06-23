@@ -166,8 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var property = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
-                return (object)property.SetMethod == null;
+                return this.GetOwnOrInheritedSetMethod() is null;
             }
         }
 
@@ -178,8 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var property = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
-                return (object)property.GetMethod == null;
+                return this.GetOwnOrInheritedGetMethod() is null;
             }
         }
 
@@ -403,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Check return type, custom modifiers and parameters:
             if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
                 DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
-                DeriveUseSiteInfoFromParameters(ref result, this.Parameters))
+                DeriveUseSiteInfoFromParameters(ref result, this.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false)))
             {
                 return true;
             }

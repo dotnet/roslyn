@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -32,9 +31,4 @@ internal interface IVisualStudioDiagnosticAnalyzerService
     /// Otherwise, analyzers are run on the current solution.
     /// </param>
     void RunAnalyzers(IVsHierarchy? hierarchy);
-
-    /// <summary>
-    /// Initializes the service.
-    /// </summary>
-    Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken);
 }

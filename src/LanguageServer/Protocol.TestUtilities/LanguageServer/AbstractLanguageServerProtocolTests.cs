@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -44,15 +43,19 @@ public abstract partial class AbstractLanguageServerProtocolTests
 {
     protected static readonly JsonSerializerOptions JsonSerializerOptions = RoslynLanguageServer.CreateJsonMessageFormatter().JsonSerializerOptions;
 
-    private protected readonly AbstractLspLogger TestOutputLspLogger;
-    protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)
+    private protected static DocumentUri CreateAbsoluteDocumentUri(string suffix)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.CreateAbsolutePath(suffix));
+
+    private protected readonly ITestOutputHelper TestOutputHelper;
+
+    protected AbstractLanguageServerProtocolTests(ITestOutputHelper testOutputHelper)
     {
-        TestOutputLspLogger = testOutputHelper != null ? new TestOutputLspLogger(testOutputHelper) : NoOpLspLogger.Instance;
+        TestOutputHelper = testOutputHelper;
     }
 
     protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
         .AddParts(typeof(TestDocumentTrackingService))
-        .AddParts(typeof(TestWorkspaceRegistrationService));
+        .AddParts(typeof(TestLspLoggerFactory));
 
     private sealed class TestSpanMapperProvider : IDocumentServiceProvider
     {
@@ -63,7 +66,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     internal sealed class TestSpanMapper : ISpanMappingService
     {
         private static readonly LinePositionSpan s_mappedLinePosition = new(new LinePosition(0, 0), new LinePosition(0, 5));
-        private static readonly string s_mappedFilePath = "c:\\MappedFile_\ue25b\ud86d\udeac.cs";
+        private static readonly string s_mappedFilePath = TestHelpers.GetRootedPath("MappedFile_\ue25b\ud86d\udeac.cs");
 
         internal static readonly string GeneratedFileName = "GeneratedFile_\ue25b\ud86d\udeac.cs";
 
@@ -252,7 +255,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
         string? filterText = null,
         long resultId = 0,
         bool vsResolveTextEditOnCommit = false,
-        LSP.CompletionItemLabelDetails? labelDetails = null)
+        LSP.CompletionItemLabelDetails? labelDetails = null,
+        int matchPriority = 0)
     {
         var position = await document.GetPositionFromLinePositionAsync(
             ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -271,7 +275,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
             Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
             Preselect = preselect,
             VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
-            LabelDetails = labelDetails
+            LabelDetails = labelDetails,
+            MatchPriority = matchPriority
         };
 
         if (tags != null)
@@ -340,7 +345,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         solution = solution.WithAnalyzerReferences([analyzerReferencesByLanguage]);
         await workspace.ChangeSolutionAsync(solution);
 
-        return await TestLspServer.CreateAsync(workspace, initializationOptions, TestOutputLspLogger);
+        return await TestLspServer.CreateAsync(workspace, initializationOptions, TestOutputHelper);
     }
 
     private protected async Task<TestLspServer> CreateXmlTestLspServerAsync(
@@ -361,7 +366,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReferences]));
 
-        return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
+        return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputHelper);
     }
 
     private void CheckForCompositionErrors(TestComposition composition)
@@ -382,7 +387,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             catch (CompositionFailedException ex)
             {
                 // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
-                this.TestOutputLspLogger.LogError($"Encountered errors in the MEF composition: {ex.Message}{Environment.NewLine}{ex.ErrorsAsString}");
+                Assert.Fail($"Encountered errors in the MEF composition: {ex.Message}{Environment.NewLine}{ex.ErrorsAsString}");
                 throw;
             }
         }
@@ -409,7 +414,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var listenerProvider = workspace.ExportProvider.GetExportedValues<MockWorkspaceEventListenerProvider>().SingleOrDefault();
         if (listenerProvider is not null)
         {
-            var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+            var lspWorkspaceRegistrationListener = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationEventListener>();
             listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
         }
 
@@ -447,7 +452,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             generatedDocumentId,
             TestSpanMapper.GeneratedFileName,
             loader: loader,
-            filePath: $"C:\\{TestSpanMapper.GeneratedFileName}",
+            filePath: TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName),
             isGenerated: true)
             .WithDocumentServiceProvider(new TestSpanMapperProvider());
 
@@ -576,15 +581,15 @@ public abstract partial class AbstractLanguageServerProtocolTests
     /// </summary>
     internal sealed class TestLspServer : AbstractTestLspServer<LspTestWorkspace, TestHostDocument, TestHostProject, TestHostSolution>
     {
-        public TestLspServer(LspTestWorkspace testWorkspace, Dictionary<string, IList<LSP.Location>> locations, InitializationOptions initializationOptions, AbstractLspLogger logger)
-            : base(testWorkspace, locations, initializationOptions, logger)
+        public TestLspServer(LspTestWorkspace testWorkspace, Dictionary<string, IList<LSP.Location>> locations, InitializationOptions initializationOptions, ITestOutputHelper testOutputHelper)
+            : base(testWorkspace, locations, initializationOptions, testOutputHelper)
         {
         }
 
-        public static async Task<TestLspServer> CreateAsync(LspTestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
+        public static async Task<TestLspServer> CreateAsync(LspTestWorkspace testWorkspace, InitializationOptions initializationOptions, ITestOutputHelper testOutputHelper)
         {
             var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
-            var server = new TestLspServer(testWorkspace, locations, initializationOptions, logger);
+            var server = new TestLspServer(testWorkspace, locations, initializationOptions, testOutputHelper);
             await server.InitializeAsync();
             return server;
         }
@@ -597,6 +602,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         where TWorkspace : TestWorkspace<TDocument, TProject, TSolution>
     {
         public readonly TWorkspace TestWorkspace;
+        private readonly ITestOutputHelper _testOutputHelper;
         private readonly JsonRpc _clientRpc;
         private readonly Dictionary<string, IList<LSP.Location>> _locations;
         private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
@@ -611,12 +617,13 @@ public abstract partial class AbstractLanguageServerProtocolTests
             TWorkspace testWorkspace,
             Dictionary<string, IList<LSP.Location>> locations,
             InitializationOptions initializationOptions,
-            AbstractLspLogger logger)
+            ITestOutputHelper testOutputHelper)
         {
             TestWorkspace = testWorkspace;
             _initializationOptions = initializationOptions;
             _locations = locations;
             _codeAnalysisService = testWorkspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
+            _testOutputHelper = testOutputHelper;
 
             ClientCapabilities = initializationOptions.ClientCapabilities;
 
@@ -631,7 +638,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
             _languageServer = new(() =>
             {
-                var server = CreateLanguageServer(serverStream, serverStream, _initializationOptions.ServerKind, logger);
+                var server = CreateLanguageServer(serverStream, serverStream, _initializationOptions.ServerKind);
 
                 InitializeClientRpc();
                 return server;
@@ -641,6 +648,9 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         private void InitializeClientRpc()
         {
+            _clientRpc.AddLocalRpcMethod(Methods.WindowLogMessageName,
+                (int type, string message) => _testOutputHelper.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}][{(MessageType)type}]{message}"));
+
             _clientRpc.StartListening();
 
             var workspaceWaiter = GetWorkspaceWaiter(TestWorkspace);
@@ -663,6 +673,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 {
                     Capabilities = _initializationOptions.ClientCapabilities,
                     Locale = _initializationOptions.Locale,
+                    WorkspaceFolders = _initializationOptions.WorkspaceFolders,
                 }, CancellationToken.None);
             }
 
@@ -672,9 +683,9 @@ public abstract partial class AbstractLanguageServerProtocolTests
             }
         }
 
-        protected virtual RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
+        protected virtual RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind)
         {
-            var factory = TestWorkspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
+            var factory = TestWorkspace.ExportProvider.GetExportedValue<CSharpVisualBasicLanguageServerFactory>();
 
             var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
@@ -682,7 +693,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
-            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, serverKind, logger, TestWorkspace.Services.HostServices);
+            var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, serverKind, TestWorkspace.Services.HostServices);
 
             jsonRpc.StartListening();
             return languageServer;
@@ -834,6 +845,14 @@ public abstract partial class AbstractLanguageServerProtocolTests
             await this.WaitForSourceGeneratorsAsync();
         }
 
+        public Task<TextDocumentContentResult?> GetSourceGeneratedDocumentTextAsync(DocumentUri documentUri)
+        {
+            return ExecuteRequestAsync<TextDocumentContentParams, TextDocumentContentResult>(
+                Methods.WorkspaceTextDocumentContentName,
+                new TextDocumentContentParams { Uri = documentUri },
+                CancellationToken.None);
+        }
+
         public async Task ShutdownTestServerAsync()
         {
             await _clientRpc.InvokeAsync(LSP.Methods.ShutdownName).ConfigureAwait(false);
@@ -858,6 +877,12 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             Contract.ThrowIfNull(_initializeResult, "Initialize has not been called");
             return _initializeResult.Capabilities;
+        }
+
+        public LSP.InitializeResult GetInitializeResult()
+        {
+            Contract.ThrowIfNull(_initializeResult, "Initialize has not been called");
+            return _initializeResult;
         }
 
         public async Task AssertServerShuttingDownAsync()
@@ -896,7 +921,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         internal AbstractLanguageServer<RequestContext>.TestAccessor GetServerAccessor() => _languageServer.Value.GetTestAccessor();
 
-        internal T GetRequiredLspService<T>() where T : class, ILspService => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
+        internal T GetRequiredLspService<T>() where T : class => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
 
         internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.SourceText)];
 

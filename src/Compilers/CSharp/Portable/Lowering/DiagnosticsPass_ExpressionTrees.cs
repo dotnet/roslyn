@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hasBaseReceiver = node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.BaseReference;
                 Binder.ReportDiagnosticsIfObsolete(_diagnostics, node.EventSymbol.AssociatedField, node.Syntax, hasBaseReceiver, _containingSymbol, _containingSymbol.ContainingType, BinderFlags.None);
+                Binder.AssertNotUnsafeMemberAccess(node.EventSymbol.AssociatedField);
             }
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitEventAccess(node);
@@ -290,6 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasBaseReceiver = node.ReceiverOpt != null && node.ReceiverOpt.Kind == BoundKind.BaseReference;
             Binder.ReportDiagnosticsIfObsolete(_diagnostics, node.Event, ((AssignmentExpressionSyntax)node.Syntax).Left, hasBaseReceiver, _containingSymbol, _containingSymbol.ContainingType, BinderFlags.None);
+            // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitEventAssignmentOperator(node);
         }
@@ -563,6 +565,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
             var indexer = node.Indexer;
+
+            if (_inExpressionLambda && indexer.IsExtensionBlockMember())
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, node);
+            }
+
             var method = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
             if ((object)method != null)
             {
@@ -890,6 +898,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_inExpressionLambda)
                     {
                         Error(ErrorCode.ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion, node);
+                    }
+                    break;
+
+                case ConversionKind.Union:
+                    if (_inExpressionLambda)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsUnionConversion, node);
                     }
                     break;
 

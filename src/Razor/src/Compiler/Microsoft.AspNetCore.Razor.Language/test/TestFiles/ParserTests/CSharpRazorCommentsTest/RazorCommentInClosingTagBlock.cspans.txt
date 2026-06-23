@@ -1,0 +1,8 @@
+﻿Markup span at (0:0,0 [6] ) - Parent: Tag block at (0:0,0 [6] )
+Markup span at (6:0,6 [7] ) - Parent: Tag block at (6:0,6 [7] )
+Transition span at (13:0,13 [1] ) - Parent: Comment block at (13:0,13 [19] )
+MetaCode span at (14:0,14 [1] ) - Parent: Comment block at (13:0,13 [19] )
+Comment span at (15:0,15 [15] ) - Parent: Comment block at (13:0,13 [19] )
+MetaCode span at (30:0,30 [1] ) - Parent: Comment block at (13:0,13 [19] )
+Transition span at (31:0,31 [1] ) - Parent: Comment block at (13:0,13 [19] )
+Markup span at (32:0,32 [1] ) - Parent: Markup block at (0:0,0 [33] )

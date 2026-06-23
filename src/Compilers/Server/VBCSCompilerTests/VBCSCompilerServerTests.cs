@@ -10,7 +10,6 @@ using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
@@ -56,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             private Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, CancellationToken cancellationToken = default(CancellationToken))
             {
-                var appSettings = new NameValueCollection();
-                return new BuildServerController(appSettings, Logger).RunShutdownAsync(pipeName, waitForProcess, Timeout.Infinite, cancellationToken);
+                return new BuildServerController(Logger).RunShutdownAsync(pipeName, waitForProcess, Timeout.Infinite, cancellationToken);
             }
 
             [Fact]
@@ -409,10 +407,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             private string _pipeName;
             private bool _shutdown;
+            private DateTimeOffset? _purgeCacheCutoff;
+            private DateTimeOffset? _cacheStatsSince;
+            private int _cacheStatsVerbosity;
+            private string _cachePath;
+            private TimeSpan? _timeout;
+            private string _logFilePath;
 
             private bool Parse(params string[] args)
             {
-                return BuildServerController.ParseCommandLine(args, out _pipeName, out _shutdown);
+                var result = BuildServerController.ParseCommandLine(args, out var options);
+                _pipeName = options.PipeName;
+                _shutdown = options.Shutdown;
+                _purgeCacheCutoff = options.PurgeCacheCutoff;
+                _cacheStatsSince = options.CacheStatsSince;
+                _cacheStatsVerbosity = options.CacheStatsVerbosity;
+                _cachePath = options.CachePath;
+                _timeout = options.KeepAlive;
+                _logFilePath = options.LogFilePath;
+                return result;
             }
 
             [Fact]
@@ -421,6 +434,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.True(Parse());
                 Assert.Null(_pipeName);
                 Assert.False(_shutdown);
+                Assert.Null(_purgeCacheCutoff);
+                Assert.Null(_timeout);
+                Assert.Null(_logFilePath);
             }
 
             [Fact]
@@ -448,10 +464,157 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             [Fact]
+            public void PurgeCache()
+            {
+                Assert.True(Parse("-purgecache"));
+                Assert.Null(_pipeName);
+                Assert.NotNull(_purgeCacheCutoff);
+                Assert.False(_shutdown);
+            }
+
+            [Fact]
+            public void PipeAndPurgeCache()
+            {
+                Assert.True(Parse("-pipename:test", "-purgecache"));
+                Assert.Equal("test", _pipeName);
+                Assert.NotNull(_purgeCacheCutoff);
+            }
+
+            [Fact]
+            public void PurgeCacheWithTimestamp()
+            {
+                Assert.True(Parse("-purgecache:2026-04-10T12:00:00Z"));
+                Assert.NotNull(_purgeCacheCutoff);
+                Assert.Equal(new DateTimeOffset(2026, 4, 10, 12, 0, 0, TimeSpan.Zero), _purgeCacheCutoff.Value);
+            }
+
+            [Fact]
+            public void PurgeCacheWithBadTimestamp()
+            {
+                Assert.False(Parse("-purgecache:notadate"));
+            }
+
+            [Fact]
+            public void CacheStats()
+            {
+                Assert.True(Parse("-cachestats"));
+                Assert.Equal(DateTimeOffset.MinValue, _cacheStatsSince);
+                Assert.Equal(0, _cacheStatsVerbosity);
+                Assert.False(_shutdown);
+                Assert.Null(_purgeCacheCutoff);
+            }
+
+            [Fact]
+            public void CacheStatsWithTimestamp()
+            {
+                Assert.True(Parse("-cachestats:2025-01-15T10:00:00Z"));
+                Assert.Equal(new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), _cacheStatsSince);
+                Assert.Equal(0, _cacheStatsVerbosity);
+            }
+
+            [Fact]
+            public void CacheStatsWithBadTimestamp()
+            {
+                Assert.False(Parse("-cachestats:notadate"));
+            }
+
+            [Fact]
+            public void CacheStatsWithVerbosity()
+            {
+                Assert.True(Parse("-cachestats", "-cachestatsverbosity:1"));
+                Assert.Equal(DateTimeOffset.MinValue, _cacheStatsSince);
+                Assert.Equal(1, _cacheStatsVerbosity);
+            }
+
+            [Fact]
+            public void CacheStatsWithVerbosity2()
+            {
+                Assert.True(Parse("-cachestats:2025-01-15T10:00:00Z", "-cachestatsverbosity:2"));
+                Assert.Equal(new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), _cacheStatsSince);
+                Assert.Equal(2, _cacheStatsVerbosity);
+            }
+
+            [Fact]
+            public void CacheStatsBadVerbosity()
+            {
+                Assert.False(Parse("-cachestats", "-cachestatsverbosity:3"));
+            }
+
+            [Fact]
+            public void PipeAndCacheStats()
+            {
+                Assert.True(Parse("-pipename:test", "-cachestats"));
+                Assert.Equal("test", _pipeName);
+                Assert.Equal(DateTimeOffset.MinValue, _cacheStatsSince);
+            }
+
+            [Fact]
+            public void RejectsConflictingOperations()
+            {
+                Assert.False(Parse("-shutdown", "-purgecache"));
+                Assert.False(Parse("-shutdown", "-cachestats"));
+                Assert.False(Parse("-purgecache", "-cachestats"));
+                Assert.False(Parse("-shutdown", "-shutdown"));
+            }
+
+            [Fact]
+            public void CachePath()
+            {
+                Assert.True(Parse("-cachestats", "-cachepath:/tmp/cache"));
+                Assert.Equal("/tmp/cache", _cachePath);
+            }
+
+            [Fact]
             public void BadArg()
             {
                 Assert.False(Parse("-invalid"));
                 Assert.False(Parse("name"));
+            }
+
+            [Fact]
+            public void TimeoutSeconds()
+            {
+                Assert.True(Parse("-timeout:60"));
+                Assert.Equal(TimeSpan.FromSeconds(60), _timeout);
+            }
+
+            [Fact]
+            public void TimeoutNoTimeout()
+            {
+                Assert.True(Parse("-timeout:0"));
+                Assert.Equal(Timeout.InfiniteTimeSpan, _timeout);
+            }
+
+            [Fact]
+            public void TimeoutInvalid()
+            {
+                Assert.False(Parse("-timeout:abc"));
+                Assert.False(Parse("-timeout:-1"));
+                Assert.False(Parse("-timeout:-2"));
+                Assert.False(Parse("-timeout:"));
+            }
+
+            [Fact]
+            public void LogFilePathEmpty()
+            {
+                Assert.False(Parse("-log:"));
+            }
+
+            [Fact]
+            public void LogFilePath()
+            {
+                Assert.True(Parse("-log:/tmp/server.log"));
+                Assert.Equal("/tmp/server.log", _logFilePath);
+            }
+
+            [Fact]
+            public void AllArgs()
+            {
+                Assert.True(Parse("-pipename:test", "-timeout:120", "-log:/tmp/server.log"));
+                Assert.Equal("test", _pipeName);
+                Assert.Equal(TimeSpan.FromSeconds(120), _timeout);
+                Assert.Equal("/tmp/server.log", _logFilePath);
+                Assert.False(_shutdown);
             }
         }
     }

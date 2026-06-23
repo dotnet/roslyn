@@ -620,6 +620,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.ImplicitThrow:
                                     return false;
 
+                                case ConversionKind.Union:
+                                    Debug.Assert(false, "Not expected to survive lowering.");
+                                    return false;
+
                                 default:
                                     // when this assert is hit, examine whether such conversion kind is 
                                     // 1) actually expected to get this far
@@ -799,9 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator? extraRefInitialization = null;
 
                 if (receiverTemp.LocalSymbol.IsRef &&
-                   (methodOrIndexer.IsExtensionBlockMember() ?
-                     !receiverTemp.Type.IsValueType :
-                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
+                    IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(methodOrIndexer, receiverTemp) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
                     (forceReceiverCapturing ||
                      !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(rewrittenArguments)))

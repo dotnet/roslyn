@@ -83,11 +83,13 @@ internal sealed partial class CodeFixService : ICodeFixService
         if (!(priority is CodeActionRequestPriority.Default or CodeActionRequestPriority.Low))
             return DiagnosticIdFilter.All;
 
-        TryGetWorkspaceFixersMap(document, out var workspaceFixersMap);
-        workspaceFixersMap ??= ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.Empty;
+        using var _ = PooledDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.GetInstance(out var builder);
+        TryPopulateWorkspaceFixersMap(document, builder);
         var projectFixersMap = GetProjectFixers(document);
 
-        return DiagnosticIdFilter.Include([.. workspaceFixersMap.Keys, .. projectFixersMap.Keys]);
+        // Perf: Avoid using a collection expression as it allocates an unnecessary list showing up in profiles
+        var set = ImmutableHashSet.CreateRange(builder.Keys.Concat(projectFixersMap.Keys));
+        return DiagnosticIdFilter.Include(set);
     }
 
     public async Task<CodeFixCollection?> GetMostSevereFixAsync(
@@ -354,7 +356,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
     }
 
-    private bool TryGetWorkspaceFixersMap(TextDocument document, [NotNullWhen(true)] out ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>? fixerMap)
+    private bool TryPopulateWorkspaceFixersMap(TextDocument document, Dictionary<DiagnosticId, ImmutableArray<CodeFixProvider>> fixerMap)
     {
         if (_lazyWorkspaceFixersMap == null)
         {
@@ -364,19 +366,16 @@ internal sealed partial class CodeFixService : ICodeFixService
 
         if (!_lazyWorkspaceFixersMap.TryGetValue(document.Project.Language, out var lazyFixerMap))
         {
-            fixerMap = ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.Empty;
             return false;
         }
 
-        using var _ = PooledDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.GetInstance(out var builder);
         foreach (var (id, fixers) in lazyFixerMap.Value)
         {
             var filteredFixers = ProjectCodeFixProvider.FilterExtensions(document, fixers, GetExtensionInfo);
             if (!filteredFixers.IsEmpty)
-                builder.Add(id, filteredFixers);
+                fixerMap.Add(id, filteredFixers);
         }
 
-        fixerMap = builder.ToImmutableDictionary();
         return fixerMap.Count > 0;
     }
 
@@ -442,7 +441,8 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var hasAnySharedFixer = TryGetWorkspaceFixersMap(document, out var fixerMap);
+        using var _1 = PooledDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.GetInstance(out var fixerMap);
+        var hasAnySharedFixer = TryPopulateWorkspaceFixersMap(document, fixerMap);
 
         var projectFixersMap = GetProjectFixers(document);
         var hasAnyProjectFixer = !projectFixersMap.IsEmpty;
@@ -454,8 +454,8 @@ internal sealed partial class CodeFixService : ICodeFixService
         var isInteractive = document.Project.Solution.WorkspaceKind == WorkspaceKind.Interactive;
 
         // gather CodeFixProviders for all distinct diagnostics found for current span
-        using var _1 = PooledDictionary<CodeFixProvider, List<(TextSpan range, List<DiagnosticData> diagnostics)>>.GetInstance(out var fixerToRangesAndDiagnostics);
-        using var _2 = PooledHashSet<CodeFixProvider>.GetInstance(out var currentFixers);
+        using var _2 = PooledDictionary<CodeFixProvider, List<(TextSpan range, List<DiagnosticData> diagnostics)>>.GetInstance(out var fixerToRangesAndDiagnostics);
+        using var _3 = PooledHashSet<CodeFixProvider>.GetInstance(out var currentFixers);
 
         foreach (var (range, diagnostics) in spanToDiagnostics)
         {
@@ -472,7 +472,7 @@ internal sealed partial class CodeFixService : ICodeFixService
                     AddAllFixers(projectFixers, range, diagnostics, currentFixers, fixerToRangesAndDiagnostics);
                 }
 
-                if (hasAnySharedFixer && fixerMap!.TryGetValue(diagnosticId, out var workspaceFixers))
+                if (hasAnySharedFixer && fixerMap.TryGetValue(diagnosticId, out var workspaceFixers))
                 {
                     if (isInteractive)
                     {

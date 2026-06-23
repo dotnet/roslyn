@@ -106,7 +106,7 @@ public sealed class EmitSolutionUpdateResultsTests
                 customTags: ["Test2"],
                 properties: ImmutableDictionary<string, string?>.Empty,
                 document.Project.Id,
-                DiagnosticDataLocation.TestAccessor.Create(new(sourcePath, new(0, 0), new(0, 5)), document.Id, new(@"..\a.razor", new(10, 10), new(10, 15)), forceMappedPath: true),
+                DiagnosticDataLocation.TestAccessor.Create(new(sourcePath, new(0, 0), new(0, 5)), document.Id, new(Path.Combine("..", "a.razor"), new(10, 10), new(10, 15)), forceMappedPath: true),
                 language: "C#",
                 title: "title",
                 description: "description",

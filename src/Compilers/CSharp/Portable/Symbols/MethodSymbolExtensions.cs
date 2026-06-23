@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Note: Flipping the metadata-virtual bit on a method can't change it from not-a-runtime-finalize
             // to runtime-finalizer (since it will also be marked newslot), so it is safe to use
-            // IsMetadataVirtualIgnoringInterfaceImplementationChanges.  This also has the advantage of making
+            // IsMetadataVirtual(ignoreInterfaceImplementationChanges: true). This also has the advantage of making
             // this method safe to call before declaration diagnostics have been computed.
             if ((object)method == null || method.Name != WellKnownMemberNames.DestructorName ||
-                method.ParameterCount != 0 || method.Arity != 0 || !method.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges))
+                method.ParameterCount != 0 || method.Arity != 0 || !method.IsMetadataVirtual(context: null, ignoreInterfaceImplementationChanges: true))
             {
                 return false;
             }
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return true;
                 }
-                else if (method.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true))
+                else if (method.IsMetadataNewSlot(context: null, ignoreInterfaceImplementationChanges: true))
                 {
                     // If the method isn't a runtime override, then it can't be a finalizer.
                     return false;

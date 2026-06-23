@@ -5,6 +5,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -68,7 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return $"{e.GetOutputTempDebuggerDisplay()} = {e.Input.GetDebuggerDisplay()}.{e.Field.Name}";
                 case BoundDagDeconstructEvaluation d:
                     var result = "(";
+
+                    if (DecisionDagBuilder.IsUnionTryGetValueEvaluation(d, out TypeSymbol? targetType, out _))
+                    {
+                        result = $"TryGetValue({targetType}): " + result;
+                    }
+
                     var first = true;
+
                     foreach (var param in d.DeconstructMethod.Parameters)
                     {
                         if (!first)
@@ -78,6 +86,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         first = false;
                         result += $"Item{param.Ordinal + 1}";
                     }
+
+                    if (!d.DeconstructMethod.ReturnsVoid)
+                    {
+                        if (!first)
+                        {
+                            result += ", ";
+                        }
+
+                        result += $"ReturnItem";
+                    }
+
                     result += $") {d.GetOutputTempDebuggerDisplay()} = {d.Input.GetDebuggerDisplay()}";
                     return result;
                 case BoundDagIndexEvaluation i:
@@ -86,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return $"{i.GetOutputTempDebuggerDisplay()} = {i.Input.GetDebuggerDisplay()}[{i.Index}]";
                 case BoundDagAssignmentEvaluation i:
                     return $"{i.Target.GetDebuggerDisplay()} <-- {i.Input.GetDebuggerDisplay()}";
+                case BoundDagPassThroughEvaluation i:
+                    return $"PassThrough {i.Input.GetDebuggerDisplay()}";
                 case BoundDagEvaluation e:
                     return $"{e.GetOutputTempDebuggerDisplay()} = {e.Kind}({e.Input.GetDebuggerDisplay()})";
                 case BoundDagTypeTest b:

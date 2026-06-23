@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -628,21 +628,33 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
     public Task TermSplittingTest7(TestHost testHost, Composition composition)
         => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
-            var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseSubstringPatternMatch_NotCaseSensitive, null);
-            var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch, null);
-            var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2 };
-
-            var items = await _aggregator.GetItemsAsync("K*W");
-
-            VerifyNavigateToResultItems(expecteditems, items);
+            var items = await _aggregator.GetItemsAsync("GTW");
+            Assert.Empty(items);
         });
 
     [WpfTheory]
     [CombinatorialData]
-    public Task TermSplittingTest8(TestHost testHost, Composition composition)
+    public Task TermSplittingTest_DotStarRegex_NoExtractableLiterals(TestHost testHost, Composition composition)
         => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
-            var items = await _aggregator.GetItemsAsync("GTW");
+            // G.*W is a valid regex but G and W are single-char literals — no 2+ char literals
+            // can be extracted for pre-filtering, so the regex search is skipped entirely.
+            var items = await _aggregator.GetItemsAsync("G.*W");
             Assert.Empty(items);
+        });
+
+    [WpfTheory]
+    [CombinatorialData]
+    public Task TermSplittingTest_DotStarRegex_WithExtractableLiterals(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+        {
+            // Ge.*Wo has 2+ char literals ("ge", "wo") so the regex search runs.
+            // Matches any symbol containing "Ge" followed eventually by "Wo" (case-insensitive).
+            var items = await _aggregator.GetItemsAsync("Ge.*Wo");
+            Assert.Equal(4, items.Count());
+            Assert.Contains(items, i => i.Name == "GetKeyWord");
+            Assert.Contains(items, i => i.Name == "get_key_word");
+            Assert.Contains(items, i => i.Name == "get_keyword");
+            Assert.Contains(items, i => i.Name == "getkeyword");
         });
 }

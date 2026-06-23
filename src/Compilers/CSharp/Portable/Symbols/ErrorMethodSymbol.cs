@@ -178,6 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => ThreeState.Unknown;
+
         public override bool IsVararg
         {
             get { return false; }
@@ -213,12 +215,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
 
-        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal sealed override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
@@ -290,6 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => false;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {

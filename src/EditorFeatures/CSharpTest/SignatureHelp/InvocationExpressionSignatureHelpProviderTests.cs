@@ -2339,6 +2339,39 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             sourceCodeKind: SourceCodeKind.Regular);
 
     [Fact]
+    public Task TestMethodThroughExtensionProperty()
+        => TestAsync("""
+            public enum Foo
+            {
+                Bar
+            }
+
+            public class Description(Foo foo)
+            {
+                public void Baz(int a, string b)
+                {
+                }
+            }
+
+            public static class FooEx
+            {
+                extension(Foo foo)
+                {
+                    public Description Description => new(foo);
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    [|Foo.Bar.Description.Baz($$
+                |]}
+            }
+            """, [new SignatureHelpTestItem("void Description.Baz(int a, string b)", currentParameterIndex: 0)],
+            sourceCodeKind: SourceCodeKind.Regular);
+
+    [Fact]
     public Task TestLightweightOverloadResolution2()
         => TestAsync(
             """
@@ -2372,4 +2405,42 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             public interface IResourceBuilder<T> where T : IResource { }
             """, [new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) IResourceBuilder<C> IResourceBuilder<C>.WithServiceBinding<C>(int containerPort, [int? hostPort = null], [string? scheme = null], [string? name = null], [string? env = null])", currentParameterIndex: 0)],
             sourceCodeKind: SourceCodeKind.Regular);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84055")]
+    public async Task PickCorrectOverload_MoreSpecificExtensionMethod()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Linq;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var a1 = ImmutableArray.Create(1, 2, 3);
+                    var a2 = ImmutableArray.Create(1, 2, 3);
+                    [|a1.SequenceEqual(a2$$|]);
+                }
+            }
+            """;
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNetCoreApp="true">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            {{source}}
+                    ]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await VerifyItemWithReferenceWorkerAsync(markup, [
+            new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) bool IEnumerable<int>.SequenceEqual<int>(IEnumerable<int> second)", currentParameterIndex: 0),
+            new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) bool IEnumerable<int>.SequenceEqual<int>(IEnumerable<int> second, IEqualityComparer<int>? comparer)", currentParameterIndex: 0),
+            new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) bool ImmutableArray<int>.SequenceEqual<TDerived, int>(IEnumerable<TDerived> items, [IEqualityComparer<int>? comparer = null])", currentParameterIndex: 0),
+            new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) bool ImmutableArray<int>.SequenceEqual<int, int>(ImmutableArray<int> items, [IEqualityComparer<int>? comparer = null])", currentParameterIndex: 0, isSelected: true),
+            new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) bool ImmutableArray<int>.SequenceEqual<TDerived, int>(ImmutableArray<TDerived> items, Func<int, int, bool> predicate)", currentParameterIndex: 0)],
+            hideAdvancedMembers: false);
+    }
 }

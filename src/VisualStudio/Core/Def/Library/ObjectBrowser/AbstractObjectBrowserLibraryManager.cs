@@ -29,7 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
 internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLibraryManager, IDisposable
 {
-    internal readonly VisualStudioWorkspace Workspace;
+    private readonly Lazy<VisualStudioWorkspace> _workspace;
+
+    internal VisualStudioWorkspace Workspace => _workspace.Value;
 
     internal ILibraryService LibraryService => _libraryService.Value;
 
@@ -47,14 +49,21 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         string languageName,
         Guid libraryGuid,
         IServiceProvider serviceProvider,
-        IComponentModel componentModel,
-        VisualStudioWorkspace workspace)
+        IComponentModel componentModel)
         : base(libraryGuid, componentModel, serviceProvider)
     {
         _languageName = languageName;
 
-        Workspace = workspace;
-        _workspaceChangedDisposer = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+        _workspace = new Lazy<VisualStudioWorkspace>(() =>
+        {
+            var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
+
+            // We will now register for WorkspaceChanged now. Since that's used to invalidate previously cached results, there was no reason to be subscribed earlier
+            // since nothing could have observed the workspace. OnWorkspaceChanged could run during the rest of this Lazy<T> -- in that case it'll just wait
+            // for the Lazy to complete. If anything else is put after RegisterWorkspaceChangedHandler, think carefully about the potential ordering.
+            _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+            return workspace;
+        });
 
         _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
     }

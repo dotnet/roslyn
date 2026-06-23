@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public static SourceHashAlgorithm[] HashAlgorithms { get; } = new[]
         {
             SourceHashAlgorithm.Sha1,
-            SourceHashAlgorithm.Sha256
+            SourceHashAlgorithm.Sha256,
+            SourceHashAlgorithm.Sha384,
+            SourceHashAlgorithm.Sha512
         };
 
         protected static void AssertJson(
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 errorLoggerOpt: null,
                 analyzerConfigOptions: default,
                 globalConfigOptions: default);
-            AssertEx.NotNull(compilation);
+            Assert.NotNull(compilation);
             Assert.Empty(writer.GetStringBuilder().ToString());
             var obj = GetSyntaxTreeValues(compilation, compiler.Arguments.PathMap);
             AssertJsonCore(expected, obj.ToString(Formatting.Indented));
@@ -182,10 +184,13 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var syntaxTree = ParseSyntaxTree("", fileName: "test", SourceHashAlgorithm.Sha256, (TParseOptions)parseOptions);
             var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { syntaxTree });
-            var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation.syntaxTrees");
-            var trees = (JArray)property.Value;
-            var obj = (JObject)trees[0];
-            return (JObject)(obj.Property("parseOptions")?.Value!);
+            var key = compilation.GetDeterministicKey();
+            var treesProperty = GetJsonProperty(key, "compilation.syntaxTrees");
+            var trees = (JArray)treesProperty.Value;
+            var treeObj = (JObject)trees[0];
+            var parseOptionsIndex = treeObj.Value<int>("parseOptionsIndex");
+            var parseOptionsArray = (JArray)GetJsonProperty(key, "compilation.parseOptions").Value;
+            return (JObject)parseOptionsArray[parseOptionsIndex];
         }
 
         protected JArray GetReferenceValues(Compilation compilation)
@@ -208,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 }
             }
 
-            Assert.True(false, $"Could not find reference with MVID {expectedMvid}");
+            Assert.Fail($"Could not find reference with MVID {expectedMvid}");
             throw null!;
         }
 
@@ -301,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     }}
   }}
 ]";
-                AssertJsonSection(expected, key, "compilation.syntaxTrees", "parseOptions");
+                AssertJsonSection(expected, key, "compilation.syntaxTrees", "parseOptionsIndex");
             }
         }
 

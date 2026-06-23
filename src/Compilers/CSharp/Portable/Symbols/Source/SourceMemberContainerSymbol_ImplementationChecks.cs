@@ -989,6 +989,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             diagnostics,
                                                             (diagnostics, overriddenEvent, overridingEvent, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, location),
                                                             overridingMemberLocation);
+
+                            CheckCallerUnsafeMismatch(
+                                implementedMember: null,
+                                overridingEvent,
+                                ErrorCode.ERR_CallerUnsafeOverridingSafe,
+                                overridingMemberLocation,
+                                static l => l,
+                                diagnostics);
                         }
                     }
                     else
@@ -1204,6 +1212,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     },
                     overridingMemberLocation,
                     invokedAsExtensionMethod: false);
+
+                CheckCallerUnsafeMismatch(
+                    implementedMember: null,
+                    overridingMethod,
+                    ErrorCode.ERR_CallerUnsafeOverridingSafe,
+                    overridingMemberLocation,
+                    static l => l,
+                    diagnostics);
             }
         }
 
@@ -1545,6 +1561,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal static void CheckCallerUnsafeMismatch<TArg>(
+            Symbol? implementedMember,
+            Symbol? overridingMember,
+            ErrorCode errorCode,
+            TArg arg,
+            Func<TArg, Location> overridingMemberLocation,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (overridingMember is null)
+            {
+                return;
+            }
+
+            Debug.Assert(implementedMember is not null || overridingMember.IsDefinition);
+
+            var leastOverriddenMember = implementedMember ?? overridingMember.GetLeastOverriddenMember(overridingMember.ContainingType);
+            if (overridingMember.CallerUnsafeMode == CallerUnsafeMode.Explicit && leastOverriddenMember.CallerUnsafeMode == CallerUnsafeMode.None)
+            {
+                diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
+            }
+        }
 #nullable disable
 
         private static bool PerformValidNullableOverrideCheck(
@@ -1872,7 +1910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             needSynthesizedImplementation = false;
                         }
                     }
-                    else if (implementingMethod.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges))
+                    else if (implementingMethod.IsMetadataVirtual(null, ignoreInterfaceImplementationChanges: true))
                     {
                         // If the signatures match and the implementation method is definitely virtual, then we're set.
                         needSynthesizedImplementation = false;

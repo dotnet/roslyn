@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis
         private static void GetDirectives<TDirective>(SyntaxNode node, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
             where TDirective : SyntaxNode
         {
-            foreach (var trivia in node.DescendantTrivia(node => node.ContainsDirectives, descendIntoTrivia: true))
+            foreach (var trivia in node.DescendantTrivia(descendIntoChildrenGreen: static node => node.ContainsDirectives, descendIntoChildrenRed: null, descendIntoTrivia: true))
             {
                 GetDirectivesInTrivia(trivia, filter, ref directives);
             }

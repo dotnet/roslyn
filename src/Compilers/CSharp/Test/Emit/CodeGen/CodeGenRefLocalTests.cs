@@ -4344,20 +4344,23 @@ unsafe
 
             verify(TestOptions.UnsafeReleaseExe, Verification.Fails, @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
+  // Code size       21 (0x15)
+  .maxstack  2
   .locals init (int V_0, //i1
-                int& V_1) //i2
+                int& V_1, //i2
+                int& V_2) //i3
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
   IL_0004:  stloc.1
   IL_0005:  ldc.i4.0
   IL_0006:  conv.i
-  IL_0007:  stloc.1
-  IL_0008:  ldstr      ""run""
-  IL_000d:  call       ""void System.Console.WriteLine(string)""
-  IL_0012:  ret
+  IL_0007:  dup
+  IL_0008:  stloc.1
+  IL_0009:  stloc.2
+  IL_000a:  ldstr      ""run""
+  IL_000f:  call       ""void System.Console.WriteLine(string)""
+  IL_0014:  ret
 }
 ");
 

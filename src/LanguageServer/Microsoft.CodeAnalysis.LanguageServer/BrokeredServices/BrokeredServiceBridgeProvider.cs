@@ -20,15 +20,10 @@ internal sealed class BrokeredServiceBridgeProvider
 {
     private const string ServiceBrokerChannelName = "serviceBroker";
 
-    private readonly ILogger _logger;
-    private readonly TraceSource _brokeredServiceTraceSource;
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public BrokeredServiceBridgeProvider(ILoggerFactory loggerFactory, BrokeredServiceTraceListener brokeredServiceTraceListener)
+    public BrokeredServiceBridgeProvider()
     {
-        _logger = loggerFactory.CreateLogger<BrokeredServiceBridgeProvider>();
-        _brokeredServiceTraceSource = brokeredServiceTraceListener.Source;
     }
 
     /// <summary>
@@ -40,9 +35,12 @@ internal sealed class BrokeredServiceBridgeProvider
     /// <param name="container">our local container.</param>
     /// <param name="cancellationToken">a cancellation token.</param>
     /// <returns>a task that represents the lifetime of the bridge.  It will complete when the bridge closes.</returns>
-    public async Task SetupBrokeredServicesBridgeAsync(string brokeredServicePipeName, BrokeredServiceContainer container, CancellationToken cancellationToken)
+    public async Task SetupBrokeredServicesBridgeAsync(string brokeredServicePipeName, BrokeredServiceContainer container, ILoggerFactory loggerFactory, CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Setting up brokered service bridge");
+        var logger = loggerFactory.CreateLogger<BrokeredServiceBridgeProvider>();
+        var brokeredServiceTraceSource = BrokeredServiceTraceListener.CreateTraceSource(loggerFactory);
+
+        logger.LogDebug("Setting up brokered service bridge");
         using var bridgeStream = await ServerFactory.ConnectAsync(brokeredServicePipeName, cancellationToken);
         using var bridgeMxStream = await MultiplexingStream.CreateAsync(bridgeStream, cancellationToken);
 
@@ -56,22 +54,22 @@ internal sealed class BrokeredServiceBridgeProvider
             using IpcRelayServiceBroker relayServiceBroker = new(serviceBroker);
 
             FrameworkServices.RemoteServiceBroker
-                .WithTraceSource(_brokeredServiceTraceSource)
+                .WithTraceSource(brokeredServiceTraceSource)
                 .ConstructRpc(relayServiceBroker, profferedServiceBrokerChannel);
 
-            await relayServiceBroker.Completion;
+            await relayServiceBroker.Completion.WaitAsync(cancellationToken);
         }
 
         async Task ConsumeServicesFromRemoteAsync()
         {
             using var consumingServiceBrokerChannel = await bridgeMxStream.AcceptChannelAsync(ServiceBrokerChannelName, cancellationToken);
             var remoteClient = FrameworkServices.RemoteServiceBroker
-                .WithTraceSource(_brokeredServiceTraceSource)
+                .WithTraceSource(brokeredServiceTraceSource)
                 .ConstructRpc<IRemoteServiceBroker>(consumingServiceBrokerChannel);
 
             using (container.ProfferRemoteBroker(remoteClient, bridgeMxStream, ServiceSource.OtherProcessOnSameMachine, [.. Descriptors.RemoteServicesToRegister.Keys]))
             {
-                await consumingServiceBrokerChannel.Completion;
+                await consumingServiceBrokerChannel.Completion.WaitAsync(cancellationToken);
             }
         }
     }

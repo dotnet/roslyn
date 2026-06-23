@@ -15,7 +15,7 @@ internal partial struct SymbolKey
 
         protected sealed override SymbolKeyResolution Resolve(SymbolKeyReader reader, IPreprocessingSymbol? contextualSymbol, out string? failureReason)
         {
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
             failureReason = null;
             return new SymbolKeyResolution(reader.Compilation.CreatePreprocessingSymbol(reader.ReadRequiredString()));
 #else

@@ -18,7 +18,6 @@ using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Tools;
 
@@ -73,6 +72,10 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
 
     public override bool Execute()
     {
+        // Ensure that debug assertion failures throw an exception instead of crashing the process
+        Trace.Listeners.Clear();
+        Trace.Listeners.Add(new ThrowingTraceListener());
+
 #if !NET
         // https://github.com/dotnet/roslyn/issues/82006
         AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>

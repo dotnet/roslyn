@@ -21,8 +21,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Visual
             End Get
         End Property
 
-        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace) As AbstractObjectBrowserLibraryManager
-            Return New ObjectBrowserLibraryManager(serviceProvider, componentModel, workspace)
+        Friend Overrides Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel) As AbstractObjectBrowserLibraryManager
+            Return New ObjectBrowserLibraryManager(serviceProvider, componentModel)
         End Function
 
         <WpfFact>

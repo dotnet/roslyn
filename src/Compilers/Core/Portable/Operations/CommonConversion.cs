@@ -73,9 +73,28 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Returns true if the conversion is a user-defined conversion.
         /// </summary>
         [MemberNotNullWhen(true, nameof(MethodSymbol))]
-        public bool IsUserDefined => MethodSymbol != null;
+        public bool IsUserDefined => MethodSymbol is { MethodKind: MethodKind.Conversion };
         /// <summary>
-        /// Returns the method used to perform the conversion for a user-defined conversion if <see cref="IsUserDefined"/> is true.
+        /// Returns true if the conversion is a union conversion.
+        /// </summary>
+        [MemberNotNullWhen(true, nameof(MethodSymbol))]
+        public bool IsUnion
+        {
+            [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
+            get
+            {
+                return MethodSymbol is
+                { MethodKind: MethodKind.Constructor, ContainingType.IsUnion: true } or
+                {
+                    MethodKind: MethodKind.Ordinary, IsStatic: true, Name: WellKnownMemberNames.UnionFactoryMethodName,
+                    ContainingType: { TypeKind: TypeKind.Interface, Name: WellKnownMemberNames.UnionMembersInterfaceName, Arity: 0, ContainingType.IsUnion: true }
+                };
+            }
+        }
+
+        /// <summary>
+        /// Returns the method used to perform the conversion for a user-defined conversion if <see cref="IsUserDefined"/> is true,
+        /// or to perform the conversion for union conversion if <see cref="IsUnion"/> is true.
         /// Otherwise, returns null.
         /// </summary>
         public IMethodSymbol? MethodSymbol { get; }

@@ -139,7 +139,7 @@ internal sealed class CSharpIfLikeStatementGenerator : IIfLikeStatementGenerator
             var elseIfStatement = (IfStatementSyntax)elseIfClause;
 
             var newElseIfStatement = elseIfStatement.WithElse(ifStatement.Else);
-            var newIfStatement = ifStatement.WithElse(ElseClause(newElseIfStatement));
+            var newIfStatement = ifStatement.WithElse(ElseClause(newElseIfStatement.WithLeadingTrivia(Space)));
 
             if (ifStatement.Else == null && ContainsEmbeddedIfStatement(ifStatement))
             {

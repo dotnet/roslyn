@@ -12,6 +12,7 @@
     <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>
     <NoWarn>$(NoWarn),NU5100,NU5106,CS1591</NoWarn>
     <IsTestUtilityProject>true</IsTestUtilityProject>
+    <DefineConstants Condition="'$(DotNetBuildFromVMR)' == 'true'">$(DefineConstants);DOTNET_BUILD_FROM_VMR</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
