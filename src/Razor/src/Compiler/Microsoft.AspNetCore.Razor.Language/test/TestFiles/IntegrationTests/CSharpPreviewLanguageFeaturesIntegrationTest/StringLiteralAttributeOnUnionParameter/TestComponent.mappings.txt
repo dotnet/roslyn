@@ -1,0 +1,10 @@
+﻿Source Location: (1:0,1 [4] x:\dir\subdir\Test\TestComponent.razor)
+|Slot|
+Generated Location: (703:19,49 [4] )
+|Slot|
+
+Source Location: (6:0,6 [7] x:\dir\subdir\Test\TestComponent.razor)
+|Content|
+Generated Location: (868:23,0 [7] )
+|Content|
+
