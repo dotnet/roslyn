@@ -2992,6 +2992,11 @@
         <target state="translated">koleksiyon ifadeleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCompoundAssignmentInInitializer">
+        <source>compound assignment in object initializer and with expression</source>
+        <target state="new">compound assignment in object initializer and with expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">birlikte değişken dönüşler</target>

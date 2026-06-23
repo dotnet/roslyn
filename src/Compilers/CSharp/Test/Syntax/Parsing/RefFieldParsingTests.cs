@@ -736,11 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ObjectInitializer_CompoundAssignment(LanguageVersion languageVersion)
         {
             string source = "new S { F += ref t }";
-            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
-                // (1,14): error CS1525: Invalid expression term 'ref'
-                // new S { F += ref t }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref t").WithArguments("ref").WithLocation(1, 14)
-                );
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             N(SyntaxKind.ObjectCreationExpression);
             {
@@ -749,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierToken, "S");
                 }
-                N(SyntaxKind.CollectionInitializerExpression);
+                N(SyntaxKind.ObjectInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.AddAssignmentExpression);
