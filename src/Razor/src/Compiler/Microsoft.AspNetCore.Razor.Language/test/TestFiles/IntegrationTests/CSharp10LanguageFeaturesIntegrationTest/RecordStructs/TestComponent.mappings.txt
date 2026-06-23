@@ -1,0 +1,9 @@
+﻿Source Location: (7:0,7 [58] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public readonly record struct Point(int X, int Y);
+|
+Generated Location: (782:23,0 [58] )
+|
+    public readonly record struct Point(int X, int Y);
+|
+

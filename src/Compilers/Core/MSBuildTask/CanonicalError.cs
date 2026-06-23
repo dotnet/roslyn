@@ -312,11 +312,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             parsedMessage.subcategory = match.Groups["SUBCATEGORY"].Value.Trim();
 
             // Next, see if category is something that is recognized.
-            if (0 == String.Compare(category, "error", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(category, "error", StringComparison.OrdinalIgnoreCase))
             {
                 parsedMessage.category = Parts.Category.Error;
             }
-            else if (0 == String.Compare(category, "warning", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(category, "warning", StringComparison.OrdinalIgnoreCase))
             {
                 parsedMessage.category = Parts.Category.Warning;
             }

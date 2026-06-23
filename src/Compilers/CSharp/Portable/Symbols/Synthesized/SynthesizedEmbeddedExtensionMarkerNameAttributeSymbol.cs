@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly ImmutableArray<MethodSymbol> _constructors;
         private readonly SynthesizedFieldSymbol _nameField;
-        private readonly SynthesizedPropertySymbol _nameProperty;
+        private readonly SynthesizedEmbeddedAttributePropertySymbol _nameProperty;
 
         private const string PropertyName = "Name";
         private const string FieldName = "<Name>k__BackingField";
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(FieldName == GeneratedNames.MakeBackingFieldName(PropertyName));
 
             _nameField = new SynthesizedFieldSymbol(this, systemStringType, FieldName, isReadOnly: true);
-            _nameProperty = new SynthesizedPropertySymbol(PropertyName, _nameField);
+            _nameProperty = new SynthesizedEmbeddedAttributePropertySymbol(PropertyName, _nameField);
             _constructors = [new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(this, getConstructorParameters, getConstructorBody)];
 
             // Ensure we never get out of sync with the description

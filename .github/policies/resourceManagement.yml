@@ -369,7 +369,7 @@ configuration:
       - addLabel:
           label: Second Signoff Requested
       - addReply:
-          reply: "@roslyn-compiler this PR needs a second sign-off"
+          reply: "@dotnet/roslyn-compiler this PR needs a second sign-off"
 
 onFailure: 
 onSuccess:

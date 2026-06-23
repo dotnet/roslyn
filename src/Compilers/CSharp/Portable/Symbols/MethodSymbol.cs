@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit :
                                                     AllowedRequiredModifierType.None) ||
                 DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
-                DeriveUseSiteInfoFromParameters(ref result, this.Parameters))
+                DeriveUseSiteInfoFromParameters(ref result, this.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false)))
             {
                 return true;
             }
@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         bool IMethodSymbolInternal.IsAccessCheckedOnOverride => IsAccessCheckedOnOverride;
         bool IMethodSymbolInternal.IsExternal => IsExternal;
         bool IMethodSymbolInternal.IsHiddenBySignature => !HidesBaseMethodsByName;
-        bool IMethodSymbolInternal.IsMetadataNewSlot => IsMetadataNewSlot();
+        bool IMethodSymbolInternal.IsMetadataNewSlotIgnoringInterfaceImplementationChanges => IsMetadataNewSlot(context: null, ignoreInterfaceImplementationChanges: true);
         bool IMethodSymbolInternal.IsPlatformInvoke => GetDllImportData() != null;
         bool IMethodSymbolInternal.HasRuntimeSpecialName => HasRuntimeSpecialName;
         bool IMethodSymbolInternal.IsMetadataFinal => IsSealed;

@@ -1,0 +1,21 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [85] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [85] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    var value = 5;\n    _ = value is > 0 and < 10;\n    _ = value is < 0 or > 10;\n
+                CSharpCode - (93:6,1 [31] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (93:6,1 [31] x:\dir\subdir\Test\TestComponent.razor) - CSharp - if (value is > 0 and < 10)\n{\n
+                MarkupBlock -  - <p>Value is between 0 and 10.</p>
+                CSharpCode - (163:9,0 [3] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (163:9,0 [3] x:\dir\subdir\Test\TestComponent.razor) - CSharp - }\n
+                CSharpCode - (169:11,1 [30] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (169:11,1 [30] x:\dir\subdir\Test\TestComponent.razor) - CSharp - if (value is < 0 or > 10)\n{\n
+                MarkupBlock -  - <p>Value is outside the range of 0 to 10.</p>
+                CSharpCode - (250:14,0 [1] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (250:14,0 [1] x:\dir\subdir\Test\TestComponent.razor) - CSharp - }

@@ -615,9 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsStatic => HasFlag(MethodAttributes.Static);
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => HasFlag(MethodAttributes.Virtual);
+        internal override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false) => IsMetadataVirtual();
+        internal bool IsMetadataVirtual() => HasFlag(MethodAttributes.Virtual);
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.NewSlot);
+        internal override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false) => IsMetadataNewSlot();
+        internal bool IsMetadataNewSlot() => HasFlag(MethodAttributes.NewSlot);
 
         internal override bool IsMetadataFinal => HasFlag(MethodAttributes.Final);
 
