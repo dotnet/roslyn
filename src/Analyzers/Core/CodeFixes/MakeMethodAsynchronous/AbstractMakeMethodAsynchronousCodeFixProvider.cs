@@ -136,14 +136,14 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
                 foreach (var location in referencedSymbol.Locations)
                 {
                     var document = location.Document;
-                    if (!cache.TryGetValue(document.Id, out var entry))
+                    if (!cache.TryGetValue(document.Id, out var semanticDocument))
                     {
-                        entry = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                        cache.Add(document.Id, entry);
+                        semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+                        cache.Add(document.Id, semanticDocument);
                     }
 
-                    var syntaxNode = entry.Root.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
-                    if (IsDelegateReference(entry.SemanticModel, syntaxNode, symbol, cancellationToken))
+                    var syntaxNode = semanticDocument.Root.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
+                    if (IsDelegateReference(semanticDocument.SemanticModel, syntaxNode, symbol, cancellationToken))
                         return true;
                 }
             }
