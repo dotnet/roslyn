@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private static readonly ObjectPool<ArrayBuilder<T>> s_poolInstance = CreatePool();
         public static ArrayBuilder<T> GetInstance(
 #if DEBUG
-            [CallerFilePath] string? filePath = null,
+            [CallerFilePath] string filePath = "",
             [CallerLineNumber] int lineNumber = 0
 #endif
             )
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         public static ArrayBuilder<T> GetInstance(
             int capacity
 #if DEBUG
-            , [CallerFilePath] string? filePath = null
+            , [CallerFilePath] string filePath = ""
             , [CallerLineNumber] int lineNumber = 0
 #endif
             )
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             int capacity,
             T fillWithValue
 #if DEBUG
-            , [CallerFilePath] string? filePath = null
+            , [CallerFilePath] string filePath = ""
             , [CallerLineNumber] int lineNumber = 0
 #endif
             )
@@ -1010,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         public static PooledDisposer<ArrayBuilder<T>> GetInstance(
             out ArrayBuilder<T> instance
 #if DEBUG
-            , [CallerFilePath] string? filePath = null
+            , [CallerFilePath] string filePath = ""
             , [CallerLineNumber] int lineNumber = 0
 #endif
             )
@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             int capacity,
             out ArrayBuilder<T> instance
 #if DEBUG
-            , [CallerFilePath] string? filePath = null
+            , [CallerFilePath] string filePath = ""
             , [CallerLineNumber] int lineNumber = 0
 #endif
             )
@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             T fillWithValue,
             out ArrayBuilder<T> instance
 #if DEBUG
-            , [CallerFilePath] string? filePath = null
+            , [CallerFilePath] string filePath = ""
             , [CallerLineNumber] int lineNumber = 0
 #endif
             )
@@ -1059,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             bool discardLargeInstances,
             out ArrayBuilder<T> instance
 #if DEBUG
-            , [CallerFilePath] string? filePath = null
+            , [CallerFilePath] string filePath = ""
             , [CallerLineNumber] int lineNumber = 0
 #endif
             )

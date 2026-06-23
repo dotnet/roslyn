@@ -62,7 +62,7 @@ internal static class PoolTracker
     /// Records that a pooled object has been allocated.
     /// </summary>
     [Conditional("DEBUG")]
-    internal static void OnAllocate(object obj, string? poolName = null, string? filePath = null, int lineNumber = 0)
+    internal static void OnAllocate(object obj, string? poolName = null, string filePath = "", int lineNumber = 0)
     {
 #if DEBUG
         if (s_activeTrackers > 0)
@@ -117,7 +117,7 @@ internal sealed class PoolTrackingContext
         _traceLeaks = traceLeaks;
     }
 
-    internal void OnAllocate(object obj, string? poolName, string? filePath, int lineNumber)
+    internal void OnAllocate(object obj, string? poolName, string filePath, int lineNumber)
     {
         _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, filePath, lineNumber, _traceLeaks ? Environment.StackTrace : null));
     }
@@ -154,7 +154,7 @@ internal sealed class PoolTrackingContext
             var poolInfo = group.Key.PoolName is not null
                 ? $" (from {group.Key.PoolName})"
                 : "";
-            var allocSite = group.Key.FilePath is not null
+            var allocSite = !string.IsNullOrEmpty(group.Key.FilePath)
                 ? $" (allocated at {Path.GetFileName(group.Key.FilePath)}:{group.Key.LineNumber})"
                 : "";
             sb.AppendLine($"  {group.Key.Type}{poolInfo}{allocSite}: {group.Count()}");
@@ -172,11 +172,11 @@ internal sealed class PoolTrackingContext
         return sb.ToString();
     }
 
-    private readonly struct AllocationInfo(Type type, string? poolName, string? filePath, int lineNumber, string? stackTrace)
+    private readonly struct AllocationInfo(Type type, string? poolName, string filePath, int lineNumber, string? stackTrace)
     {
         public readonly Type Type = type;
         public readonly string? PoolName = poolName;
-        public readonly string? FilePath = filePath;
+        public readonly string FilePath = filePath;
         public readonly int LineNumber = lineNumber;
         public readonly string? StackTrace = stackTrace;
     }

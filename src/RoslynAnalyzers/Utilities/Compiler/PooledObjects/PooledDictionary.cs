@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         public static PooledDictionary<K, V> GetInstance(
             IEqualityComparer<K>? keyComparer
 #if DEBUG
-            , [CallerFilePath] string? filePath = null
+            , [CallerFilePath] string filePath = ""
             , [CallerLineNumber] int lineNumber = 0
 #endif
             )
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             IEnumerable<KeyValuePair<K, V>> initializer,
             IEqualityComparer<K>? keyComparer = null
 #if DEBUG
-            , [CallerFilePath] string? filePath = null
+            , [CallerFilePath] string filePath = ""
             , [CallerLineNumber] int lineNumber = 0
 #endif
             )

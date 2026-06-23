@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// </remarks>
         internal T Allocate(
 #if DEBUG
-            [CallerFilePath] string? filePath = null,
+            [CallerFilePath] string filePath = "",
             [CallerLineNumber] int lineNumber = 0
 #endif
             )

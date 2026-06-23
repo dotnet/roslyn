@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public static PooledHashSet<T> GetInstance(
 #if DEBUG
-            [CallerLineNumber] int lineNumber = 0,
-            [CallerFilePath] string? filePath = null
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0
 #endif
             )
         {
@@ -65,14 +65,14 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         public static PooledDisposer<PooledHashSet<T>> GetInstance(
             out PooledHashSet<T> instance
 #if DEBUG
-            , [CallerFilePath] string? filePath = null
+            , [CallerFilePath] string filePath = ""
             , [CallerLineNumber] int lineNumber = 0
 #endif
             )
         {
             instance = GetInstance(
 #if DEBUG
-                lineNumber, filePath
+                filePath, lineNumber
 #endif
                 );
             return new PooledDisposer<PooledHashSet<T>>(instance);
