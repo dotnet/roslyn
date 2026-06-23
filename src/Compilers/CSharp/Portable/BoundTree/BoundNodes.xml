@@ -103,7 +103,7 @@
   that will be replaced with a copy captured in a temp during IL gen. 
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
-    <Field Name="Receiver" Type="BoundExpression"/>
+    <Field Name="Receiver" Type="BoundExpression" SkipInVisit="true"/>
   </Node>
 
   <!--
@@ -153,6 +153,8 @@
   <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="IsEquivalentToThisReference" Type="bool" PropertyOverrides="true"/>
+    <!-- The original receiver expression this placeholder stands in for. Used to delegate value checks. -->
+    <Field Name="Receiver" Type="BoundExpression" SkipInVisit="true"/>
   </Node>
 
   <!-- This node represents the receiver for a list pattern. -->
@@ -2601,10 +2603,9 @@
     <Field Name="Right" Type="BoundPattern"/>
   </Node>
 
-  <!-- NarrowedType is 'object' for Union matching, and the InputType otherwise -->
+  <!-- NarrowedType is the InputType -->
   <Node Name="BoundNegatedPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Negated" Type="BoundPattern"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!-- 

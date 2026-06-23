@@ -1,7 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -154,7 +153,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -189,7 +188,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -222,7 +221,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -255,7 +254,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -293,7 +292,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("File1.razor"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("File1.razor"), location.DocumentUri);
         var text = SourceText.From(input.Text);
         var range = text.GetRange(input.Span);
         Assert.Equal(range, location.Range);
@@ -335,7 +334,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("SurveyPrompt.cs"), location.DocumentUri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -377,7 +376,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("SurveyPrompt.cs"), location.DocumentUri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -448,10 +447,11 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
 
+        var uri = new DocumentUri($"{document.CreateSystemUri()}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
         var htmlResponse = new SumType<LspLocation, LspLocation[], DocumentLink[]>?(new LspLocation[]
         {
             new() {
-                DocumentUri = new(new Uri(document.CreateSystemUri(), document.Name + LanguageServerConstants.HtmlVirtualDocumentSuffix)),
+                DocumentUri = uri,
                 Range = inputText.GetRange(input.Span),
             },
         });
@@ -488,7 +488,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AuthorViewComponent.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("AuthorViewComponent.cs"), location.DocumentUri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -524,7 +524,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.DocumentUri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -568,7 +568,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AboutBoxTagHelper_1.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("AboutBoxTagHelper_1.cs"), location.DocumentUri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -606,7 +606,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.DocumentUri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -651,7 +651,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AboutBoxTagHelper_2.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("AboutBoxTagHelper_2.cs"), location.DocumentUri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -715,7 +715,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("FooTagHelper.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("FooTagHelper.cs"), location.DocumentUri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -779,7 +779,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("FooTagHelper.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("FooTagHelper.cs"), location.DocumentUri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -866,11 +866,11 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(expected.Spans.Length, locations.Length);
 
         var location = locations[0];
-        Assert.Equal(FileUri("TagHelpers.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("TagHelpers.cs"), location.DocumentUri);
         Assert.Equal(expected.Spans[0], SourceText.From(expected.Text).GetTextSpan(location.Range));
 
         location = locations[1];
-        Assert.Equal(FileUri("TagHelpers.cs"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("TagHelpers.cs"), location.DocumentUri);
         Assert.Equal(expected.Spans[1], SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -895,7 +895,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("Views/Shared/_Partial.cshtml"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("Views/Shared/_Partial.cshtml"), location.DocumentUri);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
@@ -919,7 +919,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("_Partial.cshtml"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("_Partial.cshtml"), location.DocumentUri);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
@@ -949,7 +949,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri.GetRequiredSystemUri());
+        Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/razor/issues/4325")]

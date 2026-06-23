@@ -184,7 +184,7 @@ internal static class RazorSyntaxFacts
         {
             if (child.GetChunkGenerator() is AddImportChunkGenerator usingStatement)
             {
-                @namespace = usingStatement.Namespace.Trim();
+                @namespace = usingStatement.Namespace;
                 return true;
             }
         }

@@ -1,0 +1,18 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                HtmlContent - (271:8,0 [7] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (271:8,0 [2] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                    LazyIntermediateToken - (273:9,0 [4] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <div
+                    LazyIntermediateToken - (277:9,4 [1] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                CSharpExpression - (279:9,6 [19] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (279:9,6 [19] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - Capture(1 + 1 == 2)
+                HtmlContent - (298:9,25 [6] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (298:9,25 [6] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </div>
+            CSharpCode - (52:2,12 [216] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                LazyIntermediateToken - (52:2,12 [216] TestFiles\IntegrationTests\CSharp10LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    public static string Capture(\n        bool condition,\n        [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(condition))] string? expression = null)\n        => expression ?? string.Empty;\n

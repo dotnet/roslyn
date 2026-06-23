@@ -5,13 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -24,7 +23,7 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
     }
 
     public ValueTask<SelectionRange[]?> GetSelectionRangesAsync(
-        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position[] positions,
         CancellationToken cancellationToken)
@@ -63,8 +62,7 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
             .ConfigureAwait(false);
 
         var linePositions = mappedPositions.ToImmutable();
-        var csharpSelectionRanges = await ExternalHandlers.SelectionRanges
-            .GetSelectionRangesAsync(generatedDocument, linePositions, cancellationToken)
+        var csharpSelectionRanges = await SelectionRangeHandler.GetSelectionRangesAsync(generatedDocument, linePositions, cancellationToken)
             .ConfigureAwait(false);
 
         if (csharpSelectionRanges is null)

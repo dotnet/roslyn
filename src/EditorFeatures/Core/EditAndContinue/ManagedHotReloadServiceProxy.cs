@@ -14,7 +14,13 @@ using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal sealed class ManagedHotReloadServiceProxy(IServiceBroker serviceBroker) :
-    BrokeredServiceProxy<IManagedHotReloadService>(serviceBroker, BrokeredServiceDescriptors.DebuggerManagedHotReloadService, BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy),
+    BrokeredServiceProxy<IManagedHotReloadService>(serviceBroker,
+#if DEVKIT
+        BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy
+#else
+        BrokeredServiceDescriptors.DebuggerManagedHotReloadService
+#endif
+    ),
     InternalContracts.IManagedHotReloadService
 {
     public async ValueTask<ImmutableArray<InternalContracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)

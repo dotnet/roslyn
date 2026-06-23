@@ -1,0 +1,14 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [57] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [57] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    var value = $@"Hello {1}";\n    _ = value.Length;\n
+                HtmlContent - (102:6,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (102:6,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpExpression - (106:7,2 [13] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (106:7,2 [13] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - $@"Hello {1}"

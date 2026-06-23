@@ -281,10 +281,21 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     }
 
     /// <summary>
+    /// Gets a struct-based enumerable over descendant nodes in prefix document order.
+    /// Supports composable filtering and projection via <c>.Where()</c>, <c>.Select()</c>, and <c>.OfType()</c>.
+    /// </summary>
+    /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+    internal DescendantNodeEnumerable<SyntaxNode> DescendantNodes(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    {
+        return new DescendantNodeEnumerable<SyntaxNode>(this, descendIntoChildren, predicate: null, selector: null);
+    }
+
+    /// <summary>
     /// Gets a list of descendant nodes in prefix document order.
     /// </summary>
     /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
-    public IEnumerable<SyntaxNode> DescendantNodes(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    [Obsolete($"Use {nameof(DescendantNodes)} which returns a struct-based enumerable that does not allocate a state machine.")]
+    public IEnumerable<SyntaxNode> DescendantNodesAsIEnumerable(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
         return DescendantNodesImpl(Span, descendIntoChildren, includeSelf: false);
     }
@@ -356,9 +367,19 @@ internal abstract partial class SyntaxNode(GreenNode green, SyntaxNode parent, i
     }
 
     /// <summary>
+    /// Gets a struct-based enumerable over descendant tokens in prefix document order.
+    /// </summary>
+    /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+    internal DescendantTokenEnumerable DescendantTokens(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    {
+        return new DescendantTokenEnumerable(this, descendIntoChildren);
+    }
+
+    /// <summary>
     /// Gets a list of all the tokens in the span of this node.
     /// </summary>
-    public IEnumerable<SyntaxToken> DescendantTokens(Func<SyntaxNode, bool>? descendIntoChildren = null)
+    [Obsolete($"Use {nameof(DescendantTokens)} which returns a struct-based enumerable that does not allocate a state machine.")]
+    public IEnumerable<SyntaxToken> DescendantTokensAsIEnumerable(Func<SyntaxNode, bool>? descendIntoChildren = null)
     {
         return DescendantNodesAndTokens(Span, descendIntoChildren)
             .Where(static x => x.IsToken)

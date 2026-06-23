@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -183,7 +182,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
     [Export(typeof(IRazorSemanticTokensRefreshQueue)), PartNotDiscoverable]
     private class TestRazorSemanticTokensRefreshQueue : IRazorSemanticTokensRefreshQueue
     {
-        public void Initialize(string clientCapabilitiesString) => throw new NotImplementedException();
+        public void Initialize(VSInternalClientCapabilities clientCapabilities) => throw new NotImplementedException();
         public Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }

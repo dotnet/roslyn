@@ -7,17 +7,18 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 
 internal static class CodeActionExtensions
 {
-    private const string NestedCodeActionCommand = Constants.RunNestedCodeActionCommandName;
-    private const string NestedCodeActionsProperty = Constants.NestedCodeActionsPropertyName;
-    private const string CodeActionPathProperty = Constants.CodeActionPathPropertyName;
-    private const string FixAllFlavorsProperty = Constants.FixAllFlavorsPropertyName;
+    private const string NestedCodeActionCommand = CodeActionsHandler.RunNestedCodeActionCommandName;
+    private const string NestedCodeActionsProperty = nameof(CodeActionResolveData.NestedCodeActions);
+    private const string CodeActionPathProperty = nameof(CodeActionResolveData.CodeActionPath);
+    private const string FixAllFlavorsProperty = nameof(CodeActionResolveData.FixAllFlavors);
 
     public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction, VSTextDocumentIdentifier textDocument, Uri? delegatedDocumentUri)
     {
