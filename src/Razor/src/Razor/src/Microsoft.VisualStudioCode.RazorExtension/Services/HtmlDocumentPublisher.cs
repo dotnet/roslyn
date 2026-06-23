@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -21,7 +20,7 @@ internal sealed class HtmlDocumentPublisher(
 {
     private readonly RazorClientServerManagerProvider _razorClientServerManagerProvider = razorClientServerManagerProvider;
 
-    public async Task<bool> TryPublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
+    public async Task<bool> TryPublishAsync(TextDocument document, Checksum checksum, string htmlText, CancellationToken cancellationToken)
     {
         var request = new HtmlUpdateParameters(new TextDocumentIdentifier { DocumentUri = document.GetURI() }, checksum.ToString(), htmlText);
 

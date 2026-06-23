@@ -1,0 +1,3 @@
+﻿// TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml(5,45): error CS9240: Target runtime doesn't support by-ref-like generics.
+//         where TSelf : IValue<TSelf>, allows ref struct
+Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(5, 45)

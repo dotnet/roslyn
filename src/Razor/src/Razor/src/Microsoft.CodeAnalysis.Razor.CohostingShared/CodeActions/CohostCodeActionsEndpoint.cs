@@ -10,9 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Cohost;
@@ -112,9 +114,23 @@ internal sealed class CohostCodeActionsEndpoint(
         var csharpRequest = JsonHelpers.Convert<VSCodeActionParams, CodeActionParams>(request).AssumeNotNull();
 
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, "Razor.ExternalAccess", TelemetryThresholds.CodeActionSubLSPTelemetryThreshold, correlationId);
-        var csharpCodeActions = await CodeActions.GetCodeActionsAsync(generatedDocument, csharpRequest, _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        var csharpCodeActions = await GetCodeActionsAsync(generatedDocument, csharpRequest, _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
 
         return JsonHelpers.ConvertAll<CodeAction, RazorVSInternalCodeAction>(csharpCodeActions);
+    }
+
+    private static Task<CodeAction[]> GetCodeActionsAsync(
+        Document document,
+        CodeActionParams request,
+        bool supportsVSExtensions,
+        CancellationToken cancellationToken)
+    {
+        var solution = document.Project.Solution;
+
+        var codeFixService = solution.Services.ExportProvider.GetService<ICodeFixService>();
+        var codeRefactoringService = solution.Services.ExportProvider.GetService<ICodeRefactoringService>();
+
+        return CodeActionHelpers.GetVSCodeActionsAsync(request, document, codeFixService, codeRefactoringService, supportsVSExtensions, cancellationToken);
     }
 
 #if !VSCODE
@@ -166,5 +182,8 @@ internal sealed class CohostCodeActionsEndpoint(
     {
         public Task<SumType<Command, CodeAction>[]?> HandleRequestAsync(TextDocument razorDocument, VSCodeActionParams request, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+
+        public static Task<CodeAction[]> GetCodeActionsAsync(Document document, CodeActionParams request, bool supportsVSExtensions, CancellationToken cancellationToken)
+            => CohostCodeActionsEndpoint.GetCodeActionsAsync(document, request, supportsVSExtensions, cancellationToken);
     }
 }

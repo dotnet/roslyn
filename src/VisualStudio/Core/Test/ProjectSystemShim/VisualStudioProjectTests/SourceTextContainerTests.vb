@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class SourceTextContainerTests
         <WpfFact>
         Public Async Function AddAndRemoveWorks() As Task
-            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
+            Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project", LanguageNames.CSharp, CancellationToken.None)
 

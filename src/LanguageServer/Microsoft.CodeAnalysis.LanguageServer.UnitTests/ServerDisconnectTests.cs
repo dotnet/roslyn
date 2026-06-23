@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
+using Roslyn.LanguageServer.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -35,15 +36,34 @@ public sealed class ServerDisconnectTests(ITestOutputHelper testOutputHelper) : 
     }
 
     [Fact]
+    public async Task ServerExitsOnExitNotificationWithoutClosingTransport()
+    {
+        // Verify that the server terminates after it receives the exit notification, even if the client
+        // never closes its end of the transport.
+        var server = await CreateLanguageServerAsync();
+
+        await server.ExecuteRequestAsync<object, object>(Methods.ShutdownName, new object(), CancellationToken.None);
+        await server.ExecuteNotification0Async(Methods.ExitName);
+
+        // Server should exit even though we never complete the client->server pipe.
+        await server.ServerExitTask;
+    }
+
+    [Fact]
     public async Task ServerThrowsOnStreamCorruption()
     {
         var server = await CreateLanguageServerAsync();
 
         // Write a valid JSON-RPC header with a corrupt (non-JSON) body to cause a deserialization error.
+        // Both the header and body must be written atomically (without awaiting between them) to avoid a
+        // race condition where the server disconnects between the two writes causing _clientRpc to
+        // asynchronously complete the pipe writer, making the second write throw.
         var garbageBody = Encoding.UTF8.GetBytes("this is not valid json!!");
         var header = Encoding.ASCII.GetBytes($"Content-Length: {garbageBody.Length}\r\n\r\n");
-        await server.ClientToServerPipe.Writer.WriteAsync(header);
-        await server.ClientToServerPipe.Writer.WriteAsync(garbageBody);
+        var message = new byte[header.Length + garbageBody.Length];
+        header.CopyTo(message, 0);
+        garbageBody.CopyTo(message, header.Length);
+        await server.ClientToServerPipe.Writer.WriteAsync(message);
         server.ClientToServerPipe.Writer.Complete();
 
         // Corruption is not a clean disconnect - the server should propagate the error.

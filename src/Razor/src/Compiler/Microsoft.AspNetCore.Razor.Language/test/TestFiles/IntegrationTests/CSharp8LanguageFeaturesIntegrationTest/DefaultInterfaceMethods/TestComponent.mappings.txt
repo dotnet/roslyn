@@ -1,0 +1,23 @@
+﻿Source Location: (7:0,7 [134] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public interface IExample
+    {
+        int GetValue() => 1;
+    }
+    
+    public class Example : IExample
+    {
+    }
+|
+Generated Location: (783:23,0 [134] )
+|
+    public interface IExample
+    {
+        int GetValue() => 1;
+    }
+    
+    public class Example : IExample
+    {
+    }
+|
+

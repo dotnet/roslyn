@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -40,7 +39,8 @@ public class HtmlFactsTest : RazorToolingIntegrationTestBase
         var directiveAttribute = root
             .DescendantNodes()
             .OfType<MarkupTagHelperDirectiveAttributeSyntax>()
-            .First(a => a.ParameterName is not null);
+            .FirstOrDefault(a => a.ParameterName is not null);
+        Assert.NotNull(directiveAttribute);
 
         // Act
         var found = HtmlFacts.TryGetAttributeName(directiveAttribute, out _, out var name, out var nameLocation);
@@ -70,7 +70,8 @@ public class HtmlFactsTest : RazorToolingIntegrationTestBase
         var directiveAttribute = root
             .DescendantNodes()
             .OfType<MarkupTagHelperDirectiveAttributeSyntax>()
-            .First(a => a.ParameterName is null);
+            .FirstOrDefault(a => a.ParameterName is null);
+        Assert.NotNull(directiveAttribute);
 
         // Act
         var found = HtmlFacts.TryGetAttributeName(directiveAttribute, out _, out var name, out var nameLocation);
@@ -103,7 +104,8 @@ public class HtmlFactsTest : RazorToolingIntegrationTestBase
         var minimizedDirectiveAttribute = root
             .DescendantNodes()
             .OfType<MarkupMinimizedTagHelperDirectiveAttributeSyntax>()
-            .First(a => a.ParameterName is not null);
+            .FirstOrDefault(a => a.ParameterName is not null);
+        Assert.NotNull(minimizedDirectiveAttribute);
 
         // Act
         var found = HtmlFacts.TryGetAttributeName(minimizedDirectiveAttribute, out _, out var name, out var nameLocation);
