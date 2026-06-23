@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
                 else
                 {
-                    logger.LogError($"Client disconnect for {request.RequestId}");
+                    logger.Log($"Client disconnect for {request.RequestId}");
                     response = new RejectedBuildResponse($"Client disconnected");
                 }
 
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // IOException: The server is connected to another client and the
                     //              time-out period has expired.
 
-                    logger.Log($"Connecting to server timed out after {timeoutMs} ms: '{e.GetType().Name}' '{e.Message}'");
+                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
                     pipeStream.Dispose();
                     return null;
                 }
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
-                logger.Log($"Exception while connecting to process: '{e.GetType().Name}' '{e.Message}'");
+                logger.LogException(e, "Exception while connecting to process");
                 pipeStream?.Dispose();
                 return null;
             }

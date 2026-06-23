@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -484,6 +485,12 @@ public class C
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
+
+        var indexerDeclaration = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single().Members.OfType<IndexerDeclarationSyntax>().Single();
+        var declaredIndexer = model.GetDeclaredSymbol(indexerDeclaration);
+        AssertEx.Equal("E.extension(C).this[int]", declaredIndexer.ToDisplayString());
+        Assert.True(declaredIndexer.IsIndexer);
+
         var getterAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "c[0]");
         AssertEx.Equal("E.extension(C).this[int]", model.GetSymbolInfo(getterAccess).Symbol.ToDisplayString());
 
@@ -821,6 +828,12 @@ public static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
+
+        var indexerDeclaration = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single().Members.OfType<IndexerDeclarationSyntax>().Single();
+        var declaredIndexer = model.GetDeclaredSymbol(indexerDeclaration);
+        AssertEx.Equal("E.extension<T>(T).this[int]", declaredIndexer.ToDisplayString());
+        Assert.True(declaredIndexer.IsIndexer);
+
         var setterAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "o[0]");
         AssertEx.Equal("E.extension<object>(object).this[int]", model.GetSymbolInfo(setterAccess).Symbol.ToDisplayString());
 
@@ -862,6 +875,12 @@ public static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
+
+        var indexerDeclaration = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single().Members.OfType<IndexerDeclarationSyntax>().Single();
+        var declaredIndexer = model.GetDeclaredSymbol(indexerDeclaration);
+        AssertEx.Equal("E.extension<T>(object).this[T]", declaredIndexer.ToDisplayString());
+        Assert.True(declaredIndexer.IsIndexer);
+
         var setterAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "o[0]");
         AssertEx.Equal("E.extension<int>(object).this[int]", model.GetSymbolInfo(setterAccess).Symbol.ToDisplayString());
 
@@ -11712,6 +11731,61 @@ i[101] = 102;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "i[101]").WithArguments("extension indexers").WithLocation(3, 1));
     }
 
+    [Fact]
+    public void Metadata_02_VisualBasic()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(int i)
+    {
+        public int this[int j]
+        {
+            get { System.Console.Write($"get({j}) "); return 42; }
+            set { System.Console.Write($"set({j}, {value}) "); }
+        }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+        var libRef = libComp.EmitToImageReference();
+
+        var source = """
+Module Program
+    Sub Main()
+        Dim i As Integer = 0
+        System.Console.Write(E.get_Item(i, 43))
+        E.set_Item(i, 101, 102)
+    End Sub
+End Module
+""";
+
+        var references = TargetFrameworkUtil.StandardAndVBRuntimeReferences;
+        var comp = CreateVisualBasicCompilation("Program", source, referencedAssemblies: references.Concat([libRef]), compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(comp, expectedOutput: "get(43) 42set(101, 102) ").VerifyDiagnostics();
+
+        source = """
+Module Program
+    Sub Main()
+        Dim i As Integer = 0
+        System.Console.Write(i(43))
+        i(101) = 102
+    End Sub
+End Module
+""";
+
+        comp = CreateVisualBasicCompilation("Program", source, referencedAssemblies: references.Concat([libRef]), compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        comp.VerifyEmitDiagnostics(
+            // (4,30): error BC30690: Structure 'Integer' cannot be indexed because it has no default property.
+            //         System.Console.Write(i(43))
+            Diagnostic(30690 /*ERRID.ERR_StructureNoDefault1*/, "i").WithArguments("Integer").WithLocation(4, 30),
+            // (5,9): error BC30690: Structure 'Integer' cannot be indexed because it has no default property.
+            //         i(101) = 102
+            Diagnostic(30690 /*ERRID.ERR_StructureNoDefault1*/, "i").WithArguments("Integer").WithLocation(5, 9));
+    }
+
     [Theory, CombinatorialData]
     public void Metadata_03(bool useCompilationReference)
     {
@@ -16169,6 +16243,97 @@ unsafe
 """;
         comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void UpdatedMemorySafetyRules_01()
+    {
+        // unsafe indexer
+        var libSrc = """
+public static class E
+{
+    extension(int x)
+    {
+        unsafe public int this[int i] { get => x + i; set { } }
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        var libRef = libComp.EmitToImageReference();
+        var src = """
+var x = 111;
+x[0] = x[1] + 222;
+E.get_Item(x, 0); E.set_Item(x, 0, 0);
+unsafe { x[0] = x[1] + 333; }
+unsafe { E.get_Item(x, 0); E.set_Item(x, 0, 0); }
+""";
+
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // (2,1): error CS9362: 'E.extension(int).this[int].set' must be used in an unsafe context because it is marked as 'unsafe'
+            // x[0] = x[1] + 222;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x[0]").WithArguments("E.extension(int).this[int].set").WithLocation(2, 1),
+            // (2,8): error CS9362: 'E.extension(int).this[int].get' must be used in an unsafe context because it is marked as 'unsafe'
+            // x[0] = x[1] + 222;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "x[1]").WithArguments("E.extension(int).this[int].get").WithLocation(2, 8),
+            // (3,1): error CS9362: 'E.get_Item(int, int)' must be used in an unsafe context because it is marked as 'unsafe'
+            // E.get_Item(x, 0); E.set_Item(x, 0, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E.get_Item(x, 0)").WithArguments("E.get_Item(int, int)").WithLocation(3, 1),
+            // (3,19): error CS9362: 'E.set_Item(int, int, int)' must be used in an unsafe context because it is marked as 'unsafe'
+            // E.get_Item(x, 0); E.set_Item(x, 0, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E.set_Item(x, 0, 0)").WithArguments("E.set_Item(int, int, int)").WithLocation(3, 19));
+
+        CompileAndVerify(src,
+            references: [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void UpdatedMemorySafetyRules_02(bool useCompilationReference)
+    {
+        // unsafe receiver type
+        var libSrc = """
+public class C<T>
+{
+}
+
+public unsafe static class E
+{
+    extension(C<int*[]> c)
+    {
+        public int this[int i] { get => 0; set { } }
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, options: TestOptions.UnsafeReleaseDll, assemblyName: "lib");
+        var libRef = AsReference(libComp, useCompilationReference);
+
+        var src = """
+var c = new C<int*[]>();
+c[0] = c[0];
+E.get_Item(c, 0); E.set_Item(c, 0, 0);
+unsafe { c[0] = c[0]; }
+unsafe { E.get_Item(c, 0); E.set_Item(c, 0, 0); }
+""";
+
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // (2,1): error CS9363: 'E.extension(C<int*[]>).this[int].set' must be used in an unsafe context because it has pointers in its signature
+            // c[0] = c[0];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c[0]").WithArguments("E.extension(C<int*[]>).this[int].set").WithLocation(2, 1),
+            // (2,8): error CS9363: 'E.extension(C<int*[]>).this[int].get' must be used in an unsafe context because it has pointers in its signature
+            // c[0] = c[0];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c[0]").WithArguments("E.extension(C<int*[]>).this[int].get").WithLocation(2, 8),
+            // (3,1): error CS9363: 'E.get_Item(C<int*[]>, int)' must be used in an unsafe context because it has pointers in its signature
+            // E.get_Item(c, 0); E.set_Item(c, 0, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.get_Item(c, 0)").WithArguments("E.get_Item(C<int*[]>, int)").WithLocation(3, 1),
+            // (3,19): error CS9363: 'E.set_Item(C<int*[]>, int, int)' must be used in an unsafe context because it has pointers in its signature
+            // E.get_Item(c, 0); E.set_Item(c, 0, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "E.set_Item(c, 0, 0)").WithArguments("E.set_Item(C<int*[]>, int, int)").WithLocation(3, 19));
+
+        CreateCompilation(src, references: [libRef], options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -42148,4 +42313,3 @@ class Program
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 }
-
