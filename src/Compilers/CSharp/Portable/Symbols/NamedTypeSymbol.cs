@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var candidate in candidates)
                     {
-                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate, LanguageVersion.Preview))
                         {
                             // Not supported yet
                             continue;
@@ -490,8 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                if ((options & LookupOptions.AllMethodsOnArityZero) == 0
-                    && arity != member.GetMemberArityIncludingExtension())
+                Debug.Assert(member.Kind != SymbolKind.NamedType);
+                if (Binder.WrongArity(member, arity, diagnose: false, options, out _))
                 {
                     return false;
                 }

@@ -16,13 +16,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService), ServiceLayer.Test), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class MockEditAndContinueServiceFactory(
-    [Import(AllowDefault = true)] IEditAndContinueSessionTracker? sessionTracker = null) : IWorkspaceServiceFactory
+internal sealed class MockEditAndContinueServiceFactory() : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new EditAndContinueService.WorkspaceService(
-            new MockEditAndContinueService(),
-            sessionTracker ?? EditAndContinueService.VoidSessionTracker.Instance);
+        => new EditAndContinueService.WorkspaceService(new MockEditAndContinueService());
 }
 
 internal sealed class MockEditAndContinueService() : IEditAndContinueService

@@ -83,6 +83,12 @@ dotnet_diagnostic.RS0006.severity = error
 dotnet_diagnostic.RS0012.severity = warning
 dotnet_diagnostic.RS0014.severity = warning
 dotnet_diagnostic.RS0015.severity = warning
+# RS0016: Only enforce public API tracking when API files are present.
+# This must live in a global config (is_global = true) rather than .editorconfig because the
+# PublicApiAnalyzer reads this option from the first syntax tree of the compilation. For some
+# projects (e.g. IdeCoreBenchmarks) that first tree is a NuGet contentFiles '*.g.cs' file in the
+# global package cache outside the repo, where a path-scoped .editorconfig does not apply.
+dotnet_public_api_analyzer.require_api_files = true
 dotnet_diagnostic.RS0016.severity = error
 dotnet_diagnostic.RS0017.severity = error
 dotnet_diagnostic.RS0018.severity = warning

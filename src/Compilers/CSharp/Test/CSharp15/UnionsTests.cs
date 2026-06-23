@@ -5697,19 +5697,138 @@ static class Extensions
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (14,21): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
-                //         return u is [10];
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[10]").WithArguments("object").WithLocation(14, 21),
                 // (14,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 //         return u is [10];
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(14, 21),
-                // (19,21): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
-                //         return u is [10];
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[10]").WithArguments("object").WithLocation(19, 21),
                 // (19,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 //         return u is [10];
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(19, 21)
                 );
+        }
+
+        [Fact]
+        public void UnionMatching_25_List_Success()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int[] x) { _value = x; }
+    public S1(string[] x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new int[] { };
+        System.Console.Write(Test1(s1));
+        System.Console.Write(Test2(s1));
+        System.Console.Write(' ');
+
+        s1 = new string[] { };
+        System.Console.Write(Test1(s1));
+        System.Console.Write(Test2(s1));
+        System.Console.Write(' ');
+
+        s1 = default;
+        System.Console.Write(Test1(s1));
+        System.Console.Write(Test2(s1));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is [10];
+    }
+
+    static bool Test2(S1? u)
+    {
+        return u is [10];
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public int Length => 1;
+        public int this[System.Index i] => 10;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueTrue TrueTrue FalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (object V_0,
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  call       "object S1.Value.get"
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  brfalse.s  IL_0028
+  IL_000c:  ldloc.0
+  IL_000d:  call       "int Extensions.get_Length(object)"
+  IL_0012:  ldc.i4.1
+  IL_0013:  bne.un.s   IL_0028
+  IL_0015:  ldloc.0
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  newobj     "System.Index..ctor(int, bool)"
+  IL_001d:  call       "int Extensions.get_Item(object, System.Index)"
+  IL_0022:  ldc.i4.s   10
+  IL_0024:  ceq
+  IL_0026:  br.s       IL_0029
+  IL_0028:  ldc.i4.0
+  IL_0029:  stloc.1
+  IL_002a:  br.s       IL_002c
+  IL_002c:  ldloc.1
+  IL_002d:  ret
+}
+""");
+            verifier.VerifyIL("Program.Test2", """
+{
+  // Code size       63 (0x3f)
+  .maxstack  3
+  .locals init (S1 V_0,
+                object V_1,
+                bool V_2)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  call       "readonly bool S1?.HasValue.get"
+  IL_0008:  brfalse.s  IL_0039
+  IL_000a:  ldarga.s   V_0
+  IL_000c:  call       "readonly S1 S1?.GetValueOrDefault()"
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       "object S1.Value.get"
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_0039
+  IL_001d:  ldloc.1
+  IL_001e:  call       "int Extensions.get_Length(object)"
+  IL_0023:  ldc.i4.1
+  IL_0024:  bne.un.s   IL_0039
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  newobj     "System.Index..ctor(int, bool)"
+  IL_002e:  call       "int Extensions.get_Item(object, System.Index)"
+  IL_0033:  ldc.i4.s   10
+  IL_0035:  ceq
+  IL_0037:  br.s       IL_003a
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.2
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.2
+  IL_003e:  ret
+}
+""");
         }
 
         [Fact]

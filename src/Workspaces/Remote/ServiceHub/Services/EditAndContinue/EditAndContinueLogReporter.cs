@@ -30,7 +30,7 @@ internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
         }
     }
 
-    private const string CategoryName = "Roslyn";
+    private const string ComponentSymbol = "🔣";
 
     private readonly AsyncBatchingWorkQueue<HotReloadLogMessage> _queue;
 
@@ -70,6 +70,6 @@ internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
             _ => throw ExceptionUtilities.UnexpectedValue(severity),
         };
 
-        _queue.AddWork(new HotReloadLogMessage(verbosity, message, errorLevel: errorLevel, category: CategoryName));
+        _queue.AddWork(new HotReloadLogMessage(verbosity, message, errorLevel: errorLevel, category: ComponentSymbol));
     }
 }
