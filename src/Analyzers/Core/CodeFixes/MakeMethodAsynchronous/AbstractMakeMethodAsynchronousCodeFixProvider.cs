@@ -106,6 +106,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         CancellationToken cancellationToken)
     {
         // 3 == methodSymbol + partial definition + partial implementation
+        // `seenSymbols` will filter out duplicates.
         var symbolsToSearch = ImmutableArray.CreateBuilder<IMethodSymbol>(3);
         symbolsToSearch.Add(methodSymbol);
 
