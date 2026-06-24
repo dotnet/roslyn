@@ -16,8 +16,6 @@ internal interface IDocumentSnapshot
     string TargetPath { get; }
     IProjectSnapshot Project { get; }
 
-    int Version { get; }
-
     ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken);
     ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken);
     ValueTask<RazorCodeDocument> GetGeneratedOutputAsync(CancellationToken cancellationToken);

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -22,7 +22,6 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     public RazorFileKind FileKind => throw new NotImplementedException();
     public string TargetPath => throw new NotImplementedException();
     public IProjectSnapshot Project => throw new NotImplementedException();
-    public int Version => throw new NotImplementedException();
 
     private TestDocumentSnapshot(string filePath, RazorCodeDocument codeDocument)
     {

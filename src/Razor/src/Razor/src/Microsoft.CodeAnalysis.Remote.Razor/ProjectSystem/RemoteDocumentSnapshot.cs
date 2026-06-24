@@ -38,8 +38,6 @@ internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 
     public IProjectSnapshot Project => ProjectSnapshot;
 
-    public int Version => -999; // We don't expect to use this in cohosting, but plenty of existing code logs it's value
-
     public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
         return TryGetText(out var result)
