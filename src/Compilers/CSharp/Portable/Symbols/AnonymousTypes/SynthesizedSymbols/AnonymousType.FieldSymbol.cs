@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override FlowAnalysisAnnotations FlowAnalysisAnnotations
                 => FlowAnalysisAnnotations.None;
 
-            internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+            internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder) => CallerUnsafeMode.None;
 
             internal override bool HasSpecialName
             {

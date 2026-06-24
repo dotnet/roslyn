@@ -684,19 +684,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer();
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder)
         {
-            get
+            if (!RequiresUnsafe)
             {
-                if (!RequiresUnsafe)
-                {
-                    return CallerUnsafeMode.None;
-                }
-
-                return ContainingModule.UseUpdatedMemorySafetyRules
-                    ? CallerUnsafeMode.Explicit
-                    : CallerUnsafeMode.Implicit;
+                return CallerUnsafeMode.None;
             }
+
+            return ContainingModule.UseUpdatedMemorySafetyRules
+                ? CallerUnsafeMode.Explicit
+                : CallerUnsafeMode.Implicit;
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters

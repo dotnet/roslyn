@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
             {
                 DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     ModifiersTokenList.GetModifierLocation(SyntaxKind.UnsafeKeyword, ErrorLocation),
@@ -190,10 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
-            => GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty);
-
-        internal CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder)
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
@@ -204,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         : CallerUnsafeMode.None;
             }
 
-            return !IsFixedSizeBuffer && GetFieldType(fieldsBeingBound).Type.ContainsPointerOrFunctionPointer()
+            return !IsFixedSizeBuffer && GetFieldType(binder?.FieldsBeingBound ?? ConsList<FieldSymbol>.Empty).Type.ContainsPointerOrFunctionPointer()
                 ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
         }
 

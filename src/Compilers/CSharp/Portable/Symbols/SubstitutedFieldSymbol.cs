@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode => _underlyingField.CallerUnsafeMode;
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder) => _underlyingField.GetCallerUnsafeMode(binder);
 
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {

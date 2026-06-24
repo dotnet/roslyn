@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode => _underlyingEvent.CallerUnsafeMode;
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder? binder) => _underlyingEvent.GetCallerUnsafeMode(binder);
 
         // If we need to un-seal this method, we should make it abstract.
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)

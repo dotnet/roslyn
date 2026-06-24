@@ -122,27 +122,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool CanBeCallerUnsafe { get; }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder? binder)
         {
-            get
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(binder) != CallerUnsafeMode.Implicit);
+
+                if (!CanBeCallerUnsafe)
                 {
-                    Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
-
-                    if (!CanBeCallerUnsafe)
-                    {
-                        return CallerUnsafeMode.None;
-                    }
-
-                    return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit)
-                        ? CallerUnsafeMode.Explicit
-                        : CallerUnsafeMode.None;
+                    return CallerUnsafeMode.None;
                 }
 
-                return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
-                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.GetCallerUnsafeMode(binder) == CallerUnsafeMode.Explicit)
+                    ? CallerUnsafeMode.Explicit
+                    : CallerUnsafeMode.None;
             }
+
+            return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
+                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
         }
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
@@ -167,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = target.DeclaringCompilation;
 
-            if (target.CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (target.GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }

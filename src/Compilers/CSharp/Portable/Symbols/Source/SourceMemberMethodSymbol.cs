@@ -1001,7 +1001,7 @@ done:
                     Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, _location));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, _location),

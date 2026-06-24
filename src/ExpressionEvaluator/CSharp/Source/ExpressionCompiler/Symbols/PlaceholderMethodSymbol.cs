@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool UseUpdatedEscapeRules => false;
 
-        internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+        internal override CallerUnsafeMode GetCallerUnsafeMode(Binder binder) => CallerUnsafeMode.None;
 
         internal override bool RequiresSecurityObject
         {

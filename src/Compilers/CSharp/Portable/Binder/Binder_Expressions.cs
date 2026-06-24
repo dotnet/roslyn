@@ -9988,9 +9988,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, propertySymbol, node, hasBaseReceiver: receiver?.Kind == BoundKind.BaseReference);
 
             // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
-            Debug.Assert(propertySymbol.CallerUnsafeMode == CallerUnsafeMode.None ||
-                (propertySymbol.GetMethod is null || propertySymbol.GetMethod.CallerUnsafeMode == propertySymbol.CallerUnsafeMode) ||
-                (propertySymbol.SetMethod is null || propertySymbol.SetMethod.CallerUnsafeMode == propertySymbol.CallerUnsafeMode));
+            Debug.Assert(propertySymbol.GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.None ||
+                (propertySymbol.GetMethod is null || propertySymbol.GetMethod.GetCallerUnsafeMode(binder: null) == propertySymbol.GetCallerUnsafeMode(binder: null)) ||
+                (propertySymbol.SetMethod is null || propertySymbol.SetMethod.GetCallerUnsafeMode(binder: null) == propertySymbol.GetCallerUnsafeMode(binder: null)));
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
@@ -10076,9 +10076,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteInfo);
 
             // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
-            Debug.Assert(eventSymbol.CallerUnsafeMode == CallerUnsafeMode.None ||
-                (eventSymbol.AddMethod is null || eventSymbol.AddMethod.CallerUnsafeMode == eventSymbol.CallerUnsafeMode) ||
-                (eventSymbol.RemoveMethod is null || eventSymbol.RemoveMethod.CallerUnsafeMode == eventSymbol.CallerUnsafeMode));
+            Debug.Assert(eventSymbol.GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.None ||
+                (eventSymbol.AddMethod is null || eventSymbol.AddMethod.GetCallerUnsafeMode(binder: null) == eventSymbol.GetCallerUnsafeMode(binder: null)) ||
+                (eventSymbol.RemoveMethod is null || eventSymbol.RemoveMethod.GetCallerUnsafeMode(binder: null) == eventSymbol.GetCallerUnsafeMode(binder: null)));
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, eventSymbol, ref lookupResult, diagnostics);
 

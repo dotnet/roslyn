@@ -618,15 +618,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
+#nullable enable
         // https://github.com/dotnet/roslyn/issues/82546: add a public API for this (probably just expose a bool)
         /// <summary>
         /// Whether this member is considered unsafe under the updated memory safety rules.
-        /// See <see cref="CSharp.CallerUnsafeMode"/> for more details.
+        /// See <see cref="CallerUnsafeMode"/> for more details.
         /// </summary>
-        /// <remarks>
-        /// During binding, use <see cref="Binder.GetCallerUnsafeMode"/> helper instead of this.
-        /// </remarks>
-        internal abstract CallerUnsafeMode CallerUnsafeMode { get; }
+        internal abstract CallerUnsafeMode GetCallerUnsafeMode(Binder? binder);
+#nullable disable
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
