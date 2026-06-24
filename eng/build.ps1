@@ -58,6 +58,7 @@ param (
   [string]$officialVisualStudioDropAccessToken = "",
 
   # Test actions
+  [string]$testFilter = "",
   [switch]$testVsi,
   [switch]$skipCustomRoslynDeploy = $false,
 
@@ -85,6 +86,7 @@ function Print-Usage() {
   Write-Host "  -help                     Print help and exit"
   Write-Host ""
   Write-Host "Test actions"
+  Write-Host "  -testFilter               Filter tests to run (maps to --filter parameter of xunit)"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -skipCustomRoslynDeploy   Skip custom Roslyn deployment when running integration tests (uses Roslyn from the VS)"
   Write-Host ""
@@ -352,6 +354,7 @@ function TestUsingRunTests() {
   $args += " --dotnet `"$dotnetExe`""
   $args += " --logs `"$LogDir`""
   $args += " --testConfiguration $configuration"
+  $testFilters = @()
 
   if ($testVsi) {
     $args += " --testFramework:core --testFramework:desktop"
@@ -361,6 +364,18 @@ function TestUsingRunTests() {
     if ($lspEditor) {
       $testFilters += "Editor=LanguageServerProtocol"
     }
+  }
+
+  if ($testFilter -ne "") {
+    $testFilters += $testFilter
+  }
+
+  if ($testFilters.Count -eq 1) {
+    $args += " --testfilter $($testFilters[0])"
+  }
+  elseif ($testFilters.Count -gt 1) {
+    $combinedTestFilter = ($testFilters | ForEach-Object { "($_)" }) -join "&"
+    $args += " --testfilter $combinedTestFilter"
   }
 
   if (-not $ci -and -not $testVsi) {
