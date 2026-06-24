@@ -9,39 +9,39 @@
       </trans-unit>
       <trans-unit id="Baseline_Newly_Available">
         <source>🆕 Newly available across major browsers{0}</source>
-        <target state="translated">🆕 Disponible recientemente en los principales exploradores{0}</target>
+        <target state="new">🆕 Newly available across major browsers{0}</target>
         <note>{0} is " (Baseline since YYYY)" or empty</note>
       </trans-unit>
       <trans-unit id="Baseline_Since">
         <source> (Baseline since {0})</source>
-        <target state="translated"> (Línea base desde {0})</target>
+        <target state="new"> (Baseline since {0})</target>
         <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
       </trans-unit>
       <trans-unit id="Baseline_Widely_Available">
         <source>✅ Widely available across major browsers{0}</source>
-        <target state="translated">✅ Ampliamente disponible en los exploradores principales{0}</target>
+        <target state="new">✅ Widely available across major browsers{0}</target>
         <note>{0} is " (Baseline since YYYY)" or empty</note>
-      </trans-unit>
-      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
-        <source>{0} (and req'd attributes...)</source>
-        <target state="translated">{0} (y atributos req'd...)</target>
-        <note>The term "req'd" is an abbreviation for "required"</note>
       </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
-        <target state="translated">Atributos de directiva de Blazor</target>
+        <target state="new">Blazor directive attributes</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
+        <source>{0} (and req'd attributes...)</source>
+        <target state="new">{0} (and req'd attributes...)</target>
+        <note>The term "req'd" is an abbreviation for "required"</note>
       </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
-        <target state="translated">directiva</target>
+        <target state="new">directive</target>
         <note />
       </trans-unit>
       <trans-unit id="DirectiveSnippetDescription">
         <source>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="translated">Insertar un fragmento de código de directiva
-[Tab] para navegar entre elementos, [Entrar] para completar</target>
+        <target state="new">Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
@@ -61,7 +61,7 @@
       </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
-        <target state="translated">{0} Palabra clave</target>
+        <target state="new">{0} Keyword</target>
         <note />
       </trans-unit>
       <trans-unit id="Language_Services_Missing_Service">
@@ -71,7 +71,7 @@
       </trans-unit>
       <trans-unit id="MDN_Reference">
         <source>MDN Reference</source>
-        <target state="translated">Referencia de MDN</target>
+        <target state="new">MDN Reference</target>
         <note>Link text for MDN documentation URL in HTML completion tooltips</note>
       </trans-unit>
       <trans-unit id="Not_Available_In">
@@ -89,6 +89,11 @@
         <target state="translated">La línea '{0}' se consultó fuera del {1} rango de '{2}'. Es posible que el documento no esté actualizado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="new">"Re-trigger completions..."</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Glifo del atributo TagHelper de Razor</target>
@@ -97,11 +102,6 @@
       <trans-unit id="TagHelper_Element_Glyph">
         <source>Razor TagHelper Element Glyph</source>
         <target state="translated">Glifo del elemento TagHelper de Razor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ReTrigger_Completions_Title">
-        <source>"Re-trigger completions..."</source>
-        <target state="translated">"Volver a desencadenar las finalizaciones..."</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">

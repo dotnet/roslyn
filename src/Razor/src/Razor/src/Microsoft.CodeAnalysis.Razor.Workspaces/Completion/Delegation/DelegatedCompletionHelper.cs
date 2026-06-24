@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -344,6 +345,8 @@ internal static class DelegatedCompletionHelper
     public static async Task<VSInternalCompletionItem> FormatCSharpCompletionItemAsync(
         VSInternalCompletionItem resolvedCompletionItem,
         DocumentContext documentContext,
+        Solution solution,
+        bool declarationDocument,
         RazorFormattingOptions options,
         IRazorFormattingService formattingService,
         IDocumentMappingService documentMappingService,
@@ -351,6 +354,9 @@ internal static class DelegatedCompletionHelper
         ILogger logger,
         CancellationToken cancellationToken)
     {
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument);
+
         // In VS Code, Roslyn does resolve via a custom command. Thats fine, but we have to modify the text edit sitting within it,
         // rather than the one LSP knows about.
         if (resolvedCompletionItem.Command is { CommandIdentifier: CompletionResultFactory.CompleteComplexEditCommand, Arguments: var args })
@@ -363,9 +369,18 @@ internal static class DelegatedCompletionHelper
             }
 
             // In cohosting case, command parameters will be of the correct types (or deserialized by now in LSP case)
-            if (args is [TextDocumentIdentifier, TextEdit complexEdit, _, int nextCursorPosition])
+            if (args is [TextDocumentIdentifier textDocumentIdentifier, TextEdit complexEdit, _, int nextCursorPosition])
             {
-                var formattedTextEdit = await FormatTextEditsAsync([complexEdit], documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
+                var commandGeneratedDocumentUri = textDocumentIdentifier.DocumentUri.GetRequiredSystemUri();
+                // Just in case the edit is for a different document, however unlikely, we'll use the uri as the source of truth
+                if (!codeDocument.TryGetCSharpDocumentForGeneratedUri(solution, commandGeneratedDocumentUri, out var commandCSharpDocument))
+                {
+                    logger.LogError($"Unable to find a generated Razor C# document for URI '{commandGeneratedDocumentUri}'.");
+                    resolvedCompletionItem.Command = null;
+                    return resolvedCompletionItem;
+                }
+
+                var formattedTextEdit = await FormatTextEditsAsync([complexEdit], documentContext, commandCSharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
                 if (formattedTextEdit is null)
                 {
                     resolvedCompletionItem.Command = null;
@@ -380,8 +395,7 @@ internal static class DelegatedCompletionHelper
                     if (nextCursorPosition >= 0)
                     {
                         // nextCursorPosition is where VS Code will navigate to, so we translate it to our document, or set to 0 to do nothing.
-                        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-                        args[3] = documentMappingService.TryMapToRazorDocumentPosition(codeDocument.GetRequiredImplCSharpDocument(), nextCursorPosition, out _, out nextCursorPosition)
+                        args[3] = documentMappingService.TryMapToRazorDocumentPosition(commandCSharpDocument, nextCursorPosition, out _, out nextCursorPosition)
                             ? nextCursorPosition
                             : 0;
                     }
@@ -405,7 +419,7 @@ internal static class DelegatedCompletionHelper
         {
             if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
             {
-                var formattedTextChange = await FormatTextEditsAsync([textEdit], documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
+                var formattedTextChange = await FormatTextEditsAsync([textEdit], documentContext, csharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
                 if (formattedTextChange is not null)
                 {
                     resolvedCompletionItem.TextEdit = formattedTextChange;
@@ -421,7 +435,7 @@ internal static class DelegatedCompletionHelper
 
         if (resolvedCompletionItem.AdditionalTextEdits is not null)
         {
-            var formattedTextChange = await FormatTextEditsAsync(resolvedCompletionItem.AdditionalTextEdits, documentContext, options, formattingService, cancellationToken).ConfigureAwait(false);
+            var formattedTextChange = await FormatTextEditsAsync(resolvedCompletionItem.AdditionalTextEdits, documentContext, csharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
             resolvedCompletionItem.AdditionalTextEdits = formattedTextChange is { } change ? [change] : null;
         }
 
@@ -438,16 +452,15 @@ internal static class DelegatedCompletionHelper
         }
     }
 
-    private static async Task<TextEdit?> FormatTextEditsAsync(TextEdit[] textEdits, DocumentContext documentContext, RazorFormattingOptions options, IRazorFormattingService formattingService, CancellationToken cancellationToken)
+    private static async Task<TextEdit?> FormatTextEditsAsync(TextEdit[] textEdits, DocumentContext documentContext, RazorCSharpDocument csharpDocument, RazorFormattingOptions options, IRazorFormattingService formattingService, CancellationToken cancellationToken)
     {
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        var csharpSourceText = await documentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
-        var changes = textEdits.SelectAsArray(csharpSourceText.GetTextChange);
+        var changes = textEdits.SelectAsArray(csharpDocument.Text.GetTextChange);
         var formattedTextChange = await formattingService.TryGetCSharpSnippetFormattingEditAsync(
             documentContext,
             changes,
-            declarationDocument: false, // PROTOTYPE(sonic): Pass in the right value to this
+            csharpDocument.IsDeclarationDocument,
             options,
             cancellationToken).ConfigureAwait(false);
 
