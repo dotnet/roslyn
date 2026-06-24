@@ -2,15 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazorComponentSearchEngine
+[Export(typeof(IRazorComponentSearchEngine)), Shared]
+[method: ImportingConstructor]
+internal sealed class RazorComponentSearchEngine(ILoggerFactory loggerFactory) : IRazorComponentSearchEngine
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorComponentSearchEngine>();
 
