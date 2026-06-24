@@ -523,6 +523,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
             # IDE0391
             dotnet_diagnostic.IDE0391.severity = %value%
 
+            # IDE0410
+            dotnet_diagnostic.IDE0410.severity = %value%
+
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -942,6 +945,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0380", null, null),
             ("IDE0390", null, null),
             ("IDE0391", null, null),
+            ("IDE0410", "csharp_style_prefer_labeled_jump_statements", "true"),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),
