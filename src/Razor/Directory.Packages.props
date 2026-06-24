@@ -8,7 +8,7 @@
   <PropertyGroup>
     <_MicrosoftWebToolsPackageVersion>17.11.11-preview-0001</_MicrosoftWebToolsPackageVersion>
     <_MicrosoftVisualStudioShellPackagesVersion>18.0.2188-preview.1</_MicrosoftVisualStudioShellPackagesVersion>
-    <_MicrosoftVisualStudioPackagesVersion>18.0.404-preview</_MicrosoftVisualStudioPackagesVersion>
+    <_MicrosoftVisualStudioPackagesVersion>18.9.123</_MicrosoftVisualStudioPackagesVersion>
     <_VisualStudioLanguageServerProtocolVersion>17.12.1-preview</_VisualStudioLanguageServerProtocolVersion>
     <_MicrosoftExtensionsPackageVersion>10.0.1</_MicrosoftExtensionsPackageVersion>
     <_MicrosoftVisualStudioLanguageServicesPackageVersion>$(MicrosoftVisualStudioLanguageServicesPackageVersion)</_MicrosoftVisualStudioLanguageServicesPackageVersion>
@@ -21,16 +21,16 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(_MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.NET.Sdk.Razor" Version="11.0.100-preview.4.26215.114" />
-    <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="0.2.28-beta" />
+    <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="18.7.476" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" Version="$(_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="18.9.453" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Implementation" Version="$(_MicrosoftVisualStudioPackagesVersion)" NoWarn="NU1701" />
-    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.13.22" />
+    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="18.7.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Web" Version="16.10.0-preview-1-31008-014" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html" Version="$(_MicrosoftWebToolsPackageVersion)" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html.Editor" Version="$(_MicrosoftWebToolsPackageVersion)" />

@@ -12,7 +12,7 @@
       <Sha>1d4910780fe728cf5affade170fe51fc8f96f9fb</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
-    <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="10.0.1">
+    <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
@@ -52,15 +52,15 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Collections.Immutable" Version="10.0.1">
+    <Dependency Name="System.Collections.Immutable" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.ComponentModel.Composition" Version="10.0.1">
+    <Dependency Name="System.ComponentModel.Composition" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="10.0.1">
+    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
@@ -68,7 +68,7 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.IO.Pipelines" Version="10.0.1">
+    <Dependency Name="System.IO.Pipelines" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
@@ -76,20 +76,20 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Text.Encodings.Web" Version="10.0.1">
+    <Dependency Name="System.Text.Encodings.Web" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild in VS (would lead to NGEN failures on insertion). -->
-    <Dependency Name="System.Text.Json" Version="10.0.1">
+    <Dependency Name="System.Text.Json" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Tasks.Dataflow" Version="10.0.1">
+    <Dependency Name="System.Threading.Tasks.Dataflow" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="System.Reflection.Metadata" Version="10.0.1">
+    <Dependency Name="System.Reflection.Metadata" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
@@ -137,7 +137,7 @@
     </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->
-    <Dependency Name="System.Composition" Version="10.0.1">
+    <Dependency Name="System.Composition" Version="10.0.8">
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
