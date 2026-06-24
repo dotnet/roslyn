@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
 public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutputHelper) : AbstractLspMiscellaneousFilesWorkspaceTests(testOutputHelper)
 {
+    private static readonly TimeSpan s_fileChangeNotificationTimeout = TimeSpan.FromSeconds(30);
+
     [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Simple(bool mutatingLspWorkspace)
     {
@@ -762,8 +764,10 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Adding a #! directive to a misc file causes it to move to a file-based program project.
         var textToInsert = $"#!/usr/bin/env dotnet{Environment.NewLine}";
+        var sourceDirectoryPath = Path.GetDirectoryName(sourceFile.Path);
+        Contract.ThrowIfNull(sourceDirectoryPath);
         var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
-        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(sourceFile.Path)!, extensionFilters: [])]);
+        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(sourceDirectoryPath, extensionFilters: [])]);
         var fileChangeTcs = new TaskCompletionSource();
         fileChangeContext.FileChanged += (_, path) =>
         {
@@ -785,7 +789,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var (_, document2) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(document.Project.Id, document2.Project.Id);
 
-        await fileChangeTcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        await fileChangeTcs.Task.WaitAsync(s_fileChangeNotificationTimeout);
 
         // Wait for the file-based program project to load.
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
@@ -837,8 +841,10 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Set up a listener for file change events before writing to disk, so we can wait for
         // the FileSystemWatcher to deliver the event (which triggers the project reload enqueue).
+        var appDirectoryPath = Path.GetDirectoryName(appCsFile.Path);
+        Contract.ThrowIfNull(appDirectoryPath);
         var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
-        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
+        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(appDirectoryPath, extensionFilters: [])]);
         var fileChangeTcs = new TaskCompletionSource();
         fileChangeContext.FileChanged += (_, path) =>
         {
@@ -850,7 +856,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         appCsFile.WriteAllText(newAppCsText);
 
         // Wait for the file change event to be delivered, ensuring the reload is enqueued.
-        await fileChangeTcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        await fileChangeTcs.Task.WaitAsync(s_fileChangeNotificationTimeout);
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Now the document is a miscellaneous file
