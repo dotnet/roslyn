@@ -69,7 +69,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = TempRoot.CreateDirectory();
-        tempDir.CreateFile("global.json").WriteAllText("""{ "sdk": { "version": "10.0.300" } }""");
+        tempDir.CreateFile("global.json").WriteAllText("""{ "sdk": { "version": "10.0.300", "rollForward": "latestMajor" } }""");
         tempDir.CreateFile("Util.cs").WriteAllText("""
             #:property TargetFramework=net10.0
             #:property OutputType=Library
