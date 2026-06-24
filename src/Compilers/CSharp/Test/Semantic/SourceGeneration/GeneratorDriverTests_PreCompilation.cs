@@ -1003,7 +1003,7 @@ class C { }
             var result = Assert.Single(runResult.Results);
             Assert.NotNull(result.Exception);
             Assert.IsType<InvalidOperationException>(result.Exception);
-            Assert.Contains("pre-compilation", result.Exception!.Message);
+            Assert.Equal(string.Format(CodeAnalysisResources.CompilationNotAvailableInPreCompilationPhase, "CompilationProvider"), result.Exception!.Message);
 
             // A diagnostic was reported
             Assert.NotEmpty(diagnostics);
@@ -1041,7 +1041,7 @@ class C { }
             // Generator should be in error state with a useful InvalidOperationException
             Assert.NotNull(result.Exception);
             Assert.IsType<InvalidOperationException>(result.Exception);
-            Assert.Contains("pre-compilation", result.Exception!.Message);
+            Assert.Equal(CodeAnalysisResources.SyntaxProvidersNotAvailableInPreCompilationPhase, result.Exception!.Message);
 
             // The pre-compilation source must NOT have been produced
             Assert.Empty(result.GeneratedSources);
