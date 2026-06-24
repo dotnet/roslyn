@@ -208,7 +208,26 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             await _languageServerHostCompletionTask;
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
-            _clientRpc.Dispose();
+            await DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
+        }
+
+        private static async Task DisposeAndWaitForCompletionAsync(JsonRpc jsonRpc)
+        {
+            jsonRpc.Dispose();
+
+            try
+            {
+                await jsonRpc.Completion.ConfigureAwait(false);
+            }
+            catch (ConnectionLostException)
+            {
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (ObjectDisposedException)
+            {
+            }
         }
     }
 }
