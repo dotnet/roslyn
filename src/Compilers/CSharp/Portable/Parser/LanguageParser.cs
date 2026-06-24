@@ -2630,6 +2630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Doing this before parsing modifiers simplifies further analysis since some of these keywords can act as modifiers as well.
                 //
                 // unsafe { ... }
+                // unsafe (...)
                 // fixed (...) { ... } 
                 // delegate (...) { ... }
                 // delegate { ... }
@@ -2649,6 +2650,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                             {
                                 return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
+                            }
+                            else if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(attributes));
                             }
                             break;
 
@@ -8521,9 +8526,30 @@ done:
         private StatementSyntax ParseStatementStartingWithUsing(SyntaxList<AttributeListSyntax> attributes)
             => PeekToken(1).Kind == SyntaxKind.OpenParenToken ? ParseUsingStatement(attributes) : ParseLocalDeclarationStatement(attributes);
 
-        // Checking for brace to disambiguate between unsafe statement and unsafe local function
+        // Checking for brace or parentheses to disambiguate between unsafe statement, unsafe expression, and unsafe local function
         private StatementSyntax TryParseStatementStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
-            => IsPossibleUnsafeStatement() ? ParseUnsafeStatement(attributes) : null;
+        {
+            return PeekToken(1).Kind switch
+            {
+                SyntaxKind.OpenParenToken => ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(attributes),
+                SyntaxKind.OpenBraceToken => ParseUnsafeStatement(attributes),
+                _ => null,
+            };
+        }
+
+        private StatementSyntax ParseExpressionStatementOrLocalFunctionStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
+        {
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            var result = ParseLocalDeclarationStatement(attributes);
+            if (result is LocalFunctionStatementSyntax)
+            {
+                return result;
+            }
+
+            resetPoint.Reset();
+            return ParseExpressionStatement(attributes);
+        }
 
         private bool IsPossibleAwaitUsing()
             => CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(1).Kind == SyntaxKind.UsingKeyword;
@@ -8531,11 +8557,6 @@ done:
         private bool IsPossibleLabeledStatement()
         {
             return this.PeekToken(1).Kind == SyntaxKind.ColonToken && this.IsTrueIdentifier();
-        }
-
-        private bool IsPossibleUnsafeStatement()
-        {
-            return this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken;
         }
 
         private bool IsPossibleYieldStatement()
@@ -11139,6 +11160,7 @@ done:
                 case SyntaxKind.RefTypeKeyword:
                 case SyntaxKind.CheckedKeyword:
                 case SyntaxKind.UncheckedKeyword:
+                case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.RefValueKeyword:
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.BaseKeyword:
@@ -11334,6 +11356,7 @@ done:
                 case SyntaxKind.SizeOfExpression:
                 case SyntaxKind.CheckedExpression:
                 case SyntaxKind.UncheckedExpression:
+                case SyntaxKind.UnsafeExpression:
                 case SyntaxKind.MakeRefExpression:
                 case SyntaxKind.RefValueExpression:
                 case SyntaxKind.RefTypeExpression:
@@ -12007,6 +12030,8 @@ done:
                     case SyntaxKind.CheckedKeyword:
                     case SyntaxKind.UncheckedKeyword:
                         return this.ParseCheckedOrUncheckedExpression();
+                    case SyntaxKind.UnsafeKeyword:
+                        return this.ParseUnsafeExpression();
                     case SyntaxKind.RefValueKeyword:
                         return this.ParseRefValueExpression();
                     case SyntaxKind.ColonColonToken:
@@ -12722,6 +12747,15 @@ done:
             return _syntaxFactory.CheckedExpression(
                 kind,
                 checkedOrUnchecked,
+                this.EatToken(SyntaxKind.OpenParenToken),
+                this.ParseExpressionForParenthesizedConstruct(),
+                this.EatToken(SyntaxKind.CloseParenToken));
+        }
+
+        private UnsafeExpressionSyntax ParseUnsafeExpression()
+        {
+            return _syntaxFactory.UnsafeExpression(
+                this.EatToken(SyntaxKind.UnsafeKeyword),
                 this.EatToken(SyntaxKind.OpenParenToken),
                 this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));

@@ -54,7 +54,6 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 
 ## Testing
 
-- Place `[WorkItem("url")]` on tests that track a specific issue (GitHub or DevOps URL).
 - Use `TestCode` with `[|...|]` span markers for before/after test scenarios. Access
   `input.Text` (cleaned) and `input.Span` (marked range).
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`).

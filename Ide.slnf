@@ -129,6 +129,7 @@
       "src\\LanguageServer\\ExternalAccess\\CompilerDeveloperSDK\\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj",
       "src\\LanguageServer\\ExternalAccess\\Copilot\\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj",
       "src\\LanguageServer\\ExternalAccess\\VisualDiagnostics\\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj",
+      "src\\LanguageServer\\Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests\\Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.csproj",
       "src\\LanguageServer\\Microsoft.CodeAnalysis.LanguageServer.UnitTests\\Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj",
       "src\\LanguageServer\\Microsoft.CodeAnalysis.LanguageServer\\Microsoft.CodeAnalysis.LanguageServer.csproj",
       "src\\LanguageServer\\Microsoft.CommonLanguageServerProtocol.Framework.Example\\Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj",

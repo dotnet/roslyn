@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeLens;
 
 public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTests
 {
-    protected AbstractCodeLensTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    protected AbstractCodeLensTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 

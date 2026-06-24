@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -313,8 +312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnions = MessageBase + 12860,
         IDS_FeatureStaticMembersInInterfaces = MessageBase + 12861,
         IDS_FeatureClosedClasses = MessageBase + 12862,
-
-        IDS_FeatureLabeledBreakContinue = MessageBase + 12863,
+        IDS_FeatureExtensionIndexers = MessageBase + 12863,
+        IDS_FeatureLabeledBreakContinue = MessageBase + 12864,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -501,6 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureStaticMembersInInterfaces:
                 case MessageID.IDS_FeatureClosedClasses: // semantic check
                 case MessageID.IDS_FeatureLabeledBreakContinue:
+                case MessageID.IDS_FeatureExtensionIndexers:
                     return LanguageVersion.Preview;
 
                 // C# 14.0 features.

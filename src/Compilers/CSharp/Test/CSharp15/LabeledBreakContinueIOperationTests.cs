@@ -1277,7 +1277,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
             """;
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (5,45): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
+            // (5,45): error CS9393: No enclosing loop or switch statement with the label 'L' out of which to break
             //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45));
 
@@ -1304,7 +1304,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
                       null
             """, new[]
             {
-                // (5,45): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
+                // (5,45): error CS9393: No enclosing loop or switch statement with the label 'L' out of which to break
                 //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
                 Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45),
             });

@@ -255,6 +255,7 @@
     <Project Path="src/Interactive/vbi/vbi.vbproj" />
   </Folder>
   <Folder Name="/LanguageServer/">
+    <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests/Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Microsoft.CodeAnalysis.LanguageServer.UnitTests.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj" />
     <Project Path="src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework.Example/Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj" />
@@ -268,6 +269,7 @@
   <Folder Name="/LanguageServer/ExternalAccess/">
     <Project Path="src/LanguageServer/ExternalAccess/CompilerDeveloperSDK/Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/Copilot/Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
+    <Project Path="src/LanguageServer/ExternalAccess/TestDiscovery/Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.csproj" />
     <Project Path="src/LanguageServer/ExternalAccess/VisualDiagnostics/Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj" />
   </Folder>
   <Folder Name="/Scripting/">

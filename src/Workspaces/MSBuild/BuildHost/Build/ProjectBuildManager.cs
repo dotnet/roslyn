@@ -292,7 +292,13 @@ internal sealed class ProjectBuildManager : IDisposable
             }
         }
 
-        var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, [.. targets]);
+        // Since we are doing parallel builds where the build may happen in another MSBuild node, we need to pass
+        // ProvideProjectStateAfterBuild to get that state back when we're done.
+        var buildRequestData = new MSB.Execution.BuildRequestData(
+            projectInstance,
+            [.. targets],
+            hostServices: null,
+            flags: MSB.Execution.BuildRequestDataFlags.ProvideProjectStateAfterBuild);
 
         var result = await BuildAsync(buildRequestData, log, cancellationToken).ConfigureAwait(false);
 
@@ -304,7 +310,7 @@ internal sealed class ProjectBuildManager : IDisposable
             }
         }
 
-        return projectInstance;
+        return result.ProjectStateAfterBuild ?? projectInstance;
     }
 
     private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, DiagnosticLog log, CancellationToken cancellationToken)
