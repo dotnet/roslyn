@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Extensions)]
 public partial class ExtensionTests : CompilingTestBase
 {
+    // PROTOTYPE: Canary for validating TODO/PROTOTYPE CI check.
     private static string ExpectedOutput(string output)
     {
         return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
