@@ -501,7 +501,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
             var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
 
-            item = await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(
+            item = await CSharpCompletionItemFormatter.FormatAsync(
                 item,
                 context,
                 generatedDocument.Project.Solution,
