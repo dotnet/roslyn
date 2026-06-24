@@ -23,14 +23,14 @@ internal sealed class RazorComponentSearchEngine(ILoggerFactory loggerFactory) :
     /// <param name="tagHelper">
     ///  A <see cref="TagHelperDescriptor"/> to find the corresponding Razor component for.
     /// </param>
-    /// <param name="solutionQueryOperations">
-    ///  An <see cref="ISolutionQueryOperations"/> to enumerate project snapshots.
+    /// <param name="solutionSnapshot">
+    ///  A <see cref="RemoteSolutionSnapshot"/> to enumerate project snapshots.
     /// </param>
     /// <param name="cancellationToken">
     ///  A token that is checked to cancel work.
     /// </param>
     /// <returns>
-    ///  The corresponding <see cref="IDocumentSnapshot"/> if found, <see langword="null"/> otherwise.
+    ///  The corresponding <see cref="RemoteDocumentSnapshot"/> if found, <see langword="null"/> otherwise.
     /// </returns>
     /// <remarks>
     ///  This method makes several assumptions about the nature of components. First,
@@ -42,9 +42,9 @@ internal sealed class RazorComponentSearchEngine(ILoggerFactory loggerFactory) :
     /// <exception cref="ArgumentNullException">
     ///  Thrown if <paramref name="tagHelper"/> is <see langword="null"/>.
     /// </exception>
-    public async Task<IDocumentSnapshot?> TryLocateComponentAsync(
+    public async Task<RemoteDocumentSnapshot?> TryLocateComponentAsync(
         TagHelperDescriptor tagHelper,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         CancellationToken cancellationToken)
     {
         if (tagHelper.Kind != TagHelperKind.Component)
@@ -62,7 +62,7 @@ internal sealed class RazorComponentSearchEngine(ILoggerFactory loggerFactory) :
 
         var lookupSymbolName = RemoveGenericContent(typeName.AsMemory());
 
-        foreach (var project in solutionQueryOperations.GetProjects())
+        foreach (var project in solutionSnapshot.GetProjects())
         {
             foreach (var path in project.DocumentFilePaths)
             {

@@ -62,7 +62,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
     }
 
     public async Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         ImmutableArray<TextChange> htmlChanges,
         LinePositionSpan? range,
         RazorFormattingOptions options,
@@ -135,7 +135,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         return originalText.MinimizeTextChanges(normalizedChanges);
     }
 
-    public async Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(DocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, bool declarationDocument, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(RemoteDocumentContext documentContext, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, bool declarationDocument, CancellationToken cancellationToken)
     {
         var documentSnapshot = documentContext.Snapshot;
 
@@ -157,7 +157,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(DocumentContext documentContext, ImmutableArray<TextChange> htmlChanges, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(RemoteDocumentContext documentContext, ImmutableArray<TextChange> htmlChanges, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
     {
         var documentSnapshot = documentContext.Snapshot;
 
@@ -180,7 +180,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
                 cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<TextChange?> TryGetSingleCSharpEditAsync(DocumentContext documentContext, TextChange csharpEdit, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetSingleCSharpEditAsync(RemoteDocumentContext documentContext, TextChange csharpEdit, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var documentSnapshot = documentContext.Snapshot;
         // Since we've been provided with an edit from the C# generated doc, forcing design time would make things not line up
@@ -206,7 +206,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
             : null;
     }
 
-    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(IDocumentSnapshot documentSnapshot, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetCSharpCodeActionEditAsync(RemoteDocumentSnapshot documentSnapshot, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         // Since we've been provided with edits from the C# generated doc, forcing design time would make things not line up
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
@@ -231,7 +231,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
             : null;
     }
 
-    public async Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(DocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(RemoteDocumentContext documentContext, ImmutableArray<TextChange> csharpChanges, bool declarationDocument, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         csharpChanges = WrapCSharpSnippets(csharpChanges);
 
@@ -274,7 +274,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
     }
 
     private async Task<ImmutableArray<TextChange>> ApplyFormattedChangesAsync(
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument,
         bool? declarationDocument,
         ImmutableArray<TextChange> generatedDocumentChanges,

@@ -30,9 +30,9 @@ internal sealed class DefinitionService(
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DefinitionService>();
 
     public async Task<LspLocation[]?> GetDefinitionAsync(
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         bool includeMvcTagHelpers,
         CancellationToken cancellationToken)
     {
@@ -54,7 +54,7 @@ internal sealed class DefinitionService(
         {
             Debug.Assert(_tagHelperSearchEngine is not null, "If includeMvcTagHelpers is true, _tagHelperSearchEngine must not be null.");
 
-            var tagHelperLocations = await _tagHelperSearchEngine.TryLocateTagHelperDefinitionsAsync(boundTagHelperResults, documentSnapshot, solutionQueryOperations, cancellationToken).ConfigureAwait(false);
+            var tagHelperLocations = await _tagHelperSearchEngine.TryLocateTagHelperDefinitionsAsync(boundTagHelperResults, documentSnapshot, solutionSnapshot, cancellationToken).ConfigureAwait(false);
             if (tagHelperLocations is { Length: > 0 })
             {
                 return tagHelperLocations;
@@ -65,7 +65,7 @@ internal sealed class DefinitionService(
         var (boundTagHelper, boundAttribute) = boundTagHelperResults[0];
 
         var componentDocument = await _componentSearchEngine
-            .TryLocateComponentAsync(boundTagHelper, solutionQueryOperations, cancellationToken)
+            .TryLocateComponentAsync(boundTagHelper, solutionSnapshot, cancellationToken)
             .ConfigureAwait(false);
 
         if (componentDocument is null)
@@ -83,7 +83,7 @@ internal sealed class DefinitionService(
         return [LspFactory.CreateLocation(componentFilePath, range)];
     }
 
-    private async Task<LspRange> GetNavigateRangeAsync(IDocumentSnapshot documentSnapshot, BoundAttributeDescriptor? attributeDescriptor, CancellationToken cancellationToken)
+    private async Task<LspRange> GetNavigateRangeAsync(RemoteDocumentSnapshot documentSnapshot, BoundAttributeDescriptor? attributeDescriptor, CancellationToken cancellationToken)
     {
         if (attributeDescriptor is not null)
         {
@@ -107,7 +107,7 @@ internal sealed class DefinitionService(
     }
 
     public async Task<LspLocation[]?> TryGetDefinitionFromStringLiteralAsync(
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         Position position,
         bool inDeclDocument,
         CancellationToken cancellationToken)
@@ -142,7 +142,7 @@ internal sealed class DefinitionService(
         return null;
     }
 
-    private bool TryResolveFilePath(IDocumentSnapshot documentSnapshot, string filePath, out string resolvedPath)
+    private bool TryResolveFilePath(RemoteDocumentSnapshot documentSnapshot, string filePath, out string resolvedPath)
     {
         resolvedPath = string.Empty;
 

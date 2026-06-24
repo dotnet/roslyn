@@ -186,8 +186,8 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
         // To identify which situation we're in, we try to map the start and the end of the line to C#, as an indicator. If
         // either start or end fail to map, it means the entire line is not C#
 
-        // TODO: Note the call to ISolutionQueryOperations.GetProjectsContainingDocument(...) will be removed with the introduction of solution snapshots.
-        if (context.GetSolutionQueryOperations().GetProjectsContainingDocument(filePath).FirstOrDefault() is { } project &&
+        // TODO: Note the call to RemoteSolutionSnapshot.GetProjectsContainingDocument(...) will be removed with the introduction of solution snapshots.
+        if (context.GetSolutionSnapshot().GetProjectsContainingDocument(filePath).FirstOrDefault() is { } project &&
             project.TryGetDocument(filePath, out var document))
         {
             var codeDoc = await document.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);

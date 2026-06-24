@@ -42,7 +42,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     ///  An array of <see cref="Diagnostic"/> objects to translate.
     /// </param>
     /// <param name="documentSnapshot">
-    ///  The <see cref="IDocumentSnapshot"/> for the code document associated with the diagnostics.
+    ///  The <see cref="RemoteDocumentSnapshot"/> for the code document associated with the diagnostics.
     /// </param>
     /// <param name="cancellationToken">A token that can be checked to cancel work.</param>
     /// <returns>An array of translated diagnostics</returns>

@@ -88,7 +88,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
         return context;
     }
 
-    private async Task<(RazorCodeDocument, IDocumentSnapshot)> CreateCodeDocumentAndSnapshotAsync(
+    private async Task<(RazorCodeDocument, RemoteDocumentSnapshot)> CreateCodeDocumentAndSnapshotAsync(
         SourceText text,
         string path,
         RazorFileKind? fileKind = null)

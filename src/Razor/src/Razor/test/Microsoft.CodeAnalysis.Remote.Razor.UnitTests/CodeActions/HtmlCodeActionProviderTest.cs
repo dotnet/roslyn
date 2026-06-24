@@ -82,8 +82,8 @@ public class HtmlCodeActionProviderTest
 
         var razorEditServiceMock = new StrictMock<IRazorEditService>();
         razorEditServiceMock
-            .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
-            .Callback<IDocumentSnapshot, WorkspaceEdit, CancellationToken>((snapshot, edit, _) =>
+            .Setup(x => x.MapWorkspaceEditAsync(It.IsAny<RemoteDocumentSnapshot>(), It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
+            .Callback<RemoteDocumentSnapshot, WorkspaceEdit, CancellationToken>((snapshot, edit, _) =>
             {
                 Assert.IsType<RemoteDocumentSnapshot>(snapshot);
                 var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();

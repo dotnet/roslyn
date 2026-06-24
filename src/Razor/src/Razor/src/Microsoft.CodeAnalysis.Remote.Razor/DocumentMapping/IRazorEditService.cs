@@ -27,7 +27,7 @@ internal interface IRazorEditService
     /// <param name="cancellationToken">A cancellation token.</param>
     Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
-        IDocumentSnapshot snapshot,
+        RemoteDocumentSnapshot snapshot,
         bool declarationDocument,
         bool includeCSharpLanguageFeatureEdits,
         Func<RazorTextChange, bool>? directlyMappedEditFilter,
@@ -36,5 +36,5 @@ internal interface IRazorEditService
     /// <summary>
     /// Maps C# changes in a workspace edit, to their equivalent Razor changes, modifying them in place
     /// </summary>
-    Task MapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken);
+    Task MapWorkspaceEditAsync(RemoteDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken);
 }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 [Export(typeof(ITagHelperSearchEngine)), Shared]
 internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
 {
-    public async Task<LspLocation[]?> TryLocateTagHelperDefinitionsAsync(ImmutableArray<BoundTagHelperResult> boundTagHelperResults, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken)
+    public async Task<LspLocation[]?> TryLocateTagHelperDefinitionsAsync(ImmutableArray<BoundTagHelperResult> boundTagHelperResults, RemoteDocumentSnapshot documentSnapshot, RemoteSolutionSnapshot solutionSnapshot, CancellationToken cancellationToken)
     {
         Debug.Assert(documentSnapshot is RemoteDocumentSnapshot);
 

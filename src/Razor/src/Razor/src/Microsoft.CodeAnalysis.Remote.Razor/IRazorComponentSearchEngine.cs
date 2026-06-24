@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal interface IRazorComponentSearchEngine
 {
-    Task<IDocumentSnapshot?> TryLocateComponentAsync(
+    Task<RemoteDocumentSnapshot?> TryLocateComponentAsync(
         TagHelperDescriptor tagHelper,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         CancellationToken cancellationToken);
 }

@@ -14,7 +14,7 @@ internal interface IComponentAvailabilityService
     ///  Returns an array of projects that contain the specified document and whether the
     ///  given component or tag helper type name is available within it.
     /// </summary>
-    Task<ImmutableArray<(IProjectSnapshot Project, bool IsAvailable)>> GetComponentAvailabilityAsync(
+    Task<ImmutableArray<(RemoteProjectSnapshot Project, bool IsAvailable)>> GetComponentAvailabilityAsync(
         string documentFilePath,
         string typeName,
         CancellationToken cancellationToken);

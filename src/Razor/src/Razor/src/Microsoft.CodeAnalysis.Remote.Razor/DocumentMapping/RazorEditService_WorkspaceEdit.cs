@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 internal partial class RazorEditService
 {
-    public async Task MapWorkspaceEditAsync(IDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
+    public async Task MapWorkspaceEditAsync(RemoteDocumentSnapshot contextDocumentSnapshot, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
         if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
         {

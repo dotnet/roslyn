@@ -807,7 +807,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Coh
         TestFileMarkupParser.GetSpan(text, out text, out var span);
         return (SourceText.From(text), span);
     }
-    internal async Task<(IDocumentSnapshot primary, SourceGeneratedDocument generatedDocument, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource, CancellationToken cancellationToken, RazorFileKind? fileKind = null)
+    internal async Task<(RemoteDocumentSnapshot primary, SourceGeneratedDocument generatedDocument, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource, CancellationToken cancellationToken, RazorFileKind? fileKind = null)
     {
         var (razorSourceText, primarySpan) = CreateText(razorSource);
         var (primary, generatedDocument, declarationDocument) = await InitializeDocumentAsync(razorSourceText, primarySpan, fileKind, cancellationToken);
@@ -832,7 +832,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Coh
 
     // Maps a span in the primary buffer to the secondary buffer. This is only valid for C# code
     // that appears in the primary buffer.
-    private static async Task<TextSpan> GetSecondarySpanAsync(IDocumentSnapshot primary, TextSpan primarySpan, Document secondary, bool declarationDocument, CancellationToken cancellationToken)
+    private static async Task<TextSpan> GetSecondarySpanAsync(RemoteDocumentSnapshot primary, TextSpan primarySpan, Document secondary, bool declarationDocument, CancellationToken cancellationToken)
     {
         var output = await primary.GetGeneratedOutputAsync(cancellationToken);
 

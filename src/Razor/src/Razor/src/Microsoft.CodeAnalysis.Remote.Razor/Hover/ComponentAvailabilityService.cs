@@ -14,7 +14,7 @@ internal sealed class ComponentAvailabilityService(RemoteSolutionSnapshot soluti
 {
     private readonly RemoteSolutionSnapshot _solutionSnapshot = solutionSnapshot;
 
-    public async Task<ImmutableArray<(IProjectSnapshot Project, bool IsAvailable)>> GetComponentAvailabilityAsync(
+    public async Task<ImmutableArray<(RemoteProjectSnapshot Project, bool IsAvailable)>> GetComponentAvailabilityAsync(
         string documentFilePath,
         string typeName,
         CancellationToken cancellationToken)
@@ -25,7 +25,7 @@ internal sealed class ComponentAvailabilityService(RemoteSolutionSnapshot soluti
             return [];
         }
 
-        using var result = new PooledArrayBuilder<(IProjectSnapshot, bool IsAvailable)>(capacity: projects.Length);
+        using var result = new PooledArrayBuilder<(RemoteProjectSnapshot, bool IsAvailable)>(capacity: projects.Length);
 
         foreach (var project in projects)
         {
@@ -38,7 +38,7 @@ internal sealed class ComponentAvailabilityService(RemoteSolutionSnapshot soluti
     }
 
     private static async Task<bool> ContainsTagHelperAsync(
-        IProjectSnapshot projectSnapshot,
+        RemoteProjectSnapshot projectSnapshot,
         string typeName,
         CancellationToken cancellationToken)
     {

@@ -36,7 +36,7 @@ internal sealed class RenameService(
         RemoteDocumentContext documentContext,
         DocumentPositionInfo positionInfo,
         string newName,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         CancellationToken cancellationToken)
     {
         // We only support renaming of .razor components, not .cshtml tag helpers
@@ -53,7 +53,7 @@ internal sealed class RenameService(
         }
 
         var originComponentDocumentSnapshot = await _componentSearchEngine
-            .TryLocateComponentAsync(originTagHelpers.Primary, solutionQueryOperations, cancellationToken)
+            .TryLocateComponentAsync(originTagHelpers.Primary, solutionSnapshot, cancellationToken)
             .ConfigureAwait(false);
         if (originComponentDocumentSnapshot is null)
         {

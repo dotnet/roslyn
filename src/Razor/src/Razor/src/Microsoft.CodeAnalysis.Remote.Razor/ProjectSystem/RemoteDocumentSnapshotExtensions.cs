@@ -10,10 +10,10 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal static class IDocumentSnapshotExtensions
+internal static class RemoteDocumentSnapshotExtensions
 {
     public static async Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(
-        this IDocumentSnapshot documentSnapshot,
+        this RemoteDocumentSnapshot documentSnapshot,
         CancellationToken cancellationToken)
     {
         // No point doing anything if its not a component
@@ -45,7 +45,7 @@ internal static class IDocumentSnapshotExtensions
         return null;
     }
 
-    public static bool IsPathCandidateForComponent(this IDocumentSnapshot documentSnapshot, ReadOnlyMemory<char> path)
+    public static bool IsPathCandidateForComponent(this RemoteDocumentSnapshot documentSnapshot, ReadOnlyMemory<char> path)
     {
         if (documentSnapshot.FileKind != RazorFileKind.Component)
         {

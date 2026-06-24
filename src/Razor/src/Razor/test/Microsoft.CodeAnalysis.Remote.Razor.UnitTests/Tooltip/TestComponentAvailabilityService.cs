@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 internal sealed class TestComponentAvailabilityService : IComponentAvailabilityService
 {
-    public Task<ImmutableArray<(IProjectSnapshot Project, bool IsAvailable)>> GetComponentAvailabilityAsync(string documentFilePath, string typeName, CancellationToken cancellationToken)
+    public Task<ImmutableArray<(RemoteProjectSnapshot Project, bool IsAvailable)>> GetComponentAvailabilityAsync(string documentFilePath, string typeName, CancellationToken cancellationToken)
     {
-        return SpecializedTasks.EmptyImmutableArray<(IProjectSnapshot Project, bool IsAvailable)>();
+        return SpecializedTasks.EmptyImmutableArray<(RemoteProjectSnapshot Project, bool IsAvailable)>();
     }
 }

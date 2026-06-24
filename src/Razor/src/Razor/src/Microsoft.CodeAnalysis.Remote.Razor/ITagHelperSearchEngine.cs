@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal interface ITagHelperSearchEngine
 {
-    Task<LspLocation[]?> TryLocateTagHelperDefinitionsAsync(ImmutableArray<BoundTagHelperResult> boundTagHelpers, IDocumentSnapshot documentSnapshot, ISolutionQueryOperations solutionQueryOperations, CancellationToken cancellationToken);
+    Task<LspLocation[]?> TryLocateTagHelperDefinitionsAsync(ImmutableArray<BoundTagHelperResult> boundTagHelpers, RemoteDocumentSnapshot documentSnapshot, RemoteSolutionSnapshot solutionSnapshot, CancellationToken cancellationToken);
 }
 
 internal sealed record BoundTagHelperResult(TagHelperDescriptor ElementDescriptor, BoundAttributeDescriptor? AttributeDescriptor);

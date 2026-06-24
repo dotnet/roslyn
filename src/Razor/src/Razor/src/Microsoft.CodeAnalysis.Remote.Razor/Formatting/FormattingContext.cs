@@ -27,10 +27,10 @@ internal sealed class FormattingContext
     private readonly RazorCSharpDocument? _csharpDocument;
 
     private FormattingContext(
-        IDocumentSnapshot originalSnapshot,
+        RemoteDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         bool? declarationDocument,
-        IDocumentSnapshot currentSnapshot,
+        RemoteDocumentSnapshot currentSnapshot,
         RazorFormattingOptions options,
         IFormattingLogger? logger,
         bool includeCSharpLanguageFeatureEdits,
@@ -54,9 +54,9 @@ internal sealed class FormattingContext
 
     public static bool SkipValidateComponents { get; set; }
 
-    public IDocumentSnapshot OriginalSnapshot { get; }
+    public RemoteDocumentSnapshot OriginalSnapshot { get; }
     public RazorCodeDocument CodeDocument { get; }
-    public IDocumentSnapshot CurrentSnapshot { get; }
+    public RemoteDocumentSnapshot CurrentSnapshot { get; }
     public RazorFormattingOptions Options { get; }
     public IFormattingLogger? Logger { get; }
     public bool IncludeCSharpLanguageFeatureEdits { get; }
@@ -292,7 +292,7 @@ internal sealed class FormattingContext
     }
 
     public static FormattingContext CreateForOnTypeFormatting(
-        IDocumentSnapshot originalSnapshot,
+        RemoteDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         bool? declarationDocument,
         RazorFormattingOptions options,
@@ -314,7 +314,7 @@ internal sealed class FormattingContext
     }
 
     public static FormattingContext Create(
-        IDocumentSnapshot originalSnapshot,
+        RemoteDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
         IFormattingLogger? logger)

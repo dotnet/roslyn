@@ -18,7 +18,7 @@ internal static class IRazorEditServiceExtensions
     public static async Task<ImmutableArray<TextChange>> MapCSharpEditsAsync(
         this IRazorEditService service,
         ImmutableArray<TextChange> textChanges,
-        IDocumentSnapshot snapshot,
+        RemoteDocumentSnapshot snapshot,
         CancellationToken cancellationToken)
     {
         var mappedChanges = await service.MapCSharpEditsAsync(
@@ -36,7 +36,7 @@ internal static class IRazorEditServiceExtensions
         this IRazorEditService service,
         ImmutableArray<TextChange> textChanges,
         bool declarationDocument,
-        IDocumentSnapshot snapshot,
+        RemoteDocumentSnapshot snapshot,
         CancellationToken cancellationToken)
     {
         var mappedChanges = await service.MapCSharpEditsAsync(

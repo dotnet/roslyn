@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 internal interface IDefinitionService
 {
     Task<LspLocation[]?> GetDefinitionAsync(
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         DocumentPositionInfo positionInfo,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         bool includeMvcTagHelpers,
         CancellationToken cancellationToken);
 
     Task<LspLocation[]?> TryGetDefinitionFromStringLiteralAsync(
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         Position position,
         bool inDeclDocument,
         CancellationToken cancellationToken);

@@ -42,7 +42,7 @@ internal sealed partial class RazorEditService(
 
     public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
-        IDocumentSnapshot snapshot,
+        RemoteDocumentSnapshot snapshot,
         bool declarationDocument,
         bool includeCSharpLanguageFeatureEdits,
         Func<RazorTextChange, bool>? directlyMappedEditFilter,

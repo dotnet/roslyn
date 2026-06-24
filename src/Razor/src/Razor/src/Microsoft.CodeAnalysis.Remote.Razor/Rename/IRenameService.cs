@@ -15,7 +15,7 @@ internal interface IRenameService
         RemoteDocumentContext documentContext,
         DocumentPositionInfo positionInfo,
         string newName,
-        ISolutionQueryOperations solutionQueryOperations,
+        RemoteSolutionSnapshot solutionSnapshot,
         CancellationToken cancellationToken);
 
     /// <summary>

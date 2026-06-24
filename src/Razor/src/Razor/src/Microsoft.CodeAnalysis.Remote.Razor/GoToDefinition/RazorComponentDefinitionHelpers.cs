@@ -151,7 +151,7 @@ internal static class RazorComponentDefinitionHelpers
     }
 
     public static async Task<LspRange?> TryGetPropertyRangeAsync(
-        IDocumentSnapshot documentSnapshot,
+        RemoteDocumentSnapshot documentSnapshot,
         string propertyName,
         IDocumentMappingService documentMappingService,
         ILogger logger,

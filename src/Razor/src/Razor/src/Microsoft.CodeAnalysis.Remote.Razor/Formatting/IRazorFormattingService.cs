@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 internal interface IRazorFormattingService
 {
     Task<ImmutableArray<TextChange>> GetDocumentFormattingChangesAsync(
-       DocumentContext documentContext,
+       RemoteDocumentContext documentContext,
        ImmutableArray<TextChange> htmlEdits,
        LinePositionSpan? span,
        RazorFormattingOptions options,
        CancellationToken cancellationToken);
 
     Task<ImmutableArray<TextChange>> GetHtmlOnTypeFormattingChangesAsync(
-      DocumentContext documentContext,
+      RemoteDocumentContext documentContext,
       ImmutableArray<TextChange> htmlEdits,
       RazorFormattingOptions options,
       int hostDocumentIndex,
@@ -30,7 +30,7 @@ internal interface IRazorFormattingService
       CancellationToken cancellationToken);
 
     Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(
-      DocumentContext documentContext,
+      RemoteDocumentContext documentContext,
       RazorFormattingOptions options,
       int hostDocumentIndex,
       char triggerCharacter,
@@ -38,21 +38,21 @@ internal interface IRazorFormattingService
       CancellationToken cancellationToken);
 
     Task<TextChange?> TryGetSingleCSharpEditAsync(
-        DocumentContext documentContext,
+        RemoteDocumentContext documentContext,
         TextChange csharpEdit,
         bool declarationDocument,
         RazorFormattingOptions options,
         CancellationToken cancellationToken);
 
     Task<TextChange?> TryGetCSharpCodeActionEditAsync(
-       IDocumentSnapshot documentSnapshot,
+       RemoteDocumentSnapshot documentSnapshot,
        ImmutableArray<TextChange> csharpEdits,
        bool declarationDocument,
        RazorFormattingOptions options,
        CancellationToken cancellationToken);
 
     Task<TextChange?> TryGetCSharpSnippetFormattingEditAsync(
-       DocumentContext documentContext,
+       RemoteDocumentContext documentContext,
        ImmutableArray<TextChange> csharpEdits,
        bool declarationDocument,
        RazorFormattingOptions options,

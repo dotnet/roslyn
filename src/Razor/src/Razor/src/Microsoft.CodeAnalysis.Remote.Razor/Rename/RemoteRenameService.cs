@@ -70,7 +70,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             .ConfigureAwait(false);
 
         var razorEdit = await _renameService
-            .TryGetRazorRenameEditsAsync(context, positionInfo, newName, context.GetSolutionQueryOperations(), cancellationToken)
+            .TryGetRazorRenameEditsAsync(context, positionInfo, newName, context.GetSolutionSnapshot(), cancellationToken)
             .ConfigureAwait(false);
 
         if (razorEdit.Edit is null && positionInfo.LanguageKind != CodeAnalysis.Razor.Protocol.RazorLanguageKind.CSharp)
