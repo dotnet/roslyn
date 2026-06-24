@@ -57,9 +57,11 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
 
         using var _1 = ArrayBuilder<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)>.GetInstance(out var sites);
         using var _2 = PooledHashSet<IfStatementSyntax>.GetInstance(out var guards);
+        using var _3 = ArrayBuilder<ExpressionStatementSyntax>.GetInstance(out var resets);
 
-        // Classify every reference to the flag.  It may only be a 'flag = true;' (immediately before a 'break;') or an
-        // 'if (flag) break/continue;' guard.  Anything else means the flag is doing more than propagating a jump.
+        // Classify every reference to the flag.  It may only be a 'flag = true;' (immediately before a 'break;'), an
+        // 'if (flag) break/continue;' guard, or a 'flag = false;' reset.  Anything else means the flag is doing more
+        // than propagating a jump.
         foreach (var name in enclosingBlock.DescendantNodes().OfType<IdentifierNameSyntax>())
         {
             if (name.Identifier.ValueText != flag.Name ||
@@ -72,6 +74,8 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
                 sites.Add((assignment, innerBreak));
             else if (TryGetGuard(name, out var ifStatement))
                 guards.Add(ifStatement);
+            else if (TryGetResetToFalseSite(name, out var reset))
+                resets.Add(reset);
             else
                 return false;
         }
@@ -92,7 +96,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
                 return false;
         }
 
-        using var _3 = ArrayBuilder<IfStatementSyntax>.GetInstance(out var orderedGuards);
+        using var _4 = ArrayBuilder<IfStatementSyntax>.GetInstance(out var orderedGuards);
         if (!TryWalkGuardChain(innerLoop, guards, orderedGuards, out var targetLoop, out var isBreak))
             return false;
 
@@ -103,15 +107,81 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
                 return false;
         }
 
+        // The flag must be re-initialized to false before the guard is (re-)reached, otherwise the stale 'true' from a
+        // previous iteration/entry would make the rewrite behave differently than the original.
+        if (!FlagResetsBeforeGuard(enclosingBlock, targetLoop, innerLoop, resets, isBreak))
+            return false;
+
         pattern = new FlagJumpPattern
         {
             LocalDeclarationStatement = declaration,
             LoopStatement = targetLoop,
             GuardStatements = orderedGuards.ToImmutable(),
             AssignmentAndBreakSites = sites.ToImmutable(),
+            ResetStatements = resets.ToImmutable(),
             IsBreak = isBreak,
         };
         return true;
+    }
+
+    /// <summary>
+    /// Whether the flag is guaranteed to be <c>false</c> each time the guard's break/continue could fire other than as
+    /// a result of the current iteration's inner break.  The flag starts <c>false</c> and is only ever set <c>true</c>,
+    /// so this requires it to be re-initialized to <c>false</c> beforehand, via one of:
+    /// <list type="bullet">
+    /// <item>an explicit <c>flag = false;</c> reset at the top of the target loop's body (before the inner loop), or</item>
+    /// <item>for <c>continue</c>: the declaration living directly in the target loop's body (re-initialized every
+    /// iteration), or</item>
+    /// <item>for <c>break</c>: no loop sitting between the declaration and the target loop (so the loop is never
+    /// re-entered with a stale flag — it exits when the guard fires).</item>
+    /// </list>
+    /// </summary>
+    private static bool FlagResetsBeforeGuard(
+        BlockSyntax enclosingBlock,
+        StatementSyntax targetLoop,
+        StatementSyntax innerLoop,
+        ArrayBuilder<ExpressionStatementSyntax> resets,
+        bool isBreak)
+    {
+        if (targetLoop.GetEmbeddedStatement() is not BlockSyntax targetBody)
+            return false;
+
+        // The statement in the target loop's body that (transitively) contains the inner break's loop.
+        if (innerLoop.AncestorsAndSelf().FirstOrDefault(n => n.Parent == targetBody) is not StatementSyntax siteStatement)
+            return false;
+
+        var siteIndex = targetBody.Statements.IndexOf(siteStatement);
+
+        // Any reset must sit directly in the target loop's body before the inner loop, so it re-runs each iteration
+        // before the flag is set/checked.  Resets anywhere else are patterns we don't model, so bail out.
+        foreach (var reset in resets)
+        {
+            if (reset.Parent != targetBody || targetBody.Statements.IndexOf(reset) >= siteIndex)
+                return false;
+        }
+
+        if (resets.Count > 0)
+            return true;
+
+        // No explicit reset, so the declaration itself must re-initialize the flag.
+        if (enclosingBlock == targetBody)
+            return true;
+
+        if (!isBreak)
+            return false;
+
+        // break exits the target loop, so the flag only needs to be false on each entry: no loop may sit between the
+        // declaration's block and the target loop (which would re-enter it with a stale flag).
+        for (var current = targetLoop.Parent; current != null; current = current.Parent)
+        {
+            if (current == enclosingBlock)
+                return true;
+
+            if (current.IsContinuableConstruct())
+                return false;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -253,6 +323,26 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
 
         assignment = assignmentStatement;
         innerBreak = breakStatement;
+        return true;
+    }
+
+    /// <summary>
+    /// A flag reference <paramref name="name"/> used as a <c>flag = false;</c> reset statement.
+    /// </summary>
+    private static bool TryGetResetToFalseSite(IdentifierNameSyntax name, [NotNullWhen(true)] out ExpressionStatementSyntax? reset)
+    {
+        reset = null;
+
+        if (name.Parent is not AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
+            {
+                Right: LiteralExpressionSyntax(SyntaxKind.FalseLiteralExpression),
+                Parent: ExpressionStatementSyntax resetStatement,
+            })
+        {
+            return false;
+        }
+
+        reset = resetStatement;
         return true;
     }
 

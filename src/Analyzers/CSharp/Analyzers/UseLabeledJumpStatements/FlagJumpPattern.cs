@@ -24,6 +24,10 @@ internal sealed class FlagJumpPattern
     /// <summary>The inner <c>flag = true; break;</c> sites; each break becomes the labeled jump.</summary>
     public required ImmutableArray<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)> AssignmentAndBreakSites { get; init; }
 
+    /// <summary>Any <c>flag = false;</c> resets at the top of the target loop to delete (empty when the flag relies on
+    /// its declaration being re-initialized each iteration instead).</summary>
+    public required ImmutableArray<ExpressionStatementSyntax> ResetStatements { get; init; }
+
     /// <summary>Whether the final guard is a <c>break</c> (otherwise a <c>continue</c>).</summary>
     public required bool IsBreak { get; init; }
 }

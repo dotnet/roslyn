@@ -155,7 +155,8 @@ internal sealed class CSharpUseLabeledJumpStatementsCodeFixProvider()
         // Rewrite the inner breaks and delete the now-dead flag assignments and guards (and the declaration, if it
         // lives inside the loop) in one rebuild.
         var deadNodes = pattern.AssignmentAndBreakSites.Select(static site => (SyntaxNode)site.Assignment)
-            .Concat(pattern.GuardStatements.Select(static guard => (SyntaxNode)guard));
+            .Concat(pattern.GuardStatements.Select(static guard => (SyntaxNode)guard))
+            .Concat(pattern.ResetStatements.Select(static reset => (SyntaxNode)reset));
         if (declarationInsideLoop)
             deadNodes = deadNodes.Concat([(SyntaxNode)declaration]);
 

@@ -690,9 +690,9 @@ public sealed class UseLabeledJumpStatementsTests
                 {
                     void M(bool c)
                     {
-                        bool flag = false;
                         for (int i = 0; i < 2; i++)
                         {
+                            bool flag = false;
                             for (int j = 0; j < 2; j++)
                             {
                                 for (int k = 0; k < 2; k++)
@@ -868,8 +868,10 @@ public sealed class UseLabeledJumpStatementsTests
                 """,
         }.RunAsync();
 
+    // Offered (case 2): 'skip' is declared outside the loop but reset to false at the top of each iteration, so it
+    // does not carry a stale 'true' across iterations.
     [Fact]
-    public Task TestFlagContinue_WhileLoopSynthesizesOuter()
+    public Task TestFlagContinue_FlagResetAtTopOfLoop()
         => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.Preview,
@@ -881,6 +883,7 @@ public sealed class UseLabeledJumpStatementsTests
                         bool skip = false;
                         while (a)
                         {
+                            skip = false;
                             while (b)
                             {
                                 if (a && b)
@@ -1563,8 +1566,10 @@ public sealed class UseLabeledJumpStatementsTests
                 """,
         }.RunAsync();
 
+    // Not offered: 'skip' is declared outside the loop being continued, so once set it stays true and the original
+    // skips 'count++' on every later iteration -- whereas a labeled 'continue' would only skip the i==0 iteration.
     [Fact]
-    public Task TestFlagContinue_ForLoopWithTrailingStatement()
+    public Task TestNotOffered_FlagContinue_DeclaredOutsideLoop()
         => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.Preview,
@@ -1582,33 +1587,12 @@ public sealed class UseLabeledJumpStatementsTests
                                 if (i == 0)
                                 {
                                     skip = true;
-                                    {|IDE0410:break|};
+                                    break;
                                 }
                             }
 
                             if (skip)
                                 continue;
-
-                            count++;
-                        }
-                    }
-                }
-                """,
-            FixedCode = """
-                class C
-                {
-                    void M()
-                    {
-                        int count = 0;
-                    loop_i: for (int i = 0; i < 3; i++)
-                        {
-                            for (int j = 0; j < 1; j++)
-                            {
-                                if (i == 0)
-                                {
-                                    continue loop_i;
-                                }
-                            }
 
                             count++;
                         }
@@ -2618,6 +2602,153 @@ public sealed class UseLabeledJumpStatementsTests
                             }
 
                             System.Console.WriteLine();
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    // Not offered: the target loop (i) is re-entered by the outer 'a' loop, and 'found' (declared outside both) keeps
+    // its stale 'true', so the original breaks the i-loop immediately on later 'a' iterations.
+    [Fact]
+    public Task TestNotOffered_FlagBreak_TargetLoopReenteredByOuterLoop()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool found = false;
+                        for (int a = 0; a < 3; a++)
+                        {
+                            for (int i = 0; i < 3; i++)
+                            {
+                                for (int j = 0; j < 3; j++)
+                                {
+                                    if (c)
+                                    {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+
+                                if (found)
+                                    break;
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    // Offered: 'found' is declared inside the outer 'a' loop, so it is reset on each entry to the target 'i' loop.
+    [Fact]
+    public Task TestFlagBreak_FlagDeclaredInsideOuterLoop()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        for (int a = 0; a < 3; a++)
+                        {
+                            bool found = false;
+                            for (int i = 0; i < 3; i++)
+                            {
+                                for (int j = 0; j < 3; j++)
+                                {
+                                    if (c)
+                                    {
+                                        found = true;
+                                        {|IDE0410:break|};
+                                    }
+                                }
+
+                                if (found)
+                                    break;
+                            }
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        for (int a = 0; a < 3; a++)
+                        {
+                        loop_i: for (int i = 0; i < 3; i++)
+                            {
+                                for (int j = 0; j < 3; j++)
+                                {
+                                    if (c)
+                                    {
+                                        break loop_i;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    // Offered (case 2): even though the target loop is re-entered by 'a', 'found' is reset at the top of each 'i'
+    // iteration, so it is never stale.
+    [Fact]
+    public Task TestFlagBreak_FlagResetMakesReEntrySafe()
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        bool found = false;
+                        for (int a = 0; a < 3; a++)
+                        {
+                            for (int i = 0; i < 3; i++)
+                            {
+                                found = false;
+                                for (int j = 0; j < 3; j++)
+                                {
+                                    if (c)
+                                    {
+                                        found = true;
+                                        {|IDE0410:break|};
+                                    }
+                                }
+
+                                if (found)
+                                    break;
+                            }
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(bool c)
+                    {
+                        for (int a = 0; a < 3; a++)
+                        {
+                        loop_i: for (int i = 0; i < 3; i++)
+                            {
+                                for (int j = 0; j < 3; j++)
+                                {
+                                    if (c)
+                                    {
+                                        break loop_i;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
