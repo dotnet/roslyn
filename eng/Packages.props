@@ -93,9 +93,9 @@
       Subset of Microsoft.VisualStudio.Sdk meta-package (run `csi generate-vssdk-versions.csx` to update based on VSSDK meta-package).
       See https://github.com/dotnet/arcade/blob/main/Documentation/MirroringPackages.md if any of these packages fail to restore.
     -->
-    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.9.14-beta" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.3.36" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.3.36" />
+    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.10.147" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.9.15" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.9.15" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.2188-preview.1" />
@@ -117,9 +117,9 @@
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.15.20-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="18.0.2188-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
-    <PackageVersion Include="Nerdbank.Streams" Version="2.12.87" />
+    <PackageVersion Include="Nerdbank.Streams" Version="2.13.16" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="StreamJsonRpc" Version="2.23.41-alpha" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.26.2" />
     <PackageVersion Include="MessagePack" Version="2.5.198" />
 
     <!--
