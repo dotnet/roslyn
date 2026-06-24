@@ -3805,7 +3805,7 @@ class C
 {
     void M()
     {
-        outer: while (true)
+        [|outer|]: while (true)
         {
             void local() { break ou$$ter; }
         }
@@ -3815,7 +3815,7 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace, expectedResult:=False)
+            Await TestAsync(workspace)
         End Function
 
         <WpfFact>

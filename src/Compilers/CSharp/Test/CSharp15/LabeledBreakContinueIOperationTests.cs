@@ -1279,10 +1279,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         comp.VerifyDiagnostics(
             // (5,45): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
-            Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45),
-            // (5,19): warning CS0164: This label has not been referenced
-            //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 19));
+            Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -1291,7 +1288,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         var op = model.GetOperation(breakSyntax);
 
         Assert.NotNull(op);
-        Assert.Equal(OperationKind.Invalid, op!.Kind);
+        Assert.Equal(OperationKind.Branch, op!.Kind);
 
         VerifyOperationTreeAndDiagnosticsForTest<LabeledStatementSyntax>(source, """
             ILabeledOperation (Label: L) (OperationKind.Labeled, Type: null, IsInvalid) (Syntax: 'L: { while  ... reak L; } }')
@@ -1302,8 +1299,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
                       ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
                     Body:
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ break L; }')
-                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'break L;')
-                          Children(0)
+                        IBranchOperation (BranchKind.Break, Label: L) (OperationKind.Branch, Type: null, IsInvalid) (Syntax: 'break L;')
                     IgnoredCondition:
                       null
             """, new[]
@@ -1311,9 +1307,6 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
                 // (5,45): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
                 //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
                 Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45),
-                // (5,19): warning CS0164: This label has not been referenced
-                //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 19),
             });
     }
 
@@ -1804,6 +1797,39 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
                 Statements (0)
             """;
         var expectedDiagnostics = DiagnosticDescription.None;
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void ControlFlowGraph_InvalidLabeledBreak_LabelNotOnLoop()
+    {
+        string source = """
+            class C
+            {
+                void F()
+                /*<bind>*/{
+                    L: { while (true) { break L; } }
+                }/*</bind>*/
+            }
+            """;
+        string expectedFlowGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+            Block[B1] - Block
+                Predecessors: [B0] [B1]
+                Statements (0)
+                Jump if False (Regular) to Block[B2]
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                Next (Regular) Block[B1]
+            Block[B2] - Exit [UnReachable]
+                Predecessors: [B1]
+                Statements (0)
+            """;
+        var expectedDiagnostics = new[]
+        {
+            Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 35),
+        };
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 

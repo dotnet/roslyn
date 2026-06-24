@@ -2965,18 +2965,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
 
-            var target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
-            if (target == null)
+            var hasErrors = false;
+            LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
+
+            // If we didn't get a target, still try to bind the label name to get a BoundLabel for error recovery.
+            // But pass in a discarded diagnostics bag since we'll just want to report our own specific error below.
+            BoundLabel? label = name == null ? null : BindLabel(name, target != null ? diagnostics : BindingDiagnosticBag.Discarded) as BoundLabel;
+            if (target is null)
             {
                 Error(diagnostics,
                     labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
                     name ?? (SyntaxNode)node,
                     labelName == null ? [] : [labelName]);
-                return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
+
+                target = label?.Label;
+                hasErrors = true;
             }
 
-            var label = name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
-            return isBreak ? new BoundBreakStatement(node, target, label) : new BoundContinueStatement(node, target, label);
+            if (target is null)
+                return new BoundBadStatement(node, childBoundNodes: [], hasErrors);
+
+            return isBreak
+                ? new BoundBreakStatement(node, target, label, hasErrors)
+                : new BoundContinueStatement(node, target, label, hasErrors);
         }
 #nullable disable
 

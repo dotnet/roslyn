@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -82,9 +84,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,9): warning CS0164: This label has not been referenced
             //         a: b: c: while (true)
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(5, 9),
-            // (5,12): warning CS0164: This label has not been referenced
-            //         a: b: c: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b").WithLocation(5, 12),
             // (5,15): warning CS0164: This label has not been referenced
             //         a: b: c: while (true)
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(5, 15),
@@ -568,9 +567,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         L: { break L; }
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
             // (5,20): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         L: { break L; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 20));
@@ -590,9 +586,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         L: if (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
             // (6,19): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //             break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(6, 19));
@@ -612,9 +605,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         L: ;
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
             // (6,28): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         while (true) break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(6, 28));
@@ -634,9 +624,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         L: System.Console.WriteLine();
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
             // (6,25): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         if (true) break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(6, 25));
@@ -656,9 +643,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         L: var y = x switch { _ => 1 };
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
             // (6,28): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         while (true) break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(6, 28));
@@ -677,9 +661,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         L: lock (o) { break L; }
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
             // (5,29): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             //         L: lock (o) { break L; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 29));
@@ -705,12 +686,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: switch (x)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
-            // (7,13): error CS8070: Control cannot fall out of switch from final case label ('default:')
-            //             default: continue outer;
-            Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(7, 13),
             // (7,31): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             default: continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 31));
@@ -734,9 +709,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (false) { }
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (6,30): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //         while (true) { break outer; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(6, 30));
@@ -758,13 +730,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
         CreateCompilation(source).VerifyDiagnostics(
             // (5,33): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //         while (true) { continue outer; }
-            Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(5, 33),
-            // (6,9): warning CS0162: Unreachable code detected
-            //         outer: while (false) { }
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "outer").WithLocation(6, 9),
-            // (6,9): warning CS0164: This label has not been referenced
-            //         outer: while (false) { }
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(6, 9));
+            Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(5, 33));
     }
 
     [Fact]
@@ -786,10 +752,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
         CreateCompilation(source).VerifyDiagnostics(
             // (7,19): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //             break outer;
-            Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 19),
-            // (8,9): warning CS0164: This label has not been referenced
-            //         outer: foreach (var y in new int[0]) { }
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(8, 9));
+            Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 19));
     }
 
     [Fact]
@@ -811,14 +774,11 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
         CreateCompilation(source).VerifyDiagnostics(
             // (7,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
-            Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22),
-            // (8,9): warning CS0164: This label has not been referenced
-            //         outer: foreach (var y in new int[0]) { }
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(8, 9));
+            Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22));
     }
 
     [Fact]
-    public void Break_LabelOnDeeperNestedLoop()
+    public void Continue_LabelOnDeeperNestedLoop()
     {
         var source = """
             class C
@@ -837,6 +797,31 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (7,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22),
+            // (8,15): warning CS0164: This label has not been referenced
+            //             { outer: foreach (var y in new int[0]) { } }
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(8, 15));
+    }
+
+    [Fact]
+    public void Break_LabelOnDeeperNestedLoop()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    foreach (var x in new int[0])
+                    {
+                        break outer;
+                        { outer: foreach (var y in new int[0]) { } }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,19): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
+            //             break outer;
+            Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 19),
             // (8,15): warning CS0164: This label has not been referenced
             //             { outer: foreach (var y in new int[0]) { } }
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(8, 15));
@@ -865,10 +850,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
         CreateCompilation(source).VerifyDiagnostics(
             // (7,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
-            Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22),
-            // (9,9): warning CS0164: This label has not been referenced
-            //         outer: ;
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(9, 9));
+            Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 22));
     }
 
     [Fact]
@@ -888,9 +870,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: ;
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (8,22): error CS9392: No enclosing loop with the label 'outer' out of which to continue
             //             continue outer;
             Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(8, 22));
@@ -942,9 +921,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (7,30): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
             //             void F() { break outer; }
             Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 30));
@@ -1732,9 +1708,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             break L;
             """;
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-            // (1,1): warning CS0164: This label has not been referenced
-            // L: ;
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(1, 1),
             // (2,7): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
             // break L;
             Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(2, 7));
@@ -2161,6 +2134,210 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                             }
                         }
                 """).WithLocation(7, 32));
+    }
+
+    #endregion
+
+    #region Resolved-label-as-target side effects
+
+    // These tests document the diagnostics when a labeled break/continue's label resolves but isn't a valid
+    // target (lambda/iterator/finally/switch-section/etc.).
+
+    [Fact]
+    public void Break_InsideLambda_LabelOutside_LeaksBadDelegateLeave()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        Action a = () => { break outer; };
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,9): warning CS0164: This label has not been referenced
+            //         outer: while (true)
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(6, 9),
+            // (8,32): error CS1632: Control cannot leave the body of an anonymous method or lambda expression
+            //             Action a = () => { break outer; };
+            Diagnostic(ErrorCode.ERR_BadDelegateLeave, "break").WithLocation(8, 32));
+    }
+
+    [Fact]
+    public void Continue_InsideAsyncLambda_LabelOutside_LeaksBadDelegateLeave()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        Func<Task> a = async () => { await Task.Yield(); continue outer; };
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,9): warning CS0164: This label has not been referenced
+            //         outer: while (true)
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(7, 9),
+            // (9,62): error CS1632: Control cannot leave the body of an anonymous method or lambda expression
+            //             Func<Task> a = async () => { await Task.Yield(); continue outer; };
+            Diagnostic(ErrorCode.ERR_BadDelegateLeave, "continue").WithLocation(9, 62));
+    }
+
+    [Fact]
+    public void Break_InsideIterator_LabelOutside_StillReportsUnreachableCode()
+    {
+        var source = """
+            using System.Collections.Generic;
+            class C
+            {
+                IEnumerable<int> M()
+                {
+                    outer: while (true)
+                    {
+                        yield return 1;
+                    }
+                    while (true) break outer;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,9): warning CS0162: Unreachable code detected
+            //         while (true) break outer;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "while").WithLocation(10, 9),
+            // (10,28): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
+            //         while (true) break outer;
+            Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(10, 28));
+    }
+
+    [Fact]
+    public void Break_InsideFinally_LabelOnOuterBlock_LeaksControlCannotLeaveFinally()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    L: try { }
+                    finally
+                    {
+                        break L;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): error CS0157: Control cannot leave the body of a finally clause
+            //             break L;
+            Diagnostic(ErrorCode.ERR_BadFinallyLeave, "break").WithLocation(8, 13),
+            // (8,19): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
+            //             break L;
+            Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(8, 19));
+    }
+
+    [Fact]
+    public void Break_InSwitchSection_LabelInDifferentSection_LabelTreatedAsReferenced()
+    {
+        var source = """
+            class C
+            {
+                void M(int x)
+                {
+                    switch (x)
+                    {
+                        case 0:
+                            L: break;
+                        case 1:
+                            break L;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,23): error CS9391: No enclosing loop or switch statement with the label 'L' out of which to break
+            //             break L;
+            Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(10, 23));
+    }
+
+    [Fact]
+    public void Continue_TargetOnSwitch_SuppressesSwitchFallOutAndUnreferencedLabel()
+    {
+        var source = """
+            class C
+            {
+                void M(int x)
+                {
+                    outer: switch (x)
+                    {
+                        default: continue outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,31): error CS9392: No enclosing loop with the label 'outer' out of which to continue
+            //             default: continue outer;
+            Diagnostic(ErrorCode.ERR_NoContinueId, "outer").WithArguments("outer").WithLocation(7, 31));
+    }
+
+    [Fact]
+    public void Break_LabelOnFollowingLoop_SuppressesUnreachableCodeAndUnreferencedLabel()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    while (true) { break outer; }
+                    outer: while (false) { }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,30): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
+            //         while (true) { break outer; }
+            Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(5, 30));
+    }
+
+    [Fact]
+    public void GetSymbolInfo_BreakWithBadTarget_SemanticModelStillResolvesIdentifier()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        void F() { break outer; }
+                        F();
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (7,30): error CS9391: No enclosing loop or switch statement with the label 'outer' out of which to break
+            //             void F() { break outer; }
+            Diagnostic(ErrorCode.ERR_NoBreakId, "outer").WithArguments("outer").WithLocation(7, 30));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var labelDecl = tree.GetRoot().DescendantNodes().OfType<LabeledStatementSyntax>().Single();
+        var declaredSymbol = model.GetDeclaredSymbol(labelDecl);
+
+        var breakSyntax = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single(b => b.Name is not null);
+        Assert.Same(declaredSymbol, model.GetSymbolInfo(breakSyntax.Name!).Symbol);
     }
 
     #endregion
