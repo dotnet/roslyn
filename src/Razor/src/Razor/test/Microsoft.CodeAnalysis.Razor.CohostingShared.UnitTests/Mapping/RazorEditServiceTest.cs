@@ -23,13 +23,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
 
 public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
-    private IRazorEditService? _razorEditService;
+    private RazorEditService? _razorEditService;
 
     protected override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
-        _razorEditService = OOPExportProvider.GetExportedValue<IRazorEditService>();
+        _razorEditService = Assert.IsType<RazorEditService>(OOPExportProvider.GetExportedValue<IRazorEditService>());
     }
 
     [Fact]
@@ -2027,11 +2027,12 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
             sourceMappings.OrderByAsArray(s => s.GeneratedSpan.AbsoluteIndex));
 
         codeDocument = codeDocument.WithImplCSharpDocument(csharpDocument);
-        var snapshot = TestDocumentSnapshot.Create(razorPath, codeDocument);
+        var originalCSharpSyntaxTree = CSharpSyntaxTree.ParseText(csharpDocument.Text, cancellationToken: DisposalToken);
 
-        var responseTextChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(
+        var responseTextChanges = await _razorEditService.AssumeNotNull().GetTestAccessor().MapCSharpEditsAsync(
             changes.SelectAsArray(static c => c.ToRazorTextChange()),
-            snapshot,
+            codeDocument,
+            originalCSharpSyntaxTree,
             declarationDocument: false,
             includeCSharpLanguageFeatureEdits: true,
             directlyMappedEditFilter: null,

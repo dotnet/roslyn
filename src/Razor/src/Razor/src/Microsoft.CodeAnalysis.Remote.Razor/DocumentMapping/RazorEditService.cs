@@ -49,7 +49,27 @@ internal sealed partial class RazorEditService(
         CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
 
+        return await MapCSharpEditsAsync(
+            textChanges,
+            codeDocument,
+            originalCSharpSyntaxTree,
+            declarationDocument,
+            includeCSharpLanguageFeatureEdits,
+            directlyMappedEditFilter,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
+        ImmutableArray<RazorTextChange> textChanges,
+        RazorCodeDocument codeDocument,
+        SyntaxTree originalCSharpSyntaxTree,
+        bool declarationDocument,
+        bool includeCSharpLanguageFeatureEdits,
+        Func<RazorTextChange, bool>? directlyMappedEditFilter,
+        CancellationToken cancellationToken)
+    {
         using var edits = new PooledArrayBuilder<RazorTextChange>();
         AddDirectlyMappedEdits(ref edits.AsRef(), declarationDocument, textChanges, codeDocument, directlyMappedEditFilter, cancellationToken, out var skippedEdits);
 
@@ -57,7 +77,6 @@ internal sealed partial class RazorEditService(
         {
             // If there was something that didn't map, and the caller wants us to, we need to process the generated C# document
             // that Roslyn wanted to produce, and look for changes that we can translate into their Razor equivalents.
-            var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
             var originalCSharpSourceText = await originalCSharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var originalCSharpSyntaxRoot = await originalCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -363,5 +382,29 @@ internal sealed partial class RazorEditService(
 
     private sealed class DroppedEditsException : Exception
     {
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(RazorEditService instance)
+    {
+        public Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
+            ImmutableArray<RazorTextChange> textChanges,
+            RazorCodeDocument codeDocument,
+            SyntaxTree originalCSharpSyntaxTree,
+            bool declarationDocument,
+            bool includeCSharpLanguageFeatureEdits,
+            Func<RazorTextChange, bool>? directlyMappedEditFilter,
+            CancellationToken cancellationToken)
+        {
+            return instance.MapCSharpEditsAsync(
+                textChanges,
+                codeDocument,
+                originalCSharpSyntaxTree,
+                declarationDocument,
+                includeCSharpLanguageFeatureEdits,
+                directlyMappedEditFilter,
+                cancellationToken);
+        }
     }
 }
