@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 symbol,
                 node,
-                inUnsafeRegion: InUnsafeMethod(symbol),
+                inUnsafeRegion: InUnsafeMethod(compilation, symbol),
                 useUpdatedEscapeRules: symbol.ContainingModule.UseUpdatedEscapeRules,
                 diagnostics);
             try
@@ -35,8 +35,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool InUnsafeMethod(Symbol symbol)
+        /// <summary>
+        /// In C# 13 and above, iterator bodies define a safe context even when nested in an unsafe context
+        /// (matching <see cref="Binder.SetOrClearUnsafeRegionIfNecessary"/>). This ensures ref safety violations
+        /// inside such iterators remain errors instead of being downgraded to warnings.
+        /// </summary>
+        private static bool IsIteratorBodyWithSafeContext(CSharpCompilation compilation, Symbol symbol)
         {
+            return symbol is MethodSymbol { IsIterator: true }
+                && compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync);
+        }
+
+        private static bool InUnsafeMethod(CSharpCompilation compilation, Symbol symbol)
+        {
+            if (IsIteratorBodyWithSafeContext(compilation, symbol))
+            {
+                return false;
+            }
+
             if (symbol is SourceMemberMethodSymbol { IntroducesUnsafeContext: true })
             {
                 return true;
@@ -369,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var localFunction = (LocalFunctionSymbol)node.Symbol;
-            var inUnsafeRegion = _inUnsafeRegion || localFunction.IntroducesUnsafeContext;
+            var inUnsafeRegion = !IsIteratorBodyWithSafeContext(_compilation, localFunction) && (_inUnsafeRegion || localFunction.IntroducesUnsafeContext);
             var analysis = new RefSafetyAnalysis(_compilation, localFunction, node, inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.BlockBody);
             analysis.Visit(node.ExpressionBody);
