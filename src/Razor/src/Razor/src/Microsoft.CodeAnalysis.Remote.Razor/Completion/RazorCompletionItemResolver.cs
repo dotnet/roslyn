@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 using Roslyn.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;

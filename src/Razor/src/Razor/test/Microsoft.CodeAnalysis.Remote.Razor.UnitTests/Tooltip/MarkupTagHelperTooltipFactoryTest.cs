@@ -1,15 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 public class MarkupTagHelperTooltipFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
@@ -140,6 +139,7 @@ Uses `List<System.String>`s", markdown.Value);
 
         // Assert
         Assert.True(result);
+        Assert.NotNull(markdown);
         Assert.Equal(@"string SomeTypeName.SomeProperty
 
 Uses `List<System.String>`s", markdown.Value);
@@ -194,6 +194,7 @@ Also uses `List<System.String>`s", markdown.Value);
 
         // Assert
         Assert.True(result);
+        Assert.NotNull(markdown);
         Assert.Equal(@"**string** SomeTypeName.**SomeProperty**
 
 Uses `List<System.String>`s", markdown.Value);
@@ -224,6 +225,7 @@ Uses `List<System.String>`s", markdown.Value);
 
         // Assert
         Assert.True(result);
+        Assert.NotNull(markdown);
         Assert.Equal(@"**string** SomeTypeName.**SomeProperty**
 
 Uses `List<System.String>`s

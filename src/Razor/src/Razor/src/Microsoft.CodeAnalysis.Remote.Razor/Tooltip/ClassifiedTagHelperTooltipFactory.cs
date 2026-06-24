@@ -12,10 +12,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Roslyn.Core.Imaging;
 using Roslyn.Text.Adornments;
+using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 internal static class ClassifiedTagHelperTooltipFactory
 {
@@ -26,12 +28,12 @@ internal static class ClassifiedTagHelperTooltipFactory
     // Internal for testing
     internal static readonly ImageElement ClassGlyph = new(
         new ImageId(s_imageCatalogGuid, 463), // KnownImageIds.Type = 463
-        SR.TagHelper_Element_Glyph);
+        WorkspacesSR.TagHelper_Element_Glyph);
 
     // Internal for testing
     internal static readonly ImageElement PropertyGlyph = new(
         new ImageId(s_imageCatalogGuid, 2429), // KnownImageIds.Type = 2429
-        SR.TagHelper_Attribute_Glyph);
+        WorkspacesSR.TagHelper_Attribute_Glyph);
 
     private static readonly FrozenSet<string> s_csharpPrimitiveTypes =
         FrozenSet.ToFrozenSet([
