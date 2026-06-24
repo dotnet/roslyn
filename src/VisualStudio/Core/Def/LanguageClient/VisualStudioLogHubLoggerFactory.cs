@@ -37,9 +37,9 @@ internal sealed class VisualStudioLogHubLoggerFactory : ILspServiceLoggerFactory
         _brokeredServiceContainer = brokeredServiceContainer;
     }
 
-    public async Task<AbstractLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
+    public async Task<ILspLogger> CreateLoggerAsync(WellKnownLspServerKinds serverKind, JsonRpc jsonRpc, CancellationToken cancellationToken)
     {
-        var logName = $"Roslyn.{serverTypeName}.{Interlocked.Increment(ref s_logHubSessionId)}";
+        var logName = $"Roslyn.{serverKind.ToTelemetryString()}.{Interlocked.Increment(ref s_logHubSessionId)}";
         var logId = new LogId(logName, new ServiceMoniker(typeof(AbstractLanguageServer<>).FullName));
 
         var serviceContainer = await _brokeredServiceContainer.GetValueAsync(cancellationToken).ConfigureAwait(false);

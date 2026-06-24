@@ -758,6 +758,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        /// <summary>
+        /// Called for each member from <see cref="SourceMemberContainerTypeSymbol.AfterMembersCompletedChecks"/>.
+        /// </summary>
+        internal virtual void AfterTypeMembersCompletedChecks(BindingDiagnosticBag diagnostics)
+        {
+        }
+
         // Note: This is no public "IsNew". This is intentional, because new has no syntactic meaning.
         // It serves only to remove a warning. Furthermore, it can not be inferred from 
         // metadata. For symbols defined in source, the modifiers in the syntax tree

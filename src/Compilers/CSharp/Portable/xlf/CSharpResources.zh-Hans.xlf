@@ -22,6 +22,11 @@
         <target state="translated">无法从非泛型类型创建构造泛型类型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractBaseRecordImplementation">
+        <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
+        <target state="translated">记录成员“{0}”必须显式声明，因为“{1}”是抽象的。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">接口中的用户定义转换必须转换为或转换自封闭类型约束为封闭类型的类型参数</target>
@@ -832,6 +837,11 @@
         <target state="translated">不允许显示应用 “System.Runtime.CompilerServices.NullableAttribute”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
+        <target state="new">Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'.请改用关键字“params”。</target>
@@ -883,8 +893,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">表达式树不能包含扩展属性访问</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="new">An expression tree may not contain an extension property or indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1518,8 +1528,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="translated">联合成员提供程序类型必须具有类型为 'object?' 或 'object' 的公共实例 'Value' 属性。属性必须具有 get 访问器。</target>
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -2503,8 +2513,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</source>
-        <target state="translated">'safe' 修饰符只能用于未标记为 'unsafe' 的 'extern' 成员。</target>
+        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
+        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
         <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
@@ -2912,6 +2922,11 @@
         <target state="translated">应为泛用类任务返回类型，但在“AsyncMethodBuilder”属性中发现的类型“{0}”不合适。它必须是 arity one 的未绑定泛型类型，并且其包含类型(如果有)必须为非泛用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
         <target state="translated">“{0}”的 Using 指令在以前显示为全局使用</target>
@@ -3005,6 +3020,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">扩展的属性模式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="new">extension indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">

@@ -1,10 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -29,12 +27,12 @@ internal sealed class RazorCSharpStatementKeywordFoldingProvider : AbstractSynta
     {
         return syntaxTree.Root
             .DescendantNodes(static node => node is RazorDocumentSyntax or MarkupBlockSyntax or MarkupElementSyntax or CSharpCodeBlockSyntax)
-            .OfType<CSharpStatementLiteralSyntax>()
-            .Where(n => n is
+            .Where(static n => n is CSharpStatementLiteralSyntax
             {
                 Parent: CSharpCodeBlockSyntax,
                 LiteralTokens: [{ Kind: SyntaxKind.Keyword }, ..]
             })
-            .SelectAsArray(d => (CSharpCodeBlockSyntax)d.Parent);
+            .Select(static n => (CSharpCodeBlockSyntax)n.Parent)
+            .ToImmutableArray();
     }
 }

@@ -14477,6 +14477,23 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             sourceCodeKind: SourceCodeKind.Regular,
             glyph: Glyph.ExtensionMethodPublic);
 
+    [Fact]
+    public Task ModernExtensionIndexerParameterTypeCompletion()
+        => VerifyItemExistsAsync(
+            MakeMarkup("""
+            static class E
+            {
+                extension(int i)
+                {
+                    int this[Cust$$] => i;
+                }
+            }
+
+            class Customer;
+            """),
+            "Customer",
+            sourceCodeKind: SourceCodeKind.Regular);
+
     [Theory]
     [InlineData("""public int Number => 0;""",
                 Glyph.PropertyPublic,

@@ -724,35 +724,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundImplicitIndexerReceiverPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundImplicitIndexerReceiverPlaceholder(SyntaxNode syntax, bool isEquivalentToThisReference, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ImplicitIndexerReceiverPlaceholder, syntax, type, hasErrors)
+        public BoundImplicitIndexerReceiverPlaceholder(SyntaxNode syntax, bool isEquivalentToThisReference, BoundExpression receiver, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ImplicitIndexerReceiverPlaceholder, syntax, type, hasErrors || receiver.HasErrors())
         {
 
+            RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.IsEquivalentToThisReference = isEquivalentToThisReference;
-        }
-
-        public BoundImplicitIndexerReceiverPlaceholder(SyntaxNode syntax, bool isEquivalentToThisReference, TypeSymbol type)
-            : base(BoundKind.ImplicitIndexerReceiverPlaceholder, syntax, type)
-        {
-
-            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
-            this.IsEquivalentToThisReference = isEquivalentToThisReference;
+            this.Receiver = receiver;
         }
 
         public new TypeSymbol Type => base.Type!;
         public override bool IsEquivalentToThisReference { get; }
+        public BoundExpression Receiver { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitImplicitIndexerReceiverPlaceholder(this);
 
-        public BoundImplicitIndexerReceiverPlaceholder Update(bool isEquivalentToThisReference, TypeSymbol type)
+        public BoundImplicitIndexerReceiverPlaceholder Update(bool isEquivalentToThisReference, BoundExpression receiver, TypeSymbol type)
         {
-            if (isEquivalentToThisReference != this.IsEquivalentToThisReference || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (isEquivalentToThisReference != this.IsEquivalentToThisReference || receiver != this.Receiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundImplicitIndexerReceiverPlaceholder(this.Syntax, isEquivalentToThisReference, type, this.HasErrors);
+                var result = new BoundImplicitIndexerReceiverPlaceholder(this.Syntax, isEquivalentToThisReference, receiver, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10074,7 +10068,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => null;
         public override BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node) => null;
         public override BoundNode? VisitImplicitIndexerValuePlaceholder(BoundImplicitIndexerValuePlaceholder node) => null;
-        public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node) => null;
+        public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
+        {
+            this.Visit(node.Receiver);
+            return null;
+        }
         public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node) => null;
         public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node) => null;
         public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node) => null;
@@ -11169,8 +11167,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
         {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.IsEquivalentToThisReference, type);
+            return node.Update(node.IsEquivalentToThisReference, receiver, type);
         }
         public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
         {
@@ -12844,13 +12843,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
         {
-            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                return node;
-            }
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundImplicitIndexerReceiverPlaceholder updatedNode;
 
-            BoundImplicitIndexerReceiverPlaceholder updatedNode = node.Update(node.IsEquivalentToThisReference, infoAndType.Type!);
-            updatedNode.TopLevelNullability = infoAndType.Info;
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(node.IsEquivalentToThisReference, receiver, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(node.IsEquivalentToThisReference, receiver, node.Type);
+            }
             return updatedNode;
         }
 
@@ -15562,6 +15566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node, object? arg) => new TreeDumperNode("implicitIndexerReceiverPlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("isEquivalentToThisReference", node.IsEquivalentToThisReference, null),
+            new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class LanguageServerWorkspaceFactoryServiceFactory(
     HostServicesProvider hostServicesProvider,
     ExtensionAssemblyManager extensionManager,
-    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
-    ILoggerFactory loggerFactory) : ILspServiceFactory
+    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         => new LanguageServerWorkspaceFactory(
@@ -31,5 +30,5 @@ internal sealed class LanguageServerWorkspaceFactoryServiceFactory(
             lspServices,
             extensionManager,
             assemblyRedirectors,
-            loggerFactory);
+            lspServices.GetRequiredService<ILoggerFactory>());
 }

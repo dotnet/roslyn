@@ -14,35 +14,34 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
 /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
+/// In VS, this service should only be instantiated in OOP and accessed remotely via <see cref="IRemoteEditAndContinueService"/>.
+/// The service is used directly only by dotnet-watch and for testing.
 /// </summary>
-[Export(typeof(IEditAndContinueService)), Shared]
 internal sealed class EditAndContinueService : IEditAndContinueService
 {
-    [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class WorkspaceService(
-        IEditAndContinueService service,
-        [Import(AllowDefault = true)] IEditAndContinueSessionTracker? sessionTracker = null) : IEditAndContinueWorkspaceService
+    internal sealed class WorkspaceServiceFactory() : IWorkspaceServiceFactory
     {
-        public IEditAndContinueService Service { get; } = service;
-        public IEditAndContinueSessionTracker SessionTracker { get; } = sessionTracker ?? VoidSessionTracker.Instance;
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+            => new WorkspaceService(
+                // The host may optionally provide a log reporter (e.g. to forward EnC logs to the debugger's hot reload
+                // logger). When not available the service logs to file only.
+                new EditAndContinueService(workspaceServices.GetService<IEditAndContinueLogReporter>()));
     }
 
-    private sealed class VoidSessionTracker : IEditAndContinueSessionTracker
+    internal sealed class WorkspaceService(IEditAndContinueService service) : IEditAndContinueWorkspaceService
     {
-        public static readonly VoidSessionTracker Instance = new();
-
-        public bool IsSessionActive => false;
-        public ImmutableArray<DiagnosticData> ApplyChangesDiagnostics => [];
+        public IEditAndContinueService Service { get; } = service;
     }
 
     private static readonly string? s_logDir = GetLogDirectory();
@@ -58,10 +57,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     private readonly List<DebuggingSession> _debuggingSessions = [];
     private static int s_debuggingSessionId;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditAndContinueService(
-        [Import(AllowDefault = true)] IEditAndContinueLogReporter? logReporter)
+    public EditAndContinueService(IEditAndContinueLogReporter? logReporter)
     {
         Log = new TraceLog("Session", logReporter);
         AnalysisLog = new TraceLog("Analysis", logReporter);
