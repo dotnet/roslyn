@@ -69,6 +69,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = TempRoot.CreateDirectory();
+        tempDir.CreateFile("global.json").WriteAllText("""{ "sdk": { "version": "10.0.300" } }""");
         tempDir.CreateFile("Util.cs").WriteAllText("""
             #:property TargetFramework=net10.0
             #:property OutputType=Library
@@ -824,7 +825,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
-        Assert.Contains(document.Project.Documents, d => d.Name == "SomeFile.AssemblyInfo.cs");
+        Assert.Contains(document.Project.Documents, d => d.Name == "SomeFile.cs.AssemblyInfo.cs");
         Assert.True(document.Project.State.HasAllInformation);
     }
 

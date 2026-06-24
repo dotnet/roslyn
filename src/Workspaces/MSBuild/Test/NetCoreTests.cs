@@ -642,7 +642,9 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
             Console.WriteLine("Hello World!");
             """;
 
-        CreateFiles(new FileSet(("Program.cs", sourceText)));
+        CreateFiles(new FileSet(
+            ("global.json", """{ "sdk": { "version": "10.0.300" } }"""),
+            ("Program.cs", sourceText)));
 
         var sourceFilePath = GetSolutionFileName("Program.cs");
 
@@ -668,6 +670,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
     public async Task TestOpenProject_FileBasedApp_RefDirective()
     {
         CreateFiles(new FileSet(
+            ("global.json", """{ "sdk": { "version": "10.0.300" } }"""),
             ("Program.cs", """
                 #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref Util.cs
