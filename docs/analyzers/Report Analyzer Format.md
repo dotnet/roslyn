@@ -17,7 +17,7 @@ MSBuild reports analyzer performance by default. To disable the report, use the
 following MSBuild command line:
 
 ```
-msbuild.exe /v:d /p:ReportAnalyzer=false <%project_file%>
+msbuild.exe /v:d /p:ReportAnalyzer=false <project_file>
 ```
 
 Output Format
