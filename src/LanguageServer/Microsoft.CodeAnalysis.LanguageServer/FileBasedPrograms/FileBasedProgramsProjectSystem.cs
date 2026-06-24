@@ -27,6 +27,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly CanonicalMiscellaneousFilesProjectProvider _canonicalProjectProvider;
 
+    /// <summary>
+    /// Virtual (in-memory) projects don't exist on disk, so MSBuild worker nodes
+    /// can't re-evaluate them. Force single-node builds to keep everything in-process.
+    /// </summary>
+    protected override int MaxNodeCount => 1;
+
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
         IGlobalOptionService globalOptionService,

@@ -55,10 +55,15 @@ public sealed class ServerDisconnectTests(ITestOutputHelper testOutputHelper) : 
         var server = await CreateLanguageServerAsync();
 
         // Write a valid JSON-RPC header with a corrupt (non-JSON) body to cause a deserialization error.
+        // Both the header and body must be written atomically (without awaiting between them) to avoid a
+        // race condition where the server disconnects between the two writes causing _clientRpc to
+        // asynchronously complete the pipe writer, making the second write throw.
         var garbageBody = Encoding.UTF8.GetBytes("this is not valid json!!");
         var header = Encoding.ASCII.GetBytes($"Content-Length: {garbageBody.Length}\r\n\r\n");
-        await server.ClientToServerPipe.Writer.WriteAsync(header);
-        await server.ClientToServerPipe.Writer.WriteAsync(garbageBody);
+        var message = new byte[header.Length + garbageBody.Length];
+        header.CopyTo(message, 0);
+        garbageBody.CopyTo(message, header.Length);
+        await server.ClientToServerPipe.Writer.WriteAsync(message);
         server.ClientToServerPipe.Writer.Complete();
 
         // Corruption is not a clean disconnect - the server should propagate the error.

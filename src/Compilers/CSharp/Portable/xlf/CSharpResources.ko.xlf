@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractBaseRecordImplementation">
         <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
-        <target state="new">Record member '{0}' must be declared explicitly because '{1}' is abstract.</target>
+        <target state="translated">레코드 멤버 '{0}'은(는) '{1}'이(가) 추상 멤버이므로 명시적으로 선언해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
@@ -893,8 +893,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">식 트리에는 확장 속성 접근이 포함될 수 없습니다.</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="new">An expression tree may not contain an extension property or indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -1528,8 +1528,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingUnionValueProperty">
-        <source>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</source>
-        <target state="translated">공용 구조체 멤버 공급자 형식에는 형식이 'object?' 또는 'object'인 퍼블릭 인스턴스 'Value' 속성이 있어야 합니다. 속성에는 get 접근자가 있어야 합니다.</target>
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
@@ -2912,6 +2912,11 @@
         <target state="translated">일반 작업과 같은 반환 유형이 예상되었지만 'AsyncMethodBuilder' 특성에 있는 '{0}' 유형이 적합하지 않습니다. 이는 인자 수가 1인 바인딩되지 않은 제네릭 유형이어야 하고, 포함하는 유형(있는 경우)은 제네릭이 아니어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
         <target state="translated">'{0}'에 대한 using 지시문은 이전에 다음을 사용하여 전역으로 표시되었습니다.</target>
@@ -3005,6 +3010,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">확장 속성 패턴</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="new">extension indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">

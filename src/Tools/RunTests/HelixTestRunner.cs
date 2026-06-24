@@ -322,7 +322,7 @@ internal sealed partial class HelixTestRunner
 
         // Retrieve test runtimes from azure devops historical data.
         var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
-        var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), testHistory);
+        var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), platform, testHistory);
         var timeout = testHistory is null ? WorkItemExecutionTimeout * 2 : WorkItemExecutionTimeout;
         var helixProjectFileContent = GetHelixProjectFileContent(
             helixWorkItems,

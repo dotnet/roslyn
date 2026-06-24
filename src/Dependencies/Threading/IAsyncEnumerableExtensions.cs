@@ -23,12 +23,9 @@ internal static class IAsyncEnumerableExtensions
         return result.ToImmutableAndClear();
     }
 
-    // Remove after .NET 10, https://github.com/dotnet/roslyn/issues/80198
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
     public static async IAsyncEnumerable<TSource> AsAsyncEnumerable<TSource>(this IEnumerable<TSource> source)
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         foreach (var item in source)
             yield return item;
