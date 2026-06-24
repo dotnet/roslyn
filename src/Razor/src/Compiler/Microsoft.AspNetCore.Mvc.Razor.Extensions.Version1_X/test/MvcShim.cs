@@ -31,8 +31,15 @@ internal static class MvcShim
     private static Assembly CreateAssembly()
     {
         var assemblyFileName = AssemblyName + ".dll";
-        var assemblyDirectory = Path.GetDirectoryName(typeof(MvcShim).Assembly.Location);
-        var filePath = Path.Combine(assemblyDirectory ?? AppContext.BaseDirectory, assemblyFileName);
+        var testAssemblyLocation = typeof(MvcShim).Assembly.Location;
+        if (string.IsNullOrEmpty(testAssemblyLocation))
+        {
+            throw new InvalidOperationException(
+                $"Cannot locate '{assemblyFileName}' because '{typeof(MvcShim).Assembly.FullName}' has no location. CurrentDirectory='{Directory.GetCurrentDirectory()}', AppContext.BaseDirectory='{AppContext.BaseDirectory}'.");
+        }
+
+        var assemblyDirectory = Path.GetDirectoryName(testAssemblyLocation);
+        var filePath = Path.Combine(assemblyDirectory!, assemblyFileName);
 
         if (!File.Exists(filePath))
         {
