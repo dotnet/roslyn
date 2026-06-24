@@ -1,9 +1,7 @@
 Introduction
 ============
-Starting with version 5.9.0, the C# and Visual Basic compilers report
-analyzer execution time information by default. The `/reportanalyzer` command
-line switch remains supported for compatibility with earlier versions, where it
-enables this reporting.
+The C# and Visual Basic compilers support a `/reportanalyzer` switch on
+the command line to report additional analyzer information, such as execution time.
 
 The output contains the total wall clock time spent in executing the analyzers and
 the relative execution times per-analyzer.
@@ -13,9 +11,7 @@ identify any outlier analyzer which takes signinficantly more time than other an
 
 MSBuild command
 =============
-Analyzer timing is included in compiler output by default for version 5.9.0 and
-later. When building with earlier compiler versions, use the following MSBuild
-command line to get the analyzer performance report:
+Use the following msbuild command line to get the analyzer performance report:
 
 ```
 msbuild.exe /v:d /p:reportanalyzer=true <%project_file%>

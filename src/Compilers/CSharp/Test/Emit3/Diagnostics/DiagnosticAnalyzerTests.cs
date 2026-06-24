@@ -4398,7 +4398,7 @@ partial class B
             var analyzersArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
             var analyzerManager = new AnalyzerManager(analyzersArray);
             var driver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzersArray, AnalyzerOptions.Empty, analyzerManager, onAnalyzerException: null,
-                analyzerExceptionFilter: null, severityFilter, trackSuppressedDiagnosticIds: false, out var newCompilation, CancellationToken.None);
+                analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter, trackSuppressedDiagnosticIds: false, out var newCompilation, CancellationToken.None);
 
             // Force complete compilation event queue and analyzer execution.
             _ = newCompilation.GetDiagnostics(CancellationToken.None);

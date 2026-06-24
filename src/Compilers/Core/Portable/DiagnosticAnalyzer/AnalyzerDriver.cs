@@ -809,6 +809,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
         /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for exceptions from third party analyzers.</param>
+        /// <param name="reportAnalyzer">Report additional information related to analyzers, such as analyzer execution time.</param>
         /// <param name="severityFilter">Filtered diagnostic severities in the compilation, i.e. diagnostics with effective severity from this set should not be reported.</param>
         /// <param name="trackSuppressedDiagnosticIds">Track diagnostic ids which are suppressed through options.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
@@ -824,6 +825,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
             Action<Diagnostic> addExceptionDiagnostic,
+            bool reportAnalyzer,
             SeverityFilter severityFilter,
             bool trackSuppressedDiagnosticIds,
             out Compilation newCompilation,
@@ -833,7 +835,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
 
             Func<Exception, bool>? nullFilter = null;
-            return CreateAndAttachToCompilation(compilation, analyzers, options, analyzerManager, onAnalyzerException, nullFilter, severityFilter, trackSuppressedDiagnosticIds, out newCompilation, cancellationToken: cancellationToken);
+            return CreateAndAttachToCompilation(compilation, analyzers, options, analyzerManager, onAnalyzerException, nullFilter, reportAnalyzer, severityFilter, trackSuppressedDiagnosticIds, out newCompilation, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
@@ -844,6 +846,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
+            bool reportAnalyzer,
             SeverityFilter severityFilter,
             bool trackSuppressedDiagnosticIds,
             out Compilation newCompilation,
@@ -855,7 +858,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             var categorizeDiagnostics = false;
-            var analysisOptions = new CompilationWithAnalyzersOptions(options, onAnalyzerException, analyzerExceptionFilter: analyzerExceptionFilter, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false);
+            var analysisOptions = new CompilationWithAnalyzersOptions(options, onAnalyzerException, analyzerExceptionFilter: analyzerExceptionFilter, concurrentAnalysis: true, logAnalyzerExecutionTime: reportAnalyzer, reportSuppressedDiagnostics: false);
             var analysisScope = AnalysisScope.CreateForBatchCompile(newCompilation, options.GetAdditionalFiles(), analyzers);
             analyzerDriver.Initialize(newCompilation, analysisOptions, new CompilationData(newCompilation), analysisScope, categorizeDiagnostics, trackSuppressedDiagnosticIds, cancellationToken);
 

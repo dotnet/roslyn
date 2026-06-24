@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (analyzerDriver is not null || (driverTimingInfo is { } timingInfo && !timingInfo.GeneratorTimes.IsEmpty))
+                if (Arguments.ReportAnalyzer)
                 {
                     ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
                 }
@@ -1543,6 +1543,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
+                    reportAnalyzer: Arguments.ReportAnalyzer || errorLogger != null,
                     severityFilter,
                     trackSuppressedDiagnosticIds: errorLogger != null,
                     out compilation,

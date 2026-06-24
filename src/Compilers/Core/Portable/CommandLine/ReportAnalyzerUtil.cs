@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
             CultureInfo culture,
             bool isConcurrentBuild)
         {
-            if (isConcurrentBuild && analyzerDriver is { })
+            if (isConcurrentBuild && (analyzerDriver is { } || driverTimingInfo is { }))
             {
                 consoleOutput.WriteLine(CodeAnalysisResources.MultithreadedAnalyzerExecutionNote);
                 consoleOutput.WriteLine();

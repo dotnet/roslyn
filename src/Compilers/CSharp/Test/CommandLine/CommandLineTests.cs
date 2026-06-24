@@ -248,7 +248,7 @@ dotnet_diagnostic.cs0169.severity = none");
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
-            AssertEx.Equal("", RemoveTimingOutput(outWriter.ToString()));
+            AssertEx.Equal("", outWriter.ToString());
 
             static string modifyPath(string path, bool doubleSlash)
             {
@@ -300,7 +300,7 @@ my_option2 = my_val2");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
-            Assert.Equal("", RemoveTimingOutput(outWriter.ToString()));
+            Assert.Equal("", outWriter.ToString());
             Assert.Equal(0, exitCode);
 
             var comp = cmd.Compilation;
@@ -3523,7 +3523,7 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             // Diagnostic suppressed: commandline always overrides ruleset.
-            Assert.DoesNotContain("Warning01", RemoveTimingOutput(outWriter.ToString()), StringComparison.Ordinal);
+            Assert.DoesNotContain("Warning01", outWriter.ToString(), StringComparison.Ordinal);
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             csc = CreateCSharpCompiler(null, dir.Path,
@@ -3534,7 +3534,7 @@ class C
             exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
             // Diagnostic suppressed: commandline always overrides ruleset.
-            Assert.DoesNotContain("Warning01", RemoveTimingOutput(outWriter.ToString()), StringComparison.Ordinal);
+            Assert.DoesNotContain("Warning01", outWriter.ToString(), StringComparison.Ordinal);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(file.Path);
@@ -9472,54 +9472,6 @@ public class C { }
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/79895")]
-        public void AnalyzerAndGeneratorTimingOutput_ReportedByDefault()
-        {
-            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
-            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = CreateCSharpCompiler(
-                responseFile: null,
-                srcDirectory,
-                new[] { "/t:library", srcFile.Path },
-                analyzers: [new WarningDiagnosticAnalyzer()],
-                generators: new[] { new DoNothingGenerator().AsSourceGenerator() });
-            var exitCode = csc.Run(outWriter);
-            Assert.Equal(0, exitCode);
-            var output = outWriter.ToString();
-            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
-            Assert.Contains($"{nameof(WarningDiagnosticAnalyzer)} (Warning01)", output, StringComparison.Ordinal);
-            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
-            Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
-            Assert.Contains(CodeAnalysisResources.MultithreadedAnalyzerExecutionNote, output, StringComparison.Ordinal);
-            CleanupAllGeneratedFiles(srcFile.Path);
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/79895")]
-        public void AnalyzerTimingOutput_ReportedByDefault()
-        {
-            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
-            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
-
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var csc = CreateCSharpCompiler(
-                responseFile: null,
-                srcDirectory,
-                new[] { "/t:library", srcFile.Path },
-                analyzers: [new WarningDiagnosticAnalyzer()]);
-            var exitCode = csc.Run(outWriter);
-            Assert.Equal(0, exitCode);
-            var output = outWriter.ToString();
-            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
-            Assert.Contains($"{nameof(WarningDiagnosticAnalyzer)} (Warning01)", output, StringComparison.Ordinal);
-            Assert.DoesNotContain(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
-            Assert.Contains(CodeAnalysisResources.MultithreadedAnalyzerExecutionNote, output, StringComparison.Ordinal);
-            CleanupAllGeneratedFiles(srcFile.Path);
-        }
-
-        [Fact]
         public void ReportAnalyzerOutput_AllConcurrentAnalyzers()
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
@@ -9691,7 +9643,7 @@ class C { }
             var exitCode = csc.Run(outWriter);
 
             // Previously, the compiler would return error code 1 without printing any diagnostics
-            Assert.Empty(RemoveTimingOutput(outWriter.ToString()));
+            Assert.Empty(outWriter.ToString());
             Assert.Equal(0, exitCode);
 
             CleanupAllGeneratedFiles(srcFile.Path);
@@ -10665,106 +10617,6 @@ class C
             return n;
         }
 
-        [Fact]
-        public void RemoveTimingOutput_RemovesReportSections()
-        {
-            Assert.Equal("No format item", GetResourcePrefix("No format item"));
-            Assert.Equal("Value ", GetResourcePrefix("Value {0:000}"));
-            Assert.Equal("Value ", GetResourcePrefix("Value {1}"));
-            Assert.Equal("Value ", GetResourcePrefix("Value {0} and {1}"));
-            Assert.Equal("Value ", GetResourcePrefix("Value {10}"));
-            Assert.Equal("", RemoveTimingOutput(string.Format(CodeAnalysisResources.AnalyzerTotalExecutionTime, "0.123")));
-            Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput($"""
-                warning CS0169: field is unused
-                {string.Format(CodeAnalysisResources.AnalyzerTotalExecutionTime, "0.123")}
-                """));
-            Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput($"""
-                warning CS0169: field is unused
-                {string.Format(CodeAnalysisResources.AnalyzerTotalExecutionTime, "0.123")}
-                {string.Format(CodeAnalysisResources.GeneratorTotalExecutionTime, "0.000")}
-                """));
-            Assert.Equal($"warning CS0000: {CodeAnalysisResources.MultithreadedAnalyzerExecutionNote}", RemoveTimingOutput($"warning CS0000: {CodeAnalysisResources.MultithreadedAnalyzerExecutionNote}"));
-            Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput($"""
-                warning CS0169: field is unused
-                {CodeAnalysisResources.MultithreadedAnalyzerExecutionNote}
-                """));
-            Assert.Equal("", RemoveTimingOutput(string.Format(CodeAnalysisResources.GeneratorTotalExecutionTime, "0.000")));
-            Assert.Equal("warning CS0169: field is unused", RemoveTimingOutput("warning CS0169: field is unused"));
-        }
-
-        private static string GetResourcePrefix(string resourceFormat)
-        {
-            for (var i = 0; i < resourceFormat.Length; i++)
-            {
-                if (i + 1 >= resourceFormat.Length)
-                {
-                    continue;
-                }
-
-                if (resourceFormat[i] != '{' || !char.IsDigit(resourceFormat[i + 1]))
-                {
-                    continue;
-                }
-
-                var remaining = resourceFormat.AsSpan(i + 2);
-                var digitCount = 0;
-                while (digitCount < remaining.Length && char.IsDigit(remaining[digitCount]))
-                {
-                    digitCount++;
-                }
-
-                var formatEnd = i + 2 + digitCount;
-                if (formatEnd == resourceFormat.Length ||
-                    resourceFormat[formatEnd] is '}' or ':' or ',')
-                {
-                    return resourceFormat[..i];
-                }
-            }
-
-            return resourceFormat;
-        }
-
-        // Timing reports start on new lines; only match line starts so diagnostic messages containing the same text are preserved.
-        private static int IndexOfTimingMarker(string output, string marker)
-        {
-            var index = output.IndexOf(marker, StringComparison.Ordinal);
-            while (index >= 0)
-            {
-                if (index == 0 || output[index - 1] is '\n' or '\r')
-                {
-                    return index;
-                }
-
-                index = output.IndexOf(marker, index + marker.Length, StringComparison.Ordinal);
-            }
-
-            return -1;
-        }
-
-        // Remove analyzer and generator timing reports from command-line output when tests assert diagnostic output.
-        private static string RemoveTimingOutput(string output)
-        {
-            var index = output.Length;
-            foreach (var marker in new[]
-            {
-                CodeAnalysisResources.MultithreadedAnalyzerExecutionNote,
-                GetResourcePrefix(CodeAnalysisResources.AnalyzerTotalExecutionTime),
-                CodeAnalysisResources.NonConcurrentAnalyzersHeader,
-                CodeAnalysisResources.AllAnalyzersConcurrentMessage,
-                GetResourcePrefix(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage),
-                GetResourcePrefix(CodeAnalysisResources.GeneratorTotalExecutionTime),
-            })
-            {
-                var markerIndex = IndexOfTimingMarker(output, marker);
-                if (markerIndex >= 0)
-                {
-                    index = Math.Min(index, markerIndex);
-                }
-            }
-
-            return output[..index].TrimEnd();
-        }
-
         private string VerifyOutput(TempDirectory sourceDir, TempFile sourceFile,
                                            bool includeCurrentAssemblyAsAnalyzerReference = true,
                                            string[] additionalFlags = null,
@@ -10806,7 +10658,6 @@ class C
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
-            var diagnosticOutput = RemoveTimingOutput(output);
 
             expectedExitCode ??= expectedErrorCount > 0 ? 1 : 0;
             Assert.True(
@@ -10814,38 +10665,38 @@ class C
                 string.Format("Expected exit code to be '{0}' was '{1}'.{2} Output:{3}{4}",
                 expectedExitCode, exitCode, Environment.NewLine, Environment.NewLine, output));
 
-            Assert.DoesNotContain("hidden", diagnosticOutput, StringComparison.Ordinal);
+            Assert.DoesNotContain("hidden", output, StringComparison.Ordinal);
 
             if (expectedInfoCount == 0)
             {
-                Assert.DoesNotContain("info", diagnosticOutput, StringComparison.Ordinal);
+                Assert.DoesNotContain("info", output, StringComparison.Ordinal);
             }
             else
             {
                 // Info diagnostics are only logged with /errorlog.
                 Assert.True(errorlog);
-                Assert.Equal(expectedInfoCount, OccurrenceCount(diagnosticOutput, "info"));
+                Assert.Equal(expectedInfoCount, OccurrenceCount(output, "info"));
             }
 
             if (expectedWarningCount == 0)
             {
-                Assert.DoesNotContain("warning", diagnosticOutput, StringComparison.Ordinal);
+                Assert.DoesNotContain("warning", output, StringComparison.Ordinal);
             }
             else
             {
-                Assert.Equal(expectedWarningCount, OccurrenceCount(diagnosticOutput, "warning"));
+                Assert.Equal(expectedWarningCount, OccurrenceCount(output, "warning"));
             }
 
             if (expectedErrorCount == 0)
             {
-                Assert.DoesNotContain("error", diagnosticOutput, StringComparison.Ordinal);
+                Assert.DoesNotContain("error", output, StringComparison.Ordinal);
             }
             else
             {
-                Assert.Equal(expectedErrorCount, OccurrenceCount(diagnosticOutput, "error"));
+                Assert.Equal(expectedErrorCount, OccurrenceCount(output, "error"));
             }
 
-            return diagnosticOutput;
+            return output;
         }
 
         [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
@@ -13667,7 +13518,7 @@ dotnet_analyzer_diagnostic.severity = suggestion";
 
             if (prefix == null)
             {
-                Assert.DoesNotContain(diagnosticId, RemoveTimingOutput(outWriter.ToString()));
+                Assert.DoesNotContain(diagnosticId, outWriter.ToString());
             }
             else
             {
@@ -13911,7 +13762,7 @@ dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerC
             }
             else
             {
-                Assert.DoesNotContain(descriptor.Id.ToString(), RemoveTimingOutput(outWriter.ToString()));
+                Assert.DoesNotContain(descriptor.Id.ToString(), outWriter.ToString());
             }
         }
 
@@ -13984,7 +13835,7 @@ generated_code = auto");
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
-            var output = RemoveTimingOutput(outWriter.ToString());
+            var output = outWriter.ToString();
             if (analyzerShouldBeSkipped)
             {
                 Assert.Empty(output);
@@ -14023,7 +13874,7 @@ generated_code = auto");
             var expectedExitCode = !analyzerShouldBeSkipped && defaultSeverity == DiagnosticSeverity.Error ? 1 : 0;
             Assert.Equal(expectedExitCode, exitCode);
 
-            var output = RemoveTimingOutput(outWriter.ToString());
+            var output = outWriter.ToString();
             if (analyzerShouldBeSkipped || customConfigurable && defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info)
             {
                 Assert.Empty(output);
@@ -15072,7 +14923,7 @@ class C
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("", RemoveTimingOutput(outWriter.ToString()));
+            Assert.Equal("", outWriter.ToString());
         }
 
         internal class FailsInitializeGenerator : ISourceGenerator
@@ -15117,7 +14968,7 @@ class C
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal("", RemoveTimingOutput(outWriter.ToString()));
+            Assert.Equal("", outWriter.ToString());
         }
 
         [Theory]
@@ -15196,7 +15047,7 @@ class C
                analyzers: new[] { new FieldAnalyzer() }); // at least one analyzer required
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
-            var output = RemoveTimingOutput(outWriter.ToString());
+            var output = outWriter.ToString();
             Assert.Empty(output);
             CleanupAllGeneratedFiles(srcFile.Path);
         }
@@ -15310,7 +15161,7 @@ key3 = value3");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
-            Assert.Equal("", RemoveTimingOutput(outWriter.ToString()));
+            Assert.Equal("", outWriter.ToString());
             Assert.Equal(0, exitCode);
 
             var comp = cmd.Compilation;

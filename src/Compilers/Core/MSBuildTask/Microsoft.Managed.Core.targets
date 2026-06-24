@@ -57,6 +57,10 @@
     <PropertyGroup Condition="'$(UseSharedCompilation)' == ''">
       <UseSharedCompilation>true</UseSharedCompilation>
     </PropertyGroup>
+
+    <PropertyGroup Condition="'$(ReportAnalyzer)' == ''">
+      <ReportAnalyzer>true</ReportAnalyzer>
+    </PropertyGroup>
   </Target>
 
   <!--
