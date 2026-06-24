@@ -42,14 +42,14 @@ internal sealed class RemoteDataTipRangeService(in ServiceArgs args) : RazorDocu
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var razorIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(position);
-        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
 
-        if (!_documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, razorIndex, out var csharpPosition, out _))
+        if (!_documentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out var csharpPosition, out _, out var inDeclDocument))
         {
             return NoFurtherHandling;
         }
 
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument(inDeclDocument);
+        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
 
         var csharpResult = await DataTipRangeHandler.GetDataTipRangeAsync(generatedDocument, csharpPosition, cancellationToken).ConfigureAwait(false);
         if (csharpResult?.ExpressionRange is null)

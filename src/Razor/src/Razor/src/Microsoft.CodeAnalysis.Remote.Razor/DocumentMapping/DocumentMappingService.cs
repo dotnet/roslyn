@@ -167,18 +167,11 @@ internal sealed class DocumentMappingService(
         return false;
     }
 
-    public bool TryMapToCSharpPositionOrNext(RazorCSharpDocument csharpDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex)
-        => TryMapToCSharpDocumentPositionInternal(csharpDocument, hostDocumentIndex, nextCSharpPositionOnFailure: true, out generatedPosition, out generatedIndex);
-
     public bool TryMapToCSharpDocumentPosition(RazorCSharpDocument csharpDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex)
-        => TryMapToCSharpDocumentPositionInternal(csharpDocument, hostDocumentIndex, nextCSharpPositionOnFailure: false, out generatedPosition, out generatedIndex);
+        => TryMapToCSharpDocumentPositionInternal(csharpDocument, hostDocumentIndex, out generatedPosition, out generatedIndex);
 
-    private static bool TryMapToCSharpDocumentPositionInternal(RazorCSharpDocument csharpDocument, int razorIndex, bool nextCSharpPositionOnFailure, out LinePosition csharpPosition, out int csharpIndex)
+    private static bool TryMapToCSharpDocumentPositionInternal(RazorCSharpDocument csharpDocument, int razorIndex, out LinePosition csharpPosition, out int csharpIndex)
     {
-        SourceMapping? nextCSharpMapping = null;
-
-        var hostDocumentLine = csharpDocument.CodeDocument.Source.Text.GetLinePosition(razorIndex).Line;
-
         foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
         {
             var originalSpan = mapping.OriginalSpan;
@@ -195,29 +188,11 @@ internal sealed class DocumentMappingService(
                     return true;
                 }
             }
-            else if (nextCSharpPositionOnFailure &&
-                mapping.OriginalSpan.LineIndex == hostDocumentLine &&
-                mapping.OriginalSpan.AbsoluteIndex >= razorIndex &&
-                (nextCSharpMapping is null || mapping.OriginalSpan.AbsoluteIndex < nextCSharpMapping.OriginalSpan.AbsoluteIndex))
-            {
-                // The "next" C# location is only valid if it is on the same line in the source document
-                // as the requested position, and before than any previous "next" C# position we have found,
-                // comparing their original positions.  Due to source mappings being ordered by generated span,
-                // not original span, its possible for things to be out of order.
-                nextCSharpMapping = mapping;
-            }
             else
             {
                 // This span (and all following) are after the area we're interested in
                 break;
             }
-        }
-
-        if (nextCSharpPositionOnFailure && nextCSharpMapping is not null)
-        {
-            csharpIndex = nextCSharpMapping.GeneratedSpan.AbsoluteIndex;
-            csharpPosition = csharpDocument.Text.GetLinePosition(csharpIndex);
-            return true;
         }
 
         csharpPosition = default;
