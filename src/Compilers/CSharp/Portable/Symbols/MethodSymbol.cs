@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit :
                                                     AllowedRequiredModifierType.None) ||
                 DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
-                DeriveUseSiteInfoFromParameters(ref result, this.Parameters))
+                DeriveUseSiteInfoFromParameters(ref result, this.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false)))
             {
                 return true;
             }

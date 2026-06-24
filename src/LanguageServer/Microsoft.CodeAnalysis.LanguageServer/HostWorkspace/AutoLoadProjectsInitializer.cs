@@ -19,14 +19,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class AutoLoadProjectsInitializerFactory(
-    ILoggerFactory loggerFactory,
     ServerConfiguration serverConfiguration,
     IGlobalOptionService globalOptionService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         => new AutoLoadProjectsInitializer(
             lspServices.GetRequiredService<LanguageServerProjectSystem>(),
-            loggerFactory,
+            lspServices.GetRequiredService<ILoggerFactory>(),
             serverConfiguration,
             globalOptionService);
 }

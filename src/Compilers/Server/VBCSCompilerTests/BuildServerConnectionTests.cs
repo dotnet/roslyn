@@ -137,6 +137,29 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(5, count);
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84072")]
+        public void LogException_NonFatal()
+        {
+            Logger.Messages.Clear();
+            Logger.LogException(CreateException(), "Testing");
+
+            Assert.DoesNotContain(Logger.Messages, m => m.Contains("Error:"));
+            Assert.Contains(Logger.Messages, m => m.Contains("Exception: 'InvalidOperationException' 'boom' occurred during 'Testing'"));
+        }
+
+        private static Exception CreateException()
+        {
+            try
+            {
+                throw new InvalidOperationException("boom", new Exception("inner"));
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/13844")]
         public async Task WaitForServerProcessExitAsync_CompletesWhenServerMutexIsNotOpen()
         {
