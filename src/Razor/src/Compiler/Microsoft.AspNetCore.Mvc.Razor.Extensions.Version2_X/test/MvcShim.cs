@@ -39,7 +39,13 @@ internal static class MvcShim
         }
 
         var assemblyDirectory = Path.GetDirectoryName(testAssemblyLocation);
-        var filePath = Path.Combine(assemblyDirectory!, assemblyFileName);
+        if (string.IsNullOrEmpty(assemblyDirectory))
+        {
+            throw new InvalidOperationException(
+                $"Cannot locate '{assemblyFileName}' because the directory for '{testAssemblyLocation}' is empty. CurrentDirectory='{Directory.GetCurrentDirectory()}', AppContext.BaseDirectory='{AppContext.BaseDirectory}'.");
+        }
+
+        var filePath = Path.Combine(assemblyDirectory, assemblyFileName);
 
         if (!File.Exists(filePath))
         {
