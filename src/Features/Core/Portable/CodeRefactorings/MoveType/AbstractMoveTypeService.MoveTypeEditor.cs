@@ -155,8 +155,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var modifiedRoot = documentEditor.GetChangedRoot();
             modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
-            // The name was de-duped when the action was created. Re-check here in case the solution changed
-            // since then, so we never overwrite an existing file.
+            // Ensure we don't overwrite an existing document if the suggested name/path is already taken.
             var (fileName, filePath) = GetNonConflictingFileNameAndFilePath(
                 SemanticDocument.Project.Solution, SemanticDocument.Document.FilePath, FileName);
 
