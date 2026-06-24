@@ -762,6 +762,15 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Adding a #! directive to a misc file causes it to move to a file-based program project.
         var textToInsert = $"#!/usr/bin/env dotnet{Environment.NewLine}";
+        var fileChangeWatcher = testLspServer.GetRequiredLspService<IFileChangeWatcher>();
+        using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(sourceFile.Path)!, extensionFilters: [])]);
+        var fileChangeTcs = new TaskCompletionSource();
+        fileChangeContext.FileChanged += (_, path) =>
+        {
+            if (path == sourceFile.Path)
+                fileChangeTcs.TrySetResult();
+        };
+
         // Write updated content to disk so the build host can load it.
         sourceFile.WriteAllText($"#!/usr/bin/env dotnet{Environment.NewLine}{initialText}");
         await testLspServer.InsertTextAsync(looseFileUriOne, (Line: 0, Column: 0, Text: textToInsert));
@@ -775,6 +784,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // Verify that the project system remains in a good state, when intermediate requests come in while the file-based program project is still loaded.
         var (_, document2) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(document.Project.Id, document2.Project.Id);
+
+        await fileChangeTcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
 
         // Wait for the file-based program project to load.
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
