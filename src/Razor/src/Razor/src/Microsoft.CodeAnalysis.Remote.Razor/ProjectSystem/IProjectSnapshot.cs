@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 internal interface IProjectSnapshot
 {

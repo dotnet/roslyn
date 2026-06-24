@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 internal class DocumentContext(DocumentUri uri, IDocumentSnapshot snapshot)
 {

@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 internal interface ISolutionQueryOperations
 {

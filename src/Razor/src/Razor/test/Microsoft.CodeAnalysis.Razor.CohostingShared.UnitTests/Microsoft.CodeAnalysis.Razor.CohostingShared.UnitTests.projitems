@@ -78,6 +78,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\MoreHtmlFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\RazorFormattingServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditServiceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mapping\TestDocumentSnapshot.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ProjectAvailabilityTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendServiceTest.cs" />
