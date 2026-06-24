@@ -67,7 +67,7 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
@@ -101,7 +101,7 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
@@ -127,7 +127,7 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
@@ -153,7 +153,7 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
-                "version": "10.0.100-preview.5.25265.12"
+                "version": "10.0.301"
               }
             }
             """);
