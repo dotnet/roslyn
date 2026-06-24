@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -10,8 +11,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-            Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions) ||
-                         NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions));
+            if (IsUnionMatching)
+            {
+                Debug.Assert(NarrowedType.IsObjectType() ||
+                             NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions));
+            }
+            else
+            {
+                Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions) ||
+                             NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions));
+            }
         }
     }
 }

@@ -1,0 +1,9 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyAttributeTagHelpers.cshtml(64,54): error CS1525: Invalid expression term ';'
+//             __TestNamespace_InputTagHelper2.Checked = 
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(";").WithLocation(64, 54),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyAttributeTagHelpers.cshtml(95,58): error CS1525: Invalid expression term ';'
+//                 __TestNamespace_InputTagHelper2.Checked = 
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(";").WithLocation(95, 58),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/EmptyAttributeTagHelpers.cshtml(117,45): error CS1525: Invalid expression term ';'
+//             __TestNamespace_PTagHelper.Age = 
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments(";").WithLocation(117, 45)

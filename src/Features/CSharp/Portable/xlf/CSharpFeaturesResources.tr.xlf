@@ -32,6 +32,11 @@
         <target state="translated">NNuGet paket başvurusu ekler.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adds_a_file_reference">
+        <source>Adds a file reference.</source>
+        <target state="translated">Dosya başvurusu ekler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adds_a_project_reference">
         <source>Adds a project reference.</source>
         <target state="translated">Proje başvurusu ekler.</target>
@@ -60,6 +65,11 @@
       <trans-unit id="Apply_blank_lines_between_consecutive_braces_preferences_experimental">
         <source>Apply blank lines between consecutive braces preferences (experimental)</source>
         <target state="translated">Ardışık küme ayraçları tercihleri arasına boş satırlar uygula (deneysel)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_collection_expression_preferences">
+        <source>Apply collection expression preferences</source>
+        <target state="translated">Toplama ifadesi tercihlerini uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
@@ -246,6 +256,11 @@
         <source>Global 'using' directives</source>
         <target state="translated">Genel 'using' yönergeleri</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Include_directive_file_path">
+        <source>path</source>
+        <target state="translated">yol</target>
+        <note>'path' is a placeholder for a file path or glob in a directive like '#:include path'.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>

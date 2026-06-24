@@ -648,7 +648,7 @@ public class _Default
                     targetDocument:=targetDocument,
                     cancellationToken:=Nothing) Then
 
-                    Assert.True(False, "Should have succeeded")
+                    Assert.Fail("Should have succeeded")
                 End If
 
                 Assert.Equal(expectedSpan, actualSpan)

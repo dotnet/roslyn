@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
-// https://github.com/dotnet/roslyn/issues/82546: Confirm the attribute shape in BCL API review.
 /// <summary>
 /// <code>
 /// namespace System.Runtime.CompilerServices
@@ -53,7 +52,7 @@ internal sealed class SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol : Synt
 
         _properties =
         [
-            new SynthesizedPropertySymbol(PropertyName, field),
+            new SynthesizedEmbeddedAttributePropertySymbol(PropertyName, field),
         ];
 
         _constructors =

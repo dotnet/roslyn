@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
@@ -14,10 +15,14 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 internal static class SolutionTestHelpers
 {
     public static Workspace CreateWorkspace(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
-        => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
+    {
+        return new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
+    }
 
     public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
-        => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(testHost: testHost);
+    {
+        return WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(testHost: testHost);
+    }
 
 #nullable disable
 

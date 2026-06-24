@@ -287,6 +287,11 @@
         <target state="translated">Commenti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
+        <source>Completion behavior for items from unimported namespaces</source>
+        <target state="translated">Comportamento di completamento per elementi provenienti da spazi dei nomi non importati</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Membro contenitore</target>
@@ -480,6 +485,11 @@
       <trans-unit id="Format_document">
         <source>Format document</source>
         <target state="translated">Formatta documento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_new_document">
+        <source>Formatting new document...</source>
+        <target state="translated">Formattazione del nuovo documento in corso...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">

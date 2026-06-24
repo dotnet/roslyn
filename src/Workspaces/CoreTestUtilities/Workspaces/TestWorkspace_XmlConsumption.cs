@@ -669,7 +669,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
         }
         else if (testDocumentServiceProvider != null)
         {
-            AssertEx.Fail($"The document attributes on file {fileName} conflicted");
+            Assert.Fail($"The document attributes on file {fileName} conflicted");
         }
 
         var resolveFilePath = (bool?)documentElement.Attribute("ResolveFilePath");

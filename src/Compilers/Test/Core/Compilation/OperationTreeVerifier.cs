@@ -242,7 +242,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
             var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
 
-            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
+            string isUnion = "";
+            if (conversion.IsUnion)
+            {
+                isUnion = ", " + FormatBoolProperty(nameof(conversion.IsUnion), conversion.IsUnion);
+            }
+
+            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}{isUnion}) (");
             LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
             LogString(")");
         }
@@ -301,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
                 catch (ArgumentException)
                 {
-                    Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
+                    Assert.Fail($"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
                 }
             }
 

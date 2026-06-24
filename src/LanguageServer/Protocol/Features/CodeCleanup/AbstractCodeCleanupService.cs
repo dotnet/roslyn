@@ -24,6 +24,18 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
 {
     private readonly ICodeFixService _codeFixService = codeFixService;
 
+    /// <summary>
+    /// Diagnostic IDs whose code fixes generate stub implementations and should not be applied automatically during code cleanup.
+    /// Applying these fixes silently converts compile-time errors into runtime errors.
+    /// </summary>
+    private static readonly ImmutableHashSet<string> s_implementMemberDiagnosticIds = ImmutableHashSet.Create(
+        "CS0535", // 'Type' does not implement interface member 'Member'
+        "CS0737", // 'Type' does not implement interface member 'Member' (not public)
+        "CS0738", // 'Type' does not implement interface member 'Member' (wrong return type)
+        "CS0534", // 'Type' does not implement inherited abstract member 'Member'
+        "BC30149", // Class 'Type' must implement 'Method' for interface 'Interface'
+        "BC30610"); // Class must either be declared 'MustInherit' or override inherited 'MustOverride' member(s)
+
     protected abstract string OrganizeImportsDescription { get; }
     protected abstract ImmutableArray<DiagnosticSet> GetDiagnosticSets();
 
@@ -209,8 +221,8 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
         var diagnosticService = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(
             document, range,
-            // Compute diagnostics for everything that is *NOT* an IDE analyzer
-            DiagnosticIdFilter.Exclude(IDEDiagnosticIdToOptionMappingHelper.KnownIDEDiagnosticIds),
+            // Compute diagnostics for everything that is *NOT* an IDE analyzer and not an implement-member diagnostic.
+            DiagnosticIdFilter.Exclude(IDEDiagnosticIdToOptionMappingHelper.KnownIDEDiagnosticIds.Union(s_implementMemberDiagnosticIds)),
             priority: null,
             DiagnosticKind.All,
             cancellationToken).ConfigureAwait(false);

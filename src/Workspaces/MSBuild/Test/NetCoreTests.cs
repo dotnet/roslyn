@@ -53,12 +53,14 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
 
     private void DotNetRestore(string solutionOrProjectFileName)
     {
-        RunDotNet($@"msbuild ""{solutionOrProjectFileName}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}");
+        var normalizedPath = solutionOrProjectFileName.Replace('\\', '/');
+        RunDotNet($@"msbuild ""{normalizedPath}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}");
     }
 
     private void DotNetBuild(string solutionOrProjectFileName, string configuration = null)
     {
-        var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
+        var normalizedPath = solutionOrProjectFileName.Replace('\\', '/');
+        var arguments = $@"msbuild ""{normalizedPath}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
 
         if (configuration != null)
         {
@@ -139,6 +141,55 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
         Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    // TODO: Delete this test once parallel project loading is supported directly in MSBuildWorkspace, at which point the
+    // existing MSBuildWorkspace tests will exercise this path.
+    public async Task TestLoadMultipleProjectsInParallelProducesConsistentResults()
+    {
+        CreateFiles(GetNetCoreAppAndTwoLibrariesFiles());
+
+        var projectFilePaths = new[]
+        {
+            GetSolutionFileName(@"Project\Project.csproj"),
+            GetSolutionFileName(@"Library1\Library1.csproj"),
+            GetSolutionFileName(@"Library2\Library2.csproj"),
+        };
+
+        DotNetRestore(@"Project\Project.csproj");
+        DotNetRestore(@"Library2\Library2.csproj");
+
+        for (var iteration = 0; iteration < 5; iteration++)
+        {
+            // Use a fresh build host (and therefore a fresh ProjectBuildManager) each iteration, mirroring how the LSP
+            // creates a build host process manager per reload. Force more than one node so that MSBuild is free to
+            // schedule the concurrent builds onto out-of-proc worker nodes.
+            await using var buildHostProcessManager = new BuildHostProcessManager(
+                knownCommandLineParserLanguages: [LanguageNames.CSharp],
+                maxNodeCount: 4);
+
+            var loadTasks = projectFilePaths.Select(async projectFilePath =>
+            {
+                var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
+                var projectFile = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);
+                return (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
+            });
+
+            var projectFileInfos = await Task.WhenAll(loadTasks);
+
+            foreach (var projectFileInfo in projectFileInfos)
+            {
+                // Every project resolves framework references, so a successful design-time build must produce command
+                // line args containing at least one /reference. An empty set means the build's outputs were lost.
+                Assert.True(
+                    projectFileInfo.CommandLineArgs.Any(arg => arg.StartsWith("/reference:", StringComparison.OrdinalIgnoreCase)),
+                    $"Iteration {iteration}: project '{projectFileInfo.FilePath}' was loaded without any metadata references. " +
+                    $"Command line args: [{string.Join(", ", projectFileInfo.CommandLineArgs)}]");
+            }
+        }
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -303,7 +354,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
                     break;
 
                 default:
-                    Assert.True(false, $"Unexpected project: {project.Name}");
+                    Assert.Fail($"Unexpected project: {project.Name}");
                     break;
             }
         }
@@ -380,7 +431,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
                     break;
 
                 default:
-                    Assert.True(false, $"Encountered unexpected project: {project.FilePath}");
+                    Assert.Fail($"Encountered unexpected project: {project.FilePath}");
                     return;
             }
 
@@ -410,7 +461,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
             }
             else
             {
-                Assert.True(false, "OutputFilePath with expected TFM not found.");
+                Assert.Fail("OutputFilePath with expected TFM not found.");
             }
         }
     }

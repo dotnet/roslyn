@@ -201,7 +201,15 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                     return;
                 }
 
-                //  5. Bail out if there is language specific syntax to indicate an explicit discard.
+                //  5. Bail out for null-conditional assignments (e.g. `a?.b = c`, possibly nested),
+                //     The analyzer is expected to behave the same way as it does with assignments(4).
+                if (value is IConditionalAccessOperation conditionalAccess &&
+                    GetInnermostWhenNotNull(conditionalAccess) is IAssignmentOperation)
+                {
+                    return;
+                }
+
+                //  6. Bail out if there is language specific syntax to indicate an explicit discard.
                 //     For example, VB call statement is used to explicitly ignore the value returned by
                 //     an invocation by prefixing the invocation with keyword "Call".
                 //     Similarly, we do not want to flag an expression of a C# expression body.
@@ -219,6 +227,14 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                                                          additionalLocations: null,
                                                          properties);
                 context.ReportDiagnostic(diagnostic);
+            }
+
+            private static IOperation GetInnermostWhenNotNull(IConditionalAccessOperation operation)
+            {
+                while (operation.WhenNotNull is IConditionalAccessOperation inner)
+                    operation = inner;
+
+                return operation.WhenNotNull;
             }
 
             private void AnalyzeDelegateCreationOrAnonymousFunction(OperationAnalysisContext operationAnalysisContext)
@@ -591,8 +607,6 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                     SymbolUsageResult resultFromFlowAnalysis,
                     out ImmutableDictionary<string, string?>? properties)
                 {
-                    Debug.Assert(symbol is not ILocalSymbol local || !local.IsRef);
-
                     properties = null;
 
                     // Bail out in following cases:
@@ -601,7 +615,13 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                     //   3. Static local symbols. Assignment to static locals
                     //      is not unnecessary as the assigned value can be used on the next invocation.
                     //   4. Ignore special discard symbol names (see https://github.com/dotnet/roslyn/issues/32923).
-                    if (_options.UnusedValueAssignmentSeverity.Severity == ReportDiagnostic.Suppress ||
+                    //   5. By-ref parameter or local symbols. Writes to by-ref symbols are
+                    //      visible to the caller and may be observed across threads, so they
+                    //      should not be flagged as redundant
+                    //      (see https://github.com/dotnet/roslyn/issues/44100).
+                    if (symbol is IParameterSymbol { RefKind: not RefKind.None } ||
+                        symbol is ILocalSymbol { RefKind: not RefKind.None } ||
+                        _options.UnusedValueAssignmentSeverity.Severity == ReportDiagnostic.Suppress ||
                         symbol.GetSymbolType().IsErrorType() ||
                         (symbol.IsStatic && symbol.Kind == SymbolKind.Local) ||
                         symbol.IsSymbolWithSpecialDiscardName())

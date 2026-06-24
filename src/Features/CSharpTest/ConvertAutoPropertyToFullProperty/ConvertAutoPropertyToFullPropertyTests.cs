@@ -1037,7 +1037,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
     public async Task PartialClassInSeparateFiles1()
     {
         var file1 = """
@@ -1082,7 +1082,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             parameters: null);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
     public async Task PartialClassInSeparateFiles2()
     {
         var file1 = """

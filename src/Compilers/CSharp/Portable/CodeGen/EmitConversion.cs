@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
+                case ConversionKind.Union:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.MethodGroup:
                 case ConversionKind.ImplicitTupleLiteral:
@@ -381,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Metadata Spec (II.14.6):
             //   Delegates shall be declared sealed.
             //   The Invoke method shall be virtual.
-            if (!method.IsStatic && method.IsMetadataVirtual() && !method.ContainingType.IsDelegateType() && !receiver.SuppressVirtualCalls)
+            if (!method.IsStatic && method.IsMetadataVirtual(this._module.SourceModule) && !method.ContainingType.IsDelegateType() && !receiver.SuppressVirtualCalls)
             {
                 // NOTE: method.IsMetadataVirtual -> receiver != null
                 _builder.EmitOpCode(ILOpCode.Dup);

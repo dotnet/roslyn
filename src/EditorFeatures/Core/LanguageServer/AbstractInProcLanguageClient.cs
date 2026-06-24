@@ -29,11 +29,9 @@ internal abstract partial class AbstractInProcLanguageClient(
     AbstractLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
     ILspServiceLoggerFactory lspLoggerFactory,
-    ExportProvider exportProvider,
-    AbstractLanguageClientMiddleLayer? middleLayer = null)
-        : ILanguageClient, ILanguageServerFactory, ILanguageClientCustomMessage2, IPropertyOwner
+    ExportProvider exportProvider)
+        : ILanguageClient, IPropertyOwner
 {
-    private readonly ILanguageClientMiddleLayer2<JsonElement>? _middleLayer = middleLayer;
     private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
     private readonly ExportProvider _exportProvider = exportProvider;
 
@@ -50,20 +48,6 @@ internal abstract partial class AbstractInProcLanguageClient(
     /// Gets the name of the language client (displayed to the user).
     /// </summary>
     public string Name => ServerKind.ToUserVisibleString();
-
-    /// <summary>
-    /// Gets the optional middle layer object that can intercept outgoing requests and responses.
-    /// </summary>
-    /// <remarks>
-    /// Currently utilized by Razor to intercept Roslyn's workspace/semanticTokens/refresh requests.
-    /// </remarks>
-    public object? MiddleLayer => _middleLayer;
-
-    /// <summary>
-    /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
-    /// Gets the optional target object for receiving custom messages not covered by the language server protocol.
-    /// </summary>
-    public virtual object? CustomMessageTarget => null;
 
     /// <summary>
     /// An enum representing this server instance.
@@ -124,7 +108,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         {
             try
             {
-                await _languageServer.WaitForExitAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
+                await _languageServer.EnsureExitAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
             }
             catch (ServerNotShutDownException)
             {
@@ -142,7 +126,6 @@ internal abstract partial class AbstractInProcLanguageClient(
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
         _languageServer = await CreateAsync<RequestContext>(
-            this,
             serverStream,
             serverStream,
             ServerKind,
@@ -181,7 +164,6 @@ internal abstract partial class AbstractInProcLanguageClient(
     }
 
     internal async Task<AbstractLanguageServer<RequestContext>> CreateAsync<TRequestContext>(
-        AbstractInProcLanguageClient languageClient,
         Stream inputStream,
         Stream outputStream,
         WellKnownLspServerKinds serverKind,
@@ -196,9 +178,7 @@ internal abstract partial class AbstractInProcLanguageClient(
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
 
-        var serverTypeName = languageClient.GetType().Name;
-
-        var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
+        var logger = await lspLoggerFactory.CreateLoggerAsync(ServerKind, jsonRpc, cancellationToken).ConfigureAwait(false);
 
         var hostServices = VisualStudioMefHostServices.Create(_exportProvider);
         var server = Create(
@@ -217,7 +197,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         JsonRpc jsonRpc,
         JsonSerializerOptions options,
         WellKnownLspServerKinds serverKind,
-        AbstractLspLogger logger,
+        ILspLogger logger,
         HostServices hostServices,
         AbstractTypeRefResolver? typeRefResolver = null)
     {
@@ -225,11 +205,11 @@ internal abstract partial class AbstractInProcLanguageClient(
             LspServiceProvider,
             jsonRpc,
             options,
-            logger,
             hostServices,
             SupportedLanguages,
             serverKind,
-            typeRefResolver);
+            typeRefResolver,
+            logger);
 
         return server;
     }
@@ -241,12 +221,6 @@ internal abstract partial class AbstractInProcLanguageClient(
             Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
         return initializationFailureContext;
     }
-
-    /// <summary>
-    /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
-    /// This method is called after the language server has been activated, but connection has not been established.
-    /// </summary>
-    public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
 
     private static PropertyCollection CreateStjPropertyCollection()
     {

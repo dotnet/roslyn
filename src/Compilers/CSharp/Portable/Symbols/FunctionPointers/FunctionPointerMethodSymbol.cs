@@ -845,8 +845,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
         public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+        internal override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
         internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
         internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
 

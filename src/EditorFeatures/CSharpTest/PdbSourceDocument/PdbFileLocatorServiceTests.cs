@@ -33,9 +33,9 @@ public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
             File.Move(GetPdbPath(path), pdbFilePath);
 
             var sourceLinkService = new TestSourceLinkService(pdbFilePath: pdbFilePath);
-            var service = new PdbFileLocatorService(sourceLinkService, logger: null);
+            var service = new PdbFileLocatorService(logger: null);
 
-            using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
+            using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), sourceLinkService, CancellationToken.None);
 
             Assert.NotNull(result);
         });
@@ -60,9 +60,9 @@ public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
             File.Move(GetPdbPath(path), pdbFilePath);
 
             var sourceLinkService = new TestSourceLinkService(pdbFilePath);
-            var service = new PdbFileLocatorService(sourceLinkService, logger: null);
+            var service = new PdbFileLocatorService(logger: null);
 
-            using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
+            using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), sourceLinkService, CancellationToken.None);
 
             Assert.Null(result);
         });
@@ -85,9 +85,9 @@ public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
             File.Move(GetPdbPath(path), pdbFilePath);
 
             var sourceLinkService = new TestSourceLinkService(pdbFilePath: null);
-            var service = new PdbFileLocatorService(sourceLinkService, logger: null);
+            var service = new PdbFileLocatorService(logger: null);
 
-            using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), CancellationToken.None);
+            using var result = await service.GetDocumentDebugInfoReaderAsync(GetDllPath(path), useDefaultSymbolServers: false, new TelemetryMessage(CancellationToken.None), sourceLinkService, CancellationToken.None);
 
             Assert.Null(result);
         });

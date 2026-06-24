@@ -367,14 +367,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
-            if (declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
+            switch (declaration.Kind)
             {
-                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
-                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
-                {
-                    baseInterfaces.Add(type);
-                    type.AddUseSiteInfo(ref useSiteInfo);
-                }
+                case DeclarationKind.Record or DeclarationKind.RecordStruct:
+                    {
+                        var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
+                        addImplicitlyImplementedInterface(baseInterfaces, type);
+                    }
+                    break;
+                case DeclarationKind.Union:
+                    {
+                        var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IUnion);
+                        addImplicitlyImplementedInterface(baseInterfaces, type);
+                    }
+                    break;
             }
 
             if ((object)baseType != null)
@@ -404,6 +410,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeBase, baseTypeLocation, baseType, this);
                 }
+
+                if (baseType.IsClosed)
+                {
+                    if ((object)baseType.ContainingModule != DeclaringCompilation.SourceModule)
+                    {
+                        // https://github.com/dotnet/csharplang/blob/3e15888c804dc632479c94589dcd02c341fd0a4f/proposals/closed-hierarchies.md#same-assembly-restriction
+                        // > If a class in one assembly is declared closed then it is an error to directly derive from it in another assembly.
+                        // Note that while the spec language is in terms of *other assembly*, the same justification applies for cross-module scenario.
+                        // i.e. the pattern matching in the declaring module needs to know the full set of subtypes, so a referencing module must not introduce new subtypes.
+                        diagnostics.Add(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, baseTypeLocation, this, baseType);
+                    }
+
+                    // https://github.com/dotnet/csharplang/blob/3e15888c804dc632479c94589dcd02c341fd0a4f/proposals/closed-hierarchies.md#type-parameter-restriction
+                    // If a generic class directly derives from a closed class, then all of its type parameters must be used in the base class specification:
+                    if (IsGenericType)
+                    {
+                        var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                        baseType.FindTypeParameters(usedTypeParameters);
+
+                        for (NamedTypeSymbol type = this; type is not null; type = type.ContainingType)
+                        {
+                            foreach (var typeParameter in type.TypeParameters)
+                            {
+                                if (!usedTypeParameters.Contains(typeParameter))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_UnderspecifiedClosedSubtype, baseTypeLocation, this, typeParameter, baseType);
+                                }
+                            }
+                        }
+
+                        usedTypeParameters.Free();
+                    }
+                }
             }
 
             var baseInterfacesRO = baseInterfaces.ToImmutableAndFree();
@@ -429,6 +468,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(GetFirstLocation(), useSiteInfo);
 
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(baseType, baseInterfacesRO);
+
+            static void addImplicitlyImplementedInterface(ArrayBuilder<NamedTypeSymbol> baseInterfaces, NamedTypeSymbol type)
+            {
+                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
+                {
+                    baseInterfaces.Add(type);
+                }
+            }
         }
 
         private static BaseListSyntax GetBaseListOpt(SingleTypeDeclaration decl)

@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MissingPredefinedMember(Diagnostic error) : base(error.ToString())
             {
                 this.Diagnostic = error;
+
+                // The exception unwinds through intermediate lowering methods that may have allocated
+                // ArrayBuilder instances which are now abandoned. Forgive those leaks since
+                // MissingPredefinedMember is a rare error path (not a normal code flow concern).
+                PoolTracker.ForgiveLeaks();
             }
 
             public Diagnostic Diagnostic { get; }
@@ -1432,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in special circumstances. These circumstances are exactly the checks performed by
             // MayUseCallForStructMethod (which is also used by the emitter when determining
             // whether or not to call a method with a value type receiver directly).
-            if (!method.ContainingType.IsValueType || !Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.MayUseCallForStructMethod(method))
+            if (!method.ContainingType.IsValueType || !Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.MayUseCallForStructMethod(this.CompilationState.Compilation.SourceModule, method))
             {
                 method = method.GetConstructedLeastOverriddenMethod(this.CompilationState.Type, requireSameReturnType: true);
             }
@@ -1495,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// It is intentional that there is no 'Convert' helper that calls this method automatically
-        /// and then calls <see cref="Convert(TypeSymbol, BoundExpression, Conversion, bool)"/>.
+        /// and then calls <see cref="Convert(TypeSymbol, BoundExpression, Conversion, bool, bool)"/>.
         /// For the benefit of clarity and readability, consumer is expected to assert at the use-site
         /// what specific conversions are expected as the result of classification.
         /// </summary>
@@ -1512,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Note, this API is expected to be called only for <paramref name="conversion"/> that is natively supported by Emit layer.
         /// </summary>
-        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, Conversion conversion, bool isChecked = false)
+        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, Conversion conversion, bool isChecked = false, bool explicitCastInCode = true)
         {
             CodeGen.CodeGenerator.AssertIsEmitConversionKind(conversion.Kind);
 
@@ -1527,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(arg.Type is { });
-            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: true, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, null, type) { WasCompilerGenerated = true };
+            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)

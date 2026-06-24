@@ -44,10 +44,21 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
     [Theory]
     [InlineData(DebugInformationFormat.PortablePdb, true)]
     [InlineData(DebugInformationFormat.PortablePdb, false)]
-    [InlineData(DebugInformationFormat.Pdb, true)]
     public void DebugInfo(DebugInformationFormat format, bool useSymReader)
     {
-        var source = """
+        DebugInfoImpl(format, useSymReader);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Native PDB writing requires Windows")]
+    public void DebugInfo_NativePdb()
+    {
+        // xunit3: consider using Assert.Skip
+        DebugInfoImpl(DebugInformationFormat.Pdb, useSymReader: true);
+    }
+
+    private static void DebugInfoImpl(DebugInformationFormat format, bool useSymReader)
+    {
+        var source = ("""
 
             using System;
             delegate void D();
@@ -61,7 +72,7 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
                 }
             }
 
-            """;
+            """).NormalizeLineEndings();
         var tree = CSharpTestSource.Parse(source, path: "/a/c.cs", options: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), checksumAlgorithm: SourceHashAlgorithm.Sha1);
         var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(tree, options: TestOptions.DebugDll);
 

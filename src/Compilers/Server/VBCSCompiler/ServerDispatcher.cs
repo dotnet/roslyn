@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private Task? _gcTask;
         private Task<IClientConnection>? _listenTask;
         private readonly List<Task<CompletionData>> _connectionList = new List<Task<CompletionData>>();
-        private TimeSpan? _keepAlive;
+        private TimeSpan _keepAlive;
         private bool _keepAliveIsDefault;
 
         internal ServerDispatcher(ICompilerServerHost compilerServerHost, IClientConnectionHost clientConnectionHost, IDiagnosticListener? diagnosticListener = null)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// accepting new connections and wait for existing connections to complete before
         /// returning.
         /// </summary>
-        public void ListenAndDispatchConnections(TimeSpan? keepAlive, CancellationToken cancellationToken = default)
+        public void ListenAndDispatchConnections(TimeSpan keepAlive, CancellationToken cancellationToken = default)
         {
             _state = State.Running;
             _keepAlive = keepAlive;
@@ -230,7 +230,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private void RunGC()
         {
             _gcTask = null;
-            GC.GetTotalMemory(forceFullCollection: true);
+            var before = GC.GetTotalMemory(forceFullCollection: false);
+            var after = GC.GetTotalMemory(forceFullCollection: true);
+            _logger.Log($"GC completed: before={before} bytes, after={after} bytes");
         }
 
         private void MaybeCreateListenTask()
@@ -244,10 +246,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private void MaybeCreateTimeoutTask()
         {
             // If there are no active clients running then the server needs to be in a timeout mode.
-            if (_state == State.Running && _connectionList.Count == 0 && _timeoutTask is null && _keepAlive.HasValue)
+            if (_state == State.Running && _connectionList.Count == 0 && _timeoutTask is null && _keepAlive != Timeout.InfiniteTimeSpan)
             {
                 Debug.Assert(_listenTask != null);
-                _timeoutTask = Task.Delay(_keepAlive.Value);
+                _timeoutTask = Task.Delay(_keepAlive);
             }
         }
 
@@ -321,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private void ChangeKeepAlive(TimeSpan keepAlive)
         {
-            if (_keepAliveIsDefault || !_keepAlive.HasValue || keepAlive > _keepAlive.Value)
+            if (_keepAliveIsDefault || _keepAlive == Timeout.InfiniteTimeSpan || keepAlive > _keepAlive)
             {
                 _keepAlive = keepAlive;
                 _keepAliveIsDefault = false;

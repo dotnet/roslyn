@@ -22,6 +22,11 @@
         <target state="translated">Impossible de créer un type générique construit à partir d'un type non générique.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractBaseRecordImplementation">
+        <source>Record member '{0}' must be declared explicitly because '{1}' is abstract.</source>
+        <target state="translated">Le membre d'enregistrement « {0} » doit être déclaré explicitement car « {1} » est abstrait.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
         <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
         <target state="translated">La conversion définie par l'utilisateur dans une interface doit convertir vers ou depuis un paramètre de type sur le type englobant contraint au type englobant.</target>
@@ -527,6 +532,26 @@
         <target state="translated">'{0}' n'implémente pas le membre d'interface '{1}'. '{2}' ne peut pas implémenter '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedBaseTypeBaseFromOtherAssembly">
+        <source>'{0}': cannot use a closed type '{1}' from another assembly as a base type.</source>
+        <target state="translated">« {0} » : nous ne pouvons pas utiliser un type fermé « {1} » provenant d’un autre assembly comme type de base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedExplicitlyAbstract">
+        <source>'{0}': a closed type cannot be marked abstract because it is always implicitly abstract.</source>
+        <target state="translated">« {0} » : un type fermé ne peut pas être marqué comme abstrait, car il est toujours implicitement abstrait.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedSealedStatic">
+        <source>'{0}': a closed type cannot be sealed or static</source>
+        <target state="translated">« {0} » : un type abstract ne peut pas être sealed ou static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClosedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'closed'.</source>
+        <target state="translated">Les types et alias ne peuvent pas être nommés « fermé ».</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
         <source>'with(...)' element arguments cannot be dynamic</source>
         <target state="translated">Les arguments de l’élément « with(...) » ne peuvent pas être dynamiques</target>
@@ -610,6 +635,11 @@
       <trans-unit id="ERR_CollectionRefLikeElementType">
         <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
         <target state="translated">Le type d’élément de cette collection ne peut pas être un struct ref ni un paramètre de type autorisant les structs ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="translated">Valeur '{0}' non valide : '{1}' pour C# {2}. Utilisez la version de langage '{3}' ou une version ultérieure.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -807,6 +837,11 @@
         <target state="translated">L'application explicite de 'System.Runtime.CompilerServices.NullableAttribute' n'est pas autorisée.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
+        <target state="new">Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">N’utilisez pas « System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute ». Utilisez plutôt le mot clé « params ».</target>
@@ -858,8 +893,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
-        <source>An expression tree may not contain an extension property access</source>
-        <target state="translated">Une arborescence d’expression ne peut pas contenir un accès à une propriété d’extension</target>
+        <source>An expression tree may not contain an extension property or indexer access</source>
+        <target state="new">An expression tree may not contain an extension property or indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -900,6 +935,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
         <target state="translated">Une arborescence de l'expression ne peut pas contenir un opérateur de tuple == ou !=</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
+        <source>An expression tree may not contain a union conversion.</source>
+        <target state="translated">Un arbre d'expression ne peut pas contenir de conversion d'union.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -946,6 +986,11 @@
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}' : un événement extern ne peut pas avoir d'initialiseur</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExternMemberRequiresUnsafeOrSafe">
+        <source>'extern' member must be marked 'unsafe' or 'safe'.</source>
+        <target state="translated">Le membre « extern » doit être marqué « unsafe » ou « safe ».</target>
+        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
@@ -1237,6 +1282,16 @@
         <target state="translated">Le champ d’élément de tableau inlined ne peut pas être déclaré comme obligatoire, en lecture seule, volatile ou en tant que mémoire tampon de taille fixe.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
+        <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
+        <target state="translated">Les constructeurs publics explicitement déclarés avec un seul paramètre ne sont pas autorisés dans une déclaration « union ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceFieldInUnion">
+        <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
+        <target state="translated">Les champs d'instance, les propriétés automatiques ou les événements de type champ ne sont pas autorisés dans une déclaration « union ».</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="translated">« {0} » : impossible de déclarer des membres d’instance dans un bloc d’extension avec un paramètre de récepteur non nommé</target>
@@ -1462,15 +1517,45 @@
         <target state="translated">L’argument diagnosticId de l’attribut « Experimental » doit être un identificateur valide</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberProviderInUnionDeclaration">
+        <source>A 'union' declaration cannot use a union member provider interface.</source>
+        <target state="translated">Une déclaration « union » ne peut pas utiliser d’interface du fournisseur de membre d’une union.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionCaseTypes">
+        <source>A union type must have at least one union creation member.</source>
+        <target state="translated">Un type d’union doit comporter au moins un membre de création d’union.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingUnionValueProperty">
+        <source>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</source>
+        <target state="new">A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">« {0} » ne contient pas de définition pour « {1} » et aucune méthode d’extension accessible « {1} » acceptant un premier argument de type « {0} » n’a pu être trouvée (vouliez-vous plutôt itérer la collection asynchrone avec « await foreach » ?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
-      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
-        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="translated">RequiresUnsafeAttribute ne peut pas être appliqué à ce symbole.</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="translated">Impossible de convertir le type '{0}' en 'objet' via une référence implicite ou une conversion d'encapsulation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPShebangNotOnFirstLine">
+        <source>'#!' must be the first characters on the first line of the file</source>
+        <target state="translated">« #! » doivent être les premiers caractères de la première ligne du fichier</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberSafeDifference">
+        <source>Both partial member declarations must be marked 'safe' or neither may be marked 'safe'</source>
+        <target state="translated">Les deux déclarations de membres partiels doivent être marquées comme « safe », ou bien aucune ne doit l'être</target>
+        <note>'safe' is a keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
+        <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
+        <target state="translated">N’utilisez pas « RequiresUnsafeAttribute » dans le code source; utilisez plutôt le modificateur « unsafe ».</target>
+        <note>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -1860,11 +1945,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">'warnings', 'annotations' ou fin de directive attendu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">Valeur '{0}' non valide : '{1}' pour C# {2}. Utilisez la version de langage '{3}' ou une version ultérieure.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2422,6 +2502,11 @@
         <target state="translated">Le runtime cible ne prend pas en charge les conventions d'appel par défaut des environnements extensibles ou d'exécution.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
+        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
+        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
+        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
         <target state="translated">Le modificateur « scoped » ne peut pas suivre un modificateur « in », « out », « ref » ou « readonly ».</target>
@@ -2662,6 +2747,11 @@
         <target state="translated">Le champ '{0}' doit être entièrement attribué avant que le contrôle soit retourné à l’appelant. Envisagez de mettre à jour la version de langue «{1}» pour définir automatiquement le champ par défaut.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedClosedSubtype">
+        <source>'{0}': The type parameter '{1}' must be referenced in the base type '{2}' because the base type is closed.</source>
+        <target state="translated">« {0} » : le paramètre de type « {1} » doit être référencé dans le type de base « {2} », car ce type de base est fermé.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="translated">Le paramètre de type « {0} » n’est référencé ni par le paramètre d’extension ni par un paramètre de ce membre</target>
@@ -2675,6 +2765,21 @@
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
         <target state="translated">Liste de paramètres inattendue.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
+        <target state="translated">Un constructeur déclaré dans une déclaration « union » doit avoir « ce » initialiseur qui appelle un constructeur synthétisé ou un constructeur déclaré explicitement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="translated">Une déclaration d'union doit spécifier au moins un type de cas.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionMatchingWrongPattern">
+        <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
+        <target state="translated">Ce modèle ne peut pas gérer une expression de type '{0}', voir les erreurs supplémentaires à cet emplacement.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
@@ -2692,10 +2797,15 @@
         <target state="translated">« {0} » est défini dans un module dont la version n’est pas reconnue {1} et attend « {2} ».</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="translated">Un contexte non sécurisé est requis pour le constructeur « {0} » marqué comme « unsafe » afin de satisfaire la contrainte « new() » du paramètre de type « {1} » dans « {2} »</target>
+        <note>'unsafe' and 'new()' should not be localized. {2} is the generic method or type.</note>
+      </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
-        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="translated">« {0} » doit être utilisé dans un contexte non sécurisé, car il est marqué comme « RequiresUnsafe » ou « extern »</target>
-        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+        <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe'</source>
+        <target state="translated">« {0} » doit être utilisé dans un contexte non sécurisé, car il est marqué comme « unsafe »</target>
+        <note>'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
@@ -2802,6 +2912,11 @@
         <target state="translated">Un type de retour de type tâche générique est attendu, mais le type « {0} » trouvé dans l’attribut ’AsyncMethodBuilder’ n’était pas approprié. Il doit s’agir d’un type générique indépendant d’arité One, et son type conteneur (le cas échéant) doit être non générique.</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetClosedDerivedTypeInfoMustBeClosed">
+        <source>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</source>
+        <target state="new">'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</target>
+        <note>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
         <target state="translated">La directive using pour « {0} » est apparue précédemment comme using global</target>
@@ -2862,6 +2977,11 @@
         <target state="translated">opérateurs définis par l’utilisateur vérifiés</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureClosedClasses">
+        <source>closed classes</source>
+        <target state="translated">classes fermées</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
         <source>collection expression arguments</source>
         <target state="translated">arguments d’expression de collection</target>
@@ -2890,6 +3010,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">modèles de propriétés étendues</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionIndexers">
+        <source>extension indexers</source>
+        <target state="new">extension indexers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
@@ -3077,6 +3202,11 @@
         <target state="translated">modificateurs simples de paramètre lambda</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticMembersInInterfaces">
+        <source>static members in interfaces</source>
+        <target state="translated">membres statiques dans les interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
         <target state="translated">caractère d’échappement de chaîne</target>
@@ -3090,6 +3220,11 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">types génériques indépendants dans l’opérateur nameof</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="translated">syndicats</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsafeEvolution">
@@ -3881,16 +4016,6 @@
         <source>Struct member returns 'this' or other instance members by reference</source>
         <target state="translated">Le membre struct retourne 'this' ou d'autres membres d'instance par référence</target>
         <note />
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute est valide uniquement dans le cadre des règles de sécurité mémoire mises à jour.</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute est valide uniquement dans le cadre des règles de sécurité mémoire mises à jour.</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
@@ -5885,6 +6010,16 @@
         <target state="translated">Le paramètre est non lu. Avez-vous oublié de l'utiliser pour initialiser la propriété portant ce nom ?</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">Le modificateur « unsafe » n’a aucun effet ici selon les règles actuelles de sécurité de la mémoire.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless_Title">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">Le modificateur « unsafe » n’a aucun effet ici selon les règles actuelles de sécurité de la mémoire.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
         <target state="translated">UnscopedRefAttribute n’est valide qu’en C# 11 ou version ultérieure, ou quand net7.0 ou version ultérieure est ciblé.</target>
@@ -7161,8 +7296,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="translated">Les déclarations partielles de '{0}' doivent être toutes les classes, toutes les classes d’enregistrement, tous les structs, tous les structs d’enregistrement ou toutes les interfaces</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="translated">Les déclarations partielles de '{0}' doivent être toutes les classes, toutes les classes d'enregistrements, toutes les structures, toutes les unions, toutes les structures d'enregistrements ou toutes les interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

@@ -1613,14 +1613,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (op1)
                     {
-                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet, ReceiverOpt: var receiver } when propSet.IsExtensionBlockMember():
-                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, receiver, args: [op2], receiverIsSubjectToCloning: ThreeState.Unknown);
-                            handleExtensionSetter(in methodInvocationInfo);
+                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet } property:
+                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, property.ReceiverOpt, args: [op2], receiverIsSubjectToCloning: property.InitialBindingReceiverIsSubjectToCloning);
+                            analyzeSetterInvocation(in methodInvocationInfo);
                             return;
-                        case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer when indexerSet.IsExtensionBlockMember():
-                            methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(indexer);
-                            Debug.Assert(ReferenceEquals(methodInvocationInfo.MethodInfo.Method, indexerSet));
-                            handleExtensionSetter(in methodInvocationInfo);
+                        case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer:
+                            methodInvocationInfo = MethodInvocationInfo.FromCallParts(indexerSet, indexer.ReceiverOpt, args: [.. indexer.Arguments, op2], receiverIsSubjectToCloning: indexer.InitialBindingReceiverIsSubjectToCloning);
+                            analyzeSetterInvocation(in methodInvocationInfo);
                             return;
                     }
                 }
@@ -1651,12 +1650,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return "";
             }
 
-            void handleExtensionSetter(ref readonly MethodInvocationInfo methodInvocationInfo)
+            void analyzeSetterInvocation(ref readonly MethodInvocationInfo methodInvocationInfo)
             {
                 // Analyze as if this is a call to the setter directly, not an assignment.
                 var localMethodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
                 Debug.Assert(methodInvocationInfo.MethodInfo.Method is not null);
-                CheckInvocationArgMixing(node, in localMethodInvocationInfo, methodInvocationInfo.MethodInfo.Method, diagnostics);
+
+                CheckInvocationArgMixing(node, in localMethodInvocationInfo,
+                    symbolForReporting: methodInvocationInfo.MethodInfo.Method.AssociatedSymbol, diagnostics);
             }
         }
     }
@@ -2311,9 +2312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
                 {
-                    Debug.Assert(conversion.IsUserDefined);
+                    Debug.Assert(conversion.IsUserDefined || conversion.IsUnion);
 
-                    ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedConversions;
+                    ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedOrUnionConversions;
                     if (originalUserDefinedConversions.Length > 1)
                     {
                         Error(diagnostics, ErrorCode.ERR_AmbigUDConv, syntax, originalUserDefinedConversions[0], originalUserDefinedConversions[1], sourceType, targetType);
@@ -3789,13 +3790,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                hasPrimaryConstructor())
+                isInstanceConstructor(out MethodSymbol constructorSymbol))
             {
-                if (isInstanceConstructor(out MethodSymbol constructorSymbol) &&
-                    !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
+                if (hasPrimaryConstructor())
                 {
-                    // Note: we check the constructor initializer of copy constructors elsewhere
-                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    if (!SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
+                    {
+                        // Note: we check the constructor initializer of copy constructors elsewhere
+                        Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    }
+                }
+                else if (ContainingType is SourceMemberContainerTypeSymbol { IsUnionDeclaration: true })
+                {
+                    Error(diagnostics, ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
             }
 
@@ -3803,10 +3810,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
             if (isDefaultValueTypeInitializer &&
-                isInstanceConstructor(out _) &&
-                hasPrimaryConstructor())
+                isInstanceConstructor(out _))
             {
-                Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                if (hasPrimaryConstructor())
+                {
+                    Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                }
+                else if (ContainingType is SourceMemberContainerTypeSymbol { IsUnionDeclaration: true })
+                {
+                    Error(diagnostics, ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                }
             }
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
@@ -3929,6 +3942,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // there is no need to look up "x".
             Binder outerBinder;
 
+            var flags = BinderFlags.ConstructorInitializer;
+
             if ((object?)sourceConstructor == null)
             {
                 // The constructor is implicit. We need to get the binder for the body
@@ -3958,6 +3973,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
 
                         outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
+
+                        if (ctorDecl.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+                        {
+                            flags |= BinderFlags.UnsafeRegion;
+                        }
+
                         break;
 
                     case TypeDeclarationSyntax typeDecl:
@@ -3971,7 +3992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // wrap in ConstructorInitializerBinder for appropriate errors
             // Handle scoping for possible pattern variables declared in the initializer
-            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(flags, constructor);
 
             return initializerBinder.BindConstructorInitializer(null, constructor, diagnostics);
         }

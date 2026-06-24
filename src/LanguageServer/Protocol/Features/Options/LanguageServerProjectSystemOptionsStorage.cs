@@ -26,7 +26,7 @@ internal static class LanguageServerProjectSystemOptionsStorage
     public static readonly Option2<bool> EnableFileBasedPrograms = new("dotnet_enable_file_based_programs", defaultValue: true, s_optionGroup);
 
     /// <summary>
-    /// Whether to use the new 'dotnet run app.cs' (file-based programs) experience in files where the editor is unable to determine with certainty whether the file is a file-based program.
+    /// Controls whether to show semantic errors in miscellaneous files with top-level statements and no #: directives.
     /// </summary>
-    public static readonly Option2<bool> EnableFileBasedProgramsWhenAmbiguous = new("dotnet_enable_file_based_programs_when_ambiguous", defaultValue: true, s_optionGroup);
+    public static readonly Option2<bool> EnableSemanticErrorsInMiscellaneousFiles = new("dotnet_enable_file_based_programs_when_ambiguous", defaultValue: true, s_optionGroup);
 }

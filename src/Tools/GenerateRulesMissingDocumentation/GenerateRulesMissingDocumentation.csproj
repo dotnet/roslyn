@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(NetRoslyn)</TargetFramework>
+    <!-- This tool needs to run during the build.-->
+    <EnableKnownPackVersionUpdatesForCurrentTargetFramework>false</EnableKnownPackVersionUpdatesForCurrentTargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>

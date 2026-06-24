@@ -262,12 +262,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
@@ -280,6 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsNullableAnalysisEnabled() => false;
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {

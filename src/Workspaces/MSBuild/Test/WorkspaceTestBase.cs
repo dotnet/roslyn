@@ -27,12 +27,15 @@ public class WorkspaceTestBase : TestBase
         this.SolutionDirectory = Temp.CreateDirectory();
     }
 
+    private static string NormalizePath(string path)
+        => Path.DirectorySeparatorChar == '/' ? path.Replace('\\', '/') : path;
+
     /// <summary>
     /// Gets an absolute file name for a file relative to the tests solution directory.
     /// </summary>
     public string GetSolutionFileName(string relativeFileName)
     {
-        return Path.Combine(this.SolutionDirectory.Path, relativeFileName);
+        return Path.Combine(this.SolutionDirectory.Path, NormalizePath(relativeFileName));
     }
 
     protected void CreateFiles(IEnumerable<(string filePath, object fileContent)> fileNamesAndContent)
@@ -41,8 +44,9 @@ public class WorkspaceTestBase : TestBase
         {
             Debug.Assert(fileContent is string or byte[]);
 
-            var subdirectory = Path.GetDirectoryName(filePath);
-            var fileName = Path.GetFileName(filePath);
+            var normalizedPath = NormalizePath(filePath);
+            var subdirectory = Path.GetDirectoryName(normalizedPath);
+            var fileName = Path.GetFileName(normalizedPath);
 
             var dir = SolutionDirectory;
 

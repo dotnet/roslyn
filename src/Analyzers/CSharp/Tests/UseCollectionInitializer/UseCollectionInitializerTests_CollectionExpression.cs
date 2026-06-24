@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6114,6 +6114,282 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83029")]
+    public Task TestWithOverMultipleLines1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h = [|new|](StringComparer.Ordinal)
+                        {
+                            "a",
+                            "b"
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h =
+                        [
+                            with(StringComparer.Ordinal),
+                            "a",
+                            "b"
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83029")]
+    public Task TestWithOverMultipleLines2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h = [|new|](StringComparer.Ordinal)
+                        {
+                            "a"
+                                + "_suffix",
+                            "b"
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h =
+                        [
+                            with(StringComparer.Ordinal),
+                            "a"
+                                + "_suffix",
+                            "b"
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83029")]
+    public Task TestWithOverMultipleLines3()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h = [|new|](
+                            StringComparer.Ordinal)
+                        {
+                            "a",
+                            "b"
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h =
+                        [
+                            with(
+                                StringComparer.Ordinal),
+                            "a",
+                            "b"
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83029")]
+    public Task TestWithOverMultipleLines4()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h = [|new|](
+                            StringComparer.Ordinal)
+                        {
+                            "a"
+                                + "_suffix",
+                            "b"
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h =
+                        [
+                            with(
+                                StringComparer.Ordinal),
+                            "a"
+                                + "_suffix",
+                            "b"
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83029")]
+    public Task TestWithOverMultipleLines5()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h = [|new|](
+                            true ? StringComparer.Ordinal
+                                : StringComparer.OrdinalIgnoreCase)
+                        {
+                            "a",
+                            "b"
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h =
+                        [
+                            with(
+                                true ? StringComparer.Ordinal
+                                    : StringComparer.OrdinalIgnoreCase),
+                            "a",
+                            "b"
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83029")]
+    public Task TestWithOverMultipleLines6()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h = [|new|](
+                            true ? StringComparer.Ordinal
+                                : StringComparer.OrdinalIgnoreCase)
+                        {
+                            "a"
+                                + "_suffix",
+                            "b"
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        HashSet<string> h =
+                        [
+                            with(
+                                true ? StringComparer.Ordinal
+                                    : StringComparer.OrdinalIgnoreCase),
+                            "a"
+                                + "_suffix",
+                            "b"
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
 
     // Enable when dictionary-expressions come online.
 #if false

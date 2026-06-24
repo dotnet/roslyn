@@ -78,17 +78,16 @@ variables:
     value: true
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
-  # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
+  # DevDiv drop access token is acquired via WIF service connection (dnceng-devdiv-drop-rw-code-rw-wif)
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
+    value: ''
   - name: ArtifactServices.Drop.PAT
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
-  - group: DotNet-Roslyn-Insertion-Variables
+    value: ''
   - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BranchName
@@ -112,9 +111,6 @@ variables:
   - name: Insertion.TitleSuffix
     value: ''
 
-  - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
-    - name: enableSourceIndex
-      value: true
   - name: VSCodeOptimizationDataRoot
     value: $(Pipeline.Workspace)/profilingInputs/merged mibc
 
@@ -122,6 +118,8 @@ variables:
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    settings:
+      networkIsolationPolicy: Permissive, CFSClean, CFSClean2
     featureFlags:
       autoBaseline: true
       autoEnablePREfastWithNewRuleset: false
@@ -142,7 +140,7 @@ extends:
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
       name: $(DncEngInternalBuildPool)
-      image: windows.vs2022.amd64
+      image: windows.vs2026.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -270,6 +268,18 @@ extends:
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
           displayName: Setting VisualStudio.DropName variable
 
+        - task: AzureCLI@2
+          displayName: Get DevDiv Drop Access Token
+          inputs:
+            azureSubscription: 'dnceng-devdiv-drop-rw-code-rw-wif'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+              Write-Host "##vso[task.setvariable variable=_DevDivDropAccessToken;issecret=true]$token"
+              Write-Host "##vso[task.setvariable variable=ArtifactServices.Drop.PAT;issecret=true]$token"
+          condition: succeeded()
+
         - task: NodeTool@0
           inputs:
             versionSpec: '16.x'
@@ -282,7 +292,13 @@ extends:
         # Authenticate with service connections to be able to publish packages to external nuget feeds.
         - task: NuGetAuthenticate@1
           inputs:
-            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
+            nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/dotnet-core-internal-tooling
+
+        # Authenticate to DevDiv engineering feed via WIF service connection
+        - task: NuGetAuthenticate@1
+          inputs:
+            azureDevOpsServiceConnection: devdiv-engineering-feed-r-wif
+            feedUrl: https://devdiv.pkgs.visualstudio.com/_packaging/Engineering/nuget/v3/index.json
 
         # Needed for SBOM tool
         - task: UseDotNet@2
@@ -352,7 +368,7 @@ extends:
           condition: succeeded()
 
         # Publish OptProf configuration files to the artifact service
-        # This uses the ArtifactServices.Drop.PAT build variable which is required to enable cross account access using PAT (dnceng -> devdiv)
+        # ArtifactServices.Drop.PAT is set via WIF service connection for cross account access (dnceng -> devdiv)
         - task: 1ES.PublishArtifactsDrop@1
           inputs:
             dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
@@ -377,24 +393,16 @@ extends:
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
         parameters:
           publishUsingPipelines: true
+          publishAssetsImmediately: true
           dependsOn:
           - OfficialBuild
           pool:
             name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals windows.vs2022.amd64
 
-      - ${{ if eq(variables.enableSourceIndex, 'true') }}:
-        - template: /eng/common/templates-official/job/source-index-stage1.yml@self
-          parameters:
-            sourceIndexBuildCommand: powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "eng\build.ps1 -configuration Release -prepareMachine -ci -restore -build -binaryLogName Build.binlog -skipDocumentation -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false"
-            binlogPath: artifacts/log/$(BuildConfiguration)/Build.binlog
-            pool:
-              name: $(DncEngInternalBuildPool)
-              demands: ImageOverride -equals 1es-windows-2022
-
     - stage: insert
       dependsOn:
-      - publish_using_darc
+      - build
       displayName: Insert to VS
 
       jobs:
@@ -409,10 +417,7 @@ extends:
           displayName: Get Branch Name
         - template: /eng/pipelines/insert.yml@self
           parameters:
-            buildUserName: "dn-bot@microsoft.com"
-            buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
-            componentUserName: "dn-bot@microsoft.com"
-            componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+            dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
             publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&version=$(ComponentBranchName)&api-version=6.0"
@@ -424,6 +429,9 @@ extends:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
           publishingInfraVersion: 3
+          publishAssetsImmediately: true
+          enableSigningValidation: false
+          enableNugetValidation: false
           enableSourceLinkValidation: false
           # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
           SDLValidationParameters:

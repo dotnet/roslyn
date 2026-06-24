@@ -242,6 +242,7 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
     public void AddAdditionalFile(string filePath, IEnumerable<string> folderNames, bool isInCurrentContext = true)
         => _projectSystemProject.AddAdditionalFile(filePath, folders: [.. folderNames]);
 
+    [Obsolete("Switch to using the DisposeAsync version of this API instead.")]
     public void Dispose()
     {
         if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
@@ -254,6 +255,18 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
         _projectSystemProject.RemoveFromWorkspace();
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
+        {
+            return;
+        }
+
+        _projectCodeModel?.OnProjectClosed();
+        _projectSystemProjectOptionsProcessor?.Dispose();
+        await _projectSystemProject.RemoveFromWorkspaceAsync().ConfigureAwait(false);
+    }
+
     public void AddAnalyzerReference(string referencePath)
         => _projectSystemProject.AddAnalyzerReference(referencePath);
 
@@ -263,11 +276,19 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
     public void RemoveAdditionalFile(string filePath)
         => _projectSystemProject.RemoveAdditionalFile(filePath);
 
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     public void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null)
-        => _projectSystemProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
+    {
+        // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
+        // The contract is retained because the project system still calls this method.
+    }
 
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     public void RemoveDynamicFile(string filePath)
-        => _projectSystemProject.RemoveDynamicSourceFile(filePath);
+    {
+        // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
+        // The contract is retained because the project system still calls this method.
+    }
 
     public void ReorderSourceFiles(IEnumerable<string>? filePaths)
         => _projectSystemProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());

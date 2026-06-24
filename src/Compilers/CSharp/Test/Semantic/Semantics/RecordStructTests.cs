@@ -4236,9 +4236,6 @@ record struct A<T>;
             comp.VerifyEmitDiagnostics(
                     // (2,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                     // record struct A<T>;
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 15),
-                    // (2,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                    // record struct A<T>;
                     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 15)
                     );
 

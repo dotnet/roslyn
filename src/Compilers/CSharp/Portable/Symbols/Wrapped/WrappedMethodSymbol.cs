@@ -140,14 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsAsync
-        {
-            get
-            {
-                return UnderlyingMethod.IsAsync;
-            }
-        }
-
         public override bool IsOverride
         {
             get
@@ -190,9 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override CallerUnsafeMode CallerUnsafeMode => UnderlyingMethod.CallerUnsafeMode;
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
-            return UnderlyingMethod.IsMetadataVirtual(option);
+            return UnderlyingMethod.IsMetadataVirtual(context, ignoreInterfaceImplementationChanges);
         }
 
         internal override bool IsMetadataFinal
@@ -203,9 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
-            return UnderlyingMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges);
+            return UnderlyingMethod.IsMetadataNewSlot(context, ignoreInterfaceImplementationChanges);
         }
 
         internal override bool RequiresSecurityObject

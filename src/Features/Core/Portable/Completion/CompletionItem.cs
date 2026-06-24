@@ -556,6 +556,11 @@ public sealed class CompletionItem : IComparable<CompletionItem>
 
     internal static KeyValuePair<string, string> CreateContextPositionKvp(int contextPosition)
     {
-        return KeyValuePair.Create(ContextPositionKey, contextPosition.ToString());
+        return CreateContextPositionKvp(contextPosition.ToString());
+    }
+
+    internal static KeyValuePair<string, string> CreateContextPositionKvp(string contextPosition)
+    {
+        return KeyValuePair.Create(ContextPositionKey, contextPosition);
     }
 }

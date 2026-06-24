@@ -3036,7 +3036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!conversion.IsUserDefined)
+            if (!conversion.IsUserDefined && !conversion.IsUnion)
             {
                 return true;
             }

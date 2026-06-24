@@ -426,6 +426,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         AllowsKeyword = 8450,
         /// <summary>Represents <see langword="extension"/>.</summary>
         ExtensionKeyword = 8451,
+        /// <summary>Represents <see langword="union"/>.</summary>
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
+        UnionKeyword = 8452,
+        /// <summary>Represents <see langword="closed"/>.</summary>
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
+        ClosedKeyword = 8453,
+        /// <summary>Represents <see langword="safe"/>.</summary>
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
+        SafeKeyword = 8454,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
@@ -717,6 +726,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         RefValueExpression = 8766,
         RefTypeExpression = 8767,
         // NameOfExpression = 8768, // we represent nameof(x) as an invocation expression
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
+        UnsafeExpression = 8769,
 
         // query expressions
         QueryExpression = 8774,
@@ -938,5 +949,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82210")]
         WithElement = 9081,
+
+        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
+        UnionDeclaration = 9082,
     }
 }

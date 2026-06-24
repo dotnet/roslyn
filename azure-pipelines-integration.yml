@@ -47,9 +47,7 @@ pr:
       - azure-pipelines-integration-scouting.yml
       - azure-pipelines-official.yml
       - azure-pipelines-pr-validation.yml
-      - CODE-OF-CONDUCT.md
-      - CONTRIBUTING.md
-      - README.md
+      - '*.md'
       - src/Compilers/*
       - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
 
@@ -73,6 +71,14 @@ parameters:
   default: windows.vs2022.amd64.open
   values:
   - windows.vs2022.amd64.open
+  - windows.vs2026preview.scout.amd64.open
+- name: buildQueueName
+  displayName: Build Queue Name
+  type: string
+  default: windows.vs2026preview.scout.amd64.open
+  values:
+  - windows.vs2022.amd64.open
+  - windows.vs2026preview.scout.amd64.open
 - name: timeout
   displayName: Timeout in Minutes
   type: number
@@ -83,6 +89,7 @@ stages:
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
+    buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Debug
     testRuns:
@@ -98,6 +105,7 @@ stages:
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
+    buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Release
     testRuns:

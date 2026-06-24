@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Microsoft.DiaSymReader" />
     <PackageReference Include="Basic.Reference.Assemblies.Net100" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net110" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

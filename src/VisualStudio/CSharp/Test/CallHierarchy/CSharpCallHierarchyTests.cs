@@ -553,6 +553,49 @@ public sealed class CSharpCallHierarchyTests
     }
 
     [WpfFact]
+    public async Task Method_OverrideOfInterfaceImplementation()
+    {
+        var text = """
+            using System;
+
+            interface IFoo { void Bar(); }
+
+            class FooBase : IFoo
+            {
+                public virtual void Bar()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            class Foo : FooBase
+            {
+                public override void B$$ar()
+                {
+                    base.Bar();
+                    Console.WriteLine("Bar");
+                }
+            }
+
+            class Program
+            {
+                void Main()
+                {
+                    IFoo foo = new Foo();
+                    foo.Bar();
+                }
+            }
+            """;
+        using var testState = CallHierarchyTestState.Create(text);
+        var root = await testState.GetRootAsync();
+        testState.VerifyRoot(root, "Foo.Bar()", [
+            string.Format(EditorFeaturesResources.Calls_To_0, "Bar"),
+            string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, "FooBase.Bar()"),
+            string.Format(EditorFeaturesResources.Calls_To_Interface_Implementation_0, "IFoo.Bar()")]);
+        testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_Interface_Implementation_0, "IFoo.Bar()"), ["Program.Main()"]);
+    }
+
+    [WpfFact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/71068")]
     public async Task Method_ExcludeNameofReferencesWithoutMemberAccess()
     {

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var result = BuildServerController.CreateAndRunServer(
                 pipeName,
                 clientConnectionHost: host,
-                keepAlive: TimeSpan.FromMilliseconds(-1));
+                keepAlive: Timeout.InfiniteTimeSpan);
             Assert.Equal(CommonCompiler.Succeeded, result);
             Assert.True(wasServerMutexOpen);
         }

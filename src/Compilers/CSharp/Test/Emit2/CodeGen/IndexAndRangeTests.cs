@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class IndexAndRangeTests : CSharpTestBase
     {
+        private static string ExpectedOutput(string output)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
         public void InObjectInitializer_Index(bool useCsharp13)
         {
@@ -4512,6 +4517,90 @@ class S
                 //         Expression<Func<System.Range, S>> e2 = (System.Range r) => new S { [r] = { [0] = 1 } }; // 2
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "[0] = 1").WithLocation(11, 84)
             );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82793")]
+        public void ImplicitRangeIndexer_ObjectInitializer_01()
+        {
+            // Object initializer on C with `[GetStart()..] = value`
+            string source = """
+System.Console.Write(Util.M());
+
+static class Util
+{
+    public static C M() => new C() { [GetStart()..] = 42 };
+
+    private static int GetStart()
+    {
+        System.Console.Write("GetStart ");
+        return 1;
+    }
+}
+
+public class C
+{
+    private readonly int[] _values = new int[4];
+
+    public int Length { get { System.Console.Write("Length "); return _values.Length; } }
+
+    public ref int Slice(int start, int length)
+    {
+        System.Console.Write($"SliceStartLength({start}, {length}) ");
+        return ref _values[start];
+    }
+
+    public override string ToString() => _values[1].ToString();
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart Length SliceStartLength(1, 3) 42"), verify: Verification.Skipped);
+            verify.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82793")]
+        public void ImplicitRangeIndexer_ObjectInitializer_02()
+        {
+            // Object initializer on C with `[GetStart()..] = { P1 = 1, P2 = 2 }`
+            string source = """
+System.Console.Write(Util.M());
+
+static class Util
+{
+    public static C M() => new C() { [GetStart()..] = { P1 = 1, P2 = 2 } };
+
+    private static int GetStart()
+    {
+        System.Console.Write("GetStart ");
+        return 1;
+    }
+}
+
+public class C
+{
+    private readonly Item[] _values = new[] { new Item(), new Item(), new Item(), new Item() };
+
+    public int Length { get { System.Console.Write("Length "); return _values.Length; } }
+
+    public ref Item Slice(int start, int length)
+    {
+        System.Console.Write($"SliceStartLength({start}, {length}) ");
+        return ref _values[start];
+    }
+
+    public override string ToString() => (_values[1].P1, _values[1].P2).ToString();
+}
+
+public class Item
+{
+    public int P1 { get; set; }
+    public int P2 { get; set; }
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart Length SliceStartLength(1, 3) SliceStartLength(1, 3) (1, 2)"), verify: Verification.Skipped);
+            verify.VerifyDiagnostics();
         }
     }
 }

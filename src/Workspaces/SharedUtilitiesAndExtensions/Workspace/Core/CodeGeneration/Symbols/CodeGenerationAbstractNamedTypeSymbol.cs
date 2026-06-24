@@ -124,10 +124,12 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
 
     public bool IsFileLocal => Modifiers.IsFile;
 
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
     public bool IsExtension => false;
     public string ExtensionGroupingName => null;
     public string ExtensionMarkerName => null;
     public IParameterSymbol ExtensionParameter => null;
+
+    public override bool IsClosed => Modifiers.IsClosed;
 #endif
 }
