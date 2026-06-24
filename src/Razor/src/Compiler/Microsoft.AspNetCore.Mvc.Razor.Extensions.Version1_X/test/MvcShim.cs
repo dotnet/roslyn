@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -14,33 +15,32 @@ internal static class MvcShim
 {
     public static readonly string AssemblyName = "Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X.Compiler";
 
-    private static Assembly _assembly;
-    private static CSharpCompilation _baseCompilation;
+    private static readonly Lazy<Assembly> s_assembly = new(CreateAssembly, isThreadSafe: true);
+    private static readonly Lazy<CSharpCompilation> s_baseCompilation = new(() => TestCompilation.Create(Assembly), isThreadSafe: true);
 
     public static Assembly Assembly
     {
-        get
-        {
-            if (_assembly == null)
-            {
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), AssemblyName + ".dll");
-                _assembly = Assembly.LoadFrom(filePath);
-            }
-
-            return _assembly;
-        }
+        get => s_assembly.Value;
     }
 
     public static CSharpCompilation BaseCompilation
     {
-        get
-        {
-            if (_baseCompilation == null)
-            {
-                _baseCompilation = TestCompilation.Create(Assembly);
-            }
+        get => s_baseCompilation.Value;
+    }
 
-            return _baseCompilation;
+    private static Assembly CreateAssembly()
+    {
+        var assemblyFileName = AssemblyName + ".dll";
+        var assemblyDirectory = Path.GetDirectoryName(typeof(MvcShim).Assembly.Location);
+        var filePath = Path.Combine(assemblyDirectory ?? AppContext.BaseDirectory, assemblyFileName);
+
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException(
+                $"Could not locate '{assemblyFileName}'. Probed path '{filePath}'. CurrentDirectory='{Directory.GetCurrentDirectory()}', AppContext.BaseDirectory='{AppContext.BaseDirectory}', TestAssemblyLocation='{typeof(MvcShim).Assembly.Location}'.",
+                filePath);
         }
+
+        return Assembly.LoadFrom(filePath);
     }
 }
