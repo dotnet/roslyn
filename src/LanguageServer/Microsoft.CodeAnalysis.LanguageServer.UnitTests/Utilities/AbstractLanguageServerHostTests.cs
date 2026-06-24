@@ -12,6 +12,7 @@ using StreamJsonRpc;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -208,26 +209,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             await _languageServerHostCompletionTask;
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
-            await DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
-        }
-
-        private static async Task DisposeAndWaitForCompletionAsync(JsonRpc jsonRpc)
-        {
-            jsonRpc.Dispose();
-
-            try
-            {
-                await jsonRpc.Completion.ConfigureAwait(false);
-            }
-            catch (ConnectionLostException)
-            {
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (ObjectDisposedException)
-            {
-            }
+            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
         }
     }
 }

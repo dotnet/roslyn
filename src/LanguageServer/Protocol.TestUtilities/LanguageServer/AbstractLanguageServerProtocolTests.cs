@@ -958,29 +958,10 @@ public abstract partial class AbstractLanguageServerProtocolTests
             await languageServer.WaitForExitAsync();
             await AssertServerShuttingDownAsync().ConfigureAwait(false);
 
-            await DisposeAndWaitForCompletionAsync(serverRpc).ConfigureAwait(false);
-            await DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
+            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(serverRpc).ConfigureAwait(false);
+            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
 
             TestWorkspace.Dispose();
-        }
-
-        private static async Task DisposeAndWaitForCompletionAsync(JsonRpc jsonRpc)
-        {
-            jsonRpc.Dispose();
-
-            try
-            {
-                await jsonRpc.Completion.ConfigureAwait(false);
-            }
-            catch (ConnectionLostException)
-            {
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (ObjectDisposedException)
-            {
-            }
         }
     }
 }
