@@ -2,13 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class ProjectInstance(
     MSB.Execution.ProjectInstance? projectInstance,
-    DiagnosticLog log) : IProjectInstance
+    DiagnosticLog log) :
+#if NETFRAMEWORK
+    MarshalByRefObject, // We need this object to pass across the AppDomain boundary when on .NET Framework
+#endif
+    IProjectInstance
 {
     public DiagnosticLogItem[] GetDiagnosticLogItems()
         => [.. log];
