@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace RunTests
 {
@@ -36,6 +37,7 @@ namespace RunTests
             return null;
         }
 
+        [SupportedOSPlatform("windows")]
         private static string? TryGetCommandLineWindows(Process process)
         {
             try
@@ -44,12 +46,14 @@ namespace RunTests
                 mo.Get();
                 return mo["CommandLine"] as string;
             }
-            catch
+            catch (Exception ex)
             {
+                ConsoleUtil.Warning($"Failed to get command line for process {process.Id}: {ex.Message}");
                 return null;
             }
         }
 
+        [SupportedOSPlatform("linux")]
         private static string? TryGetCommandLineLinux(Process process)
         {
             try
@@ -58,8 +62,9 @@ namespace RunTests
                 var raw = File.ReadAllText($"/proc/{process.Id}/cmdline");
                 return raw.Replace('\0', ' ').Trim();
             }
-            catch
+            catch (Exception ex)
             {
+                ConsoleUtil.Warning($"Failed to get command line for process {process.Id}: {ex.Message}");
                 return null;
             }
         }
@@ -99,6 +104,7 @@ namespace RunTests
             }
             catch
             {
+                ConsoleUtil.Warning($"Failed to get process name for process {process.Id}");
                 // The process may have exited between enumeration and inspection.
                 return false;
             }
