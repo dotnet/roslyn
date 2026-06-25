@@ -453,6 +453,12 @@ internal sealed partial class ProjectSystemProject
         set => ChangeProjectProperty(ref field, value, s => s.WithHasSdkCodeStyleAnalyzers(Id, value));
     }
 
+    internal bool IsFileBasedApp
+    {
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithIsFileBasedApp(Id, value));
+    }
+
     /// <summary>
     /// The default namespace of the project.
     /// </summary>

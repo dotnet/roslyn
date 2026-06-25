@@ -565,6 +565,16 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
+    /// <inheritdoc cref="SolutionState.WithIsFileBasedApp"/>
+    internal SolutionCompilationState WithIsFileBasedApp(
+        ProjectId projectId, bool isFileBasedApp)
+    {
+        return ForkProject(
+            this.SolutionState.WithIsFileBasedApp(projectId, isFileBasedApp),
+            translate: null,
+            forkTracker: true);
+    }
+
     /// <inheritdoc cref="SolutionState.WithProjectDocumentsOrder"/>
     public SolutionCompilationState WithProjectDocumentsOrder(
         ProjectId projectId, ImmutableList<DocumentId> documentIds)
@@ -602,7 +612,8 @@ internal sealed partial class SolutionCompilationState
             .WithHasAllInformation(projectId, attributes.HasAllInformation)
             .WithRunAnalyzers(projectId, attributes.RunAnalyzers)
             .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm)
-            .WithHasSdkCodeStyleAnalyzers(projectId, attributes.HasSdkCodeStyleAnalyzers);
+            .WithHasSdkCodeStyleAnalyzers(projectId, attributes.HasSdkCodeStyleAnalyzers)
+            .WithIsFileBasedApp(projectId, attributes.IsFileBasedApp);
     }
 
     public SolutionCompilationState WithProjectInfo(ProjectInfo info)

@@ -110,6 +110,11 @@ public sealed class ProjectInfo
     internal bool HasSdkCodeStyleAnalyzers => Attributes.HasSdkCodeStyleAnalyzers;
 
     /// <summary>
+    /// True if this project represents a file-based app entry point.
+    /// </summary>
+    internal bool IsFileBasedApp => Attributes.IsFileBasedApp;
+
+    /// <summary>
     /// The initial compilation options for the project, or null if the default options should be used.
     /// </summary>
     public CompilationOptions? CompilationOptions { get; }
@@ -402,6 +407,11 @@ public sealed class ProjectInfo
         return With(attributes: Attributes.With(hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers));
     }
 
+    internal ProjectInfo WithIsFileBasedApp(bool isFileBasedApp)
+    {
+        return With(attributes: Attributes.With(isFileBasedApp: isFileBasedApp));
+    }
+
     internal string GetDebuggerDisplay()
         => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
 
@@ -425,7 +435,8 @@ public sealed class ProjectInfo
         bool isSubmission = false,
         bool hasAllInformation = true,
         bool runAnalyzers = true,
-        bool hasSdkCodeStyleAnalyzers = false)
+        bool hasSdkCodeStyleAnalyzers = false,
+        bool isFileBasedApp = false)
     {
         /// <summary>
         /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
@@ -514,6 +525,11 @@ public sealed class ProjectInfo
         /// </summary>
         public bool HasSdkCodeStyleAnalyzers { get; } = hasSdkCodeStyleAnalyzers;
 
+        /// <summary>
+        /// True if this project represents a file-based app entry point.
+        /// </summary>
+        public bool IsFileBasedApp { get; } = isFileBasedApp;
+
         private SingleInitNullable<(string? name, string? flavor)> _lazyNameAndFlavor;
         private SingleInitNullable<Checksum> _lazyChecksum;
 
@@ -545,7 +561,8 @@ public sealed class ProjectInfo
             Optional<bool> hasAllInformation = default,
             Optional<bool> runAnalyzers = default,
             Optional<Guid> telemetryId = default,
-            Optional<bool> hasSdkCodeStyleAnalyzers = default)
+            Optional<bool> hasSdkCodeStyleAnalyzers = default,
+            Optional<bool> isFileBasedApp = default)
         {
             var newId = id ?? Id;
             var newVersion = version ?? Version;
@@ -562,6 +579,7 @@ public sealed class ProjectInfo
             var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
             var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
             var newHasSdkCodeStyleAnalyzers = hasSdkCodeStyleAnalyzers.HasValue ? hasSdkCodeStyleAnalyzers.Value : HasSdkCodeStyleAnalyzers;
+            var newIsFileBasedApp = isFileBasedApp.HasValue ? isFileBasedApp.Value : IsFileBasedApp;
 
             if (newId == Id &&
                 newVersion == Version &&
@@ -577,7 +595,8 @@ public sealed class ProjectInfo
                 newHasAllInformation == HasAllInformation &&
                 newRunAnalyzers == RunAnalyzers &&
                 newTelemetryId == TelemetryId &&
-                newHasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers)
+                newHasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers &&
+                newIsFileBasedApp == IsFileBasedApp)
             {
                 return this;
             }
@@ -598,7 +617,8 @@ public sealed class ProjectInfo
                 newIsSubmission,
                 newHasAllInformation,
                 newRunAnalyzers,
-                newHasSdkCodeStyleAnalyzers);
+                newHasSdkCodeStyleAnalyzers,
+                newIsFileBasedApp);
         }
 
         public void WriteTo(ObjectWriter writer)
@@ -622,6 +642,7 @@ public sealed class ProjectInfo
             writer.WriteBoolean(RunAnalyzers);
             writer.WriteGuid(TelemetryId);
             writer.WriteBoolean(HasSdkCodeStyleAnalyzers);
+            writer.WriteBoolean(IsFileBasedApp);
 
             // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
             //       serialization, we should include those here as well.
@@ -646,6 +667,7 @@ public sealed class ProjectInfo
             var runAnalyzers = reader.ReadBoolean();
             var telemetryId = reader.ReadGuid();
             var hasSdkCodeStyleAnalyzers = reader.ReadBoolean();
+            var isFileBasedApp = reader.ReadBoolean();
 
             return new ProjectAttributes(
                 projectId,
@@ -663,7 +685,8 @@ public sealed class ProjectInfo
                 isSubmission: isSubmission,
                 hasAllInformation: hasAllInformation,
                 runAnalyzers: runAnalyzers,
-                hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers);
+                hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers,
+                isFileBasedApp: isFileBasedApp);
         }
 
         public Checksum Checksum

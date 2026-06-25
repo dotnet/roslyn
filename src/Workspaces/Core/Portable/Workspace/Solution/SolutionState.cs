@@ -760,6 +760,24 @@ internal sealed partial class SolutionState
     }
 
     /// <summary>
+    /// Create a new solution instance with the project specified updated to have
+    /// the specified isFileBasedApp.
+    /// </summary>
+    internal StateChange WithIsFileBasedApp(ProjectId projectId, bool isFileBasedApp)
+    {
+        var oldProject = GetRequiredProjectState(projectId);
+        var newProject = oldProject.WithIsFileBasedApp(isFileBasedApp);
+
+        if (oldProject == newProject)
+        {
+            return new(this, oldProject, newProject);
+        }
+
+        // fork without any change on compilation.
+        return ForkProject(oldProject, newProject);
+    }
+
+    /// <summary>
     /// Create a new solution instance with the project specified updated to include
     /// the specified project references.
     /// </summary>

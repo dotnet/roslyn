@@ -685,6 +685,9 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
     internal bool HasSdkCodeStyleAnalyzers => this.ProjectInfo.HasSdkCodeStyleAnalyzers;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    internal bool IsFileBasedApp => this.ProjectInfo.IsFileBasedApp;
+
     private ProjectState With(
         ProjectInfo? projectInfo = null,
         TextDocumentStates<DocumentState>? documentStates = null,
@@ -748,6 +751,9 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
 
     internal ProjectState WithHasSdkCodeStyleAnalyzers(bool hasSdkCodeStyleAnalyzers)
     => (hasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers) ? this : WithNewerAttributes(Attributes.With(hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers, version: Version.GetNewerVersion()));
+
+    internal ProjectState WithIsFileBasedApp(bool isFileBasedApp)
+    => (isFileBasedApp == IsFileBasedApp) ? this : WithNewerAttributes(Attributes.With(isFileBasedApp: isFileBasedApp, version: Version.GetNewerVersion()));
 
     public ProjectState WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
     {

@@ -313,7 +313,7 @@ internal abstract class LanguageServerProjectLoader : IDisposable
                     var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(previousProjectTargets, projectFactory, loadedProjectInfo);
                     newProjectTargetsBuilder.Add(target);
 
-                    var (outputKind, metadataReferences, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, remoteProjectLoadResult.HasAllInformation, _logger);
+                    var (outputKind, metadataReferences, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, remoteProjectLoadResult.HasAllInformation, remoteProjectLoadResult.HasFileBasedAppDirectives, _logger);
                     if (targetNeedsRestore)
                     {
                         projectRestorePath = remoteProjectLoadResult.ProjectRestorePath;

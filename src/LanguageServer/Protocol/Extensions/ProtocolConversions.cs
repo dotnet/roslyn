@@ -936,6 +936,7 @@ internal static partial class ProtocolConversions
             // IsMiscellaneous controls whether a toast appears which warns that editor features are not available.
             // In case HasAllInformation is true, though, we do actually have all information needed to light up any features user is trying to use related to the project.
             IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles && !project.State.HasAllInformation,
+            IsFileBasedApp = project.State.IsFileBasedApp,
         };
 
         if (project.Language == LanguageNames.CSharp)
