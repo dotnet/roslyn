@@ -23,10 +23,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         Private ReadOnly _serviceGetter As AsyncLazy(Of TInterface)
 
+#Disable Warning VSMEF008 ' Import contract type not assignable to member type
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
             <Import(GetType(SVsServiceProvider))> asyncServiceProvider As IAsyncServiceProvider2, joinableTaskContext As JoinableTaskContext)
+#Enable Warning VSMEF008 ' Import contract type not assignable to member type
 
             _serviceGetter = New AsyncLazy(Of TInterface)(
                 Function() asyncServiceProvider.GetServiceAsync(Of TService, TInterface)(True, CancellationToken.None),
