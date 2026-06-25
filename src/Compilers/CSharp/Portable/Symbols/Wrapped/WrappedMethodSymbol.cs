@@ -10,7 +10,6 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -180,8 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnderlyingMethod.IsImplicitlyDeclared;
             }
         }
-
-        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => UnderlyingMethod.GetCallerUnsafeMode(fieldsBeingBound);
 
         internal override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {

@@ -10,7 +10,6 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -167,8 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRequired => _underlyingProperty.IsRequired;
 
         internal sealed override bool HasUnscopedRefAttribute => _underlyingProperty.HasUnscopedRefAttribute;
-
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingProperty.GetCallerUnsafeMode(fieldsBeingBound);
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
