@@ -172,7 +172,9 @@ namespace MyApp.Pages
 
             // Assert
             Assert.Empty(result.Diagnostics);
-            Assert.Single(result.GeneratedSources);
+            var generatedSource = Assert.Single(result.GeneratedSources).SourceText.ToString();
+            Assert.DoesNotContain("@*", generatedSource);
+            Assert.DoesNotContain("*@", generatedSource);
         }
 
         [Fact]
