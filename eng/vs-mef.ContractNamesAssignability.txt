@@ -1,0 +1,7 @@
+# VS SDK service broker pattern (see https://github.com/microsoft/vs-mef/pull/682)
+Microsoft.ServiceHub.Framework.IServiceBroker <= Microsoft.VisualStudio.Shell.ServiceBroker.SVsFullAccessServiceBroker
+Microsoft.VisualStudio.Shell.IAsyncServiceProvider <= Microsoft.VisualStudio.Shell.SVsServiceProvider
+Microsoft.VisualStudio.Shell.IAsyncServiceProvider <= Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider
+Microsoft.VisualStudio.Shell.IAsyncServiceProvider2 <= Microsoft.VisualStudio.Shell.SVsServiceProvider
+Microsoft.VisualStudio.Shell.IAsyncServiceProvider2 <= Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider
+Microsoft.VisualStudio.Razor.LiveShare.Guest.LiveShareSessionAccessor <= Microsoft.VisualStudio.Razor.LiveShare.Guest.ILiveShareSessionAccessor

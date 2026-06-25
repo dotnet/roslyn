@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [ExportLanguageService(typeof(IFormattingService), InternalLanguageNames.TypeScript), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation impl) : IFormattingService
+internal sealed class VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation? impl) : IFormattingService
 {
     private readonly IVSTypeScriptFormattingServiceImplementation _impl = impl ?? throw new ArgumentNullException(nameof(impl));
 

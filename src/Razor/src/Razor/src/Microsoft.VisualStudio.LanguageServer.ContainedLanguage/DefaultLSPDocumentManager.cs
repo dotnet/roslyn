@@ -36,7 +36,9 @@ internal class DefaultLSPDocumentManager : TrackingLSPDocumentManager
         JoinableTaskContext joinableTaskContext,
         FileUriProvider fileUriProvider,
         LSPDocumentFactory documentFactory,
+#pragma warning disable VSMEF016 // Referenced metadata view interface should be source-generated
         [ImportMany] IEnumerable<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>> documentManagerChangeListeners)
+#pragma warning restore VSMEF016 // Referenced metadata view interface should be source-generated
     {
         if (joinableTaskContext is null)
         {

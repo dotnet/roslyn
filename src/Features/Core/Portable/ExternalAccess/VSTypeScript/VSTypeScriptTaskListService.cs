@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [ExportLanguageService(typeof(ITaskListService), InternalLanguageNames.TypeScript), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSTypeScriptTaskListService([Import(AllowDefault = true)] IVSTypeScriptTaskListServiceImplementation impl) : ITaskListService
+internal sealed class VSTypeScriptTaskListService([Import(AllowDefault = true)] IVSTypeScriptTaskListServiceImplementation? impl) : ITaskListService
 {
     private readonly IVSTypeScriptTaskListServiceImplementation? _impl = impl;
 

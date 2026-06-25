@@ -43,4 +43,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" />
   </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="$(RepoRoot)eng\vs-mef.ContractNamesAssignability.txt" />
+  </ItemGroup>  
 </Project>

@@ -20,7 +20,9 @@ internal class DefaultLSPDocumentFactory : LSPDocumentFactory
     [ImportingConstructor]
     public DefaultLSPDocumentFactory(
         FileUriProvider fileUriProvider,
+#pragma warning disable VSMEF016 // Referenced metadata view interface should be source-generated
         [ImportMany] IEnumerable<Lazy<VirtualDocumentFactory, IContentTypeMetadata>> virtualBufferFactories)
+#pragma warning restore VSMEF016 // Referenced metadata view interface should be source-generated
     {
         if (fileUriProvider is null)
         {

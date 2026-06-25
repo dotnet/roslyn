@@ -146,6 +146,9 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <AdditionalFiles Include="$(RepoRoot)eng\vs-mef.ContractNamesAssignability.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <VSCTCompile Include="Commands.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
