@@ -7,11 +7,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class BuildHostProjectFileInfoProvider(
     BuildHostProcessManager buildHostProcessManager,
+    IFileBasedProgramService fileBasedProgramService,
     ProjectFileExtensionRegistry projectFileExtensionRegistry,
     DiagnosticReporter diagnosticReporter,
     IProgress<ProjectLoadProgress>? progress) : IProjectFileInfoProvider
@@ -36,6 +38,7 @@ internal sealed class BuildHostProjectFileInfoProvider(
                 targetFramework: null,
                 () => FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
                     buildHost,
+                    fileBasedProgramService,
                     projectPath,
                     languageName,
                     (error) => diagnosticReporter.Report(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, error)),

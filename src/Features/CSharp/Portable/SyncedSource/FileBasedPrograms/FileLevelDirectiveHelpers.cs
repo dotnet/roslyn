@@ -14,213 +14,10 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DotNet.ProjectTools;
 
 namespace Microsoft.DotNet.FileBasedPrograms;
-
-internal static class FileLevelDirectiveHelpers
-{
-    public static SyntaxTokenParser CreateTokenizer(SourceText text)
-    {
-        return SyntaxFactory.CreateTokenParser(text,
-            CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
-    }
-
-    /// <param name="reportAllErrors">
-    /// If <see langword="true"/>, the whole <paramref name="sourceFile"/> is parsed to find diagnostics about every app directive.
-    /// Otherwise, only directives up to the first C# token is checked.
-    /// The former is useful for <c>dotnet project convert</c> where we want to report all errors because it would be difficult to fix them up after the conversion.
-    /// The latter is useful for <c>dotnet run file.cs</c> where if there are app directives after the first token,
-    /// compiler reports <see cref="ErrorCode.ERR_PPIgnoredFollowsToken"/> anyway, so we speed up success scenarios by not parsing the whole file up front in the SDK CLI.
-    /// </param>
-    public static ImmutableArray<CSharpDirective> FindDirectives(SourceFile sourceFile, bool reportAllErrors, ErrorReporter errorReporter, bool checkDuplicates = true)
-    {
-        var builder = ImmutableArray.CreateBuilder<CSharpDirective>();
-        using var tokenizer = CreateTokenizer(sourceFile.Text);
-
-        var result = tokenizer.ParseLeadingTrivia();
-        var triviaList = result.Token.LeadingTrivia;
-
-        FindLeadingDirectives(sourceFile, triviaList, errorReporter, builder, checkDuplicates);
-
-        // In conversion mode, we want to report errors for any invalid directives in the rest of the file
-        // so users don't end up with invalid directives in the converted project.
-        if (reportAllErrors)
-        {
-            tokenizer.ResetTo(result);
-
-            do
-            {
-                result = tokenizer.ParseNextToken();
-
-                foreach (var trivia in result.Token.LeadingTrivia)
-                {
-                    ReportErrorFor(trivia);
-                }
-
-                foreach (var trivia in result.Token.TrailingTrivia)
-                {
-                    ReportErrorFor(trivia);
-                }
-            }
-            while (!result.Token.IsKind(SyntaxKind.EndOfFileToken));
-        }
-
-        void ReportErrorFor(SyntaxTrivia trivia)
-        {
-            if (trivia.ContainsDiagnostics && trivia.IsKind(SyntaxKind.IgnoredDirectiveTrivia))
-            {
-                errorReporter(sourceFile.Text, sourceFile.Path, trivia.Span, FileBasedProgramsResources.CannotConvertDirective);
-            }
-        }
-
-        return builder.ToImmutable();
-    }
-
-    /// <summary>Finds file-level directives in the leading trivia list of a compilation unit and reports diagnostics on them.</summary>
-    /// <param name="builder">The builder to store the parsed directives in, or null if the parsed directives are not needed.</param>
-    public static void FindLeadingDirectives(
-        SourceFile sourceFile,
-        SyntaxTriviaList triviaList,
-        ErrorReporter errorReporter,
-        ImmutableArray<CSharpDirective>.Builder? builder,
-        bool checkDuplicates = true)
-    {
-        var deduplicator = new DirectiveDeduplicator();
-        TextSpan previousWhiteSpaceSpan = default;
-
-        for (var index = 0; index < triviaList.Count; index++)
-        {
-            var trivia = triviaList[index];
-            // Stop when the trivia contains an error (e.g., because it's after #if).
-            if (trivia.ContainsDiagnostics)
-            {
-                break;
-            }
-
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                Debug.Assert(previousWhiteSpaceSpan.IsEmpty);
-                previousWhiteSpaceSpan = trivia.FullSpan;
-                continue;
-            }
-
-            if (trivia.IsKind(SyntaxKind.ShebangDirectiveTrivia))
-            {
-                TextSpan span = GetFullSpan(previousWhiteSpaceSpan, trivia);
-
-                var whiteSpace = GetWhiteSpaceInfo(triviaList, index, span);
-                var info = new CSharpDirective.ParseInfo
-                {
-                    SourceFile = sourceFile,
-                    Span = span,
-                    LeadingWhiteSpace = whiteSpace.Leading,
-                    TrailingWhiteSpace = whiteSpace.Trailing,
-                };
-                builder?.Add(new CSharpDirective.Shebang(info));
-            }
-            else if (trivia.IsKind(SyntaxKind.IgnoredDirectiveTrivia))
-            {
-                TextSpan span = GetFullSpan(previousWhiteSpaceSpan, trivia);
-
-                var message = trivia.GetStructure() is IgnoredDirectiveTriviaSyntax { Content: { RawKind: (int)SyntaxKind.StringLiteralToken } content }
-                    ? content.Text.AsSpan().Trim()
-                    : "";
-                var parts = Patterns.Whitespace.Split(message.ToString(), 2);
-                var name = parts.Length > 0 ? parts[0] : "";
-                var value = parts.Length > 1 ? parts[1] : "";
-                Debug.Assert(!(parts.Length > 2));
-
-                var whiteSpace = GetWhiteSpaceInfo(triviaList, index, span);
-                var context = new CSharpDirective.ParseContext
-                {
-                    Info = new()
-                    {
-                        SourceFile = sourceFile,
-                        Span = span,
-                        LeadingWhiteSpace = whiteSpace.Leading,
-                        TrailingWhiteSpace = whiteSpace.Trailing,
-                    },
-                    ErrorReporter = errorReporter,
-                    DirectiveKind = name,
-                    DirectiveText = value,
-                };
-
-                // Block quotes now so we can later support quoted values without a breaking change. https://github.com/dotnet/sdk/issues/49367
-                if (value.Contains('"'))
-                {
-                    context.ReportError(FileBasedProgramsResources.QuoteInDirective);
-                }
-
-                if (CSharpDirective.Parse(context) is { } directive)
-                {
-                    if (checkDuplicates)
-                    {
-                        deduplicator.CheckDirective(directive, errorReporter, shouldKeep: out _);
-                    }
-
-                    builder?.Add(directive);
-                }
-            }
-
-            previousWhiteSpaceSpan = default;
-        }
-
-        return;
-
-        static TextSpan GetFullSpan(TextSpan previousWhiteSpaceSpan, SyntaxTrivia trivia)
-        {
-            // Include the preceding whitespace in the span, i.e., span will be the whole line.
-            return previousWhiteSpaceSpan.IsEmpty ? trivia.FullSpan : TextSpan.FromBounds(previousWhiteSpaceSpan.Start, trivia.FullSpan.End);
-        }
-
-        static (WhiteSpaceInfo Leading, WhiteSpaceInfo Trailing) GetWhiteSpaceInfo(in SyntaxTriviaList triviaList, int index, TextSpan excludeSpan)
-        {
-            (WhiteSpaceInfo Leading, WhiteSpaceInfo Trailing) result = default;
-
-            for (int i = index - 1; i >= 0; i--)
-            {
-                if (!Fill(ref result.Leading, triviaList, i, excludeSpan)) break;
-            }
-
-            for (int i = index + 1; i < triviaList.Count; i++)
-            {
-                if (!Fill(ref result.Trailing, triviaList, i, excludeSpan)) break;
-            }
-
-            return result;
-
-            static bool Fill(ref WhiteSpaceInfo info, in SyntaxTriviaList triviaList, int index, TextSpan excludeSpan)
-            {
-                var trivia = triviaList[index];
-
-                var length = trivia.FullSpan.Length - (trivia.FullSpan.Intersection(excludeSpan)?.Length ?? 0);
-
-                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    if (length != 0)
-                    {
-                        info.BlankLineLength += info.RestLength + length;
-                        info.RestLength = 0;
-                    }
-
-                    return true;
-                }
-
-                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-                {
-                    info.RestLength += length;
-                    return true;
-                }
-
-                return false;
-            }
-        }
-    }
-}
 
 internal readonly record struct SourceFile(string Path, SourceText Text)
 {
@@ -255,6 +52,7 @@ internal static partial class Patterns
     public static Regex EscapedCompilerOption { get; } = new Regex("""^/\w+:".*"$""", RegexOptions.Compiled | RegexOptions.Singleline);
 }
 
+#pragma warning disable CS0649 // "field is never assigned to" - the field is assigned in a different assembly
 internal struct WhiteSpaceInfo
 {
     /// <summary>
@@ -267,6 +65,7 @@ internal struct WhiteSpaceInfo
     /// </summary>
     public int RestLength;
 }
+#pragma warning restore CS0649
 
 /// <summary>
 /// Represents a C# directive starting with <c>#:</c> (a.k.a., "file-level directive").

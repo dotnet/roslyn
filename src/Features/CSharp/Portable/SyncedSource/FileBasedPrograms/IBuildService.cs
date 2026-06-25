@@ -13,7 +13,7 @@ public
 #else
 internal
 #endif
-interface IBuildHost
+interface IBuildService
 {
     IProjectInstance CreateProjectInstanceFromProjectRootElement(
         IProjectRootElement projectRoot,

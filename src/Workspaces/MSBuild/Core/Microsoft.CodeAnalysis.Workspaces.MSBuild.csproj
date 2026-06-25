@@ -34,7 +34,7 @@
     <PackageReference Include="System.Text.Json" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
 
     <!-- For the following package we directly include the binary into this NuGet package because we don't want/need a separate NuGet package
          for it. PrivateAssets="all" is needed to prevent this reference from becoming a package reference in the package, as a workaround for
@@ -61,7 +61,7 @@
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="InternalUtilities\NamedPipeUtil.cs" />
-    <Compile Include="..\..\..\Features\CSharp\Portable\SyncedSource\FileBasedPrograms\**\*.cs" LinkBase="FileBasedPrograms\SyncedSource" Exclude="**\Extensions.cs" />
+    <Compile Include="..\..\..\Features\CSharp\Portable\SyncedSource\FileBasedPrograms\**\*.cs" LinkBase="FileBasedPrograms\SyncedSource" Exclude="**\Extensions.cs;**\LanguageService.cs" />
     <Compile Include="..\..\..\Features\CSharp\Portable\Diagnostics\Analyzers\FileBasedPrograms\ExternalHelpers.cs" LinkBase="FileBasedPrograms" />
   </ItemGroup>
   <ItemGroup>

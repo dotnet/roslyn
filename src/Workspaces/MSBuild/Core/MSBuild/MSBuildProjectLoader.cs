@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -264,6 +265,7 @@ public partial class MSBuildProjectLoader
 
         var projectFileProvider = new BuildHostProjectFileInfoProvider(
             buildHostProcessManager,
+            _solutionServices.GetRequiredLanguageService<IFileBasedProgramService>(LanguageNames.CSharp),
             _projectFileExtensionRegistry,
             _diagnosticReporter,
             progress);

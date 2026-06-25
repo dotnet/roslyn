@@ -42,7 +42,9 @@ sealed class VirtualProjectBuilder
     /// </summary>
     private static readonly ConditionalWeakTable<IProjectCollection, Dictionary<string, IProjectRootElement>> s_projectRootsByProjectCollection = new();
 
-    private readonly IBuildHost _buildHost;
+    private readonly IBuildService _buildService;
+
+    private readonly ILanguageService _languageService;
 
     private readonly string _targetFramework;
 
@@ -71,7 +73,8 @@ sealed class VirtualProjectBuilder
     internal string[]? RequestedTargets { get; }
 
     internal VirtualProjectBuilder(
-        IBuildHost buildHost,
+        IBuildService buildService,
+        ILanguageService languageService,
         string entryPointFileFullPath,
         string targetFramework,
         string[]? requestedTargets = null,
@@ -80,7 +83,8 @@ sealed class VirtualProjectBuilder
     {
         Debug.Assert(ExternalHelpers.IsPathFullyQualified(entryPointFileFullPath));
 
-        _buildHost = buildHost;
+        _buildService = buildService;
+        _languageService = languageService;
         EntryPointFileFullPath = entryPointFileFullPath;
         RequestedTargets = requestedTargets;
         ArtifactsPath = artifactsPath;
@@ -140,10 +144,10 @@ sealed class VirtualProjectBuilder
     /// Parses a source file to extract property value from directives.
     /// </summary>
     /// <returns>Array of frameworks if TargetFrameworks is specified, or empty otherwise</returns>
-    public static string? GetPropertyFromSourceFile(string sourceFilePath, string propertyName)
+    internal static string? GetPropertyFromSourceFile(ILanguageService languageService, string sourceFilePath, string propertyName)
     {
         var sourceFile = SourceFile.Load(sourceFilePath);
-        var directives = FileLevelDirectiveHelpers.FindDirectives(sourceFile, reportAllErrors: false, ErrorReporters.IgnoringReporter);
+        var directives = languageService.FindDirectives(sourceFile, reportAllErrors: false, ErrorReporters.IgnoringReporter);
 
         // Return the first value. Conflicting duplicate directives are not supported.
         return directives.OfType<CSharpDirective.Property>()
@@ -279,14 +283,15 @@ sealed class VirtualProjectBuilder
             reportError);
     }
 
-    public static IProjectInstance CreateProjectInstance(
-        IBuildHost buildHost,
+    internal static IProjectInstance CreateProjectInstance(
+        IBuildService buildService,
+        ILanguageService languageService,
         string entryPointFilePath,
         string targetFramework,
         IProjectCollection projectCollection,
         Action<string, int, string> errorReporter)
     {
-        var builder = new VirtualProjectBuilder(buildHost, entryPointFilePath, targetFramework);
+        var builder = new VirtualProjectBuilder(buildService, languageService, entryPointFilePath, targetFramework);
 
         builder.CreateProjectInstance(
             projectCollection,
@@ -313,7 +318,7 @@ sealed class VirtualProjectBuilder
 
         if (directives.IsDefault)
         {
-            directives = FileLevelDirectiveHelpers.FindDirectives(EntryPointSourceFile, validateAllDirectives, reportError, checkDuplicates: false);
+            directives = _languageService.FindDirectives(EntryPointSourceFile, validateAllDirectives, reportError, checkDuplicates: false);
         }
 
         (string ProjectFileText, IProjectInstance ProjectInstance, IProjectRootElement ProjectRootElement)? lastProject = null;
@@ -425,7 +430,7 @@ sealed class VirtualProjectBuilder
                 }
 
                 var sourceFile = SourceFile.Load(filePath);
-                directives = FileLevelDirectiveHelpers.FindDirectives(sourceFile, validateAllDirectives, reportError, checkDuplicates: false);
+                directives = _languageService.FindDirectives(sourceFile, validateAllDirectives, reportError, checkDuplicates: false);
                 return true;
             }
 
@@ -495,7 +500,7 @@ sealed class VirtualProjectBuilder
                 addGlobalProperties(globalProperties);
             }
 
-            var project = _buildHost.CreateProjectInstanceFromProjectRootElement(projectRoot, projectCollection, globalProperties);
+            var project = _buildService.CreateProjectInstanceFromProjectRootElement(projectRoot, projectCollection, globalProperties);
 
             lastProject = (projectFileText, project, projectRoot);
 
@@ -505,7 +510,7 @@ sealed class VirtualProjectBuilder
             {
                 using var reader = new StringReader(projectFileText);
                 using var xmlReader = XmlReader.Create(reader);
-                var projectRoot = _buildHost.CreateProjectRootElement(xmlReader, projectCollection);
+                var projectRoot = _buildService.CreateProjectRootElement(xmlReader, projectCollection);
                 projectRoot.FullPath = GetVirtualProjectPath(EntryPointFileFullPath);
                 return projectRoot;
             }
@@ -560,7 +565,7 @@ sealed class VirtualProjectBuilder
                 continue;
             }
 
-            var refBuilder = new VirtualProjectBuilder(_buildHost, resolvedPath, _targetFramework);
+            var refBuilder = new VirtualProjectBuilder(_buildService, _languageService, resolvedPath, _targetFramework);
             refBuilder.CreateProjectInstance(
                 projectCollection,
                 reportError,

@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.DotNet.FileBasedPrograms;
 using IProjectInstance = Microsoft.DotNet.FileBasedPrograms.IProjectInstance;
 
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 #pragma warning disable CS9113, IDE0060, CA1822 // TODO
 
-internal sealed class FileBasedProgramsBuildHost(RemoteBuildHost buildHost) : Microsoft.DotNet.FileBasedPrograms.IBuildHost
+file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost) : Microsoft.DotNet.FileBasedPrograms.IBuildService
 {
     public IProjectCollection ProjectCollection => Microsoft.CodeAnalysis.MSBuild.ProjectCollection.Instance;
 
@@ -38,17 +39,19 @@ internal static class FileBasedProgramsProjectLoader
 {
     public static async Task<RemoteProjectFile> LoadFileBasedAppProjectAsync(
         RemoteBuildHost buildHost,
+        IFileBasedProgramService fileBasedProgramService,
         string entryPointFilePath,
         string languageName,
         Action<string> reportError,
         CancellationToken cancellationToken)
     {
-        var buildHostBridge = new FileBasedProgramsBuildHost(buildHost);
+        var buildService = new FileBasedProgramsBuildService(buildHost);
+        var languageService = (Microsoft.DotNet.FileBasedPrograms.ILanguageService)fileBasedProgramService.LanguageService;
         var entryPointFileFullPath = Path.GetFullPath(entryPointFilePath);
         // TODO: don't hardcode TFM
-        var virtualProjectBuilder = new VirtualProjectBuilder(buildHostBridge, entryPointFileFullPath, "net10.0");
+        var virtualProjectBuilder = new VirtualProjectBuilder(buildService, languageService, entryPointFileFullPath, "net10.0");
         virtualProjectBuilder.CreateProjectInstance(
-            buildHostBridge.ProjectCollection,
+            buildService.ProjectCollection,
             (text, path, textSpan, message, innerException) => reportError($"{new SourceFile(path, text).GetLocationString(textSpan)}: {message}"),
             project: out _,
             out var projectRootElement,

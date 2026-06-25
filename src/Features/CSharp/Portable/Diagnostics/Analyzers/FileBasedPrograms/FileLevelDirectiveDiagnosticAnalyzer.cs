@@ -50,7 +50,7 @@ internal sealed class FileLevelDirectiveDiagnosticAnalyzer()
             //     Console.WriteLine("Hello World!");
             //     #:property foo=bar // error CS9297: '#:' directives cannot be after first token in file
             var errorReporter = ErrorReporters.CreateCollectingReporter(out var diagnosticsBuilder);
-            FileLevelDirectiveHelpers.FindLeadingDirectives(
+            Microsoft.DotNet.FileBasedPrograms.LanguageService.FindLeadingDirectives(
                 new SourceFile(tree.FilePath, tree.GetText(cancellationToken)),
                 root.GetLeadingTrivia(),
                 errorReporter,
