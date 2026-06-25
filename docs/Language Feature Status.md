@@ -35,6 +35,7 @@ When a feature is merged to the `main` branch, its entry should be moved to the 
 | [Extension indexers](https://github.com/dotnet/csharplang/issues/9856) | [extensions](https://github.com/dotnet/roslyn/tree/features/extensions) | [Merged into .NET 11 preview 6](https://github.com/dotnet/roslyn/issues/81505) | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs), [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jcouv](https://github.com/jcouv) |
 | [Labeled break/continue](https://github.com/dotnet/csharplang/issues/9875) | [labeled-break-and-continue](https://github.com/dotnet/roslyn/tree/features/labeled-break-and-continue) | [Merged into .NET 11 preview 6](https://github.com/dotnet/roslyn/pull/84271) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jcouv](https://github.com/jcouv), [jjonescz](https://github.com/jjonescz) | [jcouv](https://github.com/jcouv) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 
+
 # Working Set VB
 
 # C# 14.0
