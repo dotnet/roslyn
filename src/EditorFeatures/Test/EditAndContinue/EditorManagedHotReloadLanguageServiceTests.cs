@@ -474,4 +474,90 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
         await languageService.EndSessionAsync(CancellationToken.None);
     }
+
+    [Fact]
+    public async Task LifecycleCallbacksWithoutActiveSession_AreNoOps()
+    {
+        // Regression test for a non-fatal Watson reported as vs/ide/vbcs/nonfatalwatson
+        // (ManagedHotReloadLanguageServiceImpl -> NoSessionException). The debugger drives Hot Reload
+        // lifecycle callbacks across process boundaries and may deliver a stray break-state /
+        // capabilities-changed / commit / discard / get-updates callback when no debugging session is
+        // active -- before a session has started, or after one has been torn down by EndSessionAsync.
+        // These must be benign no-ops. Before the fix they threw NoSessionException (GetUpdates) or a
+        // Contract violation (Commit/Discard) out of the callback, or reported a non-fatal Watson and
+        // disabled Hot Reload (break-state / capabilities changed).
+
+        var localComposition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
+            .AddExcludedPartTypes(
+                typeof(EditAndContinueService.WorkspaceServiceFactory))
+            .AddParts(
+                typeof(NoCompilationLanguageService),
+                typeof(MockHostWorkspaceProvider),
+                typeof(MockServiceBrokerProvider),
+                typeof(MockEditAndContinueServiceFactory),
+                typeof(MockManagedHotReloadService));
+
+        using var localWorkspace = new TestWorkspace(composition: localComposition);
+        ((MockHostWorkspaceProvider)localWorkspace.GetService<IHostWorkspaceProvider>()).Workspace = localWorkspace;
+
+        ((MockServiceBroker)localWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
+        {
+            _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
+            _ => throw ExceptionUtilities.UnexpectedValue(t)
+        };
+
+        var mockEncService = (MockEditAndContinueService)localWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
+        mockEncService.StartDebuggingSessionImpl = (_, _, _, _) => new DebuggingSessionId(1);
+
+        var localFactory = localWorkspace.GetService<ManagedHotReloadLanguageServiceFactory>();
+        var localBroker = localWorkspace.Services.GetRequiredService<IServiceBrokerProvider>().ServiceBroker;
+        var localSnapshotProvider = localWorkspace.GetService<ISolutionSnapshotProvider>();
+        using var pdbMatchingSourceTextProvider = new PdbMatchingSourceTextProvider(localWorkspace);
+        var localService = localFactory.Create(localBroker, localSnapshotProvider, localWorkspace.GetService<IHostWorkspaceProvider>(), pdbMatchingSourceTextProvider);
+
+        var sessionState = localWorkspace.GetService<IEditAndContinueSessionTracker>();
+
+        // Brings the service into the "no active session" state with the disabled flag cleared --
+        // the same state in which a stray callback previously threw or reported a fault.
+        async Task EndActiveSessionAsync()
+        {
+            await localService.StartSessionAsync(CancellationToken.None);
+            Assert.True(sessionState.IsSessionActive);
+
+            await localService.EndSessionAsync(CancellationToken.None);
+            Assert.False(sessionState.IsSessionActive);
+        }
+
+        // No session has ever been started.
+        var updatesBeforeStart = await localService.GetUpdatesAsync(ImmutableArray<DebuggerContracts.RunningProjectInfo>.Empty, CancellationToken.None);
+        Assert.Empty(updatesBeforeStart.Updates);
+        Assert.Empty(updatesBeforeStart.Diagnostics);
+
+        // Session started then torn down: each stray callback must be a benign no-op. The service is
+        // returned to the post-teardown state before each callback so the callbacks are exercised
+        // independently (the first callback no longer masks the rest by disabling Hot Reload).
+        await EndActiveSessionAsync();
+        var updatesAfterEnd = await localService.GetUpdatesAsync(ImmutableArray<DebuggerContracts.RunningProjectInfo>.Empty, CancellationToken.None);
+        Assert.Empty(updatesAfterEnd.Updates);
+        Assert.Empty(updatesAfterEnd.Diagnostics);
+
+        await EndActiveSessionAsync();
+        await localService.CommitUpdatesAsync(CancellationToken.None);
+
+        await EndActiveSessionAsync();
+        await localService.DiscardUpdatesAsync(CancellationToken.None);
+
+        await EndActiveSessionAsync();
+        await localService.EnterBreakStateAsync(CancellationToken.None);
+
+        await EndActiveSessionAsync();
+        await localService.ExitBreakStateAsync(CancellationToken.None);
+
+        await EndActiveSessionAsync();
+        await localService.OnCapabilitiesChangedAsync(CancellationToken.None);
+
+        // A second EndSession without an active session is also a no-op.
+        await localService.EndSessionAsync(CancellationToken.None);
+        Assert.False(sessionState.IsSessionActive);
+    }
 }

@@ -31,16 +31,6 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
     IEditAndContinueLogReporter logReporter,
     IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService3, IEditAndContinueSolutionProvider
 {
-    private sealed class NoSessionException : InvalidOperationException
-    {
-        public NoSessionException()
-            : base("Internal error: no session.")
-        {
-            // unique enough HResult to distinguish from other exceptions
-            HResult = unchecked((int)0x801315087);
-        }
-    }
-
     private bool _disabled;
     private DebuggingSessionProxy? _debuggingSession;
 
@@ -49,8 +39,17 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
     public event Action<Solution>? SolutionCommitted;
 
-    private DebuggingSessionProxy GetDebuggingSession()
-        => _debuggingSession ?? throw new NoSessionException();
+    /// <summary>
+    /// Returns the active debugging session to operate on, or <see langword="null"/> if there is none and
+    /// the operation should be a no-op. The session is absent when Hot Reload has been disabled for the
+    /// current debug session, or when no session is active because it failed to start, has already ended,
+    /// or a debugger callback raced with session start/teardown. The debugger drives these lifecycle
+    /// callbacks across process boundaries and may deliver them in these states (for example after the
+    /// session has been torn down), so treating the absence of a session as a benign no-op avoids throwing
+    /// and reporting a non-fatal Watson for an expected condition.
+    /// </summary>
+    private DebuggingSessionProxy? TryGetActiveSession()
+        => _disabled ? null : _debuggingSession;
 
     internal void Disable(Exception e)
     {
@@ -115,14 +114,13 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
     private async ValueTask BreakStateOrCapabilitiesChangedAsync(bool? inBreakState, CancellationToken cancellationToken)
     {
-        if (_disabled)
+        if (TryGetActiveSession() is not { } session)
         {
             return;
         }
 
         try
         {
-            var session = GetDebuggingSession();
             var solution = (inBreakState == true) ? await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false) : null;
 
             await session.BreakStateOrCapabilitiesChangedAsync(inBreakState, cancellationToken).ConfigureAwait(false);
@@ -154,7 +152,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
     public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
     {
-        if (_disabled)
+        if (TryGetActiveSession() is not { } session)
         {
             return;
         }
@@ -174,7 +172,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
         try
         {
-            await GetDebuggingSession().CommitSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+            await session.CommitSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -185,7 +183,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
     public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
     {
-        if (_disabled)
+        if (TryGetActiveSession() is not { } session)
         {
             return;
         }
@@ -194,7 +192,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
         try
         {
-            await GetDebuggingSession().DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+            await session.DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -209,11 +207,11 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
     {
         sessionState.IsSessionActive = false;
 
-        if (!_disabled)
+        if (TryGetActiveSession() is { } session)
         {
             try
             {
-                await GetDebuggingSession().EndDebuggingSessionAsync(cancellationToken).ConfigureAwait(false);
+                await session.EndDebuggingSessionAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -283,7 +281,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
-        if (_disabled)
+        if (TryGetActiveSession() is not { } session)
         {
             return new ManagedHotReloadUpdates([], [], [], []);
         }
@@ -292,7 +290,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
         var activeStatementSpanProvider = activeStatementTrackingController.GetSpanProvider(solution);
         var runningProjectOptions = runningProjects.ToRunningProjectOptions(solution, static info => (info.ProjectInstanceId.ProjectFilePath, info.ProjectInstanceId.TargetFramework, info.RestartAutomatically));
 
-        var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectOptions, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+        var result = await session.EmitSolutionUpdateAsync(solution, runningProjectOptions, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
         switch (result.ModuleUpdates.Status)
         {

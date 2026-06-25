@@ -83,8 +83,14 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
 
     public void EndTracking()
     {
-        var session = Interlocked.Exchange(ref _session, null);
-        Contract.ThrowIfNull(session, "Active statement tracking not started.");
+        // Tolerate EndTracking being called without a matching StartTracking (e.g. when the debugger
+        // delivers an unbalanced break-state transition). This is a benign no-op rather than an error:
+        // throwing here would be reported as a non-fatal Watson and would disable the Hot Reload session.
+        if (Interlocked.Exchange(ref _session, null) is not { } session)
+        {
+            return;
+        }
+
         session.EndTracking();
 
         TrackingChanged?.Invoke();
@@ -178,6 +184,11 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             {
                 // nop
             }
+            catch (ObjectDisposedException)
+            {
+                // The tracking session was torn down (its CancellationTokenSource disposed by EndTracking)
+                // concurrently with this best-effort span update. This is a benign teardown race, not an error.
+            }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 // nop
@@ -244,6 +255,11 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
             catch (OperationCanceledException)
             {
                 // nop
+            }
+            catch (ObjectDisposedException)
+            {
+                // The tracking session was torn down (its CancellationTokenSource disposed by EndTracking)
+                // concurrently with this best-effort span update. This is a benign teardown race, not an error.
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {

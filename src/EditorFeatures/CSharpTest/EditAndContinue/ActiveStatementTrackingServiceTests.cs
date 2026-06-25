@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -122,5 +123,20 @@ public sealed class ActiveStatementTrackingServiceTests
             $"V0 →←@[11..16): NonLeafFrame",
             $"V0 →←@[21..26): LeafFrame"
         ], spans6.Select(s => $"{s.Span}: {s.Flags}"));
+    }
+
+    [Fact]
+    public void EndTracking_WithoutStartTracking_IsNoOp()
+    {
+        // Regression test: an unbalanced EndTracking -- for example when the debugger delivers an
+        // exit-break-state transition without a matching enter-break-state, or after a debugging session
+        // failed to start -- must be a benign no-op. Previously it threw, which was reported as a
+        // non-fatal Watson and disabled the Hot Reload session for the remainder of the debug session.
+        using var workspace = new EditorTestWorkspace();
+        var service = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+
+        // No StartTracking has been called: EndTracking must not throw, and must be idempotent.
+        service.EndTracking();
+        service.EndTracking();
     }
 }
