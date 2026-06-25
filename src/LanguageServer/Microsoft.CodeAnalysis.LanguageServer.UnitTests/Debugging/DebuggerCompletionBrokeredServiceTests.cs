@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.DebuggerCompletion;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -15,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Debugging;
 
 public sealed class DebuggerCompletionBrokeredServiceTests(ITestOutputHelper testOutputHelper)
-    : AbstractLanguageServerHostTests(testOutputHelper)
+    : AbstractLanguageServerMefHost(testOutputHelper)
 {
     private const string MemberAccessExpression = "myLocalVar.";
     private const string LocalVariableExpression = "x";
@@ -317,6 +319,64 @@ public sealed class DebuggerCompletionBrokeredServiceTests(ITestOutputHelper tes
         Assert.DoesNotContain(result.Items, static item => item.Label == "ExtensionMethod");
     }
 
+    [Fact]
+    public async Task GetDebuggerCompletionsAsync_EncodesMatchPriorityInSortText()
+    {
+        var markup = """
+            class C
+            {
+                void M()
+                {
+                    object lookup = null;/*caret*/
+                }
+            }
+            """;
+
+        await using var context = await CreateTestContextAsync(markup);
+
+        var result = await GetDebuggerCompletionsAsync(context, "lo", cursorOffset: 2);
+
+        var lookupSortText = result.Items.Where(static item => item.Label == "lookup").Select(static item => item.SortText).Min(StringComparer.Ordinal);
+        var lockSortText = result.Items.Where(static item => item.Label == "lock").Select(static item => item.SortText).Min(StringComparer.Ordinal);
+        Assert.True(
+            StringComparer.Ordinal.Compare(lookupSortText, lockSortText) < 0,
+            $"lookup: {lookupSortText}, lock: {lockSortText}");
+    }
+
+    [Fact]
+    public void GetDebuggerSortText_EncodesAllRankingComponents()
+    {
+        var defaultItem = CreateCompletionItem(sortText: "sort", symbolKind: SymbolKind.Local, matchPriority: MatchPriority.Default);
+        var priorityItem = CreateCompletionItem(sortText: "sort", symbolKind: SymbolKind.Local, matchPriority: MatchPriority.Default + 1);
+        var nonSymbolItem = CreateCompletionItem(sortText: "sort", symbolKind: null, matchPriority: MatchPriority.Default);
+        var lowerSortTextItem = CreateCompletionItem(sortText: "lower", symbolKind: SymbolKind.Local, matchPriority: MatchPriority.Default);
+        var higherSortTextItem = CreateCompletionItem(sortText: "upper", symbolKind: SymbolKind.Local, matchPriority: MatchPriority.Default);
+
+        Assert.True(CompareSortText(priorityItem, index: 0, defaultItem, rightIndex: 0) < 0);
+        Assert.True(CompareSortText(defaultItem, index: 0, nonSymbolItem, rightIndex: 0) < 0);
+        Assert.True(CompareSortText(defaultItem, index: 0, defaultItem, rightIndex: 1) < 0);
+        Assert.True(CompareSortText(lowerSortTextItem, index: 0, higherSortTextItem, rightIndex: 0) < 0);
+        Assert.EndsWith("lower", DebuggerCompletionBrokeredService.TestAccessor.GetDebuggerSortText(lowerSortTextItem, index: 0), StringComparison.Ordinal);
+    }
+
+    private static int CompareSortText(CompletionItem leftItem, int index, CompletionItem rightItem, int rightIndex)
+        => StringComparer.Ordinal.Compare(
+            DebuggerCompletionBrokeredService.TestAccessor.GetDebuggerSortText(leftItem, index),
+            DebuggerCompletionBrokeredService.TestAccessor.GetDebuggerSortText(rightItem, rightIndex));
+
+    private static CompletionItem CreateCompletionItem(string sortText, SymbolKind? symbolKind, int matchPriority)
+    {
+        var properties = symbolKind is null
+            ? ImmutableDictionary<string, string>.Empty
+            : ImmutableDictionary<string, string>.Empty.Add("SymbolKind", ((int)symbolKind.Value).ToString());
+
+        return CompletionItem.Create(
+            displayText: sortText,
+            sortText: sortText,
+            properties: properties,
+            rules: CompletionItemRules.Default.WithMatchPriority(matchPriority));
+    }
+
     private async Task<TestContext> CreateTestContextAsync(string markup)
     {
         const string caretMarker = "/*caret*/";
@@ -331,16 +391,27 @@ public sealed class DebuggerCompletionBrokeredServiceTests(ITestOutputHelper tes
         var sourceFilePath = Path.Combine(directory.Path, "Test.cs");
         File.WriteAllText(sourceFilePath, source);
 
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
-        await exportProvider.GetExportedValue<BrokeredServices.ServiceBrokerFactory>().CreateAsync();
+        var testLspServer = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var serviceBrokerFactory = testLspServer.GetRequiredLspService<global::Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.ServiceBrokerFactory>();
+        var projectTargetFrameworkManager = testLspServer.GetRequiredLspService<ProjectTargetFrameworkManager>();
+        var clientLanguageServerManager = testLspServer.GetRequiredLspService<IClientLanguageServerManager>();
+        var container = await serviceBrokerFactory.CreateAsync(workspaceFactory.HostWorkspace);
 
-        var workspaceProjectFactoryServiceInstance = exportProvider.GetExportedValues<IExportedBrokeredService>()
-            .OfType<WorkspaceProjectFactoryService>()
-            .Single();
-        var debuggerCompletionServiceInstance = exportProvider.GetExportedValues<IExportedBrokeredService>()
-            .OfType<DebuggerCompletionBrokeredService>()
-            .Single();
+        var workspaceProjectFactoryServiceInstance = new WorkspaceProjectFactoryService(
+            workspaceFactory,
+            projectTargetFrameworkManager,
+            new ProjectInitializationHandler(
+                clientLanguageServerManager,
+                container.GetFullAccessServiceBroker(),
+                LoggerFactory),
+            LoggerFactory);
+        var debuggerCompletionServiceInstance = (DebuggerCompletionBrokeredService)Activator.CreateInstance(
+            typeof(DebuggerCompletionBrokeredService),
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+            binder: null,
+            [workspaceFactory, LoggerFactory],
+            culture: null);
 
         var workspaceProjectFactoryProxy = new BrokeredServiceProxy<IWorkspaceProjectFactoryService>(workspaceProjectFactoryServiceInstance);
         var workspaceProjectFactoryService = await workspaceProjectFactoryProxy.GetServiceAsync();
@@ -361,28 +432,30 @@ public sealed class DebuggerCompletionBrokeredServiceTests(ITestOutputHelper tes
         var debuggerCompletionService = await debuggerCompletionProxy.GetServiceAsync();
 
         return new TestContext(
-            exportProvider,
+            testLspServer.ExportProvider.GetExportedValue<IGlobalOptionService>(),
             workspaceProject,
             workspaceProjectFactoryProxy,
             debuggerCompletionProxy,
             debuggerCompletionService,
+            testLspServer,
             sourceFilePath,
             statementEndPosition.Line,
             statementEndPosition.Character);
     }
 
     private sealed class TestContext(
-        VisualStudio.Composition.ExportProvider exportProvider,
+        IGlobalOptionService globalOptions,
         IWorkspaceProject workspaceProject,
         BrokeredServiceProxy<IWorkspaceProjectFactoryService> workspaceProjectFactoryProxy,
         BrokeredServiceProxy<IDebuggerCompletionService> debuggerCompletionProxy,
         IDebuggerCompletionService service,
+        TestLspServer testLspServer,
         string sourceFilePath,
         int statementEndLine,
         int statementEndCharacter) : IAsyncDisposable
     {
         public IDebuggerCompletionService Service { get; } = service;
-        public IGlobalOptionService GlobalOptions { get; } = exportProvider.GetExportedValue<IGlobalOptionService>();
+        public IGlobalOptionService GlobalOptions { get; } = globalOptions;
         public string SourceFilePath { get; } = sourceFilePath;
         public int StatementEndLine { get; } = statementEndLine;
         public int StatementEndCharacter { get; } = statementEndCharacter;
@@ -392,7 +465,7 @@ public sealed class DebuggerCompletionBrokeredServiceTests(ITestOutputHelper tes
             workspaceProject.Dispose();
             await debuggerCompletionProxy.DisposeAsync();
             await workspaceProjectFactoryProxy.DisposeAsync();
-            exportProvider.Dispose();
+            await testLspServer.DisposeAsync();
         }
     }
 }

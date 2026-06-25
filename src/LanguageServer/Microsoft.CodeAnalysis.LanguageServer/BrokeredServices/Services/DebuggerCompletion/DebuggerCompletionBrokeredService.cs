@@ -4,6 +4,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -119,10 +120,10 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
                 return new DebuggerCompletionResult { Items = [] };
             }
 
-            var items = completions.ItemsList.Select(item => new DebuggerCompletionResultItem
+            var items = completions.ItemsList.Select((item, index) => new DebuggerCompletionResultItem
             {
                 Label = item.DisplayText,
-                SortText = item.SortText,
+                SortText = GetDebuggerSortText(item, index),
                 FilterText = item.FilterText,
                 InsertText = item.DisplayText,
             }).ToArray();
@@ -134,6 +135,30 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
             _logger.LogError(ex, "Debugger completion failed");
             return null;
         }
+    }
+
+    private static string GetDebuggerSortText(Completion.CompletionItem item, int index)
+    {
+        var matchPriorityBucket = int.MaxValue - (long)item.Rules.MatchPriority;
+        return $"{matchPriorityBucket:D10}{GetSymbolKindBucket(item):D1}{index:D4}{item.SortText}";
+
+        static int GetSymbolKindBucket(Completion.CompletionItem item)
+        {
+            return SymbolCompletionItem.GetKind(item) switch
+            {
+                SymbolKind.Local or SymbolKind.Parameter or SymbolKind.RangeVariable => 0,
+                SymbolKind.Field or SymbolKind.Property => 1,
+                SymbolKind.Event or SymbolKind.Method => 2,
+                SymbolKind.NamedType => 3,
+                _ => 4,
+            };
+        }
+    }
+
+    internal readonly struct TestAccessor
+    {
+        internal static string GetDebuggerSortText(Completion.CompletionItem item, int index)
+            => DebuggerCompletionBrokeredService.GetDebuggerSortText(item, index);
     }
 }
 #pragma warning restore RS0030
