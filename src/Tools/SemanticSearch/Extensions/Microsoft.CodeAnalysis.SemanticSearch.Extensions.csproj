@@ -4,6 +4,11 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFrameworks>$(NetRoslynAll)</TargetFrameworks>
+    <!--
+      Must continue to ship a net8.0 asset even though NetRoslynAll no longer includes net8.0.
+      Source build only needs NetCurrent.
+    -->
+    <TargetFrameworks Condition="'$(DotNetBuildSourceOnly)' != 'true'">net8.0;$(TargetFrameworks)</TargetFrameworks>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
