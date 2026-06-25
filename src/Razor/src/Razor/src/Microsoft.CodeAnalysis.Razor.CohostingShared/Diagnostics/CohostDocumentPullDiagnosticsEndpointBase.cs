@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -22,7 +23,8 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     IHtmlRequestInvoker requestInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
     ITelemetryReporter telemetryReporter,
-    ILogger logger)
+    ILogger logger,
+    IEditAndContinueSessionTracker encSessionTracker)
     : AbstractCohostDocumentEndpoint<TRequest, TResponse>(incompatibleProjectService)
     where TRequest : notnull
 {
@@ -31,6 +33,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = logger;
+    private readonly IEditAndContinueSessionTracker _encSessionTracker = encSessionTracker;
 
     protected override bool MutatesSolutionState => false;
 
@@ -113,17 +116,17 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
 
         _logger.LogDebug($"Getting C# diagnostics for {generatedDocuments.ImplDoc.FilePath}");
-        var implDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.ImplDoc, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        var implDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.ImplDoc, _encSessionTracker, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
 
         if (generatedDocuments.DeclDoc is null)
         {
-            return (implDiagnostics, []);
+            return ([.. implDiagnostics], []);
         }
 
         _logger.LogDebug($"Getting C# diagnostics for {generatedDocuments.DeclDoc.FilePath}");
-        var declDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.DeclDoc, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        var declDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.DeclDoc, _encSessionTracker, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
 
-        return (implDiagnostics, declDiagnostics);
+        return ([.. implDiagnostics], [.. declDiagnostics]);
     }
 
     private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correlationId, CancellationToken cancellationToken)

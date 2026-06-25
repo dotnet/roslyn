@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -15,7 +16,9 @@ namespace Microsoft.VisualStudio.Razor;
 
 [Export(typeof(IInterceptedCommand))]
 [method: ImportingConstructor]
-internal sealed class OrganizeUsingsCommand(IRemoteServiceInvoker remoteServiceInvoker) : IInterceptedCommand
+internal sealed class OrganizeUsingsCommand(
+    IRemoteServiceInvoker remoteServiceInvoker,
+    IEditAndContinueSessionTracker encSessionTracker) : IInterceptedCommand
 {
     // Roslyn C# command group (guidCSharpGrpId) — used for "Remove and Sort Usings"
     private static readonly Guid s_cSharpGroupGuid = new("5d7e7f65-a63f-46ee-84f1-990b2cab23f9");
@@ -68,15 +71,15 @@ internal sealed class OrganizeUsingsCommand(IRemoteServiceInvoker remoteServiceI
         }
 
         // C# diagnostics
-        var implDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.ImplDoc, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
+        var implDiagnostics = await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.ImplDoc, encSessionTracker, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false);
         var declDiagnostics = generatedDocuments.DeclDoc is not null
-            ? await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.DeclDoc, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false)
+            ? await CohostDocumentPullDiagnosticsHelpers.GetDocumentDiagnosticsAsync(generatedDocuments.DeclDoc, encSessionTracker, supportsVisualStudioExtensions: true, cancellationToken).ConfigureAwait(false)
             : [];
 
         // Razor diagnostics (to filter and hydrate cache)
         await _remoteServiceInvoker.TryInvokeAsync<IRemoteDiagnosticsService, ImmutableArray<LspDiagnostic>>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetDiagnosticsAsync(solutionInfo, razorDocument.Id, implDiagnostics, declDiagnostics, htmlDiagnostics: [], cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetDiagnosticsAsync(solutionInfo, razorDocument.Id, [.. implDiagnostics], [.. declDiagnostics], htmlDiagnostics: [], cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         // Now do the remove and sort

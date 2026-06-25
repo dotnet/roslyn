@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -565,5 +566,149 @@ public class RazorCompletionListProviderTest
         var razorCompletionContext = RazorCompletionListProvider.CreateCompletionContext(
             codeDocument, absoluteIndex, completionContext, completionOptions);
         return provider.GetCompletionList(razorCompletionContext, clientCapabilities);
+    }
+
+    [Fact]
+    public void FilterCompletionItems_CapsAt1000Items_ByDefault()
+    {
+        // Arrange
+        var items = new VSInternalCompletionItem[1500];
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            items[i] = new VSInternalCompletionItem { Label = $"Item{i:D4}", SortText = $"Item{i:D4}" };
+        }
+
+        var completionList = new RazorVSInternalCompletionList { Items = items };
+        var sourceText = SourceText.From("<");
+
+        // Act
+        RazorCompletionListProvider.TestAccessor.FilterCompletionItems(completionList, sourceText, absoluteIndex: 1);
+
+        // Assert
+        Assert.Equal(1000, completionList.Items.Length);
+        Assert.True(completionList.IsIncomplete);
+    }
+
+    [Fact]
+    public void FilterCompletionItems_IncludesPreselectItems_BeyondCap()
+    {
+        // Arrange
+        var items = new VSInternalCompletionItem[50];
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            items[i] = new VSInternalCompletionItem
+            {
+                Label = $"Item{i:D2}",
+                SortText = $"Item{i:D2}",
+                Preselect = (i >= 20 && i < 25) // Items 20-24 are preselected
+            };
+        }
+
+        var completionList = new RazorVSInternalCompletionList { Items = items };
+        var sourceText = SourceText.From("<");
+
+        // Act - cap at 10 items
+        RazorCompletionListProvider.TestAccessor.FilterCompletionItems(completionList, sourceText, absoluteIndex: 1, maxCompletionListSize: 10);
+
+        // Assert - should have 10 + 5 preselected = 15 items
+        Assert.Equal(15, completionList.Items.Length);
+        Assert.True(completionList.IsIncomplete);
+
+        // First 10 should be Items00-09
+        Assert.Equal("Item00", completionList.Items[0].Label);
+        Assert.Equal("Item09", completionList.Items[9].Label);
+
+        // Last 5 should be the preselected items
+        Assert.True(completionList.Items[10].Preselect);
+        Assert.Equal("Item20", completionList.Items[10].Label);
+        Assert.Equal("Item24", completionList.Items[14].Label);
+    }
+
+    [Fact]
+    public void FilterCompletionItems_PatternMatches_FilterText()
+    {
+        // Arrange - create 15 items, 3 items starting with each char from 'A' to 'E'
+        var items = new VSInternalCompletionItem[15];
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            var letter = (char)('A' + (i % 5));
+            items[i] = new VSInternalCompletionItem
+            {
+                Label = $"{letter}Component{i:D2}",
+                SortText = $"{letter}Component{i:D2}"
+            };
+        }
+
+        var completionList = new RazorVSInternalCompletionList { Items = items };
+        var sourceText = SourceText.From("<B");
+
+        // Act - cap at 5 items, cursor after "B"
+        RazorCompletionListProvider.TestAccessor.FilterCompletionItems(completionList, sourceText, absoluteIndex: 2, maxCompletionListSize: 5);
+
+        // Assert - items starting with 'B' should come first (better pattern match)
+        Assert.Equal(5, completionList.Items.Length);
+        Assert.True(completionList.IsIncomplete);
+
+        // First 3 items should be the 'B' items (better match)
+        Assert.StartsWith("B", completionList.Items[0].Label);
+        Assert.StartsWith("B", completionList.Items[1].Label);
+        Assert.StartsWith("B", completionList.Items[2].Label);
+    }
+
+    [Fact]
+    public void FilterCompletionItems_DoesNotFilter_WhenUnderLimit()
+    {
+        // Arrange
+        var items = new VSInternalCompletionItem[500];
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            items[i] = new VSInternalCompletionItem { Label = $"Item{i:D3}", SortText = $"Item{i:D3}" };
+        }
+
+        var completionList = new RazorVSInternalCompletionList { Items = items };
+        var sourceText = SourceText.From("<He");
+
+        // Act
+        RazorCompletionListProvider.TestAccessor.FilterCompletionItems(completionList, sourceText, absoluteIndex: 1);
+
+        // Assert - should not filter or set incomplete
+        Assert.Equal(500, completionList.Items.Length);
+        Assert.False(completionList.IsIncomplete);
+    }
+
+    [Fact]
+    public void FilterCompletionItems_ExtractsFilterText_FromAbsoluteIndex()
+    {
+        // Arrange
+        var items = new VSInternalCompletionItem[15];
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            // Mix of items: some match "Hel", some don't
+            var prefix = i < 5 || i >= 10 ? "Hello" : "World";
+            items[i] = new VSInternalCompletionItem
+            {
+                Label = $"{prefix}{i:D2}",
+                SortText = $"{prefix}{i:D2}"
+            };
+        }
+
+        var completionList = new RazorVSInternalCompletionList { Items = items };
+        var sourceText = SourceText.From("<Hel");
+
+        // Act - cap at 8 items, cursor after "Hel"
+        RazorCompletionListProvider.TestAccessor.FilterCompletionItems(completionList, sourceText, absoluteIndex: 4, maxCompletionListSize: 8);
+
+        // Assert - should get 8 items that match "Hel" (not "World" items)
+        Assert.Equal(8, completionList.Items.Length);
+        Assert.True(completionList.IsIncomplete);
+
+        // All returned items should match "Hello" - none should be "World" items
+        Assert.All(completionList.Items, item => Assert.StartsWith("Hello", item.Label));
+        Assert.DoesNotContain(completionList.Items, item => item.Label.Contains("World"));
     }
 }

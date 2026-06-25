@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 [Export(typeof(IDiagnosticSourceProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class WorkspaceEditAndContinueDiagnosticSourceProvider() : IDiagnosticSourceProvider
+internal sealed class WorkspaceEditAndContinueDiagnosticSourceProvider(IEditAndContinueSessionTracker sessionTracker) : IDiagnosticSourceProvider
 {
     public bool IsDocument => false;
     public string Name => PullDiagnosticCategories.EditAndContinue;
@@ -26,6 +26,6 @@ internal sealed class WorkspaceEditAndContinueDiagnosticSourceProvider() : IDiag
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
-        return EditAndContinueDiagnosticSource.CreateWorkspaceDiagnosticSourcesAsync(context.Solution, document => context.IsTracking(document.GetURI()), cancellationToken);
+        return EditAndContinueDiagnosticSource.CreateWorkspaceDiagnosticSourcesAsync(context.Solution, sessionTracker, document => context.IsTracking(document.GetURI()), cancellationToken);
     }
 }
