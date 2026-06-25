@@ -2946,27 +2946,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindForEachDeconstruction(diagnostics, originalBinder);
         }
 
+#nullable enable
         private BoundStatement BindBreak(BreakStatementSyntax node, BindingDiagnosticBag diagnostics)
-        {
-            var target = this.BreakLabel;
-            if ((object)target == null)
-            {
-                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-            }
-            return new BoundBreakStatement(node, target);
-        }
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: true);
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: false);
+
+        private BoundStatement BindBreakOrContinue(
+            StatementSyntax node,
+            IdentifierNameSyntax? name,
+            BindingDiagnosticBag diagnostics,
+            bool isBreak)
         {
-            var target = this.ContinueLabel;
-            if ((object)target == null)
+            var labelName = name?.Identifier.ValueText;
+            if (labelName != null)
             {
-                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
+                Debug.Assert(name != null);
+                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
-            return new BoundContinueStatement(node, target);
+
+            var hasErrors = false;
+            LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
+
+            // If we didn't get a target, still try to bind the label name to get a BoundLabel for error recovery.
+            // But pass in a discarded diagnostics bag since we'll just want to report our own specific error below.
+            BoundLabel? label = name == null ? null : BindLabel(name, target != null ? diagnostics : BindingDiagnosticBag.Discarded) as BoundLabel;
+            if (target is null)
+            {
+                Error(diagnostics,
+                    labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
+                    name ?? (SyntaxNode)node,
+                    labelName == null ? [] : [labelName]);
+
+                target = label?.Label;
+                hasErrors = true;
+            }
+
+            if (target is null)
+                return new BoundBadStatement(node, childBoundNodes: [], hasErrors);
+
+            return isBreak
+                ? new BoundBreakStatement(node, target, label, hasErrors)
+                : new BoundContinueStatement(node, target, label, hasErrors);
         }
+#nullable disable
 
         private static SwitchBinder GetSwitchBinder(Binder binder)
         {
