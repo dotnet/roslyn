@@ -5,6 +5,7 @@
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
+using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -139,24 +140,26 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
     [Fact]
     public async Task GetProjectXml_BadDirective_01()
     {
+        using var _ = new EnsureEnglishUICulture();
+
         var projectProvider = await GetProjectXmlProviderAsync();
 
         var tempDir = TempRoot.CreateDirectory();
         var appFile = tempDir.CreateFile("app.cs");
         await appFile.WriteAllTextAsync("""
-            #:package Newtonsoft.Json@13.0.3
-            #:BAD
-            Console.WriteLine("Hello, world!");
-            """);
+        #:package Newtonsoft.Json@13.0.3
+        #:BAD
+        Console.WriteLine("Hello, world!");
+        """);
 
         var globalJsonFile = tempDir.CreateFile("global.json");
         await globalJsonFile.WriteAllTextAsync("""
-            {
-              "sdk": {
-                "version": "10.0.301"
-              }
+        {
+            "sdk": {
+            "version": "10.0.301"
             }
-            """);
+        }
+        """);
 
         var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
         Assert.NotNull(contentNullable);
