@@ -350,6 +350,12 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
         ParseDocumentTest("""<p class="first" @* comment *@ data-value="second" />""");
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7271")]
+    public void ComponentFileKind_AttributeAfterComment()
+    {
+        ParseDocumentTest("""<MyComponent Parameter1="SomeValue" Parameter2="@true" @* comment *@ Parameter3="SomeOtherValue" />""", RazorFileKind.Component);
+    }
+
     [Fact]
     public void EscapedAttributeName_WithValue()
     {
