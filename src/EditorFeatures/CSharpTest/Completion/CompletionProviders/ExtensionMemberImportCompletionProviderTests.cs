@@ -633,6 +633,7 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
             "IEnumerable<string>",
             "int",
             "Bat",
+            "Bat",
         }).Select(tuple => new List<object>() { tuple }));
 
     [Theory, MemberData(nameof(TypeParameterWithRefTypeData))]
