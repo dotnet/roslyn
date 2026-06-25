@@ -279,11 +279,13 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await WaitForProjectLoad(fileUri, testLspServer);
 
         var beforeClose = await testLspServer.ExecuteRequestAsync<object, string[]>(FileBasedProgramEntryPointsHandler.MethodName, new object(), CancellationToken.None);
+        Assert.NotNull(beforeClose);
         AssertEx.SequenceEqual([sourceFile.Path], beforeClose);
 
         await testLspServer.CloseDocumentAsync(fileUri);
 
         var afterClose = await testLspServer.ExecuteRequestAsync<object, string[]>(FileBasedProgramEntryPointsHandler.MethodName, new object(), CancellationToken.None);
+        Assert.NotNull(afterClose);
         Assert.Empty(afterClose);
     }
 
