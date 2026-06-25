@@ -2859,7 +2859,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
         <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="needs-review-translation">Метод "{0}" использует функцию, для которой в настоящее время не поддерживается асинхронное выполнение в среде выполнения. Отключите асинхронное выполнение этого метода в среде выполнения, добавив атрибут "System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)".</target>
+        <target state="new">Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
