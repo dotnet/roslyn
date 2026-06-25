@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.ComponentModel.Composition;
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -12,21 +15,56 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
+using Microsoft.VisualStudio.Utilities.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.DebuggerCompletion;
+
+[ExportCSharpVisualBasicLspServiceFactory(typeof(DebuggerCompletionBrokeredServiceContributor)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DebuggerCompletionBrokeredServiceContributorFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new DebuggerCompletionBrokeredServiceContributor(lspServices, lspServices.GetRequiredService<ILoggerFactory>());
+}
+
+internal sealed class DebuggerCompletionBrokeredServiceContributor(
+    LspServices lspServices,
+    ILoggerFactory loggerFactory) : IServiceBrokerInitializer, ILspService
+{
+    public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
+    {
+        { DebuggerCompletionBrokeredService.ServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
+    }.ToImmutableDictionary();
+
+    public void Proffer(GlobalBrokeredServiceContainer container)
+    {
+        container.Proffer(
+            DebuggerCompletionBrokeredService.ServiceDescriptor,
+            async (moniker, options, innerServiceBroker, cancellationToken) =>
+            {
+                var workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
+                var service = new DebuggerCompletionBrokeredService(workspaceFactory, loggerFactory);
+                await service.InitializeAsync(cancellationToken).ConfigureAwait(false);
+                return service;
+            });
+    }
+
+    public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
+    {
+    }
+}
 
 /// <summary>
 /// A brokered service that provides debugger completion results for a given document and expression context.
 /// <see cref="GetDebuggerCompletionsAsync"/> is the main entry point.
 /// </summary>
-#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
-[ExportBrokeredService(MonikerName, MonikerVersion, Audience = ServiceAudience.Local)]
-internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionService, IExportedBrokeredService
+internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionService
 {
     internal const string MonikerName = "Microsoft.CodeAnalysis.LanguageServer.DebuggerCompletionService";
     internal const string MonikerVersion = "0.1";
     private static readonly ServiceMoniker s_serviceMoniker = new(MonikerName, new Version(MonikerVersion));
-    private static readonly ServiceRpcDescriptor s_serviceDescriptor = new ServiceJsonRpcDescriptor(
+    internal static readonly ServiceRpcDescriptor ServiceDescriptor = new ServiceJsonRpcDescriptor(
         s_serviceMoniker,
         ServiceJsonRpcDescriptor.Formatters.UTF8,
         ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders);
@@ -34,8 +72,6 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ILogger _logger;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public DebuggerCompletionBrokeredService(
         LanguageServerWorkspaceFactory workspaceFactory,
         ILoggerFactory loggerFactory)
@@ -43,8 +79,6 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
         _workspaceFactory = workspaceFactory;
         _logger = loggerFactory.CreateLogger<DebuggerCompletionBrokeredService>();
     }
-
-    public ServiceRpcDescriptor Descriptor => s_serviceDescriptor;
 
     public Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -161,4 +195,3 @@ internal sealed class DebuggerCompletionBrokeredService : IDebuggerCompletionSer
             => DebuggerCompletionBrokeredService.GetDebuggerSortText(item, index);
     }
 }
-#pragma warning restore RS0030
