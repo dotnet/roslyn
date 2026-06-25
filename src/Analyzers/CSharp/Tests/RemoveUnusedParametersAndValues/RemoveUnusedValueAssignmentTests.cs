@@ -2004,6 +2004,25 @@ class C
             }
             """, optionName);
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58564")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public Task NonRedundantAssignment_BeforeUseAsOutAndReadArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x;
+                    [|x|] = 1;
+                    M2(out x, x);
+                }
+
+                void M2(out int x, int y) => x = y;
+            }
+            """, optionName);
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40717")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
