@@ -21,17 +21,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static SyntaxAnnotation ElasticAnnotation { get; } = new SyntaxAnnotation();
 
-        // use a value identity instead of object identity so a deserialized instance matches the original instance.
-        private readonly long _id;
-        private static long s_nextId;
-
-        // use a value identity instead of object identity so a deserialized instance matches the original instance.
         public string? Kind { get; }
         public string? Data { get; }
 
         public SyntaxAnnotation()
         {
-            _id = System.Threading.Interlocked.Increment(ref s_nextId);
         }
 
         public SyntaxAnnotation(string? kind)
@@ -53,7 +47,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SyntaxAnnotation? other)
         {
-            return other is object && _id == other._id;
+            return Equals((object?)other);
         }
 
         public static bool operator ==(SyntaxAnnotation? left, SyntaxAnnotation? right)
@@ -71,12 +65,12 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object? obj)
         {
-            return this.Equals(obj as SyntaxAnnotation);
+            return ReferenceEquals(this, obj);
         }
 
         public override int GetHashCode()
         {
-            return _id.GetHashCode();
+            return base.GetHashCode();
         }
     }
 }
