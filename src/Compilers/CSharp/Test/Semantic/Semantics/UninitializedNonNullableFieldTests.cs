@@ -53,6 +53,27 @@ class C
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("event", "E1").WithLocation(15, 14));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81679")]
+        public void UninitializedNonNullableEvent_DoesNotSuggestRequired()
+        {
+            var source = """
+                using System;
+
+                public class C
+                {
+                    public event Action OnEvent;
+                }
+                """;
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS8618: Non-nullable event 'OnEvent' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
+                //     public event Action OnEvent;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "OnEvent").WithArguments("event", "OnEvent").WithLocation(5, 25),
+                // (5,25): warning CS0067: The event 'C.OnEvent' is never used
+                //     public event Action OnEvent;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "OnEvent").WithArguments("C.OnEvent").WithLocation(5, 25));
+        }
+
         [Fact]
         public void Event_InitialState()
         {
