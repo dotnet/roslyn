@@ -2,5 +2,5 @@
   "shadowCopy": false,
   "parallelizeTestCollections": false,
   "diagnosticMessages": false,
-  "failTestsWithWarnings": true
+  "failWarns": true
 }
