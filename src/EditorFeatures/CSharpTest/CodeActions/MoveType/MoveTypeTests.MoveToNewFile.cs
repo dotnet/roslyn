@@ -61,7 +61,9 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             """, @"class D { }", "C1.cs", """
             class C<T> { }
 
-            """);
+            """,
+            // The moved type must go into a new C1.cs file; the pre-existing C.cs must keep its original contents.
+            expectedUnchangedDocuments: [("C.cs", "class C { }")]);
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/84258")]
     public async Task TestMoveToNewFile_OffersNonConflictingFileNameInTitle()
