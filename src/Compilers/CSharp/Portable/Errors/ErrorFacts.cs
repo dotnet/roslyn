@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullReferenceReturn));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullReferenceArgument));
             nullableWarnings.Add(GetId(ErrorCode.WRN_UninitializedNonNullableField));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_UninitializedNonNullableEvent));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInAssignment));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInArgument));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput));
@@ -451,6 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation:
                 case ErrorCode.WRN_UninitializedNonNullableField:
+                case ErrorCode.WRN_UninitializedNonNullableEvent:
                 case ErrorCode.WRN_NullabilityMismatchInAssignment:
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
                 case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
@@ -1965,6 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation
                 or ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation
                 or ErrorCode.WRN_UninitializedNonNullableField
+                or ErrorCode.WRN_UninitializedNonNullableEvent
                 or ErrorCode.WRN_NullabilityMismatchInAssignment
                 or ErrorCode.WRN_NullabilityMismatchInArgument
                 or ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate
@@ -2603,6 +2606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe
                 or ErrorCode.ERR_NoBreakId
                 or ErrorCode.ERR_NoContinueId
+                or ErrorCode.WRN_UninitializedNonNullableEvent
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

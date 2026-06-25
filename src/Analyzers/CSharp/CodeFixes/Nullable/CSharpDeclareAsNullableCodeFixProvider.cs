@@ -37,7 +37,8 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
     // warning CS8600: Converting null literal or possible null value to non-nullable type.
     // warning CS8625: Cannot convert null literal to non-nullable reference type.
     // warning CS8618: Non-nullable property is uninitialized
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ["CS8603", "CS8600", "CS8625", "CS8618"];
+    // warning CS9395: Non-nullable event is uninitialized
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => ["CS8603", "CS8600", "CS8625", "CS8618", "CS9395"];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -246,7 +247,14 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
 
         // string x;
         // Unassigned value that's not marked as null
-        if (node is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax, Variables.Count: 1 } declarationSyntax })
+        if (node is VariableDeclaratorSyntax
+            {
+                Parent: VariableDeclarationSyntax
+                {
+                    Parent: FieldDeclarationSyntax or EventFieldDeclarationSyntax,
+                    Variables.Count: 1
+                } declarationSyntax
+            })
             return declarationSyntax.Type;
 
         // void M(string x = null) { }

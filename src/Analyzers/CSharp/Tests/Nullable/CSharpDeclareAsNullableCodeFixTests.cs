@@ -1108,6 +1108,27 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
             """,
             parameters: s_nullableFeature);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81679")]
+    public Task FixEventDeclaration_Unassigned()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+
+            class C
+            {
+                private event System.Action [|OnEvent|];
+            }
+            """,
+            """
+            #nullable enable
+
+            class C
+            {
+                private event System.Action? OnEvent;
+            }
+            """,
+            parameters: s_nullableFeature);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44983")]
     public Task MultipleDeclarator_NoDiagnostic()
         => TestMissingInRegularAndScriptAsync(
