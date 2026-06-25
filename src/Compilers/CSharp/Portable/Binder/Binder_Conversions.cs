@@ -3066,7 +3066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1)
                     {
-                        // Parameter {0} has params modifier in lambda but not in target delegate type.
+                        // Parameter number '{0}' has params modifier in lambda but not in target delegate type.
                         Error(diagnostics, ErrorCode.WRN_ParamsArrayInLambdaOnly, lambdaParameter.GetFirstLocation(), p + 1);
                     }
                 }
