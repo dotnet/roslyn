@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : Type.ContainsPointerOrFunctionPointer();
         }
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(Binder? binder)
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (!RequiresUnsafe)
             {

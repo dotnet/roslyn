@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, containingType.GetNullableContextValue(), type));
             }
 
-            if (GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder? binder)
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, location));
             }
 
-            if (GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.UnsafeKeyword, location),

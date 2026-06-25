@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location)
         {
             var useUpdatedMemorySafetyRules = this.Compilation.SourceModule.UseUpdatedMemorySafetyRules;
-            var callerUnsafeMode = symbol.GetCallerUnsafeMode(this);
+            var callerUnsafeMode = symbol.GetCallerUnsafeMode(this.FieldsBeingBound);
             if (!useUpdatedMemorySafetyRules && callerUnsafeMode != CallerUnsafeMode.Implicit)
             {
                 return;
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (ctor.ParameterCount == 0)
                     {
                         // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
-                        @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, ctor.GetCallerUnsafeMode(@this), arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
+                        @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, ctor, ctor.GetCallerUnsafeMode(@this.FieldsBeingBound), arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
                         break;
                     }
                 }
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and `Debug.Assert` on .NET Framework evaluates all interpolated values eagerly,
             // so avoid evaluating that unless we are going to fail anyway.
 
-            var callerUnsafeMode = symbol.GetCallerUnsafeMode(binder: null);
+            var callerUnsafeMode = symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty);
             if (callerUnsafeMode is not CallerUnsafeMode.None)
             {
                 Debug.Fail($"Symbol {symbol} has {nameof(CallerUnsafeMode)}={callerUnsafeMode}.");

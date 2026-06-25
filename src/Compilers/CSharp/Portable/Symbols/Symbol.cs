@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -624,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Whether this member is considered unsafe under the updated memory safety rules.
         /// See <see cref="CallerUnsafeMode"/> for more details.
         /// </summary>
-        internal abstract CallerUnsafeMode GetCallerUnsafeMode(Binder? binder);
+        internal abstract CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound);
 #nullable disable
 
         /// <summary>

@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : !IsFixedSizeBuffer && Type.ContainsPointerOrFunctionPointer();
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder)
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (!RequiresUnsafe)
             {

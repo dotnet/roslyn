@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(Binder? binder)
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {

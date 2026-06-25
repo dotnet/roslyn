@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
 
-            if (GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            if (GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     ModifiersTokenList.GetModifierLocation(SyntaxKind.UnsafeKeyword, ErrorLocation),
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder)
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         : CallerUnsafeMode.None;
             }
 
-            return !IsFixedSizeBuffer && GetFieldType(binder?.FieldsBeingBound ?? ConsList<FieldSymbol>.Empty).Type.ContainsPointerOrFunctionPointer()
+            return !IsFixedSizeBuffer && GetFieldType(fieldsBeingBound).Type.ContainsPointerOrFunctionPointer()
                 ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
         }
 

@@ -1578,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(implementedMember is not null || overridingMember.IsDefinition);
 
             var leastOverriddenMember = implementedMember ?? overridingMember.GetLeastOverriddenMember(overridingMember.ContainingType);
-            if (overridingMember.GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit && leastOverriddenMember.GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.None)
+            if (overridingMember.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit && leastOverriddenMember.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.None)
             {
                 diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
             }

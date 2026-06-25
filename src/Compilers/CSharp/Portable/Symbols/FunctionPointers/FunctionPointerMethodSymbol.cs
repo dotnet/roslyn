@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // The function pointer type itself is not unsafe under the new rules, only its invocation is.
         // That is analogous to normal pointer types (and pointer dereference, respectively) under the new rules.
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder? binder) => CallerUnsafeMode.None;
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {

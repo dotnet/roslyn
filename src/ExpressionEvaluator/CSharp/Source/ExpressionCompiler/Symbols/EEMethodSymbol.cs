@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool UseUpdatedEscapeRules => false;
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(Binder binder) => CallerUnsafeMode.None;
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
         internal ResultProperties ResultProperties
         {

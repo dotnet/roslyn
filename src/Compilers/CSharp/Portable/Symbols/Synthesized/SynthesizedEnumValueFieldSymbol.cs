@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder) => CallerUnsafeMode.None;
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
         public override RefKind RefKind => RefKind.None;
 

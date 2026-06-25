@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.Cci;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -46,7 +47,7 @@ internal sealed class SynthesizedEmbeddedAttributePropertySymbol : PropertySymbo
     internal override CallingConvention CallingConvention => CallingConvention.HasThis;
     internal override bool MustCallMethodsDirectly => false;
     internal override bool HasUnscopedRefAttribute => false;
-    internal override CallerUnsafeMode GetCallerUnsafeMode(Binder? binder) => CallerUnsafeMode.None;
+    internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
     internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
     internal override int TryGetOverloadResolutionPriority() => 0;
 

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -122,18 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool CanBeCallerUnsafe { get; }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder? binder)
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(binder) != CallerUnsafeMode.Implicit);
+                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(fieldsBeingBound) != CallerUnsafeMode.Implicit);
 
                 if (!CanBeCallerUnsafe)
                 {
                     return CallerUnsafeMode.None;
                 }
 
-                return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.GetCallerUnsafeMode(binder) == CallerUnsafeMode.Explicit)
+                return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.GetCallerUnsafeMode(fieldsBeingBound) == CallerUnsafeMode.Explicit)
                     ? CallerUnsafeMode.Explicit
                     : CallerUnsafeMode.None;
             }
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = target.DeclaringCompilation;
 
-            if (target.GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
+            if (target.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }

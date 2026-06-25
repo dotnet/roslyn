@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(Binder binder) => throw ExceptionUtilities.Unreachable();
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => throw ExceptionUtilities.Unreachable();
 
         #endregion Not used by PropertySignatureComparer
     }

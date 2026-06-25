@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SymbolKind Kind => SymbolKind.Discard;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
-        internal override CallerUnsafeMode GetCallerUnsafeMode(Binder? binder) => CallerUnsafeMode.None;
+        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitDiscard(this, a);
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitDiscard(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);

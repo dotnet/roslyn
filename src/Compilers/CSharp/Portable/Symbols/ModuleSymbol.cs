@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder) => CallerUnsafeMode.None;
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
         /// <summary>
         /// Returns an array of assembly identities for assemblies referenced by this module.

@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, GetFirstLocation()));
             }
 
-            if (GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     (Syntax?.Modifiers).GetModifierLocation(SyntaxKind.UnsafeKeyword, GetFirstLocation()),
@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            if (GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit)
+            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }

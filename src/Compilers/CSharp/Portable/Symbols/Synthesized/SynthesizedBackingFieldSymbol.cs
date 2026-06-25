@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind => _property.RefKind;
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder) => CallerUnsafeMode.None;
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
 

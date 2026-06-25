@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override bool HasUnscopedRefAttribute => false;
 
-            internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder) => CallerUnsafeMode.None;
+            internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
 
             internal sealed override ObsoleteAttributeData ObsoleteAttributeData
             {

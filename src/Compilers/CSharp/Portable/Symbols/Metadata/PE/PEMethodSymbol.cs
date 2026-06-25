@@ -1827,16 +1827,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(binder: null) != CallerUnsafeMode.Implicit);
+                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) != CallerUnsafeMode.Implicit);
 
-                return hasRequiresUnsafeAttribute || AssociatedSymbol?.GetCallerUnsafeMode(binder: null) == CallerUnsafeMode.Explicit;
+                return hasRequiresUnsafeAttribute || AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit;
             }
 
             // This might be expensive, so we cache it in _packedFlags.
             return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(Binder binder)
+        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (!RequiresUnsafe)
             {
