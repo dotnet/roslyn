@@ -2709,6 +2709,30 @@ class Program
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66389")]
+        public void ParamsArrayInLambdaOnly_MessageHasUnquotedArgument()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        System.Action<string[]> a = (params string[] s) => { };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (5,54): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                //         System.Action<string[]> a = (params string[] s) => { };
+                Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("1").WithLocation(5, 54));
+
+            var diagnostic = comp.GetDiagnostics().Single();
+            Assert.Equal("Parameter 1 has params modifier in lambda but not in target delegate type.",
+                diagnostic.GetMessage(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
         [Fact]
         public void WRN_ParamsArrayInLambdaOnly_01()
         {
