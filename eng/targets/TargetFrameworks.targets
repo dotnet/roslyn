@@ -6,13 +6,12 @@
     <Error Condition="!$(NetVSShared.Contains($(NetVSCode)))" Text="NetVSShared must contain NetVSCode" />
   </Target>
 
-  <!-- Throw an Error if NetRoslynAll doesn't contain all required TFMs.
-       Note: NetRoslynBuildHostNetCoreVersion is intentionally excluded — the BuildHost is an isolated
-       executable that targets an older TFM independently. -->
+  <!-- Throw an Error if NetRoslynAll doesn't contain all required TFMs -->
   <Target Name="CheckNetRoslynAll" BeforeTargets="Build">
     <Error Condition="!$(NetRoslynAll.Contains($(NetRoslyn)))" Text="NetRoslynAll must contain NetRoslyn" />
     <Error Condition="!$(NetRoslynAll.Contains($(NetVS)))" Text="NetRoslynAll must contain NetVS" />
     <Error Condition="!$(NetRoslynAll.Contains($(NetVSCode)))" Text="NetRoslynAll must contain NetVSCode" />
+    <Error Condition="!$(NetRoslynAll.Contains($(NetRoslynBuildHostNetCoreVersion)))" Text="NetRoslynAll must contain NetRoslynBuildHostNetCoreVersion" />
     <Error Condition="!$(NetRoslynAll.Contains($(NetRoslynNext)))" Text="NetRoslynAll must contain NetRoslynNext" />
   </Target>
 </Project>
