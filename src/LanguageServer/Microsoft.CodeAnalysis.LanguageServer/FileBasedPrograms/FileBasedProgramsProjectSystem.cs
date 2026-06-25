@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -31,6 +32,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly CanonicalMiscellaneousFilesProjectProvider _canonicalProjectProvider;
     private readonly DotnetCliHelper _dotnetCliHelper;
+    private readonly ConcurrentDictionary<string, byte> _fileBasedProgramEntryPoints = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Virtual (in-memory) projects don't exist on disk, so MSBuild worker nodes
@@ -67,9 +69,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public override void Dispose()
     {
+        _fileBasedProgramEntryPoints.Clear();
         GlobalOptionService.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
         base.Dispose();
     }
+
+    public string[] GetFileBasedProgramEntryPoints()
+        => [.. _fileBasedProgramEntryPoints.Keys.Order(StringComparer.OrdinalIgnoreCase)];
 
     private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs args)
     {
@@ -91,6 +97,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             {
                 _logger.LogDebug($"Detected enableFileBasedPrograms changed to '{value}'. Unloading loose file projects.");
                 await UnloadAllProjectsAsync();
+                _fileBasedProgramEntryPoints.Clear();
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
             {
@@ -289,7 +296,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Note: we intentionally do not unload file-based apps in this path.
         // This is because we want to unload from the miscellaneous files workspace only, when a file is found in the host workspace.
         var documentPath = GetDocumentFilePath(uri);
-        return await TryUnloadProjectAsync(documentPath, fromProjectFactory: _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory);
+        var wasRemoved = await TryUnloadProjectAsync(documentPath, fromProjectFactory: _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory);
+        if (wasRemoved)
+            _fileBasedProgramEntryPoints.TryRemove(documentPath, out _);
+
+        return wasRemoved;
     }
 
     public async ValueTask CloseDocumentAsync(DocumentUri uri)
@@ -300,7 +311,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             : null;
 
         var documentPath = GetDocumentFilePath(uri);
-        await TryUnloadProjectAsync(documentPath, unloadFromProjectFactory);
+        var wasRemoved = await TryUnloadProjectAsync(documentPath, unloadFromProjectFactory);
+        if (wasRemoved)
+            _fileBasedProgramEntryPoints.TryRemove(documentPath, out _);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
@@ -309,6 +322,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // Note: we assume that if we made it this far, the document is for the C# language.
         var documentKind = await ClassifyDocumentAsync(documentPath, languageId: "csharp", cancellationToken);
         _logger.LogDebug("Classified '{documentPath}' as '{documentKind}'.", documentPath, documentKind);
+
+        if (documentKind is LooseDocumentKind.FileBasedApp)
+            _fileBasedProgramEntryPoints[documentPath] = default;
+        else
+            _fileBasedProgramEntryPoints.TryRemove(documentPath, out _);
 
         if (documentKind == LooseDocumentKind.MiscellaneousFileWithNoReferences)
         {
