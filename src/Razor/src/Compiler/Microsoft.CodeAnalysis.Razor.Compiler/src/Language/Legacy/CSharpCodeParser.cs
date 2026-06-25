@@ -2946,6 +2946,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
                     // Reset backtracking since we've already outputted some spans.
                     startPosition = CurrentStart.AbsoluteIndex;
+                    continue;
                 }
 
                 if (At(SyntaxKind.Transition))
