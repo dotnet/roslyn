@@ -7489,7 +7489,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>lambda params array</value>
   </data>
   <data name="WRN_ParamsArrayInLambdaOnly" xml:space="preserve">
-    <value>Parameter {0} has params modifier in lambda but not in target delegate type.</value>
+    <value>Parameter number '{0}' has params modifier in lambda but not in target delegate type.</value>
   </data>
   <data name="WRN_ParamsArrayInLambdaOnly_Title" xml:space="preserve">
     <value>Parameter has params modifier in lambda but not in target delegate type.</value>

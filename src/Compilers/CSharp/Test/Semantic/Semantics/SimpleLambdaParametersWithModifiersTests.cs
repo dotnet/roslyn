@@ -920,7 +920,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
                 // (7,16): error CS9272: Implicitly typed lambda parameter 'x' cannot have the 'params' modifier.
                 //         D d = (params x) =>
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedParamsParameter, "params").WithArguments("x").WithLocation(7, 16),
-                // (7,23): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (7,23): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 //         D d = (params x) =>
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(7, 23));
         }
@@ -1025,7 +1025,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
                 // (7,23): error CS1611: The params parameter cannot be declared as ref
                 //         D d = (params ref x) => { };
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(7, 23),
-                // (7,27): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (7,27): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 //         D d = (params ref x) => { };
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(7, 27));
 
@@ -1060,7 +1060,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
                 // (7,20): error CS9272: Implicitly typed lambda parameter 'x' cannot have the 'params' modifier.
                 //         D d = (ref params x) => { };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedParamsParameter, "params").WithArguments("x").WithLocation(7, 20),
-                // (7,27): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (7,27): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 //         D d = (ref params x) => { };
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(7, 27));
 

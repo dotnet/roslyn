@@ -3783,8 +3783,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly">
-        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
-        <target state="translated">Parametr {0} má modifikátor params ve výrazu lambda, ale ne v cílovém typu delegáta.</target>
+        <source>Parameter number '{0}' has params modifier in lambda but not in target delegate type.</source>
+        <target state="needs-review-translation">Parametr {0} má modifikátor params ve výrazu lambda, ale ne v cílovém typu delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">

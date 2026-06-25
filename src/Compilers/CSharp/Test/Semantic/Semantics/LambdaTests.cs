@@ -227,10 +227,10 @@ class C
                 // (66,39): error CS1670: params is not valid in this context
                 //         Action<int[]> q16 = delegate (params int[] p) { };
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(66, 39),
-                // (67,49): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (67,49): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 //         Action<string[]> q17 = (params string[] s)=>{};
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("1").WithLocation(67, 49),
-                // (68,61): warning CS9100: Parameter 2 has params modifier in lambda but not in target delegate type.
+                // (68,61): warning CS9100: Parameter number '2' has params modifier in lambda but not in target delegate type.
                 //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("2").WithLocation(68, 61),
                 // (70,41): error CS1593: Delegate 'Action' does not take 1 arguments
@@ -8973,7 +8973,7 @@ class Program
                 if (delegateModifier == "")
                 {
                     diagnostics.Add(
-                        // (7,24): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                        // (7,24): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                         //         D d = (params  a) => { };
                         Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "a").WithArguments("1"));
                 }

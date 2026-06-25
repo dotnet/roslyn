@@ -3783,8 +3783,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly">
-        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
-        <target state="translated">Le paramètre {0} a un modificateur de paramètres dans l’expression lambda mais pas dans le type délégué cible.</target>
+        <source>Parameter number '{0}' has params modifier in lambda but not in target delegate type.</source>
+        <target state="needs-review-translation">Le paramètre {0} a un modificateur de paramètres dans l’expression lambda mais pas dans le type délégué cible.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">

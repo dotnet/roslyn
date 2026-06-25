@@ -3783,8 +3783,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly">
-        <source>Parameter {0} has params modifier in lambda but not in target delegate type.</source>
-        <target state="translated">參數 {0} 在 Lambda 中具有參數修飾元，但不在目標委派類型中。</target>
+        <source>Parameter number '{0}' has params modifier in lambda but not in target delegate type.</source>
+        <target state="needs-review-translation">參數 {0} 在 Lambda 中具有參數修飾元，但不在目標委派類型中。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">

@@ -19240,7 +19240,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (1,32): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
                 // System.Func<int[], int> lam = (params int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(1, 32),
-                // (1,45): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (1,45): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 // System.Func<int[], int> lam = (params int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(1, 45));
         }
@@ -19589,7 +19589,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 withParams = (int[] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,26): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (5,26): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 // noParams = (params int[] xs) => xs.Length; // 1
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 26));
         }
@@ -19630,7 +19630,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 delegate int DelegateWithParams(params int[] xs);
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,27): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (5,27): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 // dNoParams = (params int[] xs) => xs.Length; // 1
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(5, 27));
         }
@@ -19701,7 +19701,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (8,31): warning CS9099: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
                 // DelegateWithDefault d6 = (int x = 2) => x; // 2
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(8, 31),
-                // (16,37): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (16,37): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 // DelegateNoParams p3 = (params int[] xs) => xs.Length; // 3
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(16, 37));
         }
@@ -19742,7 +19742,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (8,39): warning CS9099: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
                 // var d6 = new DelegateWithDefault((int x = 2) => x); // 2
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(8, 39),
-                // (16,45): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (16,45): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 // var p3 = new DelegateNoParams((params int[] xs) => xs.Length); // 3
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(16, 45));
         }
@@ -19783,7 +19783,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (8,37): warning CS9099: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
                 // var d6 = (DelegateWithDefault)((int x = 2) => x); // 2
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(8, 37),
-                // (16,43): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (16,43): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 // var p3 = (DelegateNoParams)((params int[] xs) => xs.Length); // 3
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(16, 43));
         }
@@ -19820,7 +19820,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (3,18): warning CS9099: Parameter 1 has default value '2' in lambda but '1' in the target delegate type.
                 // WithDefault((int x = 2) => x); // 2
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(3, 18),
-                // (7,24): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (7,24): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 // NoParams((params int[] xs) => xs.Length); // 3
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "xs").WithArguments("1").WithLocation(7, 24));
         }
@@ -19838,7 +19838,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 // (1,20): warning CS9099: Parameter 2 has default value '2' in lambda but '<missing>' in the target delegate type.
                 // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
                 Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "b").WithArguments("2", "2", "<missing>").WithLocation(1, 20),
-                // (1,40): warning CS9100: Parameter 3 has params modifier in lambda but not in target delegate type.
+                // (1,40): warning CS9100: Parameter number '3' has params modifier in lambda but not in target delegate type.
                 // D d1 = (int a, int b = 2, params int[] c) => { }; // 1, 2
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "c").WithArguments("3").WithLocation(1, 40));
         }

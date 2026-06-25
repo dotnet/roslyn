@@ -2710,7 +2710,7 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66389")]
-        public void ParamsArrayInLambdaOnly_MessageHasUnquotedArgument()
+        public void ParamsArrayInLambdaOnly_MessageHasQuotedArgument()
         {
             var source = """
 class C
@@ -2724,12 +2724,12 @@ class C
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (5,54): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (5,54): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 //         System.Action<string[]> a = (params string[] s) => { };
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("1").WithLocation(5, 54));
 
             var diagnostic = comp.GetDiagnostics().Single();
-            Assert.Equal("Parameter 1 has params modifier in lambda but not in target delegate type.",
+            Assert.Equal("Parameter number '1' has params modifier in lambda but not in target delegate type.",
                 diagnostic.GetMessage(System.Globalization.CultureInfo.InvariantCulture));
         }
 
@@ -2760,7 +2760,7 @@ class Program
                     AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Collections.Generic.IEnumerable<System.Int64> x)", l1.ToTestDisplayString());
                     VerifyParamsAndAttribute(l1.Parameters.Last(), isParamCollection: true);
                 }).VerifyDiagnostics(
-                    // (7,72): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                    // (7,72): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                     //         System.Action<IEnumerable<long>> l = (params IEnumerable<long> x) => {};
                     Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(7, 72)
                     );
@@ -2792,7 +2792,7 @@ class Program
                 // (5,36): error CS0656: Missing compiler required member 'System.ParamArrayAttribute..ctor'
                 //         System.Action<long[]> l = (params long[] x) => {};
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "params").WithArguments("System.ParamArrayAttribute", ".ctor").WithLocation(5, 36),
-                // (5,50): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                // (5,50): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                 //         System.Action<long[]> l = (params long[] x) => {};
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(5, 50)
                 );
@@ -2814,7 +2814,7 @@ class Program
                     AssertEx.Equal("void Program.<>c.<Main>b__0_0(params System.Int64[] x)", l1.ToTestDisplayString());
                     VerifyParamsAndAttribute(l1.Parameters.Last(), isParamArray: true);
                 }).VerifyDiagnostics(
-                    // (5,50): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                    // (5,50): warning CS9100: Parameter number '1' has params modifier in lambda but not in target delegate type.
                     //         System.Action<long[]> l = (params long[] x) => {};
                     Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "x").WithArguments("1").WithLocation(5, 50)
                     );
