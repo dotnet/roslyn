@@ -1537,6 +1537,16 @@
         <target state="translated">'{0}' に '{1}' の定義が含まれていません。また、型 '{0}' の最初の引数を受け入れるアクセス可能な拡張メソッド '{1}' が見つかりませんでした (代わりに 'await foreach' を使用して非同期コレクションを反復処理するつもりでしたか?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
         <target state="translated">暗黙的な参照またはボックス化変換を使用して型 '{0}' を 'object' に変換することはできません</target>
@@ -3080,6 +3090,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">'nameof' のインスタンス メンバー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="new">labeled break and continue</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">

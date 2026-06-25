@@ -24,7 +24,8 @@
   </PropertyGroup>
 
   <!--
-    MSBuild - need to use older packages when targeting net8.0 since the newer versions only support net472 and net9.0.
+    MSBuild - the BuildHost still targets net8.0 (via NetRoslynBuildHostNetCoreVersion) and needs older packages
+    since the newer versions only support net472 and net9.0+.
     When targeting the latest .NET the version must also be lower or equal to one specified in
     https://github.com/dotnet/sdk/blob/main/src/Layout/redist/minimumMSBuildVersion#L1
   -->
@@ -312,6 +313,7 @@
       Infra
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.Diagnostics.NETCore.Client" Version="0.2.661903" />
     <PackageVersion Include="MSBuild.StructuredLogger" Version="2.3.113" />
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersPackageVersion)" />

@@ -818,4 +818,115 @@ public sealed class SwitchStatementHighlighterTests : AbstractCSharpKeywordHighl
                 }
             }
             """);
+
+    [Fact]
+    public Task TestLabeledBreak_CursorOnSwitch()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    outer: {|Cursor:[|switch|]|} (x)
+                    {
+                        [|case|] 0:
+                            switch (x)
+                            {
+                                case 1:
+                                    [|break|] outer;
+                            }
+                            [|break|];
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledBreak_CursorOnBreak()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    outer: [|switch|] (x)
+                    {
+                        [|case|] 0:
+                            switch (x)
+                            {
+                                case 1:
+                                    {|Cursor:[|break|]|} outer;
+                            }
+                            [|break|];
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestUnlabeledSwitch_DoesNotHighlightLabeledBreak()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    outer: switch (x)
+                    {
+                        case 0:
+                            {|Cursor:[|switch|]|} (x)
+                            {
+                                [|case|] 1:
+                                    break outer;
+                                    [|break|];
+                            }
+                            break;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledBreak_EscapedLabelName_CursorOnSwitch()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    @outer: {|Cursor:[|switch|]|} (x)
+                    {
+                        [|case|] 0:
+                            switch (x)
+                            {
+                                case 1:
+                                    [|break|] outer;
+                            }
+                            [|break|];
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLabeledBreak_EscapedTargetName_CursorOnSwitch()
+        => TestAsync(
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    outer: {|Cursor:[|switch|]|} (x)
+                    {
+                        [|case|] 0:
+                            switch (x)
+                            {
+                                case 1:
+                                    [|break|] @outer;
+                            }
+                            [|break|];
+                    }
+                }
+            }
+            """);
 }

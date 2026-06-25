@@ -9396,6 +9396,7 @@ done:
             return _syntaxFactory.BreakStatement(
                 attributes,
                 this.EatToken(SyntaxKind.BreakKeyword),
+                this.IsTrueIdentifier() ? this.ParseIdentifierName() : null,
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
@@ -9404,6 +9405,7 @@ done:
             return _syntaxFactory.ContinueStatement(
                 attributes,
                 this.EatToken(SyntaxKind.ContinueKeyword),
+                this.IsTrueIdentifier() ? this.ParseIdentifierName() : null,
                 this.EatToken(SyntaxKind.SemicolonToken));
         }
 
