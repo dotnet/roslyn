@@ -113,6 +113,21 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         Assert.NotEmpty(compiled.CodeDocument.GetCSharpDocument().Diagnostics);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7421")]
+    public void RazorComment_AdjacentCommentsInCodeBlock()
+    {
+        // Arrange
+        var projectItem = CreateProjectItemFromFile();
+
+        // Act
+        var compiled = CompileToCSharp(projectItem);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertLinePragmas(compiled.CodeDocument);
+    }
+
     [Fact]
     public void InheritsViewModel()
     {
