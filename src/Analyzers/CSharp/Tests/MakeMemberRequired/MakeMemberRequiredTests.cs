@@ -447,7 +447,7 @@ public sealed class MakeMemberRequiredTests
             
             class MyClass
             {
-                public event System.EventHandler {|CS8618:MyEvent|};
+                public event System.EventHandler {|CS9395:MyEvent|};
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
