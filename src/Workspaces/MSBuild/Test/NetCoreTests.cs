@@ -665,6 +665,32 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_Diagnostics()
+    {
+        var sourceText = """
+            #:unknown-directive
+            Console.WriteLine("Hello World!");
+            """;
+
+        CreateFiles(new FileSet(("Program.cs", sourceText)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        Assert.Collection(workspace.Diagnostics,
+            d =>
+            {
+                Assert.Equal(WorkspaceDiagnosticKind.Failure, d.Kind);
+                Assert.Contains("Program.cs(1):", d.Message);
+                Assert.Contains("unknown-directive", d.Message);
+            });
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestOpenProject_FileBasedApp_RefDirective()
     {
         CreateFiles(new FileSet(

@@ -78,9 +78,6 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance) :
         IDictionary<string, string> globalProperties)
     {
         // TODO: pass global properties
-        // TODO: DoOperationAndReportProgressAsync
-        // TODO: make async?
-        // TODO: report diagnostics
         var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), CancellationToken.None).Result;
         return new ProjectInstance(remoteProjectInstance);
     }
@@ -97,6 +94,6 @@ file sealed class ProjectItemInstance
 
 file sealed class ProjectRootElement(string content) : IProjectRootElement
 {
-    public string? FullPath { get => field; set => field = value; }
+    public string? FullPath { get; set; }
     public string GetRawXml() => content;
 }
