@@ -118,7 +118,9 @@ namespace Test
         // Assert
         Assert.Empty(generated.RazorDiagnostics);
         Assert.DoesNotContain("NOTE: this does not work", generated.Code);
-        Assert.Equal(3, generated.Code.Split("AddComponentParameter").Length - 1);
+        Assert.Equal(3, generated.Code.Split(
+            new[] { "AddComponentParameter" },
+            global::System.StringSplitOptions.None).Length - 1);
     }
 
     [Fact]
