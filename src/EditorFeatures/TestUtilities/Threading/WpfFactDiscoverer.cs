@@ -1,42 +1,99 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Xunit;
-using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Roslyn.Test.Utilities;
 
 public class WpfFactDiscoverer : FactDiscoverer
 {
-    private readonly IMessageSink _diagnosticMessageSink;
+    // Inject the WPF-aware runner during discovery so tests run on the STA thread.
+    static WpfFactDiscoverer()
+        => WpfTestCaseRunner.InjectIfNeeded();
 
-    public WpfFactDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink)
-        => _diagnosticMessageSink = diagnosticMessageSink;
-
-    protected override IXunitTestCase CreateTestCase(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
-        => new WpfTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
+    protected override IXunitTestCase CreateTestCase(
+        ITestFrameworkDiscoveryOptions discoveryOptions,
+        IXunitTestMethod testMethod,
+        IFactAttribute factAttribute)
+    {
+        var details = TestIntrospectionHelper.GetTestCaseDetails(
+            discoveryOptions, testMethod, factAttribute,
+            testMethodArguments: null, timeout: null, baseDisplayName: null);
+        var traits = TestIntrospectionHelper.GetTraits(testMethod, dataRow: null);
+        return new WpfTestCase(
+            testMethod,
+            details.Item1,       // testCaseDisplayName
+            details.Rest.Item4,  // uniqueID
+            details.Item2,       // @explicit
+            details.Item3,       // skipExceptions
+            details.Item4,       // skipReason
+            details.Item5,       // skipType
+            details.Item6,       // skipUnless
+            details.Item7,       // skipWhen
+            traits);
+    }
 }
 
 public class WpfTheoryDiscoverer : TheoryDiscoverer
 {
-    private readonly IMessageSink _diagnosticMessageSink;
+    static WpfTheoryDiscoverer()
+        => WpfTestCaseRunner.InjectIfNeeded();
 
-    public WpfTheoryDiscoverer(IMessageSink diagnosticMessageSink) : base(diagnosticMessageSink)
-        => _diagnosticMessageSink = diagnosticMessageSink;
-
-    protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
+    protected override ValueTask<IReadOnlyCollection<IXunitTestCase>> CreateTestCasesForDataRow(
+        ITestFrameworkDiscoveryOptions discoveryOptions,
+        IXunitTestMethod testMethod,
+        ITheoryAttribute theoryAttribute,
+        ITheoryDataRow dataRow,
+        object[] testMethodArguments)
     {
-        var testCase = new WpfTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataRow);
-        return [testCase];
+        var details = TestIntrospectionHelper.GetTestCaseDetailsForTheoryDataRow(
+            discoveryOptions, testMethod, theoryAttribute, dataRow, testMethodArguments);
+        var traits = TestIntrospectionHelper.GetTraits(testMethod, dataRow);
+        return new ValueTask<IReadOnlyCollection<IXunitTestCase>>(
+        [
+            new WpfTestCase(
+                testMethod,
+                details.Item1,       // testCaseDisplayName
+                details.Rest.Item4,  // uniqueID
+                details.Item2,       // @explicit
+                details.Item3,       // skipExceptions
+                details.Item4,       // skipReason
+                details.Item5,       // skipType
+                details.Item6,       // skipUnless
+                details.Item7,       // skipWhen
+                traits,
+                testMethodArguments)
+        ]);
     }
 
-    protected override IEnumerable<IXunitTestCase> CreateTestCasesForTheory(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute)
+    protected override ValueTask<IReadOnlyCollection<IXunitTestCase>> CreateTestCasesForTheory(
+        ITestFrameworkDiscoveryOptions discoveryOptions,
+        IXunitTestMethod testMethod,
+        ITheoryAttribute theoryAttribute)
     {
-        var testCase = new WpfTheoryTestCase(_diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
-        return [testCase];
+        var details = TestIntrospectionHelper.GetTestCaseDetails(
+            discoveryOptions, testMethod, theoryAttribute,
+            testMethodArguments: null, timeout: null, baseDisplayName: null);
+        var traits = TestIntrospectionHelper.GetTraits(testMethod, dataRow: null);
+        return new ValueTask<IReadOnlyCollection<IXunitTestCase>>(
+        [
+            new WpfTheoryTestCase(
+                testMethod,
+                details.Item1,       // testCaseDisplayName
+                details.Rest.Item4,  // uniqueID
+                details.Item2,       // @explicit
+                details.Item3,       // skipExceptions
+                details.Item4,       // skipReason
+                details.Item5,       // skipType
+                details.Item6,       // skipUnless
+                details.Item7,       // skipWhen
+                traits)
+        ]);
     }
 }

@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-using Xunit;
 
 namespace Roslyn.Test.Utilities;
 
@@ -25,14 +24,6 @@ public sealed class WpfTestSharedData
 
     private WpfTestSharedData()
     {
-    }
-
-    public void ExecutingTest(ITestMethod testMethod)
-    {
-        lock (_recentTestCases)
-        {
-            _recentTestCases.Add($"{testMethod.TestClass.Class.Name}::{testMethod.Method.Name}");
-        }
     }
 
     public void ExecutingTest(MethodInfo testMethod)

@@ -1,34 +1,40 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Roslyn.Test.Utilities;
 
-public sealed class WpfTheoryTestCase : XunitTheoryTestCase
+/// <summary>
+/// A theory test case that runs on a WPF STA thread with a Dispatcher.
+/// </summary>
+public sealed class WpfTheoryTestCase : XunitTestCase
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
     [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
-    public WpfTheoryTestCase()
-    {
-    }
+    public WpfTheoryTestCase() { }
 
-    public WpfTheoryTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod)
-        : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod)
+    public WpfTheoryTestCase(
+        IXunitTestMethod testMethod,
+        string testCaseDisplayName,
+        string uniqueID,
+        bool @explicit,
+        Type[] skipExceptions = null,
+        string skipReason = null,
+        Type skipType = null,
+        string skipUnless = null,
+        string skipWhen = null,
+        Dictionary<string, HashSet<string>> traits = null)
+        : base(testMethod, testCaseDisplayName, uniqueID, @explicit,
+               skipExceptions, skipReason, skipType, skipUnless, skipWhen,
+               traits, testMethodArguments: null,
+               sourceFilePath: null, sourceLineNumber: null, timeout: 0)
     {
-    }
-
-    public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
-    {
-        var runner = new WpfTheoryTestCaseRunner(WpfTestSharedData.Instance, this, DisplayName, SkipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource);
-        return runner.RunAsync();
     }
 }
