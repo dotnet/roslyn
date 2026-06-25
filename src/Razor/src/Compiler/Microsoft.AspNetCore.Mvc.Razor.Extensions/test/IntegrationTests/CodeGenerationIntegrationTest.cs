@@ -123,6 +123,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         var compiled = CompileToCSharp(projectItem);
 
         // Assert
+        AssertSyntaxTreeMatchesBaseline(compiled.CodeDocument);
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
         AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
@@ -1053,7 +1054,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         _configuration = _configuration with { LanguageVersion = RazorLanguageVersion.Parse(razorLangVersion) };
 
         BaseCompilation = BaseCompilation.WithOptions(BaseCompilation.Options.WithNullableContextOptions(
-            nullableContextEnabled ? NullableContextOptions.Enable: NullableContextOptions.Disable));
+            nullableContextEnabled ? NullableContextOptions.Enable : NullableContextOptions.Disable));
 
         AddCSharpSyntaxTree("""
             namespace TestNamespace;
