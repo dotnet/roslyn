@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 

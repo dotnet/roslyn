@@ -19,7 +19,6 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

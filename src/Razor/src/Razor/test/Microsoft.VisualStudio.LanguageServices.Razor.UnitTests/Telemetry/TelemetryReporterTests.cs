@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics;
 using StreamJsonRpc;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.Telemetry;
 

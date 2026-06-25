@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols;

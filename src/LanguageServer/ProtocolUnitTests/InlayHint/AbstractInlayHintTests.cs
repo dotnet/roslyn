@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint;

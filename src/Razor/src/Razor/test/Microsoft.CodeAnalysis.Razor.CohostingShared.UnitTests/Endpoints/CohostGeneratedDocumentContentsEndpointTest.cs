@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 

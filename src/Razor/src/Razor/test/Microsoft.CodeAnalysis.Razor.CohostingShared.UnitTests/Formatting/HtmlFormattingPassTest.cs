@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Xunit.Abstractions;
 using AssertEx = Roslyn.Test.Utilities.AssertEx;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;

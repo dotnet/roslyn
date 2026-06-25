@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using RoslynConditionalFact = Roslyn.Test.Utilities.ConditionalFactAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;

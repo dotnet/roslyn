@@ -23,7 +23,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
 using Xunit;
-using Xunit.Abstractions;
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 using RoslynConditionalFact = Roslyn.Test.Utilities.ConditionalFactAttribute;
 using Microsoft.CodeAnalysis.LanguageServer;

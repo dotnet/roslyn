@@ -36,7 +36,6 @@ using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 

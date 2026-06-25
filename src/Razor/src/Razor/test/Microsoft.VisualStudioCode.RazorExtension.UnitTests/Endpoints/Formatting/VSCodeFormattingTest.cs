@@ -3,7 +3,6 @@
 
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 

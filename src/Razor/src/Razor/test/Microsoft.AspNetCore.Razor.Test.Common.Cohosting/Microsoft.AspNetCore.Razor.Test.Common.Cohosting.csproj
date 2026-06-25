@@ -45,7 +45,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit.analyzers" />
-    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="xunit.v3.assert" />
     <PackageReference Include="Xunit.Combinatorial" />
     <PackageReference Include="Xunit.StaFact" />
   </ItemGroup>

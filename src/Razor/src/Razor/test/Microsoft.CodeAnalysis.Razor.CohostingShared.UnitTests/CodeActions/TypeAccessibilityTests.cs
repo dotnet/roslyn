@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 

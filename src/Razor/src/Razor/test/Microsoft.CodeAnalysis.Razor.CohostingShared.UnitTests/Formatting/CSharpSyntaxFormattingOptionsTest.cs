@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 

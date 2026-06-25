@@ -47,7 +47,7 @@
          pull in the right version, this can be removed. -->
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
-    <PackageReference Include="xunit.runner.utility" />
+    <PackageReference Include="xunit.v3.runner.utility" />
     <PackageReference Include="xunit.runner.console" Version="$(XUnitRunnerConsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true" />
   </ItemGroup>
 

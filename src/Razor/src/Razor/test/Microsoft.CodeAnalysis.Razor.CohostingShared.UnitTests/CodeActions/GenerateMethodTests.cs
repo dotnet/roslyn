@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 

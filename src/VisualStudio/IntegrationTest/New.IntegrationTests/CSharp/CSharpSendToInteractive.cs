@@ -18,7 +18,7 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
 {
     private const string FileName = "Program.cs";
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

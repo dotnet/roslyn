@@ -4,13 +4,14 @@
 
   <PropertyGroup>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+    <!-- xUnit v3 requires test projects to be executables. -->
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="XunitXml.TestLogger" />
-    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="xunit.v3.core" />
     <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="xunit.core" />
     <PackageReference Include="xunit.analyzers" />
   </ItemGroup>
 

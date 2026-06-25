@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Basic.Reference.Assemblies;
 

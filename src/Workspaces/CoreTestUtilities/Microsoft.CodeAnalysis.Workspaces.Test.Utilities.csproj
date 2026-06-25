@@ -32,8 +32,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" />
-    <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
-    <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="xunit.v3.assert" />
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">

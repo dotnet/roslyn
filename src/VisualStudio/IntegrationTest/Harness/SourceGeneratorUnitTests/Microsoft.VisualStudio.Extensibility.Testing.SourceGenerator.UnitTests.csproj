@@ -10,7 +10,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
   <ItemGroup>

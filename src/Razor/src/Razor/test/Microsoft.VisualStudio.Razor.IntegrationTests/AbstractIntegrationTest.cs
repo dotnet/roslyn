@@ -33,7 +33,7 @@ public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
 
     protected virtual bool AllowDebugFails => false;
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         // Not sure why the module initializer doesn't seem to work for integration tests
         ThrowingTraceListener.Initialize();

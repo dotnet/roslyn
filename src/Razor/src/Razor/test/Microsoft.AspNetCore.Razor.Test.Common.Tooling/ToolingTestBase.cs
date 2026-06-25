@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 using Microsoft.VisualStudio.Threading;
 using Xunit;
-using Xunit.Abstractions;
 using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
@@ -100,9 +99,9 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
         Thread.CurrentThread.Name ??= "Main Thread";
     }
 
-    Task IAsyncLifetime.InitializeAsync() => InitializeAsync();
+    ValueTask IAsyncLifetime.InitializeAsync() => new(InitializeAsync());
 
-    async Task IAsyncLifetime.DisposeAsync()
+    async ValueTask IAsyncLifetime.DisposeAsync()
     {
         // First, call the protected DisposeAsync() to let test classes to run custom logic.
         await DisposeAsync();

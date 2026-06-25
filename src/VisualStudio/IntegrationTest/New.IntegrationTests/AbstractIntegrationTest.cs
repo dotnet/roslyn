@@ -135,7 +135,7 @@ public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
         WorkspaceInProcess.EnableAsynchronousOperationTracking();
     }
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 
@@ -164,7 +164,7 @@ public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
         await TestServices.StateReset.ResetHostSettingsAsync(HangMitigatingCancellationToken);
     }
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         using var cleanupCancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var cleanupCancellationToken = cleanupCancellationTokenSource.Token;

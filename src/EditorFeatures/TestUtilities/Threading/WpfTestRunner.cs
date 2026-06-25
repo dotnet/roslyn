@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
-using Xunit.Abstractions;
+using Xunit;
 using Xunit.Sdk;
 
 namespace Roslyn.Test.Utilities;

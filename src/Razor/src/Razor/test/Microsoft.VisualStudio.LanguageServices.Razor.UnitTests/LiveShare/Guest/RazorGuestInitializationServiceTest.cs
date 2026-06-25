@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LiveShare;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LiveShare.Guest;
 

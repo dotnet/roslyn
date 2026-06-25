@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Composition;
 using System.IO.Pipelines;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
-using Xunit.Abstractions;
+using Xunit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 

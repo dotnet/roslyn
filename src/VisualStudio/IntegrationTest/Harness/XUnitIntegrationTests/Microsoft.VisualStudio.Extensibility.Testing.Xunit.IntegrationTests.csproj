@@ -19,7 +19,7 @@
       Override the reference to a secure version, but exclude it from the build and packaging.
     -->
     <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="$(NuGetPackageRoot)xunit.runner.visualstudio\2.3.1\build\net20\..\_common\xunit.abstractions.dll" />
   </ItemGroup>
 
   <ItemGroup>

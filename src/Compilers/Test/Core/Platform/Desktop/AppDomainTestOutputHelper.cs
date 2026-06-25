@@ -6,7 +6,7 @@
 using System;
 using System.IO;
 using System.Reflection;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Roslyn.Test.Utilities.Desktop;
 
@@ -22,6 +22,15 @@ public sealed class AppDomainTestOutputHelper : MarshalByRefObject, ITestOutputH
     {
         TestOutputHelper = testOutputHelper;
     }
+
+    public string Output =>
+        TestOutputHelper.Output;
+
+    public void Write(string message) =>
+        TestOutputHelper.Write(message);
+
+    public void Write(string format, params object[] args) =>
+        TestOutputHelper.Write(format, args);
 
     public void WriteLine(string message) =>
         TestOutputHelper.WriteLine(message);

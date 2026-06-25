@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Xunit;
-using Xunit.Abstractions;
 using TestFileMarkupParser = Microsoft.CodeAnalysis.Testing.TestFileMarkupParser;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.Workspaces;

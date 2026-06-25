@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit.Abstractions;
+using Xunit;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;

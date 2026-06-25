@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterceptio
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.WebTools.Languages.Shared.VS.Test.LanguageServer.MiddleLayerProviders;
 

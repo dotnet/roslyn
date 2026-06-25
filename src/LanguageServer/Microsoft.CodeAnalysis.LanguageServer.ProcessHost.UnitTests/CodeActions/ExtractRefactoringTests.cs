@@ -5,7 +5,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
+using Xunit;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.CodeActions;

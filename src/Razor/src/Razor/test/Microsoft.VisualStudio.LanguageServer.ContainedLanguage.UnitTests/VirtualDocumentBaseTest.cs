@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.Editor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Text;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 

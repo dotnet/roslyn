@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Text.Adornments;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 

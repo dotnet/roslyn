@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;

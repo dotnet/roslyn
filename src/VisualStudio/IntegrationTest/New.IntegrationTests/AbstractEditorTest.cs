@@ -35,7 +35,7 @@ public abstract class AbstractEditorTest : AbstractIntegrationTest
 
     protected abstract string LanguageName { get; }
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync().ConfigureAwait(true);
 

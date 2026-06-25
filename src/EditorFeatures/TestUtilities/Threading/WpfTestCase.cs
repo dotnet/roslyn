@@ -8,7 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit.Abstractions;
+using Xunit;
 using Xunit.Sdk;
 
 namespace Roslyn.Test.Utilities;

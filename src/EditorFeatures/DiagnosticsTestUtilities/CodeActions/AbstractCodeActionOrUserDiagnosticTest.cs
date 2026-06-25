@@ -5,7 +5,7 @@
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -85,22 +84,9 @@ internal sealed partial class TestExportJoinableTaskContext
 
     internal static SynchronizationContext? GetEffectiveSynchronizationContext()
     {
-        if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
-        {
-            SynchronizationContext? innerSynchronizationContext = null;
-            asyncTestSyncContext.Send(
-                _ =>
-                {
-                    innerSynchronizationContext = SynchronizationContext.Current;
-                },
-                null);
-
-            return innerSynchronizationContext == asyncTestSyncContext ? null : innerSynchronizationContext;
-        }
-        else
-        {
-            return SynchronizationContext.Current;
-        }
+        // In xUnit v3, AsyncTestSyncContext no longer exists; the synchronization context
+        // is not wrapped during test execution, so we can return it directly.
+        return SynchronizationContext.Current;
     }
 
     /// <summary>

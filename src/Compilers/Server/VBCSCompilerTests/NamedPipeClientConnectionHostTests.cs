@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {

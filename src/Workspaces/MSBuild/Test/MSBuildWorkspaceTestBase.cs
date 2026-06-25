@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;

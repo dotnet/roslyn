@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Metadata;

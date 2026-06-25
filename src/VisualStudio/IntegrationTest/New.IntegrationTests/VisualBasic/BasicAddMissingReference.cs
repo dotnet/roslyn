@@ -120,7 +120,7 @@ public class BasicAddMissingReference : AbstractEditorTest
 
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync().ConfigureAwait(true);
 

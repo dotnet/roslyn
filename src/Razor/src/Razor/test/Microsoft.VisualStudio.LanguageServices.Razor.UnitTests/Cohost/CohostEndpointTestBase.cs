@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudio.Razor.Settings;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -31,7 +31,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
     private protected override TestComposition LocalComposition => TestComposition.Roslyn;
 
-    protected override async Task InitializeAsync()
+    protected override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

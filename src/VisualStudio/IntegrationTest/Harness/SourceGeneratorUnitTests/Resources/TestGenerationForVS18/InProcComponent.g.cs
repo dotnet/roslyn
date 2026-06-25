@@ -30,14 +30,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         protected JoinableTaskFactory JoinableTaskFactory => TestServices.JoinableTaskFactory;
 
-        Task IAsyncLifetime.InitializeAsync()
+        ValueTask IAsyncLifetime.InitializeAsync()
         {
-            return InitializeCoreAsync();
+            return new(InitializeCoreAsync());
         }
 
-        Task IAsyncLifetime.DisposeAsync()
+        ValueTask IAsyncLifetime.DisposeAsync()
         {
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         protected virtual Task InitializeCoreAsync()

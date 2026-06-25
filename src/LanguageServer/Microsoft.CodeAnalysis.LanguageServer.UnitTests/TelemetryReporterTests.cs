@@ -5,7 +5,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

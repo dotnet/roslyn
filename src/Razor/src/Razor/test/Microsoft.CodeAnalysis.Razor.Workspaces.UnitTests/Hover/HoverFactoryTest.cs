@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Roslyn.Text.Adornments;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Hover;
 

@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 

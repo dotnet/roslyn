@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Xunit.Abstractions;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;

@@ -65,7 +65,8 @@
     <PackageReference Include="SQLite3MC.PCLRaw.lib" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="UIAComWrapper" />
-    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="xunit.v3.assert" />
   </ItemGroup>
 
   <!--

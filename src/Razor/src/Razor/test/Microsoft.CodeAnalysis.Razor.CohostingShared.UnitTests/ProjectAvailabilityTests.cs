@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using SR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip;

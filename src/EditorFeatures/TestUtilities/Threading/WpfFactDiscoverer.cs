@@ -5,7 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Xunit.Abstractions;
+using Xunit;
 using Xunit.Sdk;
 
 namespace Roslyn.Test.Utilities;

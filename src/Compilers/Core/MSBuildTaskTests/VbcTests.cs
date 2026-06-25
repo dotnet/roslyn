@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {

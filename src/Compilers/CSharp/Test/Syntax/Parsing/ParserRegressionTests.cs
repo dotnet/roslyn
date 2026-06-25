@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {

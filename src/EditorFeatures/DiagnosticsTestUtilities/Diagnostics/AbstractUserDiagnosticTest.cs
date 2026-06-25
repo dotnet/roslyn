@@ -26,7 +26,6 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using FixAllContext = Microsoft.CodeAnalysis.CodeFixes.FixAllContext;
 using FixAllProvider = Microsoft.CodeAnalysis.CodeFixes.FixAllProvider;
 using FixAllState = Microsoft.CodeAnalysis.CodeFixes.FixAllState;

@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Classification;
 using Roslyn.Text.Adornments;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 

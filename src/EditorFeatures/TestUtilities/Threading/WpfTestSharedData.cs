@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Roslyn.Test.Utilities;
 

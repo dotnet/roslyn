@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

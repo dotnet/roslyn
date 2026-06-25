@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Composition;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -60,7 +59,7 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
     /// </summary>
     private protected ExportProvider OOPExportProvider => _exportProvider.AssumeNotNull();
 
-    protected override async Task InitializeAsync()
+    protected override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

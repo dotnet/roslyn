@@ -6,7 +6,6 @@ using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 

@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.Text;
 using Basic.Reference.Assemblies;

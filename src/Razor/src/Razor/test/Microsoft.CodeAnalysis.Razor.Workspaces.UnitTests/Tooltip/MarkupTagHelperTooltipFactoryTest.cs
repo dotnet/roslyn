@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 

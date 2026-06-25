@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 

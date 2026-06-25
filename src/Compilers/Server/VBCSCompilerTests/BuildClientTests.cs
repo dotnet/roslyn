@@ -21,7 +21,6 @@ using System.Threading;
 using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {

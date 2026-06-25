@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 #pragma warning disable format // We want to force explicit column spacing within the collection literals in this file, so we disable formatting.

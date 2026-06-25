@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 

@@ -15,12 +15,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="$(NuGetPackageRoot)xunit.runner.visualstudio\2.3.1\build\net20\..\_common\xunit.abstractions.dll" />
   </ItemGroup>
 
   <ItemGroup>

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.TypeHierarchy;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Xunit.Abstractions;
 using TypeHierarchyRange = Roslyn.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;

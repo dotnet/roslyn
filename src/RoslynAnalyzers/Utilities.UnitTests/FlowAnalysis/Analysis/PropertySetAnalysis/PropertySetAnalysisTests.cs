@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis

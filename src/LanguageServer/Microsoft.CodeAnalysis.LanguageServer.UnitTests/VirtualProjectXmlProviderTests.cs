@@ -5,7 +5,7 @@
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

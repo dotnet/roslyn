@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using RoslynSnippets = Microsoft.CodeAnalysis.Snippets;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;

@@ -1524,14 +1524,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         protected JoinableTaskFactory JoinableTaskFactory => TestServices.JoinableTaskFactory;
 
-        Task IAsyncLifetime.InitializeAsync()
+        ValueTask IAsyncLifetime.InitializeAsync()
         {{
-            return InitializeCoreAsync();
+            return new(InitializeCoreAsync());
         }}
 
-        Task IAsyncLifetime.DisposeAsync()
+        ValueTask IAsyncLifetime.DisposeAsync()
         {{
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }}
 
         protected virtual Task InitializeCoreAsync()
@@ -1926,7 +1926,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             => _cleanupCancellationTokenSource.Token;
 
         /// <inheritdoc/>
-        public virtual async Task InitializeAsync()
+        public virtual async ValueTask InitializeAsync()
         {{
             TestServices = await CreateTestServicesAsync();
         }}
@@ -1936,7 +1936,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         /// created by <see cref=""IAsyncLifetime.InitializeAsync""/>. This method is only called if
         /// <see cref=""InitializeAsync""/> completes successfully.
         /// </summary>
-        public virtual async Task DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
         {{
             _cleanupCancellationTokenSource.CancelAfter(CleanupHangMitigatingTimeout);
 

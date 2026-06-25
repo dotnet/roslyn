@@ -16,7 +16,6 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 

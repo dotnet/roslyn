@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
