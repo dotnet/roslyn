@@ -54,6 +54,16 @@ internal class VSProjectContext : IEquatable<VSProjectContext>
         set;
     }
 
+    /// <summary>
+    /// Gets or sets whether this project context represents a file-based app entry point.
+    /// </summary>
+    [JsonPropertyName("_vs_is_file_based_app")]
+    public bool IsFileBasedApp
+    {
+        get;
+        set;
+    }
+
     public static bool operator ==(VSProjectContext? value1, VSProjectContext? value2)
     {
         if (ReferenceEquals(value1, value2))
