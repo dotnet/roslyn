@@ -5697,19 +5697,138 @@ static class Extensions
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (14,21): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
-                //         return u is [10];
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[10]").WithArguments("object").WithLocation(14, 21),
                 // (14,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 //         return u is [10];
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(14, 21),
-                // (19,21): error CS8985: List patterns may not be used for a value of type 'object'. No suitable 'Length' or 'Count' property was found.
-                //         return u is [10];
-                Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[10]").WithArguments("object").WithLocation(19, 21),
                 // (19,21): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 //         return u is [10];
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "[10]").WithArguments("object").WithLocation(19, 21)
                 );
+        }
+
+        [Fact]
+        public void UnionMatching_25_List_Success()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int[] x) { _value = x; }
+    public S1(string[] x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new int[] { };
+        System.Console.Write(Test1(s1));
+        System.Console.Write(Test2(s1));
+        System.Console.Write(' ');
+
+        s1 = new string[] { };
+        System.Console.Write(Test1(s1));
+        System.Console.Write(Test2(s1));
+        System.Console.Write(' ');
+
+        s1 = default;
+        System.Console.Write(Test1(s1));
+        System.Console.Write(Test2(s1));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is [10];
+    }
+
+    static bool Test2(S1? u)
+    {
+        return u is [10];
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public int Length => 1;
+        public int this[System.Index i] => 10;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueTrue TrueTrue FalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (object V_0,
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  call       "object S1.Value.get"
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  brfalse.s  IL_0028
+  IL_000c:  ldloc.0
+  IL_000d:  call       "int Extensions.get_Length(object)"
+  IL_0012:  ldc.i4.1
+  IL_0013:  bne.un.s   IL_0028
+  IL_0015:  ldloc.0
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  newobj     "System.Index..ctor(int, bool)"
+  IL_001d:  call       "int Extensions.get_Item(object, System.Index)"
+  IL_0022:  ldc.i4.s   10
+  IL_0024:  ceq
+  IL_0026:  br.s       IL_0029
+  IL_0028:  ldc.i4.0
+  IL_0029:  stloc.1
+  IL_002a:  br.s       IL_002c
+  IL_002c:  ldloc.1
+  IL_002d:  ret
+}
+""");
+            verifier.VerifyIL("Program.Test2", """
+{
+  // Code size       63 (0x3f)
+  .maxstack  3
+  .locals init (S1 V_0,
+                object V_1,
+                bool V_2)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  call       "readonly bool S1?.HasValue.get"
+  IL_0008:  brfalse.s  IL_0039
+  IL_000a:  ldarga.s   V_0
+  IL_000c:  call       "readonly S1 S1?.GetValueOrDefault()"
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       "object S1.Value.get"
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_0039
+  IL_001d:  ldloc.1
+  IL_001e:  call       "int Extensions.get_Length(object)"
+  IL_0023:  ldc.i4.1
+  IL_0024:  bne.un.s   IL_0039
+  IL_0026:  ldloc.1
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldc.i4.0
+  IL_0029:  newobj     "System.Index..ctor(int, bool)"
+  IL_002e:  call       "int Extensions.get_Item(object, System.Index)"
+  IL_0033:  ldc.i4.s   10
+  IL_0035:  ceq
+  IL_0037:  br.s       IL_003a
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.2
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.2
+  IL_003e:  ret
+}
+""");
         }
 
         [Fact]
@@ -7884,7 +8003,7 @@ static class Ext
         }
 
         [Fact]
-        public void PatternWrongType_TypePattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_Out_UnionType_In()
+        public void PatternWrongType_TypePattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_In_But_Not_Out()
         {
             var src1 = @"
 [System.Runtime.CompilerServices.Union]
@@ -7914,6 +8033,9 @@ class Program
         _ = u is C1 and C3;
         _ = u is C1 and C4;
         _ = u switch { C4 => 1, _ => 0 };
+
+        C2 x = new C5();
+        _ = x is C1 and C4;
     } 
 
     static void Test2(S1? u)
@@ -7934,9 +8056,6 @@ class Program
                 // (101,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(101, 25),
-                // (102,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(102, 25),
                 // (103,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u switch { C4 => 1, _ => 0 };
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(103, 24),
@@ -7946,9 +8065,6 @@ class Program
                 // (201,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(201, 25),
-                // (202,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(202, 25),
                 // (203,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u switch { C4 => 1, _ => 0 };
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(203, 24)
@@ -7956,7 +8072,7 @@ class Program
         }
 
         [Fact]
-        public void PatternWrongType_TypePattern_02_BindTypePattern_UnionType_Out_UnionType_In()
+        public void PatternWrongType_TypePattern_02_BindTypePattern_UnionType_In_But_Not_Out()
         {
             var src1 = @"
 [System.Runtime.CompilerServices.Union]
@@ -7986,6 +8102,10 @@ class Program
         _ = u is string and int;
         _ = u is object and byte;
         _ = u switch { byte => 1, _ => 0 };
+
+        int x = 0;
+#line 450
+        _ = x is object and byte;
     } 
 
     static void Test5(S1? u)
@@ -7995,6 +8115,10 @@ class Program
         _ = u is string and int;
         _ = u is object and byte;
         _ = u switch { byte => 1, _ => 0 };
+
+        int? x = 0;
+#line 550
+        _ = x is object and byte;
     } 
 }
 ";
@@ -8003,18 +8127,15 @@ class Program
                 // (401,29): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //         _ = u is string and int;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(401, 29),
-                // (402,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
-                //         _ = u is object and byte;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(402, 29),
                 // (403,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
                 //         _ = u switch { byte => 1, _ => 0 };
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(403, 24),
+                // (450,18): hidden CS9335: The pattern is redundant.
+                //         _ = x is object and byte;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "object").WithLocation(450, 18),
                 // (501,29): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //         _ = u is string and int;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(501, 29),
-                // (502,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
-                //         _ = u is object and byte;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(502, 29),
                 // (503,24): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'byte'.
                 //         _ = u switch { byte => 1, _ => 0 };
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "byte").WithArguments("S1", "byte").WithLocation(503, 24)
@@ -8156,44 +8277,32 @@ class Program
     static void Test2(S1 u)
     {
 #line 200
-        _ = u is C1 and C2 {};
-        _ = u is C1 and C3 {};
-        _ = u is C1 and C4 {};
+        _ = u is {} and C2 {};
+        _ = u is {} and C3 {};
+        _ = u is {} and C4 {};
         _ = u is C4 {};
     } 
 
     static void Test3(S1? u)
     {
 #line 300
-        _ = u is C1 and C2 {};
-        _ = u is C1 and C3 {};
-        _ = u is C1 and C4 {};
+        _ = u is {} and C2 {};
+        _ = u is {} and C3 {};
+        _ = u is {} and C4 {};
         _ = u is C4 {};
     } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (200,25): hidden CS9335: The pattern is redundant.
-                //         _ = u is C1 and C2 {};
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2 {}").WithLocation(200, 25),
-                // (201,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
-                //         _ = u is C1 and C3 {};
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(201, 25),
                 // (202,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and C4 {};
+                //         _ = u is {} and C4 {};
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(202, 25),
                 // (203,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is C4 {};
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(203, 18),
-                // (300,25): hidden CS9335: The pattern is redundant.
-                //         _ = u is C1 and C2 {};
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "C2 {}").WithLocation(300, 25),
-                // (301,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
-                //         _ = u is C1 and C3 {};
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(301, 25),
                 // (302,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and C4 {};
+                //         _ = u is {} and C4 {};
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(302, 25),
                 // (303,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is C4 {};
@@ -8230,7 +8339,12 @@ class Program
 #line 1000
         _ = u is C1 {} and C2;
         _ = u is C1 {} and C3;
+        _ = u is {} and C4;
+
         _ = u is C1 {} and C4;
+
+        C2 x = new C5();
+        _ = x is C1 {} and C4;
     } 
 
     static void Test20(S1? u)
@@ -8238,6 +8352,8 @@ class Program
 #line 2000
         _ = u is C1 {} and C2;
         _ = u is C1 {} and C3;
+        _ = u is {} and C4;
+
         _ = u is C1 {} and C4;
     } 
 }
@@ -8250,19 +8366,55 @@ class Program
                 // (1001,28): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 {} and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(1001, 28),
-                // (1002,28): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 {} and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1002, 28),
+                // (1002,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is {} and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(1002, 25),
                 // (2000,28): hidden CS9335: The pattern is redundant.
                 //         _ = u is C1 {} and C2;
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(2000, 28),
                 // (2001,28): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 {} and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(2001, 28),
-                // (2002,28): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 {} and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(2002, 28)
+                // (2002,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
+                //         _ = u is {} and C4;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(2002, 25)
                 );
+        }
+
+        [Fact]
+        public void PatternWrongType_RecursivePattern_03_BindRecursivePattern_ITuple_UnionType_Not_Out()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Test1(S1 u)
+    {
+        _ = u is (_, 10) and D;
+
+        C x = new C();
+        _ = x is (_, 10) and D;
+    }   
+}
+
+public class C : System.Runtime.CompilerServices.ITuple
+{
+    int System.Runtime.CompilerServices.ITuple.Length => 2;
+    object System.Runtime.CompilerServices.ITuple.this[int i] => i * 10;
+}
+
+class D;
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -8292,38 +8444,32 @@ class Program
     static void Test3(S1 u)
     {
 #line 300
-        _ = u is C1 and C2 a;
-        _ = u is C1 and C3 b;
-        _ = u is C1 and C4 c;
+        _ = u is {} and C2 a;
+        _ = u is {} and C3 b;
+        _ = u is {} and C4 c;
         _ = u is C4 d;
     } 
 
     static void Test4(S1? u)
     {
 #line 400
-        _ = u is C1 and C2 a;
-        _ = u is C1 and C3 b;
-        _ = u is C1 and C4 c;
+        _ = u is {} and C2 a;
+        _ = u is {} and C3 b;
+        _ = u is {} and C4 c;
         _ = u is C4 d;
     } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (301,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
-                //         _ = u is C1 and C3 b;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(301, 25),
                 // (302,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and C4 c;
+                //         _ = u is {} and C4 c;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(302, 25),
                 // (303,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is C4 d;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(303, 18),
-                // (401,25): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
-                //         _ = u is C1 and C3 b;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(401, 25),
                 // (402,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and C4 c;
+                //         _ = u is {} and C4 c;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(402, 25),
                 // (403,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is C4 d;
@@ -8332,7 +8478,7 @@ class Program
         }
 
         [Fact]
-        public void PatternWrongType_DeclarationPattern_02_BindDeclarationPattern_UnionType_Out()
+        public void PatternWrongType_DeclarationPattern_02_BindDeclarationPattern_UnionType_Not_Out()
         {
             var src1 = @"
 [System.Runtime.CompilerServices.Union]
@@ -8361,6 +8507,9 @@ class Program
         _ = u is C1 a and C2;
         _ = u is C1 b and C3;
         _ = u is C1 c and C4;
+
+        C2 x = new C5();
+        _ = x is C1 d and C4;
     } 
 
     static void Test10(S1? u)
@@ -8380,18 +8529,12 @@ class Program
                 // (901,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 b and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(901, 27),
-                // (902,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 c and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(902, 27),
                 // (950,27): hidden CS9335: The pattern is redundant.
                 //         _ = u is C1 a and C2;
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "C2").WithLocation(950, 27),
                 // (951,27): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 b and C3;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(951, 27),
-                // (952,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 c and C4;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(952, 27)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(951, 27)
                 );
         }
 
@@ -8472,38 +8615,32 @@ class Program
     static void Test7(S1 u)
     {
 #line 700
-        _ = u is C1 and not C5;
-        _ = u is C1 and not C3;
-        _ = u is C1 and not C4;
+        _ = u is {} and not C5;
+        _ = u is {} and not C3;
+        _ = u is {} and not C4;
         _ = u is not C4;
     } 
 
     static void Test8(S1? u)
     {
 #line 800
-        _ = u is C1 and not C5;
-        _ = u is C1 and not C3;
-        _ = u is C1 and not C4;
+        _ = u is {} and not C5;
+        _ = u is {} and not C3;
+        _ = u is {} and not C4;
         _ = u is not C4;
     } 
 }
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (701,29): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
-                //         _ = u is C1 and not C3;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(701, 29),
                 // (702,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and not C4;
+                //         _ = u is {} and not C4;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(702, 29),
                 // (703,22): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is not C4;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(703, 22),
-                // (801,29): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
-                //         _ = u is C1 and not C3;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(801, 29),
                 // (802,29): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and not C4;
+                //         _ = u is {} and not C4;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(802, 29),
                 // (803,22): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is not C4;
@@ -8592,6 +8729,9 @@ class Program
         _ = u is C1 and (not C3);
         _ = u is C1 and (not C4);
         _ = u is (not C4);
+
+        C2 x = new C5();
+        _ = x is C1 and (not C4);
     } 
 
     static void Test9(S1? u)
@@ -8609,18 +8749,12 @@ class Program
                 // (801,30): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and (not C3);
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(801, 30),
-                // (802,30): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and (not C4);
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(802, 30),
                 // (803,23): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is (not C4);
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(803, 23),
                 // (901,30): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is C1 and (not C3);
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("C1", "C3").WithLocation(901, 30),
-                // (902,30): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
-                //         _ = u is C1 and (not C4);
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(902, 30),
                 // (903,23): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C4'.
                 //         _ = u is (not C4);
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C4").WithArguments("S1", "C4").WithLocation(903, 23)
@@ -8763,6 +8897,42 @@ static class Extensions
         }
 
         [Fact]
+        public void PatternWrongType_VarDeconstructionPattern_02_ITuple_UnionType_Not_Out()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(C x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Test1(S1 u)
+    {
+        _ = u is var (_, a) and D;
+
+        C x = new C();
+        _ = x is var (_, b) and D;
+    }   
+}
+
+public class C : System.Runtime.CompilerServices.ITuple
+{
+    int System.Runtime.CompilerServices.ITuple.Length => 2;
+    object System.Runtime.CompilerServices.ITuple.this[int i] => i * 10;
+}
+
+class D;
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void PatternWrongType_ConstantPattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_In_01()
         {
             var src1 = @"
@@ -8789,9 +8959,7 @@ class Program
     {
 #line 100
         _ = u is {} and ""1"";
-        _ = u is C1 and (C2)null;
-        _ = u is C1 and ""1"";
-        _ = u is System.IComparable and ""1"";
+        _ = u is {} and (C2)null;
         _ = u is ""1"";
     } 
 }
@@ -8807,30 +8975,24 @@ class Program
                 // (100,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         _ = u is {} and "1";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(100, 25),
+                // (101,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is {} and (C2)null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(C2)null").WithArguments("S1").WithLocation(101, 25),
+                // (101,25): error CS0029: Cannot implicitly convert type 'C2' to 'int'
+                //         _ = u is {} and (C2)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(C2)null").WithArguments("C2", "int").WithLocation(101, 25),
                 // (101,25): error CS0029: Cannot implicitly convert type 'C2' to 'C1'
-                //         _ = u is C1 and (C2)null;
+                //         _ = u is {} and (C2)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(C2)null").WithArguments("C2", "C1").WithLocation(101, 25),
-                // (102,25): error CS9135: A constant value of type 'C1' is expected
-                //         _ = u is C1 and "1";
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""1""").WithArguments("C1").WithLocation(102, 25),
-                // (103,41): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
-                //         _ = u is System.IComparable and "1";
-                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(103, 41),
-                // (103,41): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
-                //         _ = u is System.IComparable and "1";
-                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(103, 41),
-                // (103,41): error CS0029: Cannot implicitly convert type 'string' to 'int'
-                //         _ = u is System.IComparable and "1";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(103, 41),
-                // (104,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (102,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is "1";
-                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(104, 18),
-                // (104,18): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(102, 18),
+                // (102,18): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
                 //         _ = u is "1";
-                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(104, 18),
-                // (104,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(102, 18),
+                // (102,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         _ = u is "1";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(104, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(102, 18)
                 );
         }
 
@@ -8861,9 +9023,7 @@ class Program
     {
 #line 100
         _ = u is {} and ""1"";
-        _ = u is C1 and (C2)null;
-        _ = u is C1 and ""1"";
-        _ = u is System.IComparable and ""1"";
+        _ = u is {} and (C2)null;
         _ = u is ""1"";
     } 
 }
@@ -8879,30 +9039,24 @@ class Program
                 // (100,25): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         _ = u is {} and "1";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(100, 25),
+                // (101,25): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = u is {} and (C2)null;
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "(C2)null").WithArguments("S1").WithLocation(101, 25),
+                // (101,25): error CS0029: Cannot implicitly convert type 'C2' to 'int'
+                //         _ = u is {} and (C2)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(C2)null").WithArguments("C2", "int").WithLocation(101, 25),
                 // (101,25): error CS0029: Cannot implicitly convert type 'C2' to 'C1'
-                //         _ = u is C1 and (C2)null;
+                //         _ = u is {} and (C2)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(C2)null").WithArguments("C2", "C1").WithLocation(101, 25),
-                // (102,25): error CS9135: A constant value of type 'C1' is expected
-                //         _ = u is C1 and "1";
-                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, @"""1""").WithArguments("C1").WithLocation(102, 25),
-                // (103,41): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
-                //         _ = u is System.IComparable and "1";
-                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(103, 41),
-                // (103,41): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
-                //         _ = u is System.IComparable and "1";
-                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(103, 41),
-                // (103,41): error CS0029: Cannot implicitly convert type 'string' to 'int'
-                //         _ = u is System.IComparable and "1";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(103, 41),
-                // (104,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                // (102,18): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is "1";
-                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(104, 18),
-                // (104,18): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, @"""1""").WithArguments("S1").WithLocation(102, 18),
+                // (102,18): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'string'.
                 //         _ = u is "1";
-                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(104, 18),
-                // (104,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""1""").WithArguments("C1", "string").WithLocation(102, 18),
+                // (102,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         _ = u is "1";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(104, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "int").WithLocation(102, 18)
                 );
         }
 
@@ -9105,6 +9259,13 @@ class Program
         _ = u is C1 and > 1;
         _ = u is System.IComparable and > 1;
         _ = u is > 1;
+
+        object o = u;
+#line 200
+        _ = o is S1 { Value: > 1 };
+
+        string x = """";
+        _ = x is System.IComparable and > 1;
     } 
 }
 ";
@@ -9122,15 +9283,6 @@ class Program
                 // (101,27): error CS9135: A constant value of type 'C1' is expected
                 //         _ = u is C1 and > 1;
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("C1").WithLocation(101, 27),
-                // (102,43): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
-                //         _ = u is System.IComparable and > 1;
-                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(102, 43),
-                // (102,43): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
-                //         _ = u is System.IComparable and > 1;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(102, 43),
-                // (102,43): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         _ = u is System.IComparable and > 1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(102, 43),
                 // (103,20): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(103, 20),
@@ -9139,7 +9291,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(103, 20),
                 // (103,20): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         _ = u is > 1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(103, 20)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(103, 20),
+                // (200,32): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = o is S1 { Value: > 1 };
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(200, 32),
+                // (200,32): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
+                //         _ = o is S1 { Value: > 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(200, 32),
+                // (200,32): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = o is S1 { Value: > 1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(200, 32)
                 );
         }
 
@@ -9173,6 +9334,13 @@ class Program
         _ = u is C1 and > 1;
         _ = u is System.IComparable and > 1;
         _ = u is > 1;
+
+        object o = u;
+#line 200
+        _ = o is S1 { Value: > 1 };
+
+        string x = """";
+        _ = x is System.IComparable and > 1;
     } 
 }
 ";
@@ -9190,15 +9358,6 @@ class Program
                 // (101,27): error CS9135: A constant value of type 'C1' is expected
                 //         _ = u is C1 and > 1;
                 Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("C1").WithLocation(101, 27),
-                // (102,43): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
-                //         _ = u is System.IComparable and > 1;
-                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(102, 43),
-                // (102,43): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
-                //         _ = u is System.IComparable and > 1;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(102, 43),
-                // (102,43): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         _ = u is System.IComparable and > 1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(102, 43),
                 // (103,20): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
                 //         _ = u is > 1;
                 Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(103, 20),
@@ -9207,7 +9366,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(103, 20),
                 // (103,20): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         _ = u is > 1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(103, 20)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(103, 20),
+                // (200,32): error CS9372: An expression of type 'S1' cannot be handled by this pattern, see additional errors at this location.
+                //         _ = o is S1 { Value: > 1 };
+                Diagnostic(ErrorCode.ERR_UnionMatchingWrongPattern, "1").WithArguments("S1").WithLocation(200, 32),
+                // (200,32): error CS8121: An expression of type 'C1' cannot be handled by a pattern of type 'int'.
+                //         _ = o is S1 { Value: > 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C1", "int").WithLocation(200, 32),
+                // (200,32): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         _ = o is S1 { Value: > 1 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(200, 32)
                 );
         }
 
@@ -9907,8 +10075,9 @@ class Program
     {
 #line 100
         _ = u is S1 and string;
-        _ = u is (S1 and object) and C3;
-        _ = u is S1 and object and C3;
+        _ = u is (S1 and {}) and C3;
+        _ = u is S1 and {} and C3;
+        _ = u is S1 and ({} and C3);
     } 
 
     static void Test2(object u)
@@ -9925,12 +10094,15 @@ class Program
                 // (100,25): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'string'.
                 //         _ = u is S1 and string;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("S1", "string").WithLocation(100, 25),
-                // (101,38): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
-                //         _ = u is (S1 and object) and C3;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(101, 38),
-                // (102,36): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
-                //         _ = u is S1 and object and C3;
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(102, 36),
+                // (101,34): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is (S1 and {}) and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(101, 34),
+                // (102,32): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is S1 and {} and C3;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(102, 32),
+                // (103,33): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
+                //         _ = u is S1 and ({} and C3);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(103, 33),
                 // (200,32): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'C3'.
                 //         _ = u is S0 and S1 and C3;
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "C3").WithArguments("S1", "C3").WithLocation(200, 32),
@@ -19012,12 +19184,7 @@ class Program
 
 class S1
 {
-    public object? Value => throw null!;
-}
-
-class S2
-{
-    public object Value => throw null!;
+    public bool? Value => throw null!;
 }
 
 class Program
@@ -19028,27 +19195,12 @@ class Program
         if (s is null or { Value: null })
         {
 #line 1000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
         else
         {
 #line 2000
-            _ = s switch { { Value: {} } => 1 };
-        }
-    } 
-
-    static void Test4(S2 s)
-    {
-        _ = s.Value;
-        if (s is null or { Value: null })
-        {
-#line 3000
-            _ = s switch { { Value: {} } => 1 };
-        }
-        else
-        {
-#line 4000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
     } 
 }
@@ -19057,17 +19209,8 @@ class Program
 
             comp2.VerifyDiagnostics(
                 // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19),
-                // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19),
-                // (3000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(3000, 19),
-                // (4000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(4000, 19)
+                //             _ = s switch { { Value: bool } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19)
                 );
         }
 
@@ -19325,22 +19468,22 @@ class Program
 
 class S1
 {
-    public object? Value => throw null!;
+    public bool? Value => throw null!;
 }
 class Program
 {
     static void Test2(S1 s)
     {
         _ = s.Value;
-        if (s is not { Value: int })
+        if (s is not { Value: bool })
         {
 #line 1000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
         else
         {
 #line 2000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
     } 
 }
@@ -19348,12 +19491,9 @@ class Program
             var comp2 = CreateCompilation(src2);
 
             comp2.VerifyDiagnostics(
-                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19),
-                // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19)
+                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ Value: null }' is not covered.
+                //             _ = s switch { { Value: bool } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ Value: null }").WithLocation(1000, 19)
                 );
         }
 
@@ -19546,22 +19686,22 @@ class Program
 
 class S1
 {
-    public object? Value => throw null!;
+    public bool? Value => throw null!;
 }
 class Program
 {
     static void Test2(S1 s)
     {
         _ = s.Value;
-        if (s is not { Value: 1 })
+        if (s is not { Value: true })
         {
 #line 1000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
         else
         {
 #line 2000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
     } 
 }
@@ -19569,12 +19709,9 @@ class Program
             var comp2 = CreateCompilation(src2);
 
             comp2.VerifyDiagnostics(
-                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19),
-                // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19)
+                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ Value: null }' is not covered.
+                //             _ = s switch { { Value: bool } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ Value: null }").WithLocation(1000, 19)
                 );
         }
 
@@ -22840,12 +22977,7 @@ class Program
 
 class S1
 {
-    public object? Value => throw null!;
-}
-
-class S2
-{
-    public object Value => throw null!;
+    public bool? Value => throw null!;
 }
 
 class Program
@@ -22856,27 +22988,12 @@ class Program
         if (s is null or { Value: null })
         {
 #line 1000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
         else
         {
 #line 2000
-            _ = s switch { { Value: {} } => 1 };
-        }
-    } 
-
-    static void Test4(S2 s)
-    {
-        _ = s.Value;
-        if (s is null or { Value: null })
-        {
-#line 3000
-            _ = s switch { { Value: {} } => 1 };
-        }
-        else
-        {
-#line 4000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
     } 
 }
@@ -22885,17 +23002,8 @@ class Program
 
             comp2.VerifyDiagnostics(
                 // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19),
-                // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19),
-                // (3000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(3000, 19),
-                // (4000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(4000, 19)
+                //             _ = s switch { { Value: bool } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19)
                 );
         }
 
@@ -23201,36 +23309,32 @@ class Program
 
 class S1
 {
-    public object? Value => throw null!;
+    public bool? Value => throw null!;
 }
 class Program
 {
     static void Test2(S1 s)
     {
         _ = s.Value;
-        if (s is not { Value: int })
+        if (s is not { Value: bool })
         {
 #line 1000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
         else
         {
 #line 2000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
     } 
 }
 ";
             var comp2 = CreateCompilation(src2);
 
-            // https://github.com/dotnet/roslyn/issues/83568
             comp2.VerifyDiagnostics(
-                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19),
-                // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19)
+                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ Value: null }' is not covered.
+                //             _ = s switch { { Value: bool } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ Value: null }").WithLocation(1000, 19)
                 );
         }
 
@@ -23459,36 +23563,32 @@ class Program
 
 class S1
 {
-    public object? Value => throw null!;
+    public bool? Value => throw null!;
 }
 class Program
 {
     static void Test2(S1 s)
     {
         _ = s.Value;
-        if (s is not { Value: 1 })
+        if (s is not { Value: true })
         {
 #line 1000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
         else
         {
 #line 2000
-            _ = s switch { { Value: {} } => 1 };
+            _ = s switch { { Value: bool } => 1 };
         }
     } 
 }
 ";
             var comp2 = CreateCompilation(src2);
 
-            // https://github.com/dotnet/roslyn/issues/83568
             comp2.VerifyDiagnostics(
-                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1000, 19),
-                // (2000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //             _ = s switch { { Value: {} } => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(2000, 19)
+                // (1000,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '{ Value: null }' is not covered.
+                //             _ = s switch { { Value: bool } => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("{ Value: null }").WithLocation(1000, 19)
                 );
         }
 

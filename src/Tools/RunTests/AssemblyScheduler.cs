@@ -20,13 +20,22 @@ namespace RunTests
     {
 
         /// <summary>
-        /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
+        /// The target number of work items to create when partitioning by test count.
         /// </summary>
-        private static readonly int s_maxMethodCount = 500;
+        private const int TargetWorkItemCount = 25;
+
+        /// <summary>
+        /// The maximum number of assemblies that can be included in a single work item when
+        /// running on x86. The x86 test host has a ~2GB virtual address space limit and loading
+        /// too many test assemblies (along with their reference assembly dependencies) into a
+        /// single process causes OOM failures.
+        /// </summary>
+        private const int MaxAssembliesPerWorkItemX86 = 2;
 
         public static ImmutableArray<HelixWorkItem> Schedule(
             IEnumerable<string> assemblyFilePaths,
-            ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+            string platform,
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>? testHistory)
         {
             var orderedTypeInfos = assemblyFilePaths.ToImmutableSortedDictionary(x => x, GetTypeInfoList);
             ConsoleUtil.WriteLine($"Scheduling {orderedTypeInfos.Count} assemblies");
@@ -37,19 +46,48 @@ namespace RunTests
                 ConsoleUtil.WriteLine($"\tAssembly: {Path.GetFileName(kvp.Key)}, Test Type Count: {typeCount}, Test Count: {testCount}");
             }
 
-            if (testHistory.IsEmpty)
-            {
-                // We didn't have any test history from azure devops, just partition by test count.
-                ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
-                var workItemsByMethodCount = BuildWorkItems(
-                    orderedTypeInfos,
-                    getWeightFunc: static test => 1,
-                    limit: s_maxMethodCount);
+            var maxAssembliesPerWorkItem = string.Equals(platform, "x86", StringComparison.OrdinalIgnoreCase)
+                ? MaxAssembliesPerWorkItemX86
+                : (int?)null;
 
-                LogWorkItems(workItemsByMethodCount);
-                return workItemsByMethodCount;
+            if (testHistory is null)
+            {
+                ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
+                return ScheduleByCount(orderedTypeInfos, maxAssembliesPerWorkItem);
             }
 
+            return ScheduleByTime(orderedTypeInfos, testHistory, maxAssembliesPerWorkItem);
+        }
+
+        /// <summary>
+        /// Partition tests evenly by count into a target number of work items.
+        /// Used as a fallback when test history is unavailable.
+        /// </summary>
+        private static ImmutableArray<HelixWorkItem> ScheduleByCount(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos,
+            int? maxAssembliesPerWorkItem)
+        {
+            var totalTestCount = orderedTypeInfos.Values.Sum(types => types.Sum(t => t.Tests.Length));
+            var testsPerWorkItem = Math.Max(1, totalTestCount / TargetWorkItemCount);
+            var workItems = BuildWorkItems(
+                orderedTypeInfos,
+                getWeightFunc: static test => 1,
+                limit: testsPerWorkItem,
+                maxAssembliesPerWorkItem);
+
+            LogWorkItems(workItems);
+            return workItems;
+        }
+
+        /// <summary>
+        /// Partition tests by historical execution time with the goal of each work item
+        /// running under the time limit.
+        /// </summary>
+        private static ImmutableArray<HelixWorkItem> ScheduleByTime(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos,
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory,
+            int? maxAssembliesPerWorkItem)
+        {
             LogLongTests(testHistory);
 
             // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
@@ -62,12 +100,13 @@ namespace RunTests
             var workItems = BuildWorkItems(
                 orderedTypeInfos,
                 getWeightFunc: static test => test.ExecutionTime.TotalSeconds,
-                limit: HelixTestRunner.WorkItemScheduleTime.TotalSeconds);
+                limit: HelixTestRunner.WorkItemScheduleTime.TotalSeconds,
+                maxAssembliesPerWorkItem);
             LogWorkItems(workItems);
             return workItems;
         }
 
-        private static void LogLongTests(ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+        private static void LogLongTests(Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
             var longTests = testHistory
                 .Where(kvp => kvp.Value.Duration > HelixTestRunner.WorkItemScheduleTime)
@@ -85,7 +124,7 @@ namespace RunTests
 
         private static ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> assemblyTypes,
-            ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
         {
             // In xUnit v2, the ExecutionTimer in TestInvoker does NOT include IAsyncLifetime
             // .InitializeAsync() or .DisposeAsync() in DurationInMs. Test base classes that
@@ -173,12 +212,14 @@ namespace RunTests
         private static ImmutableArray<HelixWorkItem> BuildWorkItems<TWeight>(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> typeInfos,
             Func<TestMethodInfo, TWeight> getWeightFunc,
-            TWeight limit)
+            TWeight limit,
+            int? maxAssembliesPerWorkItem)
             where TWeight : struct, INumber<TWeight>
         {
             var workItems = new List<HelixWorkItem>();
             var currentWeight = TWeight.Zero;
             var currentFilters = new List<(string AssemblyFilePath, TestMethodInfo TestMethodInfo)>();
+            var currentAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var (assemblyFilePath, types) in typeInfos)
             {
@@ -186,6 +227,16 @@ namespace RunTests
                 {
                     AddWorkItem(types.SelectMany(x => x.Tests).Select(x => (assemblyFilePath, x)));
                     continue;
+                }
+
+                // If adding a new assembly would exceed the per-work-item assembly limit,
+                // flush the current work item first. This prevents OOM in x86 test hosts
+                // where loading too many assemblies exhausts the 2GB address space.
+                if (maxAssembliesPerWorkItem is int max &&
+                    !currentAssemblies.Contains(assemblyFilePath) &&
+                    currentAssemblies.Count >= max)
+                {
+                    MaybeAddCurrentWorkItem();
                 }
 
                 foreach (var type in types)
@@ -212,6 +263,7 @@ namespace RunTests
                         }
 
                         currentFilters.Add((assemblyFilePath, test));
+                        currentAssemblies.Add(assemblyFilePath);
                     }
                 }
             }
@@ -226,6 +278,7 @@ namespace RunTests
                     AddWorkItem(currentFilters);
                     currentFilters.Clear();
                     currentWeight = TWeight.Zero;
+                    currentAssemblies.Clear();
                 }
             }
 

@@ -29,7 +29,7 @@ internal class TestHistoryManager
     /// In xUnit v2, DurationInMs does NOT include IAsyncLifetime.InitializeAsync or DisposeAsync time.
     /// The caller is responsible for adjusting the duration based on the HasAsyncLifetime flag from test discovery.
     /// </summary>
-    public static async Task<ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
+    public static async Task<Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>?> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
@@ -54,7 +54,7 @@ internal class TestHistoryManager
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
             ConsoleUtil.Warning($"Missing required options to lookup test history, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
-            return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
+            return null;
         }
 
         using var azdoClient = AzdoClient.Create(projectUri, accessToken);
@@ -76,7 +76,7 @@ internal class TestHistoryManager
         {
             // If this is a new branch we may not have any historical data for it.
             ConsoleUtil.Warning($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
-            return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
+            return null;
         }
 
         var runForThisStage = await GetRunForStageAsync(azdoClient, lastSuccessfulBuild, phaseName, cancellationToken);
@@ -84,7 +84,7 @@ internal class TestHistoryManager
         {
             // If this is a new stage, historical runs will not have any data for it.
             ConsoleUtil.Warning($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
-            return ImmutableDictionary<string, (TimeSpan Duration, int TestTheoryInstances)>.Empty;
+            return null;
         }
 
         ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {phaseName}");
@@ -138,9 +138,15 @@ internal class TestHistoryManager
             Logger.Log($"Found {duplicateCount} duplicate tests in run {runForThisStage.Name}.");
         }
 
+        if (testInfos.Count == 0)
+        {
+            ConsoleUtil.Warning($"Retrieved zero test results from build {lastSuccessfulBuild.Id} and stage {phaseName}, falling back to count based scheduling");
+            return null;
+        }
+
         var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.Duration.TotalMilliseconds));
         ConsoleUtil.WriteLine($"Retrieved {testInfos.Keys.Count} tests from AzureDevops in {timer.Elapsed}.  Total runtime of all tests is {totalTestRuntime}");
-        return testInfos.ToImmutableDictionary();
+        return testInfos;
     }
 
     private static string? GetEnvironmentVariable(string envVarName)

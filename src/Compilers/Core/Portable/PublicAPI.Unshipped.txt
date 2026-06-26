@@ -1,5 +1,11 @@
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha384 = 3 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypeInfo() -> void
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.ClosedDerivedTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ClosedDerivedTypeInfo.IsComplete.get -> bool
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ITypeSymbol.GetClosedDerivedTypeInfo(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ClosedDerivedTypeInfo
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ITypeSymbol.IsClosed.get -> bool
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.OperationKind.CollectionExpressionElementsPlaceholder = 129 -> Microsoft.CodeAnalysis.OperationKind
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation

@@ -19,8 +19,8 @@ internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<Reques
     /// </summary>
     private CultureInfo? _cultureInfo;
 
-    public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
-        : base(languageServer, logger, handlerProvider)
+    public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, AbstractHandlerProvider handlerProvider)
+        : base(languageServer, handlerProvider)
     {
         _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
     }

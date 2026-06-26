@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public sealed class UriTests : AbstractLanguageServerProtocolTests
 {
-    public UriTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    public UriTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 

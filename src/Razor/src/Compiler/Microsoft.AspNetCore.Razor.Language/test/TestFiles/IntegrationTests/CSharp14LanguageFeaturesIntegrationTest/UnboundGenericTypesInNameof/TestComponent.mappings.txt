@@ -1,0 +1,9 @@
+﻿Source Location: (2:0,2 [54] x:\dir\subdir\Test\TestComponent.razor)
+|
+    _ = nameof(System.Collections.Generic.List<>);
+|
+Generated Location: (733:21,0 [54] )
+|
+    _ = nameof(System.Collections.Generic.List<>);
+|
+

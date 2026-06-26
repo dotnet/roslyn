@@ -727,7 +727,7 @@ namespace BoundTreeGenerator
 
         private static bool HasValidate(TreeType node)
         {
-            return node.HasValidate != null && string.Compare(node.HasValidate, "true", true) == 0;
+            return node.HasValidate != null && string.Equals(node.HasValidate, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         private IEnumerable<TreeType> TypeAndBaseTypes(TreeType node)
@@ -1847,33 +1847,33 @@ namespace BoundTreeGenerator
 
         private static bool IsNew(Field f)
         {
-            return string.Compare(f.New, "true", true) == 0;
+            return string.Equals(f.New, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsPropertyOverrides(Field f)
         {
-            return string.Compare(f.PropertyOverrides, "true", true) == 0;
+            return string.Equals(f.PropertyOverrides, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool SkipInVisitor(Field f)
         {
-            return string.Compare(f.SkipInVisitor, "true", true) == 0
+            return string.Equals(f.SkipInVisitor, "true", StringComparison.OrdinalIgnoreCase)
                 || VisitFieldOnlyInNullabilityRewriter(f);
         }
 
         private static bool VisitFieldOnlyInNullabilityRewriter(Field f)
         {
-            return string.Compare(f.SkipInVisitor, "ExceptNullabilityRewriter", true) == 0;
+            return string.Equals(f.SkipInVisitor, "ExceptNullabilityRewriter", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool SkipInNullabilityRewriter(Node n)
         {
-            return string.Compare(n.SkipInNullabilityRewriter, "true", true) == 0;
+            return string.Equals(n.SkipInNullabilityRewriter, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool SkipInNullabilityRewriter(Field f)
         {
-            return string.Compare(f.SkipInNullabilityRewriter, "true", ignoreCase: true) == 0;
+            return string.Equals(f.SkipInNullabilityRewriter, "true", StringComparison.OrdinalIgnoreCase);
         }
 
         private string ToCamelCase(string name)

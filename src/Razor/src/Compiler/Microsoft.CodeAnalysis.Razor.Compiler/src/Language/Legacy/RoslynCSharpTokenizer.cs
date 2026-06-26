@@ -588,6 +588,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                                     CurrentErrors.Add(
                                         RazorDiagnosticFactory.CreateParsing_PossibleMisplacedPreprocessorDirective(
                                             new SourceSpan(
+                                                filePath: CurrentStart.FilePath,
                                                 absoluteIndex: start,
                                                 lineIndex: linePosition.Line,
                                                 characterIndex: linePosition.Character,
@@ -601,6 +602,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
                                     CurrentErrors.Add(
                                         RazorDiagnosticFactory.CreateParsing_PossibleMisplacedPreprocessorDirective(
                                             new SourceSpan(
+                                                filePath: CurrentStart.FilePath,
                                                 absoluteIndex: start,
                                                 lineIndex: linePosition.Line,
                                                 characterIndex: linePosition.Character,

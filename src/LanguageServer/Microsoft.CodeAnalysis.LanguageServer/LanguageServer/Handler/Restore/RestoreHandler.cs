@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFactory loggerFactory) : ILspServiceRequestHandler<RestoreParams, RestoreResult>
+internal sealed class RestoreHandler() : ILspServiceRequestHandler<RestoreParams, RestoreResult>
 {
     internal const string MethodName = "workspace/_roslyn_restore";
 
@@ -28,32 +29,32 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
 
     public bool RequiresLSPSolution => true;
 
-    private readonly ILogger<RestoreHandler> _logger = loggerFactory.CreateLogger<RestoreHandler>();
-
     public async Task<RestoreResult> HandleRequestAsync(RestoreParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
+        var logger = context.GetRequiredService<LspLoggerFactory>().CreateLogger<RestoreHandler>();
+        var dotnetCliHelper = context.GetRequiredService<DotnetCliHelper>();
 
         var restorePaths = GetRestorePaths(request, context.Solution, context);
         if (restorePaths.IsEmpty)
         {
-            _logger.LogDebug($"Restore was requested but no paths were provided.");
+            logger.LogDebug($"Restore was requested but no paths were provided.");
             return new RestoreResult(true);
         }
 
         var workDoneProgressManager = context.GetRequiredService<WorkDoneProgressManager>();
-        _logger.LogDebug($"Running restore on {restorePaths.Length} paths, starting with '{restorePaths.First()}'.");
+        logger.LogDebug($"Running restore on {restorePaths.Length} paths, starting with '{restorePaths.First()}'.");
 
         // We let cancellation here bubble up to the client as this is a client initiated operation.
-        var didSucceed = await RestoreAsync(restorePaths, workDoneProgressManager, dotnetCliHelper, _logger, enableProgressReporting: true, cancellationToken);
+        var didSucceed = await RestoreAsync(restorePaths, workDoneProgressManager, dotnetCliHelper, logger, enableProgressReporting: true, cancellationToken);
 
         if (didSucceed)
         {
-            _logger.LogDebug($"Restore completed successfully.");
+            logger.LogDebug($"Restore completed successfully.");
         }
         else
         {
-            _logger.LogError($"Restore completed with errors.");
+            logger.LogError($"Restore completed with errors.");
         }
 
         return new RestoreResult(didSucceed);

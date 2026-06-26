@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
-public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class SourceGeneratedDocumentTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     private static readonly ClientCapabilities CapabilitiesWithRefresh = new()
     {
@@ -528,6 +529,71 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHe
         var didSaveParams = new LSP.DidSaveTextDocumentParams
         {
             TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = documentUri },
+        };
+
+        // The didSave should now trigger generators to run in balanced mode.  In automatic mode it will also trigger but we will already have the updated text.
+        await testLspServer.ExecuteRequestAsync<LSP.DidSaveTextDocumentParams, object>(LSP.Methods.TextDocumentDidSaveName, didSaveParams, CancellationToken.None);
+        await testLspServer.WaitForSourceGeneratorsAsync();
+
+        var thirdResult = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
+        Assert.NotNull(thirdResult);
+        Assert.Equal("// callCount: 1", thirdResult.Text);
+    }
+
+    [Theory, CombinatorialData]
+    internal async Task TestSaveAdditionalDocumentRefreshesSourceGenerators(bool mutatingLspWorkspace, SourceGeneratorExecutionPreference sourceGeneratorExecution)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+
+        var project = testLspServer.GetCurrentSolution().Projects.First();
+        var projectDirectory = Path.GetDirectoryName(project.FilePath);
+        Contract.ThrowIfNull(projectDirectory);
+        var additionalDocument = project.AddAdditionalDocument(
+            name: "additional.txt",
+            text: SourceText.From(string.Empty),
+            filePath: Path.Combine(projectDirectory, "additional.txt"));
+        Assert.True(testLspServer.TestWorkspace.TryApplyChanges(additionalDocument.Project.Solution));
+
+        additionalDocument = testLspServer.GetCurrentSolution().Projects.First().AdditionalDocuments.Single();
+        var additionalDocumentUri = additionalDocument.GetURI();
+
+        var configService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
+        configService.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecution: sourceGeneratorExecution);
+
+        var callCount = 0;
+        var generatorReference = await AddGeneratorAsync(new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++)), testLspServer.TestWorkspace);
+
+        var sourceGeneratedDocuments = await testLspServer.GetCurrentSolution().Projects.Single().GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
+        var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
+
+        var result = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
+
+        Assert.NotNull(result);
+        Assert.Equal("// callCount: 0", result.Text);
+
+        await testLspServer.OpenDocumentAsync(additionalDocumentUri);
+
+        // Modify the additional document in the workspace.
+        // In automatic mode this should trigger generators to re-run.
+        // In balanced mode generators should not re-run.
+        testLspServer.TestWorkspace.ChangeAdditionalDocument(additionalDocument.Id, SourceText.From("new text"));
+        await testLspServer.WaitForSourceGeneratorsAsync();
+
+        var secondResult = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
+        Assert.NotNull(secondResult);
+        if (sourceGeneratorExecution == SourceGeneratorExecutionPreference.Automatic)
+        {
+            Assert.Equal("// callCount: 1", secondResult.Text);
+        }
+        else
+        {
+            Assert.Equal("// callCount: 0", secondResult.Text);
+        }
+
+        var didSaveParams = new LSP.DidSaveTextDocumentParams
+        {
+            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = additionalDocumentUri },
         };
 
         // The didSave should now trigger generators to run in balanced mode.  In automatic mode it will also trigger but we will already have the updated text.
