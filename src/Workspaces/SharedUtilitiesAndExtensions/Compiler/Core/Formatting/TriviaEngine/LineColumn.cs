@@ -25,6 +25,7 @@ internal readonly struct LineColumn(int line, int column, bool whitespaceOnly)
 
     public LineColumn With(LineColumnDelta delta)
     {
+        // Same line, increment column
         if (delta.Lines <= 0)
         {
             return new LineColumn(
@@ -33,6 +34,7 @@ internal readonly struct LineColumn(int line, int column, bool whitespaceOnly)
                 WhitespaceOnly && delta.WhitespaceOnly);
         }
 
+        // New line, reset column
         return new LineColumn(
             Line + delta.Lines,
             delta.Spaces,
