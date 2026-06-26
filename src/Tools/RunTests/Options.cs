@@ -251,7 +251,6 @@ namespace RunTests
             }
 
             var testDesktop = (testRuntime & TestRuntime.Framework) != 0;
-            var testCoreClr = (testRuntime & TestRuntime.Core) != 0;
 
             var testCompilerOnly = string.Equals(testSet, "compiler", StringComparison.OrdinalIgnoreCase);
 
@@ -356,6 +355,12 @@ namespace RunTests
                 if (sequential)
                 {
                     ConsoleUtil.Error("--sequential is not supported with --helix.");
+                    return null;
+                }
+
+                if (helixQueueName is null)
+                {
+                    ConsoleUtil.Error("--helixQueueName is required with --helix.");
                     return null;
                 }
             }

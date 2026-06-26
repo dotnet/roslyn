@@ -21,7 +21,7 @@
 - Solution filters: `Roslyn.slnx` (full), `Compilers.slnf` (compilers), `Ide.slnf` (IDE)
 
 **Testing**:
-- Use `dotnet test` to run tests for a specific project or test suite within a project. 
+- Use `dotnet test` to run tests for a specific project or test suite within a project.
 - Use `src/Tools/RunTests` to run all tests in the solution efficiently. Read the `README.md` with the tool for more information.
 - Tests can take a while to build and run. Use options like `--blame-hang-timeout` to help differentiate hanging tests vs. slow ones.
 
