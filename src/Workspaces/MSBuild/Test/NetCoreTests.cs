@@ -137,7 +137,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
         await using var buildHostProcessManager = new BuildHostProcessManager([LanguageNames.CSharp], ImmutableDictionary<string, string>.Empty);
 
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
-        var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, fileBasedApp: false, CancellationToken.None);
+        var projectFile = await buildHost.LoadProjectAsync(projectFilePath, content, LanguageNames.CSharp, globalProperties: null, CancellationToken.None);
         var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
         Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);

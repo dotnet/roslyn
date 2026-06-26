@@ -36,7 +36,7 @@ internal static class FileBasedProgramsProjectLoader
             projectRootElement.FullPath!,
             projectRootElement.GetRawXml(),
             LanguageNames.CSharp,
-            fileBasedApp: true,
+            globalProperties: fileBasedProgramService.GetGlobalBuildProperties(),
             cancellationToken).ConfigureAwait(false);
     }
 }

@@ -57,9 +57,9 @@ internal sealed class RemoteBuildHost
     /// </summary>
     /// <param name="projectFilePath">A path to a project file which may or may not exist on disk. Note that an extension that is known by MSBuild, such as .csproj or .vbproj, should be used here.</param>
     /// <param name="projectContent">The project file XML content.</param>
-    public async Task<RemoteProjectFile> LoadProjectAsync(string projectFilePath, string projectContent, string languageName, bool fileBasedApp, CancellationToken cancellationToken)
+    public async Task<RemoteProjectFile> LoadProjectAsync(string projectFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties, CancellationToken cancellationToken)
     {
-        var remoteProjectFileTargetObject = await _client.InvokeAsync<int>(BuildHostTargetObject, nameof(IBuildHost.LoadProject), parameters: [projectFilePath, projectContent, languageName, fileBasedApp], cancellationToken).ConfigureAwait(false);
+        var remoteProjectFileTargetObject = await _client.InvokeAsync<int>(BuildHostTargetObject, nameof(IBuildHost.LoadProject), parameters: [projectFilePath, projectContent, languageName, globalProperties], cancellationToken).ConfigureAwait(false);
 
         return new RemoteProjectFile(_client, remoteProjectFileTargetObject);
     }

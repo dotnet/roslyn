@@ -144,10 +144,10 @@ internal abstract class AbstractBuildHost :
     /// <summary>
     /// Returns the target ID of the <see cref="ProjectFile"/> object created for this.
     /// </summary>
-    public int LoadProject(string projectFilePath, string projectContent, string languageName, bool fileBasedApp)
+    public int LoadProject(string projectFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties)
     {
         EnsureMSBuildLoaded(projectFilePath);
-        return LoadProjectCore(projectFilePath, projectContent, languageName, fileBasedApp);
+        return LoadProjectCore(projectFilePath, projectContent, languageName, globalProperties);
     }
 
     public int LoadProjectInstance(string projectFilePath, string projectContent, IDictionary<string, string> globalProperties)
@@ -174,11 +174,11 @@ internal abstract class AbstractBuildHost :
     // to the JIT during compilation of the method, so they have to be loaded by the caller;
     // therefore this method must not be inlined.
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private int LoadProjectCore(string projectFilePath, string projectContent, string languageName, bool fileBasedApp)
+    private int LoadProjectCore(string projectFilePath, string projectContent, string languageName, IDictionary<string, string>? globalProperties)
     {
         CreateBuildManager();
 
-        Logger.LogInformation($"Loading an in-memory project with the path {projectFilePath} (file-based app: {fileBasedApp})");
+        Logger.LogInformation($"Loading an in-memory project with the path {projectFilePath} ({globalProperties?.Count ?? 0} global properties)");
 
         // We expect MSBuild to consume this stream with a utf-8 encoding.
         // This is because we expect the stream we create to not include a BOM nor an an encoding declaration a la `<?xml encoding="..."?>`.
@@ -188,7 +188,7 @@ internal abstract class AbstractBuildHost :
         // But it seems like a very unlikely scenario to actually get into--this is not something people generally put on real project files.
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(projectContent));
 
-        var (project, log) = _buildManager.LoadProject(projectFilePath, stream, fileBasedApp);
+        var (project, log) = _buildManager.LoadProject(projectFilePath, stream, globalProperties);
         return AddProjectFileTarget(project, languageName, log);
     }
 

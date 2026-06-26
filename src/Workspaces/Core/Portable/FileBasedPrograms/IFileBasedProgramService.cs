@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.DotNet.FileBasedPrograms;
 
@@ -10,6 +11,8 @@ namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
 internal interface IFileBasedProgramService : IWorkspaceService
 {
+    IDictionary<string, string> GetGlobalBuildProperties();
+
     IProjectRootElement LoadFileBasedAppProject(
         IBuildService buildService,
         IProjectCollection projectCollection,

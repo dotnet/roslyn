@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,6 +17,16 @@ namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramService() : IFileBasedProgramService
 {
+    public IDictionary<string, string> GetGlobalBuildProperties()
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in VirtualProjectBuilder.GetGlobalBuildProperties())
+        {
+            result.Add(kvp.Key, kvp.Value);
+        }
+        return result;
+    }
+
     public IProjectRootElement LoadFileBasedAppProject(
         IBuildService buildService,
         IProjectCollection projectCollection,

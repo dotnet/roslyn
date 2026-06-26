@@ -128,7 +128,7 @@ internal sealed class ProjectBuildManager : IDisposable
             // is the default if we call the overload with just a stream.
             await stream.CopyToAsync(readStream, bufferSize: 81920, cancellationToken).ConfigureAwait(false);
             readStream.Position = 0;
-            return LoadProjectCore(path, readStream, fileBasedApp: false, log);
+            return LoadProjectCore(path, readStream, globalProperties: null, log);
         }
         catch (Exception e)
         {
@@ -138,7 +138,7 @@ internal sealed class ProjectBuildManager : IDisposable
     }
 
     private (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProjectCore(
-        string path, Stream readStream, bool fileBasedApp, DiagnosticLog log)
+        string path, Stream readStream, IDictionary<string, string>? globalProperties, DiagnosticLog log)
     {
         try
         {
@@ -159,13 +159,7 @@ internal sealed class ProjectBuildManager : IDisposable
 
             var project = new MSB.Evaluation.Project(
                 xml,
-                globalProperties: fileBasedApp
-                    ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                    {
-                        { "_BuildNonexistentProjectsByDefault", bool.TrueString },
-                        { "RestoreUseSkipNonexistentTargets", bool.FalseString },
-                    }
-                    : null,
+                globalProperties,
                 toolsVersion: null,
                 _projectCollection,
                 projectLoadSettings);
@@ -179,14 +173,14 @@ internal sealed class ProjectBuildManager : IDisposable
         }
     }
 
-    public (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProject(string path, Stream readStream, bool fileBasedApp)
+    public (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProject(string path, Stream readStream, IDictionary<string, string>? globalProperties)
     {
         Contract.ThrowIfTrue(_disposed);
 
         var log = new DiagnosticLog();
         try
         {
-            return LoadProjectCore(path, readStream, fileBasedApp, log);
+            return LoadProjectCore(path, readStream, globalProperties, log);
         }
         catch (Exception e)
         {
