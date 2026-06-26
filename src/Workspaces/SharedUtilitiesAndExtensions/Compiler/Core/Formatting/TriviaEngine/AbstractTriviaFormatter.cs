@@ -120,9 +120,9 @@ internal abstract class AbstractTriviaFormatter
     /// </summary>
     protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
 
-    /// <summary>
-    /// true if previoustrivia is _ and nextTrivia is a Visual Basic comment
-    /// </summary>
+    /// <returns>
+    /// true iff `previousTrivia` is `_` and `nextTrivia` is a Visual Basic comment
+    /// </returns>
     protected abstract bool LineContinuationFollowedByWhitespaceComment(SyntaxTrivia previousTrivia, SyntaxTrivia nextTrivia);
 
     /// <summary>
