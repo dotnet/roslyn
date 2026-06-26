@@ -65,6 +65,7 @@
          types moved into Shell.Framework, and ComponentModelHost 18.9.x type-forwards them there. Older transitive
          versions still define those types, which collides with Shell.Framework (CS0433). -->
     <PackageVersion Include="Microsoft.VisualStudio.ComponentModelHost" Version="18.9.453" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="18.9.438" />
     <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="18.0.1211-preview.1" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.6.3200" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="18.0.52-preview1" />
