@@ -2023,6 +2023,145 @@ class C
             }
             """, optionName);
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58564")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public Task NonRedundantAssignment_BeforeUseAsConstructorOutAndReadArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                C(out int x, int y) => x = y;
+
+                void M()
+                {
+                    int x;
+                    [|x|] = 1;
+                    _ = new C(out x, x);
+                }
+            }
+            """, optionName);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58564")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public Task NonRedundantAssignment_BeforeUseAsFunctionPointerOutAndReadArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                unsafe void M(delegate*<out int, int, void> f)
+                {
+                    int x;
+                    [|x|] = 1;
+                    f(out x, x);
+                }
+            }
+            """,
+            new TestParameters(
+                options: GetOptions(optionName),
+                compilationOptions: new CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)));
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58564")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public async Task NonRedundantAssignments_BeforeUseAsOutAndReadArguments(string optionName)
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x;
+                    [|x|] = 1;
+                    int y;
+                    y = 2;
+                    M2(out x, x, out y, y);
+                }
+
+                void M2(out int x, int xValue, out int y, int yValue)
+                {
+                    x = xValue;
+                    y = yValue;
+                }
+            }
+            """, optionName);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x;
+                    x = 1;
+                    int y;
+                    [|y|] = 2;
+                    M2(out x, x, out y, y);
+                }
+
+                void M2(out int x, int xValue, out int y, int yValue)
+                {
+                    x = xValue;
+                    y = yValue;
+                }
+            }
+            """, optionName);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58564")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public Task NonRedundantAssignment_BeforeReadAndUseAsOutArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x;
+                    [|x|] = 1;
+                    M2(x, out x);
+                }
+
+                void M2(int y, out int x) => x = y;
+            }
+            """, optionName);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58564")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public Task Assignment_BeforeUseAsOutArgumentWithoutSiblingRead(string optionName)
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int M()
+                {
+                    int x;
+                    [|x|] = 1;
+                    M2(out x);
+                    return x;
+                }
+
+                void M2(out int x) => x = 0;
+            }
+            """,
+            """
+            class C
+            {
+                int M()
+                {
+                    int x;
+                    M2(out x);
+                    return x;
+                }
+
+                void M2(out int x) => x = 0;
+            }
+            """, optionName);
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40717")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
