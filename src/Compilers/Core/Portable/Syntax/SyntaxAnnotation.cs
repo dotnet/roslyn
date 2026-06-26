@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SyntaxAnnotation(string? kind)
-            : this()
         {
             this.Kind = kind;
         }
@@ -50,27 +49,10 @@ namespace Microsoft.CodeAnalysis
             return Equals((object?)other);
         }
 
-        public static bool operator ==(SyntaxAnnotation? left, SyntaxAnnotation? right)
-        {
-            if (left is null)
-            {
-                return right is null;
-            }
-
-            return left.Equals(right);
-        }
+        public static bool operator ==(SyntaxAnnotation? left, SyntaxAnnotation? right) =>
+            Equals(left, right);
 
         public static bool operator !=(SyntaxAnnotation? left, SyntaxAnnotation? right) =>
             !(left == right);
-
-        public override bool Equals(object? obj)
-        {
-            return ReferenceEquals(this, obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
     }
 }
