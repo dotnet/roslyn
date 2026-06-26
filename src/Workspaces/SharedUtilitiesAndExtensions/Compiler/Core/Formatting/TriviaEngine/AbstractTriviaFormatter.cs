@@ -291,7 +291,8 @@ internal abstract class AbstractTriviaFormatter
 
         var list = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
 
-        // Holds last position before _ ' Comment so we can reset after processing comment
+        // Holds last position before a VB line continuation comment: _ ' syntax
+        // Allows us to reset after processing comment
         var previousLineColumn = LineColumn.Default;
         SyntaxTrivia trivia;
         for (var i = 0; i < list.Count; i++)
