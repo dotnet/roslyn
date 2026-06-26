@@ -99,6 +99,7 @@ stages:
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
+      # global.json is included in the test payload by PrepareTests (see MinimizeUtil.cs)
       - task: UseDotNet@2
         displayName: 'Install .NET SDK'
         inputs:
