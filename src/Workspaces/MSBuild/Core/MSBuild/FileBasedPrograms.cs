@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -15,25 +14,6 @@ using IProjectInstance = Microsoft.DotNet.FileBasedPrograms.IProjectInstance;
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 #pragma warning disable CS9113, IDE0060, CA1822 // TODO
-
-file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost) : Microsoft.DotNet.FileBasedPrograms.IBuildService
-{
-    public IProjectCollection ProjectCollection => Microsoft.CodeAnalysis.MSBuild.ProjectCollection.Instance;
-
-    public IProjectInstance CreateProjectInstanceFromProjectRootElement(
-        IProjectRootElement projectRoot,
-        IProjectCollection projectCollection,
-        IDictionary<string, string> globalProperties)
-    {
-        return ProjectInstance.FromProjectRootElement(buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, globalProperties);
-    }
-
-    public IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection)
-    {
-        xmlReader.MoveToContent();
-        return new ProjectRootElement(xmlReader.ReadOuterXml());
-    }
-}
 
 internal static class FileBasedProgramsProjectLoader
 {
@@ -56,6 +36,25 @@ internal static class FileBasedProgramsProjectLoader
             LanguageNames.CSharp,
             fileBasedApp: true,
             cancellationToken).ConfigureAwait(false);
+    }
+}
+
+file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost) : Microsoft.DotNet.FileBasedPrograms.IBuildService
+{
+    public IProjectCollection ProjectCollection => Microsoft.CodeAnalysis.MSBuild.ProjectCollection.Instance;
+
+    public IProjectInstance CreateProjectInstanceFromProjectRootElement(
+        IProjectRootElement projectRoot,
+        IProjectCollection projectCollection,
+        IDictionary<string, string> globalProperties)
+    {
+        return ProjectInstance.FromProjectRootElement(buildHost, (ProjectRootElement)projectRoot, (ProjectCollection)projectCollection, globalProperties);
+    }
+
+    public IProjectRootElement CreateProjectRootElement(XmlReader xmlReader, IProjectCollection projectCollection)
+    {
+        xmlReader.MoveToContent();
+        return new ProjectRootElement(xmlReader.ReadOuterXml());
     }
 }
 
