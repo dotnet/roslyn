@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// affects how the LSP client will handle and dedupe related diagnostics produced by Roslyn for live diagnostics
 /// against the diagnostics produced by CPS when a build is performed.
 /// </summary>
-internal partial interface ILspBuildOnlyDiagnostics
+internal interface ILspBuildOnlyDiagnostics
 {
 }
