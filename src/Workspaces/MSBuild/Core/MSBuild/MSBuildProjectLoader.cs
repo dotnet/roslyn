@@ -264,8 +264,8 @@ public partial class MSBuildProjectLoader
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var projectFileProvider = new BuildHostProjectFileInfoProvider(
+            _solutionServices,
             buildHostProcessManager,
-            _solutionServices.GetRequiredLanguageService<IFileBasedProgramService>(LanguageNames.CSharp),
             _projectFileExtensionRegistry,
             _diagnosticReporter,
             progress);

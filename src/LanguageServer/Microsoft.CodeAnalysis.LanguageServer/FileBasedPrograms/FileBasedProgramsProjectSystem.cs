@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
@@ -345,8 +346,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, documentPath, cancellationToken);
         var loadedFile = await FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
             buildHost,
+            _workspaceFactory.HostWorkspace.Services.GetRequiredService<IFileBasedProgramService>(),
             documentPath,
-            LanguageNames.CSharp,
             (error) => _logger.LogError(error),
             cancellationToken);
 

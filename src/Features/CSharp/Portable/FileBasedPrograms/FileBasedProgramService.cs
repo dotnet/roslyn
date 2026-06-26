@@ -11,7 +11,7 @@ using Microsoft.DotNet.FileBasedPrograms;
 namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
 [Export(typeof(IFileBasedProgramService)), Shared]
-[ExportLanguageService(typeof(IFileBasedProgramService), LanguageNames.CSharp)]
+[ExportWorkspaceService(typeof(IFileBasedProgramService))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramService() : IFileBasedProgramService

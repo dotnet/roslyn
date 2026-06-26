@@ -8,12 +8,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class BuildHostProjectFileInfoProvider(
+    SolutionServices solutionServices,
     BuildHostProcessManager buildHostProcessManager,
-    IFileBasedProgramService fileBasedProgramService,
     ProjectFileExtensionRegistry projectFileExtensionRegistry,
     DiagnosticReporter diagnosticReporter,
     IProgress<ProjectLoadProgress>? progress) : IProjectFileInfoProvider
@@ -32,6 +33,7 @@ internal sealed class BuildHostProjectFileInfoProvider(
 
         if (isFileBasedApp)
         {
+            var fileBasedProgramService = solutionServices.GetRequiredService<IFileBasedProgramService>();
             projectFile = await progress.DoOperationAndReportProgressAsync(
                 ProjectLoadOperation.Evaluate,
                 projectPath,

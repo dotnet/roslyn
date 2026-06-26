@@ -8,7 +8,7 @@ using Microsoft.DotNet.FileBasedPrograms;
 
 namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
-internal interface IFileBasedProgramService : ILanguageService
+internal interface IFileBasedProgramService : IWorkspaceService
 {
     IProjectRootElement LoadFileBasedAppProject(
         IBuildService buildService,
