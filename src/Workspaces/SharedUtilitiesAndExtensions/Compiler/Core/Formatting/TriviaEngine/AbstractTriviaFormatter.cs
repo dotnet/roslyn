@@ -292,6 +292,7 @@ internal abstract class AbstractTriviaFormatter
         var list = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
 
         // Holds last position before a VB line continuation comment: `_ ' Comment`
+        // (LineContinuationFollowedByWhitespaceComment)
         // Allows us to reset after processing comment
         var previousLineColumn = LineColumn.Default;
         SyntaxTrivia trivia;
@@ -316,17 +317,16 @@ internal abstract class AbstractTriviaFormatter
                 if (IsEndOfLine(trivia))
                 {
                     implicitLineBreak = false;
-                    // If we are on a new line we don't want to continue
-                    // reseting indenting this handles the case of a NewLine
-                    // followed by whitespace and a comment
+                    // If we are on a new line, we don't want to continue.
+                    // We reset indentation to handle
+                    // newline followed by whitespace and a comment
                     previousLineColumn = LineColumn.Default;
                 }
                 else if (LineContinuationFollowedByWhitespaceComment(previousTrivia, (i + 1) < list.Count ? list[i + 1] : default))
                 {
-                    // We have a comment following an underscore space.
                     // The formatter thinks this next line should be
                     // shifted to right by indentation value.
-                    // Since we know through the test above that this is
+                    // Since we know that this is
                     // the special case of `_ ' Comment`, we don't want the extra indent,
                     // so we set the LineColumn value back to where it was before the comment
                     previousLineColumn = lineColumn;
