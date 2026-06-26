@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,8 +16,6 @@ using IProjectInstance = Microsoft.DotNet.FileBasedPrograms.IProjectInstance;
 using IProjectItemInstance = Microsoft.DotNet.FileBasedPrograms.IProjectItemInstance;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
-
-#pragma warning disable CS9113, IDE0060, CA1822 // TODO
 
 internal static class FileBasedProgramsProjectLoader
 {
@@ -30,7 +29,7 @@ internal static class FileBasedProgramsProjectLoader
         var buildService = new FileBasedProgramsBuildService(buildHost);
         var projectRootElement = fileBasedProgramService.LoadFileBasedAppProject(
             buildService,
-            buildService.ProjectCollection,
+            FileBasedProgramsBuildService.ProjectCollection,
             entryPointFilePath,
             reportError);
         return await buildHost.LoadProjectAsync(
@@ -44,7 +43,7 @@ internal static class FileBasedProgramsProjectLoader
 
 file sealed class FileBasedProgramsBuildService(RemoteBuildHost buildHost) : Microsoft.DotNet.FileBasedPrograms.IBuildService
 {
-    public IProjectCollection ProjectCollection => Microsoft.CodeAnalysis.MSBuild.ProjectCollection.Instance;
+    public static IProjectCollection ProjectCollection => Microsoft.CodeAnalysis.MSBuild.ProjectCollection.Instance;
 
     public IProjectInstance CreateProjectInstanceFromProjectRootElement(
         IProjectRootElement projectRoot,
@@ -78,6 +77,7 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance) :
         ProjectCollection projectCollection,
         IDictionary<string, string> globalProperties)
     {
+        Debug.Assert(projectCollection == ProjectCollection.Instance);
         var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), globalProperties, CancellationToken.None).Result;
         return new ProjectInstance(remoteProjectInstance);
     }
