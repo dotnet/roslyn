@@ -54,5 +54,15 @@ namespace Microsoft.CodeAnalysis
 
         public static bool operator !=(SyntaxAnnotation? left, SyntaxAnnotation? right) =>
             !(left == right);
+
+        public override bool Equals(object? obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }
