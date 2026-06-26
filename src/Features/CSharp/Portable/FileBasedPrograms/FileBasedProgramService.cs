@@ -23,8 +23,7 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
         Action<string> reportError)
     {
         var entryPointFileFullPath = Path.GetFullPath(entryPointFilePath);
-        // TODO: don't hardcode TFM
-        var virtualProjectBuilder = new VirtualProjectBuilder(buildService, entryPointFileFullPath, "net10.0");
+        var virtualProjectBuilder = new VirtualProjectBuilder(buildService, entryPointFileFullPath, FileBasedAppConstants.CurrentTargetFramework);
         virtualProjectBuilder.CreateProjectInstance(
             projectCollection,
             (text, path, textSpan, message, innerException) => reportError($"{new SourceFile(path, text).GetLocationString(textSpan)}: {message}"),
