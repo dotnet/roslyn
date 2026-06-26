@@ -226,7 +226,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     }
 
     [Theory, CombinatorialData]
-    public async Task TestFileBasedProgramEntryPointsRequest_ReturnsLoadedEntryPoints(bool mutatingLspWorkspace)
+    public async Task TestFileBasedProgramEntryPointsRequest_FileBasedContentRegisteredForMatchingFileName(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
@@ -239,23 +239,51 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             """;
+
+        var file = await OpenLooseFileAndWaitForProjectLoadAsync("App.cs", fileBasedProgramText, tempDir, testLspServer).ConfigureAwait(false);
+        var entryPoints = await GetFileBasedProgramEntryPointsAsync(testLspServer).ConfigureAwait(false);
+        AssertEx.SequenceEqual([file.Path], entryPoints);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgramEntryPointsRequest_OrdinaryContentNotRegisteredForMatchingFileName(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         var ordinaryFileText = """
             class C { }
             """;
 
-        var fileBasedProgramFile = tempDir.CreateFile("App.cs").WriteAllText(fileBasedProgramText);
-        var ordinaryFile = tempDir.CreateFile("Ordinary.cs").WriteAllText(ordinaryFileText);
+        _ = await OpenLooseFileAndWaitForProjectLoadAsync("App.cs", ordinaryFileText, tempDir, testLspServer).ConfigureAwait(false);
+        var entryPoints = await GetFileBasedProgramEntryPointsAsync(testLspServer).ConfigureAwait(false);
+        Assert.Empty(entryPoints);
+    }
 
-        var fileBasedProgramUri = ProtocolConversions.CreateAbsoluteDocumentUri(fileBasedProgramFile.Path);
-        var ordinaryFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(ordinaryFile.Path);
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgramEntryPointsRequest_DifferentFileNamesWithSameContentAreBothRegistered(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
 
-        await testLspServer.OpenDocumentAsync(fileBasedProgramUri, fileBasedProgramText).ConfigureAwait(false);
-        await testLspServer.OpenDocumentAsync(ordinaryFileUri, ordinaryFileText).ConfigureAwait(false);
-        await WaitForProjectLoad(fileBasedProgramUri, testLspServer);
-        await WaitForProjectLoad(ordinaryFileUri, testLspServer);
+        var tempDir = CreateTempDirectoryWithGlobalJson();
+        var fileBasedProgramText = """
+            #:sdk Microsoft.NET.Sdk
+            Console.WriteLine("Hello World!");
+            """;
 
-        var entryPoints = await testLspServer.ExecuteRequestAsync<object, string[]>(FileBasedProgramEntryPointsHandler.MethodName, new object(), CancellationToken.None);
-        AssertEx.SequenceEqual([fileBasedProgramFile.Path], entryPoints);
+        var firstFile = await OpenLooseFileAndWaitForProjectLoadAsync("App1.cs", fileBasedProgramText, tempDir, testLspServer).ConfigureAwait(false);
+        var secondFile = await OpenLooseFileAndWaitForProjectLoadAsync("App2.cs", fileBasedProgramText, tempDir, testLspServer).ConfigureAwait(false);
+
+        var entryPoints = await GetFileBasedProgramEntryPointsAsync(testLspServer).ConfigureAwait(false);
+        AssertEx.SequenceEqual([firstFile.Path, secondFile.Path], entryPoints);
     }
 
     [Theory, CombinatorialData]
@@ -630,6 +658,21 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
     {
         _ = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+    }
+
+    private async Task<string[]> GetFileBasedProgramEntryPointsAsync(TestLspServer testLspServer)
+        => await testLspServer.ExecuteRequestAsync<object, string[]>(
+            FileBasedProgramEntryPointsHandler.MethodName,
+            new object(),
+            CancellationToken.None).ConfigureAwait(false) ?? [];
+
+    private async Task<TempFile> OpenLooseFileAndWaitForProjectLoadAsync(string fileName, string sourceText, TempDirectory tempDir, TestLspServer testLspServer)
+    {
+        var file = tempDir.CreateFile(fileName).WriteAllText(sourceText);
+        var fileUri = ProtocolConversions.CreateAbsoluteDocumentUri(file.Path);
+        await testLspServer.OpenDocumentAsync(fileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(fileUri, testLspServer).ConfigureAwait(false);
+        return file;
     }
 
     [Theory, CombinatorialData]
