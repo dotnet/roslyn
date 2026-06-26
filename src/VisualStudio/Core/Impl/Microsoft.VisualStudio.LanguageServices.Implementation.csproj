@@ -45,5 +45,5 @@
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="$(RepoRoot)eng\vs-mef.ContractNamesAssignability.txt" />
-  </ItemGroup>  
+  </ItemGroup>
 </Project>
