@@ -61,18 +61,12 @@
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="InternalUtilities\NamedPipeUtil.cs" />
-    <Compile Include="..\..\..\Features\CSharp\Portable\SyncedSource\FileBasedPrograms\**\*.cs" LinkBase="FileBasedPrograms\SyncedSource" Exclude="**\Extensions.cs;**\LanguageService.cs" />
-    <Compile Include="..\..\..\Features\CSharp\Portable\Diagnostics\Analyzers\FileBasedPrograms\ExternalHelpers.cs" LinkBase="FileBasedPrograms" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\BuildHost\Rpc\Readme.md" Link="Rpc\Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildResources.resx" GenerateSource="true" />
-    <EmbeddedResource
-      Include="..\..\..\Features\CSharp\Portable\SyncedSource\FileBasedPrograms\FileBasedProgramsResources.resx"
-      GenerateSource="true"
-      Namespace="Microsoft.DotNet.FileBasedPrograms" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />

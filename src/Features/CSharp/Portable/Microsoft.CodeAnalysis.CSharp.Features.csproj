@@ -57,8 +57,7 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
-    <Compile Remove="SyncedSource\FileBasedPrograms\BuildHost.cs" />
-    <Compile Remove="SyncedSource\FileBasedPrograms\VirtualProjectBuilder.cs" />
+    <Compile Remove="SyncedSource\FileBasedPrograms\IBuildService.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpFeaturesResources.resx" GenerateSource="true" />

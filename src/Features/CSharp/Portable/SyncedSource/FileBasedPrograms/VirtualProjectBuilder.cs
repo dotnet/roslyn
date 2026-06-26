@@ -44,8 +44,6 @@ sealed class VirtualProjectBuilder
 
     private readonly IBuildService _buildService;
 
-    private readonly ILanguageService _languageService;
-
     private readonly string _targetFramework;
 
     private readonly IEnumerable<(string name, string value)> _defaultProperties;
@@ -74,7 +72,6 @@ sealed class VirtualProjectBuilder
 
     internal VirtualProjectBuilder(
         IBuildService buildService,
-        ILanguageService languageService,
         string entryPointFileFullPath,
         string targetFramework,
         string[]? requestedTargets = null,
@@ -84,7 +81,6 @@ sealed class VirtualProjectBuilder
         Debug.Assert(ExternalHelpers.IsPathFullyQualified(entryPointFileFullPath));
 
         _buildService = buildService;
-        _languageService = languageService;
         EntryPointFileFullPath = entryPointFileFullPath;
         RequestedTargets = requestedTargets;
         ArtifactsPath = artifactsPath;
@@ -144,10 +140,10 @@ sealed class VirtualProjectBuilder
     /// Parses a source file to extract property value from directives.
     /// </summary>
     /// <returns>Array of frameworks if TargetFrameworks is specified, or empty otherwise</returns>
-    internal static string? GetPropertyFromSourceFile(ILanguageService languageService, string sourceFilePath, string propertyName)
+    public static string? GetPropertyFromSourceFile(string sourceFilePath, string propertyName)
     {
         var sourceFile = SourceFile.Load(sourceFilePath);
-        var directives = languageService.FindDirectives(sourceFile, reportAllErrors: false, ErrorReporters.IgnoringReporter);
+        var directives = FileLevelDirectiveHelpers.FindDirectives(sourceFile, reportAllErrors: false, ErrorReporters.IgnoringReporter);
 
         // Return the first value. Conflicting duplicate directives are not supported.
         return directives.OfType<CSharpDirective.Property>()
@@ -283,15 +279,14 @@ sealed class VirtualProjectBuilder
             reportError);
     }
 
-    internal static IProjectInstance CreateProjectInstance(
+    public static IProjectInstance CreateProjectInstance(
         IBuildService buildService,
-        ILanguageService languageService,
         string entryPointFilePath,
         string targetFramework,
         IProjectCollection projectCollection,
         Action<string, int, string> errorReporter)
     {
-        var builder = new VirtualProjectBuilder(buildService, languageService, entryPointFilePath, targetFramework);
+        var builder = new VirtualProjectBuilder(buildService, entryPointFilePath, targetFramework);
 
         builder.CreateProjectInstance(
             projectCollection,
@@ -318,7 +313,7 @@ sealed class VirtualProjectBuilder
 
         if (directives.IsDefault)
         {
-            directives = _languageService.FindDirectives(EntryPointSourceFile, validateAllDirectives, reportError, checkDuplicates: false);
+            directives = FileLevelDirectiveHelpers.FindDirectives(EntryPointSourceFile, validateAllDirectives, reportError, checkDuplicates: false);
         }
 
         (string ProjectFileText, IProjectInstance ProjectInstance, IProjectRootElement ProjectRootElement)? lastProject = null;
@@ -430,7 +425,7 @@ sealed class VirtualProjectBuilder
                 }
 
                 var sourceFile = SourceFile.Load(filePath);
-                directives = _languageService.FindDirectives(sourceFile, validateAllDirectives, reportError, checkDuplicates: false);
+                directives = FileLevelDirectiveHelpers.FindDirectives(sourceFile, validateAllDirectives, reportError, checkDuplicates: false);
                 return true;
             }
 
@@ -565,7 +560,7 @@ sealed class VirtualProjectBuilder
                 continue;
             }
 
-            var refBuilder = new VirtualProjectBuilder(_buildService, _languageService, resolvedPath, _targetFramework);
+            var refBuilder = new VirtualProjectBuilder(_buildService, resolvedPath, _targetFramework);
             refBuilder.CreateProjectInstance(
                 projectCollection,
                 reportError,

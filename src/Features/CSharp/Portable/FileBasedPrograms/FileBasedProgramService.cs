@@ -4,7 +4,9 @@
 
 using System;
 using System.Composition;
+using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.DotNet.FileBasedPrograms;
 
 namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
@@ -14,5 +16,21 @@ namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramService() : IFileBasedProgramService
 {
-    public object LanguageService => Microsoft.DotNet.FileBasedPrograms.LanguageService.Instance;
+    public IProjectRootElement LoadFileBasedAppProject(
+        IBuildService buildService,
+        IProjectCollection projectCollection,
+        string entryPointFilePath,
+        Action<string> reportError)
+    {
+        var entryPointFileFullPath = Path.GetFullPath(entryPointFilePath);
+        // TODO: don't hardcode TFM
+        var virtualProjectBuilder = new VirtualProjectBuilder(buildService, entryPointFileFullPath, "net10.0");
+        virtualProjectBuilder.CreateProjectInstance(
+            projectCollection,
+            (text, path, textSpan, message, innerException) => reportError($"{new SourceFile(path, text).GetLocationString(textSpan)}: {message}"),
+            project: out _,
+            out var projectRootElement,
+            evaluatedDirectives: out _);
+        return projectRootElement;
+    }
 }

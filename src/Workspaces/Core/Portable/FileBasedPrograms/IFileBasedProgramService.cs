@@ -2,11 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.DotNet.FileBasedPrograms;
 
 namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
 internal interface IFileBasedProgramService : ILanguageService
 {
-    object LanguageService { get; }
+    IProjectRootElement LoadFileBasedAppProject(
+        IBuildService buildService,
+        IProjectCollection projectCollection,
+        string entryPointFilePath,
+        Action<string> reportError);
 }

@@ -40,7 +40,6 @@ internal sealed class BuildHostProjectFileInfoProvider(
                     buildHost,
                     fileBasedProgramService,
                     projectPath,
-                    languageName,
                     (error) => diagnosticReporter.Report(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, error)),
                     cancellationToken)
             ).ConfigureAwait(false);

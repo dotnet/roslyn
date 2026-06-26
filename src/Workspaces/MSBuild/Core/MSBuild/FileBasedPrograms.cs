@@ -41,27 +41,24 @@ internal static class FileBasedProgramsProjectLoader
         RemoteBuildHost buildHost,
         IFileBasedProgramService fileBasedProgramService,
         string entryPointFilePath,
-        string languageName,
         Action<string> reportError,
         CancellationToken cancellationToken)
     {
         var buildService = new FileBasedProgramsBuildService(buildHost);
-        var languageService = (Microsoft.DotNet.FileBasedPrograms.ILanguageService)fileBasedProgramService.LanguageService;
-        var entryPointFileFullPath = Path.GetFullPath(entryPointFilePath);
-        // TODO: don't hardcode TFM
-        var virtualProjectBuilder = new VirtualProjectBuilder(buildService, languageService, entryPointFileFullPath, "net10.0");
-        virtualProjectBuilder.CreateProjectInstance(
+        var projectRootElement = fileBasedProgramService.LoadFileBasedAppProject(
+            buildService,
             buildService.ProjectCollection,
-            (text, path, textSpan, message, innerException) => reportError($"{new SourceFile(path, text).GetLocationString(textSpan)}: {message}"),
-            project: out _,
-            out var projectRootElement,
-            evaluatedDirectives: out _);
-
-        return await buildHost.LoadProjectAsync(projectRootElement.FullPath!, projectRootElement.GetRawXml(), languageName, fileBasedApp: true, cancellationToken).ConfigureAwait(false);
+            entryPointFilePath,
+            reportError);
+        return await buildHost.LoadProjectAsync(
+            projectRootElement.FullPath!,
+            projectRootElement.GetRawXml(),
+            LanguageNames.CSharp,
+            fileBasedApp: true,
+            cancellationToken).ConfigureAwait(false);
     }
 }
 
-// TODO: don't allow customizing project collections?
 file sealed class ProjectCollection : IProjectCollection
 {
     public static ProjectCollection Instance { get; } = new();

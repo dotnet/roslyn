@@ -54,13 +54,6 @@ static async Task MainAsync(string[] args)
             name.EndsWith(".resx", StringComparison.OrdinalIgnoreCase),
         mapRelativePath: static name => name).ConfigureAwait(false);
 
-    var sourceFiles2 = await GetDirectoryFilesAsync(
-        httpClient,
-        sdkCommit,
-        githubDirectoryPath: "src/Microsoft.DotNet.ProjectTools",
-        includeFile: static name => name == "LanguageService.cs",
-        mapRelativePath: static name => name).ConfigureAwait(false);
-
     var editorConfigFiles = await GetDirectoryFilesAsync(
         httpClient,
         sdkCommit,
@@ -69,7 +62,6 @@ static async Task MainAsync(string[] args)
         mapRelativePath: static _ => ".editorconfig").ConfigureAwait(false);
 
     var sourcePackageFiles = sourceFiles
-        .Concat(sourceFiles2)
         .Concat(editorConfigFiles)
         .ToList();
     if (sourcePackageFiles.Count == 0) throw new InvalidOperationException("No source files found in dotnet/sdk.");
