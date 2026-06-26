@@ -14,6 +14,10 @@ internal class TestFormattingLoggerFactory(ITestOutputHelper testOutputHelper) :
 {
     private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
 
+    public void SetLogDirectory(string? logDirectory)
+    {
+    }
+
     public IFormattingLogger? CreateLogger(string documentFilePath, string formattingType)
     {
         var logger = new TestFormattingLogger(_testOutputHelper);

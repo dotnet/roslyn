@@ -5,5 +5,7 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal interface IFormattingLoggerFactory
 {
+    void SetLogDirectory(string? logDirectory);
+
     IFormattingLogger? CreateLogger(string documentFilePath, string formattingType);
 }
