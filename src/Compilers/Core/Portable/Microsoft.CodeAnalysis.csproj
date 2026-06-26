@@ -31,10 +31,16 @@
       Analyzers that will be used to analyze projects that references
       Microsoft.CodeAnalysis project or Microsoft.CodeAnalysis.Common package.
 
-      Note: PrivateAssets="ContentFiles" ensures that projects referencing Microsoft.CodeAnalysis.Common package
-      will import everything but content files from Microsoft.CodeAnalysis.Analyzers, specifically, analyzers.
+      Note: this project reference ensures analyzers from Microsoft.CodeAnalysis.Analyzers are
+      applied while building Microsoft.CodeAnalysis.
     -->
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Condition="'$(DotNetBuildSourceOnly)' != 'true'" PrivateAssets="ContentFiles" />
+    <ProjectReference Include="..\..\..\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.Package.csproj"
+                      Condition="'$(DotNetBuildSourceOnly)' != 'true'"
+                      Targets="ResolveProjectReferences"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Memory" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Reflection.Metadata" />
