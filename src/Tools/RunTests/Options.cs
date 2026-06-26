@@ -78,6 +78,11 @@ namespace RunTests
         public bool CollectDumps { get; set; }
 
         /// <summary>
+        /// Disable partitioning and parallelization across test assemblies.
+        /// </summary>
+        public bool Sequential { get; set; }
+
+        /// <summary>
         /// Whether to run test partitions as Helix work items.
         /// </summary>
         public bool UseHelix { get; set; }
@@ -143,6 +148,7 @@ namespace RunTests
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
             var helix = false;
+            var sequential = false;
             var helixQueueName = "Windows.10.Amd64.Open";
             string? helixApiAccessToken = null;
             string? testFilter = null;
@@ -167,6 +173,7 @@ namespace RunTests
                 { "exclude=", "Regex for excluding unit test dlls (can be specified multiple times)", s => excludeFilter.Add(s) },
                 { "testPlatform=", "Architecture to test on: x86, x64 or arm64", s => platform = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
+                { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
@@ -345,6 +352,12 @@ namespace RunTests
                     ConsoleUtil.Error("--testfilter is not supported with --helix.");
                     return null;
                 }
+
+                if (sequential)
+                {
+                    ConsoleUtil.Error("--sequential is not supported with --helix.");
+                    return null;
+                }
             }
             else
             {
@@ -356,7 +369,7 @@ namespace RunTests
                     return null;
                 }
 
-                if (helixQueueName != "Windows.10.Amd64.Open")
+                if (helixQueueName is not null)
                 {
                     ConsoleUtil.Error("--helixQueueName is not supported without --helix.");
                     return null;
@@ -376,6 +389,7 @@ namespace RunTests
                 ExcludeFilter = excludeFilter,
 
                 CollectDumps = collectDumps,
+                Sequential = sequential,
                 UseHelix = helix,
                 HelixQueueName = helixQueueName,
                 HelixApiAccessToken = helixApiAccessToken,

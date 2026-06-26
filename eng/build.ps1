@@ -358,6 +358,7 @@ function TestUsingRunTests() {
 
   if ($testVsi) {
     $args += " --testFramework:core --testFramework:desktop"
+    $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
