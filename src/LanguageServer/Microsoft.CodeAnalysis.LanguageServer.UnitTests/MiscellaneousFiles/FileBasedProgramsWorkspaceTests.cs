@@ -68,8 +68,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
-        var tempDir = TempRoot.CreateDirectory();
-        tempDir.CreateFile("global.json").WriteAllText("""{ "sdk": { "version": "10.0.300", "rollForward": "latestMajor" } }""");
+        var tempDir = CreateTempDirectoryWithGlobalJson();
         tempDir.CreateFile("Util.cs").WriteAllText("""
             #:property TargetFramework=net10.0
             #:property OutputType=Library
