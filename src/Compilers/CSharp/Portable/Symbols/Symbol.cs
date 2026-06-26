@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         // https://github.com/dotnet/roslyn/issues/82546: add a public API for this (probably just expose a bool)
         /// <summary>
-        /// Whether this member is considered unsafe under the updated memory safety rules.
+        /// Whether this member is considered caller-unsafe.
         /// See <see cref="CallerUnsafeMode"/> for more details.
         /// </summary>
         internal abstract CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound);
