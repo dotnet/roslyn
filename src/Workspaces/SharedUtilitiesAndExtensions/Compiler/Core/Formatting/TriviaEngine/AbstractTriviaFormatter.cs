@@ -291,7 +291,7 @@ internal abstract class AbstractTriviaFormatter
 
         var list = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
 
-        // Holds last position before a VB line continuation comment: _ ' syntax
+        // Holds last position before a VB line continuation comment: `_ ' Comment`
         // Allows us to reset after processing comment
         var previousLineColumn = LineColumn.Default;
         SyntaxTrivia trivia;
@@ -323,10 +323,11 @@ internal abstract class AbstractTriviaFormatter
                 }
                 else if (LineContinuationFollowedByWhitespaceComment(previousTrivia, (i + 1) < list.Count ? list[i + 1] : default))
                 {
-                    // we have a comment following an underscore space the formatter
-                    // thinks this next line should be shifted to right by
-                    // indentation value. Since we know through the test above that
-                    // this is the special case of _ ' Comment we don't want the extra indent
+                    // We have a comment following an underscore space.
+                    // The formatter thinks this next line should be
+                    // shifted to right by indentation value.
+                    // Since we know through the test above that this is
+                    // the special case of `_ ' Comment`, we don't want the extra indent,
                     // so we set the LineColumn value back to where it was before the comment
                     previousLineColumn = lineColumn;
                 }
