@@ -10,5 +10,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal interface IProjectInstance
 {
     DiagnosticLogItem[] GetDiagnosticLogItems();
+    int[] GetItems(string itemType);
     string GetPropertyValue(string propertyName);
+    string ExpandString(string value);
 }

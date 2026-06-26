@@ -4,12 +4,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.DotNet.FileBasedPrograms;
 using IProjectInstance = Microsoft.DotNet.FileBasedPrograms.IProjectInstance;
+using IProjectItemInstance = Microsoft.DotNet.FileBasedPrograms.IProjectItemInstance;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -64,8 +67,7 @@ file sealed class ProjectCollection : IProjectCollection
 
     private ProjectCollection() { }
 
-    // TODO: do we even need this if it's just empty?
-    public IDictionary<string, string> GlobalProperties => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    public IDictionary<string, string> GlobalProperties => ImmutableDictionary<string, string>.Empty;
 }
 
 file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance) : IProjectInstance
@@ -76,19 +78,19 @@ file sealed class ProjectInstance(RemoteProjectInstance remoteProjectInstance) :
         ProjectCollection projectCollection,
         IDictionary<string, string> globalProperties)
     {
-        // TODO: pass global properties
-        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), CancellationToken.None).Result;
+        var remoteProjectInstance = buildHost.LoadProjectInstanceAsync(projectRoot.FullPath!, projectRoot.GetRawXml(), globalProperties, CancellationToken.None).Result;
         return new ProjectInstance(remoteProjectInstance);
     }
 
-    public IEnumerable<IProjectItemInstance> GetItems(string itemType) => []; // TODO
+    public IEnumerable<IProjectItemInstance> GetItems(string itemType) => remoteProjectInstance.GetItemsAsync(itemType, CancellationToken.None).Result.Select(i => new ProjectItemInstance(itemType, i));
     public string GetPropertyValue(string propertyName) => remoteProjectInstance.GetPropertyValueAsync(propertyName, CancellationToken.None).Result;
-    public string ExpandString(string value) => value; // TODO
+    public string ExpandString(string value) => remoteProjectInstance.ExpandStringAsync(value, CancellationToken.None).Result;
 }
 
-file sealed class ProjectItemInstance
+file sealed class ProjectItemInstance(string itemType, RemoteProjectItemInstance remoteProjectItemInstance) : IProjectItemInstance
 {
-    public string GetMetadataValue(string name) => throw new NotImplementedException(); // TODO
+    public string ItemType => itemType;
+    public string GetMetadataValue(string name) => remoteProjectItemInstance.GetMetadataValueAsync(name, CancellationToken.None).Result;
 }
 
 file sealed class ProjectRootElement(string content) : IProjectRootElement

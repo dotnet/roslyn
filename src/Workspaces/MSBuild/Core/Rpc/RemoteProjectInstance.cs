@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -25,6 +26,15 @@ internal sealed class RemoteProjectInstance
         return diagnostics.ToImmutableArray();
     }
 
+    public async Task<ImmutableArray<RemoteProjectItemInstance>> GetItemsAsync(string itemType, CancellationToken cancellationToken)
+    {
+        var itemInstances = await _client.InvokeAsync<int[]>(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.GetItems), parameters: [itemType], cancellationToken).ConfigureAwait(false);
+        return itemInstances.SelectAsArray(i => new RemoteProjectItemInstance(_client, i));
+    }
+
     public Task<string> GetPropertyValueAsync(string propertyName, CancellationToken cancellationToken)
         => _client.InvokeAsync<string>(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.GetPropertyValue), parameters: [propertyName], cancellationToken);
+
+    public Task<string> ExpandStringAsync(string value, CancellationToken cancellationToken)
+        => _client.InvokeAsync<string>(_remoteProjectInstanceTargetObject, nameof(IProjectInstance.ExpandString), parameters: [value], cancellationToken);
 }

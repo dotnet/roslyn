@@ -8,6 +8,7 @@ using MSB = Microsoft.Build;
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class ProjectInstance(
+    RpcServer server,
     MSB.Execution.ProjectInstance? projectInstance,
     DiagnosticLog log) :
 #if NETFRAMEWORK
@@ -18,6 +19,24 @@ internal sealed class ProjectInstance(
     public DiagnosticLogItem[] GetDiagnosticLogItems()
         => [.. log];
 
+    public int[] GetItems(string itemType)
+    {
+        if (projectInstance is null)
+        {
+            return [];
+        }
+
+        var items = projectInstance.GetItems(itemType);
+        var result = new int[items.Count];
+        var i = 0;
+        foreach (var item in items)
+        {
+            result[i++] = server.AddTarget(new ProjectItemInstance(item));
+        }
+
+        return result;
+    }
+
     public string GetPropertyValue(string propertyName)
     {
         if (projectInstance is null)
@@ -26,5 +45,15 @@ internal sealed class ProjectInstance(
         }
 
         return projectInstance.GetPropertyValue(propertyName);
+    }
+
+    public string ExpandString(string value)
+    {
+        if (projectInstance is null)
+        {
+            return value;
+        }
+
+        return projectInstance.ExpandString(value);
     }
 }
