@@ -17,13 +17,15 @@
     <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.1</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.1</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
-    <SqliteVersion>2.1.6</SqliteVersion>
+    <SQLitePCLRawCoreVersion>3.0.2</SQLitePCLRawCoreVersion>
+    <SQLite3MCPCLRawVersion>2.3.5</SQLite3MCPCLRawVersion>
     <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
     <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
 
   <!--
-    MSBuild - need to use older packages when targeting net8.0 since the newer versions only support net472 and net9.0.
+    MSBuild - the BuildHost still targets net8.0 (via NetRoslynBuildHostNetCoreVersion) and needs older packages
+    since the newer versions only support net472 and net9.0+.
     When targeting the latest .NET the version must also be lower or equal to one specified in
     https://github.com/dotnet/sdk/blob/main/src/Layout/redist/minimumMSBuildVersion#L1
   -->
@@ -226,14 +228,10 @@
 
     <PackageVersion Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" />
 
-    <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.osx" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SqliteVersion)" />
-    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.core" Version="$(SQLitePCLRawCoreVersion)" />
+    <PackageVersion Include="SQLite3MC.PCLRaw.bundle" Version="$(SQLite3MCPCLRawVersion)" />
+    <PackageVersion Include="SQLite3MC.PCLRaw.lib" Version="$(SQLite3MCPCLRawVersion)" />
+    <PackageVersion Include="SQLite3MC.PCLRaw.provider" Version="$(SQLite3MCPCLRawVersion)" />
 
     <PackageVersion Include="Humanizer.Core" Version="$(HumanizerVersion)" />
     <PackageVersion Include="ICSharpCode.Decompiler" Version="9.1.0.7988" />
@@ -315,11 +313,11 @@
       Infra
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.Diagnostics.NETCore.Client" Version="0.2.661903" />
     <PackageVersion Include="MSBuild.StructuredLogger" Version="2.3.113" />
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />
-    <PackageVersion Include="SourceGear.Sqlite3" Version="3.50.4.5" />
     <PackageVersion Include="MicroBuildPluginsSwixBuild" Version="1.1.87" />
     <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
     <PackageVersion Include="Microsoft.DotNet.FileBasedPrograms" Version="$(MicrosoftDotNetFileBasedProgramsPackageVersion)" />

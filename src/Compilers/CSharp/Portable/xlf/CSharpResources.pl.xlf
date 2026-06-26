@@ -1537,6 +1537,16 @@
         <target state="translated">„{0}” nie zawiera definicji dla „{1}” i nie znaleziono dostępnej metody rozszerzenia „{1}”, która przyjmowałaby pierwszy argument typu „{0}” (czy chodziło Ci o iterację kolekcji asynchronicznej za pomocą polecenia „await foreach”?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
         <target state="translated">Nie można przekonwertować typu „{0}” na „object” za pomocą niejawnego odwołania lub konwersji typu boxing</target>
@@ -2848,8 +2858,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedFeatureInRuntimeAsync">
-        <source>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
-        <target state="translated">Metoda „{0}” używa funkcji, która nie jest obecnie obsługiwana przez asynchroniczne środowisko uruchomieniowe. Wyłącz metodę z trybu asynchronicznego środowiska uruchomieniowego, przypisując jej atrybut „System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)”.</target>
+        <source>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</source>
+        <target state="new">Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRef">
@@ -3080,6 +3090,11 @@
       <trans-unit id="IDS_FeatureInstanceMemberInNameof">
         <source>instance member in 'nameof'</source>
         <target state="translated">składowa wystąpienia w elemencie „nameof”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLabeledBreakContinue">
+        <source>labeled break and continue</source>
+        <target state="new">labeled break and continue</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
