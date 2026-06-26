@@ -149,7 +149,7 @@ namespace RunTests
             var excludeFilter = new List<string>();
             var helix = false;
             var sequential = false;
-            var helixQueueName = "Windows.10.Amd64.Open";
+            string? helixQueueName = null;
             string? helixApiAccessToken = null;
             string? testFilter = null;
             int? timeout = null;
