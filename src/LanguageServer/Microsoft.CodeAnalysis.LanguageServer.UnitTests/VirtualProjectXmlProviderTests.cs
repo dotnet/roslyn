@@ -49,7 +49,7 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
             }
             """));
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.Null(contentNullable);
     }
 
@@ -74,7 +74,7 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
             """);
 
         var logger = LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>();
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), logger, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), logger, localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var virtualProjectXml = content.VirtualProjectXml;
@@ -107,7 +107,7 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
             }
             """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(content.VirtualProjectXml);
@@ -133,15 +133,13 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
             }
             """);
 
-        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.Null(content);
     }
 
     [Fact]
     public async Task GetProjectXml_BadDirective_01()
     {
-        using var _ = new EnsureEnglishUICulture();
-
         var projectProvider = await GetProjectXmlProviderAsync();
 
         var tempDir = TempRoot.CreateDirectory();
@@ -161,7 +159,7 @@ public sealed class VirtualProjectXmlProviderTests(ITestOutputHelper testOutputH
         }
         """);
 
-        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, GetDotnetCliHelper(), LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>(), localizeOutput: false, CancellationToken.None);
         Assert.NotNull(contentNullable);
         var content = contentNullable.Value;
         var diagnostic = content.Diagnostics.Single();

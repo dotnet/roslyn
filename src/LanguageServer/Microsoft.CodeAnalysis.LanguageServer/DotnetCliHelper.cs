@@ -42,7 +42,7 @@ internal sealed class DotnetCliHelper : ILspService
     /// </summary>
     private async Task<string> GetDotnetSdkFolderFromDotnetExecutableAsync(string projectOutputDirectory, CancellationToken cancellationToken)
     {
-        using var process = Run(["--info"], workingDirectory: projectOutputDirectory, shouldLocalizeOutput: false);
+        using var process = Run(["--info"], workingDirectory: projectOutputDirectory, localizeOutput: false);
 
         string? dotnetSdkFolderPath = null;
         process.OutputDataReceived += (_, e) =>
@@ -75,7 +75,7 @@ internal sealed class DotnetCliHelper : ILspService
         return dotnetSdkFolderPath;
     }
 
-    public Process Run(string[] arguments, string? workingDirectory, bool shouldLocalizeOutput, bool keepStandardInputOpen = false)
+    public Process Run(string[] arguments, string? workingDirectory, bool localizeOutput, bool keepStandardInputOpen = false)
     {
         _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments '{string.Join(' ', arguments)}'");
 
@@ -99,7 +99,7 @@ internal sealed class DotnetCliHelper : ILspService
         // Wto start the server; otherwise we won't find the users installed sdks.
         startInfo.Environment.Remove(DotnetRootEnvVar);
 
-        if (!shouldLocalizeOutput)
+        if (!localizeOutput)
         {
             // The caller requested that we not localize the output of the command (typically be cause it needs to be parsed)
             // Set the appropriate environment variable for the process so that we don't get localized output.
