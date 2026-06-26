@@ -2267,6 +2267,186 @@ public static class E
     }
 
     [Fact]
+    public void Nullability_PropertyAccess_25()
+    {
+        var src = """
+#nullable enable
+
+string s = "";
+if (s.P != null)
+{
+    s.P.ToString();
+    object o = s;
+    o.P.ToString();
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public object? P { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+
+        src = """
+#nullable enable
+
+Derived s = new Derived();
+if (s.P != null)
+{
+    s.P.ToString();
+    Base o = s;
+    o.P.ToString();
+}
+
+class Base
+{
+    public object? P { get => throw null!; set => throw null!; }
+}
+
+class Derived : Base { }
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
+    public void Nullability_PropertyAccess_26()
+    {
+        // Reassigning the receiver resets the tracked null-state of its extension-property member
+        var src = """
+#nullable enable
+
+object o = new object();
+o.P = new object();
+o.P.ToString();
+
+o = new object();
+o.P.ToString(); // 1
+
+static class E
+{
+    extension(object o)
+    {
+        public object? P { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (8,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(8, 1));
+
+        src = """
+#nullable enable
+
+C o = new C();
+o.P = new object();
+o.P.ToString();
+
+o = new C();
+o.P.ToString(); // 1
+
+class C
+{
+    public object? P { get => throw null!; set => throw null!; }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (8,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(8, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
+    public void Nullability_PropertyAccess_27()
+    {
+        // Reassigning the receiver also resets the tracked null-state of members nested under an extension property
+        var src = """
+#nullable enable
+
+object o = new object();
+o.P!.F = new object();
+o.P!.F.ToString();
+
+o = new object();
+o.P!.F.ToString(); // 1
+
+static class E
+{
+    extension(object o)
+    {
+        public C? P { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public object? F;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (8,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P!.F.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P!.F").WithLocation(8, 1));
+
+        src = """
+#nullable enable
+
+D o = new D();
+o.P!.F = new object();
+o.P!.F.ToString();
+
+o = new D();
+o.P!.F.ToString(); // 1
+
+class D
+{
+    public C? P { get => throw null!; set => throw null!; }
+}
+
+class C
+{
+    public object? F;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (8,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P!.F.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P!.F").WithLocation(8, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
+    public void Nullability_PropertyAccess_28()
+    {
+        var src = """
+#nullable enable
+
+object o = new object();
+o.P.ToString(); // 1
+
+o = new object();
+if (o.P != null)
+{
+    o.P.ToString();
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public object? P { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(4, 1));
+    }
+
+    [Fact]
     public void Nullability_Setter_01()
     {
         // generic extension parameter, instance member, property write access, notnull constraint
@@ -2550,7 +2730,7 @@ static class E
             Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull3").WithLocation(11, 14));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81913")]
     public void Nullability_Setter_09()
     {
         // property's state
@@ -2560,11 +2740,11 @@ static class E
 object o = new object();
 o.P = null;
 o.P.ToString(); // 1
-o.P.ToString(); // 2
+o.P.ToString();
 
 o.P = new object();
-o.P.ToString(); // 3
-o.P.ToString(); // 4
+o.P.ToString();
+o.P.ToString();
 
 static class E
 {
@@ -2577,16 +2757,7 @@ static class E
         CreateCompilation(src).VerifyEmitDiagnostics(
             // (5,1): warning CS8602: Dereference of a possibly null reference.
             // o.P.ToString(); // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 1),
-            // (6,1): warning CS8602: Dereference of a possibly null reference.
-            // o.P.ToString(); // 2
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(6, 1),
-            // (9,1): warning CS8602: Dereference of a possibly null reference.
-            // o.P.ToString(); // 3
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(9, 1),
-            // (10,1): warning CS8602: Dereference of a possibly null reference.
-            // o.P.ToString(); // 4
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(10, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 1));
 
         src = """
 #nullable enable
@@ -2697,7 +2868,10 @@ static class E
         CreateCompilation(src).VerifyEmitDiagnostics(
             // (10,1): warning CS8601: Possible null reference assignment.
             // oNotNull.P += (object?)null; // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += (object?)null").WithLocation(10, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += (object?)null").WithLocation(10, 1),
+            // (11,1): warning CS8601: Possible null reference assignment.
+            // oNotNull.P += new object();
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += new object()").WithLocation(11, 1));
     }
 
     [Fact]
@@ -2738,7 +2912,10 @@ static class E
             Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull2.P += new object()").WithLocation(7, 1),
             // (10,1): warning CS8601: Possible null reference assignment.
             // oNotNull.P += (object?)null; // 3
-            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += (object?)null").WithLocation(10, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += (object?)null").WithLocation(10, 1),
+            // (11,1): warning CS8601: Possible null reference assignment.
+            // oNotNull.P += new object();
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += new object()").WithLocation(11, 1));
     }
 
     [Fact]
@@ -3878,12 +4055,8 @@ class C
     public object? P3 => throw null!;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability analysis for property pattern with extension property (unexpected warning)
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (4,5): warning CS8602: Dereference of a possibly null reference.
-            //     x.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(4, 5),
             // (7,5): warning CS8602: Dereference of a possibly null reference.
             //     x2.ToString(); // 1
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(7, 5));
@@ -3927,10 +4100,7 @@ class C
 
         var comp = CreateCompilation(source);
         comp.VerifyTypes();
-        comp.VerifyEmitDiagnostics(
-            // (17,13): warning CS8602: Dereference of a possibly null reference.
-            //             first.ToString(); // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "first").WithLocation(17, 13));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -4018,10 +4188,7 @@ class C
         comp.VerifyEmitDiagnostics(
             // (15,23): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'ListExtensions.extension<T>(List<T>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
             //         if (list is { First: var first }) // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "First").WithArguments("ListExtensions.extension<T>(System.Collections.Generic.List<T>)", "T", "string?").WithLocation(15, 23),
-            // (17,13): warning CS8602: Dereference of a possibly null reference.
-            //             first.ToString(); // 2
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "first").WithLocation(17, 13));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "First").WithArguments("ListExtensions.extension<T>(System.Collections.Generic.List<T>)", "T", "string?").WithLocation(15, 23));
     }
 
     [Fact]
@@ -4051,11 +4218,7 @@ class C
             """;
 
         var comp = CreateCompilation([source, NotNullAttributeDefinition]);
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : should we extend member post-conditions to work with extension members?
-        comp.VerifyEmitDiagnostics(
-            // (9,13): warning CS8602: Dereference of a possibly null reference.
-            //             notNull.ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "notNull").WithLocation(9, 13));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]

@@ -2769,12 +2769,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsSlotMember(int slot, Symbol possibleMember)
         {
-            TypeSymbol? possibleBase = possibleMember.ContainingType;
-
-            if (possibleBase is null)
+            TypeSymbol? possibleBase;
+            if (possibleMember.TryGetInstanceExtensionParameter(out ParameterSymbol? extensionParameter))
             {
-                Debug.Assert(false, "If this assert fires, please add a unit test for the scenario.");
-                return false;
+                possibleBase = extensionParameter.Type;
+                if (possibleBase is null || possibleBase.IsErrorType())
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                possibleBase = possibleMember.ContainingType;
+                if (possibleBase is null)
+                {
+                    Debug.Assert(false, "If this assert fires, please add a unit test for the scenario.");
+                    return false;
+                }
             }
 
             TypeSymbol possibleDerived = NominalSlotType(slot);
@@ -2916,7 +2927,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variables.GetMembers(members, targetSlot);
             foreach (var (variable, slot) in members)
             {
-                var symbol = AsMemberOfType(targetType, variable.Symbol);
+                var symbol = variable.Symbol.IsExtensionBlockMember()
+                    ? variable.Symbol
+                    : AsMemberOfType(targetType, variable.Symbol);
                 SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(symbol));
                 InheritDefaultState(GetTypeOrReturnType(symbol), slot);
             }
@@ -12197,6 +12210,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
                 FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);
                 TypeWithState typeWithState = ApplyUnconditionalAnnotations(typeWithAnnotations.ToTypeWithState(), memberAnnotations);
+
+                if (PossiblyNullableType(typeWithState.Type))
+                {
+                    int slot = MakeMemberSlot(node.ReceiverOpt, updatedProperty);
+                    if (slot > 0)
+                    {
+                        var state = GetState(ref this.State, slot);
+                        typeWithState = TypeWithState.Create(typeWithState.Type, state);
+                    }
+                }
 
                 SetResult(node, typeWithState, typeWithAnnotations);
             }
