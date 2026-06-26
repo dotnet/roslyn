@@ -20,10 +20,12 @@ internal sealed class DefaultInterceptorManager : InterceptorManager
 
     [ImportingConstructor]
     public DefaultInterceptorManager(
+#pragma warning disable VSMEF015 // Metadata view interface should be source-generated
 #pragma warning disable CS0618 // Type or member is obsolete
         [ImportMany] IEnumerable<Lazy<MessageInterceptor, IInterceptMethodMetadata>> lazyInterceptors,
 #pragma warning restore CS0618 // Type or member is obsolete
         [ImportMany] IEnumerable<Lazy<GenericMessageInterceptor, IInterceptMethodMetadata>> lazyGenericInterceptors)
+#pragma warning restore VSMEF015 // Metadata view interface should be source-generated
     {
         _ = lazyInterceptors ?? throw new ArgumentNullException(nameof(lazyInterceptors));
 #pragma warning disable CS0612 // Type or member is obsolete

@@ -6,14 +6,17 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using PolyType;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
+// We aren't actually running in an AOT process, but we want to be compatible with other libraries that are
+// configured for AOT. Thus suppressing the warnings for now.
+#pragma warning disable StreamJsonRpc0002 // Declare partial interface
+#pragma warning disable StreamJsonRpc0008 // Add methods to PolyType shape for RPC contract interface
+
 [RpcMarshalable]
-[TypeShape(IncludeMethods = MethodShapeFlags.PublicInstance)]
-internal partial interface IWorkspaceProject : IDisposable
+internal interface IWorkspaceProject : IDisposable
 {
     Task SetDisplayNameAsync(string displayName, CancellationToken cancellationToken);
 
@@ -47,3 +50,6 @@ internal partial interface IWorkspaceProject : IDisposable
 
     Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken);
 }
+
+#pragma warning restore StreamJsonRpc0008 // Add methods to PolyType shape for RPC contract interface
+#pragma warning restore StreamJsonRpc0002 // Declare partial interface

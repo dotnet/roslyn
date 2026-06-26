@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class IntentSourceProvider(
+#pragma warning disable VSMEF016 // Referenced metadata view interface should be source-generated
     [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders) : IIntentSourceProvider
+#pragma warning restore VSMEF016 // Referenced metadata view interface should be source-generated
 {
     private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
 
