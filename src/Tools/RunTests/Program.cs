@@ -205,47 +205,7 @@ namespace RunTests
         /// </summary>
         private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
         {
-            var procDumpFilePath = options.CollectDumps ? FindProcDump(options.ArtifactsDirectory) : null;
-
-            async Task DumpProcess(Process targetProcess, string procDumpExeFilePath, string dumpFilePath)
-            {
-                var name = targetProcess.ProcessName;
-
-                // Our space for saving dump files is limited. Skip dumping for processes that won't contribute
-                // to bug investigations.
-                if (name is "procdump" or "conhost")
-                {
-                    return;
-                }
-
-                ConsoleUtil.Write($"Dumping {name} {targetProcess.Id} to {dumpFilePath} ... ");
-                try
-                {
-                    var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
-                    var processInfo = ProcessRunner.CreateProcess(procDumpExeFilePath, args, cancellationToken: cancellationToken);
-                    var processOutput = await processInfo.Result;
-
-                    // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
-                    // for successful cases (possibly returning the count of dumps that were written).  Best 
-                    // backup is to test for the dump file being present.
-                    if (File.Exists(dumpFilePath))
-                    {
-                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
-                    }
-                    else
-                    {
-                        ConsoleUtil.WriteLine($"FAILED with {processOutput.ExitCode}");
-                        ConsoleUtil.WriteLine($"{procDumpExeFilePath} {args}");
-                        ConsoleUtil.WriteLine(string.Join(Environment.NewLine, processOutput.OutputLines));
-                    }
-                }
-                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
-                {
-                    ConsoleUtil.WriteLine("FAILED");
-                    ConsoleUtil.WriteLine(ex.Message);
-                    Logger.Log("Failed to dump process", ex);
-                }
-            }
+            ConsoleUtil.Error("Test timeout exceeded, dumping remaining processes");
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -256,41 +216,33 @@ namespace RunTests
                 ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.ErrorLines));
             }
 
-            if (options.CollectDumps && !string.IsNullOrEmpty(procDumpFilePath))
-            {
-                ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
+            var dumpDir = options.LogFilesDirectory;
+            Directory.CreateDirectory(dumpDir);
 
+            if (options.CollectDumps)
+            {
                 var counter = 0;
-                foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
+                foreach (var proc in ProcessUtil.GetTestHostProcesses().OrderBy(x => x.ProcessName))
                 {
-                    var dumpDir = options.LogFilesDirectory;
-                    var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, procDumpFilePath, dumpFilePath);
+                    var name = proc.ProcessName;
+
+                    var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
+                    ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
+
+                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
+                    {
+                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
+                    }
+                    else
+                    {
+                        ConsoleUtil.WriteLine("FAILED");
+                    }
+
                     counter++;
                 }
             }
 
             WriteLogFile(options);
-        }
-
-        private static string? FindProcDump(string artifactsDirectory)
-        {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return null;
-
-            var sysInternalsPath = @"C:\SysInternals\procdump.exe";
-            if (File.Exists(sysInternalsPath))
-                return sysInternalsPath;
-
-            var repoRoot = Path.GetDirectoryName(artifactsDirectory);
-            if (repoRoot is not null)
-            {
-                var toolsPath = Path.Combine(repoRoot, ".tools", "ProcDump", "procdump.exe");
-                if (File.Exists(toolsPath))
-                    return toolsPath;
-            }
-
-            return null;
         }
 
         private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)

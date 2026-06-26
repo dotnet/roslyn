@@ -7,6 +7,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
+#if DEBUG
+using System.Runtime.CompilerServices;
+#endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // HashSet that can be recycled via an object pool
@@ -41,17 +45,36 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return pool;
         }
 
-        public static PooledHashSet<T> GetInstance()
+        public static PooledHashSet<T> GetInstance(
+#if DEBUG
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            var instance = s_poolInstance.Allocate();
+            var instance = s_poolInstance.Allocate(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             Debug.Assert(instance.Count == 0);
             return instance;
         }
 
 #if !MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER
-        public static PooledDisposer<PooledHashSet<T>> GetInstance(out PooledHashSet<T> instance)
+        public static PooledDisposer<PooledHashSet<T>> GetInstance(
+            out PooledHashSet<T> instance
+#if DEBUG
+            , [CallerFilePath] string filePath = ""
+            , [CallerLineNumber] int lineNumber = 0
+#endif
+            )
         {
-            instance = GetInstance();
+            instance = GetInstance(
+#if DEBUG
+                filePath, lineNumber
+#endif
+                );
             return new PooledDisposer<PooledHashSet<T>>(instance);
         }
 

@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -21,6 +25,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
     protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
 
     protected abstract string GetMakeAsyncTaskFunctionResource();
+    protected abstract string GetUsedAsDelegateWarningResource();
     protected abstract string GetMakeAsyncVoidFunctionResource();
 
     protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTypes);
@@ -66,26 +71,124 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         // Heuristic to recognize the common case for entry point method
         var isEntryPoint = methodSymbol.IsStatic && IsLikelyEntryPointName(methodSymbol.Name, document);
 
-        // Offer to convert to a Task return type.
+        // Always register the `async Task` fix first.
         var taskTitle = GetMakeAsyncTaskFunctionResource();
         context.RegisterCodeFix(
             CodeAction.Create(
                 taskTitle,
-                cancellationToken => FixNodeAsync(document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
+                cancellationToken => FixNodeAsync(
+                    document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken),
                 taskTitle),
             context.Diagnostics);
 
-        // If it's a void returning method (and not an entry point), also offer to keep the void return type
+        // Also offer `async void` if the method is void-returning and not an entry point.
         if (methodSymbol.IsOrdinaryMethodOrLocalFunction() && methodSymbol.ReturnsVoid && !isEntryPoint)
         {
             var asyncVoidTitle = GetMakeAsyncVoidFunctionResource();
             context.RegisterCodeFix(
                 CodeAction.Create(
                     asyncVoidTitle,
-                    cancellationToken => FixNodeAsync(document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken),
+                    cancellationToken => FixNodeAsync(
+                        document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken),
                     asyncVoidTitle),
                 context.Diagnostics);
         }
+    }
+
+    /// <summary>
+    /// Looks in the current project for a location where <paramref name="methodSymbol"/>
+    /// is converted to a delegate.
+    /// </summary>
+    /// <returns><see langword="true"/> iff such a reference is found.</returns>
+    private static async Task<bool> HasReferenceAsDelegateInThisProjectAsync(
+        Project project,
+        IMethodSymbol methodSymbol,
+        CancellationToken cancellationToken)
+    {
+        // 3 == methodSymbol + partial definition + partial implementation
+        // `seenSymbols` will filter out duplicates.
+        var symbolsToSearch = ImmutableArray.CreateBuilder<IMethodSymbol>(3);
+        symbolsToSearch.Add(methodSymbol);
+
+        if (methodSymbol.PartialDefinitionPart is { } partialDefinitionPart)
+            symbolsToSearch.Add(partialDefinitionPart);
+
+        if (methodSymbol.PartialImplementationPart is { } partialImplementationPart)
+            symbolsToSearch.Add(partialImplementationPart);
+
+        var cache = new Dictionary<DocumentId, SemanticDocument>();
+        var seenSymbols = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
+        var documentSet = project.Documents.ToImmutableHashSet();
+
+        foreach (var symbol in symbolsToSearch)
+        {
+            if (!seenSymbols.Add(symbol))
+                continue;
+
+            var referencedSymbols = await SymbolFinder.FindReferencesAsync(
+                symbol,
+                project.Solution,
+                documentSet,
+                cancellationToken).ConfigureAwait(false);
+
+            foreach (var referencedSymbol in referencedSymbols)
+            {
+                foreach (var location in referencedSymbol.Locations)
+                {
+                    var document = location.Document;
+                    if (!cache.TryGetValue(document.Id, out var semanticDocument))
+                    {
+                        semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+                        cache.Add(document.Id, semanticDocument);
+                    }
+
+                    var syntaxNode = semanticDocument.Root.FindNode(location.Location.SourceSpan, getInnermostNodeForTie: true);
+                    if (IsDelegateReference(semanticDocument.SemanticModel, syntaxNode, symbol, cancellationToken))
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <returns>
+    /// Whether <paramref name="syntaxNode"/> is a reference to a method that is being
+    /// converted to a delegate.
+    /// </returns>
+    private static bool IsDelegateReference(
+        SemanticModel semanticModel,
+        SyntaxNode syntaxNode,
+        IMethodSymbol methodSymbol,
+        CancellationToken cancellationToken)
+    {
+        IOperation? operation = null;
+        foreach (var currentNode in syntaxNode.GetAncestorsOrThis<SyntaxNode>())
+        {
+            operation = semanticModel.GetOperation(currentNode, cancellationToken);
+            if (operation != null)
+                break;
+        }
+
+        for (; operation != null; operation = operation.Parent)
+        {
+            // Don't walk past lambda/local-function boundaries. A method invocation inside a lambda
+            // that is then converted to a delegate should not be treated as a delegate reference to that method.
+            if (operation is IAnonymousFunctionOperation or ILocalFunctionOperation)
+                return false;
+
+            if (operation is IDelegateCreationOperation delegateCreation)
+            {
+                if (delegateCreation.Target is not IMethodReferenceOperation methodReference)
+                    return false;
+
+                return SymbolEqualityComparer.Default.Equals(
+                    methodReference.Method.OriginalDefinition,
+                    methodSymbol.OriginalDefinition);
+            }
+        }
+
+        return false;
     }
 
     private static IMethodSymbol? GetMethodSymbol(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
@@ -122,9 +225,16 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
         var knownTypes = new KnownTaskTypes(semanticModel.Compilation);
 
+        var returnTypeWillChange = methodSymbol.ReturnsVoid
+            ? !keepVoid
+            : !IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
+        var addWarningAnnotation = returnTypeWillChange
+            && await HasReferenceAsDelegateInThisProjectAsync(
+                document.Project, methodSymbol, cancellationToken).ConfigureAwait(false);
+
         return NeedsRename()
-            ? await RenameThenAddAsyncTokenAsync(keepVoid, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
-            : await FixRelatedSignaturesAsync(keepVoid, document, methodSymbol, knownTypes, node, cancellationToken).ConfigureAwait(false);
+            ? await RenameThenAddAsyncTokenAsync(keepVoid, addWarningAnnotation, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
+            : await FixRelatedSignaturesAsync(keepVoid, addWarningAnnotation, document, methodSymbol, knownTypes, node, cancellationToken).ConfigureAwait(false);
 
         bool NeedsRename()
         {
@@ -157,6 +267,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
     private async Task<Solution> RenameThenAddAsyncTokenAsync(
         bool keepVoid,
+        bool addWarningAnnotation,
         Document document,
         SyntaxNode node,
         IMethodSymbol methodSymbol,
@@ -179,7 +290,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         {
             var semanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var newMethod = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(newNode, cancellationToken);
-            return await FixRelatedSignaturesAsync(keepVoid, newDocument, newMethod, knownTypes, newNode, cancellationToken).ConfigureAwait(false);
+            return await FixRelatedSignaturesAsync(keepVoid, addWarningAnnotation, newDocument, newMethod, knownTypes, newNode, cancellationToken).ConfigureAwait(false);
         }
 
         return newSolution;
@@ -187,6 +298,7 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
 
     private async Task<Solution> FixRelatedSignaturesAsync(
         bool keepVoid,
+        bool addWarningAnnotation,
         Document document,
         IMethodSymbol methodSymbol,
         KnownTaskTypes knownTypes,
@@ -194,6 +306,8 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         CancellationToken cancellationToken)
     {
         var newNode = FixMethodSignature(addAsyncModifier: true, keepVoid, methodSymbol, node, knownTypes);
+        if (addWarningAnnotation)
+            newNode = newNode.WithAdditionalAnnotations(WarningAnnotation.Create(GetUsedAsDelegateWarningResource()));
 
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
@@ -204,7 +318,8 @@ internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : 
         if (!keepVoid && methodSymbol.PartialDefinitionPart is { Locations: [{ } partialDefinitionLocation] })
         {
             var partialDefinitionNode = partialDefinitionLocation.FindNode(cancellationToken);
-            var fixedPartialDefinitionNode = FixMethodSignature(addAsyncModifier: false, keepVoid, methodSymbol, partialDefinitionNode, knownTypes);
+            var fixedPartialDefinitionNode =
+                FixMethodSignature(addAsyncModifier: false, keepVoid, methodSymbol, partialDefinitionNode, knownTypes);
 
             var partialDefinitionDocument = solution.GetDocument(partialDefinitionNode.SyntaxTree);
             Contract.ThrowIfNull(partialDefinitionDocument);

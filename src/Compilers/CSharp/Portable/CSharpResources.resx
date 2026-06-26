@@ -759,6 +759,12 @@
   <data name="ERR_NoBreakOrCont" xml:space="preserve">
     <value>No enclosing loop out of which to break or continue</value>
   </data>
+  <data name="ERR_NoBreakId" xml:space="preserve">
+    <value>No enclosing loop or switch statement with the label '{0}' out of which to break</value>
+  </data>
+  <data name="ERR_NoContinueId" xml:space="preserve">
+    <value>No enclosing loop with the label '{0}' out of which to continue</value>
+  </data>
   <data name="ERR_DuplicateLabel" xml:space="preserve">
     <value>The label '{0}' is a duplicate</value>
   </data>
@@ -8101,6 +8107,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUserDefinedCompoundAssignmentOperators" xml:space="preserve">
     <value>user-defined compound assignment operators</value>
   </data>
+  <data name="IDS_FeatureLabeledBreakContinue" xml:space="preserve">
+    <value>labeled break and continue</value>
+  </data>
   <data name="ERR_OperatorsMustBePublic" xml:space="preserve">
     <value>User-defined operator '{0}' must be declared public</value>
   </data>
@@ -8181,7 +8190,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{0}': extension member names cannot be the same as their extended type</value>
   </data>
   <data name="ERR_UnsupportedFeatureInRuntimeAsync" xml:space="preserve">
-    <value>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</value>
+    <value>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</value>
   </data>
   <data name="ERR_ExtensionBlockCollision" xml:space="preserve">
     <value>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</value>

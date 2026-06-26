@@ -3747,34 +3747,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBreakStatement : BoundStatement
     {
-        public BoundBreakStatement(SyntaxNode syntax, LabelSymbol label, bool hasErrors)
-            : base(BoundKind.BreakStatement, syntax, hasErrors)
+        public BoundBreakStatement(SyntaxNode syntax, LabelSymbol label, BoundLabel? labelExpressionOpt, bool hasErrors = false)
+            : base(BoundKind.BreakStatement, syntax, hasErrors || labelExpressionOpt.HasErrors())
         {
 
             RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Label = label;
-        }
-
-        public BoundBreakStatement(SyntaxNode syntax, LabelSymbol label)
-            : base(BoundKind.BreakStatement, syntax)
-        {
-
-            RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
-            this.Label = label;
+            this.LabelExpressionOpt = labelExpressionOpt;
         }
 
         public LabelSymbol Label { get; }
+        public BoundLabel? LabelExpressionOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBreakStatement(this);
 
-        public BoundBreakStatement Update(LabelSymbol label)
+        public BoundBreakStatement Update(LabelSymbol label, BoundLabel? labelExpressionOpt)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || labelExpressionOpt != this.LabelExpressionOpt)
             {
-                var result = new BoundBreakStatement(this.Syntax, label, this.HasErrors);
+                var result = new BoundBreakStatement(this.Syntax, label, labelExpressionOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3784,34 +3777,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundContinueStatement : BoundStatement
     {
-        public BoundContinueStatement(SyntaxNode syntax, LabelSymbol label, bool hasErrors)
-            : base(BoundKind.ContinueStatement, syntax, hasErrors)
+        public BoundContinueStatement(SyntaxNode syntax, LabelSymbol label, BoundLabel? labelExpressionOpt, bool hasErrors = false)
+            : base(BoundKind.ContinueStatement, syntax, hasErrors || labelExpressionOpt.HasErrors())
         {
 
             RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Label = label;
-        }
-
-        public BoundContinueStatement(SyntaxNode syntax, LabelSymbol label)
-            : base(BoundKind.ContinueStatement, syntax)
-        {
-
-            RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
-            this.Label = label;
+            this.LabelExpressionOpt = labelExpressionOpt;
         }
 
         public LabelSymbol Label { get; }
+        public BoundLabel? LabelExpressionOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitContinueStatement(this);
 
-        public BoundContinueStatement Update(LabelSymbol label)
+        public BoundContinueStatement Update(LabelSymbol label, BoundLabel? labelExpressionOpt)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || labelExpressionOpt != this.LabelExpressionOpt)
             {
-                var result = new BoundContinueStatement(this.Syntax, label, this.HasErrors);
+                var result = new BoundContinueStatement(this.Syntax, label, labelExpressionOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10416,8 +10402,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Expression);
             return null;
         }
-        public override BoundNode? VisitBreakStatement(BoundBreakStatement node) => null;
-        public override BoundNode? VisitContinueStatement(BoundContinueStatement node) => null;
+        public override BoundNode? VisitBreakStatement(BoundBreakStatement node)
+        {
+            this.Visit(node.LabelExpressionOpt);
+            return null;
+        }
+        public override BoundNode? VisitContinueStatement(BoundContinueStatement node)
+        {
+            this.Visit(node.LabelExpressionOpt);
+            return null;
+        }
         public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
         {
             this.Visit(node.Expression);
@@ -11708,12 +11702,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitBreakStatement(BoundBreakStatement node)
         {
             LabelSymbol label = this.VisitLabelSymbol(node.Label);
-            return node.Update(label);
+            BoundLabel? labelExpressionOpt = (BoundLabel?)this.Visit(node.LabelExpressionOpt);
+            return node.Update(label, labelExpressionOpt);
         }
         public override BoundNode? VisitContinueStatement(BoundContinueStatement node)
         {
             LabelSymbol label = this.VisitLabelSymbol(node.Label);
-            return node.Update(label);
+            BoundLabel? labelExpressionOpt = (BoundLabel?)this.Visit(node.LabelExpressionOpt);
+            return node.Update(label, labelExpressionOpt);
         }
         public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
         {
@@ -16324,12 +16320,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitBreakStatement(BoundBreakStatement node, object? arg) => new TreeDumperNode("breakStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("labelExpressionOpt", null, new TreeDumperNode[] { Visit(node.LabelExpressionOpt, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitContinueStatement(BoundContinueStatement node, object? arg) => new TreeDumperNode("continueStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("labelExpressionOpt", null, new TreeDumperNode[] { Visit(node.LabelExpressionOpt, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

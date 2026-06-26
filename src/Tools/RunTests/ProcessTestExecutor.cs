@@ -36,14 +36,9 @@ namespace RunTests
                 fileContentsBuilder.AppendLine($@"/Logger:html;LogFileName={htmlResultsFilePath}");
             }
 
-            var blameOption = "CollectHangDump";
-            if (!options.CollectDumps)
-            {
-                // The 'CollectDumps' option uses operating system features to collect dumps when a process crashes. We
-                // only enable the test executor blame feature in remaining cases, as the latter relies on ProcDump and
-                // interferes with automatic crash dump collection on Windows.
-                blameOption = "CollectDump;CollectHangDump";
-            }
+            // Always use CollectDump and CollectHangDump to ensure we get actionable data on both
+            // crashes and hangs, matching the Helix configuration.
+            var blameOption = "CollectDump;CollectHangDump";
 
             // The 25 minute timeout in integration tests accounts for the fact that VSIX deployment and/or experimental hive reset and
             // configuration can take significant time (seems to vary from ~10 seconds to ~15 minutes), and the blame
@@ -228,61 +223,68 @@ namespace RunTests
         /// </summary>
         private static void CheckForCrashes(string? resultsFilePath, string displayName, string testResultsDirectory)
         {
-            var (dumpFiles, crashingTest, isHang) = detectDumpFiles();
+            var (dumpFiles, sequenceFiles, crashingTest, isHang) = detectDumpFiles();
             if (dumpFiles.Length == 0)
             {
                 return;
             }
 
             Logger.Log($"Detected dump files for {displayName}: {string.Join(", ", dumpFiles)}");
-            ConsoleUtil.WriteLine(ConsoleColor.Red, $"Test host crash/hang detected for {displayName}");
+
+            // Emit as AzDO timeline errors so they display prominently in the build results
+            var failureType = isHang ? "timeout" : "crash";
+            if (crashingTest is string test)
+            {
+                ConsoleUtil.Error($"Test host {failureType} detected for {displayName}. Test running at time of {failureType}: {test}");
+            }
+            else
+            {
+                ConsoleUtil.Error($"Test host {failureType} detected for {displayName}");
+            }
+
             foreach (var dump in dumpFiles)
             {
                 ConsoleUtil.WriteLine(ConsoleColor.Red, $"  Dump: {dump}");
             }
 
-            if (crashingTest is string test)
-            {
-                ConsoleUtil.WriteLine(ConsoleColor.Red, $"  Test running at time of crash: {test}");
-            }
+            // Copy sequence files to the test results directory so they are included in artifacts
+            copySequenceFilesToArtifacts(sequenceFiles, testResultsDirectory);
 
             if (resultsFilePath != null)
             {
                 writeSyntheticFailure(resultsFilePath, dumpFiles, crashingTest, isHang);
             }
 
-            (string[] DumpFiles, string? CrashingTest, bool IsHang) detectDumpFiles()
+            (string[] DumpFiles, string[] SequenceFiles, string? CrashingTest, bool IsHang) detectDumpFiles()
             {
                 if (!Directory.Exists(testResultsDirectory))
                 {
-                    return ([], null, false);
+                    return ([], [], null, false);
                 }
 
                 var dumpFiles = Directory.GetFiles(testResultsDirectory, "*.dmp", SearchOption.AllDirectories);
                 if (dumpFiles.Length == 0)
                 {
-                    return ([], null, false);
+                    return ([], [], null, false);
                 }
 
                 var isHang = dumpFiles.Any(f => Path.GetFileName(f).Contains("hangdump", StringComparison.OrdinalIgnoreCase));
                 string? crashingTest = null;
+                var allSequenceFiles = new List<string>();
 
                 var dumpDirectories = dumpFiles.Select(Path.GetDirectoryName).Distinct();
                 foreach (var dir in dumpDirectories)
                 {
                     if (dir == null) continue;
                     var sequenceFiles = Directory.GetFiles(dir, "Sequence_*.xml", SearchOption.TopDirectoryOnly);
-                    if (sequenceFiles.Length > 0)
+                    allSequenceFiles.AddRange(sequenceFiles);
+                    if (sequenceFiles.Length > 0 && crashingTest == null)
                     {
                         crashingTest = getLastTestFromSequenceFile(sequenceFiles[0]);
-                        if (crashingTest != null)
-                        {
-                            break;
-                        }
                     }
                 }
 
-                return (dumpFiles, crashingTest, isHang);
+                return (dumpFiles, allSequenceFiles.ToArray(), crashingTest, isHang);
             }
 
             static string? getLastTestFromSequenceFile(string sequenceFilePath)
@@ -298,6 +300,27 @@ namespace RunTests
                 catch
                 {
                     return null;
+                }
+            }
+
+            static void copySequenceFilesToArtifacts(string[] sequenceFiles, string testResultsDirectory)
+            {
+                foreach (var sequenceFile in sequenceFiles)
+                {
+                    try
+                    {
+                        var destPath = Path.Combine(testResultsDirectory, Path.GetFileName(sequenceFile));
+                        if (!string.Equals(Path.GetFullPath(sequenceFile), Path.GetFullPath(destPath), StringComparison.OrdinalIgnoreCase))
+                        {
+                            File.Copy(sequenceFile, destPath, overwrite: true);
+                        }
+
+                        Logger.Log($"Copied sequence file to artifacts: {destPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log($"Warning: Failed to copy sequence file {sequenceFile}: {ex.Message}");
+                    }
                 }
             }
 

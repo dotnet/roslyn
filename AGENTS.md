@@ -93,6 +93,7 @@ Several core data structures are generated from XML definitions — never edit g
 - ServiceHub components (`src/Workspaces/Remote/`) require special deployment considerations for .NET Core vs Framework
 - IDE analyzers should inherit from `AbstractBuiltInCodeStyleDiagnosticAnalyzer` for code style diagnostics, not raw `DiagnosticAnalyzer`
 - Always provide `FixAllProvider` (typically `WellKnownFixAllProviders.BatchFixer`) for code fixes
+- Do not manually modify files under `eng/common`; they are synchronized automatically by DARC and manual edits will be overwritten
 
 ## Documentation
 

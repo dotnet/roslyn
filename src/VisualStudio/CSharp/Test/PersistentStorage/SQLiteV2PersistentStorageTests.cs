@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Xunit;
@@ -17,6 +19,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices;
 /// </remarks>
 public sealed class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
 {
+    static SQLiteV2PersistentStorageTests()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var runtimeIdentifier = Environment.Is64BitProcess ? "win-x64" : "win-x86";
+            var sqlite3mcPath = Path.Combine(AppContext.BaseDirectory, "runtimes", runtimeIdentifier, "native", "sqlite3mc.dll");
+            if (File.Exists(sqlite3mcPath) && LoadLibrary(sqlite3mcPath) == IntPtr.Zero)
+                throw new Win32Exception(Marshal.GetLastWin32Error(), $"Failed to load '{sqlite3mcPath}'.");
+        }
+    }
+
     [Fact]
     public async Task TestCrashInNewConnection()
     {
@@ -78,4 +91,7 @@ public sealed class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTe
         public void OnFatalError(Exception ex)
             => _onFatalError?.Invoke(ex);
     }
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern IntPtr LoadLibrary(string lpFileName);
 }
