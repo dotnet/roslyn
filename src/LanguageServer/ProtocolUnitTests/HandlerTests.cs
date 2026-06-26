@@ -46,6 +46,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         {
             DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
+
         var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
         Assert.Equal(typeof(TestDocumentHandler).Name, response);
     }

@@ -27,10 +27,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline;
 [UseExportProvider]
 public abstract class DocumentOutlineTestsBase
 {
-    private readonly TestOutputLspLogger _logger;
+    private readonly ITestOutputHelper _testOutputHelper;
     protected DocumentOutlineTestsBase(ITestOutputHelper testOutputHelper)
     {
-        _logger = new TestOutputLspLogger(testOutputHelper);
+        _testOutputHelper = testOutputHelper;
     }
 
     protected sealed class DocumentOutlineTestMocks : IAsyncDisposable
@@ -66,6 +66,7 @@ public abstract class DocumentOutlineTestsBase
 
     private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
         .AddParts(typeof(TestDocumentTrackingService))
+        .AddParts(typeof(TestLspLoggerFactory))
         .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
     protected async Task<DocumentOutlineTestMocks> CreateMocksAsync(string code)
@@ -93,19 +94,23 @@ public abstract class DocumentOutlineTestsBase
         await workspace.ChangeSolutionAsync(
             workspace.CurrentSolution.WithAnalyzerReferences([new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())]));
 
-        return await EditorTestLspServer.CreateAsync(workspace, new InitializationOptions(), _logger);
+        return await EditorTestLspServer.CreateAsync(workspace, new InitializationOptions(), _testOutputHelper);
     }
 
     internal sealed class EditorTestLspServer : AbstractTestLspServer<EditorTestWorkspace, EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
     {
-        private EditorTestLspServer(EditorTestWorkspace testWorkspace, Dictionary<string, IList<LanguageServer.Protocol.Location>> locations, InitializationOptions options, AbstractLspLogger logger) : base(testWorkspace, locations, options, logger)
+        private EditorTestLspServer(
+            EditorTestWorkspace testWorkspace,
+            Dictionary<string, IList<LanguageServer.Protocol.Location>> locations,
+            InitializationOptions options,
+            ITestOutputHelper testOutputHelper) : base(testWorkspace, locations, options, testOutputHelper)
         {
         }
 
-        public static async Task<EditorTestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
+        public static async Task<EditorTestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, InitializationOptions initializationOptions, ITestOutputHelper testOutputHelper)
         {
             var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
-            var server = new EditorTestLspServer(testWorkspace, locations, initializationOptions, logger);
+            var server = new EditorTestLspServer(testWorkspace, locations, initializationOptions, testOutputHelper);
             await server.InitializeAsync();
             return server;
         }

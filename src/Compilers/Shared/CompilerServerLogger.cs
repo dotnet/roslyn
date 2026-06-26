@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             var builder = new StringBuilder();
-            builder.Append("Error ");
             AppendException(exception);
 
             int innerExceptionLevel = 0;
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             void AppendException(Exception exception)
             {
-                builder.AppendLine($"Error: '{exception.GetType().Name}' '{exception.Message}' occurred during '{reason}'");
+                builder.AppendLine($"Exception: '{exception.GetType().Name}' '{exception.Message}' occurred during '{reason}'");
                 builder.AppendLine("Stack trace:");
                 builder.AppendLine(exception.StackTrace);
             }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 
 public sealed class DiagnosticRegistrationTests : AbstractLanguageServerProtocolTests
 {
-    public DiagnosticRegistrationTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    public DiagnosticRegistrationTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 

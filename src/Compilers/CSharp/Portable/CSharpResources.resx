@@ -759,6 +759,12 @@
   <data name="ERR_NoBreakOrCont" xml:space="preserve">
     <value>No enclosing loop out of which to break or continue</value>
   </data>
+  <data name="ERR_NoBreakId" xml:space="preserve">
+    <value>No enclosing loop or switch statement with the label '{0}' out of which to break</value>
+  </data>
+  <data name="ERR_NoContinueId" xml:space="preserve">
+    <value>No enclosing loop with the label '{0}' out of which to continue</value>
+  </data>
   <data name="ERR_DuplicateLabel" xml:space="preserve">
     <value>The label '{0}' is a duplicate</value>
   </data>
@@ -4585,6 +4591,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WrongSemanticModelType" xml:space="preserve">
     <value>Expected a {0} SemanticModel.</value>
   </data>
+  <data name="GetClosedDerivedTypeInfoMustBeClosed" xml:space="preserve">
+    <value>'GetClosedDerivedTypeInfo()' may only be called when 'IsClosed' is 'true'.</value>
+    <comment>'GetClosedDerivedTypeInfo()', 'IsClosed', and 'true' are not localizable.</comment>
+  </data>
   <data name="IDS_FeatureLambda" xml:space="preserve">
     <value>lambda expression</value>
   </data>
@@ -6673,6 +6683,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NonPrivateAPIInRecord" xml:space="preserve">
     <value>Record member '{0}' must be private.</value>
   </data>
+  <data name="ERR_AbstractBaseRecordImplementation" xml:space="preserve">
+    <value>Record member '{0}' must be declared explicitly because '{1}' is abstract.</value>
+  </data>
   <data name="WRN_PrecedenceInversion" xml:space="preserve">
     <value>Operator '{0}' cannot be used here due to precedence. Use parentheses to disambiguate.</value>
   </data>
@@ -8065,7 +8078,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</value>
   </data>
   <data name="ERR_ExpressionTreeContainsExtensionPropertyAccess" xml:space="preserve">
-    <value>An expression tree may not contain an extension property access</value>
+    <value>An expression tree may not contain an extension property or indexer access</value>
   </data>
   <data name="ERR_PPIgnoredFollowsToken" xml:space="preserve">
     <value>'#:' directives cannot be after first token in file</value>
@@ -8094,6 +8107,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUserDefinedCompoundAssignmentOperators" xml:space="preserve">
     <value>user-defined compound assignment operators</value>
   </data>
+  <data name="IDS_FeatureLabeledBreakContinue" xml:space="preserve">
+    <value>labeled break and continue</value>
+  </data>
   <data name="ERR_OperatorsMustBePublic" xml:space="preserve">
     <value>User-defined operator '{0}' must be declared public</value>
   </data>
@@ -8120,12 +8136,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_SafeModifierUnsupportedTarget" xml:space="preserve">
-    <value>The 'safe' modifier may only be used on 'extern' members that are not marked 'unsafe'.</value>
+    <value>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</value>
     <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
   </data>
   <data name="ERR_ExternMemberRequiresUnsafeOrSafe" xml:space="preserve">
     <value>'extern' member must be marked 'unsafe' or 'safe'.</value>
     <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
+  </data>
+  <data name="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe" xml:space="preserve">
+    <value>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</value>
+    <comment>'unsafe' and 'safe' should not be localized.</comment>
   </data>
   <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
     <value>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</value>
@@ -8170,7 +8190,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{0}': extension member names cannot be the same as their extended type</value>
   </data>
   <data name="ERR_UnsupportedFeatureInRuntimeAsync" xml:space="preserve">
-    <value>Method '{0}' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</value>
+    <value>Method '{0}' uses a feature that is not supported by runtime async. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.</value>
   </data>
   <data name="ERR_ExtensionBlockCollision" xml:space="preserve">
     <value>This extension block collides with another extension block. They result in conflicting content-based type names in metadata, so must be in separate enclosing static classes.</value>
@@ -8252,6 +8272,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
+  </data>
+  <data name="IDS_FeatureExtensionIndexers" xml:space="preserve">
+    <value>extension indexers</value>
   </data>
   <data name="IDS_FeatureUnsafeEvolution" xml:space="preserve">
     <value>updated memory safety rules</value>
@@ -8344,7 +8367,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A union type must have at least one union creation member.</value>
   </data>
   <data name="ERR_MissingUnionValueProperty" xml:space="preserve">
-    <value>A union member provider type must have a public instance 'Value' property of type 'object?' or 'object'. The property must have a get accessor.</value>
+    <value>A union member provider type must have an instance 'Value' property of type 'object?' or 'object'. The property must have a public get accessor.</value>
   </data>
   <data name="ERR_MemberProviderInUnionDeclaration" xml:space="preserve">
     <value>A 'union' declaration cannot use a union member provider interface.</value>
