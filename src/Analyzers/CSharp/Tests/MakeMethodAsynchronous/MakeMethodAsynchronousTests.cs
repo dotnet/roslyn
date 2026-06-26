@@ -23,7 +23,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
         => (null, new CSharpMakeMethodAsynchronousCodeFixProvider());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
-    public Task AwaitInVoidMethodWithModifiers()
+    public Task AwaitInVoidMethodWithModifiers_AsyncVoid()
         => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
@@ -616,7 +616,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             """, index: 1);
 
     [Fact]
-    public Task AwaitInVoidMethodWithModifiers2()
+    public Task AwaitInVoidMethodWithModifiers_AsyncTask()
         => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
