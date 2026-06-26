@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 internal readonly struct Conversions<TFrom, TTo>(Func<TFrom, TTo> to, Func<TTo, TFrom> from)
 {

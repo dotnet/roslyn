@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices;
+namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 
 internal static class TableControlFocusFixer
 {
