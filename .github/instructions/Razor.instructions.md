@@ -4,7 +4,8 @@ applyTo: "src/Razor/**/*.{cs,vb}"
 
 # Razor Tooling and Compiler Instructions for AI Coding Agents
 
-These instructions complement the repository-wide `AGENTS.md` and apply to
+These instructions complement the repository-wide guidance in
+`.github/copilot-instructions.md` and apply to
 all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
 `dotnet/razor`, and most files keep their original sub-tree layout
 (`src/Razor/src/Razor/...`, `src/Razor/src/Compiler/...`, `src/Razor/src/Shared/...`,
@@ -29,6 +30,10 @@ all Razor sources under `src/Razor/`. Razor was merged into the Roslyn repo from
   entry to `Microsoft.CodeAnalysis.Razor.CohostingShared.projitems` or
   `Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.projitems`, or the file will not
   be built or tested by the importing projects.
+- **Duplicate global analyzer config keys**: Razor projects receive global configs from both
+  `eng/config/globalconfigs/*.globalconfig` and `src/Razor/*.globalconfig` overlays. The same key
+  in two global configs causes compiler error `MultipleGlobalAnalyzerKeys` (and the key is left
+  unset) — don't redefine a key already present in the base config.
 
 ## File Types
 

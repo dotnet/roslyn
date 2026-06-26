@@ -11,7 +11,8 @@ Roslyn uses a **layered service architecture** built on MEF (Managed Extensibili
 - **Workspaces** (`src/Workspaces/`): Core abstractions — `Workspace`, `Solution`, `Project`, `Document`
 - **Features** (`src/Features/`): Language-agnostic IDE features (refactoring, navigation, completion)
 - **Analyzers** (`src/Analyzers/`): IDE diagnostic analyzers and code fixes (IDE0xxx diagnostics)
-- **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable
+- **CodeStyle** (`src/CodeStyle/`): Code-style analyzer packaging shared with the command-line
+- **LanguageServer** (`src/LanguageServer/`): Shared LSP protocol implementation and Roslyn LSP executable (`roslyn-language-server`)
 - **EditorFeatures** (`src/EditorFeatures/`): VS Editor integration and text manipulation
 - **VisualStudio** (`src/VisualStudio/`): Visual Studio-specific implementations
 
@@ -66,8 +67,21 @@ public class MyTests
 
 ### Test Conventions
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) for test source code
-- Keep tests focused — avoid unnecessary intermediary assertions
+- Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()` rather than asserting a count then indexing
 - Use `[UseExportProvider]` for any test that depends on MEF services
+- Analyzer tests inherit from `AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor` (and VB equivalents)
+- For analyzer/code-fix tests, use `TestInRegularAndScriptAsync` / `TestMissingInRegularAndScriptAsync`
+- Link work items: for issue-driven changes add a `WorkItem`, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`
+
+## Analyzers & Code Fixes (IDE0xxx)
+
+- IDE code-style analyzers inherit from `AbstractBuiltInCodeStyleDiagnosticAnalyzer` — not raw `DiagnosticAnalyzer`
+- Always provide a `FixAllProvider` for code fixes (typically `WellKnownFixAllProviders.BatchFixer`)
+- Diagnostic ID constants live in `src/Analyzers/Core/Analyzers/IDEDiagnosticIds.cs`
+
+## Out-of-Process (OOP) Services
+
+- ServiceHub components live under `src/Workspaces/Remote/` and have special deployment considerations for .NET Core vs .NET Framework — keep both targets in mind when changing remote services
 
 ## Key Development Patterns
 
@@ -112,3 +126,4 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Language services must be exported with a specific language name** — don't use generic exports for both C#/VB
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
 - **Test failures often indicate MEF composition issues** — check export attributes
+- **PublicApiAnalyzer false RS0016 with NuGet contentFiles**: the analyzer reads `dotnet_public_api_analyzer.require_api_files` from `compilation.SyntaxTrees.FirstOrDefault()`; if that first tree is a NuGet contentFiles `*.g.cs` outside the repo, the root `.editorconfig` option doesn't apply and `RS0016` fires spuriously

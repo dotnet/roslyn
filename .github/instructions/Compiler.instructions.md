@@ -15,9 +15,34 @@ Roslyn follows a **layered compiler architecture**:
 - `src/Compilers/Core/Portable/` - Language-agnostic compiler infrastructure
 - `src/Compilers/CSharp/Portable/` - C# compiler implementation  
 - `src/Compilers/VisualBasic/Portable/` - VB compiler implementation
+- `src/Compilers/Server/` - `VBCSCompiler` build server
 - `src/Dependencies/` - High-performance collections (`PooledObjects`, `Threading`)
 - `src/ExpressionEvaluator/` - Debugger expression evaluation (uses special `LexerMode.DebuggerSyntax`)
 - `src/Tools/` - Compiler tooling (BuildBoss, format tools, analyzers)
+
+### Essential Files for Context
+- `src/Compilers/CSharp/Portable/Errors/ErrorCode.cs` - All C# compiler error codes
+- `src/Compilers/CSharp/Portable/Errors/MessageID.cs` - Language feature version gating
+- `src/Compilers/CSharp/Portable/Syntax/Syntax.xml` - Syntax tree node definitions (generated code source)
+- `src/Compilers/CSharp/Portable/BoundTree/BoundNodes.xml` - Bound tree node definitions (generated code source)
+- `docs/wiki/Roslyn-Overview.md` - Architecture deep-dive
+
+## Code Generation
+
+Several core data structures are generated from XML definitions — **never edit the generated `.cs` or `.vb` files directly**:
+- **Syntax trees**: `src/Compilers/CSharp/Portable/Syntax/Syntax.xml`
+- **Bound trees**: `src/Compilers/CSharp/Portable/BoundTree/BoundNodes.xml`
+- After modifying these XML files, regenerate and build:
+  ```bash
+  dotnet run --file eng/generate-compiler-code.cs
+  dotnet build src/Compilers/{CSharp,VisualBasic}/Portable # choose the project matching the C# or VB syntax you changed
+  ```
+
+## Conventions
+
+- **MEF is not used in the compiler layer.** `ExportLanguageService` / `ImportingConstructor` and the IDE service model are IDE-layer concepts — ignore them here.
+- **Null checks**: validate internal-API preconditions with `Debug.Assert(...)` (a violated internal precondition may NRE in release); validate public APIs with explicit null checking when appropriate, throwing a dedicated exception with a localized string.
+- **Immutability** is via `Compilation` (`AddSyntaxTrees`/`RemoveSyntaxTrees`/`ReplaceSyntaxTree`), not the workspace `Document`/`Solution` model.
 
 ## Essential Patterns
 
@@ -63,6 +88,9 @@ dotnet run --file eng/generate-compiler-code.cs
 - **Cross-language patterns**: Many test patterns work for both C# and VB with minor syntax changes
 - **Verification baselines**: When helpers like `VerifyDiagnostics`, `VerifyEmitDiagnostics`, `VerifyIL`, and similar compiler test APIs fail with an `Actual:` block containing the expected test content, copy that block directly into the verification call.
 - **Keep tests focused**: Avoid unnecessary assertions. Tests should do the minimal work necessary to get to the core assertions that validate the issue being addressed. For example, use `Single()` instead of checking counts and then accessing the first element.
+- **Prefer raw string literals** (`"""..."""`) over verbatim strings (`@"..."`) for test source code.
+- **Use `comp.VerifyEmitDiagnostics()`** (rather than only `VerifyDiagnostics`) so reviewers can see whether the code under test is legal.
+- **Link work items**: For issue-driven changes, add a `WorkItem` alongside the test attribute, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.
 
 ## Debugger Integration
 
