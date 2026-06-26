@@ -21,25 +21,15 @@ namespace Microsoft.CodeAnalysis
         // Matches EditorConfig section header such as "[*.{js,py}]", see https://editorconfig.org for details
         private const string s_sectionMatcherPattern = @"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$";
 
-        // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
-        private const string s_propertyMatcherPattern = @"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$";
-
 #if NET
 
         [GeneratedRegex(s_sectionMatcherPattern)]
         private static partial Regex GetSectionMatcherRegex();
 
-        [GeneratedRegex(s_propertyMatcherPattern)]
-        private static partial Regex GetPropertyMatcherRegex();
-
 #else
         private static readonly Regex s_sectionMatcher = new Regex(s_sectionMatcherPattern, RegexOptions.Compiled);
 
-        private static readonly Regex s_propertyMatcher = new Regex(s_propertyMatcherPattern, RegexOptions.Compiled);
-
         private static Regex GetSectionMatcherRegex() => s_sectionMatcher;
-
-        private static Regex GetPropertyMatcherRegex() => s_propertyMatcher;
 
 #endif
 
@@ -218,6 +208,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
+                // Section matching
                 var sectionMatches = GetSectionMatcherRegex().Matches(line);
                 if (sectionMatches.Count > 0 && sectionMatches[0].Groups.Count > 0)
                 {
@@ -232,23 +223,9 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var propMatches = GetPropertyMatcherRegex().Matches(line);
-                if (propMatches.Count > 0 && propMatches[0].Groups.Count > 1)
+                // property matching
+                if (ExtractKeyValue(line, activeSectionProperties, out var _))
                 {
-                    var key = propMatches[0].Groups[1].Value;
-                    var value = propMatches[0].Groups[2].Value;
-
-                    Debug.Assert(!string.IsNullOrEmpty(key));
-                    Debug.Assert(key == key.Trim());
-                    Debug.Assert(value == value?.Trim());
-
-                    key = CaseInsensitiveComparison.ToLower(key);
-                    if (ReservedKeys.Contains(key) || ReservedValues.Contains(value))
-                    {
-                        value = CaseInsensitiveComparison.ToLower(value);
-                    }
-
-                    activeSectionProperties[key] = value ?? "";
                     continue;
                 }
             }
@@ -279,6 +256,62 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Extracts a key-value pair from the given line. The line content will be trimmed
+        /// </summary>
+        /// <param name="line">Line to extract key/value from as an expected form of key{:|=}[value[{#|;}inline comment]]</param>
+        /// <param name="activeSectionProperties">Property collection builder</param>
+        /// <param name="key">Optional key found; default is "" because nullability is flagged by return</param>
+        /// <returns>Actual key found flag</returns>
+        private static bool ExtractKeyValue(string line, ImmutableDictionary<string, string>.Builder activeSectionProperties, out string key)
+        {
+            // Look for a key-value pair
+            var trimmedLine = line.TrimStart(); // remove leading whitespace for the key part
+            string keyPart;
+
+            // Look for a non-empty key part
+            var keyStart = trimmedLine.IndexOfAny(['=', ':']);
+            if (keyStart <= 0 || (keyPart = trimmedLine[..keyStart].TrimEnd()).Length == 0) // remove trailing whitespace for the key part, and ensure keyPart has a non-trimmable content (it can't have a content if keyStart is below second character)
+            {
+                key = "";
+                return false;
+            }
+
+            key = keyPart.ToLower(); // lower casing the key part
+            var valueComment = trimmedLine[(keyStart + 1)..].TrimStart(); // remove leading whitespace for the value part
+            string valuePart;
+
+            // Look for an inline comment in the value part
+            var commentStart = valueComment.IndexOfAny(['#', ';']);
+            if (commentStart > -1)
+            {
+                // Remove inline comment from the value part
+                valuePart = valueComment[..commentStart];
+            }
+            else
+            {
+                valuePart = valueComment;
+            }
+
+            string value;
+            if (ReservedKeys.Contains(key) || ReservedValues.Contains(valuePart))
+            {
+                // Lower case the value part if the key is reserved
+                value = valuePart.ToLower();
+            }
+            else
+            {
+                value = valuePart;
+            }
+
+            // Add the key-value pair to the dictionary
+            activeSectionProperties[key] = value.TrimEnd(); // remove trailing whitespace for the value part, allowing for "" values
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if the line is a comment. A line is considered a comment if its first non-space character is either # or ;
+        /// </summary>
         private static bool IsComment(string line)
         {
             foreach (char c in line)
