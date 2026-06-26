@@ -123,7 +123,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     }
 
     private sealed class OldCacheEnumerator() : FileSystemEnumerator<string>(
-        directory: VirtualProjectXmlProvider.GetDiscoveryCacheRootDirectory(),
+        directory: VirtualProjectHelpers.GetDiscoveryCacheRootDirectory(),
         options: new() { RecurseSubdirectories = false })
     {
         // Yield cache directories that have not been modified in 30 days (indicates they are stale and should be deleted)
@@ -140,7 +140,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     internal ImmutableArray<string> FindEntryPoints(string workspaceFolder)
     {
         var stopwatch = SharedStopwatch.StartNew();
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(workspaceFolder);
+        var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(workspaceFolder);
         var cacheFilePath = Path.Join(cacheDirectory, "cache.json");
         Cache? cache = null;
         try

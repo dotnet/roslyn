@@ -57,7 +57,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
     private void DeferDeleteCacheDirectory(string workspacePath)
     {
-        _additionalDirectoriesToDelete.Add(VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(workspacePath));
+        _additionalDirectoriesToDelete.Add(VirtualProjectHelpers.GetDiscoveryCacheDirectory(workspacePath));
     }
 
     /// <summary>Verify that multiple invocations of 'actualFactory' result in the same 'expected' sequence.</summary>
@@ -416,7 +416,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache - should match
@@ -450,7 +450,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -485,7 +485,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache
@@ -520,7 +520,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -558,7 +558,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -597,7 +597,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -634,7 +634,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
         // Delete cache
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
         // Discovery without cache — should match
@@ -865,7 +865,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                 }
 
                 // Delete cache from any prior iteration
-                var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+                var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
                 if (Directory.Exists(cacheDirectory))
                     Directory.Delete(cacheDirectory, recursive: true);
 
@@ -960,7 +960,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
                     var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
 
                     // Delete cache
-                    var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+                    var cacheDirectory = VirtualProjectHelpers.GetDiscoveryCacheDirectory(tempDir.Path);
                     Directory.Delete(cacheDirectory, recursive: true);
 
                     // Discovery without cache — should match
