@@ -350,7 +350,7 @@ internal abstract class AbstractTriviaFormatter
             {
                 lineColumn = previousLineColumn;
                 // When we see a NewLine we don't want any special handling
-                // for _ ' Comment
+                // for `_ ' Comment`
                 previousLineColumn = LineColumn.Default;
             }
 
