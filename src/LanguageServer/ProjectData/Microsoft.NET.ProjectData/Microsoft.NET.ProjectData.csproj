@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Library is consumed by the server (and source-linked into Tasks); not packaged on its own. -->
+    <IsPackable>false</IsPackable>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.NET.ProjectData.Generators\Microsoft.NET.ProjectData.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <AdditionalFiles Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" />
+    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.Tests" Key="$(VsPublicKey)" />
+    <InternalsVisibleTo Include="CSDevKit.Tests" Key="$(VsPublicKey)" />
+  </ItemGroup>
+
+</Project>
