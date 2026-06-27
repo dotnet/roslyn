@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Components.Web
     ;
     #line default
     #line hidden
-    #nullable restore
     public partial class TestComponent<
 #nullable restore
 #line (2,12)-(2,13) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -25,8 +24,7 @@ T
 #line default
 #line hidden
 #nullable disable
-    > : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    >
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -76,15 +74,6 @@ T
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (5,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public T Parameter { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

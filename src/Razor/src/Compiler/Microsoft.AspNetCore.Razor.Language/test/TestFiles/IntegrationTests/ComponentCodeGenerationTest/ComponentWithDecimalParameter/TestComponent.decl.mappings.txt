@@ -1,0 +1,11 @@
+﻿Source Location: (77:4,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public decimal TestDecimal { get; set; }
+|
+Generated Location: (557:18,0 [65] )
+|
+    [Parameter]
+    public decimal TestDecimal { get; set; }
+|
+

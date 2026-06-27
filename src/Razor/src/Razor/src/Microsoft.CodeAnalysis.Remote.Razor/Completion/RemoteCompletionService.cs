@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
-using Microsoft.CodeAnalysis.Razor.Completion.Html;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -25,6 +24,9 @@ using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.Completion;
+using Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;
+using Microsoft.CodeAnalysis.Remote.Razor.Hover;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using CompletionResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.Completion.CompletionResult>;
@@ -204,12 +206,13 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             var mappedPosition = documentPositionInfo.Position;
 
             var csharpGeneratedDocument = await GetCSharpGeneratedDocumentAsync(
-                documentSnapshot, positionInfo.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
+                documentSnapshot, documentPositionInfo.InDeclDocument, positionInfo.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
 
             csharpCompletionList = await GetCSharpCompletionAsync(
                 csharpGeneratedDocument,
                 codeDocument,
                 documentPositionInfo.HostDocumentIndex,
+                documentPositionInfo.InDeclDocument,
                 mappedPosition,
                 completionContext,
                 razorCompletionOptions,
@@ -304,6 +307,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         SourceGeneratedDocument generatedDocument,
         RazorCodeDocument codeDocument,
         int documentIndex,
+        bool inDeclDocument,
         Position mappedPosition,
         CompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
@@ -346,7 +350,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             mappedPosition,
             razorCompletionOptions);
 
-        var resolutionContext = new DelegatedCompletionResolutionContext(RazorLanguageKind.CSharp, rewrittenResponse.Data ?? rewrittenResponse.ItemDefaults?.Data, provisionalTextEdit);
+        var resolutionContext = new DelegatedCompletionResolutionContext(RazorLanguageKind.CSharp, rewrittenResponse.Data ?? rewrittenResponse.ItemDefaults?.Data, provisionalTextEdit, inDeclDocument);
         var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
         rewrittenResponse.SetResultId(resultId, clientCapabilities);
 
@@ -383,9 +387,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<SourceGeneratedDocument> GetCSharpGeneratedDocumentAsync(RemoteDocumentSnapshot documentSnapshot, TextEdit? provisionalTextEdit, CancellationToken cancellationToken)
+    private static async Task<SourceGeneratedDocument> GetCSharpGeneratedDocumentAsync(RemoteDocumentSnapshot documentSnapshot, bool declarationDocument, TextEdit? provisionalTextEdit, CancellationToken cancellationToken)
     {
-        var generatedDocument = await documentSnapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
 
         if (provisionalTextEdit is not null)
         {
@@ -484,7 +488,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             }
 
             var documentSnapshot = context.Snapshot;
-            var generatedDocument = await GetCSharpGeneratedDocumentAsync(documentSnapshot, resolutionContext.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
+            var generatedDocument = await GetCSharpGeneratedDocumentAsync(documentSnapshot, resolutionContext.InDeclDocument, resolutionContext.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
 
             var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
             var result = await ResolveDelegatedCompletionItemAsync(
@@ -500,6 +504,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             item = await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(
                 item,
                 context,
+                generatedDocument.Project.Solution,
+                resolutionContext.InDeclDocument,
                 formattingOptions,
                 _formattingService,
                 _documentMappingService,

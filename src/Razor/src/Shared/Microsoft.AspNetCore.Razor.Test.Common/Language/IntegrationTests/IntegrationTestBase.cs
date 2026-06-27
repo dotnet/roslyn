@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -248,17 +248,27 @@ public abstract class IntegrationTestBase
 
     protected CompiledAssembly CompileToAssembly(CompiledCSharpCode code, bool throwOnFailure = true, bool ignoreRazorDiagnostics = false)
     {
-        var csharpDocument = code.CodeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = code.CodeDocument.GetRequiredImplCSharpDocument();
         if (!ignoreRazorDiagnostics && csharpDocument.Diagnostics.Any())
         {
             var diagnosticsLog = string.Join(Environment.NewLine, csharpDocument.Diagnostics.Select(d => d.ToString()).ToArray());
             throw new InvalidOperationException($"Aborting compilation to assembly because RazorCompiler returned nonempty diagnostics: {diagnosticsLog}");
         }
 
-        var syntaxTrees = new[]
+        var primaryPath = code.CodeDocument.Source.FilePath ?? string.Empty;
+        var syntaxTrees = new List<CSharpSyntaxTree>
         {
-            (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(csharpDocument.Text, CSharpParseOptions, path: code.CodeDocument.Source.FilePath ?? string.Empty),
+            (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(csharpDocument.Text, CSharpParseOptions, path: primaryPath),
         };
+
+        // The decl phase emits a separate decl C# document when the document is splittable;
+        // both partial halves must make it into the compilation so observers see the full type.
+        if (code.CodeDocument.GetDeclCSharpDocument() is { } declDocument)
+        {
+            // The two halves must have distinct paths so C# can keep file-local types
+            // (e.g. __PrivateComponentRenderModeAttribute) unambiguous.
+            syntaxTrees.Add((CSharpSyntaxTree)CSharpSyntaxTree.ParseText(declDocument.Text, CSharpParseOptions, path: primaryPath + ".decl.g.cs"));
+        }
 
         var compilation = code.BaseCompilation.AddSyntaxTrees(syntaxTrees);
 
@@ -457,7 +467,7 @@ public abstract class IntegrationTestBase
 
     protected void AssertSourceMappingsMatchBaseline(RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")
     {
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetImplCSharpDocument();
         Assert.NotNull(csharpDocument);
 
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".mappings.txt");
@@ -579,7 +589,7 @@ public abstract class IntegrationTestBase
 
     protected void AssertLinePragmas(RazorCodeDocument codeDocument)
     {
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetImplCSharpDocument();
         Assert.NotNull(csharpDocument);
         var linePragmas = csharpDocument.LinePragmas;
 

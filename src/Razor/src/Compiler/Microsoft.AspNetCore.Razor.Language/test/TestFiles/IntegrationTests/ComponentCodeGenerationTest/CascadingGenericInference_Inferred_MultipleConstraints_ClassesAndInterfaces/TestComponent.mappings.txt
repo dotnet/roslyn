@@ -5,26 +5,26 @@ Generated Location: (372:12,0 [13] )
 
 Source Location: (19:2,1 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Grid|
-Generated Location: (820:24,49 [4] )
+Generated Location: (718:22,49 [4] )
 |Grid|
 
 Source Location: (31:2,13 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |WeatherForecast|
-Generated Location: (909:27,0 [15] )
+Generated Location: (807:25,0 [15] )
 |WeatherForecast|
 
 Source Location: (57:2,39 [30] x:\dir\subdir\Test\TestComponent.cshtml)
 |Array.Empty<WeatherForecast>()|
-Generated Location: (1136:36,0 [30] )
+Generated Location: (1034:34,0 [30] )
 |Array.Empty<WeatherForecast>()|
 
 Source Location: (124:4,9 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |Column|
-Generated Location: (2224:59,45 [6] )
+Generated Location: (2122:57,45 [6] )
 |Column|
 
 Source Location: (144:4,29 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |FieldName|
-Generated Location: (2479:64,0 [9] )
+Generated Location: (2377:62,0 [9] )
 |FieldName|
 

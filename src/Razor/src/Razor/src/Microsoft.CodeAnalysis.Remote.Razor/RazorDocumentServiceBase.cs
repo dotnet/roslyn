@@ -5,12 +5,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -32,32 +32,17 @@ internal abstract class RazorDocumentServiceBase(in ServiceArgs args) : RazorBro
             // Sometimes Html can actually be mapped to C#, like for example component attributes, which map to
             // C# properties, even though they appear entirely in a Html context. Since remapping is pretty cheap
             // it's easier to just try mapping, and see what happens, rather than checking for specific syntax nodes.
-            if (DocumentMappingService.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredCSharpDocument(), positionInfo.HostDocumentIndex, out Position? csharpPosition, out _))
+            if (DocumentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, positionInfo.HostDocumentIndex, out var csharpPosition, out _, out var inDeclDocument))
             {
                 // We're just gonna pretend this mapped perfectly normally onto C#. Moving this logic to the actual position info
                 // calculating code is possible, but could have untold effects, so opt-in is better (for now?)
 
                 // TODO: Not using a with operator here because it doesn't work in OOP for some reason.
-                positionInfo = new DocumentPositionInfo(RazorLanguageKind.CSharp, csharpPosition, positionInfo.HostDocumentIndex);
+                positionInfo = new DocumentPositionInfo(RazorLanguageKind.CSharp, csharpPosition.ToPosition(), positionInfo.HostDocumentIndex, inDeclDocument);
             }
         }
 
         return positionInfo;
-    }
-
-    protected bool TryGetDocumentPositionInfo(RazorCodeDocument codeDocument, Position position, out DocumentPositionInfo positionInfo)
-        => TryGetDocumentPositionInfo(codeDocument, position, preferCSharpOverHtml: false, out positionInfo);
-
-    protected bool TryGetDocumentPositionInfo(RazorCodeDocument codeDocument, Position position, bool preferCSharpOverHtml, out DocumentPositionInfo positionInfo)
-    {
-        if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
-        {
-            positionInfo = default;
-            return false;
-        }
-
-        positionInfo = GetPositionInfo(codeDocument, hostDocumentIndex, preferCSharpOverHtml);
-        return true;
     }
 
     protected ValueTask<T> RunServiceAsync<T>(

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
@@ -266,11 +267,22 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
 
         var compilation = await project.GetCompilationAsync(DisposalToken);
 
-        var generatedDocument = await project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, DisposalToken);
+        Document originDocument;
+        if (fromRazor)
+        {
+            var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
+            var documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
+            var snapshot = snapshotManager.GetSnapshot(razorDocument);
+            var codeDocument = await snapshot.GetGeneratedOutputAsync(DisposalToken);
+            Assert.True(documentMappingService.TryMapToCSharpDocumentLinePosition(codeDocument, razorFile.Position, out _, out _, out var inDeclDocument));
 
-        var originDocument = fromRazor
-            ? generatedDocument.AssumeNotNull()
-            : csharpDocument;
+            originDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, DisposalToken);
+        }
+        else
+        {
+            originDocument = csharpDocument;
+        }
+
         var originPosition = fromRazor
             ? razorFile.Position
             : csharpFile.Position;
@@ -317,14 +329,15 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         LinePosition csharpPosition;
-        if (document is SourceGeneratedDocument)
+        if (document is SourceGeneratedDocument sourceGeneratedDocument)
         {
             var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
             var documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
             var snapshot = snapshotManager.GetSnapshot(razorDocument);
             var codeDocument = await snapshot.GetGeneratedOutputAsync(DisposalToken);
 
-            Assert.True(documentMappingService.TryMapToCSharpDocumentPosition(codeDocument.GetCSharpDocument().AssumeNotNull(), position, out csharpPosition, out _));
+            var csharpDocument = codeDocument.GetCSharpDocumentForHintName(sourceGeneratedDocument.HintName);
+            Assert.True(documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, position, out csharpPosition, out _));
         }
         else
         {
@@ -346,14 +359,18 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         AssertEx.EqualOrDiff(expectedCSharpFile, csharpText.ToString());
 
         // Normally in VS, TryApplyChanges would be called, and that calls into our edit mapping service.
-        var generatedDoc = await project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, DisposalToken);
-        Assert.NotNull(generatedDoc);
-        var renamedGeneratedDoc = await solution.GetRequiredProject(project.Id).TryGetSourceGeneratedDocumentForRazorDocumentAsync(razorDocument, DisposalToken);
-        Assert.NotNull(renamedGeneratedDoc);
+        var generatedDocs = await project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, DisposalToken);
+        Assert.NotNull(generatedDocs);
+        var renamedGeneratedDocs = await solution.GetRequiredProject(project.Id).TryGetSourceGeneratedDocumentsForRazorDocumentAsync(razorDocument, DisposalToken);
+        Assert.NotNull(renamedGeneratedDocs);
 
         // It could be argued this class is really a RazorSourceGeneratedDocumentSpanMappingService test :)
         var mappingService = new RazorSourceGeneratedDocumentSpanMappingService(RemoteServiceInvoker);
-        var changes = await mappingService.GetMappedTextChangesAsync(generatedDoc, renamedGeneratedDoc, DisposalToken);
+        var implChanges = await mappingService.GetMappedTextChangesAsync(generatedDocs.Value.ImplDoc, renamedGeneratedDocs.Value.ImplDoc, DisposalToken);
+        var declChanges = generatedDocs.Value.DeclDoc is { } declDoc && renamedGeneratedDocs.Value.DeclDoc is { } renamedDeclDoc
+            ? await mappingService.GetMappedTextChangesAsync(declDoc, renamedDeclDoc, DisposalToken)
+            : [];
+        var changes = implChanges.Concat(declChanges).ToArray();
 
         var razorDocumentAfterRename = solution.GetAdditionalDocument(razorDocument.Id).AssumeNotNull();
         var razorText = await razorDocumentAfterRename.GetTextAsync(DisposalToken);

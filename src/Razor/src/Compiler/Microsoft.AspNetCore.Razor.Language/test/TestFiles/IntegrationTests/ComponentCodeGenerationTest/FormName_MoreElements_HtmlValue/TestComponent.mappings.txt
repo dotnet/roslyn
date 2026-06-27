@@ -5,11 +5,11 @@ Generated Location: (372:12,0 [41] )
 
 Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1146:30,0 [9] )
+Generated Location: (1044:28,0 [9] )
 |() => { }|
 
 Source Location: (140:2,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => { }|
-Generated Location: (1846:45,0 [9] )
+Generated Location: (1744:43,0 [9] )
 |() => { }|
 

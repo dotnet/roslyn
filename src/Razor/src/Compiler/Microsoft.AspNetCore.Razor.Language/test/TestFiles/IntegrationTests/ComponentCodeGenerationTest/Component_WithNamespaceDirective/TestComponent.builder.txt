@@ -1,0 +1,5 @@
+﻿[0000] OpenComponent<global::Test.HeaderComponent>()
+[0001] AddComponentParameter(nameof(global::Test.HeaderComponent. Header ), "head")
+[0002] AddMarkupContent("\r\n")
+[0003] OpenComponent<global::AnotherTest.FooterComponent>()
+[0004] AddComponentParameter(nameof(global::AnotherTest.FooterComponent. Footer ), "feet")

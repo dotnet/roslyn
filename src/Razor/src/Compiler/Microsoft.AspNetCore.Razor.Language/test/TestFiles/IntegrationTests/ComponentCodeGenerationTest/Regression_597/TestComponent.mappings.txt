@@ -1,19 +1,10 @@
 ﻿Source Location: (1:0,1 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |Counter|
-Generated Location: (703:19,49 [7] )
+Generated Location: (601:17,49 [7] )
 |Counter|
 
 Source Location: (18:0,18 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |y|
-Generated Location: (853:23,0 [1] )
+Generated Location: (751:21,0 [1] )
 |y|
-
-Source Location: (32:1,7 [24] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    string y = null;
-|
-Generated Location: (1287:35,0 [24] )
-|
-    string y = null;
-|
 

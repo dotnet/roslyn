@@ -1,0 +1,4 @@
+﻿[0000] OpenElement("div")
+[0001] AddContent(person.Name)
+[0002] OpenComponent<global::Test.MyComponent>()
+[0003] AddComponentParameter(nameof(global::Test.MyComponent. PersonTemplate ), (global::Microsoft.AspNetCore.Components.RenderFragment<global::Test.Person>)( template ))

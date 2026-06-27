@@ -29,18 +29,6 @@ __builder.AddContent(1, Capture(1 + 1 == 2)
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(6,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public static string Capture(
-        bool condition,
-        [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(condition))] string? expression = null)
-        => expression ?? string.Empty;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

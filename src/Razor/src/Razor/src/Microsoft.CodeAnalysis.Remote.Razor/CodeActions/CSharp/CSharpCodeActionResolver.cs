@@ -1,11 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
@@ -61,52 +61,50 @@ internal sealed class CSharpCodeActionResolver(
                 continue;
             }
 
-            var editDocumentContext = await CreateDocumentContextAsync(snapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
-            if (editDocumentContext is null)
+            // We know this is a virtual C# file, but we have to jump through a couple of hoops to make sure we get the right info
+            var solution = snapshot.TextDocument.Project.Solution;
+
+            var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+            if (razorDocument is null)
             {
-                _logger.LogWarning($"Could not create document context for {generatedDocumentUri} processing {codeAction.Title}, so leaving original edit in place.");
+                _logger.LogWarning($"Could not get razor document for {generatedDocumentUri} processing {codeAction.Title}, so leaving original edit in place.");
                 continue;
             }
 
-            var csharpSourceText = await editDocumentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            var razorSnapshot = _snapshotManager.GetSnapshot(razorDocument);
+            var codeDocument = await razorSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
+            if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
+            {
+                _logger.LogWarning($"Could not get generated document identity for {generatedDocumentUri} processing {codeAction.Title}, so leaving original edit in place.");
+                continue;
+            }
+
+            var csharpDocument = codeDocument.GetCSharpDocumentForHintName(identity.HintName);
+            var csharpSourceText = csharpDocument.Text;
             var csharpTextChanges = textDocumentEdit.Edits.SelectAsArray(e => csharpSourceText.GetTextChange((TextEdit)e));
 
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.
             var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(
-                editDocumentContext,
+                razorSnapshot,
                 csharpTextChanges,
+                declarationDocument: csharpDocument.IsDeclarationDocument,
                 formattingOptions,
                 cancellationToken).ConfigureAwait(false);
 
             if (formattedChange is { } change)
             {
-                var sourceText = await editDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-                textDocumentEdit.TextDocument = new() { DocumentUri = editDocumentContext.Uri };
-                textDocumentEdit.Edits = [sourceText.GetTextEdit(change)];
+                textDocumentEdit.TextDocument = new() { DocumentUri = razorDocument.GetURI() };
+                textDocumentEdit.Edits = [codeDocument.Source.Text.GetTextEdit(change)];
             }
             else
             {
-                _logger.LogWarning($"Formatting dropped all C# code edits for {codeAction.Title} in {editDocumentContext.Uri}");
+                _logger.LogWarning($"Formatting dropped all C# code edits for {codeAction.Title} in {razorDocument.GetURI()}");
                 textDocumentEdit.Edits = [];
             }
         }
 
         return codeAction;
-    }
-
-    private async Task<RemoteDocumentContext?> CreateDocumentContextAsync(RemoteDocumentSnapshot originDocumentSnapshot, Uri generatedDocumentUri, CancellationToken cancellationToken)
-    {
-        var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(
-            originDocumentSnapshot.TextDocument.Project.Solution,
-            generatedDocumentUri,
-            cancellationToken).ConfigureAwait(false);
-        if (razorDocument is null)
-        {
-            return null;
-        }
-
-        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-        return new RemoteDocumentContext(razorDocument.GetURI(), razorDocumentSnapshot);
     }
 }

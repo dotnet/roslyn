@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -97,7 +98,11 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var csharpSyntaxTree = await documentContext.Snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        // We're essentially pretending to be a C# code action, so our new method ends up going through the same pipeline as the Roslyn Generate Method code
+        // action. That's the magic that knows how to create a code block if one doesn't exist, or put the method in an existing one, and it will also ensure
+        // the method gets properly formatted. That means it doesn't matter which C# document we use for the edit, so we'll just use the impl document since
+        // it always exists.
+        var csharpSyntaxTree = await documentContext.Snapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         if (!csharpSyntaxRoot.TryGetClassDeclaration(out var classDecl))
         {
@@ -120,12 +125,12 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
             return null;
         }
 
-        // Now we run the changes through the formatter, via the TryGetCSharpCodeActionEditAsync. This is the same as what the CSharpCodeActionResolver does, and we're essentially
-        // pretending to be a C# code action, so our new method ends up going through the same pipeline as the Roslyn Generate Method code action. That's the magic that knows how
-        // to create a code block if one doesn't exist, or put the method in an existing one, and it will also ensure the method gets properly formatted.
-        var csharpSourceText = code.GetCSharpSourceText();
-        var csharpTextChanges = edits.SelectAsArray(csharpSourceText.GetTextChange);
-        var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentContext, csharpTextChanges, options, cancellationToken).ConfigureAwait(false);
+        // Now we run the changes through the formatter, via the TryGetCSharpCodeActionEditAsync. This is the same as what the CSharpCodeActionResolver does.
+        var csharpDocument = code.GetRequiredCSharpDocument(declarationDocument: false);
+        var csharpTextChanges = edits.SelectAsArray(csharpDocument.Text.GetTextChange);
+        var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentContext.Snapshot, csharpTextChanges,
+            declarationDocument: false,
+            options, cancellationToken).ConfigureAwait(false);
         if (formattedChange is not { } razorChange)
         {
             return null;

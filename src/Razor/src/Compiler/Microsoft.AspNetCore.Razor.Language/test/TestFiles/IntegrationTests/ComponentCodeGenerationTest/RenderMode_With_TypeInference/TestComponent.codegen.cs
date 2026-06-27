@@ -10,7 +10,6 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
     public partial class TestComponent<
 #nullable restore
 #line (1,12)-(1,23) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -19,15 +18,7 @@ TRenderMode
 #line default
 #line hidden
 #nullable disable
-    > : global::Microsoft.AspNetCore.Components.ComponentBase
-#nullable restore
-#line (1,24)-(1,96) "x:\dir\subdir\Test\TestComponent.cshtml"
-where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
-
-#line default
-#line hidden
-#nullable disable
-    #nullable disable
+    >
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -52,15 +43,6 @@ Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (6,2)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public TRenderMode RenderModeParam { get; set;}
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

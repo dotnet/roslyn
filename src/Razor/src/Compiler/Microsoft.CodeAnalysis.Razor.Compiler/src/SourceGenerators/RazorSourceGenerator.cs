@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -78,45 +79,133 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var componentFiles = sourceItems.Where(static file => FileUtilities.IsRazorComponentFilePath(file.FilePath, StringComparison.OrdinalIgnoreCase));
 
-            var generatedDeclarationText = componentFiles
+            // The SG processes each source file through the Razor engine up to and including the
+            // decl C# lowering phase. This produces:
+            //   - the unresolved IR (waiting for tag helper resolution + rewrite)
+            //   - the decl half C# document (frozen here, since decl text is tag-helper-independent)
+            //
+            // The decl half is then emitted via RegisterPreCompilationSourceOutput so it becomes part
+            // of the input compilation, visible both to subsequent SG stages (tag helper discovery)
+            // and to other generators. This replaces the older approach of running a separate
+            // "declaration project engine" stub and manually calling compilation.AddSyntaxTrees.
+            var withOptions = sourceItems
                 .Combine(importFiles.Collect())
-                .Combine(razorSourceGeneratorOptions)
-                .WithLambdaComparer((old, @new) => old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right))
+                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
+                .Combine(razorSourceGeneratorOptions);
+
+            var parsedDocuments = withOptions
+                .Select((pair, cancellationToken) =>
+                {
+                    var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
+
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
+
+                    var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
+
+                    var document = projectEngine.ProcessForDecl(sourceItem, cancellationToken);
+
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
+                    return (projectEngine, sourceItem.RelativePhysicalPath, document);
+                })
+                .WithTrackingName("ParsedDocuments");
+
+            // Per-file "impl skip usings" map keyed on file path. The set for each file lists the
+            // `@using NS` directive contents whose namespace doesn't resolve against the input
+            // compilation; the impl half omits those usings so that the C# compiler's
+            // CS0246/CS0234 fires exactly once (against the decl half), instead of duplicating
+            // across decl + impl.
+            //
+            // Computed as a collected singleton (rather than per-file in the csharpDocuments
+            // pipeline) so the result feeds in only at the final ProcessRemaining step, where
+            // it's actually consumed. That keeps the per-file first/second ProcessTagHelpers
+            // caches keyed strictly on file content + tag helpers, preserving the idempotency-
+            // replay machinery that handles "tag helpers changed but file didn't" scenarios.
+            var implSkipUsingsByPath = parsedDocuments
+                .Combine(compilation)
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
-                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
+                    var (item, compilation) = pair;
+                    var (_, filePath, sgDocument) = item;
 
-                    var projectEngine = GetDeclarationProjectEngine(sourceItem, importFiles, razorSourceGeneratorOptions);
+                    var documentNode = sgDocument.CodeDocument.GetDocumentNode();
+                    if (documentNode is null)
+                    {
+                        return (filePath, skipSet: (ImmutableHashSet<string>?)null);
+                    }
 
-                    var codeGen = projectEngine.Process(sourceItem, cancellationToken);
+                    ImmutableHashSet<string>.Builder? skipBuilder = null;
+                    foreach (var usingDirective in documentNode.FindDescendantNodes<UsingDirectiveIntermediateNode>())
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                    var result = new SourceGeneratorText(codeGen.GetRequiredCSharpDocument().Text);
+                        var content = usingDirective.Content;
+                        if (content is null)
+                        {
+                            continue;
+                        }
 
-                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
+                        var namespaceName = TryGetPlainUsingNamespace(content);
+                        if (namespaceName is null)
+                        {
+                            continue;
+                        }
 
-                    return result;
+                        if (!ResolvesAsNamespace(compilation, namespaceName))
+                        {
+                            skipBuilder ??= ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+                            // Match on UsingDirectiveIntermediateNode.Content (raw, untrimmed). Storing the
+                            // trimmed namespace would miss directives that have trailing whitespace, etc.
+                            skipBuilder.Add(content);
+                        }
+                    }
+
+                    return (filePath, skipSet: skipBuilder?.ToImmutable());
                 })
-                .WithTrackingName("GeneratedDeclarationCode");
-
-            var generatedDeclarationSyntaxTrees = generatedDeclarationText
-                .Combine(parseOptions)
-                .Select(static (pair, ct) =>
-                {
-                    var (generatedDeclarationText, parseOptions) = pair;
-
-                    return CSharpSyntaxTree.ParseText(generatedDeclarationText.Text, (CSharpParseOptions)parseOptions, cancellationToken: ct);
-                });
-
-            var declCompilation = generatedDeclarationSyntaxTrees
+                .WithLambdaComparer(static (old, @new) =>
+                    old.filePath == @new.filePath &&
+                    AreImplSkipUsingsEqual(old.skipSet, @new.skipSet))
                 .Collect()
-                .Combine(compilation)
-                .Select(static (pair, _) =>
+                .Select(static (items, _) =>
                 {
-                    return pair.Right.AddSyntaxTrees(pair.Left);
-                });
+                    var builder = ImmutableDictionary.CreateBuilder<string, ImmutableHashSet<string>>(StringComparer.Ordinal);
+                    foreach (var (filePath, skipSet) in items)
+                    {
+                        if (skipSet is { Count: > 0 })
+                        {
+                            builder[filePath] = skipSet;
+                        }
+                    }
+                    return builder.ToImmutable();
+                })
+                .WithTrackingName("ImplSkipUsings");
 
-            var tagHelpersFromCompilation = declCompilation
+            // Decl sources -- the class declaration / parameter / @inject / @inherits surface for
+            // each component, emitted before the compilation exists so it can be added to the
+            // initial compilation that tag-helper discovery sees.
+            var declSources = parsedDocuments
+                .Select(static (item, _) =>
+                {
+                    var (_, filePath, document) = item;
+                    var declCSharpDocument = document.CodeDocument.GetDeclCSharpDocument();
+                    return (
+                        hintName: GetIdentifierFromPath(filePath),
+                        declCSharpDocument: declCSharpDocument);
+                })
+                .Where(static item => item.declCSharpDocument is not null)
+                .WithLambdaComparer(static (a, b) =>
+                    a.hintName == b.hintName &&
+                    a.declCSharpDocument!.Text.ContentEquals(b.declCSharpDocument!.Text))
+                .WithTrackingName("DeclSources");
+
+#pragma warning disable RSEXPERIMENTAL007 // RegisterPreCompilationSourceOutput is experimental: emits the decl half before the compilation is built so it's visible to subsequent stages.
+            context.RegisterPreCompilationSourceOutput(declSources, static (context, pair) =>
+            {
+                var (hintName, declCSharpDocument) = pair;
+                context.AddSource(GetDeclIdentifierFromHintName(hintName), declCSharpDocument!.Text);
+            });
+#pragma warning restore RSEXPERIMENTAL007
+
+            var tagHelpersFromCompilation = compilation
                 .Combine(razorSourceGeneratorOptions)
                 .Select(static (pair, cancellationToken) =>
                 {
@@ -246,27 +335,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return TagHelperCollection.Merge(pair.Left, pair.Right);
                 });
 
-            var withOptions = sourceItems
-                .Combine(importFiles.Collect())
-                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
-                .Combine(razorSourceGeneratorOptions);
-
-            var parsedDocuments = withOptions
-                .Select((pair, cancellationToken) =>
-                {
-                    var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
-
-                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
-
-                    var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
-
-                    var document = projectEngine.ProcessInitialParse(sourceItem, cancellationToken);
-
-                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
-                    return (projectEngine, sourceItem.RelativePhysicalPath, document);
-                })
-                .WithTrackingName("ParsedDocuments");
-
             // Build a map of which @inherits base types support UTF-8 WriteLiteral.
             var utf8SupportMap = parsedDocuments
                 .Select(static (item, _) =>
@@ -278,7 +346,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Select(static (item, _) => new DefaultUtf8WriteLiteralFeature.InheritsInfo(
                     item.codeDocument.Source.FilePath ?? string.Empty, item.InheritsValue!, item.codeDocument.GetUsingDirectives()))
                 .Collect()
-                .Combine(declCompilation)
+                .Combine(compilation)
                 .Select(static (pair, _) =>
                 {
                     var (inheritsInfos, compilation) = pair;
@@ -317,12 +385,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .WithTrackingName("CheckedAndRewrittenTagHelpers")
                 .Combine(utf8SupportMap)
+                .Combine(implSkipUsingsByPath)
                 .Select((pair, cancellationToken) =>
                 {
-                    var ((projectEngine, filePath, document), utf8SupportMap) = pair;
+                    var (((projectEngine, filePath, document), utf8SupportMap), implSkipUsingsByPath) = pair;
+                    var implSkipUsings = implSkipUsingsByPath.GetValueOrDefault(filePath);
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath);
-                    document = projectEngine.ProcessRemaining(document, utf8SupportMap, cancellationToken);
+                    document = projectEngine.ProcessRemaining(document, utf8SupportMap, implSkipUsings, cancellationToken);
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath);
                     return (filePath, document);
@@ -334,29 +404,57 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (
                         hintName: GetIdentifierFromPath(filePath),
                         codeDocument: document.CodeDocument,
-                        csharpDocument: document.CodeDocument.GetRequiredCSharpDocument());
+                        csharpDocument: document.CodeDocument.GetRequiredImplCSharpDocument(),
+                        declCSharpDocument: document.CodeDocument.GetDeclCSharpDocument());
                 })
                 .WithLambdaComparer(static (a, b) =>
                 {
+                    // If either side has diagnostics on either document, force uncached output.
                     if (a.csharpDocument.Diagnostics.Length > 0 || b.csharpDocument.Diagnostics.Length > 0)
                     {
-                        // if there are any diagnostics, treat the documents as unequal and force RegisterSourceOutput to be called uncached.
+                        return false;
+                    }
+                    if ((a.declCSharpDocument?.Diagnostics.Length ?? 0) > 0 || (b.declCSharpDocument?.Diagnostics.Length ?? 0) > 0)
+                    {
                         return false;
                     }
 
-                    return a.csharpDocument.Text.ContentEquals(b.csharpDocument.Text);
+                    if (!a.csharpDocument.Text.ContentEquals(b.csharpDocument.Text))
+                    {
+                        return false;
+                    }
+
+                    return (a.declCSharpDocument, b.declCSharpDocument) switch
+                    {
+                        (null, null) => true,
+                        (not null, not null) => a.declCSharpDocument.Text.ContentEquals(b.declCSharpDocument.Text),
+                        _ => false,
+                    };
                 })
                 .WithTrackingName("CSharpDocuments");
 
             context.RegisterImplementationSourceOutput(csharpDocuments, static (context, pair) =>
             {
-                var (hintName, _, csharpDocument) = pair;
+                var (hintName, _, csharpDocument, declCSharpDocument) = pair;
 
                 RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
                 foreach (var razorDiagnostic in csharpDocument.Diagnostics)
                 {
                     var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
                     context.ReportDiagnostic(csharpDiagnostic);
+                }
+
+                // Decl diagnostics are still surfaced here even though the decl source itself is
+                // emitted via RegisterPreCompilationSourceOutput. The precomp output runs before the
+                // compilation is built, but diagnostics ultimately want to be reported alongside the
+                // compilation, so they flow through this (implementation-time) output instead.
+                if (declCSharpDocument is not null)
+                {
+                    foreach (var razorDiagnostic in declCSharpDocument.Diagnostics)
+                    {
+                        var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
+                        context.ReportDiagnostic(csharpDiagnostic);
+                    }
                 }
 
                 context.AddSource(hintName, csharpDocument.Text);
@@ -376,10 +474,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 using var filePathToDocument = new PooledDictionaryBuilder<string, (string, RazorCodeDocument)>();
                 using var hintNameToFilePath = new PooledDictionaryBuilder<string, string>();
 
-                foreach (var (hintName, codeDocument, _) in documents)
+                foreach (var (hintName, codeDocument, _, declCSharpDocument) in documents)
                 {
                     filePathToDocument.Add(codeDocument.Source.FilePath!, (hintName, codeDocument));
                     hintNameToFilePath.Add(hintName, codeDocument.Source.FilePath!);
+
+                    if (declCSharpDocument is not null)
+                    {
+                        hintNameToFilePath.Add(GetDeclIdentifierFromHintName(hintName), codeDocument.Source.FilePath!);
+                    }
                 }
 
                 context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, filePathToDocument.ToImmutable(), hintNameToFilePath.ToImmutable()));

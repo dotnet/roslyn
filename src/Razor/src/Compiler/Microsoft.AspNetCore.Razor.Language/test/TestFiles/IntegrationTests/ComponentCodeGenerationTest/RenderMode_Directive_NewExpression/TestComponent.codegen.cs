@@ -11,25 +11,13 @@ namespace Test
     #line default
     #line hidden
     [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
-    #nullable restore
-    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class TestComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,2)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-#pragma warning disable CS9113
-    public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
-
-#line default
-#line hidden
-#nullable disable
-
         private sealed class __PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
         {
             private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 

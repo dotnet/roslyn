@@ -1,0 +1,5 @@
+﻿[0000] AddMarkupContent("<h1>Conditional statement</h1>")
+[0001] OpenElement("p")
+[0002] AddContent(i)
+[0003] AddMarkupContent("<h1>Statements inside code block</h1>")
+[0004] AddMarkupContent("<h1>Full-on code block</h1>")

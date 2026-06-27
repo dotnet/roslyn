@@ -13,6 +13,9 @@ internal static class IntermediateNodeFactory
     public static CSharpIntermediateToken CSharpToken<T>(T arg, Func<T, string> contentFactory, SourceSpan? source = null)
         => new(LazyContent.Create(arg, contentFactory), source);
 
+    public static CSharpCodeIntermediateNode CSharpCode(string content, SourceSpan? source = null)
+        => new() { Children = { CSharpToken(content, source) } };
+
     public static HtmlIntermediateToken HtmlToken(string content, SourceSpan? source = null)
         => new(content, source);
 

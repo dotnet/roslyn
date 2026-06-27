@@ -118,14 +118,14 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
                     {
                         i++;
                     }
-            
+
                     private string {|ObjToString(object o):ObjToString|}(object o)
                     {
                         return o.ToString();
                     }
                 }
             }
-            
+
             """,
             miscellaneousFile: true);
     }
@@ -146,14 +146,14 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
                     {
                         i++;
                     }
-            
+
                     private string {|ObjToString:ObjToString|}(object o)
                     {
                         return o.ToString();
                     }
                 }
             }
-            
+
             """;
 
         var documentSymbols = await GetDocumentSymbolsAsync(input, miscellaneousFile: true);
@@ -207,6 +207,58 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
             """);
 
     [Fact]
+    public Task DocumentSymbols_NoCodeBlock()
+        => VerifySymbolInformationsAsync(
+            """
+            {|BuildRenderTree():|}<p>Hello</p>
+
+            """);
+
+    [Fact]
+    public async Task DocumentSymbols_NoCodeBlock_Hierarchical()
+    {
+        TestCode input = """
+            {|BuildRenderTree():|}<p>Hello</p>
+
+            """;
+
+        var documentSymbols = await GetDocumentSymbolsAsync(input);
+        var sourceText = SourceText.From(input.Text);
+
+        var buildRenderTree = Assert.Single(documentSymbols);
+        Assert.Equal("BuildRenderTree()", buildRenderTree.Name);
+        Assert.Equal(SymbolKind.Method, buildRenderTree.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["BuildRenderTree()"])), buildRenderTree.SelectionRange);
+    }
+
+    [Fact]
+    public Task DocumentSymbols_EmptyCodeBlock()
+        => VerifySymbolInformationsAsync(
+            """
+            {|BuildRenderTree():|}@code {
+            }
+
+            """);
+
+    [Fact]
+    public async Task DocumentSymbols_EmptyCodeBlock_Hierarchical()
+    {
+        TestCode input = """
+            {|BuildRenderTree():|}@code {
+            }
+
+            """;
+
+        var documentSymbols = await GetDocumentSymbolsAsync(input);
+        var sourceText = SourceText.From(input.Text);
+
+        var buildRenderTree = Assert.Single(documentSymbols);
+        Assert.Equal("BuildRenderTree()", buildRenderTree.Name);
+        Assert.Equal(SymbolKind.Method, buildRenderTree.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["BuildRenderTree()"])), buildRenderTree.SelectionRange);
+    }
+
+    [Fact]
     public async Task DocumentSymbols_CSharpMethods_Hierarchical()
     {
         TestCode input = """
@@ -252,6 +304,173 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
     }
 
     [Fact]
+    public Task DocumentSymbols_CSharpClassWithMethods_Legacy()
+        => VerifySymbolInformationsAsync(
+            """
+            {|ExecuteAsync():|}@functions {
+                class {|AspNetCoreGeneratedDocument.File1.C:C|}
+                {
+                    private void {|HandleString(string s):HandleString|}(string s)
+                    {
+                        s += "Hello";
+                    }
+
+                    private void {|M(int i):M|}(int i)
+                    {
+                        i++;
+                    }
+
+                    private string {|ObjToString(object o):ObjToString|}(object o)
+                    {
+                        return o.ToString();
+                    }
+                }
+            }
+
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public async Task DocumentSymbols_CSharpClassWithMethods_Legacy_Hierarchical()
+    {
+        TestCode input = """
+            @functions {
+                class {|C:C|}
+                {
+                    private void {|HandleString:HandleString|}(string s)
+                    {
+                        s += "Hello";
+                    }
+
+                    private void {|M:M|}(int i)
+                    {
+                        i++;
+                    }
+
+                    private string {|ObjToString:ObjToString|}(object o)
+                    {
+                        return o.ToString();
+                    }
+                }
+            }
+
+            """;
+
+        var documentSymbols = await GetDocumentSymbolsAsync(input, fileKind: RazorFileKind.Legacy);
+        var sourceText = SourceText.From(input.Text);
+
+        // Expect: 1 class C containing HandleString, M, ObjToString methods
+        var classC = Assert.Single(documentSymbols);
+        Assert.Equal("C", classC.Name);
+        Assert.Equal(SymbolKind.Class, classC.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["C"])), classC.SelectionRange);
+        Assert.NotNull(classC.Children);
+        Assert.Equal(3, classC.Children!.Length);
+
+        var handleString = classC.Children[0];
+        Assert.Equal("HandleString(string) : void", handleString.Name);
+        Assert.Equal(SymbolKind.Method, handleString.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["HandleString"])), handleString.SelectionRange);
+
+        var m = classC.Children[1];
+        Assert.Equal("M(int) : void", m.Name);
+        Assert.Equal(SymbolKind.Method, m.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["M"])), m.SelectionRange);
+
+        var objToString = classC.Children[2];
+        Assert.Equal("ObjToString(object) : string", objToString.Name);
+        Assert.Equal(SymbolKind.Method, objToString.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["ObjToString"])), objToString.SelectionRange);
+    }
+
+    [Fact]
+    public Task DocumentSymbols_CSharpClassWithMethods_Legacy_MiscFile()
+    {
+        // What the source generator would product for TestProjectData.SomeProjectPath
+        var generatedClassName = PlatformInformation.IsWindows
+            ? "c__users_example_src_SomeProject_File1"
+            : "_home_example_SomeProject_File1";
+        return VerifySymbolInformationsAsync(
+            $$"""
+            {|ExecuteAsync():|}@functions {
+                class {|AspNetCoreGeneratedDocument.{{generatedClassName}}.C:C|}
+                {
+                    private void {|HandleString(string s):HandleString|}(string s)
+                    {
+                        s += "Hello";
+                    }
+
+                    private void {|M(int i):M|}(int i)
+                    {
+                        i++;
+                    }
+
+                    private string {|ObjToString(object o):ObjToString|}(object o)
+                    {
+                        return o.ToString();
+                    }
+                }
+            }
+
+            """,
+            miscellaneousFile: true,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_CSharpClassWithMethods_Legacy_MiscFile_Hierarchical()
+    {
+        TestCode input = """
+            @functions {
+                class {|C:C|}
+                {
+                    private void {|HandleString:HandleString|}(string s)
+                    {
+                        s += "Hello";
+                    }
+
+                    private void {|M:M|}(int i)
+                    {
+                        i++;
+                    }
+
+                    private string {|ObjToString:ObjToString|}(object o)
+                    {
+                        return o.ToString();
+                    }
+                }
+            }
+
+            """;
+
+        var documentSymbols = await GetDocumentSymbolsAsync(input, miscellaneousFile: true, fileKind: RazorFileKind.Legacy);
+        var sourceText = SourceText.From(input.Text);
+
+        // Expect: 1 class C containing HandleString, M, ObjToString methods
+        var classC = Assert.Single(documentSymbols);
+        Assert.Equal("C", classC.Name);
+        Assert.Equal(SymbolKind.Class, classC.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["C"])), classC.SelectionRange);
+        Assert.NotNull(classC.Children);
+        Assert.Equal(3, classC.Children!.Length);
+
+        var handleString = classC.Children[0];
+        Assert.Equal("HandleString(string) : void", handleString.Name);
+        Assert.Equal(SymbolKind.Method, handleString.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["HandleString"])), handleString.SelectionRange);
+
+        var m = classC.Children[1];
+        Assert.Equal("M(int) : void", m.Name);
+        Assert.Equal(SymbolKind.Method, m.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["M"])), m.SelectionRange);
+
+        var objToString = classC.Children[2];
+        Assert.Equal("ObjToString(object) : string", objToString.Name);
+        Assert.Equal(SymbolKind.Method, objToString.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["ObjToString"])), objToString.SelectionRange);
+    }
+
+    [Fact]
     public Task DocumentSymbols_CSharpMethods_Legacy()
         => VerifySymbolInformationsAsync(
             """
@@ -274,6 +493,60 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
             
                 """,
             fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task DocumentSymbols_NoCodeBlock_Legacy()
+        => VerifySymbolInformationsAsync(
+            """
+            {|ExecuteAsync():|}<p>Hello</p>
+
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public async Task DocumentSymbols_NoCodeBlock_Legacy_Hierarchical()
+    {
+        TestCode input = """
+            {|ExecuteAsync():|}<p>Hello</p>
+
+            """;
+
+        var documentSymbols = await GetDocumentSymbolsAsync(input, fileKind: RazorFileKind.Legacy);
+        var sourceText = SourceText.From(input.Text);
+
+        var executeAsync = Assert.Single(documentSymbols);
+        Assert.Equal("ExecuteAsync()", executeAsync.Name);
+        Assert.Equal(SymbolKind.Method, executeAsync.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["ExecuteAsync()"])), executeAsync.SelectionRange);
+    }
+
+    [Fact]
+    public Task DocumentSymbols_EmptyCodeBlock_Legacy()
+        => VerifySymbolInformationsAsync(
+            """
+            {|ExecuteAsync():|}@functions {
+            }
+
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public async Task DocumentSymbols_EmptyCodeBlock_Legacy_Hierarchical()
+    {
+        TestCode input = """
+            {|ExecuteAsync():|}@functions {
+            }
+
+            """;
+
+        var documentSymbols = await GetDocumentSymbolsAsync(input, fileKind: RazorFileKind.Legacy);
+        var sourceText = SourceText.From(input.Text);
+
+        var executeAsync = Assert.Single(documentSymbols);
+        Assert.Equal("ExecuteAsync()", executeAsync.Name);
+        Assert.Equal(SymbolKind.Method, executeAsync.Kind);
+        Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["ExecuteAsync()"])), executeAsync.SelectionRange);
+    }
 
     [Fact]
     public async Task DocumentSymbols_CSharpMethods_Legacy_Hierarchical()

@@ -29,9 +29,7 @@ using System.Reflection
     ;
     #line default
     #line hidden
-    #nullable restore
-    public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class Counter
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)

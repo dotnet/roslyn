@@ -48,9 +48,18 @@ internal sealed class TestDocumentSnapshot : IDocumentSnapshot
     public ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
     public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(CancellationToken cancellationToken)
     {
-        return new(CSharpSyntaxTree.ParseText(_codeDocument.GetCSharpSourceText(), cancellationToken: cancellationToken));
+        return GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken);
+    }
+
+    public ValueTask<SyntaxTree> GetCSharpSyntaxTreeAsync(bool declarationDocument, CancellationToken cancellationToken)
+    {
+        var csharpDocument = _codeDocument.GetRequiredCSharpDocument(declarationDocument);
+        return new(CSharpSyntaxTree.ParseText(csharpDocument.Text, cancellationToken: cancellationToken));
     }
 
     public bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)

@@ -1,0 +1,11 @@
+﻿Source Location: (78:3,1 [137] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+#pragma warning disable CS9113
+    public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
+|
+Generated Location: (557:18,0 [137] )
+|
+#pragma warning disable CS9113
+    public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
+|
+

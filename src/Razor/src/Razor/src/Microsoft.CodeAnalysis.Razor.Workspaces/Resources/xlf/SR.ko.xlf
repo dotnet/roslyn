@@ -9,74 +9,39 @@
       </trans-unit>
       <trans-unit id="Baseline_Newly_Available">
         <source>🆕 Newly available across major browsers{0}</source>
-        <target state="translated">🆕 주요 브라우저에서 새로 사용 가능{0}</target>
+        <target state="new">🆕 Newly available across major browsers{0}</target>
         <note>{0} is " (Baseline since YYYY)" or empty</note>
       </trans-unit>
       <trans-unit id="Baseline_Since">
         <source> (Baseline since {0})</source>
-        <target state="translated"> ({0} 이후 기준)</target>
+        <target state="new"> (Baseline since {0})</target>
         <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
       </trans-unit>
       <trans-unit id="Baseline_Widely_Available">
         <source>✅ Widely available across major browsers{0}</source>
-        <target state="translated">✅ 주요 브라우저에서 널리 사용 가능{0}</target>
+        <target state="new">✅ Widely available across major browsers{0}</target>
         <note>{0} is " (Baseline since YYYY)" or empty</note>
-      </trans-unit>
-      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
-        <source>{0} (and req'd attributes...)</source>
-        <target state="translated">{0}(및 필수 특성...)</target>
-        <note>The term "req'd" is an abbreviation for "required"</note>
       </trans-unit>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
-        <target state="translated">Blazor 지시문 특성</target>
+        <target state="new">Blazor directive attributes</target>
         <note />
       </trans-unit>
-      <trans-unit id="Diagnostics_after">
-        <source>Diagnostics after:</source>
-        <target state="translated">다음 이후 진단:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Diagnostics_before">
-        <source>Diagnostics before:</source>
-        <target state="translated">다음 이전 진단:</target>
-        <note />
+      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
+        <source>{0} (and req'd attributes...)</source>
+        <target state="new">{0} (and req'd attributes...)</target>
+        <note>The term "req'd" is an abbreviation for "required"</note>
       </trans-unit>
       <trans-unit id="Directive">
         <source>directive</source>
-        <target state="translated">지시문</target>
+        <target state="new">directive</target>
         <note />
       </trans-unit>
       <trans-unit id="DirectiveSnippetDescription">
         <source>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="translated">지시문 코드 조각 삽입
-요소 간에 탐색하려면 [Tab], 완료하려면 [Enter]</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_adds">
-        <source>Edit at {0} adds the non-whitespace content '{1}'.</source>
-        <target state="translated">{0}에서 편집은 공백이 아닌 콘텐츠 '{1}'을(를) 추가합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_at_deletes">
-        <source>Edit at {0} deletes the non-whitespace content '{1}'.</source>
-        <target state="translated">{0}에서 편집은 공백이 아닌 콘텐츠 '{1}'을(를) 삭제합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_diagnostics">
-        <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
-        <target state="translated">서식 작업이 중단되는 이유는 진단 중 하나를 더 도입하거나 제거할 수 있기 때문입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_operation_changed_nonwhitespace">
-        <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
-        <target state="translated">공백이 아닌 콘텐츠를 추가하거나 삭제하기 때문에 형식 작업이 중단됩니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_Error">
-        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
-        <target state="translated">서식 오류입니다. 파일이 손상되지 않도록 추가 작업을 중단합니다. 이 문제를 보고하세요. 참조: https://aka.ms/razor-formatting-issue</target>
+        <target state="new">Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</target>
         <note />
       </trans-unit>
       <trans-unit id="IncompatibleProject_NoAdditionalFiles">
@@ -96,7 +61,7 @@
       </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
-        <target state="translated">{0} 키워드</target>
+        <target state="new">{0} Keyword</target>
         <note />
       </trans-unit>
       <trans-unit id="Language_Services_Missing_Service">
@@ -106,7 +71,7 @@
       </trans-unit>
       <trans-unit id="MDN_Reference">
         <source>MDN Reference</source>
-        <target state="translated">MDN 참조</target>
+        <target state="new">MDN Reference</target>
         <note>Link text for MDN documentation URL in HTML completion tooltips</note>
       </trans-unit>
       <trans-unit id="Not_Available_In">
@@ -124,6 +89,11 @@
         <target state="translated">'{2}'의 {1} 범위를 벗어나는 줄 '{0}'을(를) 쿼리했습니다. 문서가 최신이 아닐 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="new">"Re-trigger completions..."</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
         <target state="translated">Razor TagHelper 특성 문자 모양</target>
@@ -132,16 +102,6 @@
       <trans-unit id="TagHelper_Element_Glyph">
         <source>Razor TagHelper Element Glyph</source>
         <target state="translated">Razor TagHelper 요소 문자 모양</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ReTrigger_Completions_Title">
-        <source>"Re-trigger completions..."</source>
-        <target state="translated">"완료된 항목 다시 트리거"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_mapping_behavior">
-        <source>Unknown mapping behavior</source>
-        <target state="translated">알 수 없는 매핑 동작</target>
         <note />
       </trans-unit>
       <trans-unit id="Unsupported_Razor_extension_0">

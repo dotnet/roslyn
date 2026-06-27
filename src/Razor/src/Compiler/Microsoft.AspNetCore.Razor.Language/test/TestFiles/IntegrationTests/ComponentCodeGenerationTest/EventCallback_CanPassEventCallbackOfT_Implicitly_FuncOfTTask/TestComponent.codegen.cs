@@ -16,9 +16,7 @@ using Microsoft.AspNetCore.Components.Web
     ;
     #line default
     #line hidden
-    #nullable restore
-    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class TestComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -44,19 +42,6 @@ Increment
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,8)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private int counter;
-    private Task Increment(MouseEventArgs e) {
-        counter++;
-        return Task.CompletedTask;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

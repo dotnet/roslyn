@@ -5,6 +5,6 @@ Generated Location: (372:12,0 [41] )
 
 Source Location: (92:2,8 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 |DateTime.Now|
-Generated Location: (1258:32,24 [12] )
+Generated Location: (1156:30,24 [12] )
 |DateTime.Now|
 

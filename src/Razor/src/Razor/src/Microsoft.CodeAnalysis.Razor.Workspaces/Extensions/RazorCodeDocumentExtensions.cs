@@ -1,14 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
@@ -31,62 +30,50 @@ internal static partial class RazorCodeDocumentExtensions
     public static Syntax.SyntaxNode GetRequiredSyntaxRoot(this RazorCodeDocument codeDocument)
         => codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root;
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call GetRequiredCSharpDocument and use the Text property on that, to prove that you thought about which document to get")]
+#endif
     public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
-        => document.GetRequiredCSharpDocument().Text;
+        => document.GetRequiredImplCSharpDocument().Text;
 
-    public static SourceText GetHtmlSourceText(this RazorCodeDocument document, CancellationToken cancellationToken)
-        => GetCachedData(document).GetOrComputeHtmlDocument(cancellationToken).Text;
-
-    public static bool TryGetMinimalCSharpRange(this RazorCodeDocument codeDocument, LinePositionSpan razorRange, out LinePositionSpan csharpRange)
+    /// <summary>
+    /// Returns the generated <see cref="RazorCSharpDocument"/> that corresponds to the given
+    /// generated-source hint name. For Razor components the generator can emit two halves:
+    /// an impl (under the original hint) and a decl (under <c>hintName + ".decl.g.cs"</c>).
+    /// Mapping callers receive a hint name from Roslyn and need to consult the matching half
+    /// so that source mappings line up with positions in that generated document.
+    /// </summary>
+    /// <remarks>
+    /// Falls back to the impl document if the hint name has the <c>.decl.g.cs</c> suffix but
+    /// the document was not split (e.g. .cshtml or suppressed primary method body) -- the
+    /// caller would normally never be asked about a non-existent decl half, but the fallback
+    /// keeps the behavior conservative.
+    /// </remarks>
+    public static RazorCSharpDocument GetCSharpDocumentForHintName(this RazorCodeDocument document, string hintName)
     {
-        SourceSpan? minGeneratedSpan = null;
-        SourceSpan? maxGeneratedSpan = null;
-
-        var sourceText = codeDocument.Source.Text;
-        var textSpan = sourceText.GetTextSpan(razorRange);
-        var csharpDoc = codeDocument.GetRequiredCSharpDocument();
-
-        // We want to find the min and max C# source mapping that corresponds with our Razor range.
-        foreach (var mapping in csharpDoc.SourceMappingsSortedByOriginal)
+        if (hintName.EndsWith(".decl.g.cs", System.StringComparison.Ordinal) &&
+            document.GetCSharpDocument(declarationDocument: true) is { } declDocument)
         {
-            var mappedTextSpan = mapping.OriginalSpan.AsTextSpan();
-
-            if (textSpan.OverlapsWith(mappedTextSpan))
-            {
-                if (minGeneratedSpan is null || mapping.GeneratedSpan.AbsoluteIndex < minGeneratedSpan.Value.AbsoluteIndex)
-                {
-                    minGeneratedSpan = mapping.GeneratedSpan;
-                }
-
-                var mappingEndIndex = mapping.GeneratedSpan.AbsoluteIndex + mapping.GeneratedSpan.Length;
-                if (maxGeneratedSpan is null || mappingEndIndex > maxGeneratedSpan.Value.AbsoluteIndex + maxGeneratedSpan.Value.Length)
-                {
-                    maxGeneratedSpan = mapping.GeneratedSpan;
-                }
-            }
-            else if (mappedTextSpan.Start > textSpan.End)
-            {
-                // This span (and all following) are after the area we're interested in
-                break;
-            }
+            return declDocument;
         }
 
-        // Create a new projected range based on our calculated min/max source spans.
-        if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
+        return document.GetRequiredCSharpDocument(declarationDocument: false);
+    }
+
+    public static bool TryGetCSharpDocumentForGeneratedUri(this RazorCodeDocument codeDocument, Solution solution, Uri generatedDocumentUri, [NotNullWhen(true)] out RazorCSharpDocument? csharpDocument)
+    {
+        if (solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity))
         {
-            var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var startRange = csharpSourceText.GetLinePositionSpan(minGeneratedSpan.Value);
-            var endRange = csharpSourceText.GetLinePositionSpan(maxGeneratedSpan.Value);
-
-            csharpRange = new LinePositionSpan(startRange.Start, endRange.End);
-            Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");
-
+            csharpDocument = GetCSharpDocumentForHintName(codeDocument, identity.HintName);
             return true;
         }
 
-        csharpRange = default;
+        csharpDocument = null;
         return false;
     }
+
+    public static SourceText GetHtmlSourceText(this RazorCodeDocument document, CancellationToken cancellationToken)
+        => GetCachedData(document).GetOrComputeHtmlDocument(cancellationToken).Text;
 
     public static bool ComponentNamespaceMatches(this RazorCodeDocument razorCodeDocument, string? fullyQualifiedNamespace)
     {

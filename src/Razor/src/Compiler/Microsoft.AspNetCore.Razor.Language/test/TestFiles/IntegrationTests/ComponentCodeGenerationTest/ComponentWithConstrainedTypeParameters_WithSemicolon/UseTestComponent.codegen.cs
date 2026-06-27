@@ -16,9 +16,7 @@ using Test
     ;
     #line default
     #line hidden
-    #nullable restore
-    public partial class UseTestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class UseTestComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -62,18 +60,6 @@ __builder2.AddContent(6, context
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (6,8)-(11,1) "x:\dir\subdir\Test\UseTestComponent.cshtml"
-
-    Image item1 = new Image() { id = 1, url="https://example.com"};
-    static Tag tag1 = new Tag() { description = "A description."};
-    static Tag tag2 = new Tag() { description = "Another description."};
-    List<Tag> items = new List<Tag>() { tag1, tag2 };
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.UseTestComponent

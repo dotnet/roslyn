@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -2026,17 +2027,20 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
             csharpSource.Text,
             sourceMappings.OrderByAsArray(s => s.GeneratedSpan.AbsoluteIndex));
 
-        codeDocument = codeDocument.WithCSharpDocument(csharpDocument);
+        codeDocument = codeDocument.WithImplCSharpDocument(csharpDocument);
         var snapshot = TestDocumentSnapshot.Create(razorPath, codeDocument);
 
         var responseTextChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(
-            changes,
+            changes.SelectAsArray(static c => c.ToRazorTextChange()),
             snapshot,
+            declarationDocument: false,
+            includeCSharpLanguageFeatureEdits: true,
+            directlyMappedEditFilter: null,
             CancellationToken.None);
 
         Assert.NotEmpty(responseTextChanges);
 
-        var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges);
+        var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges.SelectAsArray(static c => c.ToTextChange()));
         AssertEx.EqualOrDiff(expectedRazorSource, newRazorSourceText.ToString());
     }
 

@@ -10,9 +10,7 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class TestComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -71,16 +69,8 @@ __builder.AddContent(9, ChildContent
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (11,2)-(13,75) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-  [Parameter]
-  public RenderFragment<string> ChildContent { get; set; } = (context) => 
-
-#line default
-#line hidden
-#nullable disable
-
+        private static partial RenderFragment<string> __razor_synth_ChildContentBody() => (
+        (context) => 
         (__builder2) => {
             __builder2.OpenElement(10, "p");
 #nullable restore
@@ -93,20 +83,7 @@ __builder2.AddContent(11, context
             );
             __builder2.CloseElement();
         }
-#nullable restore
-#line (13,91)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-;
-  [Parameter]
-  public bool Collapsed { get; set; }
-  string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
-  void Toggle()
-  {
-    Collapsed = !Collapsed;
-  }
-
-#line default
-#line hidden
-#nullable disable
+        );
 
     }
 }

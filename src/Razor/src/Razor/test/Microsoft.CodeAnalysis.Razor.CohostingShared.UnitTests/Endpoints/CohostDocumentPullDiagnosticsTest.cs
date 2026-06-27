@@ -38,6 +38,14 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             """);
 
     [Fact]
+    public Task CSharp_ImplicitExpression()
+        => VerifyDiagnosticsAsync("""
+            <div></div>
+
+            @{|CS0103:CallMeMaybe|}()
+            """);
+
+    [Fact]
     public Task Razor()
         => VerifyDiagnosticsAsync("""
             <div>
@@ -45,6 +53,18 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             {|RZ10012:<NonExistentComponent />|}
 
             </div>
+            """);
+
+    [Fact]
+    public Task Razor_CodeBlock()
+        => VerifyDiagnosticsAsync("""
+            @code
+            {
+                public void M()
+                {
+                    RenderFragment x = @{|RZ10012:<NonExistentComponent />|};
+                }
+            }
             """);
 
     [Fact]
@@ -108,6 +128,46 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
                 {
                 }
             }
+            """);
+
+    [Fact]
+    public Task CSharpUsingUnusedInImplOnly()
+       => VerifyDiagnosticsAsync("""
+            @using System.Text
+
+            <div></div>
+
+            @code
+            {
+                public void BuildsStrings(StringBuilder b)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task CSharpUsingUnusedInDeclOnly()
+       => VerifyDiagnosticsAsync("""
+            @using System.Text
+
+            @nameof(StringBuilder)
+
+            <div></div>
+
+            @code
+            {
+                public void BuildsStrings()
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task CSharpUnusedUsings_NoCodeBlock()
+        => VerifyDiagnosticsAsync("""
+            {|RZ0005:@using System|}
+
+            <div></div>
             """);
 
     [Fact]

@@ -1,0 +1,9 @@
+﻿Source Location: (49:2,7 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    string[] Selected { get; set; } = Array.Empty<string>();
+|
+Generated Location: (557:18,0 [64] )
+|
+    string[] Selected { get; set; } = Array.Empty<string>();
+|
+

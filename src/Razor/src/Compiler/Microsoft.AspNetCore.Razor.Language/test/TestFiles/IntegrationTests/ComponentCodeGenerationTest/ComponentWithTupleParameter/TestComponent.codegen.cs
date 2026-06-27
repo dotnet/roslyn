@@ -10,9 +10,7 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class TestComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -38,15 +36,6 @@ Gutter
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(3,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

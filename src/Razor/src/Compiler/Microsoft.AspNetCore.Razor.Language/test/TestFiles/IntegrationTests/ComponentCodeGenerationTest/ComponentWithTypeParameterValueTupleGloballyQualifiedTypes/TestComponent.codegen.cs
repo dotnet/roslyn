@@ -16,7 +16,6 @@ using N
     ;
     #line default
     #line hidden
-    #nullable restore
     public partial class TestComponent<
 #nullable restore
 #line (2,12)-(2,18) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -25,8 +24,7 @@ TParam
 #line default
 #line hidden
 #nullable disable
-    > : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    >
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -61,19 +59,6 @@ __builder2.AddContent(5, context.I2.MyStructId
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,8)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter]
-    public TParam InferParam { get; set; }
-
-    [Parameter]
-    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

@@ -4,6 +4,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -34,6 +35,23 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
                 private const string [|$$MyName|] = "David";
             }
             """);
+
+    [Fact]
+    public Task FindCSharpMember_Legacy()
+        => VerifyFindAllReferencesAsync("""
+            @{
+                string M()
+                {
+                    return [|MyName|];
+                }
+            }
+
+            <p>@[|MyName|]</p>
+
+            @functions {
+                private const string [|$$MyName|] = "David";
+            }
+            """, RazorFileKind.Legacy);
 
     [Fact]
     public async Task ComponentAttribute()
@@ -84,6 +102,37 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
             """;
 
         await VerifyFindAllReferencesAsync(input,
+            (FilePath("OtherClass.cs"), otherClass));
+    }
+
+    [Fact]
+    public async Task OtherCSharpFile_Legacy()
+    {
+        TestCode input = """
+            @using SomeProject
+
+            @functions
+            {
+                public void M()
+                {
+                    var x = new OtherClass();
+                    x.[|D$$ate|].ToString();
+                }
+            }
+            """;
+
+        TestCode otherClass = """
+            using System;
+
+            namespace SomeProject;
+
+            public class OtherClass
+            {
+                public DateTime [|Date|] => DateTime.Now;
+            }
+            """;
+
+        await VerifyFindAllReferencesAsync(input, RazorFileKind.Legacy,
             (FilePath("OtherClass.cs"), otherClass));
     }
 
@@ -249,8 +298,11 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
     }
 
     private async Task VerifyFindAllReferencesAsync(TestCode input, params (string fileName, TestCode testCode)[] additionalFiles)
+        => await VerifyFindAllReferencesAsync(input, fileKind: null, additionalFiles);
+
+    private async Task VerifyFindAllReferencesAsync(TestCode input, RazorFileKind? fileKind, params (string fileName, TestCode testCode)[] additionalFiles)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, additionalFiles: [.. additionalFiles.Select(f => (f.fileName, f.testCode.Text))]);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: [.. additionalFiles.Select(f => (f.fileName, f.testCode.Text))]);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(input.Position);
         var results = await GetFindAllReferencesResultsAsync(document, position);

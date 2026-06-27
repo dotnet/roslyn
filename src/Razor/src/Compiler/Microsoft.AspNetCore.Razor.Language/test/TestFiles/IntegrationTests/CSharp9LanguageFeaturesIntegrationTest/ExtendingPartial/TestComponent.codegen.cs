@@ -19,24 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(12,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public partial class Greeter
-    {
-        public partial string GetValue();
-    }
-    
-    public partial class Greeter
-    {
-        public partial string GetValue()
-            => "Razor";
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

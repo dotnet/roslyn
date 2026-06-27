@@ -5,30 +5,21 @@ Generated Location: (372:12,0 [41] )
 
 Source Location: (62:1,18 [17] x:\dir\subdir\Test\TestComponent.cshtml)
 |() => Foo = false|
-Generated Location: (1123:29,0 [17] )
+Generated Location: (1021:27,0 [17] )
 |() => Foo = false|
 
 Source Location: (106:1,62 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |true|
-Generated Location: (1361:38,0 [4] )
+Generated Location: (1259:36,0 [4] )
 |true|
 
 Source Location: (138:1,94 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |Foo|
-Generated Location: (1586:47,0 [3] )
+Generated Location: (1484:45,0 [3] )
 |Foo|
 
 Source Location: (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |false|
-Generated Location: (1812:56,0 [5] )
+Generated Location: (1710:54,0 [5] )
 |false|
-
-Source Location: (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    bool Foo { get; set; }
-|
-Generated Location: (2103:68,0 [30] )
-|
-    bool Foo { get; set; }
-|
 

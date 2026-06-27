@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.TestComponent>()
+[0001] AddComponentParameter(nameof(global::Test.TestComponent. Gutter ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<(global::System.Int32 Horizontal, global::System.Int32 Vertical)>( (32, 16) ))

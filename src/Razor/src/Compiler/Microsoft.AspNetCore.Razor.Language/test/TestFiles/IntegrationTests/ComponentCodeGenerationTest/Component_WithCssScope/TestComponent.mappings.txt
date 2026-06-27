@@ -10,76 +10,53 @@ Generated Location: (524:18,0 [47] )
 
 Source Location: (192:3,61 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |123|
-Generated Location: (1332:37,0 [3] )
+Generated Location: (1230:35,0 [3] )
 |123|
 
 Source Location: (293:6,5 [18] x:\dir\subdir\Test\TestComponent.cshtml)
 |TemplatedComponent|
-Generated Location: (1730:46,49 [18] )
+Generated Location: (1628:44,49 [18] )
 |TemplatedComponent|
 
 Source Location: (318:6,30 [20] x:\dir\subdir\Test\TestComponent.cshtml)
 |myComponentReference|
-Generated Location: (2186:54,0 [20] )
+Generated Location: (2084:52,0 [20] )
 |myComponentReference|
 
 Source Location: (439:10,1 [34] x:\dir\subdir\Test\TestComponent.cshtml)
 |if (DateTime.Now.Year > 1950)
 {
 |
-Generated Location: (2513:66,0 [34] )
+Generated Location: (2411:64,0 [34] )
 |if (DateTime.Now.Year > 1950)
 {
 |
 
 Source Location: (511:12,38 [18] x:\dir\subdir\Test\TestComponent.cshtml)
 |myElementReference|
-Generated Location: (2923:79,0 [18] )
+Generated Location: (2821:77,0 [18] )
 |myElementReference|
 
 Source Location: (589:13,30 [10] x:\dir\subdir\Test\TestComponent.cshtml)
 |myVariable|
-Generated Location: (3584:96,0 [10] )
+Generated Location: (3482:94,0 [10] )
 |myVariable|
 
 Source Location: (639:14,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |}
 |
-Generated Location: (4078:108,0 [3] )
+Generated Location: (3976:106,0 [3] )
 |}
-|
-
-Source Location: (651:16,7 [233] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    ElementReference myElementReference;
-    TemplatedComponent myComponentReference;
-    string myVariable;
-
-    void MethodRenderingMarkup(RenderTreeBuilder __builder)
-    {
-        for (var i = 0; i < 10; i++)
-        {
-|
-Generated Location: (4264:118,0 [233] )
-|
-    ElementReference myElementReference;
-    TemplatedComponent myComponentReference;
-    string myVariable;
-
-    void MethodRenderingMarkup(RenderTreeBuilder __builder)
-    {
-        for (var i = 0; i < 10; i++)
-        {
 |
 
 Source Location: (912:25,28 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |i|
-Generated Location: (4726:136,0 [1] )
+Generated Location: (4488:126,0 [1] )
 |i|
 
 Source Location: (925:25,41 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |i|
-Generated Location: (5005:146,25 [1] )
+Generated Location: (4767:136,25 [1] )
 |i|
 
 Source Location: (933:26,0 [164] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -90,7 +67,7 @@ Source Location: (933:26,0 [164] x:\dir\subdir\Test\TestComponent.cshtml)
         System.GC.KeepAlive(myVariable);
     }
 |
-Generated Location: (5187:155,0 [164] )
+Generated Location: (4949:145,0 [164] )
 |        }
 
         System.GC.KeepAlive(myElementReference);

@@ -35,18 +35,20 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
     public ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        LspDiagnostic[] csharpDiagnostics,
+        LspDiagnostic[] csharpImplDiagnostics,
+        LspDiagnostic[] csharpDeclDiagnostics,
         LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetDiagnosticsAsync(context, csharpDiagnostics, htmlDiagnostics, cancellationToken),
+            context => GetDiagnosticsAsync(context, csharpImplDiagnostics, csharpDeclDiagnostics, htmlDiagnostics, cancellationToken),
             cancellationToken);
 
     private async ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
         RemoteDocumentContext context,
-        LspDiagnostic[] csharpDiagnostics,
+        LspDiagnostic[] csharpImplDiagnostics,
+        LspDiagnostic[] csharpDeclDiagnostics,
         LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken)
     {
@@ -55,8 +57,8 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
 
         ImmutableArray<LspDiagnostic> allDiagnostics = [
             .. GetRazorDiagnostics(context, codeDocument),
-            .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, csharpDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false),
-            .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, htmlDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false)
+            .. await _translateDiagnosticsService.TranslateCSharpAsync(csharpImplDiagnostics, csharpDeclDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false),
+            .. await _translateDiagnosticsService.TranslateHtmlAsync(htmlDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false)
         ];
 
         // Our final pass is to update all unused directive errors to ensure they display how we want in the IDE. Doing it here
@@ -109,7 +111,9 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
         // First, RZ diagnostics. Yes, CSharpDocument.Documents are the Razor diagnostics. Don't ask.
-        var razorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics;
+        // Right now Razor diagnostics are duplicated on both decl and impl documents, so it doesn't matter which
+        // one we use.
+        var razorDiagnostics = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics;
         var convertedDiagnostics = RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot);
         diagnostics.AddRange(convertedDiagnostics);
 
@@ -151,24 +155,33 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
     public ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        LspDiagnostic[] csharpTaskItems,
+        LspDiagnostic[] csharpImplTaskItems,
+        LspDiagnostic[] csharpDeclTaskItems,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetTaskListDiagnosticsAsync(context, csharpTaskItems, cancellationToken),
+            context => GetTaskListDiagnosticsAsync(context, csharpImplTaskItems, csharpDeclTaskItems, cancellationToken),
             cancellationToken);
 
     private async ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
         RemoteDocumentContext context,
-        LspDiagnostic[] csharpTaskItems,
+        LspDiagnostic[] csharpImplTaskItems,
+        LspDiagnostic[] csharpDeclTaskItems,
         CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
         diagnostics.AddRange(TaskListDiagnosticProvider.GetTaskListDiagnostics(codeDocument, _clientSettingsManager.GetClientSettings().AdvancedSettings.TaskListDescriptors));
-        diagnostics.AddRange(_translateDiagnosticsService.MapDiagnostics(RazorLanguageKind.CSharp, csharpTaskItems, context.Snapshot, codeDocument));
+
+        diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpImplTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: false)));
+
+        if (csharpDeclTaskItems.Length > 0)
+        {
+            diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpDeclTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: true)));
+        }
+
         return diagnostics.ToImmutableAndClear();
     }
 }

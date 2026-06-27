@@ -558,6 +558,10 @@ public partial class CohostDocumentPullDiagnosticsTest
 
             // TODO: This isn't C#
 
+            @{
+                // {|TODO:|}TODO: This is C# in an impl document
+            }
+
             TODO: Nor is this
 
             <div>
@@ -570,8 +574,29 @@ public partial class CohostDocumentPullDiagnosticsTest
 
             @code {
                 // This looks different because Roslyn only reports zero width ranges for task lists
-                // {|TODO:|}TODO: Write some C# code too
+                // {|TODO:|}TODO: Write some C# code in a decl document too
             }
+            """,
+            taskListRequest: true);
+
+    [Fact]
+    public Task TODOComments_NoDecl()
+        => VerifyDiagnosticsAsync("""
+            @using System.Threading.Tasks;
+
+            @{
+                // {|TODO:|}TODO: This is C# in an impl document
+            }
+
+            TODO: Nor is this
+
+            <div>
+
+                @*{|TODO: TODO: This does |}*@
+
+                @* TODONT: This doesn't *@
+
+            </div>
             """,
             taskListRequest: true);
 

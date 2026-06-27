@@ -319,7 +319,8 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
 
     private static bool IsTagUnknown(BaseMarkupStartTagSyntax startTag, RazorCodeActionContext context)
     {
-        foreach (var diagnostic in context.CodeDocument.GetRequiredCSharpDocument().Diagnostics)
+        // Doesn't matter which document we use to get Razor diagnostics
+        foreach (var diagnostic in context.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics)
         {
             // Check that the diagnostic is to do with our start tag
             if (!(diagnostic.Span.AbsoluteIndex > startTag.Span.End

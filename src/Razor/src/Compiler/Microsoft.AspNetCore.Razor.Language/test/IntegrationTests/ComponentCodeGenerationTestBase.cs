@@ -4,7 +4,9 @@
 #nullable disable
 
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
@@ -33,6 +35,78 @@ public class ComponentCodeGenerationTestBase()
     protected override string GetDirectoryPath(string testName)
     {
         return $"TestFiles/IntegrationTests/ComponentCodeGenerationTest/{testName}";
+    }
+
+    /// <summary>
+    /// Shadow of the base <c>CompileToAssembly</c> that, after compiling and verifying no
+    /// unexpected C# diagnostics, also asserts a <c>.builder.txt</c> baseline: the
+    /// component's render-tree-builder calls ordered by sequence number (see
+    /// <see cref="BuilderCallDumper"/>). Every test calling <c>CompileToAssembly(generated)</c>
+    /// picks up the check with no per-test change; pass
+    /// <paramref name="assertBuilderBaseline"/> <c>false</c> to opt a test out (for example
+    /// one whose generated render operations aren't deterministic across runs).
+    /// </summary>
+    /// <remarks>
+    /// The <c>.codegen.cs</c> / <c>.decl.codegen.cs</c> baselines pin the emitted C#
+    /// byte-for-byte, so they move under cosmetic reorganization -- which partial half a
+    /// member lands in, line-pragma layout, whitespace -- that doesn't change what the
+    /// component renders. The builder baseline is a sequence-ordered projection of just the
+    /// render operations: it stays put under that reorganization yet still trips on a real
+    /// change (a different element, a dropped attribute, a renumbered fragment).
+    /// </remarks>
+    protected CompileToAssemblyResult CompileToAssembly(
+        CompileToCSharpResult cSharpResult,
+        bool assertBuilderBaseline = true,
+        [CallerMemberName] string testName = "")
+    {
+        var result = RazorIntegrationTestBase.CompileToAssembly(cSharpResult);
+        if (assertBuilderBaseline)
+        {
+            AssertBuilderCallsMatchBaseline(cSharpResult, testName);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Diagnostic-expecting overload: shadowed so call sites that pass expected
+    /// diagnostics resolve here. The builder-baseline check is skipped because
+    /// compile-error tests don't emit a meaningful render tree.
+    /// </summary>
+    protected new CompileToAssemblyResult CompileToAssembly(
+        CompileToCSharpResult cSharpResult,
+        params DiagnosticDescription[] expectedDiagnostics)
+    {
+        return RazorIntegrationTestBase.CompileToAssembly(cSharpResult, expectedDiagnostics);
+    }
+
+    private void AssertBuilderCallsMatchBaseline(CompileToCSharpResult cSharpResult, string testName)
+    {
+        var dump = BuilderCallDumper.Dump([cSharpResult.Code, cSharpResult.DeclCode]);
+
+        var baselineFilePath = GetBaselineFilePath(cSharpResult.CodeDocument, ".builder.txt", testName);
+        if (GenerateBaselines.ShouldGenerate)
+        {
+            if (dump.Length == 0)
+            {
+                // No render-tree-builder calls (e.g. a code-only component) -- nothing to pin.
+                return;
+            }
+
+            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFilePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(baselineFullPath));
+            File.WriteAllText(baselineFullPath, dump, new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+            return;
+        }
+
+        var baselineFile = TestFile.Create(baselineFilePath, GetType().Assembly);
+        if (!baselineFile.Exists())
+        {
+            // Component emits no builder calls, or its baseline predates this check.
+            return;
+        }
+
+        Assert.Equal(baselineFile.ReadAllText(), dump);
     }
 
     #region Basics
@@ -516,7 +590,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Items1=items1 Items2=items2 Items3=items3>
@@ -594,7 +668,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=item1 Items2=items2>
@@ -737,7 +811,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -814,7 +888,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
+        AddGeneratedSyntaxTrees(generated);
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -2230,9 +2304,9 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, [
-                    // (21,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.Value'
+                    // (19,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.Value'
                     //             __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.
-                    Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.\r\n#nullable restore\r\n#line (1,14)-(1,19) \"x:\\dir\\subdir\\Test\\TestComponent.cshtml\"\r\nValue").WithArguments("Test.MyComponent.Value").WithLocation(21, 55)
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.\r\n#nullable restore\r\n#line (1,14)-(1,19) \"x:\\dir\\subdir\\Test\\TestComponent.cshtml\"\r\nValue").WithArguments("Test.MyComponent.Value").WithLocation(19, 55)
             ]);
     }
 
@@ -2446,12 +2520,12 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, [
-                // (21,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.Value'
+                // (19,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.Value'
                 //             __builder.AddComponentParameter(1, nameof(global::Test.MyComponent.
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.\r\n#nullable restore\r\n#line (1,20)-(1,25) \"x:\\dir\\subdir\\Test\\TestComponent.cshtml\"\r\nValue").WithArguments("Test.MyComponent.Value").WithLocation(21, 55),
-                // (38,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.ValueChanged'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.\r\n#nullable restore\r\n#line (1,20)-(1,25) \"x:\\dir\\subdir\\Test\\TestComponent.cshtml\"\r\nValue").WithArguments("Test.MyComponent.Value").WithLocation(19, 55),
+                // (36,55): error CS0120: An object reference is required for the non-static field, method, or property 'MyComponent.ValueChanged'
                 //             __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.ValueChanged), (global::System.Action<System.Int32>)(__value => ParentValue = __value));
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.ValueChanged").WithArguments("Test.MyComponent.ValueChanged").WithLocation(38, 55)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "global::Test.MyComponent.ValueChanged").WithArguments("Test.MyComponent.ValueChanged").WithLocation(36, 55)
             ]);
     }
 
@@ -2602,9 +2676,9 @@ namespace Test
         CompileToAssembly(generated, [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                // ParentValue
                Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
-               // (38,166): error CS0029: Cannot implicitly convert type 'int' to 'string'
+               // (36,166): error CS0029: Cannot implicitly convert type 'int' to 'string'
                //             __builder.AddComponentParameter(2, nameof(global::Test.MyComponent.ValueChanged), (global::System.Action<global::System.Int32>)(__value => ParentValue = __value));
-               Diagnostic(ErrorCode.ERR_NoImplicitConv, "__value").WithArguments("int", "string").WithLocation(38, 166)]);
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "__value").WithArguments("int", "string").WithLocation(36, 166)]);
     }
 
     [Fact]
@@ -2674,9 +2748,9 @@ namespace Test
         CompileToAssembly(generated, [// x:\dir\subdir\Test\TestComponent.cshtml(1,27): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                //                           ParentValue
                Diagnostic(ErrorCode.ERR_BadArgType, "ParentValue").WithArguments("1", "string", "int").WithLocation(1, 27),
-               // (38,351): error CS1503: Argument 2: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback<string>' to 'Microsoft.AspNetCore.Components.EventCallback'
+               // (36,351): error CS1503: Argument 2: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback<string>' to 'Microsoft.AspNetCore.Components.EventCallback'
                //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)));
-               Diagnostic(ErrorCode.ERR_BadArgType, "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)").WithArguments("2", "Microsoft.AspNetCore.Components.EventCallback<string>", "Microsoft.AspNetCore.Components.EventCallback").WithLocation(38, 351)
+               Diagnostic(ErrorCode.ERR_BadArgType, "global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)").WithArguments("2", "Microsoft.AspNetCore.Components.EventCallback<string>", "Microsoft.AspNetCore.Components.EventCallback").WithLocation(36, 351)
             ]
         );
     }
@@ -2874,12 +2948,12 @@ namespace Test
 }");
 
 
-        CompileToAssembly(generated, [// (39,274): error CS0029: Cannot implicitly convert type 'int' to 'string'
+        CompileToAssembly(generated, [// (37,274): error CS0029: Cannot implicitly convert type 'int' to 'string'
                //             __builder.AddComponentParameter(3, nameof(global::Test.MyComponent.ValueExpression), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<global::System.Func<global::System.String>>>(() => ParentValue));
-               Diagnostic(ErrorCode.ERR_NoImplicitConv, "ParentValue").WithArguments("int", "string").WithLocation(39, 274),
-               // (39,274): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+               Diagnostic(ErrorCode.ERR_NoImplicitConv, "ParentValue").WithArguments("int", "string").WithLocation(37, 274),
+               // (37,274): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
                //             __builder.AddComponentParameter(3, nameof(global::Test.MyComponent.ValueExpression), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Linq.Expressions.Expression<global::System.Func<global::System.String>>>(() => ParentValue));
-               Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "ParentValue").WithArguments("lambda expression").WithLocation(39, 274)
+               Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "ParentValue").WithArguments("lambda expression").WithLocation(37, 274)
             ]);
     }
 
@@ -11775,9 +11849,9 @@ namespace Test
         CompileToAssembly(generated, [// x:\dir\subdir\Test\TestComponent.cshtml(1,32): error CS1003: Syntax error, ',' expected
               //                               x
               Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 32),
-              // (29,88): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
+              // (27,88): error CS1501: No overload for method 'TypeCheck' takes 2 arguments
               //             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
-              Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(29, 88)]
+              Diagnostic(ErrorCode.ERR_BadArgCount, "TypeCheck<global::System.String>").WithArguments("TypeCheck", "2").WithLocation(27, 88)]
             );
         Assert.NotEmpty(generated.RazorDiagnostics);
     }
@@ -12575,9 +12649,9 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, [// (41,85): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
+        CompileToAssembly(generated, [// (35,105): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'RuntimeHelpers.TypeCheck<T>(T)'
                //             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>();
-               Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(37, 105)]
+               Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "TypeCheck<string>").WithArguments("value", "Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<T>(T)").WithLocation(35, 105)]
              );
     }
 

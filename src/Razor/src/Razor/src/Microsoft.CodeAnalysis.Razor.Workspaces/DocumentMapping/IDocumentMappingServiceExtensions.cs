@@ -36,14 +36,16 @@ internal static class IDocumentMappingServiceExtensions
 
         var position = sourceText.GetPosition(razorIndex);
 
+        var inDeclDocument = false;
         var languageKind = codeDocument.GetLanguageKind(razorIndex, rightAssociative: false);
         if (languageKind is RazorLanguageKind.CSharp)
         {
-            if (service.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredCSharpDocument(), razorIndex, out Position? mappedPosition, out _))
+            if (service.TryMapToCSharpDocumentLinePosition(codeDocument, razorIndex, out var mappedPosition, out _, out var isInDeclDocument))
             {
+                inDeclDocument = isInDeclDocument;
                 // For C# locations, we attempt to return the corresponding position
                 // within the projected document
-                position = mappedPosition;
+                position = mappedPosition.ToPosition();
             }
             else
             {
@@ -54,7 +56,7 @@ internal static class IDocumentMappingServiceExtensions
             }
         }
 
-        return new DocumentPositionInfo(languageKind, position, razorIndex);
+        return new DocumentPositionInfo(languageKind, position, razorIndex, inDeclDocument);
     }
 
     public static bool TryMapToRazorDocumentRange(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, LspRange csharpRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out LspRange? razorRange)
@@ -85,10 +87,59 @@ internal static class IDocumentMappingServiceExtensions
         return result;
     }
 
-    public static bool TryMapToCSharpPositionOrNext(this IDocumentMappingService service, RazorCSharpDocument csharpDocument, int razorIndex, [NotNullWhen(true)] out Position? csharpPosition, out int csharpIndex)
+    /// <summary>
+    /// Convenience method to map from Razor to C#, which checks both impl and decl documents
+    /// </summary>
+    /// <remarks>
+    /// A position in a Razor document could map to one of two different C# documents, but the only situation
+    /// where it would map to both is when the resulting position in the C# document is semantically equivalent.
+    /// i.e., a Razor using or namespace directive would map to both the decl and impl documents, but in either case
+    /// it ends up at a C# using or namespace directive, so it doesn't matter which one we get back.
+    ///
+    /// For all other positions in the Razor document, only one document will be mappable.
+    ///
+    /// Note that the same is NOT true in reverse: A mappable position in a C# document might be unique to either
+    /// the decl or impl document, but that would only be a coincidence. Part of the reason we emit inDeclDocument
+    /// as an out parameter is because in order to map back to Razor later, we must know which document the C# position
+    /// came from.
+    /// </remarks>
+    public static bool TryMapToCSharpDocumentLinePosition(this IDocumentMappingService service, RazorCodeDocument codeDocument, int razorIndex, out LinePosition csharpPosition, out int csharpIndex, out bool inDeclDocument)
     {
-        var result = service.TryMapToCSharpPositionOrNext(csharpDocument, razorIndex, out var csharpLinePosition, out csharpIndex);
-        csharpPosition = result ? csharpLinePosition.ToPosition() : null;
-        return result;
+        inDeclDocument = false;
+        if (service.TryMapToCSharpDocumentPosition(codeDocument.GetRequiredCSharpDocument(declarationDocument: false), razorIndex, out csharpPosition, out csharpIndex))
+        {
+            return true;
+        }
+
+        inDeclDocument = true;
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declDocument &&
+            service.TryMapToCSharpDocumentPosition(declDocument, razorIndex, out csharpPosition, out csharpIndex))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Convenience method to map from Razor to C#, which checks both impl and decl documents
+    /// </summary>
+    public static bool TryMapToCSharpDocumentLinePositionSpan(this IDocumentMappingService service, RazorCodeDocument codeDocument, LinePositionSpan razorRange, out LinePositionSpan csharpRange, out bool inDeclDocument)
+    {
+        inDeclDocument = false;
+        if (service.TryMapToCSharpDocumentRange(codeDocument.GetRequiredCSharpDocument(declarationDocument: false), razorRange, out csharpRange))
+        {
+            return true;
+        }
+
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declDocument &&
+            service.TryMapToCSharpDocumentRange(declDocument, razorRange, out csharpRange))
+        {
+            inDeclDocument = true;
+            return true;
+        }
+
+        csharpRange = default;
+        return false;
     }
 }

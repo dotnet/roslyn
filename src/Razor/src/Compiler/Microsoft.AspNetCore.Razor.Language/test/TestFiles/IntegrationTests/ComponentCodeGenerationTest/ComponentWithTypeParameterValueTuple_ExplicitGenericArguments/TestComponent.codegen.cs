@@ -10,7 +10,6 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
     public partial class TestComponent<
 #nullable restore
 #line (1,12)-(1,19) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -27,22 +26,7 @@ TValue
 #line default
 #line hidden
 #nullable disable
-    > : global::Microsoft.AspNetCore.Components.ComponentBase
-#nullable restore
-#line (1,20)-(1,42) "x:\dir\subdir\Test\TestComponent.cshtml"
-where TDomain : struct
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line (2,19)-(2,40) "x:\dir\subdir\Test\TestComponent.cshtml"
-where TValue : struct
-
-#line default
-#line hidden
-#nullable disable
-    #nullable disable
+    >
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -84,16 +68,6 @@ null
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (6,8)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter]
-    public List<(TDomain Domain, TValue Value)> Data { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

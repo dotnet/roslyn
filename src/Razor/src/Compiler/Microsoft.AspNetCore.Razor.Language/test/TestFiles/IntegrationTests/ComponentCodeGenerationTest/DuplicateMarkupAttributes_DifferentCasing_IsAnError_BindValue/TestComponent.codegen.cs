@@ -16,9 +16,7 @@ using Microsoft.AspNetCore.Components.Web
     ;
     #line default
     #line hidden
-    #nullable restore
-    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class TestComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -42,15 +40,6 @@ text
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (5,13)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private string text = "hi";
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

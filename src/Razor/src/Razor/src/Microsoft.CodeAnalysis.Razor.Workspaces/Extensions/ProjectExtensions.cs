@@ -8,40 +8,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis;
 
 internal static class ProjectExtensions
 {
-    /// <summary>
-    ///  Gets the available <see cref="TagHelperDescriptor">tag helpers</see> from the specified
-    ///  <see cref="Project"/> using the given <see cref="RazorProjectEngine"/>.
-    /// </summary>
-    public static async ValueTask<TagHelperCollection> GetTagHelpersAsync(
-        this Project project,
-        RazorProjectEngine projectEngine,
-        CancellationToken cancellationToken)
-    {
-        if (!projectEngine.Engine.TryGetFeature(out ITagHelperDiscoveryService? discoveryService))
-        {
-            return [];
-        }
-
-        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-        if (compilation is null || !CompilationTagHelperFeature.IsValidCompilation(compilation))
-        {
-            return [];
-        }
-
-        const TagHelperDiscoveryOptions Options = TagHelperDiscoveryOptions.ExcludeHidden |
-                                                  TagHelperDiscoveryOptions.IncludeDocumentation;
-
-        return discoveryService.GetTagHelpers(compilation, Options, cancellationToken);
-    }
-
     public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentForGeneratedDocumentAsync(this Project project, SourceGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
     {
         Debug.Assert(identity.DocumentId.ProjectId == project.Id, "Generated document URI does not belong to this project.");
@@ -65,10 +37,18 @@ internal static class ProjectExtensions
         return generatedDocuments.SingleOrDefault(d => d.HintName == hintName);
     }
 
+#if SONICDEV
+    [System.Obsolete("PROTOTYPE(sonic): Call the overload that takes a bool to prove that you thought about which document to get")]
+#endif
+    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentForRazorDocumentAsync(this Project project, TextDocument razorDocument, CancellationToken cancellationToken)
+    {
+        return (await TryGetSourceGeneratedDocumentsForRazorDocumentAsync(project, razorDocument, cancellationToken).ConfigureAwait(false))?.ImplDoc;
+    }
+
     /// <summary>
     /// Finds source generated documents by iterating through all of them. In OOP there are better options!
     /// </summary>
-    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentForRazorDocumentAsync(this Project project, TextDocument razorDocument, CancellationToken cancellationToken)
+    public static async Task<SourceGeneratedDocuments?> TryGetSourceGeneratedDocumentsForRazorDocumentAsync(this Project project, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         if (razorDocument.FilePath is null)
         {
@@ -77,13 +57,24 @@ internal static class ProjectExtensions
 
         var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
+        // There are two possible ways hint names come about: The Razor SDK will produce project relative paths for projects that use it
+        // and for non-Razor SDK projects we fallback to using the full path for hint names. We can't easily detect which situation we're
+        // in here, so the loop below handles both cases.
+
         // For misc files, and projects that don't have a globalconfig file (eg, non Razor SDK projects), the hint name will be based
         // on the full path of the file.
         var fullPathHintName = RazorSourceGenerator.GetIdentifierFromPath(razorDocument.FilePath);
+        var fullPathDeclHintName = RazorSourceGenerator.GetDeclIdentifierFromHintName(fullPathHintName);
+
         // For normal Razor SDK projects, the hint name will be based on the project-relative path of the file.
         var projectRelativeHintName = GetProjectRelativeHintName(razorDocument);
+        var projectRelativeDeclHintName = projectRelativeHintName is null ? null : RazorSourceGenerator.GetDeclIdentifierFromHintName(projectRelativeHintName);
+
+        SourceGeneratedDocument? fullPathMatchedDoc = null;
+        SourceGeneratedDocument? fullPathMatchedDeclDoc = null;
 
         SourceGeneratedDocument? candidateDoc = null;
+        SourceGeneratedDocument? candidateDeclDoc = null;
         foreach (var doc in generatedDocuments)
         {
             if (!doc.IsRazorSourceGeneratedDocument())
@@ -94,7 +85,20 @@ internal static class ProjectExtensions
             if (doc.HintName == fullPathHintName)
             {
                 // If the full path matches, we've found it for sure
-                return doc;
+                fullPathMatchedDoc = doc;
+                // Can we stop looping?
+                if (fullPathMatchedDeclDoc is not null)
+                {
+                    break;
+                }
+            }
+            else if (doc.HintName == fullPathDeclHintName)
+            {
+                fullPathMatchedDeclDoc = doc;
+                if (fullPathMatchedDoc is not null)
+                {
+                    break;
+                }
             }
             else if (doc.HintName == projectRelativeHintName)
             {
@@ -102,15 +106,41 @@ internal static class ProjectExtensions
                 {
                     // Multiple documents with the same hint name found, can't be sure which one to return
                     // This can happen as a result of a bug in the source generator: https://github.com/dotnet/razor/issues/11578
+                    // We can break the loop safely here, because if there are any project relative hint names, it means the project
+                    // is using the Razor SDK, which will never produce full path hint names. Or someone is doing something _very_ weird.
+                    Debug.Assert(fullPathMatchedDoc is null && fullPathMatchedDeclDoc is null, "We don't expect full matches and partial matches in the same project");
                     candidateDoc = null;
                     break;
                 }
 
                 candidateDoc = doc;
             }
+            else if (doc.HintName == projectRelativeDeclHintName)
+            {
+                if (candidateDeclDoc is not null)
+                {
+                    candidateDoc = null;
+                    break;
+                }
+
+                candidateDeclDoc = doc;
+            }
         }
 
-        return candidateDoc;
+        // Full path matches take precedence over candidates
+        if (fullPathMatchedDoc is not null)
+        {
+            return new(fullPathMatchedDoc, fullPathMatchedDeclDoc);
+        }
+
+        // If we didn't find a candidate impl doc, or found multiple, bail out so we don't confuse callers in case there is a weird
+        // bug where it's possible to have duplicate impl docs and one decl doc
+        if (candidateDoc is null)
+        {
+            return null;
+        }
+
+        return new(candidateDoc, candidateDeclDoc);
 
         static string? GetProjectRelativeHintName(TextDocument razorDocument)
         {
@@ -135,3 +165,5 @@ internal static class ProjectExtensions
         }
     }
 }
+
+internal record struct SourceGeneratedDocuments(SourceGeneratedDocument ImplDoc, SourceGeneratedDocument? DeclDoc);

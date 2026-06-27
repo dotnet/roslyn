@@ -19,22 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(10,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public interface IExample
-    {
-        int GetValue() => 1;
-    }
-    
-    public class Example : IExample
-    {
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

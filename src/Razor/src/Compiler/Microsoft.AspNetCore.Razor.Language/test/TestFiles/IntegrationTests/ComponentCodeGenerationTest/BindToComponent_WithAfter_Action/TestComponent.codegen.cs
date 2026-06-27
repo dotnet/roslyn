@@ -10,9 +10,7 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-    #nullable restore
-    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class TestComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -56,17 +54,6 @@ Value
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public int ParentValue { get; set; } = 42;
-
-    public void Update() { }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

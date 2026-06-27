@@ -5,7 +5,7 @@ Generated Location: (372:12,0 [48] )
 
 Source Location: (55:2,2 [34] x:\dir\subdir\Test\TestComponent.cshtml)
 | RenderChildComponent(__builder); |
-Generated Location: (887:26,0 [34] )
+Generated Location: (785:24,0 [34] )
 | RenderChildComponent(__builder); |
 
 Source Location: (101:4,7 [69] x:\dir\subdir\Test\TestComponent.cshtml)

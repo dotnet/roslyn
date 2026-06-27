@@ -23,6 +23,14 @@ public abstract class IntermediateNode
 
     public bool IsImported { get; set; }
 
+    /// <summary>
+    /// True for nodes that Razor codegen synthesizes as compiler plumbing rather than
+    /// content derived from user-authored source. Consumers that distinguish "user API
+    /// surface" from "generator plumbing" -- such as the decl/impl partial-file split
+    /// for components -- use this flag to decide where a node belongs.
+    /// </summary>
+    internal bool IsSynthesizedHelper { get; init; }
+
     public abstract IntermediateNodeCollection Children { get; }
 
     public abstract void Accept(IntermediateNodeVisitor visitor);

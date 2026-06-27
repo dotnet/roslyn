@@ -29,6 +29,32 @@ public sealed class RazorCodeDocumentProcessor
         return this;
     }
 
+    /// <summary>
+    /// Executes the engine phases up to and including <typeparamref name="TUntil"/>, but
+    /// skips any phase whose runtime type is in <paramref name="skipPhases"/>. Useful for
+    /// tests that need a non-contiguous slice of the pipeline -- e.g. lower IR then resolve
+    /// tag helpers without running the document classifier in between.
+    /// </summary>
+    public RazorCodeDocumentProcessor ExecutePhasesThroughExcept<TUntil>(params Type[] skipPhases)
+        where TUntil : IRazorEnginePhase
+    {
+        var hashSet = new System.Collections.Generic.HashSet<Type>(skipPhases);
+        foreach (var phase in ProjectEngine.Engine.Phases)
+        {
+            if (!hashSet.Contains(phase.GetType()))
+            {
+                CodeDocument = phase.Execute(CodeDocument);
+            }
+
+            if (phase is TUntil)
+            {
+                break;
+            }
+        }
+
+        return this;
+    }
+
     public RazorCodeDocumentProcessor ExecutePass<T>()
         where T : IntermediateNodePassBase, new()
     {

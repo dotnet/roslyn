@@ -19,14 +19,3 @@ Source Location: (182:6,4 [43] x:\dir\subdir\Test\TestComponent.razor)
 Generated Location: (1405:43,24 [43] )
 |CountValues([with(capacity: 32), "f", "g"])|
 
-Source Location: (240:8,7 [112] x:\dir\subdir\Test\TestComponent.razor)
-|
-    private static int CountValues(System.Collections.Generic.List<string> values)
-        => values.Count;
-|
-Generated Location: (1684:54,0 [112] )
-|
-    private static int CountValues(System.Collections.Generic.List<string> values)
-        => values.Count;
-|
-

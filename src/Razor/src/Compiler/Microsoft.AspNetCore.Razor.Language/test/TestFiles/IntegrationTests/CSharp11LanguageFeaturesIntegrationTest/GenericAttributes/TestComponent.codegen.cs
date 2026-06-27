@@ -19,22 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(10,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public class GenericAttribute<T> : System.Attribute
-    {
-    }
-    
-    [GenericAttribute<string>]
-    public class Decorated
-    {
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -26,351 +26,185 @@ internal class DefaultRazorCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSh
             throw new InvalidOperationException(message);
         }
 
-        var csharpDocument = WriteDocument(codeDocument, cancellationToken);
-        return codeDocument.WithCSharpDocument(csharpDocument);
-    }
-
-    private static RazorCSharpDocument WriteDocument(RazorCodeDocument codeDocument, CancellationToken cancellationToken = default)
-    {
-        ArgHelper.ThrowIfNull(codeDocument);
-
-        var documentNode = codeDocument.GetRequiredDocumentNode();
-        var codeTarget = documentNode.Target;
-
-        using var context = new CodeRenderingContext(
-            codeTarget.CreateNodeWriter(),
-            codeDocument.Source,
-            documentNode,
-            documentNode.Options ?? codeDocument.CodeGenerationOptions);
-
-        context.SetVisitor(new Visitor(context, codeTarget, cancellationToken));
-
-        context.Visitor.VisitDocument(documentNode);
-
-        var text = context.CodeWriter.GetText();
-
-        return new RazorCSharpDocument(
-            codeDocument,
-            text,
-            context.GetDiagnostics(),
-            context.GetSourceMappings(),
-            context.GetLinePragmas());
-    }
-
-    private sealed class Visitor(
-        CodeRenderingContext context,
-        CodeTarget codeTarget,
-        CancellationToken cancellationToken) : IntermediateNodeVisitor
-    {
-        private readonly CodeRenderingContext _context = context;
-        private readonly CodeTarget _codeTarget = codeTarget;
-        private readonly CancellationToken _cancellationToken = cancellationToken;
-
-        private CodeWriter CodeWriter => _context.CodeWriter;
-        private IntermediateNodeWriter NodeWriter => _context.NodeWriter;
-        private RazorCodeGenerationOptions Options => _context.Options;
-
-        public override void VisitDocument(DocumentIntermediateNode node)
+        // Fork: when the decl phase produced its half, this phase produces the matching
+        // impl half -- a minimal partial class containing just the render method body and
+        // any compiler-synthesized plumbing. Otherwise (non-component, suppressed primary
+        // method body, malformed primary structure, or the decl phase didn't run for any
+        // other reason) fall through to the original single-file lowering path.
+        if (codeDocument.GetDeclCSharpDocument() is not null &&
+            TryWriteImplDocument(documentNode, codeDocument, cancellationToken, out var implDocument))
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            return codeDocument.WithImplCSharpDocument(implDocument);
+        }
 
-            var writer = CodeWriter;
+        var csharpDocument = RazorCSharpDocumentWriter.Write(documentNode, codeDocument, cancellationToken: cancellationToken);
+        return codeDocument.WithImplCSharpDocument(csharpDocument);
+    }
 
-            if (!Options.SuppressChecksum)
+    private static bool TryWriteImplDocument(
+        DocumentIntermediateNode documentNode,
+        RazorCodeDocument codeDocument,
+        CancellationToken cancellationToken,
+        out RazorCSharpDocument implDocument)
+    {
+        var primaryClass = documentNode.FindPrimaryClass();
+        var renderMethod = documentNode.FindPrimaryMethod();
+        var primaryNamespace = documentNode.FindPrimaryNamespace();
+
+        // Defensive: splittability was already verified by the decl phase before it
+        // produced a decl document, so this should not happen in practice. If a caller
+        // bypasses the decl phase or the IR shape changes between phases, fall through
+        // to the single-file path rather than crash.
+        if (primaryClass is null || renderMethod is null || primaryNamespace is null)
+        {
+            implDocument = null!;
+            return false;
+        }
+
+        // Build the impl synthetic tree: brand-new spine containing just the namespace,
+        // its using directives, and a partial class wrapping renderMethod plus any
+        // IsSynthesizedHelper nodes lifted from primaryClass / primaryNamespace. The
+        // namespace-level walk preserves original order relative to primaryClass so an
+        // attribute decoration that preceded the class in the original tree continues
+        // to do so. IsGenericTyped helper namespaces are also lifted as siblings of the
+        // primary namespace.
+        //
+        // Usings whose namespace is listed in codeDocument.GetImplSkipUsings() are omitted
+        // here. The decl half (which always emits the full set) is the canonical occurrence
+        // of those usings, so the C# compiler's CS0246/CS0234 fires exactly once when the
+        // namespace doesn't resolve, instead of duplicating across both halves.
+        var usings = primaryNamespace.FindDescendantNodes<UsingDirectiveIntermediateNode>();
+        var implSkipUsings = codeDocument.GetImplSkipUsings();
+        var implDocNode = RazorCSharpDocumentWriter.CloneContainer(documentNode);
+        var implNamespace = RazorCSharpDocumentWriter.CloneContainer(primaryNamespace);
+        // CloneContainerForImpl (vs CloneContainer) strips fields whose syntactic occurrence in
+        // the impl half would duplicate a diagnostic the decl half already raises (BaseType,
+        // Interfaces, type-parameter constraints, NullableContext). Partial-class merging unifies
+        // these from the decl half, so the merged class is equivalent.
+        var implClass = RazorCSharpDocumentWriter.CloneContainerForImpl(primaryClass);
+
+        implClass.Children.Add(renderMethod);
+
+        // Pull in compiler-synthesized helpers (e.g. __PrivateComponentRenderModeAttribute)
+        // AND any user @code chunks the splitter routed to impl. The latter covers user
+        // helper methods that contain markup -- they need to live where tag-helper
+        // resolution has happened, which is here.
+        var splitPlan = ClassBodySplitter.GetOrCreateSplitPlan(primaryClass, renderMethod, usings);
+
+        // Synthesized helpers (compiler plumbing such as __PrivateComponentRenderModeAttribute)
+        // are looked up via primary-class iteration; the splitter only owns user @code.
+        foreach (var classChild in primaryClass.Children)
+        {
+            if (classChild.IsSynthesizedHelper)
             {
-                // See http://msdn.microsoft.com/en-us/library/system.codedom.codechecksumpragma.checksumalgorithmid.aspx
-                // And https://github.com/dotnet/roslyn/blob/614299ff83da9959fa07131c6d0ffbc58873b6ae/src/Compilers/Core/Portable/PEWriter/DebugSourceDocument.cs#L67
-                //
-                // We only support algorithms that the debugger understands, which is currently SHA1 and SHA256.
-
-                string algorithmId;
-                var algorithm = _context.SourceDocument.Text.ChecksumAlgorithm;
-                if (algorithm == CodeAnalysis.Text.SourceHashAlgorithm.Sha256)
-                {
-                    algorithmId = "{8829d00f-11b8-4213-878b-770e8597ac16}";
-                }
-                else if (algorithm == CodeAnalysis.Text.SourceHashAlgorithm.Sha1)
-                {
-                    algorithmId = "{ff1816ec-aa5e-4d10-87f7-6f4963833460}";
-                }
-                else
-                {
-                    // CodeQL [SM02196] This is supported by the underlying Roslyn APIs and as consumers we must also support it.
-                    var message = Resources.FormatUnsupportedChecksumAlgorithm(
-                        algorithm,
-                        $"{HashAlgorithmName.SHA1.Name} {HashAlgorithmName.SHA256.Name}",
-                        $"{nameof(RazorCodeGenerationOptions)}.{nameof(RazorCodeGenerationOptions.SuppressChecksum)}",
-                        bool.TrueString);
-
-                    throw new InvalidOperationException(message);
-                }
-
-                var sourceDocument = _context.SourceDocument;
-
-                var checksum = ChecksumUtilities.BytesToString(sourceDocument.Text.GetChecksum());
-                var filePath = sourceDocument.FilePath.AssumeNotNull();
-
-                if (checksum.Length > 0)
-                {
-                    writer.WriteLine($"#pragma checksum \"{filePath}\" \"{algorithmId}\" \"{checksum}\"");
-                }
+                implClass.Children.Add(classChild);
             }
-
-            writer
-                .WriteLine("// <auto-generated/>")
-                .WriteLine("#pragma warning disable 1591");
-
-            VisitDefault(node);
-
-            writer.WriteLine("#pragma warning restore 1591");
         }
 
-        public override void VisitUsingDirective(UsingDirectiveIntermediateNode node)
+        // User @code routing flows entirely through the splitter's RoutedChunks. The
+        // chunks are already in source order, and any CSharpCode chunk that straddled
+        // members with different routing has been split into per-member / per-body
+        // slices.
+        //
+        // NeedsHelperBody chunks for a single surface property may appear as a run of
+        // consecutive entries (e.g. for `RenderFragment<T> Foo => (context) => @<p/>;`
+        // the run is `(context) => ` + the markup Template). Each such run is wrapped
+        // exactly once by the synth's open/close text so the captured user expression
+        // remains syntactically intact. Synths are consumed in declaration order: each
+        // time a new NeedsHelperBody run begins, the next pending synth is paired with
+        // it; the run ends when a non-body chunk follows.
+        HelperSynth? currentSynth = null;
+        using var _ = QueuePool<HelperSynth>.GetPooledObject(out var pendingSynths);
+        foreach (var synth in splitPlan.HelperSynths)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteUsingDirective(_context, node);
+            pendingSynths.Enqueue(synth);
         }
 
-        public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
+        void CloseCurrentSynth()
         {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            var writer = CodeWriter;
-
-            using (writer.BuildNamespace(node.Name, node.Source, _context))
+            if (currentSynth is { } open)
             {
-                var hasUsingDirectives = false;
+                implClass.Children.Add(IntermediateNodeFactory.CSharpCode(open.SynthImplCloseSource));
+                currentSynth = null;
+            }
+        }
 
-                foreach (var child in node.Children)
+        foreach (var routed in splitPlan.RoutedChunks)
+        {
+            if (routed.Target == ChunkTarget.NeedsHelperBody)
+            {
+                if (currentSynth is null)
                 {
-                    if (child is UsingDirectiveIntermediateNode)
+                    if (pendingSynths.Count == 0)
                     {
-                        hasUsingDirectives = true;
-                        break;
+                        // Defensive: no synth descriptor available for this body
+                        // chunk; emit the chunk as-is (no wrapper) so its content
+                        // isn't silently dropped.
+                        implClass.Children.Add(routed.Chunk);
+                        continue;
                     }
+                    currentSynth = pendingSynths.Dequeue();
+                    implClass.Children.Add(IntermediateNodeFactory.CSharpCode(currentSynth.SynthImplOpenSource));
                 }
-
-                if (hasUsingDirectives)
-                {
-                    // Tooling needs at least one line directive before using directives, otherwise Roslyn will
-                    // not offer to create a new one. The last using in the group will output a hidden line
-                    // directive after itself.
-                    writer.WriteLine("#line default");
-                }
-                else
-                {
-                    // If there are no using directives, we output the hidden directive here.
-                    writer.WriteLine("#line hidden");
-                }
-
-                VisitDefault(node);
+                implClass.Children.Add(routed.Chunk);
+                continue;
             }
-        }
 
-        public override void VisitClassDeclaration(ClassDeclarationIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
+            // Any non-body chunk terminates the current synth's body run.
+            CloseCurrentSynth();
 
-            using (CodeWriter.BuildClassDeclaration(
-                node.Modifiers,
-                node.Name,
-                node.BaseType,
-                node.Interfaces,
-                node.TypeParameters,
-                _context,
-                useNullableContext: !Options.SuppressNullabilityEnforcement && node.NullableContext))
+            if (routed.Target == ChunkTarget.ImplOnly)
             {
-                VisitDefault(node);
+                implClass.Children.Add(routed.Chunk);
             }
+            // DeclOnly and NeedsHelperOmit chunks don't belong in impl.
         }
 
-        public override void VisitMethodDeclaration(MethodDeclarationIntermediateNode node)
+        // A NeedsHelperBody run that extends to the end of RoutedChunks still needs
+        // its closing wrapper appended.
+        CloseCurrentSynth();
+
+        foreach (var usingDirective in usings)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            var writer = CodeWriter;
-
-            writer.WriteLine("#pragma warning disable 1998");
-
-            using (CodeWriter.BuildMethodDeclaration(
-                node.Modifiers,
-                node.ReturnType,
-                node.Name,
-                node.Parameters))
+            if (implSkipUsings is not null && implSkipUsings.Contains(usingDirective.Content))
             {
-                VisitDefault(node);
+                continue;
             }
-
-            writer.WriteLine("#pragma warning restore 1998");
+            implNamespace.Children.Add(usingDirective);
         }
 
-        public override void VisitFieldDeclaration(FieldDeclarationIntermediateNode node)
+        foreach (var nsChild in primaryNamespace.Children)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            CodeWriter.WriteField(node.SuppressWarnings, node.Modifiers, node.Type, node.Name);
+            if (nsChild == primaryClass)
+            {
+                implNamespace.Children.Add(implClass);
+            }
+            else if (nsChild.IsSynthesizedHelper)
+            {
+                implNamespace.Children.Add(nsChild);
+            }
         }
 
-        public override void VisitPropertyDeclaration(PropertyDeclarationIntermediateNode node)
+        implDocNode.Children.Add(implNamespace);
+
+        foreach (var docChild in documentNode.Children)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            CodeWriter.WritePropertyDeclaration(node.Modifiers, node.Type, node.Name, node.ExpressionBody, _context);
+            if (docChild is NamespaceDeclarationIntermediateNode { IsGenericTyped: true } genericNs)
+            {
+                implDocNode.Children.Add(genericNs);
+            }
         }
 
-        public override void VisitExtension(ExtensionIntermediateNode node)
+        // Seed the impl root with the full diagnostic set (deduped by checksum) so any
+        // diagnostics attached to documentNode / primaryNamespace / primaryClass themselves
+        // -- which aren't reachable from the synthetic clone -- still surface on the impl
+        // document.
+        foreach (var diagnostic in documentNode.GetAllDiagnostics())
         {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            node.WriteNode(_codeTarget, _context);
+            implDocNode.AddDiagnostic(diagnostic);
         }
 
-        public override void VisitCSharpExpression(CSharpExpressionIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteCSharpExpression(_context, node);
-        }
-
-        public override void VisitCSharpCode(CSharpCodeIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteCSharpCode(_context, node);
-        }
-
-        public override void VisitHtmlAttribute(HtmlAttributeIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteHtmlAttribute(_context, node);
-        }
-
-        public override void VisitHtmlAttributeValue(HtmlAttributeValueIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteHtmlAttributeValue(_context, node);
-        }
-
-        public override void VisitCSharpExpressionAttributeValue(CSharpExpressionAttributeValueIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteCSharpExpressionAttributeValue(_context, node);
-        }
-
-        public override void VisitCSharpCodeAttributeValue(CSharpCodeAttributeValueIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteCSharpCodeAttributeValue(_context, node);
-        }
-
-        public override void VisitHtml(HtmlContentIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteHtmlContent(_context, node);
-        }
-
-        public override void VisitTagHelper(TagHelperIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            VisitDefault(node);
-        }
-
-        public override void VisitComponent(ComponentIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteComponent(_context, node);
-        }
-
-        public override void VisitComponentAttribute(ComponentAttributeIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteComponentAttribute(_context, node);
-        }
-
-        public override void VisitComponentChildContent(ComponentChildContentIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteComponentChildContent(_context, node);
-        }
-
-        public override void VisitComponentTypeArgument(ComponentTypeArgumentIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteComponentTypeArgument(_context, node);
-        }
-
-        public override void VisitComponentTypeInferenceMethod(ComponentTypeInferenceMethodIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteComponentTypeInferenceMethod(_context, node);
-        }
-
-        public override void VisitMarkupElement(MarkupElementIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteMarkupElement(_context, node);
-        }
-
-        public override void VisitMarkupBlock(MarkupBlockIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteMarkupBlock(_context, node);
-        }
-
-        public override void VisitReferenceCapture(ReferenceCaptureIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteReferenceCapture(_context, node);
-        }
-
-        public override void VisitSetKey(SetKeyIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteSetKey(_context, node);
-        }
-
-        public override void VisitSplat(SplatIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteSplat(_context, node);
-        }
-
-        public override void VisitRenderMode(RenderModeIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteRenderMode(_context, node);
-        }
-
-        public override void VisitFormName(FormNameIntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            NodeWriter.WriteFormName(_context, node);
-        }
-
-        public override void VisitDefault(IntermediateNode node)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            _context.RenderChildren(node);
-        }
+        implDocument = RazorCSharpDocumentWriter.Write(implDocNode, codeDocument, cancellationToken: cancellationToken);
+        return true;
     }
 }

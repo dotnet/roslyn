@@ -22,9 +22,7 @@ using Microsoft.AspNetCore.Components.Rendering
     ;
     #line default
     #line hidden
-    #nullable restore
-    public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    public partial class TestComponent
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -114,21 +112,11 @@ myVariable
 
         }
         #pragma warning restore 1998
-#nullable restore
-#line (17,8)-(26,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    ElementReference myElementReference;
-    TemplatedComponent myComponentReference;
-    string myVariable;
-
+        
     void MethodRenderingMarkup(RenderTreeBuilder __builder)
     {
         for (var i = 0; i < 10; i++)
         {
-
-#line default
-#line hidden
-#nullable disable
 
         __builder.OpenElement(23, "li");
         __builder.AddAttribute(24, "data-index", 

@@ -2,7 +2,7 @@
 |
     #if true
 |
-Generated Location: (733:21,0 [16] )
+Generated Location: (631:19,0 [16] )
 |
     #if true
 |
@@ -11,7 +11,7 @@ Source Location: (23:3,2 [14] x:\dir\subdir\Test\TestComponent.razor)
 |
     #endif
 |
-Generated Location: (880:30,0 [14] )
+Generated Location: (778:28,0 [14] )
 |
     #endif
 |

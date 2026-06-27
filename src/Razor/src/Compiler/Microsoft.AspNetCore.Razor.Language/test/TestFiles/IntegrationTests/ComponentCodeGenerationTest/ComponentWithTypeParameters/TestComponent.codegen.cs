@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Components;
 #nullable disable
     #line default
     #line hidden
-    #nullable restore
     public partial class TestComponent<
 #nullable restore
 #line (2,12)-(2,18) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -31,8 +30,7 @@ TItem2
 #line default
 #line hidden
 #nullable disable
-    > : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    >
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -68,17 +66,6 @@ __builder.AddContent(2, ChildContent(item2)
 
         }
         #pragma warning restore 1998
-#nullable restore
-#line (12,8)-(16,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public TItem1 Item1 { get; set; }
-    [Parameter] public List<TItem2> Items2 { get; set; }
-    [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

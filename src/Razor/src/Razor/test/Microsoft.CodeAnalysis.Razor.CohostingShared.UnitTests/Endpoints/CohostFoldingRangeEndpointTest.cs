@@ -223,6 +223,22 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             """);
 
     [Fact]
+    public Task CSharpCodeInCodeBlocks_Legacy()
+      => VerifyFoldingRangesAsync("""
+           <div>
+             Hello @_name
+           </div>
+
+           @functions {[|
+               private string _name = "Dave";
+
+               public void M() {{|implementation:
+               }|}
+           }|]
+           """,
+           fileKind: RazorFileKind.Legacy);
+
+    [Fact]
     public Task HtmlAndCSharp()
       => VerifyFoldingRangesAsync("""
             <div>{|html:
@@ -242,6 +258,26 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             """);
 
     [Fact]
+    public Task HtmlAndCSharp_Legacy()
+      => VerifyFoldingRangesAsync("""
+            <div>{|html:
+              Hello @_name
+
+                <div>{|html:
+                    Nests aren't just for birds!
+                </div>|}
+            </div>|}
+
+            @functions {[|
+                private string _name = "Dave";
+
+                public void M() {{|implementation:
+                }|}
+            }|]
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
     public Task CSharp_LineFoldingOnly()
         => VerifyFoldingRangesAsync("""
             <div>{|html:
@@ -258,8 +294,25 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             lineFoldingOnly: true);
 
     [Fact]
+    public Task CSharp_LineFoldingOnly_Legacy()
+        => VerifyFoldingRangesAsync("""
+            <div>{|html:
+              Hello @_name
+            </div>|}
+
+            @functions {[|
+                class C { public void M1() {{|implementation:
+                        var x = 1;
+            |}        }
+                }
+            }|]
+            """,
+            fileKind: RazorFileKind.Legacy,
+            lineFoldingOnly: true);
+
+    [Fact]
     public Task CSharp_NotLineFoldingOnly()
-    => VerifyFoldingRangesAsync("""
+        => VerifyFoldingRangesAsync("""
             <div>{|html:
               Hello @_name
             </div>|}
@@ -271,7 +324,24 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
                 }|]
             }|]
             """,
-        lineFoldingOnly: false);
+            lineFoldingOnly: false);
+
+    [Fact]
+    public Task CSharp_NotLineFoldingOnly_Legacy()
+        => VerifyFoldingRangesAsync("""
+           <div>{|html:
+             Hello @_name
+           </div>|}
+
+           @functions {[|
+               class C { public void M1() {[|
+                       var x = 1;
+                   }
+               }|]
+           }|]
+           """,
+            fileKind: RazorFileKind.Legacy,
+            lineFoldingOnly: false);
 
     [Fact]
     public Task IfElseStatements_LineFoldingOnly()
@@ -304,8 +374,39 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
             lineFoldingOnly: true);
 
     [Fact]
+    public Task IfElseStatements_LineFoldingOnly_Legacy()
+       => VerifyFoldingRangesAsync("""
+           <div>
+             @if (true) {[|
+               <div>
+                 Hello World
+               </div>
+               } else {[|
+               <div>
+                   Goodbye World
+               </div>
+           |]    }
+           |]  }
+           </div>
+
+           @functions[|
+           {
+               void M(){|implementation:
+               {
+                   if (true) {[|
+           |]            var x = 1;
+                   } else {[|
+                       var y = 2;
+           |]        }
+           |}    }
+           }|]
+           """,
+           fileKind: RazorFileKind.Legacy,
+           lineFoldingOnly: true);
+
+    [Fact]
     public Task CSharpExpressionBodiedMethods()
-   => VerifyFoldingRangesAsync("""
+        => VerifyFoldingRangesAsync("""
             <p>hello!</p>
 
             @code {[|

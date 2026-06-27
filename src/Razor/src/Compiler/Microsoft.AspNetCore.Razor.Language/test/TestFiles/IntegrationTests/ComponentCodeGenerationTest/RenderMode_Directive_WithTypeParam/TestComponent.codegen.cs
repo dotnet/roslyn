@@ -11,7 +11,6 @@ namespace Test
     #line default
     #line hidden
     [__PrivateComponentRenderModeAttribute]
-    #nullable restore
     public partial class TestComponent<
 #nullable restore
 #line (1,12)-(1,13) "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -20,8 +19,7 @@ T
 #line default
 #line hidden
 #nullable disable
-    > : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
+    >
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)

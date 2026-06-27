@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -70,16 +70,42 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
 
     protected void AssertCSharpDocumentMatchesBaseline(RazorCodeDocument codeDocument, bool verifyLinePragmas = true, [CallerMemberName] string testName = "")
     {
-        var document = codeDocument.GetRequiredCSharpDocument();
+        var implDocument = codeDocument.GetRequiredImplCSharpDocument();
+        AssertCSharpHalfMatchesBaseline(codeDocument, implDocument, ".codegen.cs", ".diagnostics.txt", ".mappings.txt", testName);
 
+        // When the decl phase has split the document, also assert the decl half against
+        // its own set of baselines. Note that the decl half is written with
+        // reportDiagnostics: false: the impl writer seeds its synthetic root with
+        // documentNode.GetAllDiagnostics() and reports the full set, so suppressing
+        // duplicate reporting on the decl side keeps each Razor-detected diagnostic on
+        // exactly one half. As a side effect there is no .decl.diagnostics.txt baseline
+        // to commit -- the regen path treats an empty diagnostics list as "delete the
+        // baseline file" and the decl half always has one.
+        if (codeDocument.GetDeclCSharpDocument() is { } declDocument)
+        {
+            AssertCSharpHalfMatchesBaseline(codeDocument, declDocument, ".decl.codegen.cs", ".decl.diagnostics.txt", ".decl.mappings.txt", testName);
+        }
+
+        if (verifyLinePragmas)
+        {
+            AssertLinePragmas(codeDocument);
+        }
+    }
+
+    private void AssertCSharpHalfMatchesBaseline(
+        RazorCodeDocument codeDocument,
+        RazorCSharpDocument document,
+        string codegenExtension,
+        string diagnosticsExtension,
+        string mappingsExtension,
+        string testName)
+    {
         // Normalize newlines to match those in the baseline.
         var actualCode = document.Text.ToString().Replace("\r", "").Replace("\n", "\r\n");
 
-        var baselineFilePath = GetBaselineFilePath(codeDocument, ".codegen.cs", testName);
-        var baselineDiagnosticsFilePath = GetBaselineFilePath(codeDocument, ".diagnostics.txt", testName);
-        var baselineMappingsFilePath = GetBaselineFilePath(codeDocument, ".mappings.txt", testName);
-
-        var serializedMappings = SourceMappingsSerializer.Serialize(document, codeDocument.Source);
+        var baselineFilePath = GetBaselineFilePath(codeDocument, codegenExtension, testName);
+        var baselineDiagnosticsFilePath = GetBaselineFilePath(codeDocument, diagnosticsExtension, testName);
+        var baselineMappingsFilePath = GetBaselineFilePath(codeDocument, mappingsExtension, testName);
 
         if (GenerateBaselines.ShouldGenerate)
         {
@@ -141,16 +167,11 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         var actualMappings = SourceMappingsSerializer.Serialize(document, codeDocument.Source);
         actualMappings = actualMappings.Replace("\r", "").Replace("\n", "\r\n");
         Assert.Equal(baselineMappings, actualMappings);
-
-        if (verifyLinePragmas)
-        {
-            AssertLinePragmas(codeDocument);
-        }
     }
 
     protected void AssertLinePragmas(RazorCodeDocument codeDocument)
     {
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetImplCSharpDocument();
         Assert.NotNull(csharpDocument);
         var linePragmas = csharpDocument.LinePragmas;
         var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree() ?? codeDocument.GetRequiredSyntaxTree();
@@ -234,7 +255,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         }
     }
 
-    private string GetBaselineFilePath(RazorCodeDocument codeDocument, string extension, string testName)
+    protected string GetBaselineFilePath(RazorCodeDocument codeDocument, string extension, string testName)
     {
         if (codeDocument == null)
         {

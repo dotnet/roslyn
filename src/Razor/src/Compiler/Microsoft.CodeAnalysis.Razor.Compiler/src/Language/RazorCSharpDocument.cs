@@ -17,13 +17,15 @@ public sealed class RazorCSharpDocument
     public ImmutableArray<SourceMapping> SourceMappingsSortedByGenerated { get; }
     public ImmutableArray<SourceMapping> SourceMappingsSortedByOriginal { get; }
     public ImmutableArray<LinePragma> LinePragmas { get; }
+    public bool IsDeclarationDocument { get; }
 
     public RazorCSharpDocument(
         RazorCodeDocument codeDocument,
         SourceText text,
         ImmutableArray<RazorDiagnostic> diagnostics,
         ImmutableArray<SourceMapping> sourceMappings = default,
-        ImmutableArray<LinePragma> linePragmas = default)
+        ImmutableArray<LinePragma> linePragmas = default,
+        bool isDeclarationDocument = false)
     {
         ArgHelper.ThrowIfNull(codeDocument);
         ArgHelper.ThrowIfNull(text);
@@ -48,5 +50,6 @@ public sealed class RazorCSharpDocument
 
         SourceMappingsSortedByOriginal = SourceMappingsSortedByGenerated.Sort(static (m1, m2) => m1.OriginalSpan.CompareByStartThenLength(m2.OriginalSpan));
         LinePragmas = linePragmas.NullToEmpty();
+        IsDeclarationDocument = isDeclarationDocument;
     }
 }

@@ -43,8 +43,9 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
         Document document;
         if (codeBehindUri is null)
         {
-            // Edit is for inserting into the generated document
-            document = await documentContext.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            // Edit is for inserting into the generated document. Since we're just getting the simplification edits, it doesn't matter
+            // which C# document we use, so just use the impl document since it always exists.
+            document = await documentContext.Snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         }
         else
         {

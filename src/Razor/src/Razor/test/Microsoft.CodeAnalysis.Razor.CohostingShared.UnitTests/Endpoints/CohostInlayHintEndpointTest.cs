@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Testing;
@@ -63,6 +64,49 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
             """);
 
     [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public Task InlayHints_Legacy()
+        => VerifyInlayHintsAsync(
+            input: """
+
+            <div></div>
+
+            @functions {
+                private void M(string thisIsMyString)
+                {
+                    var {|int:x|} = 5;
+
+                    var {|string:y|} = "Hello";
+
+                    M({|thisIsMyString:"Hello"|});
+                }
+            }
+
+            """,
+            toolTipMap: new Dictionary<string, string>
+            {
+                { "int",            "struct System.Int32"            },
+                { "string",         "class System.String"            },
+                { "thisIsMyString", "(parameter) string thisIsMyStr" }
+            },
+            output: """
+
+            <div></div>
+
+            @functions {
+                private void M(string thisIsMyString)
+                {
+                    int x = 5;
+
+                    string y = "Hello";
+
+                    M(thisIsMyString: "Hello");
+                }
+            }
+
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
     public Task InlayHints_DisplayAllOverride()
         => VerifyInlayHintsAsync(
             input: """
@@ -104,6 +148,121 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
             """,
             displayAllOverride: true);
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public Task InlayHints_DisplayAllOverride_Legacy()
+        => VerifyInlayHintsAsync(
+            input: """
+
+            <div></div>
+
+            @functions {
+                private void M(string thisIsMyString)
+                {
+                    {|int:var|} x = 5;
+
+                    {|string:var|} y = "Hello";
+
+                    M({|thisIsMyString:"Hello"|});
+                }
+            }
+
+            """,
+            toolTipMap: new Dictionary<string, string>
+            {
+                { "int",            "struct System.Int32"            },
+                { "string",         "class System.String"            },
+                { "thisIsMyString", "(parameter) string thisIsMyStr" }
+            },
+            output: """
+
+            <div></div>
+
+            @functions {
+                private void M(string thisIsMyString)
+                {
+                    int x = 5;
+
+                    string y = "Hello";
+
+                    M(thisIsMyString: "Hello");
+                }
+            }
+
+            """,
+            displayAllOverride: true,
+            fileKind: RazorFileKind.Legacy);
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public Task InlayHints_ExplicitStatementAndCodeBlock()
+        => VerifyInlayHintsAsync(
+            input: """
+            <div></div>
+            @{
+                var {|string:x|} = "asdf";
+            }
+
+            @code {
+                private void M()
+                {
+                    var {|int:y|} = 1;
+                }
+            }
+            """,
+            toolTipMap: new Dictionary<string, string>
+            {
+                { "int",    "struct System.Int32" },
+                { "string", "class System.String" }
+            },
+            output: """
+            <div></div>
+            @{
+                string x = "asdf";
+            }
+
+            @code {
+                private void M()
+                {
+                    int y = 1;
+                }
+            }
+            """);
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public Task InlayHints_ExplicitStatementAndCodeBlock_Legacy()
+        => VerifyInlayHintsAsync(
+            input: """
+            <div></div>
+            @{
+                var {|string:x|} = "asdf";
+            }
+
+            @functions {
+                private void M()
+                {
+                    var {|int:y|} = 1;
+                }
+            }
+            """,
+            toolTipMap: new Dictionary<string, string>
+            {
+                { "int",    "struct System.Int32" },
+                { "string", "class System.String" }
+            },
+            output: """
+            <div></div>
+            @{
+                string x = "asdf";
+            }
+
+            @functions {
+                private void M()
+                {
+                    int y = 1;
+                }
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
 
     [Fact]
     public Task InlayHints_ComponentAttributes()
@@ -194,10 +353,31 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
             """);
 
-    private async Task VerifyInlayHintsAsync(string input, Dictionary<string, string> toolTipMap, string output, bool displayAllOverride = false)
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public Task AttributeDirective_Legacy()
+       => VerifyInlayHintsAsync(
+           input: """
+            @attribute [System.ComponentModel.Description({|description:"Desc"|})]
+
+            <div></div>
+
+            """,
+           toolTipMap: new Dictionary<string, string>
+           {
+                { "description", "(parameter) string description" },
+           },
+           output: """
+            @attribute [System.ComponentModel.Description(description: "Desc")]
+
+            <div></div>
+
+            """,
+           fileKind: RazorFileKind.Legacy);
+
+    private async Task VerifyInlayHintsAsync(string input, Dictionary<string, string> toolTipMap, string output, bool displayAllOverride = false, RazorFileKind? fileKind = null)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spansDict);
-        var document = CreateProjectAndRazorDocument(input);
+        var document = CreateProjectAndRazorDocument(input, fileKind);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var endpoint = new CohostInlayHintEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
