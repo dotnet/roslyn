@@ -173,6 +173,7 @@ internal static class NamedTypeGenerator
             case SyntaxKind.InterfaceDeclaration:
             case SyntaxKind.ClassDeclaration:
             case SyntaxKind.RecordDeclaration:
+            case SyntaxKind.ExtensionBlockDeclaration:
                 return ((TypeDeclarationSyntax)declaration).WithMembers(default);
 
             default:
@@ -185,6 +186,25 @@ internal static class NamedTypeGenerator
         CodeGenerationDestination destination,
         CSharpCodeGenerationContextInfo info)
     {
+        if (namedType.IsExtension)
+        {
+            var parameterList = namedType.ExtensionParameter is { } extensionParameter
+                ? ParameterGenerator.GenerateParameterList([extensionParameter], isExplicit: false, info)
+                : ParameterList();
+
+            return ExtensionBlockDeclaration(
+                GenerateAttributeDeclarations(namedType, info),
+                modifiers: default,
+                ExtensionKeyword,
+                GenerateTypeParameterList(namedType, info),
+                parameterList,
+                GenerateConstraintClauses(namedType),
+                openBraceToken: default,
+                members: default,
+                closeBraceToken: default,
+                semicolonToken: default);
+        }
+
         if (namedType.TypeKind == TypeKind.Enum)
         {
             return GenerateEnumDeclaration(namedType, destination, info);

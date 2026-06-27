@@ -2887,19 +2887,62 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             metadataLanguageVersion: "Preview");
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        // BUG #82258: navigation should land on member M, but currently lands at the start of the file.
         TestContext.VerifyResult(metadataAsSourceFile, $$"""
-            [||]#region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
             // {{CodeAnalysisResources.InMemoryAssembly}}
             #endregion
 
             public static class ObjectExtensions
             {
-                public static void M(this object o, int x);
-
-                public static class{{" "}}
+                extension(object o)
                 {
-                    public void M(int x);
+                    public void [|M|](int x);
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/82258")]
+    public async Task TestNavigationViaNewExtensionPropertyCS()
+    {
+        var metadata = """
+            public static class ObjectExtensions
+            {
+                extension(object o)
+                {
+                    public int P => 1;
+                }
+            }
+            """;
+        var sourceWithSymbolReference = """
+
+            class C
+            {
+                void M()
+                {
+                    _ = new object().[|P|];
+                }
+            }
+            """;
+        using var context = TestContext.Create(
+            LanguageNames.CSharp,
+            [metadata],
+            includeXmlDocComments: false,
+            sourceWithSymbolReference: sourceWithSymbolReference,
+            languageVersion: "Preview",
+            metadataLanguageVersion: "Preview");
+        var navigationSymbol = await context.GetNavigationSymbolAsync();
+        var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+        TestContext.VerifyResult(metadataAsSourceFile, $$"""
+            #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            // {{CodeAnalysisResources.InMemoryAssembly}}
+            #endregion
+
+            public static class ObjectExtensions
+            {
+                extension(object o)
+                {
+                    public int [|P|] { get; }
                 }
             }
             """);
