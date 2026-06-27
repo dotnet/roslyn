@@ -2856,6 +2856,55 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """);
     }
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/82258")]
+    public async Task TestNavigationViaNewExtensionMethodCS()
+    {
+        var metadata = """
+            public static class ObjectExtensions
+            {
+                extension(object o)
+                {
+                    public void M(int x) { }
+                }
+            }
+            """;
+        var sourceWithSymbolReference = """
+
+            class C
+            {
+                void M()
+                {
+                    new object().[|M|](5);
+                }
+            }
+            """;
+        using var context = TestContext.Create(
+            LanguageNames.CSharp,
+            [metadata],
+            includeXmlDocComments: false,
+            sourceWithSymbolReference: sourceWithSymbolReference,
+            languageVersion: "Preview",
+            metadataLanguageVersion: "Preview");
+        var navigationSymbol = await context.GetNavigationSymbolAsync();
+        var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+        // BUG #82258: navigation should land on member M, but currently lands at the start of the file.
+        TestContext.VerifyResult(metadataAsSourceFile, $$"""
+            [||]#region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            // {{CodeAnalysisResources.InMemoryAssembly}}
+            #endregion
+
+            public static class ObjectExtensions
+            {
+                public static void M(this object o, int x);
+
+                public static class{{" "}}
+                {
+                    public void M(int x);
+                }
+            }
+            """);
+    }
+
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
     public async Task TestNavigationViaReducedExtensionMethodVB()
     {
