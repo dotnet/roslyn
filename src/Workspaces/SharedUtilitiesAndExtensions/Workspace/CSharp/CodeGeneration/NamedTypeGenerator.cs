@@ -173,6 +173,7 @@ internal static class NamedTypeGenerator
             case SyntaxKind.InterfaceDeclaration:
             case SyntaxKind.ClassDeclaration:
             case SyntaxKind.RecordDeclaration:
+            case SyntaxKind.ExtensionBlockDeclaration:
                 return ((TypeDeclarationSyntax)declaration).WithMembers(default);
 
             default:
