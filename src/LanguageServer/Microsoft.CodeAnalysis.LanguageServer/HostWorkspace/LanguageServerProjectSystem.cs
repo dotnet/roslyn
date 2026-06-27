@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.NET.ProjectData;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -188,5 +189,49 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             PreferredBuildHostKind = preferredBuildHostKind,
             ActualBuildHostKind = actualBuildHostKind
         };
+    }
+
+    protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+    {
+        var projectCache = await CacheFileReader.ReadProjectCacheAsync(projectPath, cacheInProject: false, cancellationToken);
+
+        if (projectCache.IsEmpty)
+            return null;
+
+        return (projectCache.SelectAsArray(static slice =>
+        {
+            string? GetProperty(string name) => slice.Properties.TryGetValue(name, out var value) ? value : null;
+
+            return new ProjectFileInfo
+            {
+                IsEmpty = false,
+                Language = slice.LanguageName,
+                FilePath = slice.ProjectFilePath,
+                OutputFilePath = GetProperty("TargetPath"),
+                OutputRefFilePath = GetProperty("TargetRefPath"),
+                IntermediateOutputFilePath = GetProperty("IntermediateAssembly"),
+                GeneratedFilesOutputDirectory = GetProperty("CompilerGeneratedFilesOutputPath"),
+                DefaultNamespace = GetProperty("RootNamespace"),
+                TargetFramework = GetProperty("TargetFramework"),
+                TargetFrameworkIdentifier = GetProperty("TargetFrameworkIdentifier"),
+                TargetFrameworkVersion = GetProperty("TargetFrameworkVersion"),
+                ProjectAssetsFilePath = GetProperty("ProjectAssetsFile"),
+                CommandLineArgs = [.. slice.CommandLineArguments],
+                Documents = slice.SourceFiles.SelectAsArray(static file =>
+                    new DocumentFileInfo(file.FilePath, file.Link ?? file.FilePath, isLinked: file.Link is not null, isGenerated: false, folders: [])).ToArray(),
+                AdditionalDocuments = slice.AdditionalFiles.SelectAsArray(static path =>
+                    new DocumentFileInfo(path, path, isLinked: false, isGenerated: false, folders: [])).ToArray(),
+                AnalyzerConfigDocuments = slice.AnalyzerConfigFiles.SelectAsArray(static path =>
+                    new DocumentFileInfo(path, path, isLinked: false, isGenerated: false, folders: [])).ToArray(),
+                ProjectReferences = slice.ProjectReferences.SelectAsArray(static path =>
+                    new ProjectFileReference(path, aliases: [], referenceOutputAssembly: true)).ToArray(),
+                MetadataReferences = slice.MetadataReferences.SelectAsArray(static reference =>
+                    new MetadataReferenceItem(reference.FilePath, [.. reference.Aliases])).ToArray(),
+                ProjectCapabilities = [.. slice.Capabilities],
+                ContentFilePaths = [],
+                PackageReferences = [],
+                FileGlobs = [],
+            };
+        }), _hostProjectFactory);
     }
 }
