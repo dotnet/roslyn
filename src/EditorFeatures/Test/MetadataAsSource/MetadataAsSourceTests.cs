@@ -2910,7 +2910,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             {
                 extension(object o)
                 {
-                    public int P => 1;
+                    public int P { get => 1; set { } }
                 }
             }
             """;
@@ -2920,7 +2920,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             {
                 void M()
                 {
-                    _ = new object().[|P|];
+                    new object().[|P|] = 1;
                 }
             }
             """;
@@ -2942,7 +2942,57 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             {
                 extension(object o)
                 {
-                    public int [|P|] { get; }
+                    public int [|P|] { get; set; }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/82258")]
+    public async Task TestNavigationViaNewGenericExtensionMethodCS()
+    {
+        var metadata = """
+            #nullable enable
+
+            public static class ObjectExtensions
+            {
+                extension<T>(T t) where T : class?
+                {
+                    public void M() { }
+                }
+            }
+            """;
+        var sourceWithSymbolReference = """
+
+            class C
+            {
+                void M()
+                {
+                    new object().[|M|]();
+                }
+            }
+            """;
+        using var context = TestContext.Create(
+            LanguageNames.CSharp,
+            [metadata],
+            includeXmlDocComments: false,
+            sourceWithSymbolReference: sourceWithSymbolReference,
+            languageVersion: "Preview",
+            metadataLanguageVersion: "Preview");
+        var navigationSymbol = await context.GetNavigationSymbolAsync();
+        var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+        TestContext.VerifyResult(metadataAsSourceFile, $$"""
+            #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            // {{CodeAnalysisResources.InMemoryAssembly}}
+            #endregion
+
+            #nullable enable
+
+            public static class ObjectExtensions
+            {
+                extension<T>(T t) where T : class?
+                {
+                    public void [|M|]();
                 }
             }
             """);
